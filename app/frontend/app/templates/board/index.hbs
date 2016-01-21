@@ -57,15 +57,13 @@
               </div>
             {{/each}}
           {{else}}
-            {{#with recompute_flag as |flag|}}
-              {{#each ordered_buttons as |row|}}
-                <div class="button_row">
-                  {{#each row as |button|}}
-                    {{partial "button-unbound"}}
-                  {{/each}}
-                </div>
-              {{/each}}
-            {{/with}}
+            {{#each ordered_buttons as |row|}}
+              <div class="button_row">
+                {{#each row as |button|}}
+                  {{partial "button"}}
+                {{/each}}
+              </div>
+            {{/each}}
           {{/if}}
         {{else}}
           <span class="board_status">
