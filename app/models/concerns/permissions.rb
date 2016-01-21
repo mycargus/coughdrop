@@ -9,7 +9,7 @@ module Permissions
   
   def cache_key(prefix=nil)
     return nil unless self.id
-    key = "#{self.class.to_s}#{self.id}-#{self.updated_at.to_i}"
+    key = "#{self.class.to_s}#{self.id}-#{self.updated_at.to_f}"
     if prefix
       key = prefix + "/" + key
     end
