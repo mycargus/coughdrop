@@ -13,10 +13,13 @@
       {{notif.text}}
     </span>
   {{else if notif.board_buttons_changed}}
-    {{#link-to 'user' notif.key}}
+    {{#link-to 'board' notif.key}}
       {{notif.name}}
     {{/link-to}}
     {{t " - board was modified" key='board_contents changed'}}
+    {{#link-to 'board.history' notify.key}}
+      {{t "(history)" key='paren_history'}}
+    {{/link-to}}
     <br/>
     <span style="color: #888; font-size: 10px; white-space: nowrap; overflow: hidden; display: block;">
       <span title="{{unbound date notif.occurred_at}}">
