@@ -12,6 +12,8 @@ export default modal.ModalController.extend({
     return this.get('model.type') == 'obf';
   }.property('model.type'),
   opening: function() {
+    this.set('progress', null);
+    this.set('track_id', null);
     if(persistence.get('online')) {
       this.send('startDownload');
     }
