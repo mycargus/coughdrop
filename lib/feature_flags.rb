@@ -1,5 +1,5 @@
 module FeatureFlags
-  AVAILABLE_FRONTEND_FEATURES = ['subscriptions', 'assessments', 'custom_sidebar']
+  AVAILABLE_FRONTEND_FEATURES = ['subscriptions', 'assessments', 'custom_sidebar', 'canvas_render']
   ENABLED_FRONTEND_FEATURES = ['subscriptions', 'assessments']
   DISABLED_CANARY_FEATURES = []
   def self.frontend_flags_for(user)

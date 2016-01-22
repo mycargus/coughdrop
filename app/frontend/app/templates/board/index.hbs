@@ -33,7 +33,6 @@
       {{/if}}
     </div>
   {{/if}}
-  <!--canvas id="board_canvas" style="left: 0; position: absolute; margin-top: -10px;"></canvas-->
   {{#with model as |board|}}
   <div style={{board_style}} class={{display_class}} data-id={{board.id}}>
     {{#if nothing_visible_not_edit}}
@@ -57,13 +56,17 @@
               </div>
             {{/each}}
           {{else}}
-            {{#each ordered_buttons as |row|}}
-              <div class="button_row">
-                {{#each row as |button|}}
-                  {{partial "button-unbound"}}
-                {{/each}}
-              </div>
-            {{/each}}
+            {{#if app_state.currentUser.preferences.device.canvas_render}}
+              {{board-canvas id="board_canvas" redraw='redraw' tabindex='0'}}
+            {{else}}
+              {{#each ordered_buttons as |row|}}
+                <div class="button_row">
+                  {{#each row as |button|}}
+                    {{partial "button-unbound"}}
+                  {{/each}}
+                </div>
+              {{/each}}
+            {{/if}}
           {{/if}}
         {{else}}
           <span class="board_status">

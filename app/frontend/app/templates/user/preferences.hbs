@@ -361,6 +361,19 @@
     {{bound-select select_class="form-control" select_id="button_text" content=buttonTextList selection=model.preferences.device.button_text action=(action (mut model.preferences.device.button_text)) }}
   </div>
 </div>
+{{#if app_state.feature_flags.canvas_render}}
+  <div class="form-group">
+    <label for="canvas_render" class="col-sm-3 control-label">{{t "Rendering" key='rendering'}}</label>
+    <div class="col-sm-5">
+      <div class="checkbox">
+        <label>
+          {{input type="checkbox" checked=model.preferences.device.canvas_render id="canvas_render"}}
+          {{t "Render using Canvas in Speak Mode (experimental)" key='canvas_render'}}
+        </label>
+      </div>
+    </div>
+  </div>
+{{/if}}
 {{#if advanced}}
 <div class="form-group">
   <label for="button_text" class="col-sm-3 control-label">{{t "Button Text Style" key='button_style'}}</label>
