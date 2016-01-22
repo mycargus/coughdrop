@@ -32,11 +32,7 @@ Ember.onerror = function(err) {
 //   debugger
 // });
 
-var CoughDrop = Ember.Application.extend({
-  modulePrefix: config.modulePrefix,
-  podModulePrefix: config.podModulePrefix,
-  Resolver: Resolver,
-  customEvents: {
+var customEvents = {
     'buttonselect': 'buttonSelect',
     'buttonpaint': 'buttonPaint',
     'actionselect': 'actionSelect',
@@ -45,7 +41,13 @@ var CoughDrop = Ember.Application.extend({
     'clear': 'clear',
     'stash': 'stash',
     'select': 'select'
-  },
+};
+
+var CoughDrop = Ember.Application.extend({
+  modulePrefix: config.modulePrefix,
+  podModulePrefix: config.podModulePrefix,
+  Resolver: Resolver,
+  customEvents: customEvents,
   ready: function() {
     // remove the splash screen if showing
     if(capabilities.installed_app || (navigator && navigator.splashscreen && navigator.splashscreen.hide)) {
@@ -303,6 +305,7 @@ Ember.run.later(CoughDrop.YT.poll, 500);
 CoughDrop.boxPad = 17;
 CoughDrop.borderPad = 5;
 CoughDrop.labelHeight = 15;
+CoughDrop.customEvents = customEvents;
 CoughDrop.expired = function() {
   var keys = window.app_version.match(/(\d+)\.(\d+)\.(\d+)/);
   var version = parseInt(keys[1] + keys[2] + keys[3], 10);

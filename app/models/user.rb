@@ -292,7 +292,8 @@ class User < ActiveRecord::Base
       'scanning_mode', 'scanning_select_keycode', 'scanning_next_keycode',
       'scanning_select_on_any_event', 'vocalize_linked_buttons', 'sidebar_boards',
       'silence_spelling_buttons', 'stretch_buttons', 'registration_type',
-      'board_background', 'vocalization_height', 'role', 'auto_open_speak_mode']
+      'board_background', 'vocalization_height', 'role', 'auto_open_speak_mode',
+      'canvas_render']
 
   PROGRESS_PARAMS = ['setup_done', 'intro_watched', 'profile_edited', 'preferences_edited', 'home_board_set', 'app_added', 'skipped_subscribe_modal']
   def process_params(params, non_user_params)
