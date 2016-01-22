@@ -76,6 +76,9 @@ h1 a:focus {
     text-decoration: none;
   }
 }
+#board_canvas {
+  outline: none;
+}
 .really_bold {
   font-weight: bold;
   font-size: 18px;

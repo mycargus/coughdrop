@@ -42,19 +42,27 @@ var boundClasses = {};
           // and use them without tinycolor if approved
           var border = window.tinycolor(button.border_color || '#eee');
           str = str + 'border-color: ' + border.toRgbString() + ';';
-          hoverStr = hoverStr + 'border-color: ' + window.tinycolor(border.toRgb()).darken(5).toRgbString() + ';';
+          button.dark_border_color = window.tinycolor(border.toRgb()).darken(5).toRgbString();
+          hoverStr = hoverStr + 'border-color: ' + button.dark_border_color + ';';
         }
         if(button.background_color) {
           var fill = window.tinycolor(button.background_color || '#fff');
           str = str + 'background-color: ' + fill.toRgbString() + ';';
-          hoverStr = hoverStr + 'background-color: ' + window.tinycolor(fill.toRgb()).darken(5).toRgbString() + ';';
+          button.dark_background_color = window.tinycolor(fill.toRgb()).darken(5).toRgbString();
+          hoverStr = hoverStr + 'background-color: ' + button.dark_background_color + ';';
           var text = window.tinycolor.mostReadable(fill, ['#fff', '#000']);
-          str = str + 'color: ' + text.toRgbString() + ';';
+          button.text_color = text.toRgbString();
+          str = str + 'color: ' + button.text_color + ';';
         }
         
         add_css_rule('.button.' + key, str);
         add_css_rule('.button.' + key + ':hover, .button.' + key + '.touched, .button.' + key + ':focus', hoverStr);
-        this.classes[key] = [str, hoverStr];
+        this.classes[key] = [str, hoverStr, button.dark_border_color, button.dark_background_color, button.text_color];
+      } else {
+        var vals = this.classes[key];
+        button.dark_border_color = vals[2];
+        button.dark_background_color = vals[3];
+        button.text_color = vals[4];
       }
       return true;
     },

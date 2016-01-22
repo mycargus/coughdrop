@@ -97,20 +97,20 @@ describe('boundClasses', function() {
     it("should parse various coloring styles", function() {
       boundClasses.setup();
       var button = Button.create({background_color: '#fff'});
-      expect(boundClasses.classes[boundClasses.keyify(button)]).toEqual(['background-color: rgb(255, 255, 255);color: rgb(0, 0, 0);', 'background-color: rgb(242, 242, 242);']);
+      expect(boundClasses.classes[boundClasses.keyify(button)]).toEqual(['background-color: rgb(255, 255, 255);color: rgb(0, 0, 0);', 'background-color: rgb(242, 242, 242);', undefined, 'rgb(242, 242, 242)', 'rgb(0, 0, 0)']);
       button.set('background_color', '#aabbcc');
-      expect(boundClasses.classes[boundClasses.keyify(button)]).toEqual(['background-color: rgb(170, 187, 204);color: rgb(0, 0, 0);', 'background-color: rgb(154, 174, 194);']);
+      expect(boundClasses.classes[boundClasses.keyify(button)]).toEqual(['background-color: rgb(170, 187, 204);color: rgb(0, 0, 0);', 'background-color: rgb(154, 174, 194);', undefined, 'rgb(154, 174, 194)', 'rgb(0, 0, 0)']);
       button.set('background_color', 'green');
-      expect(boundClasses.classes[boundClasses.keyify(button)]).toEqual(['background-color: rgb(0, 128, 0);color: rgb(255, 255, 255);', 'background-color: rgb(0, 102, 0);']);
+      expect(boundClasses.classes[boundClasses.keyify(button)]).toEqual(['background-color: rgb(0, 128, 0);color: rgb(255, 255, 255);', 'background-color: rgb(0, 102, 0);', undefined, 'rgb(0, 102, 0)', 'rgb(255, 255, 255)']);
       button.set('background_color', 'rgb(255,255,255)');
-      expect(boundClasses.classes[boundClasses.keyify(button)]).toEqual(['background-color: rgb(255, 255, 255);color: rgb(0, 0, 0);', 'background-color: rgb(242, 242, 242);']);
+      expect(boundClasses.classes[boundClasses.keyify(button)]).toEqual(['background-color: rgb(255, 255, 255);color: rgb(0, 0, 0);', 'background-color: rgb(242, 242, 242);', undefined, 'rgb(242, 242, 242)', 'rgb(0, 0, 0)']);
       button.set('background_color', 'rgba(255,255,255,0.5)');
-      expect(boundClasses.classes[boundClasses.keyify(button)]).toEqual(['background-color: rgba(255, 255, 255, 0.5);color: rgb(0, 0, 0);', 'background-color: rgba(242, 242, 242, 0.5);']);
+      expect(boundClasses.classes[boundClasses.keyify(button)]).toEqual(['background-color: rgba(255, 255, 255, 0.5);color: rgb(0, 0, 0);', 'background-color: rgba(242, 242, 242, 0.5);', undefined, 'rgba(242, 242, 242, 0.5)', 'rgb(0, 0, 0)']);
     });
     it("should add CSS rules to the style object", function() {
       boundClasses.setup();
       var button = Button.create({background_color: '#fff'});
-      expect(boundClasses.classes[boundClasses.keyify(button)]).toEqual(['background-color: rgb(255, 255, 255);color: rgb(0, 0, 0);', 'background-color: rgb(242, 242, 242);']);
+      expect(boundClasses.classes[boundClasses.keyify(button)]).toEqual(['background-color: rgb(255, 255, 255);color: rgb(0, 0, 0);', 'background-color: rgb(242, 242, 242);', undefined, 'rgb(242, 242, 242)', 'rgb(0, 0, 0)']);
       var styles = document.head.getElementsByTagName('style');
       var style = styles[styles.length - 1];
       expect(style.getAttribute('data-for-board')).toEqual('true');

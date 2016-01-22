@@ -644,7 +644,105 @@ var app_state = Ember.Object.extend({
   }.property(),
   logging_paused: function() {
     return !!stashes.get('logging_paused_at');
-  }.property('stashes.logging_paused_at')
+  }.property('stashes.logging_paused_at'),
+  board_virtual_dom: function() {
+    var _this = this;
+    var dom = {
+      sendAction: function() {
+      },
+      trigger: function(event, id, args) {
+        if(CoughDrop.customEvents[event]) {
+          dom.sendAction(CoughDrop.customEvents[event], id, {event: args});
+        }
+      },
+      each_button: function(callback) {
+        var rows =_this.get('board_virtual_dom.ordered_buttons') || [];
+        var idx = 0;
+        rows.forEach(function(row) {
+          row.forEach(function(b) {
+            if(!b.hidden) {
+              b.idx = idx;
+              idx++;
+              callback(b);
+            }
+          });
+        });
+      },
+      add_state: function(state, id) {
+        if(state == 'touched' || state == 'hover') {
+          dom.clear_state(state, id);
+          dom.each_button(function(b) {
+            if(b.id == id && !Ember.get(b, state)) {
+              Ember.set(b, state, true);
+              dom.sendAction('redraw', b.id);
+            }
+          });
+        }
+      },
+      clear_state: function(state, except_id) {
+        dom.each_button(function(b) {
+          if(b.id != except_id && Ember.get(b, state)) {
+            Ember.set(b, state, false);
+            dom.sendAction('redraw', b.id);
+          }
+        });
+      },
+      clear_touched: function() {
+        dom.clear_state('touched');
+//        dom.sendAction('redraw');
+      },
+      clear_hover: function() {
+        dom.clear_state('hover');
+//        dom.sendAction('redraw');
+      },
+      button_result: function(b) {
+        var pos = b.positioning;
+        return {
+          id: b.id,
+          left: pos.left,
+          top: pos.top,
+          width: pos.width,
+          height: pos.height,
+          button: true,
+          index: b.idx
+        };
+      },
+      button_from_point: function(x, y) {
+        var res = null;
+        dom.each_button(function(b) {
+          var pos = b.positioning;
+          if(!b.hidden) {
+            if(x > pos.left - 2 && x < pos.left + pos.width + 2) {
+              if(y > pos.top - 2 && y < pos.top + pos.height + 2) {
+                res = dom.button_result(b);
+              }
+            }
+          }
+        });
+        return res;
+      },
+      button_from_index: function(idx) {
+        var res = null;
+        dom.each_button(function(b) {
+          if(b.idx == idx || (idx == -2)) {
+            res = dom.button_result(b);
+          }
+        });
+        return res;
+      },
+      button_from_id: function(id) {
+        var res = null;
+        dom.each_button(function(b) {
+          var pos = b.positioning;
+          if(b.id == id) {
+            res = dom.button_result(b);
+          }
+        });
+        return res;
+      }
+    };
+    return dom;
+  }.property()
 }).create({
 });
 

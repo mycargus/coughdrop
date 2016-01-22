@@ -23,6 +23,9 @@ export default Ember.Route.extend({
       parent_key: model.get('parent_board_key')
     });
     editManager.setup(controller);
+    app_state.set('board_virtual_dom.sendAction', function(action, id, extra) {
+      controller.send(action, id, extra);
+    });
     contentGrabbers.board_controller = controller;
     model.without_lookups(function() {
       controller.processButtons();
