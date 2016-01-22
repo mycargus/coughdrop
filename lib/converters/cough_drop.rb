@@ -64,32 +64,36 @@ module Converters::CoughDrop
       end
       if original_button['image_id']
         image = board.button_images.detect{|i| i.global_id == original_button['image_id'] }
-        image = {
-          'id' => image.global_id,
-          'width' => image.settings['width'],
-          'height' => image.settings['height'],
-          'license' => OBF::Utils.parse_license(image.settings['license']),
-          'url' => image.url,
-          'data_url' => "#{JsonApi::Json.current_host}/api/v1/images/#{image.global_id}",
-          'content_type' => image.settings['content_type']
-        }
+        if(image) {
+          image = {
+            'id' => image.global_id,
+            'width' => image.settings['width'],
+            'height' => image.settings['height'],
+            'license' => OBF::Utils.parse_license(image.settings['license']),
+            'url' => image.url,
+            'data_url' => "#{JsonApi::Json.current_host}/api/v1/images/#{image.global_id}",
+            'content_type' => image.settings['content_type']
+          }
 
-        res['images'] << image
-        button['image_id'] = image['id']
+          res['images'] << image
+          button['image_id'] = image['id']
+        }
       end
       if original_button['sound_id']
         sound = board.button_sounds.detect{|i| i.global_id == original_button['sound_id'] }
-        sound = {
-          'id' => sound.global_id,
-          'duration' => sound.settings['duration'],
-          'license' => OBF::Utils.parse_license(sound.settings['license']),
-          'url' => sound.url,
-          'data_url' => "#{JsonApi::Json.current_host}/api/v1/sounds/#{sound.global_id}",
-          'content_type' => sound.settings['content_type']
-        }
+        if(sound) {
+          sound = {
+            'id' => sound.global_id,
+            'duration' => sound.settings['duration'],
+            'license' => OBF::Utils.parse_license(sound.settings['license']),
+            'url' => sound.url,
+            'data_url' => "#{JsonApi::Json.current_host}/api/v1/sounds/#{sound.global_id}",
+            'content_type' => sound.settings['content_type']
+          }
         
-        res['sounds'] << sound
-        button['sound_id'] = original_button['sound_id']
+          res['sounds'] << sound
+          button['sound_id'] = original_button['sound_id']
+        }
       end
       res['buttons'] << button
       Progress.update_current_progress(idx.to_f / button_count.to_f)
