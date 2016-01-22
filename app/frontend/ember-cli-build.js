@@ -39,6 +39,7 @@ module.exports = function(defaults) {
   app.import('vendor/media_recorder/media_recorder.js');
   app.import('vendor/speak_js/speakClient.js');
   app.import('vendor/speech/speech.js');
+//  app.import('bower_components/hammer-time/hammer-time.js');
 
   return app.toTree();
 };
