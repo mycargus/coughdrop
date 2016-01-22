@@ -21,6 +21,8 @@ import stashes from './_stashes';
 // - too-fast click should not work
 // - painting should work
 
+var $board_canvas = null;
+
 Ember.$(document).on('mousedown touchstart', function(event) {
   buttonTracker.touch_start(event)  ;
 }).on('gazeover mousemove touchmove mousedown touchstart', function(event) {
@@ -33,6 +35,29 @@ Ember.$(document).on('mousedown touchstart', function(event) {
   if(event.keyCode == 13 || event.keyCode == 32) {
     if(event.target.tagName != 'INPUT') {
       Ember.$(this).trigger('buttonselect');
+    }
+  }
+}).on('keydown', function(event) {
+  if(event.keyCode == 9) {
+    $board_canvas = Ember.$("#board_canvas");
+    if(!$board_canvas.data('focus_listener_set')) {
+      $board_canvas.data('focus_listener_set', true);
+      $board_canvas.on('focus', function(event) {
+        // TODO: need a reliable way to figure out if this is getting reverse-tabbed into
+        buttonTracker.focus_tab(true);
+      });
+    }
+    if(event.target.tagName == 'CANVAS') {
+      var handled = buttonTracker.move_tab(!event.shiftKey);
+      if(handled) {
+        event.preventDefault();
+      }
+    } else {
+      buttonTracker.clear_tab();
+    }
+  } else if(event.keyCode == 13 || event.keyCode == 32) {
+    if(event.target.tagName == 'CANVAS') {
+      buttonTracker.select_tab();
     }
   }
 }).on('keydown', function(event) {
@@ -110,13 +135,17 @@ var buttonTracker = Ember.Object.extend({
       buttonTracker.stop_dragging();
       // track the starting point because we may be using it as the "click"
       // location, depending on the user's settings
-      var button = buttonTracker.find_selectable_under_event(event);
-      buttonTracker.initialTarget = button;
+      var button_wrap = buttonTracker.find_selectable_under_event(event);
+      buttonTracker.initialTarget = button_wrap;
       if(buttonTracker.initialTarget) {
         buttonTracker.initialTarget.timestamp = (new Date()).getTime();
       }
       // doesn't need to be here, but since buttons are always using advanced_selection it's probably ok
-      Ember.$(button).addClass('touched');
+      if(button_wrap) {
+        button_wrap.addClass('touched');
+      } else {
+        app_state.get('board_virtual_dom').clear_touched();
+      }
     }
   },
   // used for handling dragging
@@ -146,7 +175,19 @@ var buttonTracker = Ember.Object.extend({
     if(event.type == 'touchstart' || event.type == 'mousedown' || event.type == 'touchmove') {
       buttonTracker.buttonDown = true;
     }
-    if(!buttonTracker.buttonDown && !app_state.get('edit_mode')) { return; }
+    if(!buttonTracker.buttonDown && !app_state.get('edit_mode')) { 
+      var button_wrap = buttonTracker.find_selectable_under_event(event);
+      if(button_wrap) {
+        button_wrap.addClass('hover');
+        // TODO: this is not terribly performant, but I guess it doesn't matter
+        // since it won't trigger much on mobile
+        Ember.$("#board_canvas").css('cursor', 'pointer');
+      } else {
+        app_state.get('board_virtual_dom').clear_hover();
+        Ember.$("#board_canvas").css('cursor', '');
+      }
+      return; 
+    }
   
     if(buttonTracker.buttonDown && buttonTracker.any_select && buttonTracker.scanning_enabled) {
       var width = Ember.$(window).width();
@@ -170,15 +211,14 @@ var buttonTracker = Ember.Object.extend({
     }
     if(buttonTracker.buttonDown && editManager.paint_mode) {
       // touch drag events don't return the right 'this'.
-      var elem = document.elementFromPoint(event.clientX, event.clientY);
-      var $target = Ember.$(elem).closest('.button');
-      if($target.length > 0) {
+      var elem_wrap = buttonTracker.button_from_point(event.clientX, event.clientY);
+      if(elem_wrap) {
         event.preventDefault();
         event.stopPropagation();
-        $target.trigger('buttonpaint');
+        elem_wrap.trigger('buttonpaint');
       }
     } else if(buttonTracker.buttonDown) {
-      var elem = buttonTracker.track_drag(event);
+      var elem_wrap = buttonTracker.track_drag(event);
       if(event.type == 'touchstart' || event.type == 'mousedown') {
         buttonTracker.longPressEvent = event;
         Ember.run.cancel(buttonTracker.track_long_press.later);
@@ -206,10 +246,10 @@ var buttonTracker = Ember.Object.extend({
           }
         }
       }
-      if(!elem || !app_state.get('edit_mode')) { 
+      if(!elem_wrap || !app_state.get('edit_mode')) { 
       } else {
         // this is expensive, only do when the drop target has changed
-        if(elem != buttonTracker.drag.data('over')) {
+        if(elem_wrap.dom && elem_wrap.dom != buttonTracker.drag.data('over')) {
           // clear existing placeholder if one already exists
           if(buttonTracker.drag.data('over')) {
             var $elem = Ember.$(buttonTracker.drag.data('elem'));
@@ -218,21 +258,21 @@ var buttonTracker = Ember.Object.extend({
             $overClone.remove();
             $over.css('opacity', 1.0);
             // if back to original state then clear target settings
-            if(elem == buttonTracker.drag.data('elem')) {
+            if(elem_wrap.dom == buttonTracker.drag.data('elem')) {
               buttonTracker.drag.data('over', null);
               buttonTracker.drag.data('overClone', null);
               $elem.show();
             }
           }
           // remember which element you were last over, can skip all this if hasn't changed
-          buttonTracker.drag.data('over', elem);
+          buttonTracker.drag.data('over', elem_wrap.dom);
       
           // $over is the current drop target, make a copy of it and put it in as a
           // placeholder where the dragged button used to live
-          var $over = Ember.$(elem);
+          var $over = Ember.$(elem_wrap.dom);
           var for_folder = $over.find(".action_container.folder").length > 0;
           var $overClone = $over.clone();
-          if(elem == buttonTracker.drag.data('elem')) {
+          if(elem_wrap.dom == buttonTracker.drag.data('elem')) {
             $overClone.css('opacity', 0.0);
           } else {
             var opacity = for_folder ? 0.2 : 0.7;
@@ -261,7 +301,7 @@ var buttonTracker = Ember.Object.extend({
     // don't remember why this is important...
     buttonTracker.buttonDown = false;
     
-    var selectable = buttonTracker.find_selectable_under_event(event);
+    var selectable_wrap = buttonTracker.find_selectable_under_event(event);
     // if dragging a button, behavior is very different than otherwise
     if(buttonTracker.drag) {
       // hide the dragged button for a second to find what's underneath it
@@ -285,19 +325,20 @@ var buttonTracker = Ember.Object.extend({
       Ember.$(buttonTracker.drag.data('elem')).css('opacity', 1.0).show();
       buttonTracker.drag.remove();
       // if it's on a different button, trigger the swap event
-      var $button = Ember.$(buttonTracker.find_button_under_event(event));
-      if($button.length) {
+      var button_wrap = buttonTracker.find_button_under_event(event);
+      if(button_wrap) {
         var dragId = buttonTracker.drag.attr('data-id');
-        var dropId = $button.attr('data-id');
-        $button.data('drag_id', dragId).data('drop_id', dropId);
-        $button.trigger('rearrange');
+        var dropId = button_wrap.id;
+        button_wrap.data('drag_id', dragId);
+        button_wrap.data('drop_id', dropId);
+        button_wrap.trigger('rearrange');
       }
       buttonTracker.drag = null;
-    } else if((selectable || buttonTracker.initialTarget) && !buttonTracker.ignored_region(event)) {
+    } else if((selectable_wrap || buttonTracker.initialTarget) && !buttonTracker.ignored_region(event)) {
       // if it either started or ended on a selectable item then there's a 
       // chance we need to trigger a 'click', so pass it along
       buttonTracker.buttonDown = true;
-      buttonTracker.element_release(selectable, event);
+      buttonTracker.element_release(selectable_wrap, event);
 //     } else if(event.type == 'touchend' && event.target.tagName == 'A' || event.target.tagName == 'BUTTON') {
 //       event.preventDefault();
 //       event.stopPropagation();
@@ -308,9 +349,10 @@ var buttonTracker = Ember.Object.extend({
     editManager.release_stroke();
     buttonTracker.stop_dragging();
     buttonTracker.initialTarget = null;
+    app_state.get('board_virtual_dom').clear_touched();
     Ember.$('.touched').removeClass('touched');
   },
-  element_release: function(elem, event) {
+  element_release: function(elem_wrap, event) {
     // don't remember why this is important, but I'm pretty sure it is
     if(buttonTracker.ignored_region(event)) { 
       if(editManager.finding_target()) {
@@ -326,8 +368,8 @@ var buttonTracker = Ember.Object.extend({
       buttonTracker.ignoreUp = false;
     } else if(editManager.finding_target()) {
       // if looking for a target and one is found, hit it
-      if((elem.className || "").match(/button/)) {
-        buttonTracker.button_release(elem, event);
+      if((elem_wrap.dom.className || "").match(/button/)) {
+        buttonTracker.button_release(elem_wrap, event);
       }
       // TODO: clear finding_target when selecting anywhere else, leaving edit mode, etc.
     } else if(buttonTracker.ignored_region(event) || buttonTracker.ignored_region(buttonTracker.startEvent)) {
@@ -340,7 +382,7 @@ var buttonTracker = Ember.Object.extend({
       // Use start, end or average pointer location for selection
       buttonTracker.activation_location = buttonTracker.activation_location || window.user_preferences.any_user.activation_location;
       if(buttonTracker.activation_location == 'start') {
-        elem = buttonTracker.initialTarget;
+        elem_wrap = buttonTracker.initialTarget;
       } else if(buttonTracker.activation_location == 'average') {
         // TODO: implement weighted average. Sample pointer location
         // from start to release and find the most likely target, ideally
@@ -352,23 +394,23 @@ var buttonTracker = Ember.Object.extend({
       }
       // ignore presses that are too short
       if(buttonTracker.minimum_press && buttonTracker.initialTarget && (ts - buttonTracker.initialTarget.timestamp) < buttonTracker.minimum_press) {
-        elem = null;
+        elem_wrap = null;
       }
       
       // logic to prevent quick double-tap, seems like this was a fix for iOS problems
       // but it may no longer be necessary
-      if(elem && buttonTracker.lastSelect != elem) {
+      if(elem_wrap && buttonTracker.lastSelect != elem_wrap.dom) {
         event.preventDefault();
-        buttonTracker.lastSelect = elem;
+        buttonTracker.lastSelect = elem_wrap.dom;
         Ember.run.later(function() {
-          if(buttonTracker.lastSelect == elem) {
+          if(buttonTracker.lastSelect == elem_wrap.dom) {
             buttonTracker.lastSelect = null;
           }
         }, 300);
         
         // different elements have different selection styles
         // TODO: standardize this more
-        if(elem.id == 'identity') {
+        if(elem_wrap.dom.id == 'identity') {
           event.preventDefault();
           // click events are eaten by our listener above, unless you
           // explicitly tell it to pass them through
@@ -376,20 +418,20 @@ var buttonTracker = Ember.Object.extend({
           e.clientX = event.clientX;
           e.clientY = event.clientY;
           e.pass_through = true;
-          Ember.$(elem).trigger(e);
-        } else if(elem.id == 'button_list') {
+          Ember.$(elem_wrap.dom).trigger(e);
+        } else if(elem_wrap.dom.id == 'button_list') {
           event.preventDefault();
-          var $elem = Ember.$(elem);
+          var $elem = Ember.$(elem_wrap.dom);
           $elem.addClass('focus');
           Ember.run.later(function() {
             $elem.removeClass('focus');
           }, 500);
           $elem.trigger('select');
-        } else if(elem.tagName == 'A' && Ember.$(elem).closest('#pin').length > 0) {
+        } else if(elem_wrap.dom.tagName == 'A' && Ember.$(elem_wrap.dom).closest('#pin').length > 0) {
           event.preventDefault();
-          Ember.$(elem).trigger('select');
-        } else if((elem.className || "").match(/button/)) {
-          buttonTracker.button_release(elem, event);
+          Ember.$(elem_wrap.dom).trigger('select');
+        } else if((elem_wrap.dom.className || "").match(/button/) || elem_wrap.virtual_button) {
+          buttonTracker.button_release(elem_wrap, event);
         } else {
           event.preventDefault();
           // click events are eaten by our listener above, unless you
@@ -398,12 +440,12 @@ var buttonTracker = Ember.Object.extend({
           e.clientX = event.clientX;
           e.clientY = event.clientY;
           e.pass_through = true;
-          Ember.$(elem).trigger(e);
+          Ember.$(elem_wrap.dom).trigger(e);
         }
       }
     } else if(app_state.get('edit_mode') && !editManager.paint_mode) {
-      if((elem.className || "").match(/button/)) {
-        buttonTracker.button_release(elem, event);
+      if((elem_wrap.dom.className || "").match(/button/)) {
+        buttonTracker.button_release(elem_wrap, event);
       }
     }
     
@@ -411,27 +453,24 @@ var buttonTracker = Ember.Object.extend({
     // button to be put in drag mode
     buttonTracker.buttonDown = false;
   },
-  button_release: function(elem, event) {
+  button_release: function(elem_wrap, event) {
     // buttons have a slightly-more advanced logic, because of all the selection
     // targets available in edit mode (image, action button, etc.) and the option
     // of applying stashed buttons/swapping buttons
-    var $elem = Ember.$(elem);
+    var $elem = Ember.$(elem_wrap.dom);
     var $target = Ember.$(event.target);
     if(editManager.finding_target()) {
-      $elem.trigger('buttonselect');
+      elem_wrap.trigger('buttonselect');
     } else if(!app_state.get('edit_mode')) {
-      var e = Ember.$.Event( "buttonselect" );
-      e.clientX = event.clientX;
-      e.clientY = event.clientY;
-      $elem.trigger(e);
+      elem_wrap.trigger_special('buttonselect', {clientX: event.clientX, clientY: event.clientY});
     } else if(app_state.get('edit_mode') && !editManager.paint_mode) {
       event.preventDefault();
       if($target.closest('.action').length > 0) {
-        $elem.trigger('actionselect');
+        elem_wrap.trigger('actionselect');
       } else if($target.closest('.symbol').length > 0) {
-        $elem.trigger('symbolselect');
+        elem_wrap.trigger('symbolselect');
       } else {
-        $elem.trigger('buttonselect');
+        elem_wrap.trigger('buttonselect');
       }
     }
   },
@@ -442,47 +481,108 @@ var buttonTracker = Ember.Object.extend({
     var region = $target.closest(".advanced_selection")[0];
     if(region) {
       if(region.id == 'pin') {
-        return $target.closest("a")[0];
+        return buttonTracker.element_wrap($target.closest("a")[0]);
       } else if(region.id == 'word_suggestions') {
-        return $target.closest("a")[0];
+        return buttonTracker.element_wrap($target.closest("a")[0]);
       } else if(region.id == 'identity') {
         if($target.closest('a').length > 0) {
-          return $target.closest('a')[0];
+          return buttonTracker.element_wrap($target.closest('a')[0]);
         } else {
-          return Ember.$(region).find(".dropdown > a");
+          return buttonTracker.element_wrap(Ember.$(region).find(".dropdown > a"));
         }
       } else if(region.id == 'sidebar_tease') {
-        return region;
+        return buttonTracker.element_wrap(region);
       } else if(region.id == 'sidebar') {
-        return $target.closest(".btn,a")[0];
+        return buttonTracker.element_wrap($target.closest(".btn,a")[0]);
       } else if(region.tagName == 'HEADER') {
-        return $target.closest(".btn,#button_list")[0];
-      } else if((region.className || "").match(/board/)) {
-        return $target.closest(".button")[0];
+        return buttonTracker.element_wrap($target.closest(".btn,#button_list")[0]);
+      } else if((region.className || "").match(/board/) || region.id == 'board_canvas') {
+        return buttonTracker.button_from_point(event.clientX, event.clientY);
       }
-    } else {
-      return null;
     }
+    return null;
+  },
+  button_from_point: function(x, y) {
+    // TODO: support virtual board dom
+    var elem = document.elementFromPoint(x, y);
+    var $target = Ember.$(elem).closest('.button');
+    if($target.length > 0) {
+      return buttonTracker.element_wrap($target[0]);
+    } else {
+      var top = Ember.$(".board").offset().top;
+      var button = app_state.get('board_virtual_dom').button_from_point(x, y - top - 3);
+      return buttonTracker.element_wrap(button);
+    }
+  },
+  element_wrap: function(elem) {
+    if(!elem) { return null; }
+    var res = null;
+    if(elem.button) {
+      res = {
+        id: elem.id,
+        dom: elem.id,
+        index: elem.index,
+        virtual_button: true,
+        addClass: function(str) {
+          app_state.get('board_virtual_dom').add_state(str, elem.id);
+        },
+        trigger: function(event) {
+          app_state.get('board_virtual_dom').trigger(event, elem.id);
+        },
+        trigger_special: function(event, args) {
+          app_state.get('board_virtual_dom').trigger(event, elem.id, args);
+        },
+        data: function(attr, val) {
+          if(arguments.length == 2) {
+            elem.set(attr, val);
+          } else {
+            return elem.get(attr);
+          }
+        }
+      };
+    } else {
+      res = {
+        id: Ember.$(elem).attr('data-id'),
+        dom: elem,
+        addClass: function(str) {
+          Ember.$(elem).addClass(str);
+        },
+        trigger: function(event) {
+          Ember.$(elem).trigger(event);
+        },
+        trigger_special: function(event, args) {
+          var e = Ember.$.Event( event );
+          for(var idx in args) {
+            e[idx] = args[idx];
+          }
+          Ember.$(elem).trigger(e);
+        },
+        data: function(attr, val) {
+          return Ember.$(elem).data(attr, val);
+        }
+      };
+    }
+    return res;
   },
   find_button_under_event: function(event, no_side_effects) {
     if(buttonTracker.drag) {
       buttonTracker.drag.hide();
     }
-    // Don't just use the pointer location, use the middle of the button...
+    // TODO: Don't just use the pointer location, use the middle of the button...
     // right now if you grab an edge and drag it feels weird when most of your button is over a
     // different button but it's not switching because your cursor hasn't gotten there yet.
     var x = event.clientX + (this.measureAdjustX || 0);
     var y = event.clientY + (this.measureAdjustY || 0);
-    var result = Ember.$(document.elementFromPoint(x, y)).closest('.button')[0];
-    if(buttonTracker.drag && result == buttonTracker.drag.data('overClone')) {
-      result = buttonTracker.drag.data('elem');
+    var result_wrap = buttonTracker.button_from_point(x, y);
+    if(buttonTracker.drag && result_wrap && result_wrap.dom == buttonTracker.drag.data('overClone')) {
+      result_wrap = buttonTracker.element_wrap(buttonTracker.drag.data('elem'));
     }
     if(!no_side_effects) {
       if(buttonTracker.drag) {
         buttonTracker.drag.show();
       }
     }
-    return result;
+    return result_wrap;
   },
   locate_button_on_board: function(id, event) {
     var x = null, y = null;
@@ -490,11 +590,18 @@ var buttonTracker = Ember.Object.extend({
       x = event.clientX;
       y = event.clientY;
     } else {
+      // TODO: support virtual board dom
       var $button = Ember.$(".button[data-id='" + id + "']");
       if($button[0]) {
         var offset = $button.offset();
-        x = offset.left;
+        x = offset.left + ($button.outerWidth() / 2);
         y = offset.top + ($button.outerHeight() / 2);
+      } else {
+        var button = app_state.get('board_virtual_dom').button_from_id(id);
+        if(button) {
+          x = button.left + (button.width / 2);
+          y = button.top + (button.height / 2);
+        }
       }
     }
     if(x && y) {
@@ -515,7 +622,7 @@ var buttonTracker = Ember.Object.extend({
     this.startEvent = this.startEvent || event;
     var diffX = event.pageX - this.startEvent.pageX;
     var diffY = event.pageY - this.startEvent.pageY;
-    var elem = null;
+    var elem_wrap = null;
     
     if(Math.abs(event.pageX - this.startEvent.pageX) < this.drag_distance && Math.abs(event.pageY - this.startEvent.pageY) < this.drag_distance) {
       return;
@@ -523,16 +630,16 @@ var buttonTracker = Ember.Object.extend({
       return;
     } 
     if(!buttonTracker.drag) {
-      elem = this.find_button_under_event(this.startEvent);
-      if(elem && app_state.get('edit_mode')) {
-        var $elem = Ember.$(elem);
+      elem_wrap = this.find_button_under_event(this.startEvent);
+      if(elem_wrap && app_state.get('edit_mode')) {
+        var $elem = Ember.$(elem_wrap.dom);
         this.start_dragging($elem, this.startEvent);
         $elem.css('opacity', 0.0);
       }
     } else {
-      elem = this.find_button_under_event(event);
+      elem_wrap = this.find_button_under_event(event);
     }
-    return elem;
+    return elem_wrap;
   },
   start_dragging: function($elem, event) {
     // create drag element
@@ -593,8 +700,8 @@ var buttonTracker = Ember.Object.extend({
   long_press_delay: 2500,
   track_long_press: function() {
     if(this.longPressEvent) {
-      var button = this.find_button_under_event(this.longPressEvent);
-      if(button) {
+      var button_wrap = this.find_button_under_event(this.longPressEvent);
+      if(button_wrap) {
         this.ignoreUp = true;
         editManager.start_edit_mode();
       }
@@ -602,13 +709,52 @@ var buttonTracker = Ember.Object.extend({
   },
   track_short_press: function() {
     if(this.longPressEvent) {
-      var selectable = this.find_selectable_under_event(this.longPressEvent, true);
-      if(selectable) {
+      var selectable_wrap = this.find_selectable_under_event(this.longPressEvent, true);
+      if(selectable_wrap) {
         var event = Ember.$.Event('touchend', this.longPressEvent.originalTarget);
-        buttonTracker.element_release(selectable, event);
+        buttonTracker.element_release(selectable_wrap, event);
         this.ignoreUp = true;
       }
     }
+  },
+  focus_tab: function(from_start) {
+    if(!buttonTracker.focus_wrap) {
+      var b = app_state.get('board_virtual_dom').button_from_index(from_start ? 0 : -2);
+      if(b) {
+        buttonTracker.focus_wrap = buttonTracker.element_wrap(b);
+      }
+    }
+    buttonTracker.focus_wrap.addClass('touched');
+    // set focus for the current button, set current button to zero if none set
+    // if shift_key is held down then we're coming in backwards, which is important to know
+  },
+  select_tab: function() {
+    // trigger buttonselect for the current button
+    buttonTracker.focus_wrap.trigger('buttonselect');
+  },
+  move_tab: function(forward) {
+    // progress forward or backward to the adjacent button
+    // return true if there is an adjacent button, if not then 
+    // clear the tab and return false
+    if(buttonTracker.focus_wrap) {
+      var b = app_state.get('board_virtual_dom').button_from_index(buttonTracker.focus_wrap.index + (forward ? 1 : -1));
+      if(b) {
+        buttonTracker.focus_wrap = buttonTracker.element_wrap(b);
+      } else {
+        buttonTracker.focus_wrap = null;
+      }
+    }
+    if(buttonTracker.focus_wrap) {
+      buttonTracker.focus_wrap.addClass('touched');
+    } else {
+      buttonTracker.clear_tab();
+    }
+    return !!buttonTracker.focus_wrap;
+  },
+  clear_tab: function() {
+    app_state.get('board_virtual_dom').clear_touched();
+    buttonTracker.focus_wrap = null;
+    // remove the current button state
   },
   drag_distance: 20,
   buttons: []
