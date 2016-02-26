@@ -4,7 +4,7 @@ import CoughDrop from '../app';
 
 var types = ['communicator_type', 'supporter_type', 'monthly_subscription', 'long_term_subscription',
   'monthly_3', 'monthly_4', 'monthly_5', 'monthly_6', 'monthly_7', 'monthly_8', 'monthly_9', 'monthly_10',
-  'long_term_150', 'long_term_200', 'long_term_250', 'long_term_300',
+  'long_term_150', 'long_term_200', 'long_term_250', 'long_term_300', 'long_term_custom',
   'slp_monthly_free', 'slp_monthly_3', 'slp_monthly_4', 'slp_monthly_5',
   'slp_long_term_free', 'slp_long_term_50', 'slp_long_term_100', 'slp_long_term_150',
   'subscription_amount'];
@@ -17,7 +17,13 @@ var obs_func = function() {
   var _this = this;
   types.forEach(function(type) {
     var res = "btn ";
-    if(_this.get('subscription.' + type)) {
+    if(type == 'long_term_custom') {
+      if(_this.get('subscription.long_term_custom')) {
+        res = res + "btn-primary active btn-lg";
+      } else {
+        res = res + "";
+      }
+    } else if(_this.get('subscription.' + type)) {
       res = res + "btn-primary active";
     } else {
       res = res + "btn-default";
@@ -104,7 +110,12 @@ var Subscription = Ember.Object.extend({
     if(this.get('subscription_type') == 'gift_code') {
       return !!this.get('gift_code');
     } else if(this.get('subscription_type') == 'long_term_gift') {
-      return !!(this.get('email') && ['long_term_150', 'long_term_200', 'long_term_250', 'long_term_300'].indexOf(this.get('subscription_amount')) != -1);
+      if(this.get('subscription_amount') == 'long_term_custom') {
+        var amount = parseInt(this.get('subscription_custom_amount'), 10);
+        return amount > 100 && (amount % 50 === 0);
+      } else {
+        return !!(this.get('email') && ['long_term_150', 'long_term_200', 'long_term_250', 'long_term_300'].indexOf(this.get('subscription_amount')) != -1);
+      }
     } else if(this.get('user_type') == 'communicator') {
       if(this.get('subscription_type') == 'monthly') {
         return ['monthly_3', 'monthly_4', 'monthly_5', 'monthly_6', 'monthly_7', 'monthly_8', 'monthly_9', 'monthly_10'].indexOf(this.get('subscription_amount')) != -1;
@@ -118,7 +129,7 @@ var Subscription = Ember.Object.extend({
         return ['slp_long_term_free', 'slp_long_term_50', 'slp_long_term_100', 'slp_long_term_150'].indexOf(this.get('subscription_amount')) != -1;
       }
     }
-  }.property('user_type', 'subscription_type', 'subscription_amount', 'gift_code', 'email'),
+  }.property('user_type', 'subscription_type', 'subscription_amount', 'gift_code', 'email', 'subscription_custom_amount'),
   subscription_amount_plus_trial: function() {
     if(this.get('discount_period') && ['monthly_4', 'long_term_150'].indexOf(this.get('subscription_amount')) != -1) {
       return this.get('subscription_amount') + '_plus_trial';
@@ -223,6 +234,9 @@ var Subscription = Ember.Object.extend({
   long_term_300: function() {
     return this.get('subscription_amount') == 'long_term_300';
   }.property('subscription_amount'),
+  long_term_custom: function() {
+    return this.get('subscription_amount') == 'long_term_custom';
+  }.property('subscription_amount'),
   slp_long_term_free: function() {
     return this.get('subscription_amount') == 'slp_long_term_free';
   }.property('subscription_amount'),
@@ -241,6 +255,9 @@ var Subscription = Ember.Object.extend({
       if(num == 'free') {
         return 0;
       } else {
+        if(this.get('subscription_amount') == 'long_term_custom') {
+          num = parseInt(this.get('subscription_custom_amount'), 10);
+        }
         return parseInt(num, 10) * 100;
       }
     } else {

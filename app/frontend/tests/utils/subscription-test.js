@@ -93,8 +93,19 @@ describe('subscription', function() {
       expect(s.get('valid')).toEqual(false);
       s.set('subscription_amount', 'long_term_150');
       expect(s.get('valid')).toEqual(true);
+      s.set('subscription_amount', 'long_term_custom');
+      expect(s.get('valid')).toEqual(false);
+      s.set('subscription_custom_amount', '100');
+      expect(s.get('valid')).toEqual(false);
+      s.set('subscription_custom_amount', '150');
+      expect(s.get('valid')).toEqual(true);
+      s.set('subscription_custom_amount', '222');
+      expect(s.get('valid')).toEqual(false);
+      s.set('subscription_custom_amount', '5000');
+      expect(s.get('valid')).toEqual(true);
     });
   });
+  
   
   it("should process settings and return correct descriptions", function() {
     db_wait(function() {
