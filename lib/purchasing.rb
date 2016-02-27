@@ -261,7 +261,10 @@ module Purchasing
     valid_amount = true
     description = type
     seconds = 5.years.to_i
-    if type.match(/^long_term/)
+    if type.match(/^long_term_custom/)
+      valid_amount = false unless amount > 100 && (amount % 50) == 0
+      description = "gift purchase $#{amount}"
+    elsif type.match(/^long_term/)
       valid_amount = false unless [150, 200, 250, 300].include?(amount)
       description = "gift purchase $#{amount}"
     else

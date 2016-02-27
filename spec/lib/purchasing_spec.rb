@@ -585,6 +585,34 @@ describe Purchasing do
       }).and_return(true)
       res = Purchasing.purchase_gift({'id' => 'token'}, {'type' => 'long_term_150', 'user_id' => u.global_id, 'email' => 'bob@example.com'})
     end
+
+    it "should generate a custom purchase object on success" do
+      u = User.create
+      expect(Stripe::Charge).to receive(:create).with({
+        :amount => 50000,
+        :currency => 'usd',
+        :source => 'token',
+        :description => 'gift purchase $500',
+        :metadata => {
+          'giver_id' => u.global_id,
+          'giver_email' => 'bob@example.com',
+          'plan_id' => 'long_term_custom_500'
+        }
+      }).and_return({
+        'customer' => '12345',
+        'id' => '23456'
+      })
+      expect(GiftPurchase).to receive(:process_new).with({}, {
+        'giver' => u,
+        'email' => 'bob@example.com',
+        'customer_id' => '12345',
+        'token_summary' => 'Unknown Card',
+        'plan_id' => 'long_term_custom_500',
+        'purchase_id' => '23456',
+        'seconds' => 5.years.to_i
+      }).and_return(true)
+      res = Purchasing.purchase_gift({'id' => 'token'}, {'type' => 'long_term_custom_500', 'user_id' => u.global_id, 'email' => 'bob@example.com'})
+    end
     
     it "should trigger a notification on success" do
       u = User.create

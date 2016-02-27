@@ -66,7 +66,12 @@ export default Ember.Controller.extend({
       };
       
       Subscription.purchase(subscription).then(function(result) {
-        subscribe(result, subscription.get('subscription_amount'));
+        var amount = subscription.get('subscription_amount');
+        if(amount == 'long_term_custom') {
+          var num = subscription.get('subscription_custom_amount');
+          amount = 'long_term_custom_' + num;
+        }
+        subscribe(result, amount);
       });
     }
   }
