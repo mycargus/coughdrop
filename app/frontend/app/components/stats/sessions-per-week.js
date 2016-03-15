@@ -29,6 +29,9 @@ export default Ember.Component.extend({
         var options = {
           colors: ['#f2b367'],
           title: 'Logged User Sessions for the Week',
+          legend: {
+            position: 'none'
+          },
           hAxis: {
             title: 'Week of',
             format: 'MMM dd',
