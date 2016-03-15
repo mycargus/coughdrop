@@ -41,6 +41,26 @@ class Api::OrganizationsController < ApplicationController
     render json: JsonApi::User.paginate(params, users, {:limited_identity => true, :organization => @org, :prefix => prefix})
   end
   
+  def stats
+    org = Organization.find_by_path(params['organization_id'])
+    return unless allowed?(org, 'edit')
+    sessions = LogSession.where(['started_at > ?', 4.months.ago])
+    if !org.admin?
+      # TODO: sharding
+      sessions = sessions.where(:user_id => org.users.map(&:id))
+    end
+    res = []
+    sessions.group("date_trunc('week', started_at)").count.sort_by{|d, c| d }.each do |date, count|
+      if date && date < Time.now
+        res << {
+          'timestamp' => date.to_time.to_i,
+          'sessions' => count
+        }
+      end
+    end
+    render json: res.to_json
+  end
+  
   def admin_reports
     org = Organization.find_by_path(params['organization_id'])
     return unless allowed?(org, 'edit')
@@ -162,7 +182,7 @@ class Api::OrganizationsController < ApplicationController
     return unless exists?(org, params['id'])
     return unless allowed?(org, 'edit')
     params['organization'].delete('allotted_licenses') if params['organization'] && !org.allows?(@api_user, 'update_licenses')
-    if org.process(params['organization'])
+    if org.process(params['organization'], {'updater' => @api_user})
       render json: JsonApi::Organization.as_json(org, :wrapper => true, :permissions => @api_user).to_json
     else
       api_error(400, {error: "organization update failed", errors: org.processing_errors})

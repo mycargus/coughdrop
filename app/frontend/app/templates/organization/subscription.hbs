@@ -1,0 +1,91 @@
+{{#if model.permissions.manage}}
+  <h2>{{t "Subscription Details" key='subscription_details'}}</h2>
+  {{#if model.permissions.manage_subscription}}
+    <form class="form-horizontal" {{action "update_org" on="submit"}}>
+      <div class="form-group">
+        <label for="allotted_licenses" class="col-sm-1 control-label">{{t "Licenses" key='licenses'}}</label>
+        <div class="col-sm-1">
+          {{input value=model.allotted_licenses class="form-control" id="allotted_licenses" placeholder="0"}}
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="licenses_expire" class="col-sm-1 control-label">{{t "Expires" key='expires'}}</label>
+        <div class="col-sm-2">
+          {{input value=model.licenses_expire class="form-control" id="licenses_expire" placeholder="DD-MM-YYYY"}}
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-sm-offset-1 col-sm-4">
+          <button type="submit" class="btn btn-default">{{t "Update" key='update'}}</button>
+        </div>
+      </div>
+    </form>
+  {{else}}
+    <p>
+      {{#if model.allotted_licenses}}
+        {{t "license" key='licenses' count=model.allotted_licenses}}
+        {{t ", expires" key='comma_expires'}} {{date model.licenses_expire}}
+      {{else}}
+        {{t "No licenses allotted, unless attached to subscribers" key='no_licenses_allotted'}}
+      {{/if}}
+    </p>
+    <p>{{t "Thank you for supporting CoughDrop, and the many communicators who use it!" key='thanks_for_supporting_coughdrop'}}</p>
+  {{/if}}
+  {{#if model.org_subscriptions}}
+    <h3>{{t "Associated Subscriptions" key='associated_subscriptions'}}</h3>
+    <table class='table table-striped table-hover'>
+      <thead>
+        <tr>
+          <th>{{t "User" key='user'}}</th>
+          <th>{{t "Subscription" key='subscription'}}</th>
+          <th>{{t "Expires" key='expires'}}</th>
+        </tr>
+      </thead>
+      <tbody>
+      {{#each model.processed_org_subscriptions as |sub|}}
+        <tr>
+          <td>
+            {{#link-to 'user' sub.user_name}}
+              <img src={{sub.avatar_url}} style='height: 30px; max-width: 30px;'/>
+              {{sub.user_name}}
+            {{/link-to}}
+          </td>
+          <td>{{sub.subscription_object.subscription_plan_description}}</td>
+          <td>
+            {{#if sub.subscription.expires}}
+              {{date sub.subscription.expires 'day'}}
+            {{else}}
+              {{t "No expiration" key='no_expiration'}}
+            {{/if}}
+          </td>
+        </tr>
+      {{/each}}
+      </tbody>
+    </table>
+  {{/if}}
+  {{#if model.purchase_history}}
+    <h3>{{t "Purchase History" key='purchase_history'}}</h3>
+    <ul class="list-group">
+      {{#each model.processed_purchase_history as |event|}}
+        {{#if event.update_license_count}}
+          <li class="list-group-item">
+            {{t "License count was updated to %{num} - " key='license_count_updated' num=event.count}}
+            <span class='text-muted'>{{date_ago event.logged_at}}</span>
+          </li>
+        {{else if event.add_subscription}}
+          <li class="list-group-item">
+            {{t "Subscription user \"%{user_name}\" was added - " key='subscription_user_added' user_name=event.user_name}}
+            <span class='text-muted'>{{date_ago event.logged_at}}</span>
+          </li>
+        {{else if event.remove_subscription}}
+          <li class="list-group-item">
+            {{t "Subscription user \"%{user_name}\" was removed - " key='subscription_user_removed' user_name=event.user_name}}
+            <span class='text-muted'>{{date_ago event.logged_at}}</span>
+          </li>
+        {{/if}}
+      {{/each}}
+    </ul>
+  {{/if}}
+{{else}}
+  <p>{{t "Not authorized" key='not_authorized'}}</p>
+{{/if}}

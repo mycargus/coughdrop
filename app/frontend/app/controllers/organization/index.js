@@ -15,6 +15,7 @@ export default Ember.Controller.extend({
     this.refresh_managers();
     this.refresh_supervisors();
     this.refresh_orgs();
+    this.refresh_stats();
     var id = this.get('model.id');
     if(this.get('model.permissions.manage')) {
       this.set('logs.loading', true);
@@ -57,6 +58,14 @@ export default Ember.Controller.extend({
   recent_sessions: function() {
     return (this.get('logs.data') || []).length;
   }.property('logs.data'),
+  refresh_stats: function() {
+    var _this = this;
+    persistence.ajax('/api/v1/organizations/' + this.get('model.id') + '/stats', {type: 'GET'}).then(function(stats) {
+      _this.set('weekly_stats', stats);
+    }, function() {
+      _this.set('weekly_stats', {error: true});
+    });
+  },
   refresh_orgs: function() {
     var _this = this;
     if(this.get('model.admin')) {

@@ -21,6 +21,9 @@
       <div class="btn-group-vertical" style="width: 100%;">
         {{#link-to 'organization.index' model.id class='btn btn-default'}}{{t "Admin" key='admin'}}{{/link-to}}
         {{#link-to 'organization.reports' model.id class='btn btn-default'}}{{t "Reports" key='reports'}}{{/link-to}}
+        {{#if model.permissions.manage_subscription}}
+          {{#link-to 'organization.subscription' model.id class='btn btn-default'}}{{t "Subscription" key='subscription'}}{{/link-to}}
+        {{/if}}
         {{#if model.permissions.update_licenses}}
             <span class="btn btn-default">
               {{input value=model.allotted_licenses class="form-control inline inline-licenses"}}

@@ -102,6 +102,9 @@ module JsonApi::User
       elsif args[:supervisee]
         json['edit_permission'] = user.edit_permission_for?(args[:supervisee])
       end
+      if args[:subscription]
+        json['subscription'] = user.subscription_hash
+      end
       if args[:organization]
         if Organization.manager?(user)
           json['org_manager'] = args[:organization].manager?(user)

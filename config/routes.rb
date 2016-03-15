@@ -155,6 +155,7 @@ Coughdrop::Application.routes.draw do
       get 'users'
       get 'supervisors'
       get 'logs'
+      get 'stats'
       get 'admin_reports'
     end
     

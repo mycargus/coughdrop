@@ -4,6 +4,7 @@ import CoughDrop from '../app';
 import i18n from '../utils/i18n';
 import persistence from '../utils/persistence';
 import modal from '../utils/modal';
+import Subscription from '../utils/subscription';
 
 CoughDrop.Organization = DS.Model.extend({
   didLoad: function() {
@@ -14,6 +15,8 @@ CoughDrop.Organization = DS.Model.extend({
   },
   name: DS.attr('string'),
   permissions: DS.attr('raw'),
+  purchase_history: DS.attr('raw'),
+  org_subscriptions: DS.attr('raw'),
   admin: DS.attr('boolean'),
   allotted_licenses: DS.attr('number'),
   used_licenses: DS.attr('number'),
@@ -26,7 +29,25 @@ CoughDrop.Organization = DS.Model.extend({
   recent_session_count: DS.attr('number'),
   licenses_available: function() {
     return (this.get('total_licenses') || 0) > (this.get('used_licenses') || 0);
-  }.property('total_licenses', 'used_licenses')
+  }.property('total_licenses', 'used_licenses'),
+  processed_purchase_history: function() {
+    var res = [];
+    (this.get('purchase_history') || []).forEach(function(e) {
+      var evt = Ember.$.extend({}, e);
+      evt[e.type] = true;
+      res.push(evt);
+    });
+    return res;
+  }.property('purchase_history'),
+  processed_org_subscriptions: function() {
+    var res = [];
+    (this.get('org_subscriptions') || []).forEach(function(s) {
+      var user = Ember.Object.create(s);
+      user.set('subscription_object', Subscription.create({user: user}));
+      res.push(user);
+    });
+    return res;
+  }.property('org_subscriptions')
 });
 CoughDrop.Organization.reopenClass({
   mimic_server_processing: function(record, hash) {

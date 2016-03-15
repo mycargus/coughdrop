@@ -44,8 +44,18 @@
         </div>
       </div>
     </div>
+    <div class="col-sm-6">
+      {{#if weekly_stats.error}}
+        {{t "There was a problem loading this report" key='problem_loading_report'}}
+      {{else}}
+        {{stats/sessions-per-week weekly_stats=weekly_stats}}
+      {{/if}}
+    </div>
+    <div class="col-sm-6">
+      {{stats/recent-sessions total=model.total_users recent=model.recent_session_user_count}}
+    </div>
   </div>
-  <ul class='nav nav-pills' style="margin-bottom: 15px;">
+  <ul class='nav nav-pills' style="margin-bottom: 15px; margin-top: 30px;">
     {{#if model.admin}}
       <li class={{if show_organizations 'active'}}><a href="#" {{action 'pick' 'organizations'}}>{{t "Organizations" key='organizations'}}</a></li>
     {{/if}}
@@ -232,7 +242,7 @@
     {{/if}}
   {{/if}}
   {{#if model.permissions.manage}}
-    <h3 style='margin-top: 30px;'>{{t "Recent Sessions" key='recent_sessions'}}</h3>
+    <h3 style='margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;'>{{t "Recent Sessions" key='recent_sessions'}}</h3>
     {{#if logs.data}}
       <ul class="list-unstyled">
       {{#each logs.data as |log|}}

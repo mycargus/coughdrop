@@ -12,7 +12,7 @@ class Organization < ActiveRecord::Base
   add_permissions('view') { self.settings && self.settings['public'] == true }
   add_permissions('view', 'edit') {|user| self.assistant?(user) }
   add_permissions('view', 'edit', 'manage') {|user| self.manager?(user) }
-  add_permissions('view', 'edit', 'manage', 'update_licenses') {|user| Organization.admin && Organization.admin.manager?(user) }
+  add_permissions('view', 'edit', 'manage', 'update_licenses', 'manage_subscription') {|user| Organization.admin && Organization.admin.manager?(user) }
   add_permissions('delete') {|user| Organization.admin && !self.admin && Organization.admin.manager?(user) }
   cache_permissions
 
@@ -33,6 +33,10 @@ class Organization < ActiveRecord::Base
       sessions = sessions.where(:user_id => user_ids)
     end
     sessions.where(['started_at > ?', 6.months.ago]).order('started_at DESC')
+  end
+  
+  def purchase_history
+    ((self.settings || {})['purchase_events'] || []).reverse
   end
   
   def add_manager(user_key, full=false)
@@ -111,6 +115,38 @@ class Organization < ActiveRecord::Base
       'removed_at' => Time.now.iso8601
     }) unless pending
     true
+  end
+
+  def add_subscription(user_key)
+    user = User.find_by_path(user_key)
+    raise "invalid user" unless user
+    self.attach_user(user, 'subscription')
+    self.log_purchase_event({
+      'type' => 'add_subscription',
+      'user_name' => user.user_name,
+      'user_id' => user.global_id
+    })
+    true
+  end
+  
+  def remove_subscription(user_key)
+    user = User.find_by_path(user_key)
+    raise "invalid user" unless user
+    self.detach_user(user, 'subscription')
+    self.log_purchase_event({
+      'type' => 'remove_subscription',
+      'user_name' => user.user_name,
+      'user_id' => user.global_id
+    })
+    true
+  end
+  
+  def log_purchase_event(args, do_save=true)
+    self.settings ||= {}
+    self.settings['purchase_events'] ||= []
+    args['logged_at'] = Time.now.iso8601
+    self.settings['purchase_events'] << args
+    self.save if do_save
   end
   
   def manager?(user)
@@ -260,6 +296,10 @@ class Organization < ActiveRecord::Base
     self.attached_users('supervisor')
   end  
   
+  def subscriptions
+    self.attached_users('subscription')
+  end
+  
   def self.attached_orgs(user, include_org=false)
     res = []
     org_ids = []
@@ -361,6 +401,7 @@ class Organization < ActiveRecord::Base
   def process_params(params, non_user_params)
     self.settings ||= {}
     self.settings['name'] = params['name'] if params['name']
+    raise "updated required" unless non_user_params['updater']
     if params[:allotted_licenses]
       total = params[:allotted_licenses].to_i
       used = User.where(:managing_organization_id => self.id).count
@@ -369,6 +410,12 @@ class Organization < ActiveRecord::Base
         return false
       end
       self.settings['total_licenses'] = total
+      self.log_purchase_event({
+        'type' => 'update_license_count',
+        'count' => total,
+        'updater_id' => non_user_params['updater'].global_id,
+        'updater_user_name' => non_user_params['updater'].user_name
+      }, false)
     end
     if params[:management_action]
       if !self.id
