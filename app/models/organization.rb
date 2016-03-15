@@ -373,7 +373,7 @@ class Organization < ActiveRecord::Base
     for_different_org = user.managing_organization_id && user.managing_organization_id != self.id
     for_different_org ||= user.settings && user.settings['managed_by'] && (user.settings['managed_by'].keys - [self.global_id]).length > 0
     raise "already associated with a different organization" if for_different_org
-    sponsored_user_count = self.approved_users.count
+    sponsored_user_count = self.sponsored_users.count
     raise "no licenses available" if sponsored && ((self.settings || {})['total_licenses'] || 0) <= sponsored_user_count
     user.update_subscription_organization(self.global_id, pending, sponsored)
     true
@@ -410,7 +410,7 @@ class Organization < ActiveRecord::Base
     raise "updated required" unless non_user_params['updater']
     if params[:allotted_licenses]
       total = params[:allotted_licenses].to_i
-      used = self.approved_users.count
+      used = self.sponsored_users.count
       if total < used
         add_processing_error("too few licenses, remove some users first")
         return false
