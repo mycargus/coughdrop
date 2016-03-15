@@ -410,7 +410,7 @@ class Organization < ActiveRecord::Base
     raise "updated required" unless non_user_params['updater']
     if params[:allotted_licenses]
       total = params[:allotted_licenses].to_i
-      used = self.appvoed_users.count
+      used = self.approved_users.count
       if total < used
         add_processing_error("too few licenses, remove some users first")
         return false
