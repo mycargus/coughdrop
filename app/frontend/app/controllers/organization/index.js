@@ -11,6 +11,7 @@ export default Ember.Controller.extend({
     this.set('logs', {});
     this.set('managers', {});
     this.set('supervisors', {});
+    this.set('selected_view', null);
     this.refresh_users();
     this.refresh_managers();
     this.refresh_supervisors();
@@ -58,6 +59,9 @@ export default Ember.Controller.extend({
   recent_sessions: function() {
     return (this.get('logs.data') || []).length;
   }.property('logs.data'),
+  no_licenses: function() {
+    return !this.get('model.licenses_available');
+  }.property('model.licenses_available'),
   refresh_stats: function() {
     var _this = this;
     persistence.ajax('/api/v1/organizations/' + this.get('model.id') + '/stats', {type: 'GET'}).then(function(stats) {
@@ -127,7 +131,7 @@ export default Ember.Controller.extend({
         user_name = this.get('manager_user_name');
       } else if(action == 'add_supervisor') {
         user_name = this.get('supervisor_user_name');
-      } else if(action == 'add_user') {
+      } else if(action == 'add_user' || action == 'add_unsponsored_user') {
         user_name = this.get('user_user_name');
       }
       model.set('management_action', action + '-' + user_name);

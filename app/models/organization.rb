@@ -288,6 +288,12 @@ class Organization < ActiveRecord::Base
     User.where(:id => ids)
   end
   
+  def approved_users
+    # TODO: get rid of this double-lookup
+    ids = self.attached_users('user').select{|u| !self.pending_user?(u) }.map(&:id)
+    User.where(:id => ids)
+  end
+  
   def managers
     self.attached_users('manager')
   end

@@ -1,60 +1,62 @@
 {{#if model.permissions.edit}}
-  <div class="row">
-    <div class="col-sm-3 col-xs-6">
-      <div class="panel panel-default summary smaller">
-        <div class="panel-heading">
-          {{t "Last logged session" key='last_logged_session'}}
-        </div>
-        <div class="panel-body">
-          {{#if first_log}}
-            {{date_ago first_log.started_at}}
-          {{else}}
-            {{t "..." key='ellipsis'}}
-          {{/if}}
-        </div>
-      </div>
-    </div>
-    <div class="col-sm-3 col-xs-6">
-      <div class="panel panel-default summary smaller">
-        <div class="panel-heading">
-          {{t "Recent sessions" key='recent_sessions'}}
-        </div>
-        <div class="panel-body">
-          {{t "session" key='sessions' count=model.recent_session_count}}
+  {{#if model.permissions.manage}}
+    <div class="row">
+      <div class="col-sm-3 col-xs-6">
+        <div class="panel panel-default summary smaller">
+          <div class="panel-heading">
+            {{t "Last logged session" key='last_logged_session'}}
+          </div>
+          <div class="panel-body">
+            {{#if first_log}}
+              {{date_ago first_log.started_at}}
+            {{else}}
+              {{t "..." key='ellipsis'}}
+            {{/if}}
+          </div>
         </div>
       </div>
-    </div>
-    <div class="col-sm-3 col-xs-6">
-      <div class="panel panel-default summary smaller">
-        <div class="panel-heading">
-          {{t "Recently-logged users" key='recently_logged_users'}}
-        </div>
-        <div class="panel-body">
-          {{t "user" key='users' count=model.recent_session_user_count}}
-        </div>
-      </div>
-    </div>
-    <div class="col-sm-3 col-xs-6">
-      <div class="panel panel-default summary smaller">
-        <div class="panel-heading">
-          {{t "Total users" key='total_users'}}
-        </div>
-        <div class="panel-body">
-          {{t "user" key='users' count=model.total_users}}
+      <div class="col-sm-3 col-xs-6">
+        <div class="panel panel-default summary smaller">
+          <div class="panel-heading">
+            {{t "Recent sessions" key='recent_sessions'}}
+          </div>
+          <div class="panel-body">
+            {{t "session" key='sessions' count=model.recent_session_count}}
+          </div>
         </div>
       </div>
+      <div class="col-sm-3 col-xs-6">
+        <div class="panel panel-default summary smaller">
+          <div class="panel-heading">
+            {{t "Recently-logged users" key='recently_logged_users'}}
+          </div>
+          <div class="panel-body">
+            {{t "user" key='users' count=model.recent_session_user_count}}
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-3 col-xs-6">
+        <div class="panel panel-default summary smaller">
+          <div class="panel-heading">
+            {{t "Total users" key='total_users'}}
+          </div>
+          <div class="panel-body">
+            {{t "user" key='users' count=model.total_users}}
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        {{#if weekly_stats.error}}
+          {{t "There was a problem loading this report" key='problem_loading_report'}}
+        {{else}}
+          {{stats/sessions-per-week weekly_stats=weekly_stats}}
+        {{/if}}
+      </div>
+      <div class="col-sm-6">
+        {{stats/recent-sessions total=model.total_users recent=model.recent_session_user_count}}
+      </div>
     </div>
-    <div class="col-sm-6">
-      {{#if weekly_stats.error}}
-        {{t "There was a problem loading this report" key='problem_loading_report'}}
-      {{else}}
-        {{stats/sessions-per-week weekly_stats=weekly_stats}}
-      {{/if}}
-    </div>
-    <div class="col-sm-6">
-      {{stats/recent-sessions total=model.total_users recent=model.recent_session_user_count}}
-    </div>
-  </div>
+  {{/if}}
   <ul class='nav nav-pills' style="margin-bottom: 15px; margin-top: 30px;">
     {{#if model.admin}}
       <li class={{if show_organizations 'active'}}><a href="#" {{action 'pick' 'organizations'}}>{{t "Organizations" key='organizations'}}</a></li>
@@ -93,9 +95,9 @@
         </tbody>
       </table>
     {{else if managers.loading}}
-      <p>{{t "Loading managers..." key='loading_managers'}}</p>
+      <p style="margin-bottom: 30px;">{{t "Loading managers..." key='loading_managers'}}</p>
     {{else}}
-      <p>{{t "None found" key='none_found'}}</p>
+      <p style="margin-bottom: 30px;">{{t "None found" key='none_found'}}</p>
     {{/if}}
     <div style='margin-top: -15px;'>
       {{input value=manager_user_name placeholder="user name" class="form-control inline inline-masquerade input-sm"}}
@@ -142,9 +144,9 @@
         </p>
       {{/if}}
     {{else if supervisors.loading}}
-      <p>{{t "Loading supervisors..." key='loading_supervisors'}}</p>
+      <p style="margin-bottom: 30px;">{{t "Loading supervisors..." key='loading_supervisors'}}</p>
     {{else}}
-      <p>{{t "None found" key='none_found'}}</p>
+      <p style="margin-bottom: 30px;">{{t "None found" key='none_found'}}</p>
     {{/if}}
     <div style='margin-top: -15px;'>
       {{input value=supervisor_user_name placeholder="user name" class="form-control inline inline-masquerade input-sm"}}
@@ -190,16 +192,15 @@
         </p>
       {{/if}}
     {{else if users.loading}}
-      <p>{{t "Loading users..." key='loading_users'}}</p>
+      <p style="margin-bottom: 30px;">{{t "Loading users..." key='loading_users'}}</p>
     {{else}}
-      <p>{{t "None found" key='none_found'}}</p>
+      <p style="margin-bottom: 30px;">{{t "None found" key='none_found'}}</p>
     {{/if}}
-    {{#if model.licenses_available}}
-      <div style='margin-top: -15px;'>
-        {{input value=user_user_name placeholder="user name" class="form-control inline inline-masquerade input-sm"}}
-        <button class="btn btn-default btn-sm" {{action "management_action" 'add_user'}}>{{t "Add User" key='add_user'}}</button>
-      </div>
-    {{/if}}
+    <div style='margin-top: -15px;'>
+      {{input value=user_user_name placeholder="user name" class="form-control inline inline-masquerade input-sm"}}
+      <button disabled=no_licenses class="btn btn-default btn-sm" {{action "management_action" 'add_user'}}>{{t "Add Sponsored User" key='add_sponsored_user'}}</button>
+      <button class="btn btn-default btn-sm" {{action "management_action" 'add_unsponsored_user'}}>{{t "Add Unsponsored User" key='add_unsponsored_user'}}</button>
+    </div>
   {{/if}}
 
   {{#if show_organizations}}
@@ -229,9 +230,9 @@
             </tbody>
           </table>
         {{else if orgs.loading}}
-          {{t "Loading organizations..." key='loading_orgs'}}
+          <p style="margin-bottom: 30px;">{{t "Loading organizations..." key='loading_orgs'}}</p>
         {{else}}
-          {{t "None found" key='none_found'}}
+          <p style="margin-bottom: 30px;">{{t "None found" key='none_found'}}</p>
         {{/if}}
         <div style='margin-top: -15px;'>
           {{input value=org_org_name placeholder="org name" class="form-control inline inline-masquerade input-sm"}}

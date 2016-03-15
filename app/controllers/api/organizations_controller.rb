@@ -47,7 +47,7 @@ class Api::OrganizationsController < ApplicationController
     sessions = LogSession.where(['started_at > ?', 4.months.ago])
     if !org.admin?
       # TODO: sharding
-      sessions = sessions.where(:user_id => org.users.map(&:id))
+      sessions = sessions.where(:user_id => org.approved_users.map(&:id))
     end
     res = []
     sessions.group("date_trunc('week', started_at)").count.sort_by{|d, c| d }.each do |date, count|
@@ -81,7 +81,7 @@ class Api::OrganizationsController < ApplicationController
       users = User.where(['created_at < ?', x.months.ago])
       if !org.admin?
         # TODO: sharding
-        users = user.where(:id => org.users.map(&:id))
+        users = user.where(:id => org.approved_users.map(&:id))
       end
       users = user.select{|u| u.devices.where(['updated_at < ?', x.months.ago]).count > 0 }
     elsif params['report'] == 'setup_but_expired'
@@ -109,7 +109,7 @@ class Api::OrganizationsController < ApplicationController
       sessions = LogSession.where(['created_at > ?', x.weeks.ago])
       if !org.admin?
         # TODO: sharding
-        sessions = sessions.where(:user_id => org.users.map(&:id))
+        sessions = sessions.where(:user_id => org.approved_users.map(&:id))
       end
       user_ids = sessions.group('id, user_id').count('user_id').map(&:first)
       users = User.where(:id => user_ids)
