@@ -24,7 +24,7 @@ module Subscription
       self.settings['preferences']['role'] = 'communicator'
       if new_org
         Organization.detach_user(self, 'user', new_org)
-        new_org.attach_user(self, 'user')
+        new_org.attach_user(self, 'user', {'approved_user' => !pending, 'sponsored_user' => sponsored)
         self.settings['managed_by'] = {}
         self.settings['managed_by'][new_org.global_id] = {
           'added' => Time.now.iso8601,

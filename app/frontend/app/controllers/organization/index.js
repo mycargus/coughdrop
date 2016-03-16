@@ -115,6 +115,7 @@ export default Ember.Controller.extend({
     persistence.ajax('/api/v1/organizations/' + id + '/supervisors', {type: 'GET', data: {recent: true}}).then(function(data) {
       _this.set('supervisors.loading', null);
       _this.set('supervisors.data', data.user);
+      _this.set('more_supervisors', data.meta && data.meta.next_url);
     }, function() {
       _this.set('supervisors.loading', null);
       _this.set('supervisors.data', null);

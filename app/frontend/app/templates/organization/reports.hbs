@@ -37,7 +37,7 @@
                   {{#link-to 'user.log' item.user.user_name log.id}}
                     {{t "button" count=item.button_count key='button_count'}}
                   {{/link-to}}
-                  <span> - 
+                  <span> -
                     {{#link-to 'user' item.user.user_name}}
                       {{item.user.user_name}}
                     {{/link-to}}
@@ -51,6 +51,15 @@
                   {{item.user_name}}
                   {{#if item.email}}
                     ({{item.email}})
+                  {{/if}}
+                  {{#if item.org_pending}}
+                    {{t "(pending)" key='pending_paren'}}
+                  {{/if}}
+                  {{#if item.org_supervision_pending}}
+                    {{t "(pending)" key='pending_paren'}}
+                  {{/if}}
+                  {{#if item.org_sponsored}}
+                    {{t "(sponsored)" key='sponsored_paren'}}
                   {{/if}}
                 {{/link-to}}
               {{/if}}

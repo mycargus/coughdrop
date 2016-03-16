@@ -212,6 +212,42 @@ class Organization < ActiveRecord::Base
     res
   end
   
+  def self.upgrade_management_settings
+    User.where('managed_organization_id IS NOT NULL').each do |user|
+      org = user.managed_organization
+      user.settings['manager_for'] ||= {}
+      if org && !user.settings['manager_for'][org.global_id]
+        user.settings['manager_for'][org.global_id] = {
+          'full_manager' => !!user.settings['full_manager']
+        }
+      end
+     user.settings.delete('full_manager')
+     user.managed_organization_id = nil
+      user.save
+    end
+    User.where('managing_organization_id IS NOT NULL').each do |user|
+      org = user.managing_organization
+      user.settings['managed_by'] ||= {}
+      if org && !user.settings['managed_by'][org.global_id]
+        user.settings['managed_by'][org.global_id] = {
+          'pending' => !!(user.settings['subscription'] && user.settings['subscription']['org_pending']),
+          'sponsored' => true
+        }
+      end
+      user.settings['subscription'].delete('org_pending') if user.settings['subscription']
+      user.managing_organization_id = nil
+      user.save
+    end
+    Organization.all.each do |org|
+      org.sponsored_users.each do |user|
+        org.attach_user(user, 'sponsored_user')
+      end
+      org.approved_users.each do |user|
+        org.attach_user(user, 'approved_user')
+      end
+    end
+  end
+  
   def self.manager_for?(manager, user)
     return false unless manager && user
     managed_orgs = []
@@ -242,18 +278,32 @@ class Organization < ActiveRecord::Base
     false
   end
   
-  def attach_user(user, user_type)
-    self.settings['attached_user_ids'] ||= {}
-    self.settings['attached_user_ids'][user_type] ||= []
-    self.settings['attached_user_ids'][user_type] << user.global_id
-    self.settings['attached_user_ids'][user_type].uniq!
+  def attach_user(user, user_type, additional_types=nil)
+    user_types = [user_type]
+    if additional_types
+      additional_types.each do |key, val|
+        user_types << key if val
+      end
+    end
+    user_types.each do |type|
+      self.settings['attached_user_ids'] ||= {}
+      self.settings['attached_user_ids'][type] ||= []
+      self.settings['attached_user_ids'][type] << user.global_id
+      self.settings['attached_user_ids'][type].uniq!
+    end
     self.save
   end
 
   def detach_user(user, user_type)
-    self.settings['attached_user_ids'] ||= {}
-    self.settings['attached_user_ids'][user_type] ||= []
-    self.settings['attached_user_ids'][user_type].select!{|id| id != user.global_id }
+    user_types = [user_type]
+    if user_type == 'user'
+      user_types += ['sponsored_user', 'approved_user']
+    end
+    user_types.each do |type|
+      self.settings['attached_user_ids'] ||= {}
+      self.settings['attached_user_ids'][type] ||= []
+      self.settings['attached_user_ids'][type].select!{|id| id != user.global_id }
+    end
     self.save
   end
   
@@ -282,16 +332,24 @@ class Organization < ActiveRecord::Base
     self.attached_users('user')
   end
   
-  def sponsored_users
+  def sponsored_users(chainable=true)
     # TODO: get rid of this double-lookup
-    ids = self.attached_users('user').select{|u| self.sponsored_user?(u) }.map(&:id)
-    User.where(:id => ids)
+    users = self.attached_users('user').select{|u| self.sponsored_user?(u) }
+    if chainable
+      User.where(:id => users.map(&:id))
+    else
+      users
+    end
   end
   
-  def approved_users
+  def approved_users(chainable=true)
     # TODO: get rid of this double-lookup
-    ids = self.attached_users('user').select{|u| !self.pending_user?(u) }.map(&:id)
-    User.where(:id => ids)
+    users = self.attached_users('user').select{|u| !self.pending_user?(u) }
+    if chainable
+      User.where(:id => users.map(&:id))
+    else
+      users
+    end
   end
   
   def managers
@@ -373,7 +431,7 @@ class Organization < ActiveRecord::Base
     for_different_org = user.managing_organization_id && user.managing_organization_id != self.id
     for_different_org ||= user.settings && user.settings['managed_by'] && (user.settings['managed_by'].keys - [self.global_id]).length > 0
     raise "already associated with a different organization" if for_different_org
-    sponsored_user_count = self.sponsored_users.count
+    sponsored_user_count = self.sponsored_users(false).count
     raise "no licenses available" if sponsored && ((self.settings || {})['total_licenses'] || 0) <= sponsored_user_count
     user.update_subscription_organization(self.global_id, pending, sponsored)
     true
@@ -410,7 +468,7 @@ class Organization < ActiveRecord::Base
     raise "updated required" unless non_user_params['updater']
     if params[:allotted_licenses]
       total = params[:allotted_licenses].to_i
-      used = self.sponsored_users.count
+      used = self.sponsored_users(false).count
       if total < used
         add_processing_error("too few licenses, remove some users first")
         return false
