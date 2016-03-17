@@ -9,9 +9,11 @@ import Subscription from '../utils/subscription';
 CoughDrop.Organization = DS.Model.extend({
   didLoad: function() {
     this.set('total_licenses', this.get('allotted_licenses'));
+    this.update_licenses_expire();
   },
   didUpdate: function() {
     this.set('total_licenses', this.get('allotted_licenses'));
+    this.update_licenses_expire();
   },
   name: DS.attr('string'),
   permissions: DS.attr('raw'),
@@ -23,11 +25,17 @@ CoughDrop.Organization = DS.Model.extend({
   total_users: DS.attr('number'),
   total_managers: DS.attr('number'),
   total_supervisors: DS.attr('number'),
-  licenses_expire: DS.attr('date'),
+  licenses_expire: DS.attr('string'),
   created: DS.attr('date'),
   management_action: DS.attr('string'),
   recent_session_user_count: DS.attr('number'),
   recent_session_count: DS.attr('number'),
+  update_licenses_expire: function() {
+    var m = window.moment(this.get('licenses_expire'));
+    if(m.isValid()) {
+      this.set('licenses_expire', m.format('YYYY-MM-DD'));
+    }
+  },
   licenses_available: function() {
     return (this.get('total_licenses') || 0) > (this.get('used_licenses') || 0);
   }.property('total_licenses', 'used_licenses'),
