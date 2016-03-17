@@ -20,6 +20,7 @@ module JsonApi::Organization
       json['used_licenses'] = org.sponsored_users(false).count
       json['total_users'] = org.users.count
       json['total_managers'] = org.managers.count
+      json['licenses_expire'] = org.settings['licenses_expire'] if org.settings['licenses_expire']
       json['total_supervisors'] = org.supervisors.count
       json['created'] = org.created_at.iso8601
       recent_sessions = LogSession.where(['started_at > ?', 2.weeks.ago])
