@@ -31,9 +31,11 @@ CoughDrop.Organization = DS.Model.extend({
   recent_session_user_count: DS.attr('number'),
   recent_session_count: DS.attr('number'),
   update_licenses_expire: function() {
-    var m = window.moment(this.get('licenses_expire'));
-    if(m.isValid()) {
-      this.set('licenses_expire', m.format('YYYY-MM-DD'));
+    if(this.get('licenses_expire')) {
+      var m = window.moment(this.get('licenses_expire'));
+      if(m.isValid()) {
+        this.set('licenses_expire', m.format('YYYY-MM-DD'));
+      }
     }
   },
   licenses_available: function() {
