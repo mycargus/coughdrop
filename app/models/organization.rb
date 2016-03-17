@@ -458,6 +458,10 @@ class Organization < ActiveRecord::Base
         }, false)
       end
     end
+    if params[:licenses_expire]
+      time = Time.parse(params[:licenses_expire])
+      self.settings['licenses_expire'] = time.iso8601
+    end
     if params[:management_action]
       if !self.id
         add_processing_error("can't manage users on create") 

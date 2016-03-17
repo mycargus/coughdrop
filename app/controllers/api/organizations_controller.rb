@@ -181,7 +181,10 @@ class Api::OrganizationsController < ApplicationController
     org = Organization.find_by_global_id(params['id'])
     return unless exists?(org, params['id'])
     return unless allowed?(org, 'edit')
-    params['organization'].delete('allotted_licenses') if params['organization'] && !org.allows?(@api_user, 'update_licenses')
+    if params['organization'] && !org.allows?(@api_user, 'update_licenses')
+      params['organization'].delete('allotted_licenses') 
+      params['organization'].delete('licenses_expire') 
+    end
     if org.process(params['organization'], {'updater' => @api_user})
       render json: JsonApi::Organization.as_json(org, :wrapper => true, :permissions => @api_user).to_json
     else

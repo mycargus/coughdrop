@@ -107,6 +107,17 @@ describe Api::OrganizationsController, :type => :controller do
       expect(json['organization']['allotted_licenses']).to eq(0)
     end
     
+    it "should not allow updating license expiration unless authorized" do
+      token_user
+      o = Organization.create
+      o.add_manager(@user.user_name)
+      put :update, :id => o.global_id, :organization => {:licenses_expire => '2020-01-01'}
+      expect(response.success?).to eq(true)
+      json = JSON.parse(response.body)
+      expect(json['organization']['id']).to eq(o.global_id)
+      expect(json['organization']['licenses_expire']).to eq(nil)
+    end
+    
     it "should allow updating license count if authorized" do
       token_user
       o = Organization.create(:admin => true)
@@ -116,6 +127,17 @@ describe Api::OrganizationsController, :type => :controller do
       json = JSON.parse(response.body)
       expect(json['organization']['id']).to eq(o.global_id)
       expect(json['organization']['allotted_licenses']).to eq(7)
+    end
+    
+    it "should allow updating license count if authorized" do
+      token_user
+      o = Organization.create(:admin => true)
+      Organization.admin.add_manager(@user.user_name, true)
+      put :update, :id => o.global_id, :organization => {:licenses_expire => "2020-01-01"}
+      expect(response.success?).to eq(true)
+      json = JSON.parse(response.body)
+      expect(json['organization']['id']).to eq(o.global_id)
+      expect(json['organization']['licenses_expire']).to eq(Time.parse("2020-01-01").iso8601)
     end
     
     describe "managing managers" do
