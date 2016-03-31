@@ -76,15 +76,7 @@
                 <div class="text-muted" style="margin-top: -10px; margin-bottom: 10px; font-size: 16px;">per month</div>
               </button>
               <button type="button" class={{long_term_subscription_class}} {{action "set_subscription_type" 'long_term'}}>
-                {{#if subscription.cheaper_offer}}
-                  <div class="suggested">
-                      {{t "save 25%" key='sale'}}
-                  </div>
-                  <span style="padding-right: 10px; font-size: 20px;">
-                    $<span style="text-decoration: line-through;">200</span>
-                  </span>
-                  $<span style="font-size: 50px; vertical-align: middle;">150</span><br/>
-                {{else if subscription.much_cheaper_offer}}
+                {{#if subscription.much_cheaper_offer}}
                   <div class="suggested">
                       {{t "save 50%" key='sale'}}
                   </div>
@@ -92,6 +84,14 @@
                     $<span style="text-decoration: line-through;">200</span>
                   </span>
                   $<span style="font-size: 50px; vertical-align: middle;">100</span><br/>
+                {{else if subscription.cheaper_offer}}
+                  <div class="suggested">
+                      {{t "save 25%" key='sale'}}
+                  </div>
+                  <span style="padding-right: 10px; font-size: 20px;">
+                    $<span style="text-decoration: line-through;">200</span>
+                  </span>
+                  $<span style="font-size: 50px; vertical-align: middle;">150</span><br/>
                 {{else}}
                   $<span style="font-size: 50px; vertical-align: middle;">200</span><br/>
                 {{/if}}
