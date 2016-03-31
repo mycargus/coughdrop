@@ -133,9 +133,14 @@ var Subscription = Ember.Object.extend({
   subscription_amount_plus_trial: function() {
     if(this.get('discount_period') && ['monthly_4', 'long_term_150'].indexOf(this.get('subscription_amount')) != -1) {
       return this.get('subscription_amount') + '_plus_trial';
+    } else if(this.get('sale') && ['monthly_4', 'monthly_3', 'long_term_150', 'long_term_100'].indexOf(this.get('subscription_amount')) != -1) {
+      return this.get('subscription_amount') + '_plus_trial';
     }
     return this.get('subscription_amount');
   }.property('subscription_amount', 'discount_period'),
+  much_cheaper_offer: function() {
+    return this.get('sale');
+  }.property('sale'),
   cheaper_offer: function() {
     return this.get('sale') || this.get('discount_period');
   }.property('sale', 'discount_period'),
@@ -146,7 +151,9 @@ var Subscription = Ember.Object.extend({
       }
       if(this.get('subscription_type') == 'monthly') {
         if(!this.get('subscription_amount') || !this.get('subscription_amount').match(/^monthly_/)) {
-          if(this.get('cheaper_offer')) {
+          if(this.get('much_cheaper_offer')) {
+            this.set('subscription_amount', 'monthly_3');
+          } else if(this.get('cheaper_offer')) {
             this.set('subscription_amount', 'monthly_4');
           } else {
             this.set('subscription_amount', 'monthly_6');
@@ -154,7 +161,9 @@ var Subscription = Ember.Object.extend({
         }
       } else if(this.get('subscription_type') == 'long_term') {
         if(!this.get('subscription_amount') || !this.get('subscription_amount').match(/^long_term_/)) {
-          if(this.get('cheaper_offer')) {
+          if(this.get('much_cheaper_offer')) {
+            this.set('subscription_amount', 'long_term_100');
+          } else if(this.get('cheaper_offer')) {
             this.set('subscription_amount', 'long_term_150');
           } else {
             this.set('subscription_amount', 'long_term_200');

@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import Subscription from '../utils/subscription';
 import stashes from '../utils/_stashes';
 import app_state from '../utils/app_state';
 import modal from '../utils/modal';
@@ -22,6 +23,7 @@ export default Ember.Route.extend({
   setupController: function(controller, model) {
     controller.set('user', this.get('store').createRecord('user', {preferences: {}}));
     controller.set('user.watch_user_name', true);
+    controller.set('subscription', Subscription.create());
     controller.set('model', model);
     // TODO: this seems messy. got to be a cleaner way...
     controller.set('extras', coughDropExtras);
@@ -46,7 +48,7 @@ export default Ember.Route.extend({
         return;
       }
     }
-    
+
     app_state.clear_mode();
     if(!app_state.get('currentUser.preferences.home_board.id')) {
       this.store.query('board', {user_id: 'example', starred: true, public: true}).then(function(boards) {
@@ -89,7 +91,7 @@ export default Ember.Route.extend({
       var user = controller.get('user');
       controller.set('triedToSave', true);
       if(!user.get('terms_agree')) { return; }
-      if(controller.get('badEmail') || controller.get('shortPassword') || controller.get('noName') || controller.get('noSpacesName')) { 
+      if(controller.get('badEmail') || controller.get('shortPassword') || controller.get('noName') || controller.get('noSpacesName')) {
         return;
       }
       var _this = this;

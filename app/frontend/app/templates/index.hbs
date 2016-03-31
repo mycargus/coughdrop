@@ -629,7 +629,12 @@
           </div>
         </div>
         <div class="col-sm-8 col-sm-offset-2" style="text-align: center; margin-bottom: 20px;">
-          {{#link-to 'pricing'}}{{t "see our pricing details." key='whats_it_cost'}}{{/link-to}}
+          {{#if subscription.sale}}
+            <span class='label label-danger'>{{t "SALE NOW" key='sale_now'}}</span>
+          {{/if}}
+          {{#link-to 'pricing'}}
+            {{t "see our pricing details." key='whats_it_cost'}}
+          {{/link-to}}
         </div>
       </div>
     {{/unless}}
