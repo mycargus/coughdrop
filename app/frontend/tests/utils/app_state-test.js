@@ -1974,4 +1974,22 @@ describe('app_state', function() {
       expect(res).toEqual(false);
     });
   });
+
+  describe('check_for_protected_usage', function() {
+    afterEach(function() {
+      if(window._trackJs) { window._trackJs.disabled = null; }
+      CoughDrop.protected_user = null;
+      stashes.persist('protected_user', null);
+    });
+
+    it('should flag the user as protected in the right spots', function() {
+      expect(CoughDrop.protected_user == null).toEqual(true);
+      app_state.set('currentUser', Ember.Object.create({preferences: {protected_usage: false}}));
+      expect(CoughDrop.protected_user).toEqual(false);
+      expect(stashes.get('protected_user')).toEqual(false);
+      app_state.set('currentUser', Ember.Object.create({preferences: {protected_usage: true}}));
+      expect(CoughDrop.protected_user).toEqual(true);
+      expect(stashes.get('protected_user')).toEqual(true);
+    });
+  });
 });
