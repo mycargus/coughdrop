@@ -54,13 +54,20 @@
         {{/if}}
       </div>
       <div class="row">
-        {{stats/core-list core=model.core_lists usage_stats=usage_stats ref_stats=usage_stats2 side_by_side=usage_stats2 word_cloud='word_cloud_left' word_data='word_data'}}
-        {{#if usage_stats2}}
-          {{stats/core-list core=model.core_lists usage_stats=usage_stats2 ref_stats=usage_stats side_by_side=true right_side=true word_cloud='word_cloud_right' word_data='word_data'}}
-        {{/if}}
-        {{stats/core-fringe usage_stats=usage_stats ref_stats=usage_stats2 side_by_side=usage_stats2}}
-        {{#if usage_stats2}}
-          {{stats/core-fringe usage_stats=usage_stats2 ref_stats=usage_stats side_by_side=true right_side=true}}
+        {{#if app_state.feature_flags.core_reports}}
+          {{stats/core-list core=model.core_lists usage_stats=usage_stats ref_stats=usage_stats2 side_by_side=usage_stats2 word_cloud='word_cloud_left' word_data='word_data' edit_permission=model.permissions.edit modify_core='modify_core'}}
+          {{#if usage_stats2}}
+            {{stats/core-list core=model.core_lists usage_stats=usage_stats2 ref_stats=usage_stats side_by_side=true right_side=true word_cloud='word_cloud_right' word_data='word_data' edit_permission=model.permissions.edit modify_core='modify_core'}}
+          {{/if}}
+          {{stats/core-fringe usage_stats=usage_stats ref_stats=usage_stats2 side_by_side=usage_stats2}}
+          {{#if usage_stats2}}
+            {{stats/core-fringe usage_stats=usage_stats2 ref_stats=usage_stats side_by_side=true right_side=true}}
+          {{/if}}
+        {{else}}
+          {{stats/parts-of-speech-flow usage_stats=usage_stats ref_stats=usage_stats2 side_by_side=usage_stats2}}
+          {{#if usage_stats2}}
+            {{stats/parts-of-speech-flow usage_stats=usage_stats2 ref_stats=usage_stats side_by_side=true right_side=true}}
+          {{/if}}
         {{/if}}
         {{stats/parts-of-speech-pie usage_stats=usage_stats ref_stats=usage_stats2 side_by_side=usage_stats2}}
         {{#if usage_stats2}}

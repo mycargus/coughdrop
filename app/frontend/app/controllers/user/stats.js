@@ -302,6 +302,13 @@ export default Ember.Controller.extend({
     word_data: function(word) {
       modal.open('word-data', {word: word, usage_stats: this.get('usage_stats'), user: this.get('model')});
     },
+    modify_core: function() {
+      var _this = this;
+      modal.open('modify-core-words', {user: this.get('model')}).then(function() {
+        _this.set('model.core_lists', null);
+        _this.load_core();
+      });
+    },
     save_snapshot: function() {
       var _this = this;
       modal.open('save-snapshot', {usage_stats: this.get('usage_stats'), user: this.get('model')}).then(function(res) {

@@ -1,0 +1,2955 @@
+{
+  "about" : 
+  {
+    "1" : "Tell me about it.",
+    "2" : "It's about lunch time.",
+    "3" : "What about me.",
+    "4" : "Tell me more about that.",
+    "5" : "It is about time.",
+    "6" : "I like the story about the dog.",
+    "7" : "What about it?",
+    "8" : "I am about to go.",
+    "9" : "I want to learn about that."
+  },
+  "afraid" : 
+  {
+    "1" : "I feel afraid.",
+    "2" : "I'm afraid not.",
+    "3" : "What are you afraid of?",
+    "4" : "I am afraid of the dark.",
+    "5" : "Are you afraid of spiders?",
+    "6" : "Don't be afraid."
+  },
+  "after" : 
+  {
+    "1" : "Look after my turtle, please.",
+    "2" : "After this I need a break.",
+    "3" : "What happens after lunch?",
+    "4" : "After you.",
+    "5" : "After today I will be six.",
+    "6" : "I go home after school.",
+    "7" : "It is mine after all.",
+    "8" : "We do this day after day."
+  },
+  "afternoon" : 
+  {
+    "1" : "Good afternoon.",
+    "2" : "When will it be afternoon.",
+    "3" : "We should do that tomorrow afternoon.",
+    "4" : "Can we go this afternoon?",
+    "5" : "It is a nice afternoon.",
+    "6" : "Will it rain in the afternoon?",
+    "7" : "First afternoon then night."
+  },
+  "again" : 
+  {
+    "1" : "Let's do that again.",
+    "2" : "When can we do that again?",
+    "3" : "Not again!",
+    "4" : "Do that again.",
+    "5" : "I want to see that again.",
+    "6" : "Show me again.",
+    "7" : "Try it again.",
+    "8" : "Her we go again.",
+    "9" : "Come again?",
+    "10" : "Think again."
+  },
+  "aide" : 
+  {
+    "1" : "I like my aide.",
+    "2" : "She is a good aide.",
+    "3" : "Where did the aide go?",
+    "4" : "Aide, please help.",
+    "5" : "My aide is fun."
+  },
+  "all" : 
+  {
+    "1" : "All right!",
+    "2" : "All the marbles are in the box.",
+    "3" : "We all are happy.",
+    "4" : "All day long we've been inside.",
+    "5" : "All put away.",
+    "6" : "He can eat all of them.",
+    "7" : "All for one and one for all.",
+    "8" : "We can all go to the party.",
+    "9" : "The cat is all black.",
+    "10" : "I do that all the time."
+  },
+  "almost" : 
+  {
+    "1" : "It's almost time for lunch.",
+    "2" : "We are almost done.",
+    "3" : "Almost all the toys are put away.",
+    "4" : "Almost done!",
+    "5" : "You almost got it.",
+    "6" : "We are almost ready.",
+    "7" : "Almost there!"
+  },
+  "already" : 
+  {
+    "1" : "She already had a turn.",
+    "2" : "It's already time for lunch.",
+    "3" : "Did we already have a turn?",
+    "4" : "Are we done already?",
+    "5" : "I already like you.",
+    "6" : "Are you done already?",
+    "7" : "Enough already!",
+    "8" : "He already left.",
+    "9" : "I already had some."
+  },
+  "am" : 
+  {
+    "1" : "I am bored.",
+    "2" : "Am I done?",
+    "3" : "I am not ready."
+  },
+  "and" : 
+  {
+    "1" : "I made lunch and dinner.",
+    "2" : "You and I can go home.",
+    "3" : "And then what?",
+    "4" : "There are boys and girls.",
+    "5" : "I like red and blue."
+  },
+  "animal" : 
+  {
+    "1" : "What is your favorite animal?",
+    "2" : "What did the animal say?",
+    "3" : "He is crazy like an animal.",
+    "4" : "My favorite animal is a bear.",
+    "5" : "I am a party animal."
+  },
+  "another" : 
+  {
+    "1" : "I would like another turn.",
+    "2" : "There is another pencil.",
+    "3" : "Another, please?",
+    "4" : "I have another idea.",
+    "5" : "Not another one!",
+    "6" : "One thing after another."
+  },
+  "any" : 
+  {
+    "1" : "I don't want any.",
+    "2" : "Want any?",
+    "3" : "Any of those is good.",
+    "4" : "Come over any time.",
+    "5" : "Any way you want.",
+    "6" : "It will not do any good.",
+    "7" : "He will come any minute.",
+    "8" : "I don't like it any more."
+  },
+  "are" : 
+  {
+    "1" : "We are done.",
+    "2" : "Are we done?",
+    "3" : "Are you ready?"
+  },
+  "around" : 
+  {
+    "1" : "Let's look around.",
+    "2" : "There's something in the way, we should go around.",
+    "3" : "I like to be around you.",
+    "4" : "It is around here somewhere.",
+    "5" : "Don't play around right now.",
+    "6" : "How do you get around?",
+    "7" : "Don't mess around."
+  },
+  "ask" : 
+  {
+    "1" : "Let's ask him.",
+    "2" : "I want to as a question.",
+    "3" : "When will you ask me?",
+    "4" : "Can I ask something?",
+    "5" : "Let me ask around.",
+    "6" : "You asked for it.",
+    "7" : "It does not hurt to ask."
+  },
+  "at" : 
+  {
+    "1" : "Look at that.",
+    "2" : "He is at the store.",
+    "3" : "Where is it at?",
+    "4" : "Where is he at?",
+    "5" : "I don't like it at all.",
+    "6" : "She is at work today.",
+    "7" : "At school I like to read.",
+    "8" : "We go home at 3.",
+    "9" : "Don't look at me."
+  },
+  "away" : 
+  {
+    "1" : "Put those away.",
+    "2" : "She did go far away.",
+    "3" : "Go away.",
+    "4" : "Let's get away from them.",
+    "5" : "Please put that away.",
+    "6" : "Get it away from me.",
+    "7" : "Don't run away.",
+    "8" : "I will do it right away."
+  },
+  "baby" : 
+  {
+    "1" : "Hi baby.",
+    "2" : "You sleep like a baby.",
+    "3" : "That baby is very cute.",
+    "4" : "I like the color baby blue.",
+    "5" : "Can I hold the baby.",
+    "6" : "Do not be a baby."
+  },
+  "back" : 
+  {
+    "1" : "Let's go back over there.",
+    "2" : "My back hurts.",
+    "3" : "Put it back on the shelf.",
+    "4" : "Go back a page.",
+    "5" : "Give that back.",
+    "6" : "I hurt my back.",
+    "7" : "Don't back down.",
+    "8" : "Go out the back door.",
+    "9" : "Come back here!"
+  },
+  "bad" : 
+  {
+    "1" : "It smells bad.",
+    "2" : "I feel bad about that.",
+    "3" : "He is being bad right now.",
+    "4" : "It was a bad day.",
+    "5" : "That is not so bad.",
+    "6" : "I have some bad news.",
+    "7" : "I feel bad.",
+    "8" : "My bad."
+  },
+  "bathroom" : 
+  {
+    "1" : "I need to use the bathroom.",
+    "2" : "Where is the bathroom?",
+    "3" : "Is he in the bathroom?",
+    "4" : "I need to go to the bathroom.",
+    "5" : "Where is the bathroom?",
+    "6" : "The bathroom is dirty.",
+    "7" : "I need help in the bathroom.",
+    "8" : "She is in the bathroom."
+  },
+  "be" : 
+  {
+    "1" : "I want to be alone.",
+    "2" : "Where will you be?",
+    "3" : "Can we be friends?",
+    "4" : "Be all that you can be.",
+    "5" : "We will be there."
+  },
+  "because" : 
+  {
+    "1" : "I am scared because it is dark outside.",
+    "2" : "Because I said so!",
+    "3" : "Because you told me so.",
+    "4" : "I need to go because it is time for dinner."
+  },
+  "before" : 
+  {
+    "1" : "Let's eat before we go.",
+    "2" : "Work before play.",
+    "3" : "I was happy before now.",
+    "4" : "Put socks on before shoes.",
+    "5" : "Before you know it.",
+    "6" : "I have done it before."
+  },
+  "big" : 
+  {
+    "1" : "That is a big tomato.",
+    "2" : "How big will it get?",
+    "3" : "This one is bigger.",
+    "4" : "Which is biggest?",
+    "5" : "That is very big.",
+    "6" : "Today is a big day.",
+    "7" : "Don't get a big head.",
+    "8" : "Me and my big mouth.",
+    "9" : "Don't be a big mouth.",
+    "10" : "Make a big thing of it."
+  },
+  "black" : 
+  {
+    "1" : "The car is black.",
+    "2" : "The night is black.",
+    "3" : "I have a black eye.",
+    "4" : "I like to use black.",
+    "5" : "Tomorrow is Black Friday.",
+    "6" : "I read about a black hole."
+  },
+  "blue" : 
+  {
+    "1" : "I like my blue shirt.",
+    "2" : "The sky is blue.",
+    "3" : "I feel a little blue.",
+    "4" : "His eye is black and blue.",
+    "5" : "The water looks very blue."
+  },
+  "body" : 
+  {
+    "1" : "I can feel my body.",
+    "2" : "Move your body.",
+    "3" : "I see a body of water.",
+    "4" : "My body is tired."
+  },
+  "bottom" : 
+  {
+    "1" : "I will sit on my bottom.",
+    "2" : "It is in the bottom drawer.",
+    "3" : "Look at the bottom.",
+    "4" : "Get up off your bottom.",
+    "5" : "Start at the bottom and go up."
+  },
+  "boy" : 
+  {
+    "1" : "He is a silly boy.",
+    "2" : "Boy am I tired.",
+    "3" : "That a boy!",
+    "4" : "That is the boy from school.",
+    "5" : "I am a good boy."
+  },
+  "break" : 
+  {
+    "1" : "Did he break his arm?",
+    "2" : "Break a leg!",
+    "3" : "I need to take a break.",
+    "4" : "Break it up!",
+    "5" : "I will break in my new shoes.",
+    "6" : "Let's break it into pieces."
+  },
+  "bring" : 
+  {
+    "1" : "Can you bring it to me?",
+    "2" : "Don't bring.",
+    "3" : "Bring it on.",
+    "4" : "Where will you bring it?",
+    "5" : "Who bring brought that?",
+    "6" : "What did you bring me?"
+  },
+  "bring" : 
+  {
+    "1" : "Please bring it to me.",
+    "2" : "What brings you here?",
+    "3" : "Bring back my shirt.",
+    "4" : "Will you bring the dog?",
+    "5" : "Bring it on!"
+  },
+  "brother" : 
+  {
+    "1" : "I have a little brother.",
+    "2" : "Oh brother!",
+    "3" : "Do you have a brother?",
+    "4" : "Where is his brother?",
+    "5" : "My brother is here.",
+    "6" : "I am a big brother."
+  },
+  "bug" : 
+  {
+    "1" : "You bug me.",
+    "2" : "Did you see that bug?",
+    "3" : "Bug off!",
+    "4" : "Please don't bug him now.",
+    "5" : "Put the bug in the box."
+  },
+  "busy" : 
+  {
+    "1" : "You look busy.",
+    "2" : "Please get busy.",
+    "3" : "This is busy work.",
+    "4" : "I am very busy.",
+    "5" : "Busy as a bee."
+  },
+  "but" : 
+  {
+    "1" : "I like it but I do not love it.",
+    "2" : "But what do I know?",
+    "3" : "I want to play but I am tired.",
+    "4" : "Thank you, but no thank you.",
+    "5" : "But I want it.",
+    "6" : "But what do you think?"
+  },
+  "buy" : 
+  {
+    "1" : "That is a good buy.",
+    "2" : "Please buy me something.",
+    "3" : "I don't buy it.",
+    "4" : "Can you buy us some time?",
+    "5" : "I did not buy that today."
+  },
+  "call" : 
+  {
+    "1" : "Please call on me.",
+    "2" : "I want to call a friend.",
+    "3" : "Call me, maybe.",
+    "4" : "Don't call her name.",
+    "5" : "Let's call it a day.",
+    "6" : "It was a close call."
+  },
+  "can" : 
+  {
+    "1" : "Can I help you?",
+    "2" : "We can do this.",
+    "3" : "I think I can.",
+    "4" : "You can come tomorrow.",
+    "5" : "How can you say that?"
+  },
+  "car" : 
+  {
+    "1" : "Let's go for a ride in the car.",
+    "2" : "Where is the car?",
+    "3" : "What color car do you like?",
+    "4" : "Baby, you can drive my car.",
+    "5" : "Please get in the car."
+  },
+  "change" : 
+  {
+    "1" : "I need a change.",
+    "2" : "Change position, please.",
+    "3" : "It changed color.",
+    "4" : "Did you change clothes?",
+    "5" : "Do you have change?",
+    "6" : "He had a change of heart.",
+    "7" : "I can change my mind. ",
+    "8" : "Let's change the show."
+  },
+  "child" : 
+  {
+    "1" : "He is an only child.",
+    "2" : "Are you an only child?",
+    "3" : "Don't be a child about it.",
+    "4" : "Who is that child?",
+    "5" : "Is that her child?",
+    "6" : "I am his child."
+  },
+  "clean" : 
+  {
+    "1" : "It is time to clean up.",
+    "2" : "Did he clean his plate?",
+    "3" : "Keep the clothes clean.",
+    "4" : "Please clean off the table.",
+    "5" : "Are my hands clean?",
+    "6" : "Time to clean!",
+    "7" : "It looks clean in here."
+  },
+  "clear" : 
+  {
+    "1" : "The way is clear.",
+    "2" : "I can see clear to the hill.",
+    "3" : "Let's clear the plates.",
+    "4" : "We can clear off the table.",
+    "5" : "Stay clear of the car.",
+    "6" : "I will make my idea clear.",
+    "7" : "The glass is clear."
+  },
+  "close" : 
+  {
+    "1" : "Close that door.",
+    "2" : "We are close together.",
+    "3" : "It is closed.",
+    "4" : "Help me close it?",
+    "5" : "Please sit close to me.",
+    "6" : "Don't get too close to the fire.",
+    "7" : "Please close the door.",
+    "8" : "Close your mouth.",
+    "9" : "We are close to home."
+  },
+  "clothes" : 
+  {
+    "1" : "Put your clothes on.",
+    "2" : "My clothes are clean.",
+    "3" : "I want to buy new clothes.",
+    "4" : "He got it on his clothes.",
+    "5" : "Please help me with my clothes."
+  },
+  "cold" : 
+  {
+    "1" : "I feel cold.",
+    "2" : "It is a cold night.",
+    "3" : "She was cold to me.",
+    "4" : "He was out cold.",
+    "5" : "I have a cold."
+  },
+  "color" : 
+  {
+    "1" : "What color do you like?",
+    "2" : "Let's color together.",
+    "3" : "I want a different color.",
+    "4" : "What is that color?",
+    "5" : "I need to color this."
+  },
+  "come" : 
+  {
+    "1" : "Come here.",
+    "2" : "Can I come with you?",
+    "3" : "Come on.",
+    "4" : "Come over and play.",
+    "5" : "The time has come.",
+    "6" : "When will she come?"
+  },
+  "confused" : 
+  {
+    "1" : "I feel confused.",
+    "2" : "You confused her.",
+    "3" : "She confused me for you.",
+    "4" : "The teacher is confused too.",
+    "5" : "Why are you so confused?"
+  },
+  "cool" : 
+  {
+    "1" : "I need to cool off.",
+    "2" : "Cool it!",
+    "3" : "That is cool.",
+    "4" : "You are cool.",
+    "5" : "It is cool outside today.",
+    "6" : "Keep a cool head."
+  },
+  "count" : 
+  {
+    "1" : "That will not count.",
+    "2" : "I know how to count.",
+    "3" : "Ready for the count down?",
+    "4" : "Count me in!",
+    "5" : "You can count on it."
+  },
+  "cut" : 
+  {
+    "1" : "I have a cut on my finger.",
+    "2" : "Did you cut the cheese?",
+    "3" : "Please help me cut this.",
+    "4" : "You can cut it with scissors.",
+    "5" : "I have my work cut out for me."
+  },
+  "day" : 
+  {
+    "1" : "In the day time.",
+    "2" : "Do you want to play to day.",
+    "3" : "It's day time.",
+    "4" : "It's a yucky day.",
+    "5" : "It's rainy outside.",
+    "6" : "It's sunny day.",
+    "7" : "It's pretty day."
+  },
+  "day" : 
+  {
+    "1" : "What day it today?",
+    "2" : "Today is a bad hair day.",
+    "3" : "Have a nice day.",
+    "4" : "I don't have all day.",
+    "5" : "Make my day."
+  },
+  "different" : 
+  {
+    "1" : "You look different.",
+    "2" : "I want a different color.",
+    "3" : "That one is different.",
+    "4" : "I have a different one.",
+    "5" : "They look different.",
+    "6" : "Different is good."
+  },
+  "dirty" : 
+  {
+    "1" : "Her hair is dirty.",
+    "2" : "Please don't get dirty.",
+    "3" : "His hands are dirty.",
+    "4" : "He has dirty clothes.",
+    "5" : "What a dirty look.",
+    "6" : "Don't talk dirty."
+  },
+  "do" : 
+  {
+    "1" : "Do not do that.",
+    "2" : "I do not like that.",
+    "3" : "Do you want to go?",
+    "4" : "I will do it.",
+    "5" : "How do you do?",
+    "6" : "Do a good job.",
+    "7" : "What do you like to do?",
+    "8" : "How do you feel?",
+    "9" : "Please don't do that."
+  },
+  "doctor" : 
+  {
+    "1" : "I don't like the doctor.",
+    "2" : "Do you need to see the doctor?",
+    "3" : "What did the doctor tell you?",
+    "4" : "I want to be a doctor.",
+    "5" : "We will doctor your cut."
+  },
+  "don't" : 
+  {
+    "word" : "don't",
+    "1" : "Don't touch it.",
+    "2" : "I don't want any.",
+    "3" : "We don't like that.",
+    "4" : "Don't you want to go with me?",
+    "5" : "Why don't you have one?"
+  },
+  "done" : 
+  {
+    "1" : "She is all done.",
+    "2" : "I am all done with mine.",
+    "3" : "How long until we are done?"
+  },
+  "down" : 
+  {
+    "1" : "Get down.",
+    "2" : "Put it down on the table.",
+    "3" : "Let's go down the street.",
+    "4" : "Please quiet down.",
+    "5" : "Jump down from there."
+  },
+  "dress" : 
+  {
+    "1" : "I like her dress.",
+    "2" : "Let's get dressed.",
+    "3" : "I want to dress up.",
+    "4" : "I am dressed for church.",
+    "5" : "Put your dress on."
+  },
+  "drink" : 
+  {
+    "1" : "I need a drink of water.",
+    "2" : "He will drink it up.",
+    "3" : "Don't make me drink it.",
+    "4" : "Get a big drink.",
+    "5" : "Drink it all in."
+  },
+  "drive" : 
+  {
+    "1" : "That will drive me crazy.",
+    "2" : "Let's go for a drive.",
+    "3" : "Don't drive her away.",
+    "4" : "Will you drive me to school?",
+    "5" : "I want to learn to drive."
+  },
+  "easy" : 
+  {
+    "1" : "That was easy.",
+    "2" : "Go easy on him.",
+    "3" : "Easy come, easy go.",
+    "4" : "Take it easy.",
+    "5" : "It will not be easy.",
+    "6" : "Easy like Sunday morning."
+  },
+  "eat" : 
+  {
+    "1" : "It is time to eat.",
+    "2" : "Please eat your dinner.",
+    "3" : "He eats like a pig.",
+    "4" : "Eat your heart out.",
+    "5" : "Get something to eat."
+  },
+  "every" : 
+  {
+    "1" : "Every day is a new day.",
+    "2" : "Eat every bite all gone.",
+    "3" : "I go every now and then.",
+    "4" : "How is every thing?",
+    "5" : "Every one will come."
+  },
+  "face" : 
+  {
+    "1" : "Why the long face?",
+    "2" : "Face it!",
+    "3" : "You have to face the music.",
+    "4" : "What is on your face?",
+    "5" : "We was in my face.",
+    "6" : "We will talk face to face."
+  },
+  "fall" : 
+  {
+    "1" : "Uh oh he fall.",
+    "2" : "Uh oh it fall.",
+    "3" : "I fall fell today.",
+    "4" : "Who fall down?",
+    "5" : "Where did you fall?",
+    "6" : "Where it fall?",
+    "7" : "He fall down.",
+    "8" : "They will fall in love.",
+    "9" : "Trees are pretty in the fall.",
+    "10" : "Did you fall out of bed?"
+  },
+  "family" : 
+  {
+    "1" : "My family has four in it.",
+    "2" : "I like my family.",
+    "3" : "How is her family?",
+    "4" : "It runs in the family.",
+    "5" : "We are a happy family."
+  },
+  "far" : 
+  {
+    "1" : "My house is far from here.",
+    "2" : "As far as I know.",
+    "3" : "So far so good.",
+    "4" : "Don't go too far.",
+    "5" : "That is too far away."
+  },
+  "fast" : 
+  {
+    "1" : "We can make fast money.",
+    "2" : "Not so fast!",
+    "3" : "That girl is very fast.",
+    "4" : "I can go fast.",
+    "5" : "You talk fast.",
+    "6" : "Think fast!",
+    "7" : "How fast is he?"
+  },
+  "father" : 
+  {
+    "1" : "I look like my father.",
+    "2" : "My father is a good man.",
+    "3" : "I love Father Christmas.",
+    "4" : "He is her father.",
+    "5" : "Do you know of Father Time?",
+    "6" : "Happy Father's Day!"
+  },
+  "favorite" : 
+  {
+    "1" : "That is my favorite one.",
+    "2" : "My favorite color is red.",
+    "3" : "He is the favorite to win.",
+    "4" : "I don't have a favorite.",
+    "5" : "My favorite!"
+  },
+  "feel" : 
+  {
+    "1" : "How do you feel?",
+    "2" : "I can get the feel of it.",
+    "3" : "Feel around and find it.",
+    "4" : "I feel sick.",
+    "5" : "That feels funny.",
+    "6" : "I feel at home here."
+  },
+  "few" : 
+  {
+    "1" : "I will take a few.",
+    "2" : "Ready in a few minutes.",
+    "3" : "Few people like it.",
+    "4" : "I have a few friends.",
+    "5" : "Be back in a few!"
+  },
+  "find" : 
+  {
+    "1" : "Help me find my coat.",
+    "2" : "Where will I find you?",
+    "3" : "Can we find the answer.",
+    "4" : "Now we will find it.",
+    "5" : "I want to find out more.",
+    "6" : "I can find my way home."
+  },
+  "finger" : 
+  {
+    "1" : "I hurt my little finger.",
+    "2" : "How many fingers are there?",
+    "3" : "I can't put my finger on it.",
+    "4" : "My fingers are dirty.",
+    "5" : "I am typing with my fingers."
+  },
+  "finish" : 
+  {
+    "1" : "Please finish dinner.",
+    "2" : "We have to finish on time.",
+    "3" : "Did you finish the homework.",
+    "4" : "Almost finished!",
+    "5" : "Finish him!",
+    "6" : "I will help from start to finish."
+  },
+  "first" : 
+  {
+    "1" : "You can go first.",
+    "2" : "At first I did not like him.",
+    "3" : "I was the first one up today.",
+    "4" : "This is my first time.",
+    "5" : "Is this his first time at school?",
+    "6" : "First do this then that."
+  },
+  "fix" : 
+  {
+    "1" : "Will you help me fix this?",
+    "2" : "I am in a fix.",
+    "3" : "Let's fix some dinner.",
+    "4" : "That was a fast fix.",
+    "5" : "We can fix it up.",
+    "6" : "I will fix that."
+  },
+  "fly" : 
+  {
+    "1" : "Did you see that bird fly?",
+    "2" : "That will never fly.",
+    "3" : "A fly is a bug.",
+    "4" : "We will fly to see grandmother.",
+    "5" : "He would not hurt a fly."
+  },
+  "food" : 
+  {
+    "1" : "I want food!",
+    "2" : "Don't eat my food.",
+    "3" : "Let's get our food to go.",
+    "4" : "Put food on the table.",
+    "5" : "Can I help make food?"
+  },
+  "foot" : 
+  {
+    "1" : "Don't put one foot in my room.",
+    "2" : "He has a two foot tall table.",
+    "3" : "Use the other foot.",
+    "4" : "Don't start on the wrong foot.",
+    "5" : "What is on your foot?",
+    "6" : "I put my foot in it.",
+    "7" : "I will put my foot down."
+  },
+  "for" : 
+  {
+    "1" : "I am happy for Halloween.",
+    "2" : "I love you for that.",
+    "3" : "It is time for dinner.",
+    "4" : "Get ready for bed.",
+    "5" : "This is for you.",
+    "6" : "Thank you for the present."
+  },
+  "friend" : 
+  {
+    "1" : "You are my friend.",
+    "2" : "Let's make a new friend.",
+    "3" : "Can my friend come over?",
+    "4" : "This is my good friend.",
+    "5" : "Who is your friend?"
+  },
+  "from" : 
+  {
+    "1" : "Where are you from?",
+    "2" : "A week from now I go home.",
+    "3" : "I am not from here.",
+    "4" : "Where did this come from?",
+    "5" : "This is from my grandmother.",
+    "6" : "Don't run away from me."
+  },
+  "full" : 
+  {
+    "1" : "I am full.",
+    "2" : "He is full of it.",
+    "3" : "You have a full plate.",
+    "4" : "My mouth is full.",
+    "5" : "I want a full cup."
+  },
+  "fun" : 
+  {
+    "1" : "Let's have some fun.",
+    "2" : "Don't make fun of him.",
+    "3" : "For the fun of it.",
+    "4" : "I like to have fun.",
+    "5" : "It is fun to read."
+  },
+  "get" : 
+  {
+    "1" : "Please get in the car.",
+    "2" : "Get out!",
+    "3" : "Let's get out of here.",
+    "4" : "Get away from me.",
+    "5" : "I want to get a dog.",
+    "6" : "I get it."
+  },
+  "girl" : 
+  {
+    "1" : "I am not a girl.",
+    "2" : "That girl is very pretty.",
+    "3" : "What a big girl.",
+    "4" : "That is my girl!",
+    "5" : "She is my girl friend.",
+    "6" : "Where did the girl go?"
+  },
+  "give" : 
+  {
+    "1" : "He will give it to me.",
+    "2" : "You give it to her.",
+    "3" : "Give it to me please.",
+    "4" : "Give it to her now.",
+    "5" : "Who should I give it to?"
+  },
+  "give" : 
+  {
+    "1" : "Give me a turn.",
+    "2" : "I Give up.",
+    "3" : "Don't give up.",
+    "4" : "Please give me a hand.",
+    "5" : "I want to give you a kiss.",
+    "6" : "Give it here, please.",
+    "7" : "Give it a try."
+  },
+  "go" : 
+  {
+    "1" : "Let's go for a walk.",
+    "2" : "Can we go on a drive?",
+    "3" : "I like to go to school.",
+    "4" : "Go home.",
+    "5" : "I want you to go."
+  },
+  "gone" : 
+  {
+    "1" : "Is that all gone?",
+    "2" : "Eat is all gone?",
+    "3" : "She is gone for the day."
+  },
+  "good" : 
+  {
+    "1" : "It is good to meet you.",
+    "2" : "Have a good day.",
+    "3" : "Be good.",
+    "4" : "That is good work.",
+    "5" : "Good morning.",
+    "6" : "Good night!",
+    "7" : "Good try.",
+    "8" : "I am good at that.",
+    "9" : "Let's have a good time."
+  },
+  "goodbye" : 
+  {
+    "1" : "Goodbye, mom!",
+    "2" : "I will say goodbye to him.",
+    "3" : "Kiss it goodbye.",
+    "4" : "I don't like goodbye.",
+    "5" : "Goodbye for now."
+  },
+  "grandfather" : 
+  {
+    "1" : "I like my grandfather.",
+    "2" : "Her grandfather is old.",
+    "3" : "We have a grandfather clock.",
+    "4" : "Grandfather reads to me.",
+    "5" : "I want my grandfather."
+  },
+  "grandmother" : 
+  {
+    "1" : "My grandmother is nice.",
+    "2" : "Who is her grandmother?",
+    "3" : "My grandmother made it.",
+    "4" : "I write to my grandmother.",
+    "5" : "She is my grandmother."
+  },
+  "great" : 
+  {
+    "1" : "Have a great day!",
+    "2" : "I will see a great white shark.",
+    "3" : "Great, I will see you later.",
+    "4" : "I have a great many ideas.",
+    "5" : "It is not good, it is great.",
+    "6" : "The party was great.",
+    "7" : "I have a great big bed."
+  },
+  "green" : 
+  {
+    "1" : "You look a little green.",
+    "2" : "I want to use the green one.",
+    "3" : "Let's go green.",
+    "4" : "It is a green light so go.",
+    "5" : "I like the color green."
+  },
+  "grow" : 
+  {
+    "1" : "I do not want to grow up.",
+    "2" : "What plans can we grow?",
+    "3" : "He will grow in to those.",
+    "4" : "It will grow back.",
+    "5" : "The dog will learn and grow.",
+    "6" : "I will grow before next year."
+  },
+  "guess" : 
+  {
+    "1" : "Guess what!",
+    "2" : "I guess so.",
+    "3" : "I guess not.",
+    "4" : "You will never guess.",
+    "5" : "Take a wild guess.",
+    "6" : "Guess again."
+  },
+  "hair" : 
+  {
+    "1" : "Today is a bad hair day.",
+    "2" : "I like the color of my hair.",
+    "3" : "You win by a hair!",
+    "4" : "I like your hair.",
+    "5" : "We will fix my hair.",
+    "6" : "Get out of my hair."
+  },
+  "hand" : 
+  {
+    "1" : "I will hand it in.",
+    "2" : "I want to hold his hand.",
+    "3" : "Put it in my hand.",
+    "4" : "My mom will be on hand.",
+    "5" : "Hand it to me."
+  },
+  "happy" : 
+  {
+    "1" : "I feel happy.",
+    "2" : "Happy to meet you.",
+    "3" : "That makes me happy.",
+    "4" : "I want a Happy Meal.",
+    "5" : "Happy birthday!"
+  },
+  "hard" : 
+  {
+    "1" : "It was a hard day.",
+    "2" : "This cheese is hard.",
+    "3" : "That is hard work.",
+    "4" : "Don't be so hard on me.",
+    "5" : "He has a hard head.",
+    "6" : "That is a hard question."
+  },
+  "have" : 
+  {
+    "1" : "How have you been?",
+    "2" : "I don't have to!",
+    "3" : "What do you have there?",
+    "4" : "Have you come before?",
+    "5" : "I have a new cat."
+  },
+  "he" : 
+  {
+    "1" : "He is busy now.",
+    "2" : "Can he come home?",
+    "3" : "Is he your friend?",
+    "4" : "He will talk to me.",
+    "5" : "Tell me who he is."
+  },
+  "head" : 
+  {
+    "1" : "Put the hat on the head.",
+    "2" : "Let's head over to the shop.",
+    "3" : "It went over my head.",
+    "4" : "My head hurts.",
+    "5" : "I hit my head on the table."
+  },
+  "hear" : 
+  {
+    "1" : "I can not hear you.",
+    "2" : "Did you hear what I said?",
+    "3" : "Glad to hear it.",
+    "4" : "Did you hear from her?",
+    "5" : "He will not hear of it?",
+    "6" : "I hear the music."
+  },
+  "help" : 
+  {
+    "1" : "Please help me.",
+    "2" : "I don't need help.",
+    "3" : "I want you to help.",
+    "4" : "Thank you for your help.",
+    "5" : "He can help us."
+  },
+  "her" : 
+  {
+    "1" : "I like her shoes.",
+    "2" : "I don't want to be her friend.",
+    "3" : "She wants her mother.",
+    "4" : "Her hair is pretty.",
+    "5" : "He is her teacher.",
+    "6" : "Who hurt her?"
+  },
+  "here" : 
+  {
+    "1" : "Here you go.",
+    "2" : "I want to stay here.",
+    "3" : "Get out of here.",
+    "4" : "Nice to be here.",
+    "5" : "Here I am!"
+  },
+  "hi" : 
+  {
+    "1" : "Hi there.",
+    "2" : "I want to tell her hi.",
+    "3" : "He said hi.",
+    "4" : "Hi!"
+  },
+  "hide" : 
+  {
+    "1" : "You count, I will hide.",
+    "2" : "I will not hide my face.",
+    "3" : "I will hide my money away.",
+    "4" : "Don't hide it from me.",
+    "5" : "Where do you want to hide?"
+  },
+  "high" : 
+  {
+    "1" : "High five!",
+    "2" : "You can jump very high.",
+    "3" : "It is high time we go home.",
+    "4" : "Can you sing high?",
+    "5" : "I will hold my head high.",
+    "6" : "Look up high.",
+    "7" : "The drawer is too high.",
+    "8" : "It is too high.",
+    "9" : "Look high and low for it.",
+    "10" : "Fly high!"
+  },
+  "his" : 
+  {
+    "1" : "I like his hat.",
+    "2" : "It was his idea.",
+    "3" : "His mother is not home.",
+    "4" : "He hurt his arm today.",
+    "5" : "His is the red coat.",
+    "6" : "That is his hat."
+  },
+  "hold" : 
+  {
+    "1" : "I want to hold your hand.",
+    "2" : "Hold on to the end.",
+    "3" : "Can we hold him back?",
+    "4" : "I will hold my nose.",
+    "5" : "Hold it right there!",
+    "6" : "We will hold it together."
+  },
+  "home" : 
+  {
+    "1" : "It is time to go home.",
+    "2" : "I feel at home here.",
+    "3" : "That was a home run!",
+    "4" : "There is no one home.",
+    "5" : "There is no place like home.",
+    "6" : "I miss my home."
+  },
+  "hot" : 
+  {
+    "1" : "It's not hot.",
+    "2" : "It's too hot in here.",
+    "3" : "The oven needs to be hot.",
+    "4" : "He looks hot.",
+    "5" : "It is very hot outside.",
+    "6" : "This is hot.",
+    "7" : "Is it hot outside?",
+    "8" : "He has a hot head."
+  },
+  "house" : 
+  {
+    "1" : "This is my house.",
+    "2" : "We will clean house today.",
+    "3" : "Let's go to his house.",
+    "4" : "That house is ugly.",
+    "5" : "Dinner is on the house.",
+    "6" : "That is a big house."
+  },
+  "how" : 
+  {
+    "1" : "How are you today?",
+    "2" : "How do I do this?",
+    "3" : "That is how it works.",
+    "4" : "How about that!",
+    "5" : "How about you?",
+    "6" : "How can I help you?",
+    "7" : "I will tell you how.",
+    "8" : "How many do you want?",
+    "9" : "How do you do?"
+  },
+  "how much" : 
+  {
+    "word" : "how much",
+    "1" : "How much is that dog?"
+  },
+  "hungry" : 
+  {
+    "1" : "Are you hungry?",
+    "2" : "I see a hungry cat.",
+    "3" : "I am hungry, let's eat!",
+    "4" : "Hungry, hungry hippo.",
+    "5" : "My dog is hungry.",
+    "6" : "I am hungry for yogurt."
+  },
+  "hurt" : 
+  {
+    "1" : "That really hurt!",
+    "2" : "I am sorry I hurt you.",
+    "3" : "Please do not hurt him.",
+    "4" : "The sun hurt my eyes.",
+    "5" : "My back is hurt.",
+    "6" : "Don't get hurt."
+  },
+  "I" : 
+  {
+    "1" : "I want to do it again.",
+    "2" : "I like to eat.",
+    "3" : "Where am I?"
+  },
+  "idea" : 
+  {
+    "1" : "What is your idea?",
+    "2" : "I have no idea.",
+    "3" : "What is the big idea?",
+    "4" : "Good idea!",
+    "5" : "His idea is silly.",
+    "6" : "Her idea is good."
+  },
+  "if" : 
+  {
+    "1" : "As if.",
+    "2" : "If only!",
+    "3" : "If you will, I will.",
+    "4" : "If you want.",
+    "5" : "If you please.",
+    "6" : "I will help if I can.",
+    "7" : "What if I don't want to?"
+  },
+  "in" : 
+  {
+    "1" : "It is in the box.",
+    "2" : "Let's go in the house.",
+    "3" : "Look in the bedroom.",
+    "4" : "Get in there!",
+    "5" : "Come in!",
+    "6" : "I am all in."
+  },
+  "inside" : 
+  {
+    "1" : "Let's go inside.",
+    "2" : "My shirt is inside out.",
+    "3" : "That is an inside story.",
+    "4" : "Step inside.",
+    "5" : "Put it inside the house."
+  },
+  "is" : 
+  {
+    "1" : "Is this what you want?",
+    "2" : "Her shirt is pretty.",
+    "3" : "How is he today?",
+    "4" : "This is the one I like.",
+    "5" : "Is it time to go?"
+  },
+  "it" : 
+  {
+    "1" : "Come read it to me.",
+    "2" : "It is put away.",
+    "3" : "I want to play with it.",
+    "4" : "It is all done.",
+    "5" : "Don't do it again.",
+    "6" : "Where did it go?"
+  },
+  "job" : 
+  {
+    "1" : "Who do does the job?",
+    "2" : "Whose job is that?",
+    "3" : "What is the job?",
+    "4" : "We have a job to do.",
+    "5" : "I don't want a job.",
+    "6" : "I like that job.",
+    "7" : "I don't like that job."
+  },
+  "job" : 
+  {
+    "1" : "I have a job for you.",
+    "2" : "What is her job?",
+    "3" : "I want to get a job.",
+    "4" : "We finished the job.",
+    "5" : "Good job!",
+    "6" : "She did a good job."
+  },
+  "jump" : 
+  {
+    "1" : "Jump on it.",
+    "2" : "That was a big jump.",
+    "3" : "Jump down from there.",
+    "4" : "Go jump in a lake.",
+    "5" : "Be the first to jump.",
+    "6" : "That made me jump."
+  },
+  "keep" : 
+  {
+    "1" : "Can I keep it?",
+    "2" : "Keep him away from me.",
+    "3" : "Keep your eyes out.",
+    "4" : "Don't keep me in the dark.",
+    "5" : "She will keep her hat on.",
+    "6" : "Keep at it!"
+  },
+  "kind" : 
+  {
+    "1" : "I kind of like her.",
+    "2" : "We kind of forgot.",
+    "3" : "I don't like that kind.",
+    "4" : "That was kind of you."
+  },
+  "know" : 
+  {
+    "1" : "I know it.",
+    "2" : "You know it?",
+    "3" : "You know him?",
+    "4" : "I know the answer.",
+    "5" : "I already know that.",
+    "6" : "Who knows?",
+    "7" : "How do you know?",
+    "8" : "I want to know it."
+  },
+  "last" : 
+  {
+    "1" : "This is the last time.",
+    "2" : "Can we make it last?",
+    "3" : "At last!",
+    "4" : "I had the last laugh.",
+    "5" : "That was last year."
+  },
+  "later" : 
+  {
+    "1" : "Let's talk later.",
+    "2" : "Can we go later?",
+    "3" : "Later, dude.",
+    "4" : "Catch you later!",
+    "5" : "See you later, alligator."
+  },
+  "least" : 
+  {
+    "1" : "Which one has the least?",
+    "2" : "It was the least I could do.",
+    "3" : "At least we get to go.",
+    "4" : "Last but not least.",
+    "5" : "Not in the least."
+  },
+  "leg" : 
+  {
+    "1" : "He has long legs.",
+    "2" : "My leg is hurt.",
+    "3" : "Get a leg up.",
+    "4" : "This is the last leg of our trip.",
+    "5" : "That is the leg of the chair.",
+    "6" : "Can I give you a leg up?"
+  },
+  "less" : 
+  {
+    "1" : "I could not care less.",
+    "2" : "I want less than that.",
+    "3" : "5 is less than 8.",
+    "4" : "That is more or less the idea.",
+    "5" : "Less is more."
+  },
+  "let" : 
+  {
+    "1" : "Let me go!",
+    "2" : "I let the bird go.",
+    "3" : "Let it rain all day."
+  },
+  "let's" : 
+  {
+    "word" : "let's",
+    "1" : "Let's go!",
+    "2" : "Let's get out of here.",
+    "3" : "Let's talk about it.",
+    "4" : "Let's be friends."
+  },
+  "light" : 
+  {
+    "1" : "Please turn on the light.",
+    "2" : "We will go at first light.",
+    "3" : "Can we light a fire?",
+    "4" : "That box is very light.",
+    "5" : "Don't make light of my idea."
+  },
+  "like" : 
+  {
+    "1" : "I like your shoes.",
+    "2" : "Do you like yogurt?",
+    "3" : "He looks like a fish.",
+    "4" : "She eats like a bird.",
+    "5" : "I am like you."
+  },
+  "listen" : 
+  {
+    "1" : "Listen up!",
+    "2" : "I don't want to listen.",
+    "3" : "Stop, look and listen.",
+    "4" : "Please listen to me.",
+    "5" : "It's hard to listen sometimes.",
+    "6" : "Listen for the bell."
+  },
+  "little" : 
+  {
+    "1" : "I need a little help.",
+    "2" : "One is little, one is big.",
+    "3" : "You look a little sad.",
+    "4" : "I like that little girl.",
+    "5" : "Little did I know.",
+    "6" : "That looks little."
+  },
+  "live" : 
+  {
+    "1" : "I live with my family.",
+    "2" : "I like live animals.",
+    "3" : "You live and you learn.",
+    "4" : "Let's live it up.",
+    "5" : "I live on my own.",
+    "6" : "That is no way to live."
+  },
+  "long" : 
+  {
+    "1" : "You have long arms.",
+    "2" : "Let's take the long way.",
+    "3" : "We had to sit for a long time.",
+    "4" : "It was a long day.",
+    "5" : "How long is that?",
+    "6" : "Long time no see."
+  },
+  "look" : 
+  {
+    "1" : "Look outside.",
+    "2" : "I look pretty today.",
+    "3" : "That looks nice.",
+    "4" : "Look who is here!",
+    "5" : "You look right through me.",
+    "6" : "Help me look for it."
+  },
+  "lose" : 
+  {
+    "1" : "Don't lose it.",
+    "2" : "Don't lose heart.",
+    "3" : "Did he lose his head?",
+    "4" : "I don't want to lose time.",
+    "5" : "You win some, you lose some.",
+    "6" : "Did you lose sleep over it."
+  },
+  "loud" : 
+  {
+    "1" : "Too loud!",
+    "2" : "Read it loud and clear.",
+    "3" : "Sometimes I think out loud.",
+    "4" : "That car is very loud.",
+    "5" : "That is loud enough."
+  },
+  "love" : 
+  {
+    "1" : "I love you.",
+    "2" : "Feel the love.",
+    "3" : "I love to go to school.",
+    "4" : "Give me some love.",
+    "5" : "Do you love my shirt?",
+    "6" : "I love this!"
+  },
+  "lunch" : 
+  {
+    "1" : "Let's do lunch.",
+    "2" : "Did he lose his lunch?",
+    "3" : "Is it time for lunch now?",
+    "4" : "He is out to lunch.",
+    "5" : "Don't eat my lunch."
+  },
+  "made" : 
+  {
+    "1" : "We made it!",
+    "2" : "She made us dinner.",
+    "3" : "I made it by myself.",
+    "4" : "That made me feel good.",
+    "5" : "What is that made of?",
+    "6" : "You made me mad."
+  },
+  "make" : 
+  {
+    "1" : "Let's make breakfast.",
+    "2" : "You make me smile.",
+    "3" : "Make it a good day.",
+    "4" : "I want to make friends.",
+    "5" : "I will make the bed.",
+    "6" : "Make it there on time.",
+    "7" : "What did we make?",
+    "8" : "Don't make me do it.",
+    "9" : "Me me!"
+  },
+  "man" : 
+  {
+    "1" : "Who is that man?",
+    "2" : "Be a man!",
+    "3" : "My teacher is a man.",
+    "4" : "Let's talk man to man.",
+    "5" : "I feel like a new man.",
+    "6" : "Who is that man.",
+    "7" : "I do not know that man."
+  },
+  "many" : 
+  {
+    "1" : "How many do you want?",
+    "2" : "I have so many ideas.",
+    "3" : "I don't have many friends.",
+    "4" : "How many can you see?",
+    "5" : "You gave me too many.",
+    "6" : "Too many people here."
+  },
+  "maybe" : 
+  {
+    "1" : "Maybe you should go.",
+    "2" : "Call me, maybe.",
+    "3" : "Maybe you can come too.",
+    "4" : "Maybe yes, maybe no.",
+    "5" : "Maybe some other time.",
+    "6" : "Maybe I want a turn.",
+    "7" : "Maybe some other time."
+  },
+  "me" : 
+  {
+    "1" : "Will you play with me?",
+    "2" : "Can you help me do it?",
+    "3" : "Get me out of here!",
+    "4" : "Come with me."
+  },
+  "mean" : 
+  {
+    "1" : "Don't be mean.",
+    "2" : "What do you mean?",
+    "3" : "I mean to go home now.",
+    "4" : "You mean to tell me...",
+    "5" : "You don't mean that.",
+    "6" : "She is mean."
+  },
+  "medium" : 
+  {
+    "1" : "We need a happy medium.",
+    "2" : "I wear a medium.",
+    "3" : "It is medium hot.",
+    "4" : "Not good or bad, but medium.",
+    "5" : "I want my hair medium long."
+  },
+  "middle" : 
+  {
+    "1" : "I am in the middle.",
+    "2" : "I am the middle child.",
+    "3" : "Is it the middle of the story.",
+    "4" : "This is the middle of no where.",
+    "5" : "I am stuck in the middle.",
+    "6" : "Let's play monkey in the middle."
+  },
+  "mine" : 
+  {
+    "1" : "That is mine.",
+    "2" : "Mine is different.",
+    "3" : "I see mine.",
+    "4" : "Mine is blue.",
+    "5" : "I don't want mine."
+  },
+  "money" : 
+  {
+    "1" : "I don't have any money.",
+    "2" : "You are in the money now.",
+    "3" : "She is right on the money.",
+    "4" : "I need money for school.",
+    "5" : "His money is no good here."
+  },
+  "more" : 
+  {
+    "1" : "Can I have more?",
+    "2" : "That one is more.",
+    "3" : "I love you more.",
+    "4" : "More please.",
+    "5" : "One more time."
+  },
+  "morning" : 
+  {
+    "1" : "Good morning!",
+    "2" : "Are you a morning person?",
+    "3" : "Top of the morning to you.",
+    "4" : "I hate to get up in the morning.",
+    "5" : "It is morning.",
+    "6" : "We will do it in the morning."
+  },
+  "most" : 
+  {
+    "1" : "I love you most.",
+    "2" : "We will make the most of it.",
+    "3" : "I like blue most of all.",
+    "4" : "Most of the time I am happy.",
+    "5" : "I like school for the most part."
+  },
+  "mother" : 
+  {
+    "1" : "I love my mother.",
+    "2" : "Her mother is nice.",
+    "3" : "Happy Mother's Day!",
+    "4" : "I will be the mother.",
+    "5" : "The mother dog is tired.",
+    "6" : "Who is her mother?",
+    "7" : "Where is his mother?"
+  },
+  "move" : 
+  {
+    "1" : "Move over.",
+    "2" : "Move it!",
+    "3" : "Don't move.",
+    "4" : "He will move out of the house.",
+    "5" : "Now it is her move.",
+    "6" : "It is time to move on.",
+    "7" : "He has all the moves."
+  },
+  "much" : 
+  {
+    "1" : "I love you this much.",
+    "2" : "How much is it?",
+    "3" : "Eat as much as you like.",
+    "4" : "Not much to look at.",
+    "5" : "I like it much more."
+  },
+  "must" : 
+  {
+    "1" : "You must be my teacher.",
+    "2" : "I must do it before tomorrow.",
+    "3" : "That is a must have.",
+    "4" : "We really must go.",
+    "5" : "Must you be so silly?",
+    "6" : "I must have one."
+  },
+  "my" : 
+  {
+    "1" : "My turn.",
+    "2" : "This is my friend.",
+    "3" : "I want to go to my room.",
+    "4" : "My mom is here.",
+    "5" : "My shirt is red.",
+    "6" : "Where is my hat?"
+  },
+  "myself" : 
+  {
+    "1" : "I like myself.",
+    "2" : "I want to be by myself.",
+    "3" : "I can do it myself.",
+    "4" : "I don't feel like myself today.",
+    "5" : "Do I make myself clear?"
+  },
+  "name" : 
+  {
+    "1" : "What is your name?",
+    "2" : "My name is...",
+    "3" : "Write your name.",
+    "4" : "That is not my name.",
+    "5" : "Put your name on it."
+  },
+  "near" : 
+  {
+    "1" : "Don't go near that.",
+    "2" : "That was a near miss.",
+    "3" : "I like to be near my mother.",
+    "4" : "We look near and far.",
+    "5" : "In the near future."
+  },
+  "need" : 
+  {
+    "1" : "I don't need help.",
+    "2" : "I need to be alone.",
+    "3" : "What do you need?",
+    "4" : "I need it right now.",
+    "5" : "We need to talk."
+  },
+  "never" : 
+  {
+    "1" : "That will never work.",
+    "2" : "You never had it so good.",
+    "3" : "It is now or never!",
+    "4" : "You never can tell.",
+    "5" : "I will never see it.",
+    "6" : "That will never do.",
+    "7" : "He never wants to help.",
+    "8" : "I have never been here.",
+    "9" : "That will never work.",
+    "10" : "You never know."
+  },
+  "new" : 
+  {
+    "1" : "I have a new teacher.",
+    "2" : "Are you new here?",
+    "3" : "I want new shoes.",
+    "4" : "This food is new.",
+    "5" : "What is new with you?",
+    "6" : "That is new to me."
+  },
+  "next" : 
+  {
+    "1" : "Please stand next to me.",
+    "2" : "My turn next!",
+    "3" : "Me next!",
+    "4" : "See you next year.",
+    "5" : "You can come next time.",
+    "6" : "Put it next to the red one.",
+    "7" : "Next we will sing."
+  },
+  "nice" : 
+  {
+    "1" : "He is a nice man.",
+    "2" : "Nice job!",
+    "3" : "That was nice of you.",
+    "4" : "She is very nice.",
+    "5" : "Nice to meet you.",
+    "6" : "We had a nice time.",
+    "7" : "Be nice to me."
+  },
+  "night" : 
+  {
+    "1" : "It is black as night outside.",
+    "2" : "Good night!",
+    "3" : "Let's do that at night.",
+    "4" : "I get scared at night.",
+    "5" : "Night time is my favorite.",
+    "6" : "Let's have a night out."
+  },
+  "no" : 
+  {
+    "1" : "I said no!",
+    "2" : "No more.",
+    "3" : "He is up to no good.",
+    "4" : "No thank you.",
+    "5" : "I will be there in no time.",
+    "6" : "It is no use.",
+    "7" : "No time today."
+  },
+  "none" : 
+  {
+    "1" : "I will have none of it.",
+    "2" : "He is second to none.",
+    "3" : "None of them will come.",
+    "4" : "None is left.",
+    "5" : "I want none of those.",
+    "6" : "None of the above."
+  },
+  "not" : 
+  {
+    "1" : "I do not like that.",
+    "2" : "I am not happy.",
+    "3" : "You do not want to go?",
+    "4" : "He is not nice.",
+    "5" : "Do not do that."
+  },
+  "now" : 
+  {
+    "1" : "Let's go home now.",
+    "2" : "Stop now.",
+    "3" : "Now you see me.",
+    "4" : "Now what?",
+    "5" : "Not right now.",
+    "6" : "Can we do it now?",
+    "7" : "Now or never."
+  },
+  "of" : 
+  {
+    "1" : "It is one of my favorites.",
+    "2" : "On top of the world.",
+    "3" : "I am out of time.",
+    "4" : "What day of the week is it?",
+    "5" : "Think out of the box.",
+    "6" : "What of it?"
+  },
+  "off" : 
+  {
+    "1" : "Turn off the light.",
+    "2" : "Take off your shoes.",
+    "3" : "Get it off of there.",
+    "4" : "Off you go.",
+    "5" : "Don't jump off the table."
+  },
+  "okay" : 
+  {
+    "1" : "Do you feel okay?",
+    "2" : "Okay, okay!",
+    "3" : "This is not okay with me.",
+    "4" : "Are you okay?",
+    "5" : "I think he is okay."
+  },
+  "old" : 
+  {
+    "1" : "You are very old.",
+    "2" : "He is not very old.",
+    "3" : "It is the same old story.",
+    "4" : "I feel old and tired.",
+    "5" : "That is an old book.",
+    "6" : "How old are you?",
+    "7" : "Same old, same old."
+  },
+  "on" : 
+  {
+    "1" : "Turn the light on.",
+    "2" : "It is on the table.",
+    "3" : "Please put my shoes on.",
+    "4" : "On Sunday we go to church.",
+    "5" : "Put it on my bed.",
+    "6" : "I am on my way.",
+    "7" : "She goes on and on and on."
+  },
+  "one" : 
+  {
+    "1" : "He is a silly one.",
+    "2" : "Please only take one.",
+    "3" : "One day left.",
+    "4" : "One more time.",
+    "5" : "She had a big one.",
+    "6" : "Let's do it one more time.",
+    "7" : "There is only one left."
+  },
+  "only" : 
+  {
+    "1" : "I only like the red one.",
+    "2" : "You are my only mother.",
+    "3" : "If only!",
+    "4" : "I can only go if she comes too.",
+    "5" : "This is the only way to do it.",
+    "6" : "Only one bite, please."
+  },
+  "open" : 
+  {
+    "1" : "Open up!",
+    "2" : "Why is the door open?",
+    "3" : "Can you open it?",
+    "4" : "I am open to new ideas.",
+    "5" : "He will open his eye.",
+    "6" : "The door got left open.",
+    "7" : "Open the window.",
+    "8" : "She is here with open arms.",
+    "9" : "The door is still open."
+  },
+  "orange" : 
+  {
+    "1" : "I want to eat an orange.",
+    "2" : "The orange one is nice.",
+    "3" : "It is like apples and oranges.",
+    "4" : "Please help me with my orange.",
+    "5" : "I like the color orange."
+  },
+  "other" : 
+  {
+    "1" : "Want the other one?",
+    "2" : "Where's the other shoe?",
+    "3" : "Should we make another sanwich?",
+    "4" : "The other one is mine?",
+    "5" : "Look at the other one?",
+    "6" : "One way or the other.",
+    "7" : "Other than that.",
+    "8" : "On the other hand."
+  },
+  "out" : 
+  {
+    "1" : "Get out of here.",
+    "2" : "Find out who he is.",
+    "3" : "Let's go out for dinner.",
+    "4" : "I am out of money.",
+    "5" : "We will eat out today.",
+    "6" : "Who is out there?",
+    "7" : "Let's get out some books."
+  },
+  "outside" : 
+  {
+    "1" : "Let's play outside.",
+    "2" : "I see rain outside.",
+    "3" : "Want to go outside?",
+    "4" : "Think outside of the box.",
+    "5" : "It looks cold outside.",
+    "6" : "I left it outside yesterday.",
+    "7" : "We are outside the circle."
+  },
+  "over" : 
+  {
+    "1" : "It is over.",
+    "2" : "Come over to my house.",
+    "3" : "Over the rainbow.",
+    "4" : "Over the moon.",
+    "5" : "It got all over everything.",
+    "6" : "Do it over and over.",
+    "7" : "The show is over."
+  },
+  "part" : 
+  {
+    "1" : "I like school part of the time.",
+    "2" : "Can we part my hair today?",
+    "3" : "I want a part in the play.",
+    "4" : "He will do his part.",
+    "5" : "That part is bad."
+  },
+  "party" : 
+  {
+    "1" : "You are a party animal!",
+    "2" : "Let's have a party.",
+    "3" : "The party is over.",
+    "4" : "What party are you with?",
+    "5" : "It is party time."
+  },
+  "people" : 
+  {
+    "1" : "Who are those people?",
+    "2" : "There are people at the door.",
+    "3" : "Some people!",
+    "4" : "I see many people.",
+    "5" : "People are good.",
+    "6" : "How many people in here?"
+  },
+  "pick" : 
+  {
+    "1" : "Don't pick all the flowers.",
+    "2" : "He picks his nose.",
+    "3" : "I can pick my clothes.",
+    "4" : "Please don't pick on her.",
+    "5" : "We will pick one.",
+    "6" : "I will pick up after I play.",
+    "7" : "My friend will pick me up later."
+  },
+  "picture" : 
+  {
+    "1" : "You are pretty as a picture.",
+    "2" : "See the big picture.",
+    "3" : "Let's take a picture.",
+    "4" : "He is not in the picture.",
+    "5" : "Picture this."
+  },
+  "place" : 
+  {
+    "1" : "I got first place.",
+    "2" : "Place it on the table.",
+    "3" : "That is out of place.",
+    "4" : "Let's go some place.",
+    "5" : "A time and place for it."
+  },
+  "play" : 
+  {
+    "1" : "I want to play.",
+    "2" : "Let's play outside.",
+    "3" : "Can I play with you?",
+    "4" : "Will you play me a song?",
+    "5" : "We can play a game.",
+    "6" : "Play ball!"
+  },
+  "please" : 
+  {
+    "1" : "Please don't.",
+    "2" : "Please stop.",
+    "3" : "Get to work please.",
+    "4" : "I want to please them.",
+    "5" : "Please help me.",
+    "6" : "Pretty please!"
+  },
+  "pretty" : 
+  {
+    "1" : "You look pretty today.",
+    "2" : "I am pretty tired.",
+    "3" : "Pretty much.",
+    "4" : "That color is pretty.",
+    "5" : "He is pretty smart."
+  },
+  "problem" : 
+  {
+    "1" : "What is the problem?",
+    "2" : "She is a problem child.",
+    "3" : "I don't understand the problem.",
+    "4" : "That is her problem.",
+    "5" : "I need help on this problem."
+  },
+  "push" : 
+  {
+    "1" : "We will push on.",
+    "2" : "Don't push it too far.",
+    "3" : "Why did you push me?",
+    "4" : "I will push for her idea.",
+    "5" : "We can push through this."
+  },
+  "put" : 
+  {
+    "1" : "Put your clothes away.",
+    "2" : "Don't put your feet there.",
+    "3" : "I put it in the box.",
+    "4" : "Put on a happy face.",
+    "5" : "I put my name on it.",
+    "6" : "Where did you put it?"
+  },
+  "question" : 
+  {
+    "1" : "I have a question.",
+    "2" : "Don't question me.",
+    "3" : "That is a silly question.",
+    "4" : "Ask me a question.",
+    "5" : "No question about it."
+  },
+  "quick" : 
+  {
+    "1" : "Quick, let's do it.",
+    "2" : "We can make some quick money.",
+    "3" : "This is a quick fix.",
+    "4" : "That bot is very quick."
+  },
+  "quiet" : 
+  {
+    "1" : "Be quiet.",
+    "2" : "It is too quiet in here.",
+    "3" : "Please quiet down.",
+    "4" : "The house is very quiet.",
+    "5" : "He can not keep quiet."
+  },
+  "read" : 
+  {
+    "1" : "Now I can read.",
+    "2" : "I want to learn to read.",
+    "3" : "Will you read it to me?",
+    "4" : "Read me a book.",
+    "5" : "Read my lips.",
+    "6" : "We already read that."
+  },
+  "ready" : 
+  {
+    "1" : "Are you ready to go?",
+    "2" : "Ready or not, here I come.",
+    "3" : "I am ready for school.",
+    "4" : "Dinner is ready.",
+    "5" : "Let's get ready."
+  },
+  "real" : 
+  {
+    "1" : "In the real world...",
+    "2" : "What is his real name?",
+    "3" : "Are you a real doctor?",
+    "4" : "For real.",
+    "5" : "Get real!",
+    "6" : "That is the real thing."
+  },
+  "really" : 
+  {
+    "1" : "I really like you.",
+    "2" : "He is really tall.",
+    "3" : "I really need to go home.",
+    "4" : "That is the very last one.",
+    "5" : "You are really very nice."
+  },
+  "red" : 
+  {
+    "1" : "Red is my favorite.",
+    "2" : "My face is very red.",
+    "3" : "The food is red hot!",
+    "4" : "Don't run a red light.",
+    "5" : "Where is the red paint?"
+  },
+  "remember" : 
+  {
+    "1" : "Remember me?",
+    "2" : "I don't remember his name.",
+    "3" : "Please try to remember.",
+    "4" : "I can't remember that.",
+    "5" : "I remember this toy.",
+    "6" : "What can you remember?"
+  },
+  "ride" : 
+  {
+    "1" : "Let's go for a ride in the car.",
+    "2" : "We need to ride it out.",
+    "3" : "He took her for a ride.",
+    "4" : "I want to ride a horse.",
+    "5" : "That was a fun ride.",
+    "6" : "Can I ride with you?"
+  },
+  "right" : 
+  {
+    "1" : "I got it right!",
+    "2" : "Can you find the right one?",
+    "3" : "Will you go left or right?",
+    "4" : "It is right there.",
+    "5" : "I will do the right thing.",
+    "6" : "I will turn right."
+  },
+  "room" : 
+  {
+    "1" : "I want to go to my room.",
+    "2" : "The room is dirty.",
+    "3" : "Where is his room?",
+    "4" : "There is not much room here.",
+    "5" : "Is there room for me?",
+    "6" : "Make room for her.",
+    "7" : "There is no room in here.",
+    "8" : "Make room for me.",
+    "9" : "Where is the class room?",
+    "10" : "Get out of my room!"
+  },
+  "sad" : 
+  {
+    "1" : "She feels sad.",
+    "2" : "Your eyes look sad.",
+    "3" : "I am sad to say.",
+    "4" : "It has been a sad day.",
+    "5" : "This food is really sad.",
+    "6" : "Sad day!"
+  },
+  "same" : 
+  {
+    "1" : "I want the same one.",
+    "2" : "Come at the same time.",
+    "3" : "We are in the same school.",
+    "4" : "It is all the same to me.",
+    "5" : "Same old, same old."
+  },
+  "say" : 
+  {
+    "1" : "What can I say?",
+    "2" : "I have a say.",
+    "3" : "I will say a few things.",
+    "4" : "Say it to my face.",
+    "5" : "Say what?"
+  },
+  "scared" : 
+  {
+    "1" : "I am scared.",
+    "2" : "You scared me.",
+    "3" : "She scared him.",
+    "4" : "Don't be scared.",
+    "5" : "He was scared silly.",
+    "6" : "Did I scare you?"
+  },
+  "school" : 
+  {
+    "1" : "Let's walk to school together.",
+    "2" : "How do you like school?",
+    "3" : "I go to a new school now.",
+    "4" : "School is out!",
+    "5" : "There is no school today."
+  },
+  "see" : 
+  {
+    "1" : "I am happy to see you again.",
+    "2" : "What do you see outside?",
+    "3" : "I see what you did there.",
+    "4" : "Can I see that?",
+    "5" : "Let's see.",
+    "6" : "I see.",
+    "7" : "We will see it later."
+  },
+  "share" : 
+  {
+    "1" : "Please share with her.",
+    "2" : "Give me my share.",
+    "3" : "I will share with you.",
+    "4" : "I want to share this.",
+    "5" : "We can all share the book.",
+    "6" : "I have something to share."
+  },
+  "sharp" : 
+  {
+    "1" : "That is very sharp!",
+    "2" : "Look sharp!",
+    "3" : "That girl is sharp.",
+    "4" : "Keep a sharp eye out.",
+    "5" : "She is singing it too sharp."
+  },
+  "she" : 
+  {
+    "1" : "She is my sister.",
+    "2" : "She had a turn first.",
+    "3" : "Where did she go?",
+    "4" : "Why is she up there?",
+    "5" : "Who is she?",
+    "6" : "She needs a little help."
+  },
+  "shop" : 
+  {
+    "1" : "We shop at the store.",
+    "2" : "I need to close up shop.",
+    "3" : "Let's shop around.",
+    "4" : "I love to shop for clothes.",
+    "5" : "We can set up shop here."
+  },
+  "short" : 
+  {
+    "1" : "I am short on money.",
+    "2" : "I am short on time.",
+    "3" : "Call me Jen for short.",
+    "4" : "Don't be short with me.",
+    "5" : "Today is a short day.",
+    "6" : "I will write a short story.",
+    "7" : "Life is too short."
+  },
+  "show" : 
+  {
+    "1" : "Can we watch a show?",
+    "2" : "On with the show!",
+    "3" : "Will you show it to me?",
+    "4" : "That is just for show.",
+    "5" : "Can you show me how?",
+    "6" : "This is a silly show."
+  },
+  "sick" : 
+  {
+    "1" : "I feel sick today.",
+    "2" : "I am sick of it.",
+    "3" : "You make me sick.",
+    "4" : "That's sick!",
+    "5" : "Don't get sick."
+  },
+  "side" : 
+  {
+    "1" : "I am on his side.",
+    "2" : "I like the other side.",
+    "3" : "She got up on the wrong side.",
+    "4" : "My side hurts today.",
+    "5" : "Sit on my left side.",
+    "6" : "Which side is red?"
+  },
+  "silly" : 
+  {
+    "1" : "I feel silly.",
+    "2" : "You look silly.",
+    "3" : "I was scared silly.",
+    "4" : "What a silly face.",
+    "5" : "That is a silly idea."
+  },
+  "sing" : 
+  {
+    "1" : "Will you sing me to sleep?",
+    "2" : "I like it when you sing.",
+    "3" : "The bird can sing.",
+    "4" : "Sing it out!",
+    "5" : "She sings like a dog.",
+    "6" : "We can sing loud."
+  },
+  "sister" : 
+  {
+    "1" : "She is my big sister.",
+    "2" : "My sister is sick today.",
+    "3" : "Do you have a sister?",
+    "4" : "I am his little sister.",
+    "5" : "Be nice to my sister."
+  },
+  "sit" : 
+  {
+    "1" : "Sit down.",
+    "2" : "Don't sit there.",
+    "3" : "Can I sit with you?",
+    "4" : "Where do I sit?",
+    "5" : "Sit by and wait for me.",
+    "6" : "We will sit on it."
+  },
+  "sleep" : 
+  {
+    "1" : "I want to go to sleep.",
+    "2" : "Let's have a sleep over.",
+    "3" : "How did you sleep?",
+    "4" : "You get to sleep in tomorrow.",
+    "5" : "I need to sleep on it."
+  },
+  "slow" : 
+  {
+    "1" : "Please slow down.",
+    "2" : "I run too slow to win.",
+    "3" : "You are very slow.",
+    "4" : "I want to go slow.",
+    "5" : "I talk slow, please wait.",
+    "6" : "That animal is slow."
+  },
+  "smart" : 
+  {
+    "1" : "You are very smart.",
+    "2" : "Don't get smart with me.",
+    "3" : "You think you are so smart!",
+    "4" : "Do you have a smart phone?",
+    "5" : "Don't smart off to the teacher."
+  },
+  "so" : 
+  {
+    "1" : "So what?",
+    "2" : "So there!",
+    "3" : "That is so mean!",
+    "4" : "I think so.",
+    "5" : "You look not so hot.",
+    "6" : "He is so silly."
+  },
+  "soft" : 
+  {
+    "1" : "The cat is very soft.",
+    "2" : "Be soft on her, she is new.",
+    "3" : "I have a soft spot for that.",
+    "4" : "I like soft clothes.",
+    "5" : "The blanket is soft.",
+    "6" : "Be soft when you play.",
+    "7" : "Speak soft, please."
+  },
+  "some" : 
+  {
+    "1" : "Let's get out some books.",
+    "2" : "I want some lunch.",
+    "3" : "Let's play some games.",
+    "4" : "You win some, you lose some.",
+    "5" : "Some of the time.",
+    "6" : "Can I have some?"
+  },
+  "something" : 
+  {
+    "1" : "Something is on her face.",
+    "2" : "Is there something for me?",
+    "3" : "Can we make something?",
+    "4" : "I want to tell you something.",
+    "5" : "Did you find something cool?",
+    "6" : "Something is in there.",
+    "7" : "I want something new."
+  },
+  "sometimes" : 
+  {
+    "1" : "Sometimes we go there.",
+    "2" : "We do that sometimes.",
+    "3" : "Sometimes yes, sometimes no.",
+    "4" : "I am happy sometimes.",
+    "5" : "He will sometimes say hello."
+  },
+  "sorry" : 
+  {
+    "1" : "I am sorry.",
+    "2" : "I feel sorry for him.",
+    "3" : "Sorry about that.",
+    "4" : "He said he was sorry.",
+    "5" : "It is a sorry looking bird."
+  },
+  "stand" : 
+  {
+    "1" : "Stand up.",
+    "2" : "Please stand by me.",
+    "3" : "I can stand on my head.",
+    "4" : "I can not stand it.",
+    "5" : "We have to make a stand.",
+    "6" : "Don't just stand around.",
+    "7" : "Stand back!",
+    "8" : "I will stand by you."
+  },
+  "start" : 
+  {
+    "1" : "I will start.",
+    "2" : "It is time to start.",
+    "3" : "That is a good start.",
+    "4" : "Start on the red one.",
+    "5" : "Let's start over."
+  },
+  "stay" : 
+  {
+    "1" : "I want to stay inside.",
+    "2" : "Will it stay put?",
+    "3" : "Stay away!",
+    "4" : "Will you stay with me?",
+    "5" : "Can you stay after the party?",
+    "6" : "Stay under the blanket."
+  },
+  "still" : 
+  {
+    "1" : "You are still my friend.",
+    "2" : "Hold still.",
+    "3" : "You still have to go with me.",
+    "4" : "Be still my heart!",
+    "5" : "In the still of the night."
+  },
+  "stop" : 
+  {
+    "1" : "Please stop.",
+    "2" : "Don't stop that.",
+    "3" : "She will not stop.",
+    "4" : "Stop that!",
+    "5" : "Want to stop and eat?",
+    "6" : "Can I stop and take a break?",
+    "7" : "Stop right there."
+  },
+  "story" : 
+  {
+    "1" : "Please tell me a story.",
+    "2" : "That is a good story.",
+    "3" : "Go up to the second story.",
+    "4" : "That story is not true.",
+    "5" : "It is a long story.",
+    "6" : "That is the same old story."
+  },
+  "straight" : 
+  {
+    "1" : "Give it to me straight.",
+    "2" : "Let's go straight to school.",
+    "3" : "I want my hair straight.",
+    "4" : "Go straight up the street.",
+    "5" : "She has a straight face."
+  },
+  "street" : 
+  {
+    "1" : "Don't play in the street.",
+    "2" : "We live on Hill Street.",
+    "3" : "Let's walk down the street.",
+    "4" : "We are on easy street.",
+    "5" : "We will cross the street.",
+    "6" : "That is the word on the street."
+  },
+  "stuff" : 
+  {
+    "1" : "What is all this stuff?",
+    "2" : "Stuff it in the drawer.",
+    "3" : "That is kid stuff.",
+    "4" : "You are hot stuff!",
+    "5" : "I want to stuff my face.",
+    "6" : "He has a lot of stuff."
+  },
+  "sun" : 
+  {
+    "1" : "You can see the sun come up?",
+    "2" : "Let's play outside in the sun.",
+    "3" : "I go to bed with the sun.",
+    "4" : "Everything under the sun.",
+    "5" : "The sun is pretty.",
+    "6" : "I see the sun go down."
+  },
+  "surprise" : 
+  {
+    "1" : "Surprise!",
+    "2" : "I like a surprise party.",
+    "3" : "I want to surprise him.",
+    "4" : "That surprised me.",
+    "5" : "What a surprise!"
+  },
+  "table" : 
+  {
+    "1" : "Don't stand on the table.",
+    "2" : "Come to the table for dinner.",
+    "3" : "Please clear the table.",
+    "4" : "He will turn the table on you.",
+    "5" : "Put it all out on the table.",
+    "6" : "I will move the table."
+  },
+  "take" : 
+  {
+    "1" : "Take your time.",
+    "2" : "Just take one.",
+    "3" : "Don't take it away.",
+    "4" : "Take that!",
+    "5" : "Let's take a drive.",
+    "6" : "He did take it.",
+    "7" : "Let's take a time out."
+  },
+  "talk" : 
+  {
+    "1" : "I can talk.",
+    "2" : "We need to talk.",
+    "3" : "Don't talk fast, please.",
+    "4" : "I like to talk to you.",
+    "5" : "Talk to the hand.",
+    "6" : "Good to talk to you.",
+    "7" : "He is all talk."
+  },
+  "teacher" : 
+  {
+    "1" : "I like my teacher.",
+    "2" : "I have a new teacher now.",
+    "3" : "Who is his teacher?",
+    "4" : "Be good for the teacher?",
+    "5" : "Do you know the teacher?"
+  },
+  "tell" : 
+  {
+    "1" : "Tell me your name.",
+    "2" : "I can't tell you that.",
+    "3" : "I will tell on you.",
+    "4" : "Tell it like it is.",
+    "5" : "Tell me about it.",
+    "6" : "Tell me to my face."
+  },
+  "thank you" : 
+  {
+    "word" : "thank you",
+    "1" : "Thank you for your help.",
+    "2" : "Thank you for the present.",
+    "3" : "I want to thank you.",
+    "4" : "Say thank you.",
+    "5" : "Write a thank you letter."
+  },
+  "that" : 
+  {
+    "1" : "I like that.",
+    "2" : "That is too big.",
+    "3" : "How about that.",
+    "4" : "That is the one I want.",
+    "5" : "Please show that to me.",
+    "6" : "How did you do that?"
+  },
+  "then" : 
+  {
+    "1" : "Then what?",
+    "2" : "First we work, then we play.",
+    "3" : "I walk every now and then.",
+    "4" : "I will see you then.",
+    "5" : "If you are finished then go."
+  },
+  "there" : 
+  {
+    "1" : "There, there.",
+    "2" : "Let's go there.",
+    "3" : "There is a light on.",
+    "4" : "How do we get there?",
+    "5" : "Be right there!",
+    "6" : "I see what you did there."
+  },
+  "these" : 
+  {
+    "1" : "These are the right ones.",
+    "2" : "One of these days I will.",
+    "3" : "I want these.",
+    "4" : "These are my friends.",
+    "5" : "I will share these.",
+    "6" : "Use these ones."
+  },
+  "they" : 
+  {
+    "1" : "Are they here to play?",
+    "2" : "They want to come.",
+    "3" : "Who are they?",
+    "4" : "They are at home.",
+    "5" : "They said hello."
+  },
+  "thing" : 
+  {
+    "1" : "A good thing to do is...",
+    "2" : "It is one of those things.",
+    "3" : "What is that thing?",
+    "4" : "I will tell you a thing or two.",
+    "5" : "That is the real thing.",
+    "6" : "Which thing do you want?",
+    "7" : "This thing is for you.",
+    "8" : "How are things?",
+    "9" : "Let's learn a thing or two.",
+    "10" : "Please get your things."
+  },
+  "think" : 
+  {
+    "1" : "Thing again!",
+    "2" : "I think I like you.",
+    "3" : "Let me think about it.",
+    "4" : "I don't think so.",
+    "5" : "Let's think up an idea.",
+    "6" : "Think fast!"
+  },
+  "thirsty" : 
+  {
+    "1" : "I feel thirsty.",
+    "2" : "Are you thirsty?",
+    "3" : "He is thirsty for a friend.",
+    "4" : "That dog looks thirsty.",
+    "5" : "She is thirsty for something.",
+    "6" : "How long have you been thirsty?"
+  },
+  "this" : 
+  {
+    "1" : "I like this.",
+    "2" : "I have this one at home.",
+    "3" : "This is the best.",
+    "4" : "Can I get one like this?",
+    "5" : "I am this big.",
+    "6" : "This is how to do it.",
+    "7" : "I don't need this."
+  },
+  "through" : 
+  {
+    "1" : "We will walk through snow.",
+    "2" : "Come through here.",
+    "3" : "Let's do the drive through for dinner.",
+    "4" : "We will get through it.",
+    "5" : "How can I get through to you?"
+  },
+  "time" : 
+  {
+    "1" : "What time is it?",
+    "2" : "Let's take a time out.",
+    "3" : "Is it time for dinner?",
+    "4" : "We can do that some time.",
+    "5" : "Go one at a time."
+  },
+  "tired" : 
+  {
+    "1" : "I feel tired.",
+    "2" : "I am sick and tired of that.",
+    "3" : "He looks tired.",
+    "4" : "You make me tired.",
+    "5" : "It is a tired old car.",
+    "6" : "This music sounds tired."
+  },
+  "to" : 
+  {
+    "1" : "I like to go to school.",
+    "2" : "This letter is to my friend.",
+    "3" : "I have homework to do today.",
+    "4" : "I want to go to my room.",
+    "5" : "This is the way to the store.",
+    "6" : "Do you want to go to church?",
+    "7" : "I want to get a dog.",
+    "8" : "I don't want to eat it.",
+    "9" : "I want to be a doctor."
+  },
+  "today" : 
+  {
+    "1" : "Today is a good day.",
+    "2" : "What can we do today?",
+    "3" : "Should we go today or not?",
+    "4" : "The party is today.",
+    "5" : "There is no school today."
+  },
+  "together" : 
+  {
+    "1" : "Let's work together.",
+    "2" : "Put these together.",
+    "3" : "Together we can do it.",
+    "4" : "We go to school together.",
+    "5" : "Get it together."
+  },
+  "tomorrow" : 
+  {
+    "1" : "Let's do it tomorrow.",
+    "2" : "Don't put it off to tomorrow.",
+    "3" : "Tomorrow is another day.",
+    "4" : "Run like there is no tomorrow.",
+    "5" : "Tomorrow is Wednesday.",
+    "6" : "The sun will come out tomorrow."
+  },
+  "top" : 
+  {
+    "1" : "Please put that one on top.",
+    "2" : "I want to go to the big top.",
+    "3" : "You are the top dog.",
+    "4" : "He is over the top.",
+    "5" : "I look good from top to bottom.",
+    "6" : "Let's climb on top."
+  },
+  "town" : 
+  {
+    "1" : "I like this town.",
+    "2" : "The town is small.",
+    "3" : "Let's go to town.",
+    "4" : "We are from out of town.",
+    "5" : "We can paint the town red."
+  },
+  "toy" : 
+  {
+    "1" : "Is that his toy?",
+    "2" : "I have a new toy.",
+    "3" : "Let's share my toy.",
+    "4" : "Don't toy with me.",
+    "5" : "Where did you get that toy?"
+  },
+  "trouble" : 
+  {
+    "1" : "He got in trouble.",
+    "2" : "I had trouble with my coat.",
+    "3" : "What is the trouble?",
+    "4" : "You are too much trouble.",
+    "5" : "No trouble at all.",
+    "6" : "Don't ask for trouble."
+  },
+  "try" : 
+  {
+    "1" : "Let's try together.",
+    "2" : "I will try on my turn.",
+    "3" : "Try again!",
+    "4" : "Try to understand.",
+    "5" : "Good try!"
+  },
+  "turn" : 
+  {
+    "1" : "My turn!",
+    "2" : "I want to have a turn.",
+    "3" : "Can I turn on the light?",
+    "4" : "She can turn her head.",
+    "5" : "Let's turn around.",
+    "6" : "Please turn it up.",
+    "7" : "Who wants a turn?"
+  },
+  "two" : 
+  {
+    "1" : "I want two of them please.",
+    "2" : "Can I have two turns?",
+    "3" : "Two is more than one.",
+    "4" : "I see two of that."
+  },
+  "under" : 
+  {
+    "1" : "Put it under the bed.",
+    "2" : "The day is under way.",
+    "3" : "I like to go under water.",
+    "4" : "You get under my skin.",
+    "5" : "We were under time.",
+    "6" : "I need clean under wear."
+  },
+  "up" : 
+  {
+    "1" : "I might throw up.",
+    "2" : "Let's climb up the tree.",
+    "3" : "It is time to get up.",
+    "4" : "Up you go!",
+    "5" : "Up, up and away!"
+  },
+  "us" : 
+  {
+    "1" : "Want to come with us?",
+    "2" : "Be nice to us!",
+    "3" : "It is only us.",
+    "4" : "I will fix us something to eat.",
+    "5" : "Please help us.",
+    "6" : "The box is for us."
+  },
+  "use" : 
+  {
+    "1" : "I want to use that.",
+    "2" : "I need to use the bathroom.",
+    "3" : "Use your head.",
+    "4" : "It is no use.",
+    "5" : "Put it to good use."
+  },
+  "very" : 
+  {
+    "1" : "He is very tall.",
+    "2" : "I am very tired.",
+    "3" : "Very good.",
+    "4" : "Thank you very much.",
+    "5" : "That is the very one.",
+    "6" : "I am very happy.",
+    "7" : "I like it very much."
+  },
+  "wait" : 
+  {
+    "1" : "Will you wait for me.",
+    "2" : "Wait up a second!",
+    "3" : "Wait and see.",
+    "4" : "Wait your turn.",
+    "5" : "Wait for it.",
+    "6" : "We will have to wait it out.",
+    "7" : "Her job is to wait tables.",
+    "8" : "Wait for me."
+  },
+  "wake" : 
+  {
+    "1" : "Wake up!",
+    "2" : "I don't want to wake up.",
+    "3" : "Don't wake the baby.",
+    "4" : "Wake me up before you go.",
+    "5" : "In the wake of that problem..."
+  },
+  "walk" : 
+  {
+    "1" : "Let's go for a walk.",
+    "2" : "He can almost walk.",
+    "3" : "Don't walk away.",
+    "4" : "No walk, let's ride.",
+    "5" : "Can we walk to school?"
+  },
+  "want" : 
+  {
+    "1" : "I want that.",
+    "2" : "I want to go home.",
+    "3" : "That is what I want.",
+    "4" : "Do you want more.",
+    "5" : "I want to eat.",
+    "6" : "What do you want?"
+  },
+  "wash" : 
+  {
+    "1" : "Please wash your hands.",
+    "2" : "Help me wash the car.",
+    "3" : "I wash my hands of this.",
+    "4" : "That will not wash out.",
+    "5" : "Wash your face.",
+    "6" : "That dog needs a wash.",
+    "7" : "I need to wash off the table.",
+    "8" : "It will come out in the wash.",
+    "9" : "Did you wash my clothes?"
+  },
+  "watch" : 
+  {
+    "1" : "Watch me!",
+    "2" : "Watch this!",
+    "3" : "Watch out!",
+    "4" : "Watch how I do it.",
+    "5" : "Do you have a watch?",
+    "6" : "What did you watch tonight?",
+    "7" : "I want to watch a show."
+  },
+  "water" : 
+  {
+    "1" : "I need water.",
+    "2" : "That water is too cold.",
+    "3" : "We need to water the flower.",
+    "4" : "Put water on the fire.",
+    "5" : "You are in hot water!"
+  },
+  "way" : 
+  {
+    "1" : "Let's go that way.",
+    "2" : "That is the right way.",
+    "3" : "He went the wrong way.",
+    "4" : "Which way to we go?",
+    "5" : "You are in the way.",
+    "6" : "By the way..."
+  },
+  "we" : 
+  {
+    "1" : "We are almost ready to go.",
+    "2" : "We almost had it.",
+    "3" : "It is time we go home.",
+    "4" : "Can we play a game?",
+    "5" : "We will listen."
+  },
+  "wear" : 
+  {
+    "1" : "You wear me out.",
+    "2" : "Please wear clothes.",
+    "3" : "He will wear a hat.",
+    "4" : "You need to wear shoes today.",
+    "5" : "It will wear off later.",
+    "6" : "She will wear him down."
+  },
+  "weather" : 
+  {
+    "1" : "What is the wather like?",
+    "2" : "Let's talk about the weather.",
+    "3" : "Nice weather today.",
+    "4" : "Are you under the weather?",
+    "5" : "The weather is cold outside."
+  },
+  "wet" : 
+  {
+    "1" : "I got all well.",
+    "2" : "My hair is wet so I am cold.",
+    "3" : "He wet his pants.",
+    "4" : "The rain made us wet.",
+    "5" : "I don't want to get wet.",
+    "6" : "The table is wet."
+  },
+  "what" : 
+  {
+    "1" : "What is your name?",
+    "2" : "That is what I said.",
+    "3" : "What in the world is that?",
+    "4" : "Think of what you want.",
+    "5" : "What did you do?",
+    "6" : "What is it?"
+  },
+  "when" : 
+  {
+    "1" : "We will go when you get here.",
+    "2" : "You don't know when to stop.",
+    "3" : "When do we eat?",
+    "4" : "When is it my turn?",
+    "5" : "I will come when I am ready.",
+    "6" : "When do we go?"
+  },
+  "where" : 
+  {
+    "1" : "Where did you go?",
+    "2" : "I know where we are.",
+    "3" : "Where did you put it?",
+    "4" : "Where was I?",
+    "5" : "I know where to get one.",
+    "6" : "Where are we?"
+  },
+  "white" : 
+  {
+    "1" : "That bird is white.",
+    "2" : "We have a white car.",
+    "3" : "It is as white as snow.",
+    "4" : "Your face is white.",
+    "5" : "I have a new white shirt."
+  },
+  "who" : 
+  {
+    "1" : "Who are you?",
+    "2" : "Who can say?",
+    "3" : "Tell me who you are.",
+    "4" : "Who has my shirt?",
+    "5" : "I like who I am.",
+    "6" : "Tell me who you are?",
+    "7" : "I like who I am.",
+    "8" : "Who has my red shirt?",
+    "9" : "I know who took the food.",
+    "10" : "Who is this?"
+  },
+  "whole" : 
+  {
+    "1" : "I will eat the whole thing.",
+    "2" : "I will eat a whole one.",
+    "3" : "Tell me the whole story.",
+    "4" : "This is my whole family.",
+    "5" : "We played the whole day.",
+    "6" : "That is a whole other thing.",
+    "7" : "Don't tell the whole world."
+  },
+  "why" : 
+  {
+    "1" : "I want to know why.",
+    "2" : "Why not?",
+    "3" : "Why did you do that?",
+    "4" : "Why in the world?",
+    "5" : "Ask me why."
+  },
+  "will" : 
+  {
+    "1" : "Will you help me?",
+    "2" : "If you will, I will.",
+    "3" : "It will be your turn next.",
+    "4" : "How will we get there?",
+    "5" : "That will do.",
+    "6" : "Will it fall over?"
+  },
+  "win" : 
+  {
+    "1" : "You win some, you lose some.",
+    "2" : "I want to win!",
+    "3" : "We win!",
+    "4" : "He is out to win.",
+    "5" : "Let's win!",
+    "6" : "All I do is win.",
+    "7" : "I never get to win."
+  },
+  "with" : 
+  {
+    "1" : "I want to come with you.",
+    "2" : "Let's start with that one.",
+    "3" : "Get it over with.",
+    "4" : "Take it with you.",
+    "5" : "With some help, I can.",
+    "6" : "Will you come with me?",
+    "7" : "You can't take it with you."
+  },
+  "woman" : 
+  {
+    "1" : "My teacher is a woman.",
+    "2" : "I will be a woman some day.",
+    "3" : "I see a woman in the store.",
+    "4" : "The woman is here.",
+    "5" : "She is a nice woman.",
+    "6" : "Is it a woman or a man?"
+  },
+  "work" : 
+  {
+    "1" : "I will work hard.",
+    "2" : "Let's work on it.",
+    "3" : "I need to work out.",
+    "4" : "That works for me.",
+    "5" : "I hope it works out.",
+    "6" : "We will work around it."
+  },
+  "write" : 
+  {
+    "1" : "I can write my name.",
+    "2" : "Let's write a letter.",
+    "3" : "Write it out.",
+    "4" : "Don't write me off.",
+    "5" : "At school we write."
+  },
+  "wrong" : 
+  {
+    "1" : "That is the wrong one.",
+    "2" : "You are not wrong.",
+    "3" : "Nothing can go wrong.",
+    "4" : "What can go wrong?",
+    "5" : "Got up on the wrong side of the bed.",
+    "6" : "He is in the wrong."
+  },
+  "yellow" : 
+  {
+    "1" : "Watch for the yellow light.",
+    "2" : "I need my yellow shirt.",
+    "3" : "The sun is yellow.",
+    "4" : "Yellow is a happy color."
+  },
+  "yes" : 
+  {
+    "1" : "Yes I can.",
+    "2" : "He is a yes man.",
+    "3" : "Tell me yes or no.",
+    "4" : "Is that a yes?",
+    "5" : "Yes!",
+    "6" : "Yes please."
+  },
+  "you" : 
+  {
+    "1" : "You are my friend.",
+    "2" : "I like you.",
+    "3" : "Do you want to go?",
+    "4" : "What do you think?",
+    "5" : "I want you to stop.",
+    "6" : "You are good."
+  }
+}

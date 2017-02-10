@@ -376,7 +376,7 @@ class Api::UsersController < ApplicationController
     if params['user_id'] != 'none'
       user = User.find_by_path(params['user_id'])
       return unless exists?(user, params['user_id'])
-      return unless allowed?(user, 'edit')
+      return unless allowed?(user, 'supervise')
       res[:for_user] = WordData.core_list_for(user)
       res[:reachable_for_user] = WordData.reachable_core_list_for(user)
     end

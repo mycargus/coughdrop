@@ -182,6 +182,15 @@ RSpec.describe WordData, :type => :model do
       expect(WordData).to receive(:default_core_list).and_return('list!');
       expect(WordData.core_list_for(nil)).to eq('list!')
     end
+    
+    it "should return a user's personalized list" do
+      t = UserIntegration.create(:template => true, :integration_key => 'core_word_list')
+      u = User.create
+      ui = UserIntegration.create(:user => u, :template_integration_id => t.id)
+      ui.settings['core_word_list'] = {'id' => 'bacon', 'words' => ['a', 'b', 'c', 'd']}
+      ui.save
+      expect(WordData.core_list_for(u)).to eq(['a', 'b', 'c', 'd'])
+    end
   end
   
   describe "reachable_core_list_for" do
@@ -205,7 +214,7 @@ RSpec.describe WordData, :type => :model do
       u.save
       Worker.process_queues
       Worker.process_queues
-      expect(WordData.reachable_core_list_for(u)).to eq(["he", "i", "you", "favorite", "like", "pretend", "think"])
+      expect(WordData.reachable_core_list_for(u)).to eq(["i", "you", "he", "think", "like", "favorite", "pretend"])
     end
     
     it "should return words available from the root board" do
@@ -228,7 +237,7 @@ RSpec.describe WordData, :type => :model do
       u.save
       Worker.process_queues
       Worker.process_queues
-      expect(WordData.reachable_core_list_for(u)).to eq(["he", "i", "you", "favorite", "like", "pretend", "think"])
+      expect(WordData.reachable_core_list_for(u)).to eq(["i", "you", "he", "think", "like", "favorite", "pretend"])
     end
     
     it "should return words available from the sidebar" do
@@ -251,7 +260,7 @@ RSpec.describe WordData, :type => :model do
       u.save
       Worker.process_queues
       Worker.process_queues
-      expect(WordData.reachable_core_list_for(u)).to eq(["i", "favorite", "like", "pretend", "think", "yes", "no"])
+      expect(WordData.reachable_core_list_for(u)).to eq(["i", "think", "like", "no", "yes", "favorite", "pretend"])
     end
     
     it "should not return words that aren't accessible, even if they're core words" do
@@ -274,7 +283,20 @@ RSpec.describe WordData, :type => :model do
       u.save
       Worker.process_queues
       Worker.process_queues
-      expect(WordData.reachable_core_list_for(u)).to eq(["you", "favorite", "like"])
+      expect(WordData.reachable_core_list_for(u)).to eq(["you", "like", "favorite"])
+    end
+  end
+  
+  describe "add_suggestion" do
+    it "should return false on missing word" do
+      expect(WordData.add_suggestion('awgoawtiawt', 'this is a good one', 'bleh')).to eq(false)
+    end
+    
+    it "should add the sentence" do
+      res = WordData.add_suggestion('hat', 'I like my hat', 'en')
+      expect(res).to eq(true)
+      word = WordData.find_word('hat')
+      expect(word['sentences']).to eq([{'sentence' => 'I like my hat', 'approved' => true}])
     end
   end
 end

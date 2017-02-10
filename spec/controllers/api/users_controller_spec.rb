@@ -1411,4 +1411,107 @@ describe Api::UsersController, :type => :controller do
       expect(json['userversion']).to eq([])
     end
   end
+  
+  describe "core_lists" do
+    it "should require api token" do
+      get 'core_lists', params: {'user_id' => 'asdf'}
+      assert_missing_token
+    end
+     
+    it "should require a valid user" do
+      token_user
+      get 'core_lists', params: {'user_id' => 'asdf'}
+      assert_not_found('asdf')
+    end
+     
+    it "should require supervise authorization for a valid user" do
+      token_user
+      u = User.create
+      get 'core_lists', params: {'user_id' => u.global_id}
+      assert_unauthorized
+    end
+     
+    it "should return core lists" do
+      token_user
+      u = User.create
+      User.link_supervisor_to_user(@user, u, nil, false)
+      expect(u.allows?(@user, 'edit')).to eq(false)
+      expect(u.allows?(@user, 'supervise')).to eq(true)
+      get 'core_lists', params: {'user_id' => u.global_id}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json).to_not eq(nil)
+      expect(json['for_user']).to_not eq(nil)
+      expect(json['defaults'].length).to be > 0
+    end
+     
+    it "should return successfully for the 'none' user" do
+      token_user
+      get 'core_lists', params: {'user_id' => 'none'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json).to_not eq(nil)
+      expect(json['for_user']).to eq(nil)
+      expect(json['defaults'].length).to be > 0
+    end
+     
+    it "should return a user's core lists" do
+      token_user
+      ui = UserIntegration.create(:template => true, :integration_key => 'core_word_list')
+      ui2 = UserIntegration.create(:template_integration_id => ui.id, :user => @user)
+      ui2.settings['core_word_list'] = {
+        id: 'bacon',
+        words: ['a', 'b', 'c', 'd']
+      }
+      ui2.save
+      get 'core_lists', params: {'user_id' => @user.global_id}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json).to_not eq(nil)
+      expect(json['for_user']).to eq(['a', 'b', 'c', 'd'])
+      expect(json['defaults'].length).to be > 0
+    end
+  end
+  
+  describe "update_core_list" do
+    it "should require api token" do
+      put 'update_core_list', params: {'user_id' => 'asdf'}
+      assert_missing_token
+    end
+    
+    it "should require a valid user" do
+      token_user
+      put 'update_core_list', params: {'user_id' => 'asdf'}
+      assert_not_found('asdf')
+    end
+    
+    it "should require authorization" do
+      token_user
+      u = User.create
+      User.link_supervisor_to_user(@user, u, nil, false)
+      expect(u.allows?(@user, 'edit')).to eq(false)
+      expect(u.allows?(@user, 'supervise')).to eq(true)
+      put 'update_core_list', params: {'user_id' => u.global_id}
+      assert_unauthorized
+    end
+    
+    it "should error if no template is defined" do
+      token_user
+      put 'update_core_list', params: {'user_id' => @user.global_id, 'id' => 'bacon', 'words' => ['a', 'b', 'c']}
+      assert_error('no core word list integration defined')
+    end
+    
+    it "should set the user's core list" do
+      token_user
+      ui = UserIntegration.create(:template => true, :integration_key => 'core_word_list')
+      put 'update_core_list', params: {'user_id' => @user.global_id, 'id' => 'bacon', 'words' => ['a', 'b', 'c']}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json).to eq({'updated' => true, 'words' => {'id' => 'bacon', 'words' => ['a', 'b', 'c']}})
+      ui = UserIntegration.find_by(:user_id => @user.id, :template_integration_id => ui.id)
+      expect(ui).to_not eq(nil)
+      expect(ui.settings).to_not eq(nil)
+      expect(ui.settings['core_word_list']).to eq({'id' => 'bacon', 'words' => ['a', 'b', 'c']})
+    end
+  end
 end

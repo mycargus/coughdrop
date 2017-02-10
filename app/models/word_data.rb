@@ -35,6 +35,7 @@ class WordData < ActiveRecord::Base
       'sentence' => sentence,
       'approved' => true
     }
+    word.data['sentences'].uniq!
     word.save
     true
   end
@@ -216,5 +217,17 @@ class WordData < ActiveRecord::Base
     end
     @@core_lists ||= []
     @@core_lists
+  end
+  
+  def self.import_suggestions
+    suggestions = JSON.parse(File.read('./lib/core_suggestions.json')) rescue nil
+    return false unless suggestions
+    suggestions.each do |word, list|
+      list.each do |idx, sentence|
+        puts "#{word}: #{sentence}"
+        WordData.add_suggestion(word, sentence)
+      end
+    end
+    true
   end
 end

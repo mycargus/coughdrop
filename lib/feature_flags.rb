@@ -2,7 +2,7 @@ module FeatureFlags
   AVAILABLE_FRONTEND_FEATURES = ['subscriptions', 'assessments', 'custom_sidebar', 
               'canvas_render', 'snapshots', 'enable_all_buttons', 'chrome_filesystem',
               'video_recording', 'goals', 'app_connections', 'translation', 'geo_sidebar',
-              'modeling', 'edit_before_copying']
+              'modeling', 'edit_before_copying', 'core_reports']
   ENABLED_FRONTEND_FEATURES = ['subscriptions', 'assessments', 'custom_sidebar', 'snapshots',
               'video_recording', 'goals', 'modeling', 'geo_sidebar']
   DISABLED_CANARY_FEATURES = []

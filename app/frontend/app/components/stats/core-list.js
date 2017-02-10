@@ -42,6 +42,9 @@ export default Ember.Component.extend({
     },
     word_data: function(word) {
       this.sendAction('word_data', word);
+    },
+    modify_core: function() {
+      this.sendAction('modify_core');
     }
   }
 });

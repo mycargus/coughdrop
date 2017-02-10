@@ -1076,5 +1076,33 @@ describe Api::OrganizationsController, :type => :controller do
       json = JSON.parse(response.body)
       expect(json['success']).to eq(false)
     end
+    
+    it 'should add a sentence suggestions' do
+      token_user
+      o = Organization.create(:admin => true)
+      o.add_manager(@user.user_name, true)
+      post 'extra_action', :params => {'organization_id' => o.global_id, 'extra_action' => 'add_sentence_suggestion', 'word' => 'bacon', 'sentence' => 'I like me some bacon'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['success']).to eq(true)
+      w = WordData.find_word('bacon')
+      expect(w).to_not eq(nil)
+      expect(w['sentences']).to eq([{'sentence' => 'I like me some bacon', 'approved' => true}])
+    end
+    
+    it 'should not succeeed without correct sentence suggestion parameters' do
+      token_user
+      o = Organization.create(:admin => true)
+      o.add_manager(@user.user_name, true)
+      post 'extra_action', :params => {'organization_id' => o.global_id, 'extra_action' => 'add_sentence_suggestion', 'word' => 'bacon'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['success']).to eq(false)
+      
+      post 'extra_action', :params => {'organization_id' => o.global_id, 'extra_action' => 'add_sentence_suggestion', 'sentence' => 'bacon'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['success']).to eq(false)
+    end
   end
 end

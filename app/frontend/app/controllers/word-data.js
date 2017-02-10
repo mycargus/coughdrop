@@ -19,7 +19,7 @@ export default modal.ModalController.extend({
   load_part_of_speech: function() {
     var _this = this;
     _this.set('parts_of_speech', {loading: true});
-    persistence.ajax('/api/v1/search/parts_of_speech?q=' + encodeURIComponent(_this.get('model.word')), {
+    persistence.ajax('/api/v1/search/parts_of_speech?suggestions=true&q=' + encodeURIComponent(_this.get('model.word')), {
       type: 'GET'
     }).then(function(res) {
       _this.set('parts_of_speech', res);
