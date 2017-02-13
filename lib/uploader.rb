@@ -122,11 +122,24 @@ module Uploader
     username = nil
     password_md5 = nil
     if opts.is_a?(User)
-      ui = UserIntegration
-      username = nil
+      template = UserIntegration.find_by(template: true, integration_key: 'lessonpix')
+      ui = template && UserIntegration.find_by(user: opts, template_integration: template)
+      return nil unless ui
+      username = ui.settings['username']
+      password_md5 = Security.decrypt(ui.settings['password_crypt'], ui.settings['password_salt'], 'lessonpix_password')
     elsif opts.is_a?(Hash)
       username = opts['username']
       password_md5 = Digest::MD5.hexdigest(opts['password'])
+      if opts['set_user']
+        template = UserIntegration.find_by(template: true, integration_key: 'lessonpix')
+        raise "lessonpix integration not configured" unless template
+        ui = UserIntegration.find_or_create_by(user: opts['set_user'], template_integration: template)
+        ui.settings['username'] = username
+        secret, salt = Security.encrypt(password_md5, 'lessonpix_password')
+        ui.settings['password_salt'] = salt
+        ui.settings['password_crypt'] = secret
+        ui.save
+      end
     else
       return nil
     end
@@ -144,21 +157,24 @@ module Uploader
     elsif library == 'lessonpix'
       cred = lessonpix_credentials(user)
       return [] unless cred
-      url = "http://lessonpix.com/api/Search?pid=#{cred['pid']}&username=#{cred['username']}&token=#{cred['token']}&query=#{CGI.escape(keyword)}"
+      url = "http://lessonpix.com/apiKWSearch.php?pid=#{cred['pid']}&username=#{cred['username']}&token=#{cred['token']}&word=#{CGI.escape(keyword)}&fmt=json&allstyles=n"
       req = Typhoeus.get(url)
       results = JSON.parse(req.body) rescue nil
       list = []
       results.each do |obj|
+        next if !obj || obj['iscategory'] == 't'
         list << {
-          'url' => "/api/v1/users/#{user.global_id}/lessonpix/#{obj['id']}",
-          'content_type' => 'image/png',
-          'width' => 200,
-          'height' => 200,
-          'external_id' => obj['id'],
-          'public' => true,
+          'url' => "/api/v1/users/#{user.global_id}/lessonpix/#{obj['image_id']}",
+          'content_type' => 'image/svg',
+          'name' => obj['title'],
+          'width' => 300,
+          'height' => 300,
+          'external_id' => obj['image_id'],
+          'public' => false,
+          'protected' => true,
           'license' => {
             'type' => 'private',
-            'source_url' => "http://lessonpix.com/pictures/#{obj['id']}/#{obj['label']}",
+            'source_url' => "http://lessonpix.com/pictures/#{obj['image_id']}/#{obj['title']}",
             'author_name' => 'LessonPix',
             'author_url' => 'http://lessonpix.com',
             'uneditable' => true
