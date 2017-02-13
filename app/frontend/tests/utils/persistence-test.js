@@ -70,7 +70,7 @@ describe("persistence", function() {
       expect(app.registered).toEqual(true);
       expect(app.injections).toEqual(['model', 'controller', 'view', 'route']);
     });
-    it("should default last_sync to zero", function() {
+    it("should default last_sync to one", function() {
       db_wait(function() {
         persistence.set('last_sync_at', 12345);
         persistence.remove('settings', {storageId: 'lastSync'}, 'lastSync').then(function() {
@@ -80,7 +80,7 @@ describe("persistence", function() {
             coughDropExtras.set('ready', true);
           }, 10);
         });
-        waitsFor(function() { return persistence.get('last_sync_at') === 0; });
+        waitsFor(function() { return persistence.get('last_sync_at') === 1; });
         runs();
       });
     });

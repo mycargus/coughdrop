@@ -1223,7 +1223,7 @@ var persistence = Ember.Object.extend({
       }
     }
 
-    if(!which) { debugger }
+    if(!which) { debugger; }
     if(persistence.sync_actions && persistence.sync_actions.length > 0) {
       persistence['sync_action_' + which] = Ember.run.later(persistence, persistence.next_sync_action, which, 50);
     } else {
@@ -1428,13 +1428,13 @@ var persistence = Ember.Object.extend({
                         }
                       }, function(error) {
                         console.log(error);
-                        debugger
+//                         debugger
                         console.error("should have been safely cached, but board content wasn't in db:" + board.id);
                         return Ember.RSVP.resolve();
                       });
                     }, function(error) {
                       console.log(error);
-                      debugger
+//                       debugger
                       console.error("should have been safely cached, but board wasn't in db:" + board.id);
                       return Ember.RSVP.resolve();
                     });
