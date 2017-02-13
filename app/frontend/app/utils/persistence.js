@@ -1209,11 +1209,6 @@ var persistence = Ember.Object.extend({
     return defer.promise;
   },
   next_sync_action: function(which) {
-    if(which) {
-      persistence['sync_action_' + which] = null;
-    } else {
-      debugger
-    }
     persistence.sync_actions = persistence.sync_actions || [];
     var action = persistence.sync_actions.shift();
     if(action && action.callback) {
@@ -1227,8 +1222,12 @@ var persistence = Ember.Object.extend({
         action.reject(e);
       }
     }
+
+    if(!which) { debugger }
     if(persistence.sync_actions && persistence.sync_actions.length > 0) {
       persistence['sync_action_' + which] = Ember.run.later(persistence, persistence.next_sync_action, which, 50);
+    } else {
+      persistence['sync_action_' + which] = null;
     }
   },
   sync_boards: function(user, importantIds, synced_boards, force) {
