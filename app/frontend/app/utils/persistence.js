@@ -24,7 +24,7 @@ var persistence = Ember.Object.extend({
       persistence.find('settings', 'lastSync').then(function(res) {
         persistence.set('last_sync_at', res.last_sync);
       }, function() {
-        persistence.set('last_sync_at', 0);
+        persistence.set('last_sync_at', 1);
       });
     });
     if(stashes.get_object('just_logged_in', false) && stashes.get('auth_settings') && !Ember.testing) {
@@ -1744,7 +1744,7 @@ var persistence = Ember.Object.extend({
     var _this = this;
 
     if(stashes.get('auth_settings') && window.coughDropExtras && window.coughDropExtras.ready) {
-      var synced = _this.get('last_sync_at') || 1;
+      var synced = _this.get('last_sync_at') || 0;
       var syncable = persistence.get('online') && !Ember.testing && !persistence.get('syncing');
       var interval = persistence.get('last_sync_stamp_interval') || (30 * 60 * 1000);
       interval = interval + (0.2 * interval * Math.random()); // jitter
@@ -1757,7 +1757,7 @@ var persistence = Ember.Object.extend({
         // on mobile, don't auto-sync until 2 minutes after bootup, unless it's never been synced
         // NOTE: the db is keyed to the user, so you'll always have a user-specific last_sync_at
         return false;
-      } else if((now - synced) > (48 * 60 * 60) && syncable) {
+      } else if(synced > 0 && (now - synced) > (48 * 60 * 60) && syncable) {
         // if we haven't synced in 48 hours and we're online, do a background sync
         console.debug('syncing because it has been more than 48 hours');
         persistence.sync('self').then(null, function() { });
@@ -1790,10 +1790,10 @@ var persistence = Ember.Object.extend({
   check_for_sync_reminder: function() {
     var _this = this;
     if(stashes.get('auth_settings') && window.coughDropExtras && window.coughDropExtras.ready) {
-      var synced = _this.get('last_sync_at') || 1;
+      var synced = _this.get('last_sync_at') || 0;
       var now = (new Date()).getTime() / 1000;
       // if we haven't synced in 14 days, remind to sync
-      if((now - synced) > (14 * 24 * 60 * 60) && !Ember.testing) {
+      if(synced > 0 && (now - synced) > (14 * 24 * 60 * 60) && !Ember.testing) {
         persistence.set('sync_reminder', true);
       } else {
         persistence.set('sync_reminder', false);
