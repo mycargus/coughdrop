@@ -104,6 +104,22 @@ class WordData < ActiveRecord::Base
       # https://translation.googleapis.com/language/translate/v2?api_key=KEY&target=dest_lang
       strings = list.map{|obj| obj[:text] }
       key = ENV['GOOGLE_TRANSLATE_TOKEN']
+
+      langs = {source: source_lang, dest: dest_lang}
+      langs.each do |key, val|
+        if val.match(/zh_Hans/)
+          langs[key] = 'zh-CN'
+        elsif val.match(/zh_Hant/)
+          langs[key] = 'zh-TW'
+        elsif val.match(/zh/)
+          langs[key] = 'zh-CN'
+        elsif val.match(/[_-]/)
+          langs[key] = val.split(/[_-]/)[0].downcase
+        end
+      end
+      source_lang = langs[:source]
+      dest_lang = langs[:dest]
+
       url = "https://translation.googleapis.com/language/translate/v2?key=#{key}&target=#{dest_lang}&source=#{source_lang}&format=text"
       url += '&' + strings.map{|str| "q=#{CGI.escape(str || '')}" }.join('&')
       data = Typhoeus.get(url)

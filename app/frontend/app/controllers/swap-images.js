@@ -48,7 +48,7 @@ export default modal.ModalController.extend({
         type: 'POST',
         data: {
           library: _this.get('library'),
-          board_ids_to_convert: this.get('hierarchy').selected_board_ids()
+          board_ids_to_convert: board_ids_to_include
         }
       }).then(function(res) {
         progress_tracker.track(res.progress, function(event) {

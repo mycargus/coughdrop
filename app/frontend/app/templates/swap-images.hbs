@@ -13,10 +13,12 @@
             {{t "Loading linked boards..." key='loading_linked_boards'}}
           {{else if hierarchy.error}}
             {{t "There was an error trying to retrieve linked boards" key='error_getting_linked_boards'}}
-          {{else}}
+          {{else if hierarchy}}
             <div style='margin-top: 5px;'>
               {{board-hierarchy hierarchy=hierarchy selectable=true}}
             </div>
+          {{else}}
+            {{t "No linked boards" key='no_linked_boards'}}
           {{/if}}
         </div>
       </div>

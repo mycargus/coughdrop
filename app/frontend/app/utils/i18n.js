@@ -477,7 +477,17 @@ var i18n = Ember.Object.extend({
       }
     }
     return res;
-  }
+  },
+  translatable_locales: function() {
+    var res = {};
+    var locales = i18n.get('locales');
+    for(var idx in locales) {
+      if(idx == 'zh_Hans' || idx == 'zh_Hant' || !idx.match(/_/)) {
+        res[idx] = locales[idx];
+      }
+    }
+    return res;
+  }.property('locales')
 
   // http://www.oxforddictionaries.com/us/words/spelling
 }).create({
