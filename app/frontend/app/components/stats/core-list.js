@@ -26,7 +26,7 @@ export default Ember.Component.extend({
     words.forEach(function(word) {
       var weight = 'weighted_word weight_0';
       if(available[word]) {
-        var found = weighted.find(function(w) { return w.text == word; });
+        var found = weighted.find(function(w) { return w.text.toLowerCase() == word.toLowerCase(); });
         weight = found ? found.weight_class : 'weighted_word weight_1';
       }
       res.push({

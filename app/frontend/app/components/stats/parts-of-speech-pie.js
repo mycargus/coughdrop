@@ -45,7 +45,14 @@ export default Ember.Component.extend({
           slices: slices,
           pieSliceTextStyle: {
             color: '#444'
-          }
+          },
+          chartArea: {
+            left: 0,
+            top: 0,
+            width: '100%',
+            height: '100%'
+          },
+          height: 300
         };
 
 

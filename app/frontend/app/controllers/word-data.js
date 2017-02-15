@@ -28,6 +28,20 @@ export default modal.ModalController.extend({
       _this.set('parts_of_speech', {error: true});
     });
   },
+  reachability: function() {
+    var lists = this.get('model.user.core_lists');
+    var res = {};
+    var word = this.get('model.word').toLowerCase();
+    if(lists && lists.reachable_for_user) {
+      var found = lists.reachable_for_user.find(function(w) { return w.toLowerCase() == word; });
+      if(found) {
+        res.reachable = true;
+      } else {
+        res.unreachable = true;
+      }
+    }
+    return res;
+  }.property('model.word', 'model.user.core_lists'),
   part_of_speech: function() {
     if(this.get('parts_of_speech.types')) {
       return this.get('parts_of_speech.types')[0];
@@ -44,7 +58,7 @@ export default modal.ModalController.extend({
   }.property('part_of_speech'),
   frequency: function() {
     var _this = this;
-    var word = (this.get('model.usage_stats.words_by_frequency') || []).find(function(w) { return w.text == _this.get('model.word'); });
+    var word = (this.get('model.usage_stats.words_by_frequency') || []).find(function(w) { return w.text.toLowerCase() == _this.get('model.word').toLowerCase(); });
     var count = (word && word.count) || 0;
     var pct = 0;
     if(this.get('model.usage_stats.total_words')) {

@@ -45,10 +45,12 @@
       {{#if model.user.core_lists}}
         <dt>{{t "Availability:" key='availability'}}</dt>
         <dd>
-          {{#if reachable}}
+          {{#if reachability.reachable}}
             {{t "This word is in the board set for %{user_name}" user_name=model.user.user_name key='in_user_board_set'}}
-          {{else}}
+          {{else if reachability.unreachable}}
             <span class='text-danger'>{{t "This word is NOT in the board set for %{user_name}" user_name=model.user.user_name key='not_in_user_board_set'}}</span>
+          {{else}}
+            <span class='text-muted'>{{t "Information not currently available" key='information_not_currently_available'}}</span>
           {{/if}}
         </dd>
       {{/if}}
