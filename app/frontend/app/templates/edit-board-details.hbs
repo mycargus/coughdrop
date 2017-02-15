@@ -49,7 +49,7 @@
         </div>
       {{/if}}
       <div class="form-group">
-        <label for="public" class="col-sm-3 control-label">{{t "Suggestions" key='word_suggestions'}}</label>
+        <label for="suggestions" class="col-sm-3 control-label">{{t "Suggestions" key='word_suggestions'}}</label>
         <div class="col-sm-9">
           <div class="checkbox">
             <label>
@@ -65,10 +65,14 @@
         <label for="public" class="col-sm-3 control-label">{{t "Public" key='public'}}</label>
         <div class="col-sm-9">
           <div class="checkbox">
-            <label>
-              {{input type="checkbox" checked=model.public id="public"}}
-              {{t "Anyone can see this board" key='anyone_can_see_board'}}
-            </label>
+            {{#if model.protected_material}}
+              <em>{{t "Boards with protected content can't be made public" key='protected_boards_no_public'}}</em>
+            {{else}}
+              <label>
+                {{input type="checkbox" checked=model.public id="public"}}
+                {{t "Anyone can see this board" key='anyone_can_see_board'}}
+              </label>
+            {{/if}}
           </div>
         </div>
         </fieldset>

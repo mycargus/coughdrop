@@ -13,6 +13,7 @@ CoughDrop.User = DS.Model.extend({
     }
   },
   user_name: DS.attr('string'),
+  user_token: DS.attr('string'),
   link: DS.attr('string'),
   joined: DS.attr('date'),
   sync_stamp: DS.attr('string'),
@@ -360,6 +361,51 @@ CoughDrop.User = DS.Model.extend({
         }
       }));
     }, function() { });
+  },
+  check_integrations: function(reload) {
+    if(this.get('permissions.supervise')) {
+      if(this.get('integrations.promise')) {
+        return this.get('integrations.promise');
+      }
+      if(reload === true) { this.set('integrations', null); }
+      if(this.get('integrations')) {
+        return Ember.RSVP.resolve(this.get('integrations'));
+      }
+      var _this = this;
+      var promise = Utils.all_pages('integration', {user_id: this.get('id')}, function(partial) {
+      }).then(function(res) {
+        _this.set('integrations', res);
+        return res;
+      }, function(err) {
+        _this.set('integrations', {error: true});
+        return Ember.RSVP.reject({error: 'error retrieving integrations'});
+      });
+      _this.set('integrations', {loading: true, promise: promise});
+      return promise;
+    } else {
+      var res = Ember.RSVP.reject({error: 'not allowed'});
+      res.then(null, function() { });
+      return res;
+    }
+  }.observes('permissions.supervise'),
+  find_integration(key) {
+    var _this = this;
+    var loading = this.get('integrations.promise');
+    if(!loading) {
+      if(this.get('integrations') && this.get('integrations').length) {
+        loading = Ember.RSVP.resolve(this.get('integrations'));
+      } else {
+        loading = _this.check_integrations();
+      }
+    }
+    return loading.then(function(list) {
+      var res = list.find(function(integration) { return integration.get('template_key') == key; });
+      if(res) {
+        return res;
+      } else {
+        return Ember.RSVP.reject({error: 'no matching integration found'});
+      }
+    });
   },
   check_user_name: function() {
     if(this.get('watch_user_name')) {

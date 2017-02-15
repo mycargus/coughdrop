@@ -30,6 +30,12 @@ module Uploadable
     self.settings['full_filename']
   end
   
+  def url_for(user)
+    token = user && user.user_token
+    return self.url if !token
+    self.url + (self.url.match(/\?/) ? '&' : '?') + "user_token=#{token}"
+  end
+  
   def file_prefix
     sha = Security.sha512(self.global_id, self.created_at.iso8601)
     self.global_id + "-" + sha

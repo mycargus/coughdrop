@@ -27,6 +27,11 @@ class UserIntegration < ActiveRecord::Base
     self.settings ||= {}
     self.settings['token'] ||= self.class.security_token
     self.settings['static_token'] ||= self.class.security_token
+    if self.template_integration && self.template_integration.integration_key
+      self.settings['template_key'] = self.template_integration.integration_key
+      self.settings['icon_url'] ||= self.template_integration.settings['icon_url']
+      self.settings['name'] ||= self.template_integration.settings['name']
+    end
     self.settings['permission_scopes'] ||= ['read_profile']
     self.for_button = !!(self.settings['button_webhook_url'] || self.settings['board_render_url'])
     self.assert_device
@@ -103,6 +108,50 @@ class UserIntegration < ActiveRecord::Base
     self.settings['custom_integration'] = params['custom_integration'] if params['custom_integration'] != nil
     self.settings['button_webhook_url'] = params['button_webhook_url'] if params['button_webhook_url']
     self.settings['board_render_url'] = params['board_render_url'] if params['board_render_url']
+    if params['integration_key']
+      template = UserIntegration.find_by(template: true, integration_key: params['integration_key'])
+      if !template
+        add_processing_error('invalid template')
+        return false
+      end
+      self.template_integration = template
+      user_params = {}
+      (template.settings['user_parameters'] || []).each do |template_param|
+        user_param = (params['user_parameters'] || []).detect{|p| p['name'] == template_param['name']}
+        if user_param
+          user_params[template_param['name']] = {
+            'type': template_param['type'],
+            'label': template_param['label']
+          }
+          value = user_param['value']
+          if template_param['type'] == 'password'
+            if template_param['hash'] == 'md5'
+              value = Digest::MD5.hexdigest(value)
+            end
+            secret, salt = Security.encrypt(value, 'integration_password')
+            user_params[template_param['name']]['salt'] = salt
+            user_params[template_param['name']]['value_crypt'] = secret
+          else
+            user_params[template_param['name']]['value'] = value
+          end
+        end
+      end
+      self.settings['user_settings'] = user_params
+      if params['integration_key'] == 'lessonpix'
+#         self.unique_key = Security.sha512(user_params['username']['value'], 'lessonpix-username')
+#         match = UserIntegration.find_by(unique_key: self.unique_key)
+#         if match && match.id != self.id
+#           add_processing_error('account credentials already in use')
+#           return false
+#         end
+        res = Uploader.find_images('hat', 'lessonpix', self)
+        if res == false
+          cred = Uploader.lessonpix_credentials(self)
+          add_processing_error('invalid user credentials')
+          return false
+        end
+      end
+    end
     # list of known types, probably need a background job here to confirm any
     # credentials that are provided
     @install_default_webhooks = true

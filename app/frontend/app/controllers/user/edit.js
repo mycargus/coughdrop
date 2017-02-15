@@ -37,21 +37,15 @@ export default Ember.Controller.extend({
     });
   },
   tools: function() {
-    if(this.get('integrations') && this.get('integrations').length > 0) {
-      return this.get('integrations').filter(function(i) { return i.get('icon_url'); });
+    if(this.get('model.integrations') && this.get('model.integrations').length > 0) {
+      return this.get('model.integrations').filter(function(i) { return i.get('icon_url'); });
     } else {
       return null;
     }
-  }.property('integrations'),
-  load_integrations: function() {
+  }.property('model.integrations'),
+  load_integrations: function(reload) {
     var _this = this;
-    _this.set('integrations', {loading: true});
-    Utils.all_pages('integration', {user_id: this.get('model.id')}, function(partial) {
-    }).then(function(res) {
-      _this.set('integrations', res);
-    }, function(err) {
-      _this.set('integrations', {error: true});
-    });
+    this.get('model').check_integrations(reload);
   }.observes('model.id'),
   actions: {
     pick_avatar: function() {
@@ -100,7 +94,7 @@ export default Ember.Controller.extend({
       var _this = this;
       modal.open('confirm-delete-webhook', {user: this.get('model'), webhook: webhook}).then(function(res) {
         if(res && res.deleted) {
-          _this.load_integrations();
+          _this.load_integrations(true);
           _this.load_webhooks();
         }
       });
@@ -112,25 +106,28 @@ export default Ember.Controller.extend({
       var _this = this;
       modal.open('add-integration', {user: this.get('model')}).then(function(res) {
         if(res && res.created) {
-          _this.load_integrations();
+          _this.load_integrations(true);
           _this.load_webhooks();
         }
       });
     },
-    browse_tools: function() {
+    browse_tools: function(tool) {
       var _this = this;
-      modal.open('add-tool', {user: this.get('model')}).then(function(res) {
+      modal.open('add-tool', {user: this.get('model'), tool: tool}).then(function(res) {
         if(res && res.added) {
-          _this.load_integrations();
+          _this.load_integrations(true);
           _this.load_webhooks();
         }
       });
+    },
+    integration_details: function(integration) {
+      modal.open('integration-details', {integration: integration, user: this.get('model')});
     },
     delete_integration: function(integration) {
       var _this = this;
       modal.open('confirm-delete-integration', {user: this.get('model'), integration: integration}).then(function(res) {
         if(res && res.deleted) {
-          _this.load_integrations();
+          _this.load_integrations(true);
           _this.load_webhooks();
         }
       });

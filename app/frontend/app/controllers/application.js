@@ -30,7 +30,7 @@ export default Ember.Controller.extend({
       modal.error(i18n.t('need_online_for_copying', "You must be connected to the Internet to make copies of boards."));
       return Ember.RSVP.reject();
     }
-    if(oldBoard.get('protected')) {
+    if(oldBoard.get('protected_material')) {
       modal.error(i18n.t('cant_copy_protected_boards', "This board contains purchased content, and can't be copied."));
       return Ember.RSVP.reject();
     }
@@ -266,7 +266,7 @@ export default Ember.Controller.extend({
       modal.open('rename-board', {board: this.get('board').get('model')});
     },
     shareBoard: function() {
-      if(this.get('board.model.protected')) {
+      if(this.get('board.model.protected_material')) {
         modal.error(i18n.t('cant_share_protected_boards', "This board contains purchased content, and can't be shared."));
         return;
       }

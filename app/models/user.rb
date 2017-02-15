@@ -939,6 +939,21 @@ class User < ActiveRecord::Base
     end
   end
   
+  def user_token
+    token = "#{self.global_id}-"
+    token = token + Security.sha512(token, 'user_token verifier')[0, 30]
+    token
+  end
+  
+  def self.find_by_token(token)
+    return nil unless token
+    user_id, hash = token.split(/-/)
+    return nil unless user_id && hash
+    verifier = Security.sha512("#{user_id}-", 'user_token verifier')[0, 30]
+    return nil unless hash == verifier
+    User.find_by_global_id(user_id)
+  end
+  
   def permission_scopes
     if self.permission_scopes_device
       self.permission_scopes_device.permission_scopes

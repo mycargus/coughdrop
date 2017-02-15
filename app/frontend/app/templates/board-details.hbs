@@ -40,6 +40,9 @@
       <dt>{{t "License" key='license'}}</dt>
         <dd>
           {{license-attribution license=model.license}}
+          {{#if model.protected_material}}
+            <div><em>{{t "This board contains protected material, and cannot be made public" key='board_contains_protected_material'}}</em></div>
+          {{/if}}
         </dd>
       <dt>{{t "People Using" key='people_using'}}</dt>
         <dd>

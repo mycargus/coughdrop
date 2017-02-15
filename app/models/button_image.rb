@@ -87,6 +87,7 @@ class ButtonImage < ActiveRecord::Base
     # TODO: raise a stink if content_type, width or height are not provided
     process_license(params['license']) if params['license']
     self.settings['protected'] = params['protected'] if params['protected'] != nil
+    self.settings['protected'] = params['ext_coughdrop_protected'] if params['ext_coughdrop_protected'] != nil
     self.settings['finding_user_name'] = params['finding_user_name'] if params['finding_user_name']
     self.settings['suggestion'] = params['suggestion'] if params['suggestion']
     self.settings['search_term'] = params['search_term'] if params['search_term']

@@ -143,7 +143,11 @@ export default Ember.Controller.extend({
     if((!this.get('model.public') || this.get('model.license.type') != 'private') && !app_state.get('edit_mode') && !app_state.get('speak_mode')) {
       show_description = show_description || this.get('model.name');
       if(!this.get('model.public')) {
-        show_description = show_description + " - private";
+        if(this.get('model.protected_material')) {
+          show_description = show_description + " - protected";
+        } else {
+          show_description = show_description + " - private";
+        }
       }
     }
     if(show_description) {
@@ -157,7 +161,7 @@ export default Ember.Controller.extend({
       'width': width,
       'teaser_description': show_description
     });
-  }.observes('app_state.speak_mode', 'app_state.edit_mode', 'model.word_suggestions', 'model.description', 'app_state.sidebar_pinned', 'app_state.currentUser.preferences.word_suggestion_images', 'text_position'),
+  }.observes('app_state.speak_mode', 'app_state.edit_mode', 'model.word_suggestions', 'model.description', 'model.protected_material', 'app_state.sidebar_pinned', 'app_state.currentUser.preferences.word_suggestion_images', 'text_position'),
   board_style: function() {
     return new Ember.String.htmlSafe("position: relative; height: " + (this.get('height') + 5) + "px");
   }.property('height'),

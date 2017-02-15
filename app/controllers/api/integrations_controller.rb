@@ -27,7 +27,16 @@ class Api::IntegrationsController < ApplicationController
     user = User.find_by_path(params['integration']['user_id'])
     return unless exists?(user, params['integration']['user_id'])
     return unless allowed?(user, 'supervise')
-    integration = UserIntegration.process_new(params['integration'], {user: user})
+    integration = nil
+    if params['integration'] && params['integration']['integration_key']
+      template = UserIntegration.find_by(template: true, integration_key: params['integration']['integration_key'])
+      integration = UserIntegration.find_or_create_by(user: user, template_integration: template)
+    end
+    if integration
+      integration.process(params['integration'], {user: user})
+    else
+      integration = UserIntegration.process_new(params['integration'], {user: user})
+    end
     if integration.errored?
       api_error(400, {error: "integration creation failed", errors: integration && integration.processing_errors})      
     else

@@ -108,6 +108,7 @@ module Uploader
     # don't re-download files that have already been downloaded
     res ||= url.match(/^https:\/\/#{ENV['OPENSYMBOLS_S3_BUCKET']}\.s3\.amazonaws\.com\//) if ENV['OPENSYMBOLS_S3_BUCKET']
     res ||= url.match(/^https:\/\/s3\.amazonaws\.com\/#{ENV['OPENSYMBOLS_S3_BUCKET']}\//) if ENV['OPENSYMBOLS_S3_BUCKET']
+    res ||= url.match(/\/api\/v\d+\/users\/.+\/protected_image/)
     !!res
   end
   
@@ -125,21 +126,14 @@ module Uploader
       template = UserIntegration.find_by(template: true, integration_key: 'lessonpix')
       ui = template && UserIntegration.find_by(user: opts, template_integration: template)
       return nil unless ui
-      username = ui.settings['username']
-      password_md5 = Security.decrypt(ui.settings['password_crypt'], ui.settings['password_salt'], 'lessonpix_password')
+      username = ui.settings['user_settings']['username']['value']
+      password_md5 = Security.decrypt(ui.settings['user_settings']['password']['value_crypt'], ui.settings['user_settings']['password']['salt'], 'integration_password')
+    elsif opts.is_a?(UserIntegration)
+      username = opts.settings['user_settings']['username']['value']
+      password_md5 = Security.decrypt(opts.settings['user_settings']['password']['value_crypt'], opts.settings['user_settings']['password']['salt'], 'integration_password')
     elsif opts.is_a?(Hash)
       username = opts['username']
       password_md5 = Digest::MD5.hexdigest(opts['password'])
-      if opts['set_user']
-        template = UserIntegration.find_by(template: true, integration_key: 'lessonpix')
-        raise "lessonpix integration not configured" unless template
-        ui = UserIntegration.find_or_create_by(user: opts['set_user'], template_integration: template)
-        ui.settings['username'] = username
-        secret, salt = Security.encrypt(password_md5, 'lessonpix_password')
-        ui.settings['password_salt'] = salt
-        ui.settings['password_crypt'] = secret
-        ui.save
-      end
     else
       return nil
     end
@@ -150,21 +144,31 @@ module Uploader
     }
   end
   
+  def self.found_image_url(image_id, library, user)
+    if library == 'lessonpix'
+      cred = lessonpix_credentials(user)
+      url = "http://lessonpix.com/apiGetImage.php?pid=#{cred['pid']}&username=#{cred['username']}&token=#{cred['token']}&image_id=#{image_id}&h=300&w=300&fmt=svg"
+    else
+      return nil
+    end
+  end
+  
   def self.find_images(keyword, library, user)
-    return [] if (keyword || '').strip.blank? || (library || '').strip.blank?
+    return false if (keyword || '').strip.blank? || (library || '').strip.blank?
     if library == 'ss'
       return []
     elsif library == 'lessonpix'
       cred = lessonpix_credentials(user)
-      return [] unless cred
-      url = "http://lessonpix.com/apiKWSearch.php?pid=#{cred['pid']}&username=#{cred['username']}&token=#{cred['token']}&word=#{CGI.escape(keyword)}&fmt=json&allstyles=n"
+      return false unless cred
+      url = "http://lessonpix.com/apiKWSearch.php?pid=#{cred['pid']}&username=#{cred['username']}&token=#{cred['token']}&word=#{CGI.escape(keyword)}&fmt=json&allstyles=n&limit=15"
       req = Typhoeus.get(url)
+      return false if req.body && (req.body.match(/Token Mismatch/) || req.body.match(/Unkonwn User/) || req.body.match(/Unknown User/))
       results = JSON.parse(req.body) rescue nil
       list = []
       results.each do |obj|
         next if !obj || obj['iscategory'] == 't'
         list << {
-          'url' => "/api/v1/users/#{user.global_id}/lessonpix/#{obj['image_id']}",
+          'url' => "#{JsonApi::Json.current_host}/api/v1/users/#{user.global_id}/protected_image/lessonpix/#{obj['image_id']}",
           'content_type' => 'image/svg',
           'name' => obj['title'],
           'width' => 300,
@@ -185,7 +189,7 @@ module Uploader
     elsif ['pixabay_vectors', 'pixabay_photos'].include?(library)
       type = library.match(/vector/) ? 'vector' : 'photo'
       key = ENV['PIXABAY_KEY']
-      return [] unless key
+      return false unless key
       url = "https://pixabay.com/api/?key=#{key}&q=#{CGI.escape(keyword)}&image_type=#{type}&per_page=30&safesearch=true"
       req = Typhoeus.get(url, :ssl_verifypeer => false)
       results = JSON.parse(req.body) rescue nil
@@ -244,6 +248,6 @@ module Uploader
       end
       return list
     end
-    return []
+    return false
   end
 end

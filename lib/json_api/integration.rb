@@ -18,9 +18,25 @@ module JsonApi::Integration
     if obj.template
       json['integration_key'] = obj.integration_key
       json['template'] = true
+    else
+      json['added'] = obj.created_at.iso8601
+      json['template_key'] = obj.settings['template_key']
+      if obj.settings['user_settings']
+        settings = []
+        obj.settings['user_settings'].each do |key, data|
+          setting = nil
+          if data['type'] == 'password'
+            setting = {label: data['label'], protected: true}
+          else
+            setting = {label: data['label'], value: data['value']}
+          end
+          settings << setting if setting
+        end
+        json['user_settings'] = settings
+      end
     end
-    ['icon_url', 'description'].each do |key|
-      json[key] = obj.settings[key]
+    ['icon_url', 'description', 'user_parameters'].each do |key|
+      json[key] = obj.settings[key] if obj.settings[key]
     end
     
     if obj.settings['custom_integration']

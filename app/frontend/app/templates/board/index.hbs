@@ -15,7 +15,11 @@
     <div id="board_description">
       <span {{action "boardDetails"}}>
         {{#unless model.public}}
-          <span class="glyphicon glyphicon-lock"></span>
+          {{#if model.protected_material}}
+            <span class="glyphicon glyphicon-lock"></span>
+          {{else}}
+            <span class='glyphicon glyphicon-sunglasses'></span>
+          {{/if}}
         {{/unless}}
         {{#if cc_license}}
           <img src="{{path "images/cc.png"}}" alt="cc license" style="opacity: 0.5;"/>

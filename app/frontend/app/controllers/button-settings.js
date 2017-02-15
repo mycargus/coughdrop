@@ -25,7 +25,7 @@ export default modal.ModalController.extend({
     this.set('original_image_license', Ember.$.extend({}, button.get('image.license')));
     this.set('original_sound_license', Ember.$.extend({}, button.get('sound.license')));
     this.set('board_search_type', stashes.get('last_board_search_type') || "personal");
-    this.set('image_library', null);
+    this.set('image_library', stashes.get('last_image_library'));
 
     var supervisees = [];
     if(app_state.get('sessionUser.supervisees')) {
@@ -46,6 +46,14 @@ export default modal.ModalController.extend({
       }
     }
     this.set('supervisees', supervisees);
+    var _this = this;
+    _this.set('lessonpix_enabled', false);
+    app_state.get('currentUser').find_integration('lessonpix').then(function(res) {
+      _this.set('lessonpix_enabled', true);
+      if(stashes.get('last_image_library') == 'lessonpix') { _this.set('image_library', 'lessonpix'); }
+    }, function(err) {
+      if(stashes.get('last_image_library') == 'lessonpix') { _this.set('image_library', null); }
+     });
   },
   closing: function() {
     stashes.set('last_board_search_type', this.get('board_search_type'));
@@ -90,11 +98,15 @@ export default modal.ModalController.extend({
       res.push({name: i18n.t('pixabay_photos', "Pixabay Photos"), id: 'pixabay_photos'});
       res.push({name: i18n.t('pixabay_vectors', "Pixabay Vector Images"), id: 'pixabay_vectors'});
     }
+    if(this.get('lessonpix_enabled')) {
+      res.push({name: i18n.t('lessonpix_images', "LessonPix Images"), id: 'lessonpix'});
+    }
+
 //    res.push({name: i18n.t('openclipart', "OpenClipart"), id: 'openclipart'});
 
     if(res.length == 1) { return []; }
     return res;
-  }.property(),
+  }.property('lessonpix_enabled'),
   load_user_integrations: function() {
     var user_id = this.get('model.integration_user_id') || 'self';
     var _this = this;
@@ -364,6 +376,7 @@ export default modal.ModalController.extend({
         this.set('model.image_field', this.get('model.label'));
         text = this.get('model.label');
       }
+      stashes.persist('last_image_library', this.get('image_library'));
       contentGrabbers.pictureGrabber.find_picture(text);
     },
     edit_image_preview: function() {

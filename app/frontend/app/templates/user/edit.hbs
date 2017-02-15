@@ -130,14 +130,11 @@
     <label for="location" class="col-sm-3 control-label">{{t "Installed Tools" key='installed_tools'}}</label>
     <div class="col-sm-5">
       {{#each tools as |tool|}}
-        <div style='float: left;'>
-          <img src={{tool.icon_url}} alt={{tool.name}} title={{tool.name}} />
+        <div style='float: left; cursor: pointer;' {{action 'integration_details' tool}}>
+          <img src={{tool.icon_url}} alt={{tool.name}} title={{tool.name}} style='max-height: 30px;'/>
         </div>
       {{/each}}
       <div style='clear: left;'></div>
-      <img src={{model.avatar_url_with_fallback}} style="max-height: 30px;"/>
-      <a href="#" {{action 'pick_avatar'}}>{{t "Choose a different profile pic" key='choose_a_different_profile_pic'}}</a>
-      <a href="http://www.gravatar.com" target="_blank" style="display: none;">{{t "Change your avatar at Gravatar.com" key='change_at_gravatar'}}</a>
     </div>
   </div>
 {{/if}}
@@ -149,112 +146,122 @@
 </div>
 </form>
 
-{{#if app_state.feature_flags.app_connections}}
 <div style='margin-top: 50px;'>
-  {{#if managing_connections}}
-    <h2>{{t "Connections" key='connections'}}</h2>
-    <div class='row' style='margin-top: 20px;'>
-      <div class='col-sm-3'>
-        <h4>{{t "Connected Tools" key='connected_tools'}}</h4>
-      </div>
-      <div class='col-sm-8'>
-        {{#if integrations.loading}}
-          <span style='margin-top: 10px; display: inline-block;'>{{t "Loading connected tools..." key='loading_connected_tools'}}</span>
-        {{else if integrations.error}}
-          <span style='margin-top: 10px; display: inline-block;'>{{t "There was an error loading connected tools" key='error_loading_connected_tools'}}</span>
-        {{else if integrations}}
-          <table class='table table-striped table-hover' style='margin-bottom: 5px;'>
-            <tbody>
-              {{#each integrations as |integration|}}
-                <tr>
-                  <td>
-                    {{#if integration.icon_url}}
-                      <img src={{integration.icon_url}} style='height: 30px; max-width: 30px; vertical-align: middle; padding-right: 10px;' />
-                    {{else}}
-                      <span class='glyphicon glyphicon-wrench' style='font-size: 30px; vertical-align: middle; padding-right: 10px;'></span>
-                    {{/if}}
-                    {{integration.name}}
-                  </td>
-                  <td>
-                    {{#if integration.custom_integration}}
-                      {{t "API: %{token}" token=integration.truncated_access_token key='displayable_access_token'}}<br/>
-                      {{t "Webhooks: %{token}" token=integration.truncated_token key='displayable_token'}}
-                    {{else}}
-                      {{t "recognized tool" key='known_tool'}}
-                    {{/if}}
-                  </td>
-                  {{#if model.permissions.edit}}
-                    <td>
-                      <a href="#" {{action 'delete_integration' integration}}><span class='glyphicon glyphicon-trash'></span><span class='sr-only'>{{t "delete connected tool" key='delete_connected_tool'}}</span></a>
-                    </td>
-                  {{/if}}
-                </tr>
-              {{/each}}
-            </tbody>
-          </table>
-        {{else}}
-          <span style='margin-top: 10px; display: inline-block;'>{{t "No tools connected" key='no_tools_connected'}}</span>
-        {{/if}}
-        {{#if model.permissions.edit}}
-          <div>
-            <a href="#" class='btn btn-default' {{action 'browse_tools'}}>{{t "browse tools" key='browse_tools'}}</a>
-            <a href="#" class='btn btn-default' {{action 'add_integration'}}>{{t "add custom tool" key='add_connected_tool'}}</a>
-          </div>
-        {{/if}}
-      </div>
+  {{#if app_state.feature_flags.lessonpix}}
+    <div style='margin-bottom: 10px;'>
+      <button class='btn btn-default' {{action 'browse_tools' 'lessonpix'}}>
+        <img src='https://pbs.twimg.com/profile_images/779207722306854912/6rPpJceZ.jpg' style='height: 30px; max-width: 50px; padding-right: 5px;'/>
+        {{t "Connect To a LessonPix Account" key='connect_lessonpix'}}
+      </button>
     </div>
-    <div class='row' style='margin-top: 20px;'>
-      <div class='col-sm-3'>
-        <h4>{{t "Event Handlers" key='event_handlers'}}</h4>
-      </div>
-      <div class='col-sm-8'>
-        {{#if webhooks.loading}}
-          <span style='margin-top: 10px; display: inline-block;'>{{t "Loading event handlers..." key='loading_event_handlers'}}</span>
-        {{else if webhooks.error}}
-          <span style='margin-top: 10px; display: inline-block;'>{{t "There was an error loading event handlers" key='error_loading_webhooks'}}</span>
-        {{else if webhooks}}
-          <table class='table table-striped table-hover' style='margin-bottom: 5px;'>
-            <tbody>
-              {{#each webhooks as |webhook|}}
-                <tr>
-                  <td>
-                  <span class='glyphicon glyphicon-phone-alt' style='font-size: 20px; vertical-align: middle; padding: 5px;'></span>
-                  {{webhook.name}}
-                  {{#if webhook.include_content}}
-                    {{t "(sends content)" key='sends_content'}}
-                  {{/if}}
-                  {{#if webhook.webhooks}}
-                    <em>{{webhook.webhooks_list}}</em>
-                  {{/if}}
-                  </td>
-                  <td>
-                    {{#if webhook.custom_configuration}}
-                      <a href="#" {{action 'test_webhook' webhook}}>
-                        {{t "test" key='test'}}
-                      </a>
-                    {{/if}}
-                  </td>
-                  {{#if model.permissions.edit}}
+  {{/if}}
+  {{#if app_state.feature_flags.app_connections}}
+    {{#if managing_connections}}
+      <h2>{{t "Connections" key='connections'}}</h2>
+      <div class='row' style='margin-top: 20px;'>
+        <div class='col-sm-3'>
+          <h4>{{t "Connected Tools" key='connected_tools'}}</h4>
+        </div>
+        <div class='col-sm-8'>
+          {{#if model.integrations.loading}}
+            <span style='margin-top: 10px; display: inline-block;'>{{t "Loading connected tools..." key='loading_connected_tools'}}</span>
+          {{else if model.integrations.error}}
+            <span style='margin-top: 10px; display: inline-block;'>{{t "There was an error loading connected tools" key='error_loading_connected_tools'}}</span>
+          {{else if model.integrations}}
+            <table class='table table-striped table-hover' style='margin-bottom: 5px;'>
+              <tbody>
+                {{#each model.integrations as |integration|}}
+                  <tr>
                     <td>
-                      <a href="#" {{action 'delete_webhook' webhook}}><span class='glyphicon glyphicon-trash'></span><span class='sr-only'>{{t "delete event handler" key='delete_event_handler'}}</span></a>
+                      <div {{action 'integration_details' integration}} style='cursor: pointer;'>
+                        {{#if integration.icon_url}}
+                          <img src={{integration.icon_url}} style='height: 40px; max-width: 50px; vertical-align: middle; padding-right: 10px;' />
+                        {{else}}
+                          <span class='glyphicon glyphicon-wrench' style='font-size: 30px; vertical-align: middle; padding-right: 10px;'></span>
+                        {{/if}}
+                        {{integration.name}}
+                      </div>
                     </td>
-                  {{/if}}
-                </tr>
-              {{/each}}
-            </tbody>
-          </table>
-        {{else}}
-          <span style='margin-top: 10px; display: inline-block;'>{{t "None enabled" key='none_enabled'}}</span>
-        {{/if}}
-        {{#if model.permissions.edit}}
-          <div>
-            <a href="#" class='btn btn-sm btn-default' {{action 'add_webhook'}}>{{t "add custom handler" key='add_handler'}}</a>
-          </div>
-        {{/if}}
+                    <td>
+                      {{#if integration.custom_integration}}
+                        {{t "API: %{token}" token=integration.truncated_access_token key='displayable_access_token'}}<br/>
+                        {{t "Webhooks: %{token}" token=integration.truncated_token key='displayable_token'}}
+                      {{else}}
+                        {{t "recognized tool" key='known_tool'}}
+                      {{/if}}
+                    </td>
+                    {{#if model.permissions.edit}}
+                      <td>
+                        <a href="#" {{action 'delete_integration' integration}}><span class='glyphicon glyphicon-trash'></span><span class='sr-only'>{{t "delete connected tool" key='delete_connected_tool'}}</span></a>
+                      </td>
+                    {{/if}}
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          {{else}}
+            <span style='margin-top: 10px; display: inline-block;'>{{t "No tools connected" key='no_tools_connected'}}</span>
+          {{/if}}
+          {{#if model.permissions.edit}}
+            <div>
+              <a href="#" class='btn btn-default' {{action 'browse_tools'}}>{{t "browse tools" key='browse_tools'}}</a>
+              <a href="#" class='btn btn-default' {{action 'add_integration'}}>{{t "add custom tool" key='add_connected_tool'}}</a>
+            </div>
+          {{/if}}
+        </div>
       </div>
-    </div>
-  {{else}}
-    <a href="#" class='btn btn-default' {{action 'manage_connections'}}>{{t "Manage Tools and Connections" key='manage_connections'}}</a>
+      <div class='row' style='margin-top: 20px;'>
+        <div class='col-sm-3'>
+          <h4>{{t "Event Handlers" key='event_handlers'}}</h4>
+        </div>
+        <div class='col-sm-8'>
+          {{#if webhooks.loading}}
+            <span style='margin-top: 10px; display: inline-block;'>{{t "Loading event handlers..." key='loading_event_handlers'}}</span>
+          {{else if webhooks.error}}
+            <span style='margin-top: 10px; display: inline-block;'>{{t "There was an error loading event handlers" key='error_loading_webhooks'}}</span>
+          {{else if webhooks}}
+            <table class='table table-striped table-hover' style='margin-bottom: 5px;'>
+              <tbody>
+                {{#each webhooks as |webhook|}}
+                  <tr>
+                    <td>
+                    <span class='glyphicon glyphicon-phone-alt' style='font-size: 20px; vertical-align: middle; padding: 5px;'></span>
+                    {{webhook.name}}
+                    {{#if webhook.include_content}}
+                      {{t "(sends content)" key='sends_content'}}
+                    {{/if}}
+                    {{#if webhook.webhooks}}
+                      <em>{{webhook.webhooks_list}}</em>
+                    {{/if}}
+                    </td>
+                    <td>
+                      {{#if webhook.custom_configuration}}
+                        <a href="#" {{action 'test_webhook' webhook}}>
+                          {{t "test" key='test'}}
+                        </a>
+                      {{/if}}
+                    </td>
+                    {{#if model.permissions.edit}}
+                      <td>
+                        <a href="#" {{action 'delete_webhook' webhook}}><span class='glyphicon glyphicon-trash'></span><span class='sr-only'>{{t "delete event handler" key='delete_event_handler'}}</span></a>
+                      </td>
+                    {{/if}}
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          {{else}}
+            <span style='margin-top: 10px; display: inline-block;'>{{t "None enabled" key='none_enabled'}}</span>
+          {{/if}}
+          {{#if model.permissions.edit}}
+            <div>
+              <a href="#" class='btn btn-sm btn-default' {{action 'add_webhook'}}>{{t "add custom handler" key='add_handler'}}</a>
+            </div>
+          {{/if}}
+        </div>
+      </div>
+    {{else}}
+      <a href="#" class='btn btn-default' {{action 'manage_connections'}}>{{t "Manage Tools and Connections" key='manage_connections'}}</a>
+    {{/if}}
   {{/if}}
 </div>
-{{/if}}

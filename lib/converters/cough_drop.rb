@@ -2,11 +2,11 @@ require 'obf'
 
 module Converters::CoughDrop
   def self.to_obf(board, dest_path, path_hash=nil)
-    json = to_external(board)
+    json = to_external(board, {})
     OBF::External.to_obf(json, dest_path, path_hash)
   end
   
-  def self.to_external(board)
+  def self.to_external(board, opts)
     res = OBF::Utils.obf_shell
     res['id'] = board.global_id
     res['name'] = board.settings['name']
@@ -83,8 +83,9 @@ module Converters::CoughDrop
             'id' => image.global_id,
             'width' => image.settings['width'],
             'height' => image.settings['height'],
+            'ext_coughdrop_protected' => image.settings['protected'],
             'license' => OBF::Utils.parse_license(image.settings['license']),
-            'url' => image.url,
+            'url' => image.url_for(opts['user']),
             'data_url' => "#{JsonApi::Json.current_host}/api/v1/images/#{image.global_id}",
             'content_type' => image.settings['content_type']
           }
@@ -99,8 +100,9 @@ module Converters::CoughDrop
           sound = {
             'id' => sound.global_id,
             'duration' => sound.settings['duration'],
+            'ext_coughdrop_protected' => image.settings['protected'],
             'license' => OBF::Utils.parse_license(sound.settings['license']),
-            'url' => sound.url,
+            'url' => sound.url_for(opts['user']),
             'data_url' => "#{JsonApi::Json.current_host}/api/v1/sounds/#{sound.global_id}",
             'content_type' => sound.settings['content_type']
           }
@@ -277,7 +279,7 @@ module Converters::CoughDrop
 
     lookup_boards.each do |b|
       if b
-        res = to_external(b)
+        res = to_external(b, opts)
         images += res['images']
         res.delete('images')
         sounds += res['sounds']
@@ -346,7 +348,7 @@ module Converters::CoughDrop
       if opts['packet']
         json = to_external_nested(board, opts)
       else
-        json = to_external(board)
+        json = to_external(board, opts)
       end
     end
     res = nil
@@ -357,7 +359,7 @@ module Converters::CoughDrop
   end
   
   def self.to_png(board, dest_path)
-    json = to_external(board)
+    json = to_external(board, {})
     OBF::External.to_png(json, dest_path)
   end
 end

@@ -10,11 +10,16 @@ export default modal.ModalController.extend({
   opening: function() {
     var _this = this;
     _this.set('hierarchy', {loading: true});
+    _this.set('status', null);
     BoardHierarchy.load_with_button_set(this.get('model.board'), {deselect_on_different: true, prevent_different: true}).then(function(hierarchy) {
       _this.set('hierarchy', hierarchy);
     }, function(err) {
       _this.set('hierarchy', {error: true});
     });
+    app_state.get('currentUser').find_integration('lessonpix').then(function(res) {
+      _this.set('lessonpix_enabled', true);
+      if(stashes.get('last_image_library') == 'lessonpix') { _this.set('image_library', 'lessonpix'); }
+    }, function(err) { });
   },
   libraries: function() {
     var res = [];
@@ -25,11 +30,11 @@ export default modal.ModalController.extend({
     res.push({id: 'noun-project', name: i18n.t('noun_project', 'Noun Project')});
     res.push({id: 'pixabay_photos', name: i18n.t('pixabay_photos', 'Pixabay Photos')});
     res.push({id: 'pixabay_vectors', name: i18n.t('pixabay_vectors', 'Pixabay Vector Images')});
-    if(app_state.get('currentUser.integrations.lessonpix')) {
+    if(this.get('lessonpix_enabled')) {
       res.push({id: 'lessonpix', name: i18n.t('lessonpix', "LessonPix")});
     }
     return res;
-  }.property(),
+  }.property('lessonpix_enabled'),
   actions: {
     swap: function() {
       var _this = this;

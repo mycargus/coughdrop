@@ -440,6 +440,22 @@ CoughDrop.Board = DS.Model.extend({
     }
     return false;
   }.property('protected', 'protected_settings'),
+  protected_material: function() {
+    var protect = !!this.get('protected');
+    if(protect) { return true; }
+    (this.get('local_images_with_license') || []).forEach(function(image) {
+      if(image && image.get('protected')) {
+        protect = true;
+      }
+    });
+    if(protect) { return true; }
+    (this.get('local_sounds_with_license') || []).forEach(function(sound) {
+      if(sound && sound.get('protected')) {
+        protect = true;
+      }
+    });
+    return !!protect;
+  }.property('protected', 'local_images_with_license', 'local_sounds_with_license'),
   load_button_set: function(force) {
     var _this = this;
     if(this.get('button_set') && !force) {

@@ -3,4 +3,14 @@ import modal from '../utils/modal';
 import CoughDrop from '../app';
 
 export default modal.ModalController.extend({
+  actions: {
+    delete_integration: function() {
+      var _this = this;
+      modal.open('confirm-delete-integration', {integration: this.get('model.integration')}).then(function(res) {
+        if(res.deleted) {
+          _this.get('model.user').check_integrations(true);
+        }
+      });
+    }
+  }
 });

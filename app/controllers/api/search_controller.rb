@@ -17,19 +17,28 @@ class Api::SearchController < ApplicationController
   def protected_symbols
     res = []
     if params['library']
-      if @api_user.can_access_library?(params['library'])
-        # API call to retrieve data
-        # Most likely will have to do a proxy url for image results, to 
-        #   confirm account access or append some kind of access token
-        # Probably belongs in a lib somewhere
-      end
+      res = Uploader.find_images(params['q'], params['library'], @api_user)
     end
-    res = res.map do |item|
-      item['finding_user_name'] = @api_user.user_name
-      item['protected'] = true
-      item
+
+    formatted = []
+    res.each do |item|
+      formatted << {
+        'image_url' => item['url'],
+        'content_type' => item['content_type'],
+        'name' => item['name'],
+        'width' => item['width'],
+        'height' => item['height'],
+        'external_id' => item['external_id'],
+        'finding_user_name' => @api_user.user_name,
+        'protected' => true,
+        'public' => false,
+        'license' => item['license']['type'],
+        'author' => item['license']['author_name'],
+        'author_url' => item['license']['author_url'],
+        'source_url' => item['license']['source_url'],
+      }
     end
-    render json: res.to_json
+    render json: formatted.to_json
   end
     
   def parts_of_speech

@@ -75,7 +75,7 @@ CoughDrop.Image = DS.Model.extend({
     }
   }.observes('license', 'id', 'permissions.edit'),
   personalized_url: function() {
-    return CoughDrop.Image.personalize_url(this.get('url'), app_state.get('current_user.user_token'));
+    return CoughDrop.Image.personalize_url(this.get('url'), app_state.get('currentUser.user_token'));
   }.property('url', 'app_state.currentUser.user_token'),
   best_url: function() {
     return this.get('data_url') || this.get('personalized_url') || "";

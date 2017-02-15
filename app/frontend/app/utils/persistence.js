@@ -452,8 +452,8 @@ var persistence = Ember.Object.extend({
     });
   },
   normalize_url: function(url) {
-    if(url && url.match(/user_token=\w+$/)) {
-      return url.replace(/[\?\&]user_token=\w+$/, '');
+    if(url && url.match(/user_token=[\w-]+$/)) {
+      return url.replace(/[\?\&]user_token=[\w-]+$/, '');
     } else {
       return url;
     }
@@ -592,7 +592,6 @@ var persistence = Ember.Object.extend({
   },
   url_cache: {},
   store_url: function store_url(url, type, keep_big, force_reload) {
-    url = persistence.normalize_url(url);
     persistence.urls_to_store = persistence.urls_to_store || [];
     var defer = Ember.RSVP.defer();
     var opts = {
@@ -642,11 +641,13 @@ var persistence = Ember.Object.extend({
         type: type
       });
     }
+    var url_id = persistence.normalize_url(url);
     return new Ember.RSVP.Promise(function(resolve, reject) {
       var lookup = Ember.RSVP.reject();
 
       var match = url.match(/opensymbols\.s3\.amazonaws\.com/) || url.match(/s3\.amazonaws\.com\/opensymbols/) ||
-                  url.match(/coughdrop-usercontent\.s3\.amazonaws\.com/) || url.match(/s3\.amazonaws\.com\/coughdrop-usercontent/);
+                  url.match(/coughdrop-usercontent\.s3\.amazonaws\.com/) || url.match(/s3\.amazonaws\.com\/coughdrop-usercontent/) ||
+                  url.match(/api\/v\d+\/users\/.+\/protected_image/);
 
       if(capabilities.installed_app) { match = true; }
       // TODO: need a clean way to not be quite so eager about downloading
@@ -658,7 +659,7 @@ var persistence = Ember.Object.extend({
         // skip the remote request if it's stored locally from a location we
         // know won't ever modify static assets
         lookup = lookup.then(null, function() {
-          return persistence.find('dataCache', url).then(function(data) {
+          return persistence.find('dataCache', url_id).then(function(data) {
             return Ember.RSVP.resolve(data);
           });
         });
@@ -785,6 +786,7 @@ var persistence = Ember.Object.extend({
                 object.local_filename = local_system_filename;
                 object.local_url = res;
                 object.persisted = true;
+                object.url = url_id;
                 write_resolve(persistence.store('dataCache', object, object.url));
               }, function(err) { write_reject(err); });
             });
@@ -794,6 +796,7 @@ var persistence = Ember.Object.extend({
         } else {
           if(!object.persisted) {
             object.persisted = true;
+            object.url = url_id;
             return persistence.store('dataCache', object, object.url);
           } else {
             return object;
@@ -803,15 +806,15 @@ var persistence = Ember.Object.extend({
         persistence.url_cache = persistence.url_cache || {};
         persistence.url_uncache = persistence.url_uncache || {};
         if(object.local_url) {
-          persistence.url_cache[url] = capabilities.storage.fix_url(object.local_url);
+          persistence.url_cache[url_id] = capabilities.storage.fix_url(object.local_url);
         } else {
-          persistence.url_uncache[url] = true;
+          persistence.url_uncache[url_id] = true;
         }
 
         resolve(object);
       }, function(err) {
         persistence.url_uncache = persistence.url_uncache || {};
-        persistence.url_uncache[url] = true;
+        persistence.url_uncache[url_id] = true;
         var error = {error: "saving to data cache failed"};
         if(err && err.name == "QuotaExceededError") {
           error.quota_maxed = true;

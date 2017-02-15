@@ -529,6 +529,8 @@ var pictureGrabber = Ember.Object.extend({
       url: preview.image_url,
       search_term: this.controller.get('image_search.term'),
       external_id: preview.id,
+      protected: preview.protected,
+      finding_user_name: preview.finding_user_name,
       content_type: preview.content_type,
       license: license
     });
@@ -567,21 +569,7 @@ var pictureGrabber = Ember.Object.extend({
         return;
       }
 
-      var search = _this.open_symbols_search;
-      if(this.controller.get('image_library') == 'flickr') {
-        search = _this.flickr_search;
-      } else if(this.controller.get('image_library') == 'public_domain') {
-        search = _this.public_domain_image_search;
-      } else if(this.controller.get('image_library') == 'pixabay_photos') {
-        search = function(str) { return _this.pixabay_search(str, 'photo'); };
-      } else if(this.controller.get('image_library') == 'pixabay_vectors') {
-        search = function(str) { return _this.pixabay_search(str, 'vector'); };
-      } else if(this.controller.get('image_library') == 'openclipart') {
-        search = _this.openclipart_search;
-      } else if(this.controller.get('image_library') && this.controller.get('image_library').match(/^protected/)) {
-        search = _this.protected_search;
-      }
-      search(text).then(function(data) {
+      _this.picture_search(this.controller.get('image_library'), text).then(function(data) {
         _this.controller.set('image_search.previews', data);
         _this.controller.set('image_search.previews_loaded', true);
       }, function(err) {
@@ -589,10 +577,30 @@ var pictureGrabber = Ember.Object.extend({
       });
     }
   },
-  protected_search: function(text) {
-    var library = this.controller.get('image_library').split(/_/)[1];
+  picture_search: function(library, text) {
+    var _this = this;
+    var search = _this.open_symbols_search;
+    if(library == 'flickr') {
+      search = _this.flickr_search;
+    } else if(library == 'public_domain') {
+      search = _this.public_domain_image_search;
+    } else if(library == 'pixabay_photos') {
+      search = function(str) { return _this.pixabay_search(str, 'photo'); };
+    } else if(library == 'pixabay_vectors') {
+      search = function(str) { return _this.pixabay_search(str, 'vector'); };
+    } else if(library == 'lessonpix') {
+      search = function(str) { return _this.protected_search(str, library); };
+    } else if(library == 'openclipart') {
+      search = _this.openclipart_search;
+    }
+    return search(text);
+  },
+  protected_search: function(text, library) {
     return persistence.ajax('/api/v1/search/protected_symbols?library=' + encodeURIComponent(library) + '&q=' + encodeURIComponent(text), { type: 'GET'
     }).then(function(data) {
+      data.forEach(function(img) {
+        img.image_url = CoughDrop.Image.personalize_url(img.image_url, app_state.get('currentUser.user_token'));
+      });
       return data;
     }, function(xhr, message) {
       return Ember.RSVP.reject(message.error);
@@ -664,7 +672,7 @@ var pictureGrabber = Ember.Object.extend({
           author_url: 'https://creativecommons.org/publicdomain/zero/1.0/',
           license_url: 'https://creativecommons.org/publicdomain/zero/1.0/',
           source_url: hit.detail_link,
-          extension: 'jpg'
+          extension: 'svg'
         });
       });
       console.log(res);
@@ -684,8 +692,10 @@ var pictureGrabber = Ember.Object.extend({
       var res = [];
       ((data || {}).hits || []).forEach(function(hit) {
         var content_type = 'image/jpeg';
+        var ext = 'jpg';
         if(hit.webformatURL && hit.webformatURL.match(/png$/)) {
           content_type = 'image/png';
+          ext = 'png';
         }
         res.push({
           image_url: hit.webformatURL,
@@ -697,7 +707,7 @@ var pictureGrabber = Ember.Object.extend({
           author_url: 'https://creativecommons.org/publicdomain/zero/1.0/',
           license_url: 'https://creativecommons.org/publicdomain/zero/1.0/',
           source_url: hit.pageURL,
-          extension: 'jpg'
+          extension: ext
         });
       });
       console.log(res);
@@ -885,7 +895,7 @@ var pictureGrabber = Ember.Object.extend({
 
     var save_image = image_load.then(function(data) {
       var image = CoughDrop.store.createRecord('image', {
-        url: preview.url,
+        url: persistence.normalize_url(preview.url),
         content_type: preview.content_type,
         width: data.width,
         height: data.height,

@@ -3,6 +3,7 @@ import CoughDrop from '../app';
 import Button from './button';
 import stashes from './_stashes';
 import app_state from './app_state';
+import contentGrabbers from './content_grabbers';
 import modal from './modal';
 import persistence from './persistence';
 import progress_tracker from './progress_tracker';
@@ -674,9 +675,11 @@ var editManager = Ember.Object.extend({
         if(button && button.label && !button.image) {
           button.check_for_parts_of_speech();
         }
-        persistence.ajax('/api/v1/search/symbols?q=' + encodeURIComponent(button.label), {
-          type: 'GET'
-        }).then(function(data) {
+        // TODO: use the default image library
+        contentGrabbers.pictureGrabber.picture_search(stashes.get('last_image_library'), button.label).then(function(data) {
+//         persistence.ajax('/api/v1/search/symbols?q=' + encodeURIComponent(button.label), {
+//           type: 'GET'
+//         }).then(function(data) {
           button = _this.find_button(id);
           var image = data[0];
           if(image && button && button.label && !button.image) {
@@ -689,8 +692,10 @@ var editManager = Ember.Object.extend({
               uneditable: true
             };
             var image = CoughDrop.store.createRecord('image', {
-              url: image.image_url,
+              url: persistence.normalize_url(image.image_url),
               suggestion: button.label,
+              protected: image.protected,
+              finding_user_name: image.finding_user_name,
               external_id: image.id,
               license: license
             });

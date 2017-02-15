@@ -1,7 +1,7 @@
 class Api::UsersController < ApplicationController
   extend ::NewRelic::Agent::MethodTracer
 
-  before_action :require_api_token, :except => [:update, :show, :create, :confirm_registration, :forgot_password, :password_reset]
+  before_action :require_api_token, :except => [:update, :show, :create, :confirm_registration, :forgot_password, :password_reset, :protected_image]
   def show
     user = User.find_by_path(params['id'])
     user_device = @api_user == user && @api_device
@@ -435,16 +435,38 @@ class Api::UsersController < ApplicationController
     end
   end
   
-  def lessonpix_image
+  def protected_image
     user = User.find_by_path(params['user_id'])
-    return unless exists?(user, params['user_id'])
-    verifier = 'asdf'
-    if verifier != params['verifier']
-      return unless allowed?(user, 'never_allowed')
+    api_user = User.find_by_token(params['user_token'])
+    if !api_user
+      return redirect_to '/images/square.svg'
     end
-    cred = Uploader.lessonpix_credentials(user)
-    cred ||= Uploader.lessonpix_credentials(@api_user)
+    users = [user, api_user]
+    valid_result = nil
+    users.each do |user|
+      next if valid_result || !user
+      url = Uploader.found_image_url(params['image_id'], params['library'], user)
+      if url
+        begin
+          Timeout.timeout(5) do
+            res = Typhoeus.get(url)
+            if res.headers['Content-Type'] && res.headers['Content-Type'].match(/image/)
+              valid_result = res
+            end
+          end
+        rescue Timeout::Error => e
+          valid_result = nil
+        end
+      end
+    end
+    if valid_result
+      send_data valid_result.body, :type => valid_result.headers['Content-Type'], :disposition => 'inline'
+    else
+      redirect_to '/images/error.png'
+    end
   end
+#      get 'protected_image/:library/:image_id' => 'users#protected_image'
+
   
   def translate
     user = User.find_by_path(params['user_id'])
