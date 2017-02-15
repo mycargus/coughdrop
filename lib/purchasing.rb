@@ -30,15 +30,18 @@ module Purchasing
         end
         data = {:purchase => true, :purchase_id => object['id'], :valid => !!valid}
       elsif event['type'] == 'charge.failed'
-        customer = Stripe::Customer.retrieve(object['customer'])
-        valid = customer && customer['metadata'] && customer['metadata']['user_id']
+        valid = false
+        if object['customer']
+          customer = Stripe::Customer.retrieve(object['customer'])
+          valid = customer && customer['metadata'] && customer['metadata']['user_id']
 
-        if valid
-          User.schedule(:subscription_event, {
-            'user_id' => customer['metadata'] && customer['metadata']['user_id'],
-            'purchase_failed' => true,
-            'source' => 'charge.failed'
-          })
+          if valid
+            User.schedule(:subscription_event, {
+              'user_id' => customer['metadata'] && customer['metadata']['user_id'],
+              'purchase_failed' => true,
+              'source' => 'charge.failed'
+            })
+          end
         end
         data = {:purchase => false, :notified => true, :valid => !!valid}
       elsif event['type'] == 'charge.dispute.created'
