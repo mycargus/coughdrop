@@ -202,6 +202,7 @@ s21 = LogSession.process_new({'events' => [{'type' => 'utterance', 'utterance' =
 
 puts "==== Addings Parts-of-Speech Data ===="
 MobyParser.import_words
+WordData.import_suggestions
 
 #     CoughDrop.Board.FIXTURES = [
 #       {
