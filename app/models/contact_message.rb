@@ -31,7 +31,7 @@ class ContactMessage < ActiveRecord::Base
       self.settings['email'] = non_user_params['api_user'].settings['email']
       self.settings['user_id'] = non_user_params['api_user'].global_id
     end
-    if params['recipient'] == 'support' && ENV['ZENDESK_DOMAIN']
+    if params['recipient'] && params['recipient'].match(/support/) && ENV['ZENDESK_DOMAIN']
       if !self.settings['email']
         add_processing_error("Email required for support tickets")
         return false
