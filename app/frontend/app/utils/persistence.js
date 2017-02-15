@@ -1755,8 +1755,8 @@ var persistence = Ember.Object.extend({
         syncable = syncable && (_this.get('last_sync_event_at') < ((new Date()).getTime() - interval));
       }
       var now = (new Date()).getTime() / 1000;
-      if(!Ember.testing && capabilities.mobile && !force && loaded && (now - loaded) < (2 * 60) && synced > 1) {
-        // on mobile, don't auto-sync until 2 minutes after bootup, unless it's never been synced
+      if(!Ember.testing && capabilities.mobile && !force && loaded && (now - loaded) < (30) && synced > 1) {
+        // on mobile, don't auto-sync until 30 seconds after bootup, unless it's never been synced
         // NOTE: the db is keyed to the user, so you'll always have a user-specific last_sync_at
         return false;
       } else if(synced > 0 && (now - synced) > (48 * 60 * 60) && syncable) {
