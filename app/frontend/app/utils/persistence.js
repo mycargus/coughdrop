@@ -840,7 +840,7 @@ var persistence = Ember.Object.extend({
     return this.get('sync_status') == 'succeeded';
   }.property('sync_status'),
   update_sync_progress: function() {
-    var progresses = persistence.get('sync_progress.progress_for') || {};
+    var progresses = (persistence.get('sync_progress') || {}).progress_for || {};
     var visited = 0;
     var to_visit = 0;
     for(var idx in progresses) {
@@ -1146,11 +1146,15 @@ var persistence = Ember.Object.extend({
     var board_statuses = persistence.get('sync_progress.board_statuses');
     if(!lookups) {
       lookups = {};
-      persistence.set('sync_progress.key_lookups', lookups);
+      if(persistence.get('sync_progress')) {
+        persistence.set('sync_progress.key_lookups', lookups);
+      }
     }
     if(!board_statuses) {
       board_statuses = [];
-      persistence.set('sync_progress.board_statuses', board_statuses);
+      if(persistence.get('sync_progress')) {
+        persistence.set('sync_progress.board_statuses', board_statuses);
+      }
     }
     var lookup_id = id;
     if(lookups[id] && !lookups[id].then) { lookup_id = lookups[id].get('id'); }
