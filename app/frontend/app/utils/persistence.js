@@ -1270,6 +1270,8 @@ var persistence = Ember.Object.extend({
           });
         }
         var safely_cached_boards = {};
+        var checked_linked_boards = {};
+
         var visited_boards = [];
         if(!persistence.get('sync_progress.progress_for')) {
           persistence.set('sync_progress.progress_for', {});
@@ -1377,6 +1379,10 @@ var persistence = Ember.Object.extend({
                 // two entries match for the link_disabled flag)
                 var already_going_to_visit = to_visit_boards.find(function(b) { return (b.id == board.id || b.key == board.key) && (!board.link_disabled || board.link_disabled == b.link_disabled); });
 
+                if(safely_cached_boards[board.id]) {// || checked_linked_boards[board.id]) {
+                  return;
+                }
+
                 if(!already_visited && !already_going_to_visit) {
                   to_visit_boards.push({id: board.id, key: board.key, depth: next.depth + 1, link_disabled: board.link_disabled, visit_source: (Ember.get(prior_board, 'key') || Ember.get(prior_board, 'id'))});
                 }
@@ -1434,16 +1440,19 @@ var persistence = Ember.Object.extend({
                         if(!cache_mismatch) {
                           safely_cached_boards[board.id] = true;
                         }
+                        checked_linked_boards[board.id] = true;
                       }, function(error) {
                         console.log(error);
 //                         debugger
                         console.error("should have been safely cached, but board content wasn't in db:" + board.id);
+                        checked_linked_boards[board.id] = true;
                         return Ember.RSVP.resolve();
                       });
                     }, function(error) {
                       console.log(error);
 //                       debugger
                       console.error("should have been safely cached, but board wasn't in db:" + board.id);
+                      checked_linked_boards[board.id] = true;
                       return Ember.RSVP.resolve();
                     });
                   }));
