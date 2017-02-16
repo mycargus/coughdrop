@@ -20,6 +20,7 @@ export default Ember.Route.extend({
   setupController: function(controller, model) {
     var _this = this;
     controller.set('model', model);
+    controller.set('ordered_buttons', null);
     model.set('show_history', false);
     model.load_button_set();
     app_state.set('currentBoardState', {
