@@ -5,6 +5,7 @@ import i18n from '../utils/i18n';
 import persistence from '../utils/persistence';
 import modal from '../utils/modal';
 import app_state from '../utils/modal';
+import Utils from '../utils/misc';
 
 CoughDrop.Board = DS.Model.extend({
   didLoad: function() {
@@ -211,7 +212,7 @@ CoughDrop.Board = DS.Model.extend({
         result.push(board);
       }
     }
-    return result.uniq();
+    return Utils.uniq(result, function(r) { return r.id; });
   }.property('buttons'),
   unused_buttons: function() {
     var unused = [];

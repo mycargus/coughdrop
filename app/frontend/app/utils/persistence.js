@@ -1200,7 +1200,6 @@ var persistence = Ember.Object.extend({
   queue_sync_action: function(method) {
     var defer = Ember.RSVP.defer();
     defer.callback = method;
-    defer.id = (new Date()).getTime() + "-" + Math.random();
     persistence.sync_actions = persistence.sync_actions || [];
     persistence.sync_actions.push(defer);
     var threads = capabilities.mobile ? 2 : 4;
@@ -1216,7 +1215,6 @@ var persistence = Ember.Object.extend({
     persistence.sync_actions = persistence.sync_actions || [];
     var action = persistence.sync_actions.shift();
     if(action && action.callback) {
-      console.debug("callback " + action.id);
       try {
         action.callback().then(function(r) {
           action.resolve(r);
@@ -1408,8 +1406,9 @@ var persistence = Ember.Object.extend({
                           var ids = ref[0];
                           var type = ref[1];
                           if(ids.length > 0) {
+                            var id = (new Date()).getTime() + "-" + Math.random();
                             necessary_finds.push(persistence.queue_sync_action(function() {
-                              console.debug("finding images for " + board.id + " linked from " + prior_board.id);
+                              console.debug("finding images for " + board.id + " linked from " + prior_board.id, id);
                               return coughDropExtras.storage.find_all(type, ids).then(function(res) {
                                 var lookup = {};
                                 ids.forEach(function(id) { lookup[id] = false; });
