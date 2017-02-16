@@ -101,7 +101,7 @@ CoughDrop.Board = DS.Model.extend({
         if(image) {
           result.push(image);
         } else {
-          console.log('missing image ' + button.image_id);
+//          console.log('missing image ' + button.image_id);
           missing = true;
         }
       }
@@ -120,7 +120,7 @@ CoughDrop.Board = DS.Model.extend({
         if(sound) {
           result.push(sound);
         } else {
-          console.log('missing sound ' + button.sound_id);
+//          console.log('missing sound ' + button.sound_id);
           missing = true;
         }
       }

@@ -1202,7 +1202,7 @@ var persistence = Ember.Object.extend({
     defer.callback = method;
     persistence.sync_actions = persistence.sync_actions || [];
     persistence.sync_actions.push(defer);
-    var threads = capabilities.mobile ? 2 : 4;
+    var threads = capabilities.mobile ? 2 : 6;
     for(var idx = 0; idx < threads; idx++) {
       var timer = 'timer' + idx;
       if(!persistence['sync_action_' + timer]) {
@@ -1325,21 +1325,22 @@ var persistence = Ember.Object.extend({
               // TODO: if not set to force=true, don't re-download already-stored icons from
               // possibly-changing URLs
               if(board.get('icon_url_with_fallback').match(/^http/)) {
-                visited_board_promises.push(persistence.queue_sync_action(function() {
-                  return persistence.store_url(board.get('icon_url_with_fallback'), 'image', false, force).then(null, function() {
+                  // store_url already has a queue, we don't need to fill the sync queue with these
+               visited_board_promises.push(//persistence.queue_sync_action(function() {
+                  /*return*/ persistence.store_url(board.get('icon_url_with_fallback'), 'image', false, force).then(null, function() {
                     console.log("icon url failed to sync, " + board.get('icon_url_with_fallback'));
                     return Ember.RSVP.resolve();
-                  });
-                }));
+                  })
+               /*})*/);
                 importantIds.push("dataCache_" + board.get('icon_url_with_fallback'));
               }
 
               if(next.image) {
-                visited_board_promises.push(persistence.queue_sync_action(function() {
-                  return persistence.store_url(next.image, 'image', false, force).then(null, function() {
+               visited_board_promises.push(//persistence.queue_sync_action(function() {
+                  /*return*/ persistence.store_url(next.image, 'image', false, force).then(null, function() {
                     return Ember.RSVP.reject({error: "sidebar icon url failed to sync, " + next.image});
-                  });
-                }));
+                  })
+               /*})*/);
                 importantIds.push("dataCache_" + next.image);
               }
 
@@ -1348,22 +1349,22 @@ var persistence = Ember.Object.extend({
                 // TODO: don't re-request URLs that are already in the cache and most likely haven't changed
                 var keep_big = !!(board.get('grid.rows') < 3 || board.get('grid.columns') < 6);
                 if(image.get('url') && image.get('url').match(/^http/)) {
-                  visited_board_promises.push(persistence.queue_sync_action(function() {
-                    return persistence.store_url(image.get('url'), 'image', keep_big, force).then(null, function() {
+                 visited_board_promises.push(//persistence.queue_sync_action(function() {
+                    /*return*/ persistence.store_url(image.get('url'), 'image', keep_big, force).then(null, function() {
                       return Ember.RSVP.reject({error: "button image failed to sync, " + image.get('url')});
-                    });
-                  }));
+                    })
+                 /*})*/);
                   importantIds.push("dataCache_" + image.get('url'));
                 }
               });
               board.get('local_sounds_with_license').forEach(function(sound) {
                 importantIds.push("sound_" + sound.get('id'));
                 if(sound.get('url') && sound.get('url').match(/^http/)) {
-                   visited_board_promises.push(persistence.queue_sync_action(function() {
-                     return persistence.store_url(sound.get('url'), 'sound', false, force).then(null, function() {
+                  visited_board_promises.push(//persistence.queue_sync_action(function() {
+                     /*return*/ persistence.store_url(sound.get('url'), 'sound', false, force).then(null, function() {
                       return Ember.RSVP.reject({error: "button sound failed to sync, " + sound.get('url')});
-                     });
-                   }));
+                     })
+                  /*})*/);
                   importantIds.push("dataCache_" + sound.get('url'));
                 }
               });
