@@ -75,7 +75,7 @@ CoughDrop.Image = DS.Model.extend({
     }
   }.observes('license', 'id', 'permissions.edit'),
   personalized_url: function() {
-    return CoughDrop.Image.personalize_url(this.get('url'), app_state.get('currentUser.user_token'));
+    return CoughDrop.Image.personalize_url(this.get('url'), this.get('app_state.currentUser.user_token'));
   }.property('url', 'app_state.currentUser.user_token'),
   best_url: function() {
     return this.get('data_url') || this.get('personalized_url') || "";
@@ -105,7 +105,7 @@ CoughDrop.Image = DS.Model.extend({
 CoughDrop.Image.reopenClass({
   personalize_url: function(url, token) {
     url = url || '';
-    if(url.match(/api\/v1\//) && url.match(/lessonpix/)) {
+    if(url.match(/api\/v1\//) && url.match(/lessonpix/) && token) {
       return url + "?user_token=" + token;
     }
     return url;

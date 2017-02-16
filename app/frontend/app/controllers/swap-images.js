@@ -2,6 +2,7 @@ import Ember from 'ember';
 import modal from '../utils/modal';
 import BoardHierarchy from '../utils/board_hierarchy';
 import i18n from '../utils/i18n';
+import stashes from '../utils/_stashes';
 import app_state from '../utils/app_state';
 import persistence from '../utils/persistence';
 import progress_tracker from '../utils/progress_tracker';

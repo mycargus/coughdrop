@@ -482,7 +482,7 @@ var i18n = Ember.Object.extend({
     var res = {};
     var locales = i18n.get('locales');
     for(var idx in locales) {
-      if(idx == 'zh_Hans' || idx == 'zh_Hant' || !idx.match(/_/)) {
+      if(idx == 'zh_Hans' || idx == 'zh_Hant' || (idx != 'zh' && !idx.match(/_/))) {
         res[idx] = locales[idx];
       }
     }

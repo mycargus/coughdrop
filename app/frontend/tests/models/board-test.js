@@ -570,4 +570,33 @@ describe('Board', function() {
       expect(b.get('for_sale')).toEqual(true);
     });
   });
+
+  describe("protected_material", function() {
+    it('should return based on protected attribute', function() {
+      var b = CoughDrop.store.createRecord('board');
+      expect(b.get('protected_material')).toEqual(false);
+      b.set('protected', true);
+      expect(b.get('protected_material')).toEqual(true);
+      b.set('protected', false);
+      expect(b.get('protected_material')).toEqual(false);
+    });
+
+    it('should return true if not protected but content is protected', function() {
+      var b = CoughDrop.store.createRecord('board');
+      expect(b.get('protected_material')).toEqual(false);
+      b.set('local_images_with_license', [
+        Ember.Object.create({protected: false})
+      ]);
+      expect(b.get('protected_material')).toEqual(false);
+      b.set('local_images_with_license', [
+        Ember.Object.create({protected: true})
+      ]);
+      expect(b.get('protected_material')).toEqual(true);
+      b.set('local_sounds_with_license', [
+        Ember.Object.create({protected: true})
+      ]);
+      b.set('local_images_with_license', []);
+      expect(b.get('protected_material')).toEqual(true);
+    });
+  });
 });

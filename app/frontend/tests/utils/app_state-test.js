@@ -1983,6 +1983,7 @@ describe('app_state', function() {
     });
 
     it('should flag the user as protected in the right spots', function() {
+      CoughDrop.protected_user = null;
       expect(CoughDrop.protected_user == null).toEqual(true);
       app_state.set('currentUser', Ember.Object.create({preferences: {protected_usage: false}}));
       expect(CoughDrop.protected_user).toEqual(false);

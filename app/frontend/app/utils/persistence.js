@@ -646,8 +646,8 @@ var persistence = Ember.Object.extend({
       var lookup = Ember.RSVP.reject();
 
       var match = url.match(/opensymbols\.s3\.amazonaws\.com/) || url.match(/s3\.amazonaws\.com\/opensymbols/) ||
-                  url.match(/coughdrop-usercontent\.s3\.amazonaws\.com/) || url.match(/s3\.amazonaws\.com\/coughdrop-usercontent/) ||
-                  url.match(/api\/v\d+\/users\/.+\/protected_image/);
+                  url.match(/coughdrop-usercontent\.s3\.amazonaws\.com/) || url.match(/s3\.amazonaws\.com\/coughdrop-usercontent/);
+//                  url.match(/api\/v\d+\/users\/.+\/protected_image/);
 
       if(capabilities.installed_app) { match = true; }
       // TODO: need a clean way to not be quite so eager about downloading
@@ -1405,7 +1405,11 @@ var persistence = Ember.Object.extend({
                                 ids.forEach(function(id) { lookup[id] = false; });
                                 res.forEach(function(record) {
                                   if(record && record.data && record.data.id) {
-                                    lookup[record.data.id] = true;
+                                    if(record.data.raw && record.data.raw.url && persistence.url_cache && persistence.url_cache[record.data.raw.url]) {
+                                      if(!persistence.url_uncache || !persistence.url_uncache[record.data.raw.url]) {
+                                        lookup[record.data.id] = true;
+                                      }
+                                    }
                                   }
                                 });
                                 var missing = [];

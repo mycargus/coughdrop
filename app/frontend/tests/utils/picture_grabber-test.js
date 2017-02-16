@@ -6,6 +6,7 @@ import persistence from '../../utils/persistence';
 import app_state from '../../utils/app_state';
 import stashes from '../../utils/_stashes';
 import Ember from 'ember';
+import CoughDrop from '../../app';
 
 describe('pictureGrabber', function() {
   var pictureGrabber = contentGrabbers.pictureGrabber;
@@ -712,6 +713,94 @@ describe('pictureGrabber', function() {
           author_url: 'https://www.mycoughdrop.com',
           uneditable: true
         }
+      });
+    });
+  });
+
+  describe("picture_search", function() {
+    it('should call the correct library lookup', function() {
+      var library = null;
+      stub(contentGrabbers.pictureGrabber, 'open_symbols_search', function(str) {
+        library = 'open_symbols';
+        return Ember.RSVP.resolve([]);
+      });
+      stub(contentGrabbers.pictureGrabber, 'flickr_search', function(str) {
+        library = 'flickr';
+        return Ember.RSVP.resolve([]);
+      });
+      stub(contentGrabbers.pictureGrabber, 'public_domain_image_search', function(str) {
+        library = 'public_domain';
+        return Ember.RSVP.resolve([]);
+      });
+      stub(contentGrabbers.pictureGrabber, 'pixabay_search', function(str, type) {
+        library = 'pixabay_' + type;
+        return Ember.RSVP.resolve([]);
+      });
+      stub(contentGrabbers.pictureGrabber, 'protected_search', function(str, lib) {
+        library = 'protected_' + lib;
+        return Ember.RSVP.resolve([]);
+      });
+      stub(contentGrabbers.pictureGrabber, 'openclipart_search', function(str) {
+        library = 'openclipart';
+        return Ember.RSVP.resolve([]);
+      });
+      contentGrabbers.pictureGrabber.picture_search('chicken_nuggets', 'bacon');
+      expect(library).toEqual('open_symbols');
+      contentGrabbers.pictureGrabber.picture_search('flickr', 'bacon');
+      expect(library).toEqual('flickr');
+      contentGrabbers.pictureGrabber.picture_search('public_domain', 'bacon');
+      expect(library).toEqual('public_domain');
+      contentGrabbers.pictureGrabber.picture_search('pixabay_photos', 'bacon');
+      expect(library).toEqual('pixabay_photo');
+      contentGrabbers.pictureGrabber.picture_search(null, 'bacon');
+      expect(library).toEqual('open_symbols');
+      contentGrabbers.pictureGrabber.picture_search('pixabay_vectors', 'bacon');
+      expect(library).toEqual('pixabay_vector');
+      contentGrabbers.pictureGrabber.picture_search('lessonpix', 'bacon');
+      expect(library).toEqual('protected_lessonpix');
+      contentGrabbers.pictureGrabber.picture_search('openclipart', 'bacon');
+      expect(library).toEqual('openclipart');
+      contentGrabbers.pictureGrabber.picture_search('open_symbols', 'bacon');
+      expect(library).toEqual('open_symbols');
+    });
+  });
+
+  describe("protected_search", function() {
+    it('should make the correct query', function() {
+      var u = CoughDrop.store.createRecord('user', {user_token: 'token'});
+      CoughDrop.store.createRecord('image');
+      app_state.set('currentUser', u);
+      stub(persistence, 'ajax', function(url, opts) {
+        expect(url).toEqual("/api/v1/search/protected_symbols?library=somewhere&q=hat");
+        return Ember.RSVP.resolve([
+          {a: 1, image_url: '/api/v1/users/something/lessonpix'},
+          {b: 1, image_url: '/api/v1/users/something/lessonpix2'}
+        ]);
+      });
+      var result = null;
+      contentGrabbers.pictureGrabber.protected_search('hat', 'somewhere').then(function(res) {
+        result = res;
+      });
+      waitsFor(function() { return result; });
+      runs(function() {
+        expect(result).toEqual([
+          {a: 1, image_url: '/api/v1/users/something/lessonpix?user_token=token'},
+          {b: 1, image_url: '/api/v1/users/something/lessonpix2?user_token=token'}
+        ]);
+      });
+    });
+
+    it('should error on error', function() {
+      stub(persistence, 'ajax', function(url, opts) {
+        return Ember.RSVP.reject();
+      });
+      var error = null;
+      contentGrabbers.pictureGrabber.protected_search('heart', 'chicken').then(null, function(err) {
+        error = err;
+      });
+      waitsFor(function() { return error; });
+      runs(function() {
+        expect(error).toEqual('bad search');
       });
     });
   });

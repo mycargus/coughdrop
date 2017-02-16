@@ -603,6 +603,7 @@ var pictureGrabber = Ember.Object.extend({
       });
       return data;
     }, function(xhr, message) {
+      message = message || {error: 'bad search'};
       return Ember.RSVP.reject(message.error);
     });
   },

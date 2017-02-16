@@ -726,4 +726,15 @@ describe("i18n", function() {
       expect(i18n.readable_language('PA-ARAB-pk')).toEqual('Punjabi (Arabic, Pakistan)');
     });
   });
+
+  describe("translatable_locales", function() {
+    it("should return the correct value", function() {
+      var res = i18n.get('translatable_locales');
+      expect(res.en).toNotEqual(undefined);
+      expect(res.en_US).toEqual(undefined);
+      expect(res.zh_Hans).toNotEqual(undefined);
+      expect(res.zh_Hant).toNotEqual(undefined);
+      expect(res.zh).toEqual(undefined);
+    });
+  });
 });

@@ -1116,7 +1116,9 @@ describe("persistence-sync", function() {
       store_promises.push(persistence.store('image', {id: '2', url: 'http://www.example.com/pic2.png'}, '2'));
       store_promises.push(persistence.store('dataCache', {url: 'http://www.example.com/pic1.png', content_type: 'image/png', data_uri: 'data:image/png;base64,a0a'}, 'http://www.example.com/pic1.png'));
       store_promises.push(persistence.store('settings', revisions, 'synced_full_set_revisions'));
-
+      persistence.url_cache = persistence.url_cache || {};
+      persistence.url_cache['http://www.example.com/pic1.png'] = 'data:image/png;base64,a0a';
+      persistence.url_uncache = {};
 
       var stored = false;
       Ember.RSVP.all_wait(store_promises).then(function() {

@@ -14,7 +14,7 @@ export default modal.ModalController.extend({
       var list = res.filter(function(t) { return t.get('icon_url'); });
       _this.set('tools', list);
       if(_this.get('model.tool')) {
-        var tool = res.find(function(t) { return t.get('integration_key') == _this.get('model.tool') });
+        var tool = res.find(function(t) { return t.get('integration_key') == _this.get('model.tool'); });
         tool.set('installing', null);
         tool.set('error', null);
         _this.set('selected_tool', tool);

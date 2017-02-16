@@ -6,6 +6,7 @@ import { } from 'frontend/tests/helpers/ember_helper';
 import CoughDrop from '../../app';
 import speecher from '../../utils/speecher';
 import persistence from '../../utils/persistence';
+import Utils from '../../utils/misc';
 
 describe('User', function() {
   describe("avatar_url_with_fallback", function() {
@@ -598,6 +599,162 @@ describe('User', function() {
       runs(function() {
         expect(user.get('supervisees').length).toEqual(1);
         expect(user.get('supervisors').length).toEqual(2);
+      });
+    });
+  });
+
+  describe("check_integrations", function() {
+    it('should do nothing if no supervise permission', function() {
+      var u = CoughDrop.store.createRecord('user');
+      var called = false;
+      stub(Utils, 'all_pages', function() {
+        called = true;
+        return Ember.RSVP.reject();
+      });
+      var rejected = false;
+      u.check_integrations().then(null, function() { rejected = true; });
+      waitsFor(function() { return rejected; });
+      runs(function() {
+        expect(called).toEqual(false);
+      });
+    });
+
+    it('should lookup if supervise permission changes', function() {
+      var u = CoughDrop.store.createRecord('user');
+      var called = false;
+      stub(Utils, 'all_pages', function() {
+        called = true;
+        return Ember.RSVP.reject();
+      });
+      var rejected = false;
+      u.check_integrations().then(null, function() { rejected = true; });
+      var updated = false;
+      waitsFor(function() { return rejected; });
+      runs(function() {
+        expect(called).toEqual(false);
+        updated = true;
+        u.set('permissions', {supervise: true});
+      });
+      waitsFor(function() { return updated && called; });
+      runs();
+    });
+
+    it('should return the promise if defined', function() {
+      var u = CoughDrop.store.createRecord('user', {permissions: {supervise: true}});
+      u.set('integrations', null);
+      var called = false;
+      stub(Utils, 'all_pages', function() {
+        called = true;
+        return Ember.RSVP.reject();
+      });
+      u.set('integrations', {promise: 'asdf'});
+      var res = u.check_integrations();
+      expect(res).toEqual('asdf');
+      expect(called).toEqual(false);
+    });
+
+    it('should return the result if not set to reload and already loaded', function() {
+      var u = CoughDrop.store.createRecord('user', {permissions: {supervise: true}});
+      u.set('integrations', null);
+      var called = false;
+      stub(Utils, 'all_pages', function() {
+        called = true;
+        return Ember.RSVP.reject();
+      });
+      u.set('integrations', []);
+      var result = null;
+      u.check_integrations().then(function(res) { result = res; });
+      waitsFor(function() { return result; });
+      runs(function() {
+        expect(called).toEqual(false);
+        expect(result).toEqual([]);
+      });
+    });
+
+    it('should look up if forced to and data already there', function() {
+      var u = CoughDrop.store.createRecord('user', {permissions: {supervise: true}});
+      u.set('integrations', null);
+      var called = false;
+      stub(Utils, 'all_pages', function() {
+        called = true;
+        return Ember.RSVP.reject();
+      });
+      var error = null;
+      u.check_integrations(true).then(null, function(err) {
+        error = err;
+      });
+      waitsFor(function() { return error; });
+      runs(function() {
+        expect(called).toEqual(true);
+        expect(error).toEqual({error: 'error retrieving integrations'});
+        expect(u.get('integrations')).toEqual({error: true});
+      });
+    });
+
+    it('should lookup if no data already there', function() {
+      var called = false;
+      stub(Utils, 'all_pages', function() {
+        called = true;
+        return Ember.RSVP.resolve('asdf');
+      });
+      var u = CoughDrop.store.createRecord('user', {permissions: {supervise: true}});
+      u.set('integrations', null);
+      var result = null;
+      u.check_integrations().then(function(res) { result = res; });
+      waitsFor(function() { return result; });
+      runs(function() {
+        expect(called).toEqual(true);
+        expect(result).toEqual('asdf');
+      });
+      waitsFor(function() { return u.get('integrations') == 'asdf'; });
+      runs();
+    });
+  });
+
+  describe("find_integration", function() {
+    it('should wait on the existing promise if defined', function() {
+      var u = CoughDrop.store.createRecord('user');
+      u.set('integrations', {promise: Ember.RSVP.reject('no way')});
+      var error = null;
+      u.find_integration('bacon').then(null, function(err) { error = err; });
+      waitsFor(function() { return error; });
+      runs(function() {
+        expect(error).toEqual('no way');
+      });
+    });
+
+    it('should resolve on found record', function() {
+      var u = CoughDrop.store.createRecord('user');
+      u.set('integrations', {promise: Ember.RSVP.resolve([Ember.Object.create(), Ember.Object.create({template_key: 'bacon'})])});
+      var result = null;
+      u.find_integration('bacon').then(function(res) { result = res; });
+      waitsFor(function() { return result; });
+      runs(function() {
+        expect(result.get('template_key')).toEqual('bacon');
+      });
+    });
+
+    it('should error if the waiting promise fails', function() {
+      var u = CoughDrop.store.createRecord('user');
+      u.set('integrations', {promise: Ember.RSVP.reject('no way')});
+      var error = null;
+      u.find_integration('bacon').then(null, function(err) { error = err; });
+      waitsFor(function() { return error; });
+      runs(function() {
+        expect(error).toEqual('no way');
+      });
+    });
+
+    it('should error if no integration found', function() {
+      var u = CoughDrop.store.createRecord('user');
+      stub(u, 'check_integrations', function() {
+        return Ember.RSVP.resolve([Ember.Object.create({template_key: 'chicken'}), Ember.Object.create()]);
+      });
+      var error = null;
+      u.find_integration('bacon').then(null, function(err) { error = err; });
+      waitsFor(function() { return error; });
+      runs(function() {
+        expect(error).toEqual({error: 'no matching integration found'});
       });
     });
   });

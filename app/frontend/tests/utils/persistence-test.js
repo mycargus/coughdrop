@@ -681,6 +681,58 @@ describe("persistence", function() {
         expect(result.error).toEqual("saving to data cache failed");
       });
     });
+
+    it("should normalize a url", function() {
+      var url = "http://localhost/api/v1/users/123/protected_image/lessonpix/12345?user_token=asdfasdf";
+      db_wait(function() {
+        stub(persistence, 'ajax', function(options) {
+          return Ember.RSVP.resolve({
+            content_type: 'image/png',
+            data: 'data:nunya'
+          });
+        });
+        var result = null;
+        var record = null;
+        persistence.stores = [];
+        persistence.store_url(url, 'image').then(function(res) {
+          result = res;
+        });
+        waitsFor(function() { return result && persistence.stores.length > 0; });
+        runs(function() {
+          setTimeout(function() {
+            persistence.find('dataCache', 'http://localhost/api/v1/users/123/protected_image/lessonpix/12345').then(function(res) {
+              record = res;
+            });
+          }, 10);
+        });
+        waitsFor(function() { return record; });
+        runs();
+      });
+    });
+  });
+  describe("find_url", function() {
+    it('should normalize a url', function() {
+      var url = "http://localhost/api/v1/users/123/protected_image/lessonpix/12345";
+      db_wait(function() {
+        var stored = false;
+        persistence.store('dataCache', {url: url, content_type: 'image/png', data_uri: 'data:image/png;base64,a0a'}, url).then(function() { stored = true; });
+        persistence.url_uncache = {};
+        persistence.url_uncache[url] = true;
+        waitsFor(function() { return stored; });
+
+        var result = null;
+        runs(function() {
+          persistence.find_url(url + "?user_token=a7b7c_7d8e6").then(function(res) {
+            result = res;
+          });
+        });
+
+        waitsFor(function() { return result; });
+        runs(function() {
+          expect(result).toEqual("data:image/png;base64,a0a");
+        });
+      });
+    });
   });
 
   describe("temporary_id", function() {

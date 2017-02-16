@@ -380,6 +380,7 @@ CoughDrop.User = DS.Model.extend({
         _this.set('integrations', {error: true});
         return Ember.RSVP.reject({error: 'error retrieving integrations'});
       });
+      promise.then(null, function() { });
       _this.set('integrations', {loading: true, promise: promise});
       return promise;
     } else {
