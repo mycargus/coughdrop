@@ -1402,40 +1402,39 @@ var persistence = Ember.Object.extend({
                         if(button.sound_id) {
                           sound_ids.push(button.sound_id);
                         }
-                        [[image_ids, 'image'], [sound_ids, 'sound']].forEach(function(ref) {
-                          var ids = ref[0];
-                          var type = ref[1];
-                          if(ids.length > 0) {
-                            var id = (new Date()).getTime() + "-" + Math.random();
-                            necessary_finds.push(persistence.queue_sync_action(function() {
-                              console.debug("finding images for " + board.id + " linked from " + prior_board.id, id);
-                              return coughDropExtras.storage.find_all(type, ids).then(function(res) {
-                                var lookup = {};
-                                ids.forEach(function(id) { lookup[id] = false; });
-                                res.forEach(function(record) {
-                                  if(record && record.data && record.data.id) {
-                                    if(record.data.raw && record.data.raw.url && persistence.url_cache && persistence.url_cache[record.data.raw.url]) {
-                                      if(!persistence.url_uncache || !persistence.url_uncache[record.data.raw.url]) {
-                                        lookup[record.data.id] = true;
-                                      }
+                      });
+                      [[image_ids, 'image'], [sound_ids, 'sound']].forEach(function(ref) {
+                        var ids = ref[0];
+                        var type = ref[1];
+                        if(ids.length > 0) {
+                          var id = (new Date()).getTime() + "-" + Math.random();
+                          necessary_finds.push(persistence.queue_sync_action(function() {
+                            return coughDropExtras.storage.find_all(type, ids).then(function(res) {
+                              var lookup = {};
+                              ids.forEach(function(id) { lookup[id] = false; });
+                              res.forEach(function(record) {
+                                if(record && record.data && record.data.id) {
+                                  if(record.data.raw && record.data.raw.url && persistence.url_cache && persistence.url_cache[record.data.raw.url]) {
+                                    if(!persistence.url_uncache || !persistence.url_uncache[record.data.raw.url]) {
+                                      lookup[record.data.id] = true;
                                     }
                                   }
-                                });
-                                var missing = [];
-                                for(var idx in lookup) {
-                                  if(lookup[idx] === false && !idx.match(/^tmp/)) {
-                                    missing.push(idx);
-                                  }
-                                }
-                                if(missing.length > 0) {
-                                  return Ember.RSVP.reject({error: 'missing ids', ids: missing});
-                                } else {
-                                  return Ember.RSVP.resolve();
                                 }
                               });
-                            }));
-                          }
-                        });
+                              var missing = [];
+                              for(var idx in lookup) {
+                                if(lookup[idx] === false && !idx.match(/^tmp/)) {
+                                  missing.push(idx);
+                                }
+                              }
+                              if(missing.length > 0) {
+                                return Ember.RSVP.reject({error: 'missing ids', ids: missing});
+                              } else {
+                                return Ember.RSVP.resolve();
+                              }
+                            });
+                          }));
+                        }
                       });
                       return Ember.RSVP.all_wait(necessary_finds).then(function() {
                         var cache_mismatch = fresh_revisions && fresh_revisions[board.id] && fresh_revisions[board.id] != b.current_revision;
