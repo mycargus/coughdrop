@@ -1272,7 +1272,29 @@ var persistence = Ember.Object.extend({
       });
     }
 
-    var sync_all_boards = get_remote_revisions.then(function() {
+    var all_image_urls = {};
+    var get_images = persistence.queue_sync_action('find_all_image_urls', function() {
+      return coughDropExtras.storage.find_all('image').then(function(list) {
+        list.forEach(function(img) {
+          if(img.data && img.data.id && img.data.raw && img.data.raw.url) {
+            all_image_urls[img.data.id] = img.data.raw.url;
+          }
+        });
+      });
+    });
+
+    var all_sound_urls = {};
+    var get_sounds = persistence.queue_sync_action('find_all_sound_urls', function() {
+      return coughDropExtras.storage.find_all('sound').then(function(list) {
+        list.forEach(function(snd) {
+          if(snd.data && snd.data.id && snd.data.raw && snd.data.raw.url) {
+            all_sound_urls[snd.data.id] = snd.data.raw.url;
+          }
+        });
+      });
+    });
+
+    var sync_all_boards = get_sounds.then(function() {
       return new Ember.RSVP.Promise(function(resolve, reject) {
         var to_visit_boards = [];
         if(user.get('preferences.home_board.id')) {
@@ -1415,49 +1437,41 @@ var persistence = Ember.Object.extend({
                     find.then(function(b) {
                       var necessary_finds = [];
                       var tmp_board = CoughDrop.store.createRecord('board', Ember.$.extend({}, b, {id: null}));
-                      var image_ids = [];
-                      var sound_ids = [];
+                      var missing_image_ids = [];
+                      var missing_sound_ids = [];
                       tmp_board.get('used_buttons').forEach(function(button) {
                         if(button.image_id) {
-                          image_ids.push(button.image_id);
+                          var valid = false;
+                          if(all_image_urls[button.image_id]) {
+                            if(!persistence.url_uncache || !persistence.url_uncache[all_image_urls[button.image_id]]) {
+                              valid = true;
+                            }
+                          }
+                          if(!valid) {
+                            missing_image_ids.push(button.image_id);
+                          }
                         }
                         if(button.sound_id) {
-                          sound_ids.push(button.sound_id);
+                          var valid = false;
+                          if(all_sound_urls[button.sound_id]) {
+                            if(!persistence.url_uncache || !persistence.url_uncache[all_sound_urls[button.sound_id]]) {
+                              valid = true;
+                            }
+                          }
+                          if(!valid) {
+                            missing_sound_ids.push(button.sound_id);
+                          }
                         }
                       });
-                      [[image_ids, 'image'], [sound_ids, 'sound']].forEach(function(ref) {
-                        var ids = ref[0];
-                        var type = ref[1];
-                        if(ids.length > 0) {
-                          var id = (new Date()).getTime() + "-" + Math.random();
-                          necessary_finds.push(persistence.queue_sync_action('find_button_images', function() {
-                            return coughDropExtras.storage.find_all(type, ids).then(function(res) {
-                              var lookup = {};
-                              ids.forEach(function(id) { lookup[id] = false; });
-                              res.forEach(function(record) {
-                                if(record && record.data && record.data.id) {
-                                  if(record.data.raw && record.data.raw.url && persistence.url_cache && persistence.url_cache[record.data.raw.url]) {
-                                    if(!persistence.url_uncache || !persistence.url_uncache[record.data.raw.url]) {
-                                      lookup[record.data.id] = true;
-                                    }
-                                  }
-                                }
-                              });
-                              var missing = [];
-                              for(var idx in lookup) {
-                                if(lookup[idx] === false && !idx.match(/^tmp/)) {
-                                  missing.push(idx);
-                                }
-                              }
-                              if(missing.length > 0) {
-                                return Ember.RSVP.reject({error: 'missing ids', ids: missing});
-                              } else {
-                                return Ember.RSVP.resolve();
-                              }
-                            });
-                          }));
+                      necessary_finds.push(new Ember.RSVP.Promise(function(res, rej) {
+                        if(missing_image_ids.length > 0) {
+                          rej({error: 'missing image ids', ids: missing_image_ids});
+                        } else if(missing_sound_ids.length > 0) {
+                          rej({error: 'missing sound ids', ids: missing_sound_ids});
+                        } else {
+                          res();
                         }
-                      });
+                      }));
                       return Ember.RSVP.all_wait(necessary_finds).then(function() {
                         var cache_mismatch = fresh_revisions && fresh_revisions[board.id] && fresh_revisions[board.id] != b.current_revision;
                         if(!cache_mismatch) {
