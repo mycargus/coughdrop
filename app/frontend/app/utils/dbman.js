@@ -164,6 +164,7 @@ var dbman = {
 
   // Stuff under here exposes internals
   find_one_internal: function(store, key, success, error) {
+    if(capabilities.loggy) { console.debug("find one " + store + " " + key); }
     success = success || capabilities.dbman.success;
     error = error || capabilities.dbman.error;
 
@@ -222,6 +223,7 @@ var dbman = {
     }
   },
   find_all_internal: function(store, index, key, success, error) {
+    if(capabilities.loggy) { console.debug("find_all " + store, index, key); }
     var keys = {};
     if(key && key.forEach) {
       key.forEach(function(k) { keys[k] = true; });
@@ -304,6 +306,7 @@ var dbman = {
     }
   },
   store_internal: function(store, record, success, error) {
+    if(capabilities.loggy) { console.debug("store " + store, record); }
     if(dbman.db_type == 'indexeddb') {
       var transaction = capabilities.db.transaction([store], 'readwrite');
       try {
@@ -343,6 +346,7 @@ var dbman = {
     }
   },
   remove_internal: function(store, id, success, error) {
+    if(capabilities.loggy) { console.debug("remove " + store + " id"); }
     if(dbman.db_type == 'indexeddb') {
       var transaction = capabilities.db.transaction([store], 'readwrite');
       try {
@@ -371,6 +375,7 @@ var dbman = {
     }
   },
   clear_internal: function(store, success, error) {
+    if(capabilities.loggy) { console.debug("clear " + store); }
     if(dbman.db_type == 'indexeddb') {
       var transaction = capabilities.db.transaction([store], 'readwrite');
       var res = transaction.objectStore(store).clear();
