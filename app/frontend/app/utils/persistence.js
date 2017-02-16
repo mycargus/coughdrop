@@ -609,10 +609,10 @@ var persistence = Ember.Object.extend({
           var opts = persistence.urls_to_store.shift();
           persistence.store_url_now(opts.url, opts.type, opts.keep_big, opts.force_reload).then(function(res) {
             opts.defer.resolve(res);
-            if(persistence.storing_urls) { persistence.storing_urls(); }
+            if(persistence.storing_urls) { Ember.run.later(function() { persistence.storing_urls(); }, 50); }
           }, function(err) {
             opts.defer.reject(err);
-            if(persistence.storing_urls) { persistence.storing_urls(); }
+            if(persistence.storing_urls) { Ember.run.later(function() { persistence.storing_urls(); }, 50); }
           });
         } else {
           persistence.storing_url_watchers--;
