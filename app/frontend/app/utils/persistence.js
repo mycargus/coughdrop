@@ -1202,7 +1202,11 @@ var persistence = Ember.Object.extend({
   queue_sync_action: function(method) {
     var defer = Ember.RSVP.defer();
     defer.callback = method;
+    defer.id = (new Date()).getTime() + '-' + Math.random();
     persistence.sync_actions = persistence.sync_actions || [];
+    if(capabilities.log_events) {
+      console.warn("queueing sync action", defer.id);
+    }
     persistence.sync_actions.push(defer);
     var threads = capabilities.mobile ? 2 : 4;
     for(var idx = 0; idx < threads; idx++) {
@@ -1217,6 +1221,9 @@ var persistence = Ember.Object.extend({
     persistence.sync_actions = persistence.sync_actions || [];
     var action = persistence.sync_actions.shift();
     if(action && action.callback) {
+      if(capabilities.log_events) {
+        console.warn("executing sync action", action.id);
+      }
       try {
         action.callback().then(function(r) {
           action.resolve(r);
