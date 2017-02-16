@@ -181,6 +181,130 @@ describe UserIntegration, :type => :model do
       expect(ui.settings['custom_integration']).to eq(true)
       expect(ui.settings['token']).to_not eq(nil)
     end
+    
+    it "should error when failing to match to a template integration" do
+      u = User.create
+      ui = UserIntegration.process_new({'integration_key' => 'asdf'}, {'user' => u})
+      expect(ui.errored?).to eq(true)
+      expect(ui.processing_errors).to eq(['invalid template'])
+    end
+    
+    it "should match to a template integration" do
+      u = User.create
+      template = UserIntegration.create(template: true, integration_key: 'grandness')
+      ui = UserIntegration.process_new({'integration_key' => 'grandness'}, {'user' => u})
+      expect(ui.errored?).to eq(false)
+      expect(ui.template_integration).to eq(template)
+      expect(ui.settings['template_key']).to eq('grandness')
+    end
+    
+    it "should process template parameters" do
+      u = User.create
+      template = UserIntegration.create(template: true, integration_key: 'panda', settings: {
+        'user_parameters' => [
+          {
+            'name' => 'a',
+            'label' => 'A'
+          },
+          {
+            'name' => 'b',
+            'type' => 'password'
+          }
+        ]
+      })
+      ui = UserIntegration.process_new({
+        'integration_key' => 'panda',
+        'user_parameters' => [
+          {'name' => 'a', 'value' => 'aaa'},
+          {'name' => 'b', 'value' => 'bbb'}
+        ]
+      }, {'user' => u})
+      expect(ui.errored?).to eq(false)
+      expect(ui.template_integration).to eq(template)
+      expect(ui.settings['user_settings']).to_not eq(nil)
+      expect(ui.settings['user_settings']['a']).to eq({'label' => 'A', 'value' => 'aaa', 'type' => nil})
+      expect(ui.settings['user_settings']['b']['value']).to eq(nil)
+      expect(ui.settings['user_settings']['b']['value_crypt']).to_not eq(nil)
+      expect(ui.settings['user_settings']['b']['salt']).to_not eq(nil)
+    end
+    
+    it "should confirm recognized integrations actually work" do
+      u = User.create
+      template = UserIntegration.create(template: true, integration_key: 'lessonpix', settings: {
+        'user_parameters' => [
+          {'name' => 'username'}, {'name' => 'password', 'type' => 'password', 'hash' => 'md5'}
+        ]
+      })
+      expect(Uploader).to receive(:find_images){|a, b, c|
+        expect(a).to eq('hat')
+        expect(b).to eq('lessonpix')
+        expect(c).to_not eq(nil)
+      }.and_return([])
+      ui1 = UserIntegration.process_new({
+        'integration_key' => 'lessonpix',
+        'user_parameters' => [
+          {'name' => 'username', 'value' => 'topside'},
+          {'name' => 'password', 'value' => 'sidetop'}
+        ]
+      }, {'user' => u})
+      expect(ui1.errored?).to eq(false)
+      expect(ui1.unique_key).to_not eq(nil)
+    end
+
+    it "should error on failed confirmation" do
+      u = User.create
+      template = UserIntegration.create(template: true, integration_key: 'lessonpix', settings: {
+        'user_parameters' => [
+          {'name' => 'username'}, {'name' => 'password', 'type' => 'password', 'hash' => 'md5'}
+        ]
+      })
+      expect(Uploader).to receive(:find_images){|a, b, c|
+        expect(a).to eq('hat')
+        expect(b).to eq('lessonpix')
+        expect(c).to_not eq(nil)
+      }.and_return(false)
+      ui1 = UserIntegration.process_new({
+        'integration_key' => 'lessonpix',
+        'user_parameters' => [
+          {'name' => 'username', 'value' => 'topside'},
+          {'name' => 'password', 'value' => 'sidetop'}
+        ]
+      }, {'user' => u})
+      expect(ui1.errored?).to eq(true)
+      expect(ui1.processing_errors).to eq(['invalid user credentials'])
+    end
+    
+    it "should error when trying to reuse an already-set template integration configuration" do
+      u = User.create
+      template = UserIntegration.create(template: true, integration_key: 'lessonpix', settings: {
+        'user_parameters' => [
+          {'name' => 'username'}, {'name' => 'password', 'type' => 'password', 'hash' => 'md5'}
+        ]
+      })
+      expect(Uploader).to receive(:find_images){|a, b, c|
+        expect(a).to eq('hat')
+        expect(b).to eq('lessonpix')
+        expect(c).to_not eq(nil)
+      }.and_return([])
+      ui1 = UserIntegration.process_new({
+        'integration_key' => 'lessonpix',
+        'user_parameters' => [
+          {'name' => 'username', 'value' => 'topside'},
+          {'name' => 'password', 'value' => 'sidetop'}
+        ]
+      }, {'user' => u})
+      expect(ui1.errored?).to eq(false)
+      expect(ui1.unique_key).to_not eq(nil)
+      ui2 = UserIntegration.process_new({
+        'integration_key' => 'lessonpix',
+        'user_parameters' => [
+          {'name' => 'username', 'value' => 'topside'},
+          {'name' => 'password', 'value' => 'sidetop'}
+        ]
+      }, {'user' => u})
+      expect(ui2.errored?).to eq(true)
+      expect(ui2.processing_errors).to eq(['account credentials already in use'])
+    end
   end  
   
   describe "destroy_device" do

@@ -83,7 +83,7 @@ module Converters::CoughDrop
             'id' => image.global_id,
             'width' => image.settings['width'],
             'height' => image.settings['height'],
-            'ext_coughdrop_protected' => image.settings['protected'],
+            'protected' => image.settings['protected'],
             'license' => OBF::Utils.parse_license(image.settings['license']),
             'url' => image.url_for(opts['user']),
             'data_url' => "#{JsonApi::Json.current_host}/api/v1/images/#{image.global_id}",
@@ -100,7 +100,7 @@ module Converters::CoughDrop
           sound = {
             'id' => sound.global_id,
             'duration' => sound.settings['duration'],
-            'ext_coughdrop_protected' => image.settings['protected'],
+            'protected' => sound.settings['protected'],
             'license' => OBF::Utils.parse_license(sound.settings['license']),
             'url' => sound.url_for(opts['user']),
             'data_url' => "#{JsonApi::Json.current_host}/api/v1/sounds/#{sound.global_id}",

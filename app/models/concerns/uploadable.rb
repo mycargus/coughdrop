@@ -33,6 +33,7 @@ module Uploadable
   def url_for(user)
     token = user && user.user_token
     return self.url if !token
+    return self.url unless self.url.match(/\/api\/v1\/users\/.+\/protected_image/)
     self.url + (self.url.match(/\?/) ? '&' : '?') + "user_token=#{token}"
   end
   

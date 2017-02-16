@@ -45,7 +45,7 @@ describe ContactMessage, :type => :model do
     m = ContactMessage.process_new({
       'message' => 'asdf', 
       'email' => 'bob@example.com',
-      'recipient' => 'support'
+      'recipient' => 'technical support'
     })
     expect(m.errored?).to eq(false)
 
@@ -58,7 +58,7 @@ describe ContactMessage, :type => :model do
 
     m = ContactMessage.process_new({
       'message' => 'asdf', 
-      'recipient' => 'support'
+      'recipient' => 'technical support'
     })
     expect(m.errored?).to eq(true)
     expect(m.processing_errors).to eq(['Email required for support tickets'])
@@ -73,7 +73,7 @@ describe ContactMessage, :type => :model do
     m = ContactMessage.process_new({
       'message' => 'asdf', 
       'email' => 'asdf@example.com',
-      'recipient' => 'support'
+      'recipient' => 'technical support'
     })
     expect(m.errored?).to eq(false)
     expect(Worker.scheduled?(ContactMessage, :perform_action, {'id' => m.id, 'method' => 'deliver_remotely', 'arguments' => []})).to eq(true)
@@ -93,7 +93,7 @@ describe ContactMessage, :type => :model do
     m = ContactMessage.process_new({
       'message' => 'asdf', 
       'email' => 'asdf@example.com',
-      'recipient' => 'support'
+      'recipient' => 'technical support'
     })
     expect(m.errored?).to eq(false)
     expect(Typhoeus).to receive(:post){|endpoint, args|
@@ -119,7 +119,7 @@ describe ContactMessage, :type => :model do
     m = ContactMessage.process_new({
       'message' => 'asdf', 
       'email' => 'asdf@example.com',
-      'recipient' => 'support'
+      'recipient' => 'technical support'
     })
     expect(m.errored?).to eq(false)
     expect(Typhoeus).to receive(:post){|endpoint, args|

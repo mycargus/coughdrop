@@ -125,6 +125,23 @@ RSpec.describe WordData, :type => :model do
         {text: 'hat', translation: 'top'}
       ])
     end
+    
+    it "should correct locale settings" do
+      ENV['GOOGLE_TRANSLATE_TOKEN'] = 'secrety'
+      response = OpenStruct.new(body: {
+        data: {
+          translations: [
+            {translatedText: 'top'},
+            {translatedText: 'cat'}
+          ]
+        }
+      }.to_json)
+      expect(Typhoeus).to receive(:get).with('https://translation.googleapis.com/language/translate/v2?key=secrety&target=zh-CN&source=en&format=text&q=hat&q=cat').and_return(response)
+      res = WordData.query_translations([{text: 'hat'}, {text: 'cat'}], 'en_US', 'zh')
+      expect(res).to eq([
+        {text: 'hat', translation: 'top'}
+      ])
+    end
   end
   
   describe "translate_batch" do

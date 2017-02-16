@@ -46,5 +46,65 @@ describe JsonApi::Integration do
       expect(hash['truncated_access_token']).to_not eq(nil)
       expect(hash['truncated_token']).to_not eq(nil)
     end
+    
+    it "should include user settings" do
+      u = User.create
+      ui = UserIntegration.create(user: u)
+      ui.settings['user_settings'] = {
+        'a' => {
+          'label' => 'A',
+          'value' => 'asdf'
+        },
+        'b' => {
+          'label' => 'B',
+          'value' => 'asdf',
+          'type' => 'password'
+        }
+      }
+      hash = JsonApi::Integration.build_json(ui)
+      expect(hash['user_settings']).to_not eq(nil)
+      puts hash['user_settings'].to_json
+      expect(hash['user_settings'][0]['name']).to eq('a')
+      expect(hash['user_settings'][0]['label']).to eq('A')
+      expect(hash['user_settings'][0]['value']).to eq('asdf')
+      expect(hash['user_settings'][1]['name']).to eq('b')
+      expect(hash['user_settings'][1]['label']).to eq('B')
+      expect(hash['user_settings'][1]['value']).to eq(nil)
+      expect(hash['user_settings'][1]['protected']).to eq(true)
+    end
+    
+    it "should include user parameters for templates" do
+      ui = UserIntegration.create(template: true, integration_key: 'keyed')
+      ui.settings['user_parameters'] = [
+        {
+          'name' => 'a',
+          'default_value' => 'aaa',
+          'label' => 'A'
+        },
+        {
+          'name' => 'b',
+          'default_value' => 'bbb',
+          'type' => 'password',
+          'label' => 'B',
+          'something' => 'nunya'
+        }
+      ]
+      hash = JsonApi::Integration.build_json(ui)
+      expect(hash['template']).to eq(true)
+      expect(hash['user_parameters']).to eq([
+        {
+          'name' => 'a',
+          'default_value' => 'aaa',
+          'label' => 'A',
+          'type' => 'text'
+        },
+        {
+          'name' => 'b',
+          'default_value' => 'bbb',
+          'type' => 'password',
+          'label' => 'B'
+        }
+      ])
+    end
   end
 end

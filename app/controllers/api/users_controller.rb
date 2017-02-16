@@ -465,7 +465,6 @@ class Api::UsersController < ApplicationController
       redirect_to '/images/error.png'
     end
   end
-#      get 'protected_image/:library/:image_id' => 'users#protected_image'
 
   
   def translate

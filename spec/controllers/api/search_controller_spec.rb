@@ -220,5 +220,81 @@ describe Api::SearchController, :type => :controller do
       })
     end
   end
+  
+  describe "protected_symbols" do
+    it 'should require an api token' do
+      get 'protected_symbols'
+      assert_missing_token
+    end
+    
+    it 'should search for symbols' do
+      token_user
+      expect(Uploader).to receive(:find_images).with('cheese', 'some_library', @user).and_return([
+        {
+          'url' => 'http://www.example.com/pic1.png',
+          'content_type' => 'image/png',
+          'name' => 'my pic',
+          'width' => 200,
+          'height' => 200,
+          'license' => {
+            'type' => 'public_domain',
+            'author_name' => 'bob',
+            'author_url' => 'http://www.example.com/bob',
+            'source_url' => 'http://www.example.com/bob/pic1'
+          }
+        },
+        {
+          'url' => 'http://www.example.com/pic2.jpg',
+          'content_type' => 'image/jpeg',
+          'name' => 'my pic',
+          'width' => 300,
+          'height' => 300,
+          'license' => {
+            'type' => 'private',
+            'author_name' => 'fred',
+            'author_url' => 'http://www.example.com/fred',
+            'source_url' => 'http://www.example.com/fred/pic2',
+            'copyright_notice_url' => 'http://www.example.com/c'
+          }
+        }
+      ])
+      get 'protected_symbols', params: {'q' => 'cheese', 'library' => 'some_library'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json).to eq([
+        {
+         'image_url' => 'http://www.example.com/pic1.png',
+         'content_type' => 'image/png',
+         'name' => 'my pic',
+         'width' => 200,
+         'height' => 200,
+         'external_id' => nil,
+         'finding_user_name' => @user.user_name,
+         'protected' => true,
+         'public' => false,
+         'license' => 'public_domain',
+         'author' => 'bob',
+         'author_url' => 'http://www.example.com/bob',
+         'source_url' => 'http://www.example.com/bob/pic1',
+         'copyright_notice_url' => nil
+        },
+        {
+         'image_url' => 'http://www.example.com/pic2.jpg',
+         'content_type' => 'image/jpeg',
+         'name' => 'my pic',
+         'width' => 300,
+         'height' => 300,
+         'external_id' => nil,
+         'finding_user_name' => @user.user_name,
+         'protected' => true,
+         'public' => false,
+         'license' => 'private',
+         'author' => 'fred',
+         'author_url' => 'http://www.example.com/fred',
+         'source_url' => 'http://www.example.com/fred/pic2',
+         'copyright_notice_url' => 'http://www.example.com/c'
+        }
+      ])
+    end
+  end
 end
-

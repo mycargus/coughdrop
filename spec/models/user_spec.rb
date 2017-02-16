@@ -1811,4 +1811,25 @@ describe User, :type => :model do
       expect(u.external_email_allowed?).to eq(false)
     end
   end
+  
+  describe "user_token" do
+    it 'should return the correct value' do
+      u = User.create
+      token = "#{u.global_id}-"
+      token = token + Security.sha512(token, 'user_token verifier')[0, 30]
+      expect(u.user_token).to eq(token)
+    end
+  end
+  
+  describe "find_by_token" do
+    it 'should find the correct user' do
+      u = User.create
+      token = "#{u.global_id}-"
+      token = token + Security.sha512(token, 'user_token verifier')[0, 30]
+      expect(User.find_by_token(token)).to eq(u)
+      expect(User.find_by_token('asdf')).to eq(nil)
+      expect(User.find_by_token("#{u.global_id}-whatever")).to eq(nil)
+      expect(User.find_by_token(nil)).to eq(nil)
+    end
+  end
 end

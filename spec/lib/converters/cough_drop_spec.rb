@@ -756,7 +756,7 @@ describe Converters::CoughDrop do
         {'id' => 5, 'add_to_vocalization' => true}
       ]
       b.save
-      hash = Converters::CoughDrop.to_external(b)
+      hash = Converters::CoughDrop.to_external(b, nil)
       expect(hash['id']).to eq(b.global_id)
       expect(hash['buttons'].length).to eq(5)
       expect(hash['buttons'][0]['id']).to eq(1)

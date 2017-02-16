@@ -191,17 +191,17 @@ describe Uploader do
   describe 'find_images' do
     it 'should return nothing for unknown libraries' do
       expect(Typhoeus).to_not receive(:get)
-      expect(Uploader.find_images('bacon', 'cool-pics', nil)).to eq([])
-      expect(Uploader.find_images('bacon', '', nil)).to eq([])
-      expect(Uploader.find_images('bacon', nil, nil)).to eq([])
-      expect(Uploader.find_images('bacon', '   ', nil)).to eq([])
+      expect(Uploader.find_images('bacon', 'cool-pics', nil)).to eq(false)
+      expect(Uploader.find_images('bacon', '', nil)).to eq(false)
+      expect(Uploader.find_images('bacon', nil, nil)).to eq(false)
+      expect(Uploader.find_images('bacon', '   ', nil)).to eq(false)
     end
     
     it 'should return nothing for empty queries' do
       expect(Typhoeus).to_not receive(:get)
-      expect(Uploader.find_images(nil, 'arasaac', nil)).to eq([])
-      expect(Uploader.find_images('', 'arasaac', nil)).to eq([])
-      expect(Uploader.find_images('    ', 'arasaac', nil)).to eq([])
+      expect(Uploader.find_images(nil, 'arasaac', nil)).to eq(false)
+      expect(Uploader.find_images('', 'arasaac', nil)).to eq(false)
+      expect(Uploader.find_images('    ', 'arasaac', nil)).to eq(false)
     end
     
     it 'should make a remote request' do
@@ -247,22 +247,6 @@ describe Uploader do
       }])
     end
     
-# 
-#           'url' => obj['webformatURL'],
-#           'content_type' => (type && type.content_type) || 'image/jpeg',
-#           'width' => obj['webformatWidth'],
-#           'height' => obj['webformatHeight'],
-#           'external_id' => obj['id'],
-#           'public' => true,
-#           'license' => {
-#             'type' => 'public_domain',
-#             'copyright_notice_url' => 'https://creativecommons.org/publicdomain/zero/1.0/',
-#             'source_url' => obj['pageURL'],
-#             'author_name' => 'unknown',
-#             'author_url' => 'https://creativecommons.org/publicdomain/zero/1.0/',
-#             'uneditable' => true
-#           }          
-# 
     it 'should handle pixabay searches' do
       ENV['PIXABAY_KEY'] = 'pixkey'
       res = OpenStruct.new(body: {'hits' => [
@@ -312,6 +296,105 @@ describe Uploader do
           'uneditable' => true
         }
       }])
+    end
+    
+    it "should handle lessonpix searches" do
+      expect(Uploader).to receive(:lessonpix_credentials).with(nil).and_return(nil)
+      expect(Uploader.find_images('bacon', 'lessonpix', nil)).to eq(false)
+      
+      u = User.create
+      expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return({
+        'username' => 'pocatello',
+        'pid' => '99999',
+        'token' => 'for_the_team'
+      }).exactly(2).times
+      expect(Typhoeus).to receive(:get).with("http://lessonpix.com/apiKWSearch.php?pid=99999&username=pocatello&token=for_the_team&word=bacon&fmt=json&allstyles=n&limit=15").and_return(OpenStruct.new(body: 'Token Mismatch'))
+      expect(Uploader.find_images('bacon', 'lessonpix', u)).to eq(false)
+
+      expect(Typhoeus).to receive(:get).with("http://lessonpix.com/apiKWSearch.php?pid=99999&username=pocatello&token=for_the_team&word=cheddar&fmt=json&allstyles=n&limit=15").and_return(OpenStruct.new(body: [
+        {'iscategory' => 't'},
+        {
+          'image_id' => '2345',
+          'title' => 'good pic'
+        }
+      ].to_json))
+      expect(Uploader.find_images('cheddar', 'lessonpix', u)).to eq([
+        {
+          'url' => "#{JsonApi::Json.current_host}/api/v1/users/#{u.global_id}/protected_image/lessonpix/2345",
+          'content_type' => 'image/svg',
+          'name' => 'good pic',
+          'width' => 300,
+          'height' => 300,
+          'external_id' => '2345',
+          'public' => false,
+          'protected' => true,
+          'license' => {
+            'type' => 'private',
+            'source_url' => "http://lessonpix.com/pictures/2345/good+pic",
+            'author_name' => 'LessonPix',
+            'author_url' => 'http://lessonpix.com',
+            'uneditable' => true,
+            'copyright_notice_url' => 'http://lessonpix.com/articles/11/28/LessonPix+Terms+and+Conditions'
+          }         }
+      ])
+    end
+  end
+
+  describe "lessonpix_credentials" do
+    it "should return the correct value" do
+      ENV['LESSONPIX_PID'] = nil
+      ENV['LESSONPIX_SECRET'] = nil
+      expect(Uploader.lessonpix_credentials({})).to eq(nil)
+      ENV['LESSONPIX_PID'] = '90123'
+      expect(Uploader.lessonpix_credentials({})).to eq(nil)
+      ENV['LESSONPIX_SECRET'] = 'asdfuiop'
+      expect(Uploader.lessonpix_credentials({})).to eq({
+        'username' => nil,
+        'pid' => '90123',
+        'token' => 'e64ff981c5100fe1d0ed87f3fc029890'
+      })
+      expect(Uploader.lessonpix_credentials(nil)).to eq(nil)
+      expect(Uploader.lessonpix_credentials('asdf')).to eq(nil)
+      expect(Uploader.lessonpix_credentials({'username' => 'fred', 'password' => 'passy'})).to eq({
+        'username' => 'fred',
+        'pid' => '90123',
+        'token' => Digest::MD5.hexdigest(Digest::MD5.hexdigest('passy') + 'asdfuiop')
+      })
+      template = UserIntegration.create(template: true, integration_key: 'lessonpix')
+      u = User.create
+      ui = UserIntegration.create(user: u, template_integration: template)
+      secret, salt = Security.encrypt('secretss', 'integration_password')
+
+      ui.settings['user_settings'] = {
+        'username' => {'value' => 'susan'},
+        'password' => {'value_crypt' => secret, 'salt' => salt}
+      }
+      ui.save
+      expect(Uploader.lessonpix_credentials(ui)).to eq({
+        'username' => 'susan',
+        'pid' => '90123',
+        'token' => Digest::MD5.hexdigest('secretss' + 'asdfuiop')
+      })
+      expect(Uploader.lessonpix_credentials(u)).to eq({
+        'username' => 'susan',
+        'pid' => '90123',
+        'token' => Digest::MD5.hexdigest('secretss' + 'asdfuiop')
+      })
+    end
+  end
+  
+  describe "found_image_url" do
+    it "should return the correct value" do
+      u = User.create
+      expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return({
+        'username' => 'amelia',
+        'pid' => 'qwert',
+        'token' => 'tokenss'
+      })
+      expect(Uploader.found_image_url('asdf', 'lessonpix', u)).to eq("http://lessonpix.com/apiGetImage.php?pid=qwert&username=amelia&token=tokenss&image_id=asdf&h=300&w=300&fmt=svg")
+      
+      expect(Uploader).to receive(:lessonpix_credentials).with(nil).and_return(nil)
+      expect(Uploader.found_image_url('qwer', 'lessonpix', nil)).to eq(nil)
     end
   end
 end

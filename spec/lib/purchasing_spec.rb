@@ -131,6 +131,16 @@ describe Purchasing do
         }
         expect(res[:data]).to eq({:notified => true, :purchase => false, :valid => true})
       end
+      
+      it "should not error if no customer provided" do
+        u = User.create
+        expect(Stripe::Customer).to_not receive(:retrieve)
+        expect(SubscriptionMailer).to_not receive(:schedule_delivery)
+        res = stripe_event_request 'charge.failed', {
+          'customer' => nil
+        }
+        expect(res[:data]).to eq({:notified => true, :purchase => false, :valid => false})
+      end
     end
     
     describe "charge.dispute.created" do

@@ -133,7 +133,7 @@ module Uploader
       password_md5 = Security.decrypt(opts.settings['user_settings']['password']['value_crypt'], opts.settings['user_settings']['password']['salt'], 'integration_password')
     elsif opts.is_a?(Hash)
       username = opts['username']
-      password_md5 = Digest::MD5.hexdigest(opts['password'])
+      password_md5 = Digest::MD5.hexdigest(opts['password'] || '')
     else
       return nil
     end
@@ -147,6 +147,7 @@ module Uploader
   def self.found_image_url(image_id, library, user)
     if library == 'lessonpix'
       cred = lessonpix_credentials(user)
+      return nil unless cred
       url = "http://lessonpix.com/apiGetImage.php?pid=#{cred['pid']}&username=#{cred['username']}&token=#{cred['token']}&image_id=#{image_id}&h=300&w=300&fmt=svg"
     else
       return nil
@@ -178,10 +179,11 @@ module Uploader
           'protected' => true,
           'license' => {
             'type' => 'private',
-            'source_url' => "http://lessonpix.com/pictures/#{obj['image_id']}/#{obj['title']}",
+            'source_url' => "http://lessonpix.com/pictures/#{obj['image_id']}/#{CGI.escape(obj['title'] || '')}",
             'author_name' => 'LessonPix',
             'author_url' => 'http://lessonpix.com',
-            'uneditable' => true
+            'uneditable' => true,
+            'copyright_notice_url' => 'http://lessonpix.com/articles/11/28/LessonPix+Terms+and+Conditions'
           }          
         }
       end

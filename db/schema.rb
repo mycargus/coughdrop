@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170209185141) do
+ActiveRecord::Schema.define(version: 20170215214113) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -330,9 +330,11 @@ ActiveRecord::Schema.define(version: 20170209185141) do
     t.boolean  "for_button"
     t.string   "integration_key"
     t.integer  "template_integration_id"
+    t.string   "unique_key"
     t.index ["integration_key"], name: "index_user_integrations_on_integration_key", unique: true, using: :btree
     t.index ["template"], name: "index_user_integrations_on_template", using: :btree
     t.index ["template_integration_id", "user_id"], name: "index_user_integrations_on_template_integration_id_and_user_id", using: :btree
+    t.index ["unique_key"], name: "index_user_integrations_on_unique_key", unique: true, using: :btree
     t.index ["user_id", "created_at"], name: "index_user_integrations_on_user_id_and_created_at", using: :btree
     t.index ["user_id", "for_button"], name: "index_user_integrations_on_user_id_and_for_button", using: :btree
   end

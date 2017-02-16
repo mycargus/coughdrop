@@ -120,8 +120,8 @@ class UserIntegration < ActiveRecord::Base
         user_param = (params['user_parameters'] || []).detect{|p| p['name'] == template_param['name']}
         if user_param
           user_params[template_param['name']] = {
-            'type': template_param['type'],
-            'label': template_param['label']
+            'type' => template_param['type'],
+            'label' => template_param['label']
           }
           value = user_param['value']
           if template_param['type'] == 'password'
@@ -137,13 +137,13 @@ class UserIntegration < ActiveRecord::Base
         end
       end
       self.settings['user_settings'] = user_params
-      if params['integration_key'] == 'lessonpix'
-#         self.unique_key = Security.sha512(user_params['username']['value'], 'lessonpix-username')
-#         match = UserIntegration.find_by(unique_key: self.unique_key)
-#         if match && match.id != self.id
-#           add_processing_error('account credentials already in use')
-#           return false
-#         end
+      if params['integration_key'] == 'lessonpix' && user_params['username']
+        self.unique_key = Security.sha512(user_params['username']['value'], 'lessonpix-username')
+        match = UserIntegration.find_by(unique_key: self.unique_key)
+        if match && match.id != self.id
+          add_processing_error('account credentials already in use')
+          return false
+        end
         res = Uploader.find_images('hat', 'lessonpix', self)
         if res == false
           cred = Uploader.lessonpix_credentials(self)

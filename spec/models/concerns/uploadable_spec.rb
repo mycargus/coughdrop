@@ -248,4 +248,15 @@ describe Uploadable, :type => :model do
       expect(s.settings['height']).to eq(150)
     end
   end
+  
+  describe "url_for" do
+    it 'should return the correct value' do
+      u = User.create
+      i = ButtonImage.new(url: 'http://www.example.com/api/v1/users/1234/protected_images/bacon')
+      expect(i.url_for(nil)).to eq('http://www.example.com/api/v1/users/1234/protected_images/bacon')
+      expect(i.url_for(u)).to eq("http://www.example.com/api/v1/users/1234/protected_images/bacon?user_token=#{u.user_token}")
+      i.url = "http://www.example.com/api/v1/users/1234/protected_images/bacon?a=1"
+      expect(i.url_for(u)).to eq("http://www.example.com/api/v1/users/1234/protected_images/bacon?a=1&user_token=#{u.user_token}")
+    end
+  end
 end

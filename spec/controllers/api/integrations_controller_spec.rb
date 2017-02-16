@@ -62,6 +62,19 @@ describe Api::IntegrationsController, :type => :controller do
       expect(json['integration']['id']).to_not eq(nil)
       expect(json['integration']['name']).to eq('test integration')
     end
+    
+    it 'should update an existing integration if already set for user/key pair' do
+      token_user
+      template = UserIntegration.create(template: true, integration_key: 'something_cool', settings: {'icon_url' => 'http://www.example.com/icon.png'})
+      ui = UserIntegration.create(user: @user, template_integration: template)
+      post 'create', params:{'integration' => {'user_id' => @user.global_id, 'name' => 'good stuff', 'integration_key' => 'something_cool'}}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['integration']['id']).to eq(ui.global_id)
+      expect(json['integration']['name']).to eq('good stuff')
+      expect(json['integration']['icon_url']).to eq('http://www.example.com/icon.png')
+      expect(json['integration']['template_key']).to eq('something_cool')
+    end
   end
   
   describe "put 'update'" do

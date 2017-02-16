@@ -1514,4 +1514,36 @@ describe Api::UsersController, :type => :controller do
       expect(ui.settings['core_word_list']).to eq({'id' => 'bacon', 'words' => ['a', 'b', 'c']})
     end
   end
+  
+  describe "protected_image" do
+    it 'should not require an access token' do
+      get 'protected_image', params: {'user_id' => 'asdf', 'library' => 'whatever', 'image_id' => '123'}
+      expect(response).to be_redirect
+    end
+    
+    it 'should redirect without a valid user' do
+      get 'protected_image', params: {'user_id' => 'asdf', 'library' => 'whatever', 'image_id' => '123'}
+      expect(response).to be_redirect
+      expect(response.location).to eq('http://test.host/images/square.svg')
+    end
+    
+    it 'should redirect if no match found' do
+      u = User.create
+      expect(Uploader).to receive(:found_image_url).with('123', 'good_library', u).and_return(nil).at_least(1).times
+      get 'protected_image', params: {'user_id' => u.global_id, 'user_token' => u.user_token, 'library' => 'good_library', 'image_id' => '123'}
+      expect(response).to be_redirect
+      expect(response.location).to eq('http://test.host/images/error.png')
+    end
+    
+    it 'should return the correct search result' do
+      u = User.create
+      expect(Uploader).to receive(:found_image_url).with('123', 'good_library', u).and_return('http://www.example.com/pic.png')
+      res = OpenStruct.new(headers: {'Content-Type' => 'image/png', body: 'asdf'})
+      expect(Typhoeus).to receive(:get).with('http://www.example.com/pic.png').and_return(res)
+      get 'protected_image', params: {'user_id' => u.global_id, 'user_token' => u.user_token, 'library' => 'good_library', 'image_id' => '123'}
+      expect(response).to be_success
+      expect(response.headers['Content-Type']).to eq('image/png')
+      expect(response.headers['Content-Disposition']).to eq('inline')
+    end
+  end
 end

@@ -36,6 +36,7 @@ class Api::SearchController < ApplicationController
         'author' => item['license']['author_name'],
         'author_url' => item['license']['author_url'],
         'source_url' => item['license']['source_url'],
+        'copyright_notice_url' => item['license']['copyright_notice_url']
       }
     end
     render json: formatted.to_json
