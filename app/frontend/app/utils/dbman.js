@@ -18,6 +18,22 @@ var console_debug = function(str) {
     console.log(str);
   }
 };
+var log_timing = function() {
+  var start = (new Date()).getTime();
+  var args = [];
+  for(var idx = 0; idx < arguments.length; idx++) { args.push(arguments[idx]); }
+  if(capabilities.log_events) {
+    console.log.apply(null, args);
+  }
+  var done = function() {
+    var end = (new Date()).getTime();
+    args.unshift(end - start);
+    if(capabilities.log_events) {
+      console.debug.apply(null, args);
+    }
+  };
+  return done;
+}
 
 var dbman = {
   not_ready: function(method, options, promise) {
@@ -164,7 +180,7 @@ var dbman = {
 
   // Stuff under here exposes internals
   find_one_internal: function(store, key, success, error) {
-    if(capabilities.loggy) { console.debug("find one " + store + " " + key); }
+    var done = log_timing('find_one', store, key);
     success = success || capabilities.dbman.success;
     error = error || capabilities.dbman.error;
 
@@ -187,12 +203,15 @@ var dbman = {
       res.onsuccess = function(event) {
         var record = event.target.result;
         if(record) {
+          done();
           success(record);
         } else {
+          done();
           error({error: "no record found for " + store + ":" + key});
         }
       };
       res.onerror = function() {
+        done();
         error({error: "error retrieving record from db"});
       };
     } else if(dbman.db_type == 'sqlite_plugin') {
@@ -210,20 +229,24 @@ var dbman = {
           } catch(e) { }
         }
         if(result) {
+          done();
           success(result);
         } else {
+          done();
           error({error: "no record found for " + store + ":" + key});
         }
       }, function(err) {
+        done();
         console.log(err);
         error({error: err.message});
       });
     } else {
+      done();
       error({error: "unrecognized db_type, " + dbman.db_type});
     }
   },
   find_all_internal: function(store, index, key, success, error) {
-    if(capabilities.loggy) { console.debug("find_all " + store, index, key); }
+    var done = log_timing('find_all', store, index, key);
     var keys = {};
     if(key && key.forEach) {
       key.forEach(function(k) { keys[k] = true; });
@@ -248,10 +271,12 @@ var dbman = {
           }
           cursor.continue();
         } else {
+          done();
           success(list);
         }
       };
       res.onerror = function() {
+        done();
         error({error: "error retrieving records from db for " + store});
       };
     } else if(dbman.db_type == 'sqlite_plugin') {
@@ -271,6 +296,7 @@ var dbman = {
             }
           }
         });
+        done();
         success(list);
       };
       var store_name = null;
@@ -299,14 +325,16 @@ var dbman = {
         }
         handle_rows(list);
       }, function(err) {
+        done();
         error({error: err.message});
       });
     } else {
+      done();
       error({error: "unrecognized db_type, " + dbman.db_type});
     }
   },
   store_internal: function(store, record, success, error) {
-    if(capabilities.loggy) { console.debug("store " + store, record); }
+    var done = log_timing('store', store, record);
     if(dbman.db_type == 'indexeddb') {
       var transaction = capabilities.db.transaction([store], 'readwrite');
       try {
@@ -325,28 +353,34 @@ var dbman = {
       dbman.db.executeSql('SELECT * FROM ' + store_name + ' WHERE ref_id=?', [ref_id], function(result_set) {
         if(result_set.rows && result_set.rows.length > 0) {
           dbman.db.executeSql('UPDATE ' + store_name + ' SET data = ? WHERE ref_id=?', [JSON.stringify(record), ref_id], function() {
+            done();
             success(record);
           }, function(err) {
             console.log(err);
+            done();
             error({error: err.message});
           });
         } else {
           dbman.db.executeSql('INSERT INTO ' + store_name + ' (ref_id, data) VALUES (?, ?)', [ref_id, JSON.stringify(record)], function() {
+            done();
             success(record);
           }, function(err) {
+            done();
             console.log(err);
             error({error: err.message});
           });
         }
       }, function(err) {
+        done();
         error({error: err.message});
       });
     } else {
+      done();
       error({error: "unrecognized db_type, " + dbman.db_type});
     }
   },
   remove_internal: function(store, id, success, error) {
-    if(capabilities.loggy) { console.debug("remove " + store + " id"); }
+    var done = log_timing('remove', store, id);
     if(dbman.db_type == 'indexeddb') {
       var transaction = capabilities.db.transaction([store], 'readwrite');
       try {
@@ -355,9 +389,11 @@ var dbman = {
           if(capabilities.dbman.deletes) {
             capabilities.dbman.deletes.push({id: id});
           }
+          done();
           success({id: id});
         };
         res.onerror = function(event) {
+          done();
           error({error: "error removing record in db"});
         };
       } catch(e) { debugger; }
@@ -365,24 +401,29 @@ var dbman = {
       var store_name = null;
       if(stores[store]) { store_name = store; }
       dbman.db.executeSql('DELETE FROM ' + store_name + ' WHERE ref_id=?', [id], function() {
+        done();
         success({id: id});
       }, function(err) {
+        done();
         error({error: err.message});
         console.log(err);
       });
     } else {
+      done();
       error({error: "unrecognized db_type, " + dbman.db_type});
     }
   },
   clear_internal: function(store, success, error) {
-    if(capabilities.loggy) { console.debug("clear " + store); }
+    var done = log_timing('clear', store);
     if(dbman.db_type == 'indexeddb') {
       var transaction = capabilities.db.transaction([store], 'readwrite');
       var res = transaction.objectStore(store).clear();
       res.onsuccess = function(event) {
+        done();
         success({store: store});
       };
       res.onerror = function() {
+        done();
         error({error: "error clearing store"});
       };
     } else if(dbman.db_type == 'sqlite_plugin') {
@@ -391,12 +432,15 @@ var dbman = {
         if(stores[store]) { store_name = store; }
         tx.executeSql('DELETE FROM ' + store_name, []);
       }, function(err) {
+        done();
         console.log(err);
         error({error: err.message});
       }, function() {
+        done();
         success({store: store});
       });
     } else {
+      done();
       error({error: "unrecognized db_type, " + dbman.db_type});
     }
   },

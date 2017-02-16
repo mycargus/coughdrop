@@ -959,7 +959,9 @@ var persistence = Ember.Object.extend({
         // (needs to also support s3 uploading for locally-saved images/sounds)
         // (needs to be smart about handling conflicts)
         // http://www.cs.tufts.edu/~nr/pubs/sync.pdf
-        sync_promises.push(persistence.sync_changed());
+        if(persistence.get('sync_progress.root_user') == user_id) {
+          sync_promises.push(persistence.sync_changed());
+        }
 
         var importantIds = [];
 
@@ -1555,7 +1557,6 @@ var persistence = Ember.Object.extend({
   },
   sync_changed: function() {
     return new Ember.RSVP.Promise(function(resolve, reject) {
-      return resolve();
       var changed = persistence.find_changed().then(null, function() {
         reject({error: "failed to retrieve list of changed records"});
       });
