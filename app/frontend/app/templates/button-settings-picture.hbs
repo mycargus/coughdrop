@@ -5,11 +5,11 @@
       {{input id='find_picture' value=model.image_field enter="find_picture" placeholder="URL or search term" class="form-control inline"}}
     </span>
     <button type="button" class='btn btn-default' {{action "find_picture"}}>{{t "Search" key='search'}}</button>
-    <button type="button" {{action "webcamPicture" on="click"}} disabled={{webcam_unavailable}} class="btn btn-default">
+    <button type="button" {{action "webcamPicture" on="click"}} disabled={{webcam_unavailable}} class="btn btn-default" style='width: 42px; height: 34px; overflow: hidden;'>
       <img src="{{path 'images/camera.svg'}}" style="height: 42px; margin: -13px;" alt="take a picture"/>
     </button>
     <span class="file_select_holder">
-      <button type="button" class='btn btn-default'>
+      <button type="button" class='btn btn-default' style='width: 44px; height: 34px; overflow: hidden;'>
         <img src="{{path 'images/upload.svg'}}" style="height: 30px; margin: -10px -6px -6px;" alt="upload"/>
       </button>
       <input type="file" name="image_upload" id="image_upload" accept="image/*"/>
