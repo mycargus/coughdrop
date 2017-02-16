@@ -340,9 +340,11 @@ var dbman = {
       try {
         var res = transaction.objectStore(store).put(record);
         res.onsuccess = function(event) {
+          done();
           success(record);
         };
         res.onerror = function(event) {
+          done();
           error({error: "error storing record in db"});
         };
       } catch(e) { debugger; }
