@@ -1202,7 +1202,7 @@ var persistence = Ember.Object.extend({
     defer.callback = method;
     persistence.sync_actions = persistence.sync_actions || [];
     persistence.sync_actions.push(defer);
-    var threads = capabilities.mobile ? 2 : 6;
+    var threads = capabilities.mobile ? 2 : 4;
     for(var idx = 0; idx < threads; idx++) {
       var timer = 'timer' + idx;
       if(!persistence['sync_action_' + timer]) {
