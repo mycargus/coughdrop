@@ -1555,6 +1555,7 @@ var persistence = Ember.Object.extend({
   },
   sync_changed: function() {
     return new Ember.RSVP.Promise(function(resolve, reject) {
+      return resolve();
       var changed = persistence.find_changed().then(null, function() {
         reject({error: "failed to retrieve list of changed records"});
       });
