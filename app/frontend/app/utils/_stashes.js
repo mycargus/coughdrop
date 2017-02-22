@@ -378,8 +378,10 @@ var stashes = Ember.Object.extend({
     var timestamp = stashes.current_timestamp();
     // Remove from local store and persist occasionally
     var diff = (usage_log && usage_log[0] && usage_log[0].timestamp) ? (timestamp - usage_log[0].timestamp) : -1;
+    // If log pushes have been failing, don't keep trying on every button press
+    var wait_on_error = stashes.errored_at && stashes.errord_at > 10 && (timestamp - stashes.errored_at) > (2 * 60);
     // TODO: add listener on persistence.online and trigger this log save stuff when reconnected
-    if(CoughDrop.session && CoughDrop.session.get('isAuthenticated') && stashes.get('online') && usage_log.length > 0) {
+    if(CoughDrop.session && CoughDrop.session.get('isAuthenticated') && stashes.get('online') && usage_log.length > 0 && !wait_on_error) {
       // If there's more than 10 events, or it's been more than 1 hour
       // since the last recorded event.
       if(usage_log.length > 10 || diff == -1 || diff > (60 * 60 * 1000) || !only_if_convenient) {
@@ -394,6 +396,7 @@ var stashes = Ember.Object.extend({
         });
         log.cleanup();
         log.save().then(function() {
+          stashes.errored_at = null;
           if(for_later.length > 0) {
             Ember.run.later(function() {
               stashes.push_log();
@@ -402,9 +405,16 @@ var stashes = Ember.Object.extend({
           // success!
         }, function(err) {
           // error, try again later
+          if(!stashes.errored_at || stashes.errored_at <= 2) {
+//             stashes.persist('usage_log', to_persist.concat(stashes.get('usage_log')));
+            stashes.errored_at = (stashes.errored_at || 0) + 1;
+          } else {
+//             stashes.set('big_logs', (stashes.get('big_logs') || []).concat([to_persist]));
+            stashes.errored_at = stashes.current_timestamp();
+          }
           console.log(err);
           console.error("log push failed");
-          stashes.persist('usage_log', history.concat(stashes.get('usage_log')));
+          stashes.persist('usage_log', to_persist.concat(stashes.get('usage_log')));
         });
       }
     }

@@ -426,6 +426,165 @@ describe('stashes', function() {
         expect(stashes.get('usage_log').length).toEqual(0);
       });
     });
+
+    it("should restore the original log list when a push fails, even with a large log list", function() {
+      stashes.set('logging_enabled', true);
+      stashes.set('speaking_user_id', 999);
+      var log = [];
+      for(var idx = 0; idx < 500; idx++) {
+        log.push({
+          timestamp: idx,
+          type: 'action',
+          action: {}
+        });
+      }
+      stashes.persist('usage_log', log);
+      queryLog.defineFixture({
+        method: 'POST',
+        type: 'log',
+        response: Ember.RSVP.reject(''),
+        compare: function(object) {
+          return object.get('events').length == 251;
+        }
+      });
+      CoughDrop.session = Ember.Object.create({'user_name': 'bob', 'isAuthenticated': true});
+      var logs = queryLog.length;
+      expect(stashes.get('usage_log').length).toEqual(500);
+      stashes.log({action: 'jump'});
+      expect(stashes.get('usage_log').length).toEqual(251);
+
+      waitsFor(function() { return queryLog.length > logs; });
+      runs(function() {
+        expect(stashes.get('usage_log').length).toEqual(501);
+        // check the timestamps, to make sure it's in the right order
+        var list = stashes.get('usage_log');
+        for(var idx = 0; idx < 500; idx++) {
+          expect(list[idx].timestamp).toEqual(idx);
+        }
+        var req = queryLog[queryLog.length - 1];
+        expect(req.method).toEqual('POST');
+        expect(req.simple_type).toEqual('log');
+      });
+    });
+
+    it("should stop trying to push logs after failing a few times in a row", function() {
+      stashes.set('logging_enabled', true);
+      stashes.set('speaking_user_id', 999);
+      stashes.errored_at = null;
+      var log = [];
+      for(var idx = 0; idx < 500; idx++) {
+        log.push({
+          timestamp: idx,
+          type: 'action',
+          action: {}
+        });
+      }
+      stashes.persist('usage_log', log);
+      var attempts = 0;
+      queryLog.defineFixture({
+        method: 'POST',
+        type: 'log',
+        response: Ember.RSVP.reject(''),
+        compare: function(object) {
+          attempts++;
+          return object.get('events').length == 251;
+        }
+      });
+      CoughDrop.session = Ember.Object.create({'user_name': 'bob', 'isAuthenticated': true});
+      var logs = queryLog.length;
+      expect(stashes.get('usage_log').length).toEqual(500);
+      stashes.push_log();
+      expect(stashes.get('usage_log').length).toEqual(250);
+
+      waitsFor(function() { return attempts == 1; });
+      runs(function() {
+        expect(stashes.get('usage_log').length).toEqual(500);
+        expect(stashes.errored_at).toEqual(1);
+        var req = queryLog[queryLog.length - 1];
+        expect(req.method).toEqual('POST');
+        expect(req.simple_type).toEqual('log');
+        stashes.push_log();
+      });
+
+      waitsFor(function() { return attempts == 2; });
+      runs(function() {
+        expect(stashes.get('usage_log').length).toEqual(500);
+        expect(stashes.errored_at).toEqual(2);
+        var req = queryLog[queryLog.length - 1];
+        expect(req.method).toEqual('POST');
+        expect(req.simple_type).toEqual('log');
+        stashes.push_log();
+      });
+
+      waitsFor(function() { return attempts == 3; });
+      runs(function() {
+        expect(stashes.get('usage_log').length).toEqual(500);
+        expect(stashes.errored_at).toEqual(3);
+        var req = queryLog[queryLog.length - 1];
+        expect(req.method).toEqual('POST');
+        expect(req.simple_type).toEqual('log');
+        stashes.push_log();
+      });
+      var now = (new Date()).getTime() / 1000;
+      var pushed = false;
+
+      waitsFor(function() { return attempts == 4; });
+      runs(function() {
+        expect(stashes.get('usage_log').length).toEqual(500);
+        expect(stashes.errored_at > now).toEqual(true);
+        var req = queryLog[queryLog.length - 1];
+        expect(req.method).toEqual('POST');
+        expect(req.simple_type).toEqual('log');
+        stashes.push_log();
+        Ember.run.later(function() {
+          pushed = true;
+        }, 200);
+      });
+
+      waitsFor(function() { return pushed; });
+      runs(function() {
+        expect(attempts).toEqual(4);
+      });
+    });
+
+    it("should clear errored when successfully pushing a log", function() {
+      stashes.errored_at = (new Date()).getTime() / 1000;
+      stashes.persist('usage_log', [{
+        timestamp: 0,
+        type: 'action',
+        action: {}
+      }]);
+      var pushes = 0;
+      queryLog.defineFixture({
+        method: 'POST',
+        type: 'log',
+        response: Ember.RSVP.resolve({log: {id: 125}}),
+        compare: function(object) {
+          pushes++;
+          return true;
+        }
+      });
+
+      stashes.push_log();
+      var pushed = false;
+      Ember.run.later(function() { pushed = true; }, 200);
+      waitsFor(function() { return pushed; });
+      runs(function() {
+        expect(pushes).toEqual(0);
+        expect(stashes.errored_at > 0).toEqual(true);
+        stashes.errored_at = ((new Date()).getTime() / 1000) - (3 * 60);
+        stashes.push_log();
+      });
+
+      waitsFor(function() { return pushes == 1; })
+      runs(function() {
+        expect(stashes.errored_at).toEqual(null);
+      });
+    });
+
+    it("should store logs in the db if they get too big and are failing to be pushed", function() {
+      expect('test').toEqual('todo');
+    });
   });
 
   describe("log_event", function() {
