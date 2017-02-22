@@ -18,7 +18,7 @@ module JsonApi::BoardVersion
     
     if version.whodunnit
       if version.whodunnit.match(/^user:/)
-        user_id = version.whodunnit.split(/:/)[1]
+        user_id = version.whodunnit.split(/[:\.]/)[1]
         args[:user_lookups] ||= {}
         user_json = args[:user_lookups][user_id]
         if !user_json

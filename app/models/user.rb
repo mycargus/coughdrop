@@ -895,7 +895,7 @@ class User < ActiveRecord::Base
   
   def replace_board(starting_old_board_id, starting_new_board_id, ids_to_copy=[], update_inline=false, make_public=false, whodunnit=nil)
     prior = PaperTrail.whodunnit
-    PaperTrail.whodunnit = whodunnit if whodunnit
+    PaperTrail.whodunnit = "#{whodunnit}.replace_board #{starting_old_board_id} #{starting_new_board_ids} {#ids_to_copy.to_json} #{update_inline}" if whodunnit
     starting_old_board = Board.find_by_path(starting_old_board_id)
     starting_new_board = Board.find_by_path(starting_new_board_id)
     valid_ids = nil
@@ -913,7 +913,7 @@ class User < ActiveRecord::Base
   
   def copy_board_links(starting_old_board_id, starting_new_board_id, ids_to_copy=[], make_public=false, whodunnit=nil)
     prior = PaperTrail.whodunnit
-    PaperTrail.whodunnit = whodunnit if whodunnit
+    PaperTrail.whodunnit = "#{whodunnit}.copy_board_links #{starting_old_board_id} #{starting_new_board_ids} {#ids_to_copy.to_json}" if whodunnit
     starting_old_board = Board.find_by_path(starting_old_board_id)
     starting_new_board = Board.find_by_path(starting_new_board_id)
     valid_ids = nil
@@ -938,7 +938,7 @@ class User < ActiveRecord::Base
 
   def self.whodunnit_user(whodunnit)
     if whodunnit && whodunnit.match(/^user:/)
-      User.find_by_path(whodunnit.split(/:/)[1])
+      User.find_by_path(whodunnit.split(/[:\.]/)[1])
     else
       nil
     end
