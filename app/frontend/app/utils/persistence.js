@@ -27,6 +27,33 @@ var persistence = Ember.Object.extend({
         persistence.set('last_sync_at', 1);
       });
     });
+    var ignore_big_log_change = false;
+    stashes.addObserver('big_logs', function() {
+      if(coughDropExtras && coughDropExtras.ready && !ignore_big_log_change) {
+        var rnd_key = (new Date()).getTime() + "_" + Math.random();
+        persistence.find('settings', 'bigLogs').then(null, function(err) {
+          return Ember.RSVP.resvole({});
+        }).then(function(res) {
+          res = res || {};
+          res.logs = res.logs || [];
+          var big_logs = (stashes.get('big_logs') || [])
+          big_logs.forEach(function(log) {
+            res.logs.push(log);
+          });
+          ignore_big_log_change = rnd_key;
+          stashes.set('big_logs', []);
+          Ember.run.later(function() { if(ignore_big_log_change == rnd_key) { ignore_big_log_change = null; } }, 100);
+          persistence.store('settings', res, 'bigLogs').then(function(res) {
+          }, function() {
+            rnd_key = rnd_key + "2";
+            var logs = (stashes.get('big_logs') || []).concat(big_logs);
+            ignore_big_log_change = rnd_key;
+            stashes.set('big_logs', logs);
+            Ember.run.later(function() { if(ignore_big_log_change == rnd_key) { ignore_big_log_change = null; } }, 100);
+          });
+        });
+      }
+    });
     if(stashes.get_object('just_logged_in', false) && stashes.get('auth_settings') && !Ember.testing) {
       stashes.persist_object('just_logged_in', null, false);
       Ember.run.later(function() {
@@ -984,6 +1011,9 @@ var persistence = Ember.Object.extend({
         // Step 5: Cache needed sound files
         sync_promises.push(speecher.load_beep());
 
+        // Step 6: Push stored logs
+        sync_promises.push(persistence.sync_logs(user));
+
         // reject on any errors
         Ember.RSVP.all_wait(sync_promises).then(function() {
           // Step 4: If online
@@ -1074,6 +1104,30 @@ var persistence = Ember.Object.extend({
     });
     this.set('sync_promise', sync_promise);
     return sync_promise;
+  },
+  sync_logs: function(user) {
+    return persistence.find('settings', 'bigLogs').then(function(res) {
+      res = res || {};
+      var fails = [];
+      var log_promises = [];
+      (res.logs || []).forEach(function(data) {
+        var log = CoughDrop.store.createRecord('log', {
+          events: data
+        });
+        log.cleanup();
+        log_promises.push(log.save().then(null, function(err) {
+          fails.push(data);
+          return Ember.RSVP.reject({error: 'log failed to save'});
+        });
+      });
+      return Ember.RSVP.all_wait(log_promises).then(function() {
+        return persistence.store('settings', {logs: []}, 'bigLogs');
+      }, function(err) {
+        return persistence.store('settings', {logs: fails}, 'bigLogs');
+      });
+    }, function(err) {
+      return Ember.RSVP.resolve([]);
+    });
   },
   sync_buttons: function(synced_boards) {
     return Ember.RSVP.resolve();
