@@ -10,7 +10,7 @@ module General
 
   module ClassMethods
     def schedule_delivery(delivery_type, *args)
-      Worker.schedule(self, :deliver_message, delivery_type, *args)
+      Worker.schedule_for(:priority, self, :deliver_message, delivery_type, *args)
     end
   
     def deliver_message(method_name, *args)
