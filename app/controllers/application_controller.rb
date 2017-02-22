@@ -70,7 +70,7 @@ class ApplicationController < ActionController::Base
   end
   
   def user_for_paper_trail
-    @api_user ? "user:#{@api_user.global_id}" : "unauthenticated:#{request.remote_ip}"
+    @api_user ? "user:#{@api_user.global_id}.#{params['controller']}.#{params['action']}" : "unauthenticated:#{request.remote_ip}.#{params['controller']}.#{params['action']}"
   end
   
   def replace_helper_params
