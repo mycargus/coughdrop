@@ -65,7 +65,7 @@ export default Ember.Component.extend({
       window_height: Ember.$(window).height(),
     });
 
-    capabilities.eye_gaze.listen();
+    capabilities.eye_gaze.listen('noisy');
 
     var eye_listener = function(e) {
       if(_this.get('user.preferences.device.dwell_type') == 'eyegaze') {
@@ -119,7 +119,7 @@ export default Ember.Component.extend({
     }
   },
   willDestroyElement: function() {
-    capabilities.eye_gaze.listen();
+    capabilities.eye_gaze.stop_listening();
     document.removeEventListener('mousemove', this.get('mouse_listener'));
     document.removeEventListener('gazelinger', this.get('eye_listener'));
     this.set('mouse_listener', null);

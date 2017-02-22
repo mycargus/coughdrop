@@ -121,6 +121,11 @@ var capabilities;
         listen: function() {
         },
         stop_listening: function() {
+        },
+        calibrate: function() {
+        },
+        calibratable: function(cb) {
+          cb(false);
         }
       },
       encrypt: function(obj) {

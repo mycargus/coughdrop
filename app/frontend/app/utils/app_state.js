@@ -501,7 +501,7 @@ var app_state = Ember.Object.extend({
         buttonTracker.dwell_modeling = _this.get('currentUser.preferences.device.dwell_modeling');
         buttonTracker.dwell_gravity = _this.get('currentUser.preferences.device.dwell_gravity');
         if(buttonTracker.dwell_type == 'eyegaze') {
-          capabilities.eye_gaze.listen();
+          capabilities.eye_gaze.listen('noisy');
         }
       } else {
         buttonTracker.dwell_enabled = false;
