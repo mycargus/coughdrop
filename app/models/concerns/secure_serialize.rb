@@ -37,6 +37,15 @@ module SecureSerialize
     true
   end
   
+  def rollback_to(date)
+    version = self.versions.reverse_each.detect{|v| v.created_at < date }
+    raise "no old version found for self.class.to_s:#{self.global_id}" if !version
+    record = self.class.load_version(version) rescue nil
+    raise "version couldn't be loaded" if !record
+    record.instance_variable_set('@buttons_changed', true) if record.is_a?(Board)
+    record.save
+  end
+  
   def persist_secure_object
     self.class.more_before_saves ||= []
     self.class.more_before_saves.each do |method|
