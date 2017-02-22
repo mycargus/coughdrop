@@ -1581,6 +1581,10 @@ var persistence = Ember.Object.extend({
       // also download the latest avatar as a data uri
       var save_avatar = find_user.then(function(user) {
         // is this also a user object? does user = u work??
+        if(!user.get('preferences.ever_synced')) {
+          user.set('preferences.ever_synced', true)
+          user.save();
+        }
         var url = user.get('avatar_url');
         return persistence.store_url(url, 'image');
       });
@@ -1818,6 +1822,9 @@ var persistence = Ember.Object.extend({
         // on mobile, don't auto-sync until 30 seconds after bootup, unless it's never been synced
         // NOTE: the db is keyed to the user, so you'll always have a user-specific last_sync_at
         return false;
+      } else if(!capabilities.installed_app && (persistence.get('never_synced') == true || persistence.get('never_synced') == null)) {
+        // on browsers, don't auto-sync until the user has manually synced at least once
+        return false;
       } else if(synced > 0 && (now - synced) > (48 * 60 * 60) && syncable) {
         // if we haven't synced in 48 hours and we're online, do a background sync
         console.debug('syncing because it has been more than 48 hours');
@@ -1834,6 +1841,7 @@ var persistence = Ember.Object.extend({
               persistence.sync('self').then(null, function() { });
             }
           }, function(err) {
+            // TODO: if error implies no connection, consider marking as offline and checking for stamp more frequently
             if(err && err.result && err.result.invalid_token) {
               if(stashes.get('auth_settings') && !Ember.testing) {
                 if(CoughDrop.session && !CoughDrop.session.get('invalid_token')) {

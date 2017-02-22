@@ -227,6 +227,11 @@ class User < ActiveRecord::Base
     if !FeatureFlags.user_created_after?(self, 'hidden_buttons')
       self.settings['preferences']['hidden_buttons'] = 'hide' if self.settings['preferences']['hidden_buttons'] == nil
     end
+    if FeatuerFlags.user_created_after?(self, 'browser_no_autosync')
+      self.settings['preferences']['ever_synced'] ||= false
+    else
+      self.settings['preferences']['ever_synced'] = true if self.settings['preferences']['ever_synced'] == nil
+    end
     User.preference_defaults['any_user'].each do |attr, val|
       self.settings['preferences'][attr] = val if self.settings['preferences'][attr] == nil
     end
@@ -434,7 +439,7 @@ class User < ActiveRecord::Base
       'canvas_render', 'blank_status', 'share_notifications', 'notification_frequency',
       'skip_supervisee_sync', 'sync_refresh_interval', 'multi_touch_modeling',
       'goal_notifications', 'word_suggestion_images', 'hidden_buttons',
-      'speak_on_speak_mode']
+      'speak_on_speak_mode', 'ever_synced']
 
   PROGRESS_PARAMS = ['setup_done', 'intro_watched', 'profile_edited', 'preferences_edited', 'home_board_set', 'app_added', 'skipped_subscribe_modal']
   def process_params(params, non_user_params)

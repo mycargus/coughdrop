@@ -519,6 +519,11 @@ var app_state = Ember.Object.extend({
       app_state.set('sessionUser', user);
     }, function() { });
   },
+  set_never_synced: function() {
+    var ever_synced = this.get('sessionUser.preferences.ever_synced');
+    if(ever_synced == null) { ever_synced = true; }
+    persistence.set('never_synced', !ever_synced);
+  }.observes('sessionUser.preferences.ever_synced'),
   set_speak_mode_user: function(board_user_id, jump_home, keep_as_self) {
     var session_user_id = this.get('sessionUser.id');
     if(board_user_id == 'self' || (session_user_id && board_user_id == session_user_id)) {
