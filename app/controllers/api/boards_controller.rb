@@ -198,11 +198,12 @@ class Api::BoardsController < ApplicationController
     board = Board.find_by_path(params['board_id'])
     deleted_board = DeletedBoard.find_by_path(params['board_id'])
     return unless exists?(board || deleted_board)
+    allowed = @api_user.allows?(@api_user, 'admin_support_actions')
     if board
-      return unless allowed?(board, 'edit')
+      return unless allowed || allowed?(board, 'edit')
       board_id = board.global_id
     elsif deleted_board && deleted_board.user
-      return unless allowed?(deleted_board.user, 'view_deleted_boards')
+      return unless allowed || allowed?(deleted_board.user, 'view_deleted_boards')
       board_id = deleted_board.board_global_id
     end
     return unless exists?(board_id)
