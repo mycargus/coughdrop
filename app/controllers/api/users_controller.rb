@@ -439,7 +439,7 @@ class Api::UsersController < ApplicationController
     user = User.find_by_path(params['user_id'])
     api_user = User.find_by_token(params['user_token'])
     if !api_user
-      return redirect_to '/images/square.svg'
+      return redirect_to (Uploader.fallback_image_url(params['image_id'], params['library']) || '/images/square.svg')
     end
     users = [user, api_user]
     valid_result = nil
@@ -462,7 +462,7 @@ class Api::UsersController < ApplicationController
     if valid_result
       send_data valid_result.body, :type => valid_result.headers['Content-Type'], :disposition => 'inline'
     else
-      redirect_to '/images/error.png'
+      redirect_to (Uploader.fallback_image_url(params['image_id'], params['library']) || '/images/error.png')
     end
   end
 
