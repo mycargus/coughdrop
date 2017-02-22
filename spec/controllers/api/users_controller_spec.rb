@@ -1526,6 +1526,12 @@ describe Api::UsersController, :type => :controller do
       expect(response).to be_redirect
       expect(response.location).to eq('http://test.host/images/square.svg')
     end
+
+    it 'should redirect to a fallback url if defined' do
+      get 'protected_image', params: {'user_id' => 'asdf', 'library' => 'lessonpix', 'image_id' => '123'}
+      expect(response).to be_redirect
+      expect(response.location).to eq('https://lessonpix.com/drawings/123/100x100/123.png')
+    end
     
     it 'should redirect if no match found' do
       u = User.create
@@ -1533,6 +1539,14 @@ describe Api::UsersController, :type => :controller do
       get 'protected_image', params: {'user_id' => u.global_id, 'user_token' => u.user_token, 'library' => 'good_library', 'image_id' => '123'}
       expect(response).to be_redirect
       expect(response.location).to eq('http://test.host/images/error.png')
+    end
+
+    it 'should redirect if no match found to a fallback url if defined' do
+      u = User.create
+      expect(Uploader).to receive(:found_image_url).with('123', 'lessonpix', u).and_return(nil).at_least(1).times
+      get 'protected_image', params: {'user_id' => u.global_id, 'user_token' => u.user_token, 'library' => 'lessonpix', 'image_id' => '123'}
+      expect(response).to be_redirect
+      expect(response.location).to eq('https://lessonpix.com/drawings/123/100x100/123.png)
     end
     
     it 'should return the correct search result' do

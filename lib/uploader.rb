@@ -148,7 +148,15 @@ module Uploader
     if library == 'lessonpix'
       cred = lessonpix_credentials(user)
       return nil unless cred
-      url = "http://lessonpix.com/apiGetImage.php?pid=#{cred['pid']}&username=#{cred['username']}&token=#{cred['token']}&image_id=#{image_id}&h=300&w=300&fmt=svg"
+      url = "https://lessonpix.com/apiGetImage.php?pid=#{cred['pid']}&username=#{cred['username']}&token=#{cred['token']}&image_id=#{image_id}&h=300&w=300&fmt=svg"
+    else
+      return nil
+    end
+  end
+  
+  def self.fallback_image_url(image_id, library)
+    if library == 'lessonpix'
+      return "https://lessonpix.com/drawings/#{image_id}/100x100/#{image_id}.png"
     else
       return nil
     end
