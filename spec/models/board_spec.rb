@@ -179,6 +179,17 @@ describe Board, :type => :model do
       b.star!(u, true)
       expect(b.id).not_to eq(nil)
     end
+    
+    it "should override whodunnit when star! is called" do
+      PaperTrail.whodunnit = "nunya"
+      u = User.create
+      b = Board.create(user: u)
+      u2 = User.create
+      b.star!(u2, true)
+      expect(b.settings['starred_user_ids']).to eq([u2.global_id])
+      expect(b.versions.length).to eq(2)
+      expect(b.versions.map(&:whodunnit)).to eq(['nunya', 'job:star_user'])
+    end
   end
 
   describe "stars" do

@@ -77,8 +77,12 @@ class Board < ActiveRecord::Base
   end
   
   def star!(user, star)
+    pre_whodunnit = PaperTrail.whodunnit
+    PaperTrail.whodunnit = "job:star_user"
     self.star(user, star)
-    self.save
+    res = self.save
+    PaperTrail.whodunnit = pre_whodunnit
+    res
   end
   
   def button_set_id
