@@ -509,6 +509,18 @@
     </div>
   </div>
 {{/if}}
+<div class="form-group">
+  <label for="auto_sync" class="col-sm-3 control-label">{{t "Auto-Sync" key='auto_sync'}}</label>
+  <div class="col-sm-5">
+    <div class="checkbox">
+      <label>
+        {{input type="checkbox" checked=model.preferences.device.auto_sync id="auto_sync"}}
+        {{t "Automatically Sync if online and there are changes to boards" key='auto_sync_if_changes_and_online'}}
+      </label>
+    </div>
+  </div>
+</div>
+
 {{#if wakelock_capable}}
   <div class="form-group">
     <label for="wakelock" class="col-sm-3 control-label">{{t "Screen Wake" key='screen_wake'}}</label>

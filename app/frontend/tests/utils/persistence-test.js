@@ -2053,6 +2053,7 @@ describe("persistence", function() {
       persistence.set('last_sync_stamp', null);
       persistence.set('last_sync_at', null);
       persistence.set('syncing', null);
+      persistence.set('auto_sync', true);
     });
     afterEach(function() {
       persistence.set('last_sync_stamp_check', null);
@@ -2094,6 +2095,7 @@ describe("persistence", function() {
     });
 
     it("should sync if force is true", function() {
+      coughDropExtras.ready = true;
       stub(session, 'restore', function() { });
       persistence.set('online');
       stub(persistence, 'sync', function() {
@@ -2286,8 +2288,8 @@ describe("persistence", function() {
       });
     });
 
-    it("should not auto-sync if never_synced is set to true", function() {
-      persistence.set('never_synced', true);
+    it("should not auto-sync if auto_sync is set to false", function() {
+      persistence.set('auto_sync', false);
 
       var sync_called = false;
       stub(persistence, 'sync', function() {
@@ -2303,11 +2305,11 @@ describe("persistence", function() {
       var res = persistence.check_for_needs_sync(true);
       expect(res).toEqual(false);
 
-      persistence.set('never_synced', null);
+      persistence.set('auto_sync', null);
       var res = persistence.check_for_needs_sync(true);
       expect(res).toEqual(false);
 
-      persistence.set('never_synced', false);
+      persistence.set('auto_sync', true);
       var res = persistence.check_for_needs_sync(true);
       expect(res).toEqual(true);
     });

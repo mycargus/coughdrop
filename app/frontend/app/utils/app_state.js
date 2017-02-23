@@ -519,13 +519,15 @@ var app_state = Ember.Object.extend({
       app_state.set('sessionUser', user);
     }, function() { });
   },
-  set_never_synced: function() {
-    var ever_synced = this.get('sessionUser.preferences.device.ever_synced');
-    if(ever_synced == null) { ever_synced = true; }
-    if(window.persistence) {
-      window.persistence.set('never_synced', !ever_synced);
+  set_auto_synced: function() {
+    var auto_sync = this.get('sessionUser.auto_sync');
+    if(auto_sync == null) {
+      auto_sync = !!capabilities.installed_app;
     }
-  }.observes('sessionUser.preferences.device.ever_synced'),
+    if(window.persistence) {
+      window.persistence.set('auto_sync', auto_sync);
+    }
+  }.observes('sessionUser', 'sessionUser.auto_sync'),
   set_speak_mode_user: function(board_user_id, jump_home, keep_as_self) {
     var session_user_id = this.get('sessionUser.id');
     if(board_user_id == 'self' || (session_user_id && board_user_id == session_user_id)) {

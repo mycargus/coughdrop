@@ -3,6 +3,7 @@ import DS from 'ember-data';
 import CoughDrop from '../app';
 import speecher from '../utils/speecher';
 import persistence from '../utils/persistence';
+import capabilities from '../utils/capabilities';
 import Utils from '../utils/misc';
 
 CoughDrop.User = DS.Model.extend({
@@ -309,6 +310,23 @@ CoughDrop.User = DS.Model.extend({
       this.set('preferences.speak_mode_pin', new_pin);
     }
   }.observes('preferences.speak_mode_pin'),
+  auto_sync: function() {
+    var ever_synced = this.get('preferences.device.ever_synced');
+    var auto_sync = this.get('preferences.device.auto_sync');
+    if(auto_sync === true || auto_sync === false) {
+      return auto_sync;
+    } else {
+      if(capabilities.installed_app) {
+        return true;
+      } else if(ever_synced === true) {
+        return true;
+      } else if(ever_synced === false) {
+        return false;
+      } else if(ever_synced == null) {
+        return true;
+      }
+    }
+  }.property('preferences.device.auto_sync', 'preferences.device.ever_synced'),
   load_more_supervision: function() {
     var _this = this;
     if(this.get('load_all_connections') && !this.get('all_connections.loaded')) {

@@ -1884,7 +1884,7 @@ var persistence = Ember.Object.extend({
         // on mobile, don't auto-sync until 30 seconds after bootup, unless it's never been synced
         // NOTE: the db is keyed to the user, so you'll always have a user-specific last_sync_at
         return false;
-      } else if(!capabilities.installed_app && (persistence.get('never_synced') === true || persistence.get('never_synced') == null)) {
+      } else if(persistence.get('auto_sync') === false || persistence.get('auto_sync') == null) {
         // on browsers, don't auto-sync until the user has manually synced at least once
         return false;
       } else if(synced > 0 && (now - synced) > (48 * 60 * 60) && syncable) {

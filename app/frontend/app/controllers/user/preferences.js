@@ -122,6 +122,11 @@ export default Ember.Controller.extend({
   title: function() {
     return "Preferences for " + this.get('model.user_name');
   }.property('model.user_name'),
+  set_auto_sync: function() {
+    if(this.get('model.preferences.device')) {
+      this.set('model.preferences.device.auto_sync', this.get('model.auto_sync'));
+    }
+  }.observes('model.id', 'model.auto_sync'),
   check_core_words: function() {
     var _this = this;
     _this.set('core_lists', {loading: true});

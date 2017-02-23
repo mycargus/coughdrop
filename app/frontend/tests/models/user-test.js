@@ -5,6 +5,7 @@ import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } fro
 import { } from 'frontend/tests/helpers/ember_helper';
 import CoughDrop from '../../app';
 import speecher from '../../utils/speecher';
+import capabilities from '../../utils/capabilities';
 import persistence from '../../utils/persistence';
 import Utils from '../../utils/misc';
 
@@ -756,6 +757,31 @@ describe('User', function() {
       runs(function() {
         expect(error).toEqual({error: 'no matching integration found'});
       });
+    });
+  });
+
+  describe('auto_sync', function() {
+    it('should set the right values', function() {
+      var u = CoughDrop.store.createRecord('user');
+      capabilities.installed_app = true;
+      expect(u.get('auto_sync')).toEqual(true);
+      capabilities.installed_app = false;
+      expect(u.get('auto_sync')).toEqual(true);
+      u.set('preferences', {device: {'ever_synced': false}});
+      expect(u.get('auto_sync')).toEqual(false);
+      u.set('preferences.device.ever_synced', true);
+      expect(u.get('auto_sync')).toEqual(true);
+
+      capabilities.installed_app = true;
+      u.set('preferences.device.ever_synced', false);
+      expect(u.get('auto_sync')).toEqual(true);
+
+      u.set('preferences.device.auto_sync', false);
+      expect(u.get('auto_sync')).toEqual(false);
+      u.set('preferences.device.auto_sync', true);
+      expect(u.get('auto_sync')).toEqual(true);
+      u.set('preferences.device.ever_synced', false);
+      expect(u.get('auto_sync')).toEqual(true);
     });
   });
 });

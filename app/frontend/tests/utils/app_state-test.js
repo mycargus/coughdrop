@@ -1995,37 +1995,54 @@ describe('app_state', function() {
     });
   });
 
-  describe('never_synced', function() {
+  describe('auto_sync', function() {
     it('should set the value correctly', function() {
       stub(window, 'persistence', persistence);
-      persistence.set('never_synced', false);
-      app_state.set('sessionUser', Ember.Object.create({preferences: {device: {ever_synced: false}}}));
+      persistence.set('auto_sync', null);
+      capabilities.installed_app = false;
+      var u = CoughDrop.store.createRecord('user');
+      u.set('preferences', {device: {ever_synced: false}});
+      expect(u.get('auto_sync')).toEqual(false);
+      app_state.set('sessionUser', u);
 
       var round = 0;
-      waitsFor(function() { return persistence.get('never_synced') === true; });
+      waitsFor(function() { return persistence.get('auto_sync') === false; });
       runs(function() {
         expect(round).toEqual(0);
         round = 1;
-        app_state.set('sessionUser', Ember.Object.create({preferences: {device: {ever_synced: null}}}));
+        capabilities.installed_app = true;
+        app_state.set('sessionUser.preferences.device.ever_synced', null);
+        expect(u.get('auto_sync')).toEqual(true);
       });
 
-      waitsFor(function() { return round == 1 && persistence.get('never_synced') === false; });
+      waitsFor(function() { return round == 1 && persistence.get('auto_sync') === true; });
       runs(function() {
         expect(round).toEqual(1);
         round = 2;
-        app_state.set('sessionUser', Ember.Object.create({preferences: {device: {ever_synced: false}}}));
+        capabilities.installed_app = false;
+        app_state.set('sessionUser.preferences.device.ever_synced', false);
+        expect(u.get('auto_sync')).toEqual(false);
       });
 
-      waitsFor(function() { return round == 2 && persistence.get('never_synced') === true; });
+      waitsFor(function() { return round == 2 && persistence.get('auto_sync') === false; });
       runs(function() {
         expect(round).toEqual(2);
         round = 3;
-        app_state.set('sessionUser', Ember.Object.create({preferences: {device: {ever_synced: true}}}));
+        app_state.set('sessionUser.preferences.device.ever_synced', true);
+        expect(u.get('auto_sync')).toEqual(true);
+        app_state.set_auto_synced();
       });
 
-      waitsFor(function() { return round == 3 && persistence.get('never_synced') === false; });
+      waitsFor(function() { return round == 3 && persistence.get('auto_sync') === true; });
       runs(function() {
         expect(round).toEqual(3);
+        round = 4;
+        app_state.set('sessionUser', {});
+      });
+
+      waitsFor(function() { return round == 4 && persistence.get('auto_sync') === false; });
+      runs(function() {
+        expect(round).toEqual(4);
       });
     });
   });
