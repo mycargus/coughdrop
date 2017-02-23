@@ -571,7 +571,7 @@ describe UserGoal, type: :model do
       expect(g.settings['template_id']).to eq(template.global_id)
       expect(g.settings['description']).to eq('this is a really important thing')
       expect(g.summary).to eq('hey ya')
-      expect(g.advance_at.to_i).to eq((Time.now + 3.weeks).to_i)
+      expect(g.advance_at.to_i).to eq((Time.now + 3.weeks.to_i).to_i)
       expect(g.settings['author_id']).to eq(u.global_id)
       expect(g.settings['video']).to eq({'id' => '1_123'})
       expect(g.active).to eq(true)
@@ -598,7 +598,7 @@ describe UserGoal, type: :model do
       expect(g.settings['template_id']).to eq(template.global_id)
       expect(g.settings['description']).to eq('this is a really important thing')
       expect(g.summary).to eq('hey ya')
-      expect(g.advance_at.to_i).to eq((Time.now + 3.weeks).to_i)
+      expect(g.advance_at.to_i).to eq((Time.now + 3.weeks.to_i).to_i)
       expect(g.settings['author_id']).to eq('12345')
       expect(g.settings['video']).to eq({'id' => '1_123'})
       expect(g.active).to eq(true)
@@ -731,7 +731,7 @@ describe UserGoal, type: :model do
       expect(g2.settings['description']).to eq('do stuff')
       expect(g2.settings['video']).to eq({'id' => '1212'})
       expect(g2.settings['prior_goal_id']).to eq(g1.global_id)
-      expect(g2.advance_at.to_i).to eq((Time.now + 3.weeks).to_i)
+      expect(g2.advance_at.to_i).to eq((Time.now + 3.weeks.to_i).to_i)
       g2.advance_at = 2.hours.ago
       
       res = g2.advance!

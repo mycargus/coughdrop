@@ -4,7 +4,7 @@ describe UserMailer, :type => :mailer do
   describe "schedule_delivery" do
     it "should schedule deliveries" do
       UserMailer.schedule_delivery('confirm_registration', 4)
-      expect(Worker.scheduled?(UserMailer, :deliver_message, 'confirm_registration', 4)).to eq(true)
+      expect(Worker.scheduled_for?('priority', UserMailer, :deliver_message, 'confirm_registration', 4)).to eq(true)
     end
   end
   

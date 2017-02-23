@@ -894,8 +894,8 @@ describe UserBadge, type: :model do
        Worker.process_queues
        expect(Worker.scheduled?(Webhook, 'notify_all_with_code', b.record_code, 'badge_awarded', nil)).to eq(true)
        Worker.process_queues
-       expect(Worker.scheduled?(UserMailer, 'deliver_message', 'badge_awarded', u.global_id, b.global_id)).to eq(true)
-       expect(Worker.scheduled?(UserMailer, 'deliver_message', 'badge_awarded', u2.global_id, b.global_id)).to eq(true)
+       expect(Worker.scheduled_for?('priority', UserMailer, 'deliver_message', 'badge_awarded', u.global_id, b.global_id)).to eq(true)
+       expect(Worker.scheduled_for?('priority', UserMailer, 'deliver_message', 'badge_awarded', u2.global_id, b.global_id)).to eq(true)
        expect(u.reload.settings['user_notifications']).to_not eq(nil)
        expect(u.settings['user_notifications'][-1]['type']).to eq('badge_awarded')
        expect(u.settings['user_notifications'][-1]['badge_name']).to eq('Unnamed Badge')
@@ -920,7 +920,7 @@ describe UserBadge, type: :model do
        Worker.process_queues
        expect(Worker.scheduled?(Webhook, 'notify_all_with_code', b.record_code, 'badge_awarded', nil)).to eq(true)
        Worker.process_queues
-       expect(Worker.scheduled?(UserMailer, 'deliver_message', 'badge_awarded', u.global_id, b.global_id)).to eq(true)
+       expect(Worker.scheduled_for?('priority', UserMailer, 'deliver_message', 'badge_awarded', u.global_id, b.global_id)).to eq(true)
        expect(u.reload.settings['user_notifications']).to_not eq(nil)
        expect(u.settings['user_notifications'][-1]['type']).to eq('badge_awarded')
        expect(u.settings['user_notifications'][-1]['badge_name']).to eq('Unnamed Badge')
@@ -942,7 +942,7 @@ describe UserBadge, type: :model do
        Worker.process_queues
        expect(Worker.scheduled?(Webhook, 'notify_all_with_code', b.record_code, 'badge_awarded', nil)).to eq(true)
        Worker.process_queues
-       expect(Worker.scheduled?(UserMailer, 'deliver_message', 'badge_awarded', u.global_id, b.global_id)).to eq(false)
+       expect(Worker.scheduled_for?('priority', UserMailer, 'deliver_message', 'badge_awarded', u.global_id, b.global_id)).to eq(false)
        expect(u.reload.settings['user_notifications']).to_not eq(nil)
        expect(u.settings['user_notifications'][-1]['type']).to eq('badge_awarded')
        expect(u.settings['user_notifications'][-1]['badge_name']).to eq('Unnamed Badge')
@@ -963,7 +963,7 @@ describe UserBadge, type: :model do
        Worker.process_queues
        expect(Worker.scheduled?(Webhook, 'notify_all_with_code', b.record_code, 'badge_awarded', nil)).to eq(true)
        Worker.process_queues
-       expect(Worker.scheduled?(UserMailer, 'deliver_message', 'badge_awarded', u.global_id, b.global_id)).to eq(true)
+       expect(Worker.scheduled_for?('priority', UserMailer, 'deliver_message', 'badge_awarded', u.global_id, b.global_id)).to eq(true)
        expect(u.reload.settings['user_notifications']).to_not eq(nil)
        expect(u.settings['user_notifications'][-1]['type']).to eq('badge_awarded')
        expect(u.settings['user_notifications'][-1]['badge_name']).to eq('Unnamed Badge')

@@ -391,7 +391,7 @@ describe Uploader do
         'pid' => 'qwert',
         'token' => 'tokenss'
       })
-      expect(Uploader.found_image_url('asdf', 'lessonpix', u)).to eq("http://lessonpix.com/apiGetImage.php?pid=qwert&username=amelia&token=tokenss&image_id=asdf&h=300&w=300&fmt=svg")
+      expect(Uploader.found_image_url('asdf', 'lessonpix', u)).to eq("https://lessonpix.com/apiGetImage.php?pid=qwert&username=amelia&token=tokenss&image_id=asdf&h=300&w=300&fmt=svg")
       
       expect(Uploader).to receive(:lessonpix_credentials).with(nil).and_return(nil)
       expect(Uploader.found_image_url('qwer', 'lessonpix', nil)).to eq(nil)

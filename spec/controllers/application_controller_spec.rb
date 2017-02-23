@@ -26,7 +26,7 @@ describe ApplicationController, :type => :controller do
       u = User.create
       d = Device.create(:user => u)
       get :index, params: {:access_token => d.token, :check_token => true}
-      expect(PaperTrail.whodunnit).to eq("user:#{u.global_id}")
+      expect(PaperTrail.whodunnit).to eq("user:#{u.global_id}.anonymous.index")
     end
     
     it "should check for the token as a query parameter" do
@@ -136,12 +136,12 @@ describe ApplicationController, :type => :controller do
       u = User.create
       d = Device.create(:user => u)
       get :index, params: {:access_token => d.token, :check_token => true}
-      expect(controller.user_for_paper_trail).to eq("user:#{u.global_id}")
+      expect(controller.user_for_paper_trail).to eq("user:#{u.global_id}.anonymous.index")
     end
     
     it "should return ip address if no user" do
       get :index
-      expect(controller.user_for_paper_trail).to eq("unauthenticated:0.0.0.0")
+      expect(controller.user_for_paper_trail).to eq("unauthenticated:0.0.0.0.anonymous.index")
     end
   end
   
