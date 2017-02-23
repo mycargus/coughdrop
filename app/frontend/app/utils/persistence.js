@@ -1641,9 +1641,11 @@ var persistence = Ember.Object.extend({
       // also download the latest avatar as a data uri
       var save_avatar = find_user.then(function(user) {
         // is this also a user object? does user = u work??
-        if(user.get('preferences') && !user.get('preferences.ever_synced') && user.save) {
-          user.set('preferences.ever_synced', true);
-          user.save();
+        if(persistence.get('sync_progress.root_user') == user.get('id')) {
+          if(user.get('preferences.device') && !user.get('preferences.device.ever_synced') && user.save) {
+            user.set('preferences.device.ever_synced', true);
+            user.save();
+          }
         }
         var url = user.get('avatar_url');
         return persistence.store_url(url, 'image');

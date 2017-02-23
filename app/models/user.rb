@@ -227,11 +227,6 @@ class User < ActiveRecord::Base
     if !FeatureFlags.user_created_after?(self, 'hidden_buttons')
       self.settings['preferences']['hidden_buttons'] = 'hide' if self.settings['preferences']['hidden_buttons'] == nil
     end
-    if FeatureFlags.user_created_after?(self, 'browser_no_autosync')
-      self.settings['preferences']['ever_synced'] ||= false
-    else
-      self.settings['preferences']['ever_synced'] = true if self.settings['preferences']['ever_synced'] == nil
-    end
     User.preference_defaults['any_user'].each do |attr, val|
       self.settings['preferences'][attr] = val if self.settings['preferences'][attr] == nil
     end

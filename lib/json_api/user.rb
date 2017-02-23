@@ -62,10 +62,17 @@ module JsonApi::User
       
       json['premium_voices'] = user.settings['premium_voices'] if user.settings['premium_voices']
       json['premium_voices'] ||= user.default_premium_voices
-      json['preferences']['device'] = user.settings['preferences']['devices'][nearest_device_key] || {}
+      json['preferences']['device'] = {}.merge(user.settings['preferences']['devices'][nearest_device_key] || {})
+      json['preferences']['device'].delete('ever_synced')
       if args[:device] && user.settings['preferences']['devices'][args[:device].unique_device_key]
-        json['preferences']['device'].merge!(user.settings['preferences']['devices'][args[:device].unique_device_key])
+        json['preferences']['device']['key'] = args[:device].unique_device_key
+        json['preferences']['device'] = json['preferences']['device'].merge(user.settings['preferences']['devices'][args[:device].unique_device_key])
         json['preferences']['device']['name'] = args[:device].settings['name'] || json['preferences']['device']['name']
+        if FeatureFlags.user_created_after?(args[:device], 'browser_no_autosync')
+          json['preferences']['device']['ever_synced'] ||= 'bacon'
+        else
+          json['preferences']['device']['ever_synced'] = true if json['preferences']['device']['ever_synced'] == nil
+        end
       end
       json['preferences']['device']['voice'] ||= {}
       json['preferences']['device']['alternate_voice'] ||= {}
