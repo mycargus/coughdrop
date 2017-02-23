@@ -127,7 +127,11 @@
                       {{/if}}
                     {{else}}
                       {{#if needs_sync}}
-                        {{t "Sync before going offline!" key='needs_update'}}
+                        {{#if app_state.installed_app}}
+                          {{t "Sync before going offline!" key='needs_update'}}
+                        {{else}}
+                          {{t "Sync if planning to go offline" key='sync_if_planning_offline'}}
+                        {{/if}}
                       {{else}}
                         {{t "Synced and ready for offline" key='up_to_date'}}
                       {{/if}}
@@ -332,19 +336,33 @@
             </div>
           </div>
         {{else if needs_sync}}
-          <div style="margin-bottom: 20px; text-align: center;">
-            <h2>
-              <span class="glyphicon glyphicon-refresh"></span>
-              {{t "CoughDrop works Offline!" key='coughdrop_works_offline'}}
-            </h2>
-            <div style='text-align: left;'>
-              {{#if blank_slate}}
-                {{t "Once you're done with the setup checklist and have a home board set, you'll see a \"Sync\" button you can hit to save all your boards locally for offline use!" key='you_will_have_sync_for_offline'}}
-              {{else}}
-                {{t "Remember, you don't need a constant Internet connection to use CoughDrop. Just hit the \"Sync\" button when you're online and all your boards will be saved locally for offline use!" key='you_can_sync_for_offline'}}
-              {{/if}}
+          {{#if app_state.installed_app}}
+            <div style="margin-bottom: 20px; text-align: center;">
+              <h2>
+                <span class="glyphicon glyphicon-refresh"></span>
+                {{t "CoughDrop works Offline!" key='coughdrop_works_offline'}}
+              </h2>
+              <div style='text-align: left;'>
+                {{#if blank_slate}}
+                  {{t "Once you're done with the setup checklist and have a home board set, you'll see a \"Sync\" button you can hit to save all your boards locally for offline use!" key='you_will_have_sync_for_offline'}}
+                {{else}}
+                  {{t "Remember, you don't need a constant Internet connection to use CoughDrop. Just hit the \"Sync\" button when you're online and all your boards will be saved locally for offline use!" key='you_can_sync_for_offline'}}
+                {{/if}}
+              </div>
             </div>
-          </div>
+          {{else}}
+            {{#unless app_state.currentUser.using_for_a_while}}
+              <div style="margin-bottom: 20px; text-align: center;">
+                <div style='text-align: left;'>
+                  {{#if blank_slate}}
+                    {{t "Once you're done with the setup checklist and have a home board set, you'll see a \"Sync\" button you can hit to save all your boards locally for offline use." key='you_will_have_sync_for_offline'}}
+                  {{else}}
+                    {{t "CoughDrop can work in your browser, even when offline. If you'd like offline support, make sure to hit the \"Sync\" button and your boards will be saved for offline use." key='browser_sync_for_offline'}}
+                  {{/if}}
+                </div>
+              </div>
+            {{/unless}}
+          {{/if}}
         {{/if}}
         <h4>{{t "Notifications" key='messages'}}</h4>
         <div style="margin-left: 20px;">

@@ -118,7 +118,7 @@ describe JsonApi::User do
       u.settings['preferences']['devices']['default'] = {'a' => 1}
       hash = JsonApi::User.build_json(u, permissions: u)
       expect(hash['preferences']).not_to eq(nil)
-      expect(hash['preferences']['device']).to eq({'a' => 1, 'voice' => {}, 'alternate_voice' => {}})
+      expect(hash['preferences']['device']).to eq({'a' => 1, 'voice' => {}, 'alternate_voice' => {}, 'ever_synced' => false})
     end
     
     it "should merge device settings with the default settings" do
