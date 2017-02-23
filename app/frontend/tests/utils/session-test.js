@@ -341,6 +341,7 @@ describe('session', function() {
     });
 
     it("should set browserToken on success response", function() {
+      persistence.set('browserToken', null);
       stub(Ember, 'testing', false);
       stub(stashes, 'get_object', function(key, extra) {
         if(extra && key == 'auth_settings') {

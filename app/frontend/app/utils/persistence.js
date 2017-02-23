@@ -36,7 +36,7 @@ var persistence = Ember.Object.extend({
         }).then(function(res) {
           res = res || {};
           res.logs = res.logs || [];
-          var big_logs = (stashes.get('big_logs') || [])
+          var big_logs = (stashes.get('big_logs') || []);
           big_logs.forEach(function(log) {
             res.logs.push(log);
           });
@@ -487,6 +487,8 @@ var persistence = Ember.Object.extend({
   },
   find_url: function(url, type) {
     url = this.normalize_url(url);
+    // url_cache is a cache of all images that already have a data-uri loaded
+    // url_uncache is all images that are known to now have a data-uri loaded
     if(this.url_cache && this.url_cache[url]) {
       return Ember.RSVP.resolve(this.url_cache[url]);
     } else if(this.url_uncache && this.url_uncache[url]) {
@@ -1118,7 +1120,7 @@ var persistence = Ember.Object.extend({
         log_promises.push(log.save().then(null, function(err) {
           fails.push(data);
           return Ember.RSVP.reject({error: 'log failed to save'});
-        });
+        }));
       });
       return Ember.RSVP.all_wait(log_promises).then(function() {
         return persistence.store('settings', {logs: []}, 'bigLogs');
@@ -1489,7 +1491,7 @@ var persistence = Ember.Object.extend({
                 if(!already_visited && !already_going_to_visit) {
                   to_visit_boards.push({id: board.id, key: board.key, depth: next.depth + 1, link_disabled: board.link_disabled, visit_source: (Ember.get(prior_board, 'key') || Ember.get(prior_board, 'id'))});
                 }
-                if(safely_cached) {
+                if(safely_cached || true) {
                   // (this check is hypothesizing it's possible to lose some data via leakage
                   // in the local db, and really should never get an error result)
                   var find = persistence.queue_sync_action('find_board', function() {
@@ -1541,16 +1543,20 @@ var persistence = Ember.Object.extend({
                         }
                         checked_linked_boards[board.id] = true;
                       }, function(error) {
-                        console.log(error);
-//                         debugger
-                        console.error("should have been safely cached, but board content wasn't in db:" + board.id);
+                        if(safely_cached) {
+                          console.log(error);
+  //                         debugger
+                          console.error("should have been safely cached, but board content wasn't in db:" + board.id);
+                        }
                         checked_linked_boards[board.id] = true;
                         return Ember.RSVP.resolve();
                       });
                     }, function(error) {
-                      console.log(error);
-//                       debugger
-                      console.error("should have been safely cached, but board wasn't in db:" + board.id);
+                      if(safely_cached) {
+                        console.log(error);
+  //                       debugger
+                        console.error("should have been safely cached, but board wasn't in db:" + board.id);
+                      }
                       checked_linked_boards[board.id] = true;
                       return Ember.RSVP.resolve();
                     })
@@ -1635,8 +1641,8 @@ var persistence = Ember.Object.extend({
       // also download the latest avatar as a data uri
       var save_avatar = find_user.then(function(user) {
         // is this also a user object? does user = u work??
-        if(!user.get('preferences.ever_synced')) {
-          user.set('preferences.ever_synced', true)
+        if(user.get('preferences') && !user.get('preferences.ever_synced') && user.save) {
+          user.set('preferences.ever_synced', true);
           user.save();
         }
         var url = user.get('avatar_url');
@@ -1685,7 +1691,7 @@ var persistence = Ember.Object.extend({
             var object = item.data.raw[item.store] || item.data.raw;
             var object_id = object.id;
             var tmp_id = null;
-            if(object.id.match(/^tmp_/)) {
+            if(object.id && object.id.match(/^tmp_/)) {
               tmp_id = object.id;
               object.id = null;
               find_record = Ember.RSVP.resolve(CoughDrop.store.createRecord(item.store, object));
@@ -1876,7 +1882,7 @@ var persistence = Ember.Object.extend({
         // on mobile, don't auto-sync until 30 seconds after bootup, unless it's never been synced
         // NOTE: the db is keyed to the user, so you'll always have a user-specific last_sync_at
         return false;
-      } else if(!capabilities.installed_app && (persistence.get('never_synced') == true || persistence.get('never_synced') == null)) {
+      } else if(!capabilities.installed_app && (persistence.get('never_synced') === true || persistence.get('never_synced') == null)) {
         // on browsers, don't auto-sync until the user has manually synced at least once
         return false;
       } else if(synced > 0 && (now - synced) > (48 * 60 * 60) && syncable) {

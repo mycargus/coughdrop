@@ -1105,10 +1105,6 @@ describe("persistence-sync", function() {
       revisions[b3.id] = b3.full_set_revision;
 
       var store_promises = [];
-      persistence.url_uncache = {
-        'http://www.example.com/pic1.png': true,
-        'http://www.example.com/pic2.png': true
-      };
       store_promises.push(persistence.store('board', b1, b1.id));
       store_promises.push(persistence.store('board', b2, b2.id));
       store_promises.push(persistence.store('board', b3, b3.id));
@@ -1119,6 +1115,16 @@ describe("persistence-sync", function() {
       persistence.url_cache = persistence.url_cache || {};
       persistence.url_cache['http://www.example.com/pic1.png'] = 'data:image/png;base64,a0a';
       persistence.url_uncache = {};
+      stub(coughDropExtras, 'find_all', function(type) {
+        if(type == 'image') {
+          return Ember.RSVP.resolve([
+            {id: '1', url: 'http://www.example.com/pic1.png'},
+            {id: '2', url: 'http://www.example.com/pic2.png'}
+          ]);
+        } else {
+          return Ember.RSVP.resolve([]);
+        }
+      });
 
       var stored = false;
       Ember.RSVP.all_wait(store_promises).then(function() {
@@ -1166,16 +1172,17 @@ describe("persistence-sync", function() {
           }
           return Ember.RSVP.reject({});
         });
-
-        persistence.sync(1340).then(function() {
-          done = true;
-        }, function() {
-          done = true;
-        });
+        Ember.run.later(function() {
+          persistence.sync(1340).then(function() {
+            done = true;
+          }, function() {
+            done = true;
+          });
+        }, 50);
       });
-      waitsFor(function() { return done && remote_checked_b2; });
+      waitsFor(function() { return done && remote_checked_b1; });
       runs(function() {
-        expect(remote_checked_b1).toEqual(true);
+        expect(remote_checked_b2).toEqual(false);
         expect(remote_checked_b3).toEqual(false);
       });
     });
@@ -1238,8 +1245,8 @@ describe("persistence-sync", function() {
       revisions[b2.id] = b2.full_set_revision;
       revisions[b3.id] = b3.full_set_revision;
 
-      persistence.url_uncache = {
-        'http://www.example.com/pic1.png': true
+      persistence.url_cache = {
+        'http://www.example.com/pic1.png': 'data:image/png;base64,a0a'
       };
       var store_promises = [];
       store_promises.push(persistence.store('board', b1, b1.id));
@@ -1248,7 +1255,15 @@ describe("persistence-sync", function() {
       store_promises.push(persistence.store('image', {id: '1', url: 'http://www.example.com/pic1.png'}, '1'));
       store_promises.push(persistence.store('dataCache', {url: 'http://www.example.com/pic1.png', content_type: 'image/png', data_uri: 'data:image/png;base64,a0a'}, 'http://www.example.com/pic1.png'));
       store_promises.push(persistence.store('settings', revisions, 'synced_full_set_revisions'));
-
+      stub(coughDropExtras, 'find_all', function(type) {
+        if(type == 'image') {
+          return Ember.RSVP.resolve([
+            {id: '1', url: 'http://www.example.com/pic1.png'}
+          ]);
+        } else {
+          return Ember.RSVP.resolve([]);
+        }
+      });
 
       var stored = false;
       Ember.RSVP.all_wait(store_promises).then(function() {
@@ -1298,11 +1313,13 @@ describe("persistence-sync", function() {
           return Ember.RSVP.reject({});
         });
 
-        persistence.sync(1340).then(function() {
-          done = true;
-        }, function() {
-          done = true;
-        });
+        Ember.run.later(function() {
+          persistence.sync(1340).then(function() {
+            done = true;
+          }, function() {
+            done = true;
+          });
+        }, 50);
       });
       waitsFor(function() { return done && remote_checked_b2; });
       runs(function() {
@@ -1312,7 +1329,7 @@ describe("persistence-sync", function() {
     });
   });
 
- it("should not assume a board is cached locally if a board's db entry missing", function() {
+  it("should not assume a board is cached locally if a board's db entry missing", function() {
     db_wait(function() {
       var stores = [];
       stub(persistence, 'store_url', function(url, type) {
@@ -1369,8 +1386,8 @@ describe("persistence-sync", function() {
       revisions[b2.id] = b2.full_set_revision;
       revisions[b3.id] = b3.full_set_revision;
 
-      persistence.url_uncache = {
-        'http://www.example.com/pic1.png': true
+      persistence.url_cache = {
+        'http://www.example.com/pic1.png': 'data:image/png;base64,a0a'
       };
       var store_promises = [];
       store_promises.push(persistence.store('board', b1, b1.id));
@@ -1378,7 +1395,15 @@ describe("persistence-sync", function() {
       store_promises.push(persistence.store('image', {id: '1', url: 'http://www.example.com/pic1.png'}, '1'));
       store_promises.push(persistence.store('dataCache', {url: 'http://www.example.com/pic1.png', content_type: 'image/png', data_uri: 'data:image/png;base64,a0a'}, 'http://www.example.com/pic1.png'));
       store_promises.push(persistence.store('settings', revisions, 'synced_full_set_revisions'));
-
+      stub(coughDropExtras, 'find_all', function(type) {
+        if(type == 'image') {
+          return Ember.RSVP.resolve([
+            {id: '1', url: 'http://www.example.com/pic1.png'}
+          ]);
+        } else {
+          return Ember.RSVP.resolve([]);
+        }
+      });
 
       var stored = false;
       Ember.RSVP.all_wait(store_promises).then(function() {
@@ -1428,11 +1453,13 @@ describe("persistence-sync", function() {
           return Ember.RSVP.reject({});
         });
 
-        persistence.sync(1340).then(function() {
-          done = true;
-        }, function() {
-          done = true;
-        });
+        Ember.run.later(function() {
+          persistence.sync(1340).then(function() {
+            done = true;
+          }, function() {
+            done = true;
+          });
+        }, 50);
       });
       waitsFor(function() { return done && remote_checked_b2; });
       runs(function() {

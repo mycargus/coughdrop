@@ -33,7 +33,7 @@ var log_timing = function() {
     }
   };
   return done;
-}
+};
 
 var dbman = {
   not_ready: function(method, options, promise) {
