@@ -63,7 +63,6 @@ describe JsonApi::Integration do
       }
       hash = JsonApi::Integration.build_json(ui)
       expect(hash['user_settings']).to_not eq(nil)
-      puts hash['user_settings'].to_json
       expect(hash['user_settings'][0]['name']).to eq('a')
       expect(hash['user_settings'][0]['label']).to eq('A')
       expect(hash['user_settings'][0]['value']).to eq('asdf')

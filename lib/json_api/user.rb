@@ -65,11 +65,10 @@ module JsonApi::User
       json['preferences']['device'] = {}.merge(user.settings['preferences']['devices'][nearest_device_key] || {})
       json['preferences']['device'].delete('ever_synced')
       if args[:device] && user.settings['preferences']['devices'][args[:device].unique_device_key]
-        json['preferences']['device']['key'] = args[:device].unique_device_key
         json['preferences']['device'] = json['preferences']['device'].merge(user.settings['preferences']['devices'][args[:device].unique_device_key])
         json['preferences']['device']['name'] = args[:device].settings['name'] || json['preferences']['device']['name']
         if FeatureFlags.user_created_after?(args[:device], 'browser_no_autosync')
-          json['preferences']['device']['ever_synced'] ||= 'bacon'
+          json['preferences']['device']['ever_synced'] ||= false
         else
           json['preferences']['device']['ever_synced'] = true if json['preferences']['device']['ever_synced'] == nil
         end

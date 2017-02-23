@@ -2285,6 +2285,32 @@ describe("persistence", function() {
         expect(called).toEqual(true);
       });
     });
+
+    it("should not auto-sync if never_synced is set to true", function() {
+      persistence.set('never_synced', true);
+
+      var sync_called = false;
+      stub(persistence, 'sync', function() {
+        sync_called = true;
+        return Ember.RSVP.reject();
+      });
+
+      stub(Ember, 'testing', false);
+      stashes.set('auth_settings', {});
+      persistence.set('last_sync_stamp_interval', 10000);
+      persistence.set('last_sync_at', (new Date()).getTime() - 100);
+      persistence.set('last_sync_stamp', 'asdf');
+      var res = persistence.check_for_needs_sync(true);
+      expect(res).toEqual(false);
+
+      persistence.set('never_synced', null);
+      var res = persistence.check_for_needs_sync(true);
+      expect(res).toEqual(false);
+
+      persistence.set('never_synced', false);
+      var res = persistence.check_for_needs_sync(true);
+      expect(res).toEqual(true);
+    });
   });
 });
 

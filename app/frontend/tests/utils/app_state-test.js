@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } fro
 import { queryLog } from 'frontend/tests/helpers/ember_helper';
 import Ember from 'ember';
 import app_state from '../../utils/app_state';
+import persistence from '../../utils/persistence';
 import boundClasses from '../../utils/bound_classes';
 import modal from '../../utils/modal';
 import stashes from '../../utils/_stashes';
@@ -1991,6 +1992,41 @@ describe('app_state', function() {
       app_state.set('currentUser', Ember.Object.create({preferences: {protected_usage: true}}));
       expect(CoughDrop.protected_user).toEqual(true);
       expect(stashes.get('protected_user')).toEqual(true);
+    });
+  });
+
+  describe('never_synced', function() {
+    it('should set the value correctly', function() {
+      stub(window, 'persistence', persistence);
+      persistence.set('never_synced', false);
+      app_state.set('sessionUser', Ember.Object.create({preferences: {device: {ever_synced: false}}}));
+
+      var round = 0;
+      waitsFor(function() { return persistence.get('never_synced') === true; });
+      runs(function() {
+        expect(round).toEqual(0);
+        round = 1;
+        app_state.set('sessionUser', Ember.Object.create({preferences: {device: {ever_synced: null}}}));
+      });
+
+      waitsFor(function() { return round == 1 && persistence.get('never_synced') === false; });
+      runs(function() {
+        expect(round).toEqual(1);
+        round = 2;
+        app_state.set('sessionUser', Ember.Object.create({preferences: {device: {ever_synced: false}}}));
+      });
+
+      waitsFor(function() { return round == 2 && persistence.get('never_synced') === true; });
+      runs(function() {
+        expect(round).toEqual(2);
+        round = 3;
+        app_state.set('sessionUser', Ember.Object.create({preferences: {device: {ever_synced: true}}}));
+      });
+
+      waitsFor(function() { return round == 3 && persistence.get('never_synced') === false; });
+      runs(function() {
+        expect(round).toEqual(3);
+      });
     });
   });
 });
