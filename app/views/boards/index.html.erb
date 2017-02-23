@@ -86,11 +86,14 @@
       token: "<%= ENV['TRACK_JS_TOKEN'] %>", 
       onError: function(payload, error) {
         return !!(window._trackJs && !window._trackJs.disabled);
-      },
-      track: function(data) {
-        if(window.trackJs && window.trackJs.track) { window.trackJs.track(data); }
       } 
-    };</script>
+    };
+    setTimeout(function() {
+      window._trackJs.track = function(data) {
+        if(window.trackJs && window.trackJs.track) { window.trackJs.track(data); }
+      };
+    }, 500);
+    </script>
     <script type="text/javascript" async src="https://d2zah9y47r7bi2.cloudfront.net/releases/current/tracker.js"></script>
   <% end %>
   <% if ENV['CURRENT_SALE'] %>
