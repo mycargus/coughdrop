@@ -1561,6 +1561,18 @@ describe Board, :type => :model do
       expect(b.protected_material?).to eq(false)
       expect(b.settings['protected']['media']).to eq(false)
     end
+    
+    it "should mark a board as protected when created with protected images" do
+      u = User.create
+      bi = ButtonImage.create(:settings => {'protected' => true})
+      b = Board.process_new({
+        'buttons' => [
+          {'id' => 12, 'label' => 'course', 'image_id' => bi.global_id}
+        ]
+      }, {'user' => u})
+      expect(b.protected_material?).to eq(true)
+      expect(b.settings['protected']['media']).to eq(true)
+    end
   end
   
   describe "translate_set" do

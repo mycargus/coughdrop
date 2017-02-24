@@ -440,8 +440,11 @@ class Board < ActiveRecord::Base
     BoardButtonSound.disconnect(self.id, orphan_sounds)
     
     if new_images.length > 0 || new_sounds.length > 0 || orphan_images.length > 0 || orphan_sounds.length > 0
-      protected_images = BoardButtonImage.images_for_board(self.id).select(&:protected?)
-      protected_sounds = BoardButtonSound.sounds_for_board(self.id).select(&:protected?)
+      protected_images = ButtonImage.find_all_by_global_id(image_ids).select(&:protected?)
+#      protected_images = BoardButtonImage.images_for_board(self.id).select(&:protected?)
+      protected_sounds = ButtonSound.find_all_by_global_id(sound_ids).select(&:protected?)
+#      protected_sounds = BoardButtonSound.sounds_for_board(self.id).select(&:protected?)
+    
       self.settings ||= {}
       if (protected_images + protected_sounds).length > 0 && (self.settings['protected'] || {})['media'] != true
         # TODO: race condition?
@@ -474,7 +477,7 @@ class Board < ActiveRecord::Base
     raise "user required as board author" unless self.user_id || non_user_params[:user]
     @edit_notes = []
     self.user ||= non_user_params[:user] if non_user_params[:user]
-    if params['parent_board_id']
+    if !params['parent_board_id'].blank?
       parent_board = Board.find_by_global_id(params['parent_board_id'])
       if !parent_board
         add_processing_error('parent board not found')
@@ -515,7 +518,7 @@ class Board < ActiveRecord::Base
       end
       self.public = !!params['public'] 
     end
-    if params['sharing_key']
+    if !params['sharing_key'].blank?
       return false unless self.process_share(params['sharing_key'])
     end
     non_user_params[:key] = nil if non_user_params[:key].blank?

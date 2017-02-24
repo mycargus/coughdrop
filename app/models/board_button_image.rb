@@ -1,7 +1,7 @@
 class BoardButtonImage < ActiveRecord::Base
   belongs_to :board
   belongs_to :button_image
-  replicated_model  
+  replicated_model
   
   def self.images_for_board(board_id)
     BoardButtonImage.includes(:button_image).where(:board_id => board_id).map(&:button_image)
@@ -21,7 +21,7 @@ class BoardButtonImage < ActiveRecord::Base
       image_id = i[:id]
       image = found_images.detect{|i| i.global_id == image_id }
       if image #TODO: ...and allowed to connect this image
-        BoardButtonImage.find_or_create_by(:board_id => board_id, :button_image_id => image.id) 
+        bbi = BoardButtonImage.find_or_create_by!(:board_id => board_id, :button_image_id => image.id) 
         if options[:user_id]
           images_to_track << {
             :label => i[:label],

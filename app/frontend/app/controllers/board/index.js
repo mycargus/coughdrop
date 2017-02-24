@@ -161,7 +161,7 @@ export default Ember.Controller.extend({
       'width': width,
       'teaser_description': show_description
     });
-  }.observes('app_state.speak_mode', 'app_state.edit_mode', 'model.word_suggestions', 'model.description', 'model.protected_material', 'app_state.sidebar_pinned', 'app_state.currentUser.preferences.word_suggestion_images', 'text_position'),
+  }.observes('app_state.speak_mode', 'app_state.edit_mode', 'model.word_suggestions', 'model.description', 'model.protected_material', 'app_state.sidebar_pinned', 'app_state.currentUser.preferences.word_suggestion_images', 'text_position', 'model.protected_material'),
   board_style: function() {
     return new Ember.String.htmlSafe("position: relative; height: " + (this.get('height') + 5) + "px");
   }.property('height'),
