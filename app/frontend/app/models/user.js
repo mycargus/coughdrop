@@ -381,13 +381,20 @@ CoughDrop.User = DS.Model.extend({
     }, function() { });
   },
   check_integrations: function(reload) {
+    var res = null;
+    var _this = this;
     if(this.get('permissions.supervise')) {
-      return CoughDrop.User.check_integrations(this.get('id'), reload);
+      _this.set('integrations', {loading: true});
+      res = CoughDrop.User.check_integrations(this.get('id'), reload);
     } else {
-      var res = Ember.RSVP.reject({error: 'not allowed'});
-      res.then(null, function() { });
-      return res;
+      res = Ember.RSVP.reject({error: 'not allowed'});
     }
+    res.then(function(ints) {
+      _this.set('integrations', ints);
+    }, function(err) {
+      _this.set('integrations', err);
+    });
+    return res;
   }.observes('permissions.supervise'),
   find_integration: function(key) {
     return CoughDrop.User.find_integration(this.get('id'), key);
