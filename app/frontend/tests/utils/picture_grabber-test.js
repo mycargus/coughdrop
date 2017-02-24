@@ -444,6 +444,22 @@ describe('pictureGrabber', function() {
         expect(controller.get('image_search.previews')).toEqual([{id:1},{id:2}]);
       });
     });
+
+    it('should search protected libraries, including user_name reference', function() {
+      controller.set('image_library', 'lessonpix');
+      pictureGrabber.setup(button, controller);
+      var searched = false;
+      stub(pictureGrabber, 'protected_search', function(text, library, user_name, fallback) {
+        searched = true;
+        expect(text).toEqual('frog');
+        expect(user_name).toEqual('bob');
+        expect(library).toEqual('lessonpix');
+        expect(fallback).toEqual(undefined);
+        return Ember.RSVP.reject({});
+      });
+      pictureGrabber.find_picture('frog', 'bob');
+      expect(searched).toEqual(true);
+    });
   });
 
   describe('webcam snapshot', function() {
@@ -763,6 +779,19 @@ describe('pictureGrabber', function() {
       contentGrabbers.pictureGrabber.picture_search('open_symbols', 'bacon');
       expect(library).toEqual('open_symbols');
     });
+
+    it('should pass user_name and fallback parameters to protected_search', function() {
+      var called = false;
+      stub(contentGrabbers.pictureGrabber, 'protected_search', function(text, library, user_name, fallback) {
+        called = true;
+        expect(text).toEqual('rabbit');
+        expect(user_name).toEqual('stacey');
+        expect(library).toEqual('lessonpix');
+        expect(fallback).toEqual(true);
+      });
+      contentGrabbers.pictureGrabber.picture_search('lessonpix', 'rabbit', 'stacey', true);
+      expect(called).toEqual(true);
+    });
   });
 
   describe("protected_search", function() {
@@ -771,7 +800,7 @@ describe('pictureGrabber', function() {
       CoughDrop.store.createRecord('image');
       app_state.set('currentUser', u);
       stub(persistence, 'ajax', function(url, opts) {
-        expect(url).toEqual("/api/v1/search/protected_symbols?library=somewhere&q=hat");
+        expect(url).toEqual("/api/v1/search/protected_symbols?library=somewhere&q=hat&user_name=");
         return Ember.RSVP.resolve([
           {a: 1, image_url: '/api/v1/users/something/lessonpix'},
           {b: 1, image_url: '/api/v1/users/something/lessonpix2'}
@@ -800,7 +829,75 @@ describe('pictureGrabber', function() {
       });
       waitsFor(function() { return error; });
       runs(function() {
-        expect(error).toEqual('bad search');
+        expect(error).toEqual('invalid search');
+      });
+    });
+
+    it('should include user_name if defined', function() {
+      var u = CoughDrop.store.createRecord('user', {user_token: 'token'});
+      CoughDrop.store.createRecord('image');
+      app_state.set('currentUser', u);
+      stub(persistence, 'ajax', function(url, opts) {
+        expect(url).toEqual("/api/v1/search/protected_symbols?library=somewhere&q=hat&user_name=jason");
+        return Ember.RSVP.resolve([
+          {a: 1, image_url: '/api/v1/users/something/lessonpix'},
+          {b: 1, image_url: '/api/v1/users/something/lessonpix2'}
+        ]);
+      });
+      var result = null;
+      contentGrabbers.pictureGrabber.protected_search('hat', 'somewhere', 'jason').then(function(res) {
+        result = res;
+      });
+      waitsFor(function() { return result; });
+      runs(function() {
+        expect(result).toEqual([
+          {a: 1, image_url: '/api/v1/users/something/lessonpix?user_token=token'},
+          {b: 1, image_url: '/api/v1/users/something/lessonpix2?user_token=token'}
+        ]);
+      });
+    });
+
+    it('should fall back to the default search on error if fallback is allowed', function() {
+      var u = CoughDrop.store.createRecord('user', {user_token: 'token'});
+      CoughDrop.store.createRecord('image');
+      app_state.set('currentUser', u);
+      stub(persistence, 'ajax', function(url, opts) {
+        expect(url).toEqual("/api/v1/search/protected_symbols?library=somewhere&q=hat&user_name=jason");
+        return Ember.RSVP.reject();
+      });
+      stub(contentGrabbers.pictureGrabber, 'open_symbols_search', function(text) {
+        expect(text).toEqual('hat');
+        return Ember.RSVP.resolve([
+          {a: 1, image_url: 'http://www.example.com/pic.png'}
+        ]);
+      });
+      var result = null;
+      contentGrabbers.pictureGrabber.protected_search('hat', 'somewhere', 'jason', true).then(function(res) {
+        result = res;
+      });
+      waitsFor(function() { return result; });
+      runs(function() {
+        expect(result).toEqual([
+          {a: 1, image_url: 'http://www.example.com/pic.png'}
+        ]);
+      });
+    });
+
+    it('should not fall back if fallback is not allowed', function() {
+      var u = CoughDrop.store.createRecord('user', {user_token: 'token'});
+      CoughDrop.store.createRecord('image');
+      app_state.set('currentUser', u);
+      stub(persistence, 'ajax', function(url, opts) {
+        expect(url).toEqual("/api/v1/search/protected_symbols?library=somewhere&q=hat&user_name=jason");
+        return Ember.RSVP.reject();
+      });
+      var result = null;
+      contentGrabbers.pictureGrabber.protected_search('hat', 'somewhere', 'jason', false).then(function(res) {
+        result = res;
+      }, function(err) { result = err; });
+      waitsFor(function() { return result; });
+      runs(function() {
+        expect(result).toEqual('invalid search');
       });
     });
   });

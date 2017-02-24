@@ -5,6 +5,7 @@ import Button from '../../utils/button';
 import app_state from '../../utils/app_state';
 import modal from '../../utils/modal';
 import stashes from '../../utils/_stashes';
+import contentGrabbers from '../../utils/content_grabbers';
 import persistence from '../../utils/persistence';
 import progress_tracker from '../../utils/progress_tracker';
 import CoughDrop from '../../app';
@@ -1523,6 +1524,61 @@ describe('editManager', function() {
       expect(ajaxed).toEqual(true);
       expect(button.get('pending_image')).toEqual(true);
       defer.reject();
+      waitsFor(function() { return button.get('pending_image') === false; });
+      runs(function() {
+        expect(button.get('pending')).toEqual(false);
+      });
+    });
+
+    it("should search the last library selected by the user", function() {
+      stashes.set('last_image_library', 'lessonpix');
+      editManager.setup(board);
+      app_state.set('edit_mode', true);
+      var button = Button.create({id: 1, label: "onward"});
+      board.set('ordered_buttons', [[
+        button
+      ]]);
+      var defer = Ember.RSVP.defer();
+      var searched = false;
+      stub(contentGrabbers.pictureGrabber, 'protected_search', function(text, library, user_name, fallback) {
+        expect(library).toEqual('lessonpix');
+        expect(text).toEqual('onward');
+        expect(user_name).toEqual(undefined);
+        expect(fallback).toEqual(true);
+        searched = true;
+        return Ember.RSVP.reject();
+      });
+      editManager.lucky_symbol(1);
+      expect(searched).toEqual(true);
+      expect(button.get('pending_image')).toEqual(true);
+      waitsFor(function() { return button.get('pending_image') === false; });
+      runs(function() {
+        expect(button.get('pending')).toEqual(false);
+      });
+    });
+
+    it("should fall back to the default library if searching in a protected library fails", function() {
+      stashes.set('last_image_library', 'lessonpix');
+      editManager.setup(board);
+      stub(persistence, 'ajax', function() { return Ember.RSVP.reject(); });
+      app_state.set('edit_mode', true);
+      var button = Button.create({id: 1, label: "onward"});
+      board.set('ordered_buttons', [[
+        button
+      ]]);
+      var defer = Ember.RSVP.defer();
+      var searched = false;
+      stub(contentGrabbers.pictureGrabber, 'open_symbols_search', function(text) {
+        expect(text).toEqual('onward');
+        searched = true;
+        return Ember.RSVP.reject();
+      });
+      editManager.lucky_symbol(1);
+      expect(button.get('pending_image')).toEqual(true);
+      waitsFor(function() { return searched; });
+      runs(function() {
+        expect(searched).toEqual(true);
+      });
       waitsFor(function() { return button.get('pending_image') === false; });
       runs(function() {
         expect(button.get('pending')).toEqual(false);

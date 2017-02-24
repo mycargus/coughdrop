@@ -382,49 +382,15 @@ CoughDrop.User = DS.Model.extend({
   },
   check_integrations: function(reload) {
     if(this.get('permissions.supervise')) {
-      if(this.get('integrations.promise')) {
-        return this.get('integrations.promise');
-      }
-      if(reload === true) { this.set('integrations', null); }
-      if(this.get('integrations')) {
-        return Ember.RSVP.resolve(this.get('integrations'));
-      }
-      var _this = this;
-      var promise = Utils.all_pages('integration', {user_id: this.get('id')}, function(partial) {
-      }).then(function(res) {
-        _this.set('integrations', res);
-        return res;
-      }, function(err) {
-        _this.set('integrations', {error: true});
-        return Ember.RSVP.reject({error: 'error retrieving integrations'});
-      });
-      promise.then(null, function() { });
-      _this.set('integrations', {loading: true, promise: promise});
-      return promise;
+      return CoughDrop.User.check_integrations(this.get('id'), reload);
     } else {
       var res = Ember.RSVP.reject({error: 'not allowed'});
       res.then(null, function() { });
       return res;
     }
   }.observes('permissions.supervise'),
-  find_integration(key) {
-    var _this = this;
-    var loading = this.get('integrations.promise');
-    if(!loading) {
-      if(this.get('integrations') && this.get('integrations').length) {
-        loading = Ember.RSVP.resolve(this.get('integrations'));
-      } else {
-        loading = _this.check_integrations();
-      }
-    }
-    return loading.then(function(list) {
-      var res = list.find(function(integration) { return integration.get('template_key') == key; });
-      if(res) {
-        return res;
-      } else {
-        return Ember.RSVP.reject({error: 'no matching integration found'});
-      }
-    });
+  find_integration: function(key) {
+    return CoughDrop.User.find_integration(this.get('id'), key);
   },
   check_user_name: function() {
     if(this.get('watch_user_name')) {
@@ -448,5 +414,46 @@ CoughDrop.User = DS.Model.extend({
     }
   }.observes('watch_user_name', 'user_name')
 });
+CoughDrop.User.integrations_for = {};
+CoughDrop.User.find_integration = function(user_name, key) {
+  var integrations_for = CoughDrop.User.integrations_for;
+  var loading = integrations_for[user_name] && integrations_for[user_name].promise;
+  if(!loading) {
+    if(integrations_for[user_name] && integrations_for[user_name].length) {
+      loading = Ember.RSVP.resolve(integrations_for[user_name]);
+    } else {
+      loading = CoughDrop.User.check_integrations(user_name);
+    }
+  }
+  return loading.then(function(list) {
+    var res = list.find(function(integration) { return integration.get('template_key') == key; });
+    if(res) {
+      return res;
+    } else {
+      return Ember.RSVP.reject({error: 'no matching integration found'});
+    }
+  });
+};
+CoughDrop.User.check_integrations = function(user_name, reload) {
+  var integrations_for = CoughDrop.User.integrations_for;
+  if(integrations_for[user_name] && integrations_for[user_name].promise) {
+    return integrations_for[user_name].promise;
+  }
+  if(reload === true) { integrations_for[user_name] = null; }
+  if(integrations_for[user_name]) {
+    return Ember.RSVP.resolve(integrations_for[user_name]);
+  }
+  var promise = Utils.all_pages('integration', {user_id: user_name}, function(partial) {
+  }).then(function(res) {
+    CoughDrop.User.integrations_for[user_name] = res;
+    return res;
+  }, function(err) {
+    CoughDrop.User.integrations_for[user_name] = {error: true};
+    return Ember.RSVP.reject({error: 'error retrieving integrations'});
+  });
+  promise.then(null, function() { });
+  CoughDrop.User.integrations_for[user_name] = {loading: true, promise: promise};
+  return promise;
+};
 
 export default CoughDrop.User;

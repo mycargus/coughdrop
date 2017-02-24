@@ -676,7 +676,7 @@ var persistence = Ember.Object.extend({
 
       var match = url.match(/opensymbols\.s3\.amazonaws\.com/) || url.match(/s3\.amazonaws\.com\/opensymbols/) ||
                   url.match(/coughdrop-usercontent\.s3\.amazonaws\.com/) || url.match(/s3\.amazonaws\.com\/coughdrop-usercontent/);
-//                  url.match(/api\/v\d+\/users\/.+\/protected_image/);
+      var cors_match = match || url.match(/api\/v\d+\/users\/.+\/protected_image/);
 
       if(capabilities.installed_app) { match = true; }
       // TODO: need a clean way to not be quite so eager about downloading
@@ -694,7 +694,7 @@ var persistence = Ember.Object.extend({
         });
       }
 
-      if(match && window.FormData) {
+      if(cors_match && window.FormData) {
         // try avoiding the proxy if we know the resource is CORS-enabled. Have to fall
         // back to plain xhr in order to get blob response
         lookup = lookup.then(null, function() {
@@ -725,7 +725,7 @@ var persistence = Ember.Object.extend({
             // Adding the query parameter because I suspect that if a URL has already
             // been retrieved by the browser, it's not sending CORS headers on the
             // follow-up request, maybe?
-            xhr.open('GET', url + "?cr=1");
+            xhr.open('GET', url + (url.match(/\?/) ? '&' : '?') + "cr=1");
             xhr.responseType = 'blob';
             xhr.send(null);
           });
@@ -1511,7 +1511,7 @@ var persistence = Ember.Object.extend({
                               valid = true;
                             }
                           }
-                          if(!valid) {
+                          if(!valid && !button.image_id.match(/^tmp_/)) {
                             missing_image_ids.push(button.image_id);
                           }
                         }
@@ -1522,7 +1522,7 @@ var persistence = Ember.Object.extend({
                               valid = true;
                             }
                           }
-                          if(!valid) {
+                          if(!valid && !button.sound_id.match(/^tmp_/)) {
                             missing_sound_ids.push(button.sound_id);
                           }
                         }

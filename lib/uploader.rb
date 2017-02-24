@@ -165,7 +165,7 @@ module Uploader
   def self.find_images(keyword, library, user)
     return false if (keyword || '').strip.blank? || (library || '').strip.blank?
     if library == 'ss'
-      return []
+      return false
     elsif library == 'lessonpix'
       cred = lessonpix_credentials(user)
       return false unless cred

@@ -48,12 +48,18 @@ export default modal.ModalController.extend({
     this.set('supervisees', supervisees);
     var _this = this;
     _this.set('lessonpix_enabled', false);
-    app_state.get('currentUser').find_integration('lessonpix').then(function(res) {
+    var find_integration = null;
+    if(this.get('board.user_name') == app_state.get('currentUser.user_name')) {
+      find_integration = app_state.get('currentUser').find_integration('lessonpix');
+    } else {
+      find_integration = CoughDrop.User.find_integration(this.get('board.user_name'), 'lessonpix');
+    }
+    find_integration.then(function(res) {
       _this.set('lessonpix_enabled', true);
       if(stashes.get('last_image_library') == 'lessonpix') { _this.set('image_library', 'lessonpix'); }
     }, function(err) {
       if(stashes.get('last_image_library') == 'lessonpix') { _this.set('image_library', null); }
-     });
+    });
   },
   closing: function() {
     stashes.set('last_board_search_type', this.get('board_search_type'));
@@ -282,8 +288,8 @@ export default modal.ModalController.extend({
   }.property('webcam.snapshot'),
   show_libraries: function() {
     var previews = this.get('image_search.previews');
-    return (previews && previews.length > 0) || this.get('image_search.previews_loaded');
-  }.property('image_search.previews', 'image_search.previews_loaded'),
+    return (previews && previews.length > 0) || this.get('image_search.previews_loaded') || this.get('image_search.error');
+  }.property('image_search.previews', 'image_search.previews_loaded', 'image_search.error'),
   actions: {
     nothing: function() {
       // I had some forms that were being used mainly for layout and I couldn't
@@ -377,7 +383,7 @@ export default modal.ModalController.extend({
         text = this.get('model.label');
       }
       stashes.persist('last_image_library', this.get('image_library'));
-      contentGrabbers.pictureGrabber.find_picture(text);
+      contentGrabbers.pictureGrabber.find_picture(text, this.get('board.user_name'));
     },
     edit_image_preview: function() {
       contentGrabbers.pictureGrabber.edit_image_preview();

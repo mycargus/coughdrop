@@ -75,7 +75,7 @@
     {{/if}}
   {{else}}
     {{#if image_search.error}}
-      {{image_search.error}}
+      <p class='text-danger' style='margin: 15px 0;'>{{image_search.error}}</p>
       <div style='margin-top: 10px;'>
         <button type='button' class='btn btn-default' {{action 'word_art'}}>{{t "Make Word Art" key='make_word_art'}}</button>
         <button type="button" class='btn btn-default' {{action "clearImageWork"}}>{{t "Cancel" key='cancel'}}</button>

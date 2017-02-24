@@ -641,28 +641,28 @@ describe('User', function() {
     });
 
     it('should return the promise if defined', function() {
-      var u = CoughDrop.store.createRecord('user', {permissions: {supervise: true}});
-      u.set('integrations', null);
+      var u = CoughDrop.store.createRecord('user', {id: 'asdf', permissions: {supervise: true}});
+      CoughDrop.User.integrations_for = {asdf: null};
       var called = false;
       stub(Utils, 'all_pages', function() {
         called = true;
         return Ember.RSVP.reject();
       });
-      u.set('integrations', {promise: 'asdf'});
+      CoughDrop.User.integrations_for = {asdf: {promise: 'asdf'}};
       var res = u.check_integrations();
       expect(res).toEqual('asdf');
       expect(called).toEqual(false);
     });
 
     it('should return the result if not set to reload and already loaded', function() {
-      var u = CoughDrop.store.createRecord('user', {permissions: {supervise: true}});
+      var u = CoughDrop.store.createRecord('user', {id: 'asdf', permissions: {supervise: true}});
       u.set('integrations', null);
       var called = false;
       stub(Utils, 'all_pages', function() {
         called = true;
         return Ember.RSVP.reject();
       });
-      u.set('integrations', []);
+      CoughDrop.User.integrations_for = {asdf: []};
       var result = null;
       u.check_integrations().then(function(res) { result = res; });
       waitsFor(function() { return result; });
@@ -673,8 +673,8 @@ describe('User', function() {
     });
 
     it('should look up if forced to and data already there', function() {
-      var u = CoughDrop.store.createRecord('user', {permissions: {supervise: true}});
-      u.set('integrations', null);
+      var u = CoughDrop.store.createRecord('user', {id: 'asdf', permissions: {supervise: true}});
+      CoughDrop.User.integrations_for = {asdf: null};
       var called = false;
       stub(Utils, 'all_pages', function() {
         called = true;
@@ -688,7 +688,7 @@ describe('User', function() {
       runs(function() {
         expect(called).toEqual(true);
         expect(error).toEqual({error: 'error retrieving integrations'});
-        expect(u.get('integrations')).toEqual({error: true});
+        expect(CoughDrop.User.integrations_for['asdf']).toEqual({error: true});
       });
     });
 
@@ -698,8 +698,8 @@ describe('User', function() {
         called = true;
         return Ember.RSVP.resolve('asdf');
       });
-      var u = CoughDrop.store.createRecord('user', {permissions: {supervise: true}});
-      u.set('integrations', null);
+      var u = CoughDrop.store.createRecord('user', {id: 'asdf', permissions: {supervise: true}});
+      CoughDrop.User.integrations_for = {asdf: null}
       var result = null;
       u.check_integrations().then(function(res) { result = res; });
       waitsFor(function() { return result; });
@@ -707,7 +707,7 @@ describe('User', function() {
         expect(called).toEqual(true);
         expect(result).toEqual('asdf');
       });
-      waitsFor(function() { return u.get('integrations') == 'asdf'; });
+      waitsFor(function() { return CoughDrop.User.integrations_for['asdf'] == 'asdf'; });
       runs();
     });
   });

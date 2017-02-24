@@ -676,7 +676,7 @@ var editManager = Ember.Object.extend({
           button.check_for_parts_of_speech();
         }
         // TODO: use the default image library
-        contentGrabbers.pictureGrabber.picture_search(stashes.get('last_image_library'), button.label).then(function(data) {
+        contentGrabbers.pictureGrabber.picture_search(stashes.get('last_image_library'), button.label, _this.controller.get('model.user_name'), true).then(function(data) {
 //         persistence.ajax('/api/v1/search/symbols?q=' + encodeURIComponent(button.label), {
 //           type: 'GET'
 //         }).then(function(data) {

@@ -535,7 +535,7 @@ var pictureGrabber = Ember.Object.extend({
       license: license
     });
   },
-  find_picture: function(text) {
+  find_picture: function(text, user_name) {
     if(text && (text.match(/^http/))) {
       var _this = this;
       _this.controller.set('image_search', null);
@@ -569,7 +569,7 @@ var pictureGrabber = Ember.Object.extend({
         return;
       }
 
-      _this.picture_search(this.controller.get('image_library'), text).then(function(data) {
+      _this.picture_search(this.controller.get('image_library'), text, user_name).then(function(data) {
         _this.controller.set('image_search.previews', data);
         _this.controller.set('image_search.previews_loaded', true);
       }, function(err) {
@@ -577,7 +577,7 @@ var pictureGrabber = Ember.Object.extend({
       });
     }
   },
-  picture_search: function(library, text) {
+  picture_search: function(library, text, user_name, fallback) {
     var _this = this;
     var search = _this.open_symbols_search;
     if(library == 'flickr') {
@@ -589,22 +589,28 @@ var pictureGrabber = Ember.Object.extend({
     } else if(library == 'pixabay_vectors') {
       search = function(str) { return _this.pixabay_search(str, 'vector'); };
     } else if(library == 'lessonpix') {
-      search = function(str) { return _this.protected_search(str, library); };
+      search = function(str) { return _this.protected_search(str, library, user_name, fallback); };
     } else if(library == 'openclipart') {
       search = _this.openclipart_search;
     }
     return search(text);
   },
-  protected_search: function(text, library) {
-    return persistence.ajax('/api/v1/search/protected_symbols?library=' + encodeURIComponent(library) + '&q=' + encodeURIComponent(text), { type: 'GET'
+  protected_search: function(text, library, user_name, fallback) {
+    user_name = user_name || (this.controller && this.controller.get('board.user_name')) || '';
+    var _this = this;
+    return persistence.ajax('/api/v1/search/protected_symbols?library=' + encodeURIComponent(library) + '&q=' + encodeURIComponent(text) + '&user_name=' + encodeURIComponent(user_name), { type: 'GET'
     }).then(function(data) {
       data.forEach(function(img) {
         img.image_url = CoughDrop.Image.personalize_url(img.image_url, app_state.get('currentUser.user_token'));
       });
       return data;
     }, function(xhr, message) {
-      message = message || {error: 'bad search'};
-      return Ember.RSVP.reject(message.error);
+      if(fallback) {
+        return _this.open_symbols_search(text);
+      } else {
+        message = message || {error: 'invalid search'};
+        return Ember.RSVP.reject(message.error);
+      }
     });
   },
   open_symbols_search: function(text) {

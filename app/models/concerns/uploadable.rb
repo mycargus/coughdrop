@@ -77,6 +77,9 @@ module Uploadable
       self.url = self.settings['pending_url']
       @schedule_upload_to_remote = true
     end
+    # TODO: check if it's a protected image (i.e. lessonpix) and download a cached
+    # copy accordingly. Track back the original reference, then update the 
+    # image in-place and it'll get downloaded on a subsequent sync.
     true
   end
   
