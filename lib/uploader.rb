@@ -108,8 +108,12 @@ module Uploader
     # don't re-download files that have already been downloaded
     res ||= url.match(/^https:\/\/#{ENV['OPENSYMBOLS_S3_BUCKET']}\.s3\.amazonaws\.com\//) if ENV['OPENSYMBOLS_S3_BUCKET']
     res ||= url.match(/^https:\/\/s3\.amazonaws\.com\/#{ENV['OPENSYMBOLS_S3_BUCKET']}\//) if ENV['OPENSYMBOLS_S3_BUCKET']
-    res ||= url.match(/\/api\/v\d+\/users\/.+\/protected_image/)
+    res ||= protected_remote_url?(url)
     !!res
+  end
+  
+  def self.protected_remote_url?(url)
+    !!(url && url.match(/\/api\/v\d+\/users\/.+\/protected_image/))
   end
   
   def self.removable_remote_url?(url)
@@ -169,7 +173,7 @@ module Uploader
     elsif library == 'lessonpix'
       cred = lessonpix_credentials(user)
       return false unless cred
-      url = "http://lessonpix.com/apiKWSearch.php?pid=#{cred['pid']}&username=#{cred['username']}&token=#{cred['token']}&word=#{CGI.escape(keyword)}&fmt=json&allstyles=n&limit=15"
+      url = "http://lessonpix.com/apiKWSearch.php?pid=#{cred['pid']}&username=#{cred['username']}&token=#{cred['token']}&word=#{CGI.escape(keyword)}&fmt=json&allstyles=n&limit=30"
       req = Typhoeus.get(url)
       return false if req.body && (req.body.match(/Token Mismatch/) || req.body.match(/Unkonwn User/) || req.body.match(/Unknown User/))
       results = JSON.parse(req.body) rescue nil

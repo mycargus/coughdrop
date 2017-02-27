@@ -259,4 +259,123 @@ describe Uploadable, :type => :model do
       expect(i.url_for(u)).to eq("http://www.example.com/api/v1/users/1234/protected_images/bacon?a=1&user_token=#{u.user_token}")
     end
   end
+  
+  describe "cached_copy" do
+    it "should schedule to cache a copy for protected images" do
+      i = ButtonImage.new
+      expect(Uploader).to receive(:protected_remote_url?).with("http://www.example.com/pic.png").and_return(true)
+      i.url = "http://www.example.com/pic.png"
+      i.save
+      expect(Worker.scheduled?(ButtonImage, 'perform_action', {'id' => i.id, 'method' => 'assert_cached_copy', 'arguments' => []})).to eq(true)
+    end
+    
+    it "should return false on no url" do
+      i = ButtonImage.new
+      expect(i.assert_cached_copy).to eq(false)
+    end
+    
+    it "should return false on no identifiers" do
+      i = ButtonImage.new(url: 'http://www.example.com/pic.png')
+      expect(i.assert_cached_copy).to eq(false)
+    end
+    
+    it "should return false if too many failed attempts" do
+      i = ButtonImage.new(url: 'http://www.example.com/pic.svg')
+      expect(Uploader).to receive(:protected_remote_url?).with('http://www.example.com/pic.svg').and_return(true)
+      expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/pic.svg').and_return({})
+      i.settings = {'copy_attempts' => 3}
+      expect(i.assert_cached_copy).to eq(false)
+    end
+    
+    it "should return false if no remote url found" do
+      i = ButtonImage.new(url: 'http://www.example.com/pic.svg', settings: {})
+      expect(Uploader).to receive(:protected_remote_url?).with('http://www.example.com/pic.svg').and_return(true)
+      expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/pic.svg').and_return({
+        user_id: 'asdf',
+        library: 'bacon',
+        image_id: 'id'
+      })
+      expect(Uploader).to receive(:found_image_url).with('id', 'bacon', nil).and_return(nil)
+      expect(i.assert_cached_copy).to eq(false)
+    end
+    
+    
+    it "should assert a cached copy" do
+      bi = ButtonImage.new
+      bi2 = ButtonImage.create
+      u = User.create
+      expect(bi.assert_cached_copy).to eq(false)
+      bi.url = "http://www.example.com/pic.png"
+      bi.save
+      expect(Uploader).to receive(:protected_remote_url?).with("http://www.example.com/pic.png").at_least(1).times.and_return(true)
+      expect(Uploader).to receive(:protected_remote_url?).with("coughdrop://something.png").and_return(false)
+      expect(ButtonImage).to receive(:cached_copy_identifiers).with("http://www.example.com/pic.png").and_return({
+        library: 'lessonpix',
+        user_id: u.global_id,
+        image_id: '12345',
+        url: 'coughdrop://something.png'
+      })
+      expect(Uploader).to receive(:found_image_url).with('12345', 'lessonpix', u).and_return('http://www.example.com/pics/pic.png')
+      expect(ButtonImage).to receive(:create).and_return(bi2)
+      expect(bi2).to receive(:upload_to_remote).with('http://www.example.com/pics/pic.png').and_return(true)
+      expect(bi.assert_cached_copy).to eq(true)
+      bi2.reload
+      expect(bi2.url).to eq("coughdrop://something.png")
+      expect(bi2.settings['cached_copy_url']).to eq('http://www.example.com/pics/pic.png')
+    end
+    
+    it "should retry on failed cache copy assertion" do
+      bi = ButtonImage.new
+      bi2 = ButtonImage.create
+      u = User.create
+      expect(bi.assert_cached_copy).to eq(false)
+      bi.url = "http://www.example.com/api/v1/users/bob/protected_image/pic/123"
+      bi.save
+      expect(ButtonImage).to receive(:cached_copy_identifiers).with("http://www.example.com/api/v1/users/bob/protected_image/pic/123").and_return({
+        library: 'lessonpix',
+        user_id: u.global_id,
+        image_id: '12345',
+        url: 'coughdrop://something.png'
+      })
+      expect(Uploader).to receive(:found_image_url).with('12345', 'lessonpix', u).and_return('http://www.example.com/pics/pic.png')
+      expect(ButtonImage).to receive(:create).and_return(bi2)
+      bi2.settings['errored_pending_url'] = 'asdf'
+      bi2.save
+      expect(bi2).to receive(:upload_to_remote).with('http://www.example.com/pics/pic.png').and_return(true)
+      expect(bi.assert_cached_copy).to eq(false)
+      expect(ButtonImage.find_by(id: bi2.id)).to eq(nil)
+      bi.reload
+      expect(bi.settings['copy_attempts']).to eq(1)
+      expect(Worker.scheduled?(ButtonImage, 'perform_action', {'id' => bi.id, 'method' => 'assert_cached_copy', 'arguments' => []})).to eq(true)
+    end
+    
+    it "should find the cached copy if available" do
+      bi = ButtonImage.new
+      u = User.create
+      expect(ButtonImage.cached_copy_url("http://www.example.com/api/v1/users/#{u.global_id}/protected_image/lessonpix/12345", u)).to eq(nil)
+      
+      bi2 = ButtonImage.create(url: 'coughdrop://protected_image/lessonpix/12345', settings: {'cached_copy_url' => 'http://www.example.com/pic.png'})
+      expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return({})
+      expect(ButtonImage.cached_copy_url("http://www.example.com/api/v1/users/#{u.global_id}/protected_image/lessonpix/12345", u)).to eq('http://www.example.com/pic.png')
+    end
+    
+    describe "cached_copy_identifiers" do
+      it "should return matching parameters" do
+        expect(ButtonImage.cached_copy_identifiers(nil)).to eq(nil)
+        expect(ButtonImage.cached_copy_identifiers('')).to eq(nil)
+        expect(ButtonImage.cached_copy_identifiers('http://www.example.com/api/v1/users/bob/protected_image/lessonpix/12345?a=1234')).to eq({
+          user_id: 'bob',
+          library: 'lessonpix',
+          image_id: '12345',
+          url: 'coughdrop://protected_image/lessonpix/12345'
+        })
+      end
+      
+      it "should return nil if not a valid address" do
+        expect(ButtonImage.cached_copy_identifiers(nil)).to eq(nil)
+        expect(ButtonImage.cached_copy_identifiers('')).to eq(nil)
+        expect(ButtonImage.cached_copy_identifiers('http://www.example.com/pic.png')).to eq(nil)
+      end
+    end
+  end
 end

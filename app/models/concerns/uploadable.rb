@@ -78,8 +78,8 @@ module Uploadable
       @schedule_upload_to_remote = true
     end
     # TODO: check if it's a protected image (i.e. lessonpix) and download a cached
-    # copy accordingly. Track back the original reference, then update the 
-    # image in-place and it'll get downloaded on a subsequent sync.
+    # copy according. Keep the link pointing to our API for permission checks,
+    # but store somewhere and allow for redirects
     true
   end
   
@@ -105,7 +105,47 @@ module Uploadable
       self.schedule(:upload_to_remote, self.settings['pending_url'])
       @schedule_upload_to_remote = false
     end
+    if self.url && Uploader.protected_remote_url?(self.url)
+      self.schedule(:assert_cached_copy)
+    end
     true
+  end
+  
+  def assert_cached_copy
+    if self.url && Uploader.protected_remote_url?(self.url)
+      ref = self.class.cached_copy_identifiers(self.url)
+      return false unless ref
+      bi = ButtonImage.find_by_url(ref[:url])
+      if self.settings['copy_attempts'] && self.settings['copy_attempts'] > 2
+        return false
+      end
+      if !bi
+        user = User.find_by_path(ref[:user_id])
+        remote_url = Uploader.found_image_url(ref[:image_id], ref[:library], user)
+        if remote_url
+          bi = ButtonImage.create(url: ref[:url], public: false)
+          bi.upload_to_remote(remote_url)
+          if bi.settings['errored_pending_url']
+            bi.destroy
+            self.settings['copy_attempts'] = (self.settings['copy_attempts'] || 0) + 1
+            self.save
+            self.schedule(:assert_cached_copy)
+            return false
+          else
+            bi.settings['cached_copy_url'] = remote_url
+            bi.url = ref[:url]
+            bi.save
+            return true
+          end
+        else
+          return false
+        end
+      else
+        return true
+      end
+    else
+      false
+    end
   end
   
   def remote_upload_params
@@ -171,6 +211,37 @@ module Uploadable
     end
   end
 
+  module ClassMethods  
+    def cached_copy_url(url, user)
+      if url && Uploader.protected_remote_url?(url)
+        ref = self.cached_copy_identifiers(url)
+        if ref[:library] == 'lessonpix'
+          return nil unless user && Uploader.lessonpix_credentials(user)
+        else
+          return nil
+        end
+        bi = ButtonImage.find_by_url(ref[:url])
+        return bi && bi.settings['cached_copy_url']
+      else
+        nil
+      end
+    end
+
+    def cached_copy_identifiers(url)
+      return nil unless url
+      parts = url.match(/api\/v\d+\/users\/([^\/]+)\/protected_image\/(\w+)\/(\w+)/)
+      if parts && parts[1] && parts[2] && parts[3]
+        res = {
+          user_id: parts[1],
+          library: parts[2],
+          image_id: parts[3],
+          url: "coughdrop://protected_image/#{parts[2]}/#{parts[3]}"
+        }
+        return res
+      end
+      nil
+    end
+  end
   
   included do
     before_save :check_for_pending

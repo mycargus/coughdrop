@@ -1559,5 +1559,14 @@ describe Api::UsersController, :type => :controller do
       expect(response.headers['Content-Type']).to eq('image/png')
       expect(response.headers['Content-Disposition']).to eq('inline')
     end
+    
+    it 'should redirect to the cached copy if found' do
+      bi = ButtonImage.create(url: 'coughdrop://protected_image/lessonpix/12345', settings: {'cached_copy_url' => 'http://www.example.com/pic.png'})
+      u = User.create
+      expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return({})
+      get 'protected_image', params: {'user_id' => u.global_id, 'user_token' => u.user_token, 'library' => 'lessonpix', 'image_id' => '12345'}
+      expect(response).to be_redirect
+      expect(response.location).to eq('http://www.example.com/pic.png')
+    end
   end
 end

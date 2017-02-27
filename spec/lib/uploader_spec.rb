@@ -397,4 +397,11 @@ describe Uploader do
       expect(Uploader.found_image_url('qwer', 'lessonpix', nil)).to eq(nil)
     end
   end
+  
+  describe "protected_remote_url?" do
+    it "should return a correct result" do
+      expect(Uploader.protected_remote_url?('http://www.example.com')).to eq(false)
+      expect(Uploader.protected_remote_url?('/api/v1/users/bob/protected_image/a/b')).to eq(true)
+    end
+  end
 end

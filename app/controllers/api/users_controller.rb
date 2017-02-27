@@ -445,6 +445,10 @@ class Api::UsersController < ApplicationController
     valid_result = nil
     users.each do |user|
       next if valid_result || !user
+      safe_url = ButtonImage.cached_copy_url(request.original_url, user)
+      if safe_url
+        return redirect_to safe_url
+      end
       url = Uploader.found_image_url(params['image_id'], params['library'], user)
       if url
         begin
