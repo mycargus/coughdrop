@@ -1,4 +1,4 @@
-<h2>{{t "Subscription Plan" key='subscription_plan'}}</h2>
+<h2>{{t "Billing Details" key='billing_details'}}</h2>
 <div class="row">
 <div class='col-sm-9'>
   {{#if subscription.user.subscription.never_expires}}
@@ -13,11 +13,11 @@
       <button class="btn btn-default" {{action 'approve_or_reject_org' false}}>{{t "Deny Access"}}</button>
     {{else}}
       <span class='glyphicon glyphicon-user' style="float: left; font-size: 30px; margin-right: 10px;"></span>
-      {{t "Your subscription is being sponsored by the organization, <b>%{org}</b>. We hope everything is going well for you and CoughDrop is making a difference!" key='org_managed' org=subscription.user.managing_org.name}}
+      {{t "Your account is being sponsored by the organization, <b>%{org}</b>. We hope everything is going well for you and CoughDrop is making a difference!" key='org_managed' org=subscription.user.managing_org.name}}
     {{/if}}
   {{else if subscription.user_expired}}
     <span class='glyphicon glyphicon-exclamation-sign' style="float: left; font-size: 30px; margin-right: 10px;"></span>
-    {{t "Your premium account has expired. Please select a new subscription or purchase option." key='subscription_expired'}}
+    {{t "Your premium account has expired. Please select a new billing option." key='subscription_expired'}}
   {{else if subscription.user.subscription.started}}
     {{#if subscription.user_expiring}}
       <span class='glyphicon glyphicon-time' style="float: left; font-size: 30px; margin-right: 10px;"></span>
@@ -36,7 +36,7 @@
     {{/if}}
   {{else}}
     <span class='glyphicon glyphicon-info-sign' style="float: left; font-size: 30px; margin-right: 10px;"></span>
-    {{t "You haven't signed up for a CoughDrop subscription yet. Currently you're running a free trial, hopefully you're learning a lot and getting excited for what CoughDrop can do! Your trial will end" key='trial_ending'}} <span style='white-space: nowrap;'>{{date subscription.user.subscription.expires}}</span>.
+    {{t "You haven't purchased CoughDrop yet. Currently you're running a free trial, hopefully you're learning a lot and getting excited for what CoughDrop can do! Your trial will end" key='trial_ending'}} <span style='white-space: nowrap;'>{{date subscription.user.subscription.expires}}</span>.
   {{/if}}
   <div style="clear: left;"></div>
   <p style="margin-top: 10px;">
@@ -51,7 +51,7 @@
 </div>
 {{#if app_state.installed_app}}
   <p style="margin: 50px 0; font-size: 18px;">
-    {{t "To modify your subscription settings, please update your account by <b>visiting mycoughdrop.com</b> in your web browser. Make sure to sync this device after you purchase to update your changes." key='go_to_web_site'}}
+    {{t "To modify your billing settings, please update your account by <b>visiting mycoughdrop.com</b> in your web browser. Make sure to sync this device after you purchase to update your changes." key='go_to_web_site'}}
   </p>
   {{#unless subscription.show_options}}
     {{#unless subscription.user.is_sponsored}}
@@ -79,7 +79,7 @@
   {{#unless subscription.show_options}}
     {{#unless subscription.user.is_sponsored}}
       <div style="margin-top: 20px;">
-        <a class='btn btn-default' href="#" {{action 'show_options'}}>{{t "Change my Subscription" key='change_my_subscription'}}</a>
+        <a class='btn btn-default' href="#" {{action 'show_options'}}>{{t "Update my Billing Settings" key='change_my_subscription'}}</a>
         {{#if subscription.user.subscription.started}}
           <a class='btn btn-default' href="#" {{action 'cancel_subscription'}}>{{t "Cancel my Subscription" key='cancel_my_subscription'}}</a>
         {{/if}}
