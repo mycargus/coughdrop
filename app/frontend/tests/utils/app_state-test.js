@@ -514,7 +514,7 @@ describe('app_state', function() {
       stashes.set('current_mode', 'default');
       app_state.toggle_speak_mode('rememberRealHome');
       expect(mode).toEqual('speak');
-      expect(options).toEqual({override_state: {key: 'scarf', id: '1_1'}});
+      expect(options).toEqual({override_state: {key: 'scarf', id: '1_1', text_direction: undefined}});
     });
   });
 

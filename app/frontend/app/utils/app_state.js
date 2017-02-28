@@ -331,7 +331,9 @@ var app_state = Ember.Object.extend({
     }
     var current = app_state.get('currentBoardState');
     var preferred = app_state.get('speakModeUser.preferences.home_board') || app_state.get('currentUser.preferences.home_board');
-    preferred.text_direction = current.text_direction;
+    if(preferred && current) {
+      preferred.text_direction = current.text_direction;
+    }
 
     if(!app_state.get('speak_mode')) {
       // if it's in the speak-mode-user's board set, keep the original home board,

@@ -339,7 +339,7 @@ describe('speecher', function() {
   describe('text_direction', function() {
     it('should return the correct value', function() {
       speecher.voiceURI = null;
-      speecher.set('voices', [{vouceURI: 'saar', lang: 'ar-SA'}, {vouceURI: 'enus', lang:'en-US'}]);
+      speecher.set('voices', [{voiceURI: 'saar', lang: 'ar-SA'}, {voiceURI: 'enus', lang:'en-US'}]);
       expect(speecher.text_direction()).toEqual('ltr');
       speecher.voiceURI = 'saar';
       expect(speecher.text_direction()).toEqual('rtl');
