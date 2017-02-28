@@ -2,11 +2,17 @@ import Ember from 'ember';
 import capabilities from './capabilities';
 import persistence from './persistence';
 import tts_voices from './tts_voices';
+import i18n from './i18n';
 
 var speecher = Ember.Object.extend({
   beep_url: "https://opensymbols.s3.amazonaws.com/beep.mp3",
   chimes_url: "https://opensymbols.s3.amazonaws.com/chimes.mp3",
   voices: [],
+  text_direction: function() {
+    var voice = speecher.get('voices').find(function(v) { return v.voiceURI == speecher.voiceURI; });
+    var locale = (voice && voice.lang) || navigator.language || 'en-US';
+    return i18n.text_direction(locale);
+  },
   refresh_voices: function() {
     var list = [];
     var voices = speecher.scope.speechSynthesis.getVoices();

@@ -487,8 +487,15 @@ var i18n = Ember.Object.extend({
       }
     }
     return res;
-  }.property('locales')
-
+  }.property('locales'),
+  text_direction: function(locale) {
+    locale = locale || navigator.language || 'en-US';
+    if(i18n.rtl_locales[locale.replace(/-/, '_')]) {
+      return 'rtl';
+    } else {
+      return 'ltr';
+    }
+  }
   // http://www.oxforddictionaries.com/us/words/spelling
 }).create({
   vowels: ['a', 'e', 'i', 'o', 'u', 'y'],
@@ -1006,6 +1013,28 @@ var i18n = Ember.Object.extend({
     189: '-',
     187: '=',
     32: 'spacebar'
+  },
+  rtl_locales: {
+    ar_DZ: "Arabic (Algeria)",
+    ar_BH: "Arabic (Bahrain)",
+    ar_EG: "Arabic (Egypt)",
+    ar_IQ: "Arabic (Iraq)",
+    ar_JO: "Arabic (Jordan)",
+    ar_KW: "Arabic (Kuwait)",
+    ar_LB: "Arabic (Lebanon)",
+    ar_LY: "Arabic (Libya)",
+    ar_MA: "Arabic (Morocco)",
+    ar_OM: "Arabic (Oman)",
+    ar_QA: "Arabic (Qatar)",
+    ar_SA: "Arabic (Saudi Arabia)",
+    ar_SD: "Arabic (Sudan)",
+    ar_SY: "Arabic (Syria)",
+    ar_TN: "Arabic (Tunisia)",
+    ar_AE: "Arabic (United Arab Emirates)",
+    ar_YE: "Arabic (Yemen)",
+    ar: "Arabic",
+    he_IL: "Hebrew (Israel)",
+    he: "Hebrew",
   },
   locales: {
     af_NA: "Afrikaans (Namibia)",

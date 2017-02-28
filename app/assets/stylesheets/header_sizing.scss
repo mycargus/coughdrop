@@ -41,6 +41,7 @@ header {
       width: -webkit-calc(100% - 225px); 
       width: calc(100% - 225px); 
     }
+    padding-right: 50px;
     .history_button {
       max-width: 60px; 
       height: 60px; 
@@ -249,6 +250,7 @@ header {
         height: 143px;
         width: -webkit-calc(100% - 396px); 
         width: calc(100% - 396px); 
+        padding-right: 65px;
         &.with_back {
           width: -webkit-calc(100% - 517px); 
           width: calc(100% - 517px); 
@@ -334,6 +336,7 @@ header {
           width: -webkit-calc(100% - 670px); 
           width: calc(100% - 670px); 
         }
+        padding-right: 85px;
         .history_button {
           max-width: 190px; 
           height: 188px; 

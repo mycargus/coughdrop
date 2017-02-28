@@ -27,8 +27,12 @@ export default Ember.Route.extend({
       id: model.get('id'),
       key: model.get('key'),
       name: model.get('name'),
-      parent_key: model.get('parent_board_key')
+      parent_key: model.get('parent_board_key'),
+      text_direction: i18n.text_direction(model.get('locale'))
     });
+    if(stashes.get('root_board_state.id') == app_state.get('currentBoardState.id') && !stashes.get('root_board_state.text_direction')) {
+      stashes.set('root_board_state.text_direction', app_state.get('currentBoardState.text_direction'));
+    }
     if(CoughDrop.embedded && !app_state.get('speak_mode')) {
       var state = app_state.get('currentBoardState');
       app_state.toggle_mode('speak', {override_state: state});

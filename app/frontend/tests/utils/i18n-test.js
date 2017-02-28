@@ -737,4 +737,15 @@ describe("i18n", function() {
       expect(res.zh).toEqual(undefined);
     });
   });
+
+  describe("text_direction", function() {
+    it("should return the correct value", function() {
+      expect(i18n.text_direction()).toEqual('ltr');
+      expect(i18n.text_direction('ar')).toEqual('rtl');
+      expect(i18n.text_direction('ar-BH')).toEqual('rtl');
+      expect(i18n.text_direction('fr')).toEqual('ltr');
+      expect(i18n.text_directoin('he')).toEqual('rtl');
+      expect(i18n.text_direction('en-XX')).toEqual('ltr');
+    });
+  });
 });

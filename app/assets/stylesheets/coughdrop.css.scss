@@ -507,6 +507,9 @@ footer .wide_links {
     border-radius: 10px;
   }
 }
+.button_list.rtl .history_button {
+  float: right;
+}
 
 .button {
   border: 1px solid #ccc; 

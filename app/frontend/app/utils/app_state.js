@@ -331,6 +331,7 @@ var app_state = Ember.Object.extend({
     }
     var current = app_state.get('currentBoardState');
     var preferred = app_state.get('speakModeUser.preferences.home_board') || app_state.get('currentUser.preferences.home_board');
+    preferred.text_direction = current.text_direction;
 
     if(!app_state.get('speak_mode')) {
       // if it's in the speak-mode-user's board set, keep the original home board,
@@ -458,6 +459,7 @@ var app_state = Ember.Object.extend({
         app_state.home_in_speak_mode(opts);
       });
     }
+    // NOTE: text-direction is updated on board load, so it's ok that it's not known here
     this.toggle_mode('speak', {force: true, override_state: preferred});
     this.controller.transitionToRoute('board', preferred.key);
   },

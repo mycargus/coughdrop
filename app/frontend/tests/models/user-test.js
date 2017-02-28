@@ -699,7 +699,7 @@ describe('User', function() {
         return Ember.RSVP.resolve('asdf');
       });
       var u = CoughDrop.store.createRecord('user', {id: 'asdf', permissions: {supervise: true}});
-      CoughDrop.User.integrations_for = {asdf: null}
+      CoughDrop.User.integrations_for = {asdf: null};
       var result = null;
       u.check_integrations().then(function(res) { result = res; });
       waitsFor(function() { return result; });
@@ -714,8 +714,8 @@ describe('User', function() {
 
   describe("find_integration", function() {
     it('should wait on the existing promise if defined', function() {
-      var u = CoughDrop.store.createRecord('user');
-      u.set('integrations', {promise: Ember.RSVP.reject('no way')});
+      var u = CoughDrop.store.createRecord('user', {id: 'asdf'});
+      CoughDrop.User.integrations_for = {'asdf': Ember.RSVP.reject('no way')};
       var error = null;
       u.find_integration('bacon').then(null, function(err) { error = err; });
       waitsFor(function() { return error; });
@@ -725,8 +725,8 @@ describe('User', function() {
     });
 
     it('should resolve on found record', function() {
-      var u = CoughDrop.store.createRecord('user');
-      u.set('integrations', {promise: Ember.RSVP.resolve([Ember.Object.create(), Ember.Object.create({template_key: 'bacon'})])});
+      var u = CoughDrop.store.createRecord('user', {id: 'asdf'});
+      CoughDrop.User.integrations_for = {'asdf': Ember.RSVP.resolve([Ember.Object.create(), Ember.Object.create({template_key: 'bacon'})])};
       var result = null;
       u.find_integration('bacon').then(function(res) { result = res; });
       waitsFor(function() { return result; });
@@ -736,8 +736,8 @@ describe('User', function() {
     });
 
     it('should error if the waiting promise fails', function() {
-      var u = CoughDrop.store.createRecord('user');
-      u.set('integrations', {promise: Ember.RSVP.reject('no way')});
+      var u = CoughDrop.store.createRecord('user', {id: 'asdf'});
+      CoughDrop.User.integrations_for = {'asdf': Ember.RSVP.reject('no way')};
       var error = null;
       u.find_integration('bacon').then(null, function(err) { error = err; });
       waitsFor(function() { return error; });
@@ -748,7 +748,7 @@ describe('User', function() {
 
     it('should error if no integration found', function() {
       var u = CoughDrop.store.createRecord('user');
-      stub(u, 'check_integrations', function() {
+      stub(CoughDrop.User, 'check_integrations', function() {
         return Ember.RSVP.resolve([Ember.Object.create({template_key: 'chicken'}), Ember.Object.create()]);
       });
       var error = null;

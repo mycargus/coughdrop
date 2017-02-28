@@ -389,11 +389,13 @@ CoughDrop.User = DS.Model.extend({
     } else {
       res = Ember.RSVP.reject({error: 'not allowed'});
     }
-    res.then(function(ints) {
-      _this.set('integrations', ints);
-    }, function(err) {
-      _this.set('integrations', err);
-    });
+    if(res && res.then) {
+      res.then(function(ints) {
+        _this.set('integrations', ints);
+      }, function(err) {
+        _this.set('integrations', err);
+      });
+    }
     return res;
   }.observes('permissions.supervise'),
   find_integration: function(key) {
@@ -433,9 +435,13 @@ CoughDrop.User.find_integration = function(user_name, key) {
     }
   }
   return loading.then(function(list) {
-    var res = list.find(function(integration) { return integration.get('template_key') == key; });
-    if(res) {
-      return res;
+    if(list && list.length > 0) {
+      var res = list.find(function(integration) { return integration.get('template_key') == key; });
+      if(res) {
+        return res;
+      } else {
+        return Ember.RSVP.reject({error: 'no matching integration found'});
+      }
     } else {
       return Ember.RSVP.reject({error: 'no matching integration found'});
     }
