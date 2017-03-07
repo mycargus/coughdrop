@@ -7,6 +7,7 @@ import coughDropExtras from './extras';
 import modal from './modal';
 import stashes from './_stashes';
 import app_state from './app_state';
+import Utils from './misc';
 import progress_tracker from './progress_tracker';
 
 var contentGrabbers = Ember.Object.extend({
@@ -915,6 +916,7 @@ var pictureGrabber = Ember.Object.extend({
       var _this = this;
       return contentGrabbers.save_record(image);
     });
+    var button_id = _this.controller.get('model.id');
     save_image.then(function(image) {
       // TODO: if the image doesn't have a label yet, go ahead and set
       // it to the filename of this image pretty formatted (I guess also
@@ -922,7 +924,7 @@ var pictureGrabber = Ember.Object.extend({
       _this.controller.set('model.image', image);
       _this.clear();
       var button_image = {url: image.get('url'), id: image.id};
-      editManager.change_button(_this.controller.get('model.id'), {
+      editManager.change_button(button_id, {
         'image': image,
         'image_id': image.id
       });
@@ -1502,6 +1504,7 @@ var soundGrabber = Ember.Object.extend({
         });
       });
     }
+    _this.controller.set('browse_audio', null);
     _this.controller.addObserver('sound_preview', _this, _this.default_sound_preview_license);
   },
   clear: function() {
@@ -1521,6 +1524,7 @@ var soundGrabber = Ember.Object.extend({
     this.controller.set('sound_preview', null);
     this.clear();
     this.controller.set('sound_recording', null);
+    this.controller.set('browse_audio', null);
     Ember.$('#sound_upload').val('');
   },
   default_sound_preview_license: function() {
@@ -1756,6 +1760,56 @@ var soundGrabber = Ember.Object.extend({
       }
     }
   },
+  browse_audio: function() {
+    var controller = this.controller;
+    controller.set('browse_audio', {loading: true});
+    var user_id = app_state.get('currentUser.id');
+    // TODO: allow browsing for supervisees too
+    Utils.all_pages('sound', {user_id: user_id}, function(res) {
+      controller.set('browse_audio', {results: res.slice(0, 10), full_results: res, filtered_results: res});
+    }).then(function(res) {
+      controller.set('browse_audio', {results: res.slice(0, 10), full_results: res, filtered_results: res});
+    }, function(err) {
+      controller.set('browse_audio', {error: true});
+    });
+  },
+  filter_browsed_audio: function(str) {
+    var re = new RegExp(str, 'i');
+    var controller = this.controller;
+    if(controller.get('browse_audio.full_results')) {
+      var all = controller.get('browse_audio.full_results');
+      controller.set('browse_audio.filtered_results', all.filter(function(r) { return r.get('search_string').match(re); }));
+      controller.set('browse_audio.results', controller.get('browse_audio.filtered_results').slice(0, 10));
+    }
+  },
+  more_browsed_audio: function() {
+    var controller = this.controller;
+    if(controller.get('browse_audio.results')) {
+      controller.set('browse_audio.results', controller.get('browse_audio.filtered_results').slice(0, controller.get('browse_audio.results').length + 10));
+    }
+  },
+  select_browsed_audio: function(sound) {
+    var controller = this.controller;
+    controller.set('browse_audio', null);
+    controller.set('model.sound', sound);
+  },
+  play_audio: function(sound) {
+    var elem = document.getElementById(sound.get('id'));
+    if(elem && elem.currentTime > 0 && !elem.paused) {
+      sound.set('playing', false);
+      elem.pause();
+    } else {
+      sound.set('playing', true);
+      elem.currentTime = 0;
+      elem.addEventListener('ended', function() {
+        sound.set('playing', false);
+      });
+      elem.addEventListener('paused', function() {
+        sound.set('playing', false);
+      });
+      elem.play();
+    }
+  }
 }).create();
 
 var boardGrabber = Ember.Object.extend({

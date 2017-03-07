@@ -290,6 +290,12 @@ export default modal.ModalController.extend({
     var previews = this.get('image_search.previews');
     return (previews && previews.length > 0) || this.get('image_search.previews_loaded') || this.get('image_search.error');
   }.property('image_search.previews', 'image_search.previews_loaded', 'image_search.error'),
+  more_audio_results: function() {
+    return !!(this.get('browse_audio.results') && this.get('browse_audio.results').length < this.get('browse_audio.filtered_results').length);
+  }.property('browse_audio.results', 'browse_audio.filtered_results'),
+  filter_audio_string: function() {
+    contentGrabbers.soundGrabber.filter_browsed_audio(this.get('browse_audio.filter_string'));
+  }.observes('browse_audio.filter_string'),
   actions: {
     nothing: function() {
       // I had some forms that were being used mainly for layout and I couldn't
@@ -470,6 +476,18 @@ export default modal.ModalController.extend({
       });
       this.set('selected_integration', tool);
       Ember.set(tool, 'selected', true);
+    },
+    browse_audio: function() {
+      contentGrabbers.soundGrabber.browse_audio();
+    },
+    play_audio: function(sound) {
+      contentGrabbers.soundGrabber.play_audio(sound);
+    },
+    more_browsed_audio: function() {
+      contentGrabbers.soundGrabber.more_browsed_audio();
+    },
+    select_audio: function(sound) {
+      contentGrabbers.soundGrabber.select_browsed_audio(sound);
     }
   }
 });

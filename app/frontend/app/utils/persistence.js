@@ -488,7 +488,7 @@ var persistence = Ember.Object.extend({
   find_url: function(url, type) {
     url = this.normalize_url(url);
     // url_cache is a cache of all images that already have a data-uri loaded
-    // url_uncache is all images that are known to now have a data-uri loaded
+    // url_uncache is all images that are known to not have a data-uri loaded
     if(this.url_cache && this.url_cache[url]) {
       return Ember.RSVP.resolve(this.url_cache[url]);
     } else if(this.url_uncache && this.url_uncache[url]) {
