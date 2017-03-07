@@ -78,6 +78,9 @@ var capabilities;
         capabilities.system = "Mac";
       } else if(navigator.userAgent.match(/windows\snt/i)) {
         capabilities.system = "Windows";
+      } else if(navigator.userAgent.match(/CoughDrop Desktop App/)) {
+        capabilities.system = "Windows";
+        capabilities.browser = "App";
       }
       if(navigator.userAgent.match(/chrome/i)) {
         capabilities.browser = "Chrome";
