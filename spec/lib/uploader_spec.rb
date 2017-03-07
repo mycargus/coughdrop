@@ -308,10 +308,10 @@ describe Uploader do
         'pid' => '99999',
         'token' => 'for_the_team'
       }).exactly(2).times
-      expect(Typhoeus).to receive(:get).with("http://lessonpix.com/apiKWSearch.php?pid=99999&username=pocatello&token=for_the_team&word=bacon&fmt=json&allstyles=n&limit=15").and_return(OpenStruct.new(body: 'Token Mismatch'))
+      expect(Typhoeus).to receive(:get).with("http://lessonpix.com/apiKWSearch.php?pid=99999&username=pocatello&token=for_the_team&word=bacon&fmt=json&allstyles=n&limit=30").and_return(OpenStruct.new(body: 'Token Mismatch'))
       expect(Uploader.find_images('bacon', 'lessonpix', u)).to eq(false)
 
-      expect(Typhoeus).to receive(:get).with("http://lessonpix.com/apiKWSearch.php?pid=99999&username=pocatello&token=for_the_team&word=cheddar&fmt=json&allstyles=n&limit=15").and_return(OpenStruct.new(body: [
+      expect(Typhoeus).to receive(:get).with("http://lessonpix.com/apiKWSearch.php?pid=99999&username=pocatello&token=for_the_team&word=cheddar&fmt=json&allstyles=n&limit=30").and_return(OpenStruct.new(body: [
         {'iscategory' => 't'},
         {
           'image_id' => '2345',
@@ -321,7 +321,7 @@ describe Uploader do
       expect(Uploader.find_images('cheddar', 'lessonpix', u)).to eq([
         {
           'url' => "#{JsonApi::Json.current_host}/api/v1/users/#{u.global_id}/protected_image/lessonpix/2345",
-          'content_type' => 'image/svg',
+          'content_type' => 'image/png',
           'name' => 'good pic',
           'width' => 300,
           'height' => 300,
@@ -391,7 +391,7 @@ describe Uploader do
         'pid' => 'qwert',
         'token' => 'tokenss'
       })
-      expect(Uploader.found_image_url('asdf', 'lessonpix', u)).to eq("https://lessonpix.com/apiGetImage.php?pid=qwert&username=amelia&token=tokenss&image_id=asdf&h=300&w=300&fmt=svg")
+      expect(Uploader.found_image_url('asdf', 'lessonpix', u)).to eq("https://lessonpix.com/apiGetImage.php?pid=qwert&username=amelia&token=tokenss&image_id=asdf&h=300&w=300&fmt=png")
       
       expect(Uploader).to receive(:lessonpix_credentials).with(nil).and_return(nil)
       expect(Uploader.found_image_url('qwer', 'lessonpix', nil)).to eq(nil)

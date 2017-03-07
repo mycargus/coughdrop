@@ -91,7 +91,7 @@ describe Api::SearchController, :type => :controller do
       token_user
       u = User.create
       expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return({'pid' =>  '1', 'username' => 'bob', 'token' => 'asdf'})
-      expect(Typhoeus).to receive(:get).with("http://lessonpix.com/apiKWSearch.php?pid=1&username=bob&token=asdf&word=snowman&fmt=json&allstyles=n&limit=15").and_return(OpenStruct.new({body: [
+      expect(Typhoeus).to receive(:get).with("http://lessonpix.com/apiKWSearch.php?pid=1&username=bob&token=asdf&word=snowman&fmt=json&allstyles=n&limit=30").and_return(OpenStruct.new({body: [
       ].to_json}))
       User.link_supervisor_to_user(@user, u, nil, true)
       get :protected_symbols, params: {:q => 'snowman', :library => 'lessonpix', :user_name => u.user_name}
