@@ -11,6 +11,7 @@ export default modal.ModalController.extend({
     if(persistence.get('online') && this.get('model.button_set')) {
       this.get('model.button_set').reload();
     }
+    this.set('translating', null);
 
     if(this.get('model.locale') && this.get('model.button_set')) {
       var _this = this;
@@ -74,10 +75,13 @@ export default modal.ModalController.extend({
     var board_ids = this.get('model.old_board_ids_to_translate');
     var translations = this.get('translations') || {};
     var original_board_id = this.get('model.board.id');
+    var translating = !!(this.get('translating'));
     words.forEach(function(b, idx) {
-      if(locale && b.locale && b.locale == locale) { return; }
-      if(board_ids && board_ids.indexOf(b.board_id) == -1) { return; }
-      if(!board_ids && b.board_id != original_board_id) { return; }
+      if(translating) {
+        if(locale && b.locale && b.locale == locale) { return; }
+        if(board_ids && board_ids.indexOf(b.board_id) == -1) { return; }
+        if(!board_ids && b.board_id != original_board_id) { return; }
+      }
       b.label = b.vocalization || b.label;
       words.forEach(function(b2, idx2) {
         b2.label = b2.vocalization || b2.label;
