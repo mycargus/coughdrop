@@ -61,7 +61,6 @@ export default Ember.Controller.extend({
   updateSuggestions: function() {
     if(!this.get('model.word_suggestions')) { return; }
     var _this = this;
-
     var button_list = this.get('app_state.button_list');
     var last_button = button_list[button_list.length - 1];
     var current_button = null;
@@ -140,7 +139,7 @@ export default Ember.Controller.extend({
         this.set('show_word_suggestion_images', true);
       }
     }
-    if((!this.get('model.public') || this.get('model.license.type') != 'private') && !app_state.get('edit_mode') && !app_state.get('speak_mode')) {
+    if((!this.get('model.public') || this.get('model.license.type') != 'private') && !app_state.get('edit_mode') && stashes.get('current_mode') != 'speak') {
       show_description = show_description || this.get('model.name');
       if(!this.get('model.public')) {
         if(this.get('model.protected_material')) {
@@ -161,7 +160,7 @@ export default Ember.Controller.extend({
       'width': width,
       'teaser_description': show_description
     });
-  }.observes('app_state.speak_mode', 'app_state.edit_mode', 'model.word_suggestions', 'model.description', 'model.protected_material', 'app_state.sidebar_pinned', 'app_state.currentUser.preferences.word_suggestion_images', 'text_position', 'model.protected_material'),
+  }.observes('app_state.speak_mode', 'app_state.edit_mode', 'model.word_suggestions', 'model.description', 'app_state.sidebar_pinned', 'app_state.currentUser.preferences.word_suggestion_images', 'text_position'),
   board_style: function() {
     return new Ember.String.htmlSafe("position: relative; height: " + (this.get('height') + 5) + "px");
   }.property('height'),
@@ -584,6 +583,9 @@ export default Ember.Controller.extend({
   }.property('nothing_visible', 'app_state.edit_mode'),
   display_class: function() {
     var res = "board advanced_selection ";
+    if(true) {
+      res = res + "colored_icons ";
+    }
     if(this.get('model.finding_target')) {
       res = res + "finding_target ";
     }
