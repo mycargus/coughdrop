@@ -754,6 +754,11 @@ var app_state = Ember.Object.extend({
             modal.warning(i18n.t('volume_is_low', "Volume is low, you may not be able to hear speech"), true);
           }
         });
+        capabilities.silent_mode().then(function(silent) {
+          if(silent && capabilities.system == 'iOS') {
+            modal.warning(i18n.t('ios_muted', "The app is currently muted, so you will not hear speech. To unmute, check the mute switch, and also swipe up from the bottom of the screen to check for app-level muting"));
+          }
+        });
         var ref_user = this.get('referenced_speak_mode_user') || this.get('currentUser');
         if(ref_user && ref_user.get('goal.summary')) {
           Ember.run.later(function() {
