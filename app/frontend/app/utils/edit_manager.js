@@ -482,6 +482,7 @@ var editManager = Ember.Object.extend({
       return Ember.RSVP.resolve();
     });
 
+    var image_urls = board.get('image_urls');
     prefetch.then(function() {
       for(var idx = 0; idx < grid.rows; idx++) {
         var row = [];
@@ -498,6 +499,9 @@ var editManager = Ember.Object.extend({
               var more_args = {board: board};
               if(board.get('no_lookups')) {
                 more_args.no_lookups = true;
+              }
+              if(image_urls) {
+                more_args.image_url = image_urls[buttons[kdx]['image_id']];
               }
               button = editManager.Button.create(buttons[kdx], more_args);
             }

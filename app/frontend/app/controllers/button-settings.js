@@ -14,6 +14,8 @@ import Utils from '../utils/misc';
 export default modal.ModalController.extend({
   opening: function() {
     var button = this.get('model.button');
+    button.load_image();
+    button.load_sound();
     this.set('board', this.get('model.board'));
     this.set('model', button);
     this.set('handle_updates', true);

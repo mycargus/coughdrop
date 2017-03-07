@@ -26,6 +26,8 @@ CoughDrop.Board = DS.Model.extend({
   full_set_revision: DS.attr('string'),
   current_revision: DS.attr('string'),
   for_user_id: DS.attr('string'),
+  image_urls: DS.attr('raw'),
+  sound_urls: DS.attr('raw'),
   could_be_in_use: function() {
     // no longer using (this.get('public') && this.get('brand_new'))
     return this.get('non_author_uses') > 0 || this.get('non_author_starred');
@@ -141,6 +143,10 @@ CoughDrop.Board = DS.Model.extend({
     if(this.get('fetched')) { return Ember.RSVP.resolve(); }
     if(fetch_promise) { return fetch_promise; }
 
+    if(this.get('no_lookups')) {
+      // we don't need to wait on this for an aggressive local load
+      return Ember.RSVP.resolve(true);
+    }
 
     var promises = [];
     var image_ids = [];
@@ -155,6 +161,7 @@ CoughDrop.Board = DS.Model.extend({
     });
     promises.push(persistence.push_records('image', image_ids));
     promises.push(persistence.push_records('sound', sound_ids));
+
     fetch_promise = Ember.RSVP.all_wait(promises).then(function() {
       _this.set('fetched', true);
       fetch_promise = null;
