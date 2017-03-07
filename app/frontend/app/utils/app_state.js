@@ -480,6 +480,7 @@ var app_state = Ember.Object.extend({
           interval: _this.get('currentUser.preferences.device.scanning_interval'),
           vertical_chunks: _this.get('currentUser.preferences.device.scanning_region_rows'),
           horizontal_chunks: _this.get('currentUser.preferences.device.scanning_region_columns'),
+          scanning_auto_select: _this.get('currentUser.preferences.device.scanning_auto_select'),
           audio: _this.get('currentUser.preferences.device.scanning_prompt')
         });
       } else {

@@ -432,7 +432,11 @@ var scanner = Ember.Object.extend({
     }, function() { });
     scanner.interval = Ember.run.later(function() {
       if(scanner.current_element == elem) {
-        scanner.next();
+        if(scanner.options && scanner.options.scanning_auto_select) {
+          scanner.pick();
+        } else {
+          scanner.next();
+        }
       }
     }, options.interval || 1000);
   }

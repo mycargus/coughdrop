@@ -724,6 +724,17 @@
         </div>
       </div>
     {{/if}}
+    <div class="form-group">
+      <label for="scanning_auto_select" class="col-sm-3 control-label">{{t "Scanning Auto-Select" key='scanning_auto_select'}}</label>
+      <div class="col-sm-5">
+        <div class="checkbox">
+          <label>
+            {{input type="checkbox" checked=model.preferences.device.scanning_auto_select id="scanning_auto_select"}}
+            {{t "Select after the interval if no \"Next\" button hit" key='auto_select_after_delay'}}
+          </label>
+        </div>
+      </div>
+    </div>
   {{/if}}
   <div class="form-group">
     <label for="scanning" class="col-sm-3 control-label">{{t "Dwell/Eye Tracking" key='dwell_eye_tracking'}}</label>
