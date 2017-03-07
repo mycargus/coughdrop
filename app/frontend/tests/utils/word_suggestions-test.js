@@ -107,4 +107,66 @@ describe('word_suggestions', function() {
       });
     });
   });
+
+  describe('fallback_url', function() {
+    it('should return a promise', function() {
+      var res = word_suggestions.fallback_url();
+      expect(res.then).toNotEqual(undefined);
+    });
+
+    it('should return the existing result if there is one', function() {
+      word_suggestions.fallback_url_result = "file://fallback.png";
+      var done = false;
+      var url = null;
+      word_suggestions.fallback_url().then(function(res) {
+        done = true;
+        url = res;
+      });
+      waitsFor(function() { return done; });
+      runs(function() {
+        expect(url).toEqual('file://fallback.png');
+      });
+    });
+
+    it('should lookup the cached copy if there is one', function() {
+      word_suggestions.fallback_url_result = null;
+      var done = false;
+      var url = null;
+      stub(persistence, 'find_url', function(url) {
+        expect(url).toEqual('https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg');
+        return Ember.RSVP.resolve('file://fallback.png');
+      });
+      word_suggestions.fallback_url().then(function(res) {
+        done = true;
+        url = res;
+      });
+      waitsFor(function() { return done; });
+      runs(function() {
+        expect(url).toEqual('file://fallback.png');
+        expect(word_suggestions.fallback_url_result).toEqual('file://fallback.png');
+      });
+    });
+
+    it('should use the original url if no cached copy found', function() {
+      word_suggestions.fallback_url_result = null;
+      var done = false;
+      var url = null;
+      var looked_up = false;
+      stub(persistence, 'find_url', function(url) {
+        looked_up = true;
+        expect(url).toEqual('https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg');
+        return Ember.RSVP.reject();
+      });
+      word_suggestions.fallback_url().then(function(res) {
+        done = true;
+        url = res;
+      });
+      waitsFor(function() { return done; });
+      runs(function() {
+        expect(url).toEqual('https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg');
+        expect(looked_up).toEqual(true);
+        expect(word_suggestions.fallback_url_result).toEqual(null);
+      });
+    });
+  });
 });

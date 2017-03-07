@@ -58,11 +58,14 @@
         <dt>{{t "Suggestions:" key='suggestions'}}</dt>
         <dd>
           {{#if suggestions}}
-            <p>{{t "Here are some examples of sentences using \"%{word}\"" word=model.word key='examples_using_word'}}</p>
-            <div class='list-group'>
-              {{#each suggestions as |suggestion|}}
-                <span class='list-group-item'>"{{suggestion.sentence}}"</span>
-              {{/each}}
+            <br/>
+            <div style="margin: 50px 50px 0 -50px;">
+              <p>{{t "Language learning works better when you can find multiple ways to use the same word. Here are some examples using \"%{word}\" that might be helpful." word=model.work_key key='word_usage_examples'}}</p>
+              <div class='list-group'>
+                {{#each suggestions as |suggestion|}}
+                  <span class='list-group-item'>"{{suggestion.sentence}}"</span>
+                {{/each}}
+              </div>
             </div>
           {{else}}
             <p>{{t "No suggestions currently available for \"%{word}\"" word=model.word key='no_suggestions_for_word'}}</p>
