@@ -61,12 +61,12 @@ var speecher = Ember.Object.extend({
       var u = new window.SpeechSynthesisUtterance();
       u.text = "test";
       u.lang = "ja-JP";
-      u.voice = {name: "ja-JP", voiceURI: "ja-JP", lang: "ja-JP", localService: true, default: true};
-      window.speechSynthesis.speak(u);
+      try {
+        u.voice = {name: "ja-JP", voiceURI: "ja-JP", lang: "ja-JP", localService: true, default: true};
+      } catch(e) { }
     };
     if(capabilities.system == 'iOS') {
-      ios();
-      Ember.run.later(ios, 1000);
+//       Ember.run.later(ios, 1000);
     }
 //     this.ready = !!(!speecher.scope.speechSynthesis.voiceList || speecher.scope.speechSynthesis.voiceList.length > 0);
   },
