@@ -1259,5 +1259,30 @@ describe('scanner', function() {
         expect(highlighted).toEqual(true);
       });
     });
+
+    it('should select instead of advancing if scanning_auto_select set', function() {
+      stub(scanner, 'elements', [
+        {dom: {id: 'a', hasClass: function() { return false; }}},
+        {dom: {id: 'b', hasClass: function() { return false; }}}
+      ]);
+      var nexted = false;
+      stub(scanner, 'pick', function() { nexted = true; });
+      stub(document.body, 'contains', function() { return true; });
+      var highlighted = false;
+      stub(modal, 'highlight', function(elem, opts) {
+        highlighted = true;
+        expect(elem.id).toEqual('b');
+        expect(opts).toEqual({interval: 10, overlay: false, prevent_close: true, select_anywhere: true, scanning_auto_select: true});
+        return Ember.RSVP.reject();
+      });
+      scanner.options = {interval: 10, scanning_auto_select: true};
+      scanner.element_index = 1;
+      scanner.next_element();
+
+      waitsFor(function() { return nexted; });
+      runs(function() {
+        expect(highlighted).toEqual(true);
+      });
+    });
   });
 });
