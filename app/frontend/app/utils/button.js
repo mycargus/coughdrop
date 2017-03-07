@@ -218,6 +218,9 @@ var Button = Ember.Object.extend({
     if(this.get('buttonAction')) {
       res = res + this.get('buttonAction') + " ";
     }
+    if(this.get('home_lock')) {
+      res = res + "home ";
+    }
     return res;
   }.property('buttonAction'),
   pending: function() {

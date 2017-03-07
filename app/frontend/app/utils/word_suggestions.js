@@ -230,7 +230,7 @@ var word_suggestions = Ember.Object.extend({
               Ember.set(word, 'image', url);
             }
           });
-        }, function() { });
+        });
         if(options.button_set) {
           result.forEach(function(word) {
             options.button_set.find_buttons(word.word, options.board_id, app_state.get('currentUser'), true).then(function(buttons) {
@@ -249,14 +249,14 @@ var word_suggestions = Ember.Object.extend({
     });
   },
   fallback_url: function() {
-    if(this.fallback_url) {
-      return this.fallback_url;
+    if(this.fallback_url_result) {
+      return Ember.RSVP.resolve(this.fallback_url_result);
     } else {
       var _this = this;
-      persistence.find_url('https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg').then(function(url) {
-        _this.fallback_url = url;
+      return persistence.find_url('https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg').then(function(url) {
+        _this.fallback_url_result = url;
         return url;
-      }, function() { });
+      }, function() { return Ember.RSVP.resolve('https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg'); });
     }
   },
   edit_distance: function(a, b) {
