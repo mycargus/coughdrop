@@ -25,6 +25,9 @@ export default Ember.Component.extend({
   actions: {
     word_cloud: function() {
       this.sendAction('word_cloud');
-    }
+    },
+    word_data: function(word) {
+      this.sendAction('word_data', word);
+    },
   }
 });
