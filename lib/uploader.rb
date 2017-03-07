@@ -152,7 +152,7 @@ module Uploader
     if library == 'lessonpix'
       cred = lessonpix_credentials(user)
       return nil unless cred
-      url = "https://lessonpix.com/apiGetImage.php?pid=#{cred['pid']}&username=#{cred['username']}&token=#{cred['token']}&image_id=#{image_id}&h=300&w=300&fmt=svg"
+      url = "https://lessonpix.com/apiGetImage.php?pid=#{cred['pid']}&username=#{cred['username']}&token=#{cred['token']}&image_id=#{image_id}&h=300&w=300&fmt=png"
     else
       return nil
     end
@@ -182,7 +182,7 @@ module Uploader
         next if !obj || obj['iscategory'] == 't'
         list << {
           'url' => "#{JsonApi::Json.current_host}/api/v1/users/#{user.global_id}/protected_image/lessonpix/#{obj['image_id']}",
-          'content_type' => 'image/svg',
+          'content_type' => 'image/png',
           'name' => obj['title'],
           'width' => 300,
           'height' => 300,
