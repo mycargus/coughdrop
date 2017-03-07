@@ -234,57 +234,77 @@ var Button = Ember.Object.extend({
     }
     return true;
   },
+  load_image: function() {
+    var _this = this;
+    var image = CoughDrop.store.peekRecord('image', _this.image_id);
+    if(image && (!image.get('isLoaded') || !image.get('best_url'))) { image = null; }
+    _this.set('image', image);
+    if(!image) {
+      if(_this.get('no_lookups')) {
+        return Ember.RSVP.reject('no image lookups');
+      } else {
+        return CoughDrop.store.findRecord('image', _this.image_id).then(function(image) {
+          // There was a Ember.run.later of 100ms here, I have no idea why but
+          // it seemed like a bad idea so I removed it.
+          _this.set('image', image);
+          return image.checkForDataURL().then(function() {
+            _this.set('local_image_url', image.get('best_url'));
+            return Ember.RSVP.resolve(image);
+          }, function() {
+            _this.set('local_image_url', image.get('best_url'));
+            return Ember.RSVP.resolve(image);
+          });
+        });
+      }
+    } else {
+      _this.set('local_image_url', image.get('best_url'));
+      return image.checkForDataURL().then(null, function() { return Ember.RSVP.resolve(image); });
+    }
+  },
+  load_sound: function() {
+    var _this = this;
+    var sound = CoughDrop.store.peekRecord('sound', _this.sound_id);
+    if(sound && (!sound.get('isLoaded') || !sound.get('best_url'))) { sound = null; }
+    _this.set('sound', sound);
+    if(!sound) {
+      if(_this.get('no_lookups')) {
+        return Ember.RSVP.reject('no sound lookups');
+      } else {
+        return CoughDrop.store.findRecord('sound', _this.sound_id).then(function(sound) {
+          _this.set('sound', sound);
+          return sound.checkForDataURL().then(function() {
+            _this.set('local_sound_url', sound.get('best_url'));
+            return Ember.RSVP.resolve(sound);
+          }, function() {
+            _this.set('local_sound_url', sound.get('best_url'));
+            return Ember.RSVP.resolve(sound);
+          });
+        });
+      }
+    } else {
+      _this.set('local_sound_url', sound.get('best_url'));
+      return sound.checkForDataURL().then(null, function() { return Ember.RSVP.resolve(sound); });
+    }
+  },
   findContentLocally: function() {
     var _this = this;
-    if(this.get('image.url') && this.get('sound.url')) {
+    if((!this.image_id || this.get('local_image_url')) && (!this.sound_id || this.get('local_sound_url'))) {
       return Ember.RSVP.resolve(true);
     }
     this.set('content_status', 'pending');
     return new Ember.RSVP.Promise(function(resolve, reject) {
       var promises = [];
-      if(_this.image_id) {
-        var image = CoughDrop.store.peekRecord('image', _this.image_id);
-        if(image && (!image.get('isLoaded') || !image.get('best_url'))) { image = null; }
-        _this.set('image', image);
-        if(!image) {
-          if(_this.get('no_lookups')) {
-            promises.push(Ember.RSVP.reject('no image lookups'));
-          } else {
-            promises.push(CoughDrop.store.findRecord('image', _this.image_id).then(function(image) {
-              // There was a Ember.run.later of 100ms here, I have no idea why but
-              // it seemed like a bad idea so I removed it.
-              _this.set('image', image);
-              return image.checkForDataURL().then(function() {
-                return Ember.RSVP.resolve(image);
-              }, function() {
-                return Ember.RSVP.resolve(image);
-              });
-            }));
-          }
-        } else {
-          image.checkForDataURL().then(null, function() { });
-        }
+      if(_this.image_id && _this.image_url && persistence.url_cache && persistence.url_cache[_this.image_url]) {
+        _this.set('local_image_url', persistence.url_cache[_this.image_url]);
+        promises.push(Ember.RSVP.resolve());
+      } else if(_this.image_id) {
+        promises.push(_this.load_image());
       }
-      if(_this.sound_id) {
-        var sound = CoughDrop.store.peekRecord('sound', _this.sound_id);
-        if(sound && (!sound.get('isLoaded') || !sound.get('best_url'))) { sound = null; }
-        _this.set('sound', sound);
-        if(!sound) {
-          if(_this.get('no_lookups')) {
-            promises.push(Ember.RSVP.reject('no sound lookups'));
-          } else {
-            promises.push(CoughDrop.store.findRecord('sound', _this.sound_id).then(function(sound) {
-              _this.set('sound', sound);
-              return sound.checkForDataURL().then(function() {
-                return Ember.RSVP.resolve(sound);
-              }, function() {
-                return Ember.RSVP.resolve(sound);
-              });
-            }));
-          }
-        } else {
-          sound.checkForDataURL().then(null, function() { });
-        }
+      if(_this.sound_id && _this.sound_url && persistence.url_cache && persistence.url_cache[_this.sound_url]) {
+        _this.set('local_sound_url', persistence.url_cache[_this.sound_url]);
+        promises.push(Ember.RSVP.resolve());
+      } else if(_this.sound_id) {
+        promises.push(_this.load_sound());
       }
 
       Ember.RSVP.all(promises).then(function() {
@@ -301,7 +321,6 @@ var Button = Ember.Object.extend({
       });
 
       promises.forEach(function(p) { p.then(null, function() { }); });
-
     });
   }.observes('image_id', 'sound_id'),
   check_for_parts_of_speech: function() {

@@ -11,11 +11,11 @@
   </div>
   <span style={{button.image_holder_style}}>
     {{#unless app_state.currentUser.hide_symbols}}
-      <img src={{button.image.best_url}} onerror="button_broken_image(this);" style={{button.image_style}} class="symbol">
+      <img src={{button.local_image_url}} onerror="button_broken_image(this);" style={{button.image_style}} class="symbol">
     {{/unless}}
   </span>
   {{#if button.sound}}
-    <audio style="display: none;" preload="auto" src={{button.sound.best_url}} rel={{unbound button.sound.url}}></audio>
+    <audio style="display: none;" preload="auto" src={{button.local_sound_url}} rel={{unbound button.sound.url}}></audio>
   {{/if}}
   <div class={{button_symbol_class}}>
     <span class={{if button.hide_label "button-label hide-label" "button-label"}}>{{unbound button.label}}</span>

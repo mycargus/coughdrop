@@ -70,6 +70,10 @@ module JsonApi::Board
       hash = board.buttons_and_images_for(args[:permissions])
       json['images'] = hash['images']
       json['sounds'] = hash['sounds']
+      json['board']['image_urls'] = {}
+      json['board']['sound_urls'] = {}
+      json['images'].each{|i| json['board']['image_urls'][i['id']] = i['url'] }
+      json['sounds'].each{|i| json['board']['sound_urls'][i['id']] = i['url'] }
     end
     if args.key?(:permissions)
       self.trace_execution_scoped(['json/board/copy_check']) do
