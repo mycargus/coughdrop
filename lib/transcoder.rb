@@ -16,6 +16,13 @@ module Transcoder
       new_record['filename'] = job.outputs[0].key
       new_record['duration'] = job.outputs[0].duration
       new_record['content_type'] = 'audio/mp3'
+      if job.outputs[1]
+        new_record['secondary_output'] = {
+          'filename' => job.outputs[1].key,
+          'duration' => job.outputs[1].duration,
+          'content_type' => 'audio/wav'
+        }
+      end
     elsif job.user_metadata['conversion_type'] == 'video'
       record = UserVideo.find_by_global_id(job.user_metadata['video_id'])
       new_record['filename'] = job.outputs[0].key
@@ -35,6 +42,7 @@ module Transcoder
   end
   
   AUDIO_PRESET = '1351620000001-300040' # MP3 - 128k
+  AUDIO_TRANSCRIBE_PRESET = '1351620000001-300300' # WAV 44100Hz, 16-bit
   VIDEO_PRESET = '1351620000001-000030' # MP4 480p 4:3
   
   def self.convert_audio(button_sound_id, prefix, transcoding_key)
@@ -46,10 +54,13 @@ module Transcoder
       input: {
         key: button_sound.full_filename
       },
-      output: {
+      outputs: [{
         key: "#{prefix}.mp3",
         preset_id: AUDIO_PRESET 
-      },
+      }, {
+        key: "#{prefix}.wav",
+        preset_id: AUDIO_TRANSCRIBE_PRESET 
+      }],
       user_metadata: {
         audio_id: button_sound.global_id,
         conversion_type: 'audio',

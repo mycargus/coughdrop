@@ -14,6 +14,7 @@ module MediaObject
       self.url = params[:upload_url] + self.full_filename
       self.settings['pending'] = false
       self.settings['pending_url'] = nil
+      self.settings['secondary_output'] = opts['secondary_output']
       self.save
     else
       false

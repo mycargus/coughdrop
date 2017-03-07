@@ -20,6 +20,11 @@
           {{#link-to 'user.goals' model.user_name}}{{t "goals" key='goals'}}{{/link-to}}
         </li>
       {{/if}}
+      {{#if app_state.feature_flags.audio_recordings}}
+        <li role="presentation">
+          {{#link-to 'user.recordings' model.user_name}}{{t "recordings" key='recordings'}}{{/link-to}}
+        </li>
+      {{/if}}
       {{#if model.permissions.edit}}
         <li role="presentation">
           {{#link-to 'user.edit' model.user_name}}{{t "profile" key='profile'}}{{/link-to}}
@@ -52,6 +57,9 @@
         {{#link-to 'user.stats' model.user_name (query-params start=null end=null location_id=null device_id=null split=null start2=null end2=null device_id2=null location_id2=null) class="btn btn-default"}}{{t "reports" key='reports'}}{{/link-to}}
         {{#if app_state.feature_flags.goals}}
           {{#link-to 'user.goals' model.user_name class='btn btn-default'}}{{t "goals" key='goals'}}{{/link-to}}
+        {{/if}}
+        {{#if app_state.feature_flags.audio_recordings}}
+          {{#link-to 'user.recordings' model.user_name class='btn btn-default'}}{{t "recordings" key='recordings'}}{{/link-to}}
         {{/if}}
         {{#if model.permissions.edit}}
           {{#link-to 'user.edit' model.user_name class="btn btn-default"}}{{t "profile" key='profile'}}{{/link-to}}

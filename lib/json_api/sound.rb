@@ -9,9 +9,11 @@ module JsonApi::Sound
     json = {}
     json['id'] = sound.global_id
     json['url'] = sound.url
-    ['pending', 'content_type', 'duration'].each do |key|
+    json['created'] = sound.created_at && sound.created_at.iso8601
+    ['pending', 'content_type', 'duration', 'name', 'transcription'].each do |key|
       json[key] = sound.settings[key]
     end
+    json['name'] ||= 'Sound'
     json['protected'] = !!sound.protected?
     json['license'] = OBF::Utils.parse_license(sound.settings['license'])
     if (args[:data] || !sound.url) && sound.data
@@ -19,6 +21,10 @@ module JsonApi::Sound
     end
     if args[:permissions]
       json['permissions'] = sound.permissions_for(args[:permissions])
+      if json['permissions']['edit']
+        json['boards'] = BoardButtonSound.where(:button_sound_id => sound.id).count
+        json['original_board_key'] = sound.board && sound.board.key
+      end
     end
     json
   end

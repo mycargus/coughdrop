@@ -40,6 +40,44 @@ describe Api::SoundsController, :type => :controller do
       expect(json['error']).to eq("sound creation failed")
       expect(json['errors']).to eq(["bacon"])
     end
+    
+#   def create
+#     user = @api_user
+#     if params['user_id']
+#       user = User.find_by_path(params['user_id'])
+#       return unless allowed?(user, 'supervise')
+#     end
+#     sound = ButtonSound.process_new(params['sound'], {:user => user, :remote_upload_possible => true})
+#     if !sound || sound.errored?
+#       api_error(400, {error: "sound creation failed", errors: sound && sound.processing_errors})
+#     else
+#       render json: JsonApi::Sound.as_json(sound, :wrapper => true, :permissions => @api_user).to_json
+#     end
+#   end
+
+    it "should allow creating sounds on behalf of a supervisee" do
+      token_user
+      u = User.create
+      User.link_supervisor_to_user(@user, u)
+      url = "https://#{ENV['UPLOADS_S3_BUCKET']}.s3.amazonaws.com/bacon.mp3"
+      post :create, params: {'user_id' => u.global_id, :sound => {'url' => url, 'content_type' => 'audio/mp3'}}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['sound']['id']).not_to eq(nil)
+      expect(json['sound']['url']).to eq(url)
+      expect(json['meta']).to eq(nil)
+      bs = ButtonSound.find_by_global_id(json['sound']['id'])
+      expect(bs).to_not eq(nil)
+      expect(bs.user).to eq(u)
+    end
+    
+    it "should not allow creating sounds for someone who is not a supervisee" do
+      token_user
+      u = User.create
+      url = "https://#{ENV['UPLOADS_S3_BUCKET']}.s3.amazonaws.com/bacon.mp3"
+      post :create, params: {'user_id' => u.global_id, :sound => {'url' => url, 'content_type' => 'audio/mp3'}}
+      assert_unauthorized
+    end
   end
   
   describe "upload_success" do
@@ -136,6 +174,49 @@ describe Api::SoundsController, :type => :controller do
       json = JSON.parse(response.body)
       expect(json['error']).to eq("sound update failed")
       expect(json['errors']).to eq(["bacon"])
+    end
+  end
+  
+  describe "index" do
+    it "should require api token" do
+      get 'index'
+      assert_missing_token
+    end
+    
+    it "should return a valid user" do
+      token_user
+      get 'index', params: {'user_id' => 'asdf'}
+      assert_not_found('asdf')
+    end
+    
+    it "should require authorization" do
+      token_user
+      u = User.create
+      get 'index', params: {'user_id' => u.global_id}
+      assert_unauthorized
+    end
+    
+    it "should return a list of sounds" do
+      token_user
+      bs = ButtonSound.create(:user => @user)
+      get 'index', params: {'user_id' => @user.global_id}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['sound'].length).to eq(1)
+      expect(json['sound'][0]['id']).to eq(bs.global_id)
+    end
+  end
+  
+  describe "destroy" do
+    it "should require api token" do
+      delete :destroy, params: {id: 'asdf'}
+      assert_missing_token
+    end
+    
+    it "should return an error" do
+      token_user
+      delete :destroy, params: {id: 'asdf'}
+      assert_error('not enabled')
     end
   end
 end

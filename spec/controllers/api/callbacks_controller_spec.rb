@@ -104,14 +104,16 @@ describe Api::CallbacksController, :type => :controller do
         expect(job_args[:pipeline_id]).to eq(ENV['TRANSCODER_AUDIO_PIPELINE'])
         expect(job_args[:user_metadata]).to_not eq(nil)
         expect(job_args[:input]).to_not eq(nil)
-        expect(job_args[:output]).to_not eq(nil)
-        expect(job_args[:output][:preset_id]).to eq(Transcoder::AUDIO_PRESET)
+        expect(job_args[:outputs]).to_not eq(nil)
+        expect(job_args[:outputs][0][:preset_id]).to eq(Transcoder::AUDIO_PRESET)
+        expect(job_args[:outputs][1][:preset_id]).to eq(Transcoder::AUDIO_TRANSCRIBE_PRESET)
         expect(job_args[:user_metadata]).to_not eq(nil)
         expect(job_args[:user_metadata][:conversion_type]).to eq('audio')
         expect(job_args[:user_metadata][:audio_id]).to eq(bs.global_id)
         job.user_metadata = job_args[:user_metadata].with_indifferent_access
         job.outputs = [OpenStruct.new(job_args[:output])]
         job.outputs[0].duration = 111
+        job.outputs[0].key = job_args[:outputs][0][:key]
       }.and_return(resp)
       
       expect(config).to receive(:read_job).with({id: 'onetwo'}).and_return(resp)

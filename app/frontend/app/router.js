@@ -78,6 +78,7 @@ Router.map(function() {
     this.route('stats');
     this.route('goals');
     this.route('goal', { path: '/goals/:goal_id' });
+    this.route('recordings');
     this.route('logs');
     this.route('log', { path: '/logs/:log_id' });
     this.route('badges');

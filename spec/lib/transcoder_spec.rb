@@ -132,10 +132,13 @@ describe Transcoder do
         input: {
           key: 'a/b/c.wav'
         },
-        output: {
+        outputs: [{
           key: 'd/e/f.mp3',
           preset_id: Transcoder::AUDIO_PRESET
-        },
+        }, {
+          key: 'd/e/f.wav',
+          preset_id: Transcoder::AUDIO_TRANSCRIBE_PRESET
+        }],
         user_metadata: {
           audio_id: bs.global_id,
           conversion_type: 'audio',

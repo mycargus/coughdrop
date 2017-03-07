@@ -10,13 +10,19 @@ CoughDrop.Sound = DS.Model.extend({
     this.clean_license();
   },
   url: DS.attr('string'),
+  created: DS.attr('date'),
   content_type: DS.attr('string'),
+  name: DS.attr('string'),
+  transcription: DS.attr('string'),
   duration: DS.attr('number'),
   pending: DS.attr('boolean'),
   protected: DS.attr('boolean'),
   license: DS.attr('raw'),
   permissions: DS.attr('raw'),
   file: DS.attr('boolean'),
+  search_string: function() {
+    return this.get('name') + " " + this.get('transcription') + " " + this.get('created');
+  }.property('name', 'transcription', 'created'),
   filename: function() {
     var url = this.get('url') || '';
     if(url.match(/^data/)) {
