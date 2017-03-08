@@ -158,6 +158,65 @@ describe('app_state', function() {
       });
     });
 
+    it('should check for silent mode', function() {
+      app_state.setup(app);
+
+      var checks = 0;
+      var warnings = 0;
+      var warning = 'bacon';
+      stub(capabilities, 'system', 'iOS');
+      stub(capabilities, 'silent_mode', function() {
+        checks++;
+        return Ember.RSVP.resolve(false);
+      });
+      stub(modal, 'warning', function(message) {
+        warnings++;
+        warning = message;
+      });
+
+      expect(checks).toEqual(0);
+
+      stashes.set('current_mode', 'speak');
+      app_state.set('currentBoardState', {key: 'trade', id: '1_1'});
+      expect(app_state.get('speak_mode')).toEqual(true);
+
+      waitsFor(function() { return checks == 1; });
+      runs(function() {
+        expect(warnings).toEqual(0);
+        warning = null;
+        app_state.set('last_speak_mode', null);
+      });
+    });
+
+    it('should warn when in silent mode', function() {
+      app_state.setup(app);
+
+      var checks = 0;
+      var warnings = 0;
+      var warning = 'bacon';
+      stub(capabilities, 'system', 'iOS');
+      stub(capabilities, 'silent_mode', function() {
+        checks++;
+        return Ember.RSVP.resolve(true);
+      });
+      stub(modal, 'warning', function(message) {
+        warnings++;
+        warning = message;
+      });
+
+      expect(checks).toEqual(0);
+
+      stashes.set('current_mode', 'speak');
+      app_state.set('currentBoardState', {key: 'trade', id: '1_1'});
+      expect(app_state.get('speak_mode')).toEqual(true);
+
+      // set speak mode
+      waitsFor(function() { console.log(checks, warnings); return checks == 1 && warnings == 1; });
+      runs(function() {
+        expect(warning).toEqual('The app is currently muted, so you will not hear speech. To unmute, check the mute switch, and also swipe up from the bottom of the screen to check for app-level muting');
+      });
+    });
+
     it("should poll for geo when in speak mode", function() {
       var polling = false;
       stub(stashes.geo, 'poll', function() {

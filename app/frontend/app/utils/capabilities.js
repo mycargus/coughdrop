@@ -682,9 +682,7 @@ var capabilities;
       silent_mode: function() {
         var res = capabilities.mini_promise();
         if(window.cordova && window.cordova.plugins && window.cordova.plugins.SilentMode) {
-          debugger
-          window.cordova.plugins.SileentMode.isMuted(function(res) {
-            debugger
+          window.cordova.plugins.SilentMode.isMuted(function(r) {
             res.resolve(true);
           }, function() {
             res.resolve(false);
