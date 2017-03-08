@@ -852,27 +852,8 @@ var pictureGrabber = Ember.Object.extend({
     });
     return save_image;
   },
-  select_image_preview: function(url, force_content_type) {
-    var preview = this.controller && this.controller.get('image_preview');
-    if(!preview || (!preview.url && !preview.word_editor)) { return; }
-    this.controller.set('model.pending_image', true);
+  save_image_preview: function(preview, force_content_type) {
     var _this = this;
-
-    if(this.controller.get('image_preview.editor')) {
-      if(!url) {
-        if(_this.edited_image_data) {
-          _this.select_image_preview(_this.edited_image_data);
-        } else {
-          editManager.get_edited_image().then(function(data) {
-            _this.select_image_preview(data, 'image/png');
-          }, function() {
-          });
-        }
-        return;
-      } else {
-        Ember.set(preview, 'url', url);
-      }
-    }
     if(preview.url.match(/^data:/)) {
       Ember.set(preview, 'content_type', force_content_type || preview.content_type || preview.url.split(/;/)[0].split(/:/)[1]);
     }
@@ -916,6 +897,30 @@ var pictureGrabber = Ember.Object.extend({
       var _this = this;
       return contentGrabbers.save_record(image);
     });
+    return save_image;
+  },
+  select_image_preview: function(url, force_content_type) {
+    var preview = this.controller && this.controller.get('image_preview');
+    if(!preview || (!preview.url && !preview.word_editor)) { return; }
+    this.controller.set('model.pending_image', true);
+    var _this = this;
+
+    if(this.controller.get('image_preview.editor')) {
+      if(!url) {
+        if(_this.edited_image_data) {
+          _this.select_image_preview(_this.edited_image_data);
+        } else {
+          editManager.get_edited_image().then(function(data) {
+            _this.select_image_preview(data, 'image/png');
+          }, function() {
+          });
+        }
+        return;
+      } else {
+        Ember.set(preview, 'url', url);
+      }
+    }
+    var save_image = save_image_preview(preview, force_content_type);
     var button_id = _this.controller.get('model.id');
     save_image.then(function(image) {
       // TODO: if the image doesn't have a label yet, go ahead and set

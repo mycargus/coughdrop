@@ -688,11 +688,7 @@ var editManager = Ember.Object.extend({
         if(button && button.label && !button.image) {
           button.check_for_parts_of_speech();
         }
-        // TODO: use the default image library
         contentGrabbers.pictureGrabber.picture_search(stashes.get('last_image_library'), button.label, _this.controller.get('model.user_name'), true).then(function(data) {
-//         persistence.ajax('/api/v1/search/symbols?q=' + encodeURIComponent(button.label), {
-//           type: 'GET'
-//         }).then(function(data) {
           button = _this.find_button(id);
           var image = data[0];
           if(image && button && button.label && !button.image) {
@@ -704,15 +700,19 @@ var editManager = Ember.Object.extend({
               author_url: image.author_url,
               uneditable: true
             };
-            var image = CoughDrop.store.createRecord('image', {
+            var preview = {
               url: persistence.normalize_url(image.image_url),
+              content_type: image.content_type,
               suggestion: button.label,
               protected: image.protected,
               finding_user_name: image.finding_user_name,
               external_id: image.id,
               license: license
-            });
-            image.save().then(function(image) {
+            };
+
+            var save = contentGrabbers.pictureGrabber.save_image_preview(preview);
+
+            save.then(function(image) {
               button = _this.find_button(id);
               if(_this.controller.get('model.id') == board_id && button && button.label && !button.image) {
                 button.set('pending', false);
