@@ -485,6 +485,7 @@ var editManager = Ember.Object.extend({
     });
 
     var image_urls = board.get('image_urls');
+    var sound_urls = board.get('sound_urls');
     prefetch.then(function() {
       CoughDrop.log.track('creating buttons');
       for(var idx = 0; idx < grid.rows; idx++) {
@@ -505,6 +506,9 @@ var editManager = Ember.Object.extend({
               }
               if(image_urls) {
                 more_args.image_url = image_urls[buttons[kdx]['image_id']];
+              }
+              if(sound_urls) {
+                more_args.sound_url = sound_urls[buttons[kdx]['sound_id']];
               }
               button = editManager.Button.create(buttons[kdx], more_args);
             }

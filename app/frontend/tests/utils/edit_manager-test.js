@@ -1342,15 +1342,17 @@ describe('editManager', function() {
       ]]);
       var defer = Ember.RSVP.defer();
       var ajaxed = false;
-      stub(persistence, 'ajax', function(url, opts) {
-        if(url == '/api/v1/search/symbols?q=ham') {
-          ajaxed = true;
-          expect(url).toEqual('/api/v1/search/symbols?q=ham');
-          expect(opts.type).toEqual('GET');
-          return defer.promise;
-        } else {
-          return Ember.RSVP.reject();
-        }
+      stub(contentGrabbers.pictureGrabber, 'picture_search', function(library, label, user_name, fallback) {
+        ajaxed = true;
+        expect(label).toEqual('ham');
+        expect(user_name).toEqual(undefined);
+        expect(fallback).toEqual(true);
+        return defer.promise;
+      });
+      stub(contentGrabbers.pictureGrabber, 'save_image_preview', function(preview) {
+        return Ember.RSVP.resolve(Ember.Object.create({
+          id: '134'
+        }));
       });
       editManager.lucky_symbol(1);
       expect(button.get('pending_image')).toEqual(true);
@@ -2040,6 +2042,43 @@ describe('editManager', function() {
       editManager.setup(board);
       editManager.process_for_displaying();
       expect(board.get('ordered_buttons')).toEqual(undefined);
+    });
+
+    it("should use the board's image_urls hash if defined", function() {
+      CoughDrop.store.push({data: {type: 'image', id: 123, attributes: {
+        id: 123, url: 'http://www.example.com/pic.png'
+      }}});
+      CoughDrop.store.push({data: {type: 'sound', id: 123, attributes: {
+        id: 123, url: 'http://www.example.com/sound.mp3'
+      }}});
+      board.set('model.buttons', [{id: 1, label: 'pic', image_id: 123, sound_id: 123}]);
+      persistence.url_cache = {
+        'http://www.example.com/pic.png': 'file://pic.png',
+        'http://www.example.com/sound.mp3': 'file://sound.mp3'
+      };
+      board.set('model.image_urls', {
+        123: 'http://www.example.com/pic.png'
+      });
+      board.set('model.sound_urls', {
+        123: 'http://www.example.com/sound.mp3'
+      });
+      board.set('model.grid', {
+        rows: 1,
+        columns: 1,
+        order: [[1]]
+      });
+      editManager.setup(board);
+      editManager.process_for_displaying();
+      var button = null;
+      waitsFor(function() { return board.get('ordered_buttons'); });
+      runs(function() {
+        expect(board.get('ordered_buttons')).not.toEqual(null);
+        button = board.get('ordered_buttons')[0][0];
+        expect(button.get('local_image_url')).toEqual('file://pic.png');
+        expect(button.get('local_sound_url')).toEqual('file://sound.mp3');
+      });
+      waitsFor(function() { return button && button.get('content_status') == 'ready'; });
+      runs();
     });
   });
 

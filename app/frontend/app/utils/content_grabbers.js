@@ -920,7 +920,7 @@ var pictureGrabber = Ember.Object.extend({
         Ember.set(preview, 'url', url);
       }
     }
-    var save_image = save_image_preview(preview, force_content_type);
+    var save_image = this.save_image_preview(preview, force_content_type);
     var button_id = _this.controller.get('model.id');
     save_image.then(function(image) {
       // TODO: if the image doesn't have a label yet, go ahead and set
@@ -1798,12 +1798,15 @@ var soundGrabber = Ember.Object.extend({
     controller.set('browse_audio', null);
     controller.set('model.sound', sound);
   },
+  find_element: function(id) {
+    return document.getElementById(id);
+  },
   play_audio: function(sound) {
-    var elem = document.getElementById(sound.get('id'));
+    var elem = soundGrabber.find_element(sound.get('id'));
     if(elem && elem.currentTime > 0 && !elem.paused) {
       sound.set('playing', false);
       elem.pause();
-    } else {
+    } else if(elem) {
       sound.set('playing', true);
       elem.currentTime = 0;
       elem.addEventListener('ended', function() {

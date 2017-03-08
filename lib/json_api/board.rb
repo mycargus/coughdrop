@@ -70,6 +70,7 @@ module JsonApi::Board
       hash = board.buttons_and_images_for(args[:permissions])
       json['images'] = hash['images']
       json['sounds'] = hash['sounds']
+      json['board'] ||= {}
       json['board']['image_urls'] = {}
       json['board']['sound_urls'] = {}
       json['images'].each{|i| json['board']['image_urls'][i['id']] = i['url'] }

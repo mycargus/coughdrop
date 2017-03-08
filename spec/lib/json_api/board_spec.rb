@@ -29,6 +29,7 @@ describe JsonApi::Board do
       expect(JsonApi::Board.build_json(b, :permissions => u)['permissions']).to eq({'user_id' => u.global_id, 'view' => true, 'edit' => true, 'delete' => true, 'share' => true})
       expect(JsonApi::Board.build_json(b, :permissions => u)['starred']).to eq(false)
     end
+    
   end
   
   describe "extra_includes" do
@@ -57,6 +58,32 @@ describe JsonApi::Board do
       expect(hash['sounds']).to eq([])
     end
     
+    it "should include image and sound url hashes" do
+      u = User.create
+      b = Board.create(:user => u)
+      hash = JsonApi::Board.extra_includes(b, {})
+      expect(hash['images']).to eq([])
+      expect(hash['sounds']).to eq([])
+      
+      hash = JsonApi::Board.as_json(b, :wrapper => true)
+      expect(hash['images']).to eq([])
+      expect(hash['sounds']).to eq([])
+      
+      i = ButtonImage.create(url: 'http://www.example.com/pic.png')
+      b.settings['buttons'] = [
+        {'id' => 1, 'label' => 'parasol', 'image_id' => i.global_id}
+      ]
+      b.instance_variable_set('@buttons_changed', true)
+      b.save
+      expect(b.button_images.count).to eq(1)
+      
+      hash = JsonApi::Board.as_json(b.reload, :wrapper => true)
+      img = {}
+      img[i.global_id] = 'http://www.example.com/pic.png'
+      expect(hash['board']['image_urls']).to eq(img)
+      expect(hash['board']['sound_urls']).to eq({})
+    end
+
     it "should include copy information if any for the current user" do
       u = User.create
       b = Board.create(:user => u)

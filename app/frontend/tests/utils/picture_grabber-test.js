@@ -401,6 +401,89 @@ describe('pictureGrabber', function() {
       waitsFor(function() { return correct_license; });
       runs();
     });
+
+    describe('save_image_preview', function() {
+      var valid_image = function() {
+        var canvas = document.createElement('canvas');
+        return canvas.toDataURL();
+      };
+
+      it('should read content type from a data url', function() {
+        pictureGrabber.setup(button, controller);
+        var image = null;
+        stub(contentGrabbers, 'save_record', function(img) {
+          image = img;
+          return Ember.RSVP.resolve();
+        });
+        var done = false;
+        pictureGrabber.save_image_preview({
+          url: valid_image(),
+          license: {type: 'CC By'}
+        }).then(function() { done = true; }, function() { done = true; });
+        waitsFor(function() { return done; });
+        runs(function() {
+          expect(image).toNotEqual(null);
+          expect(image.get('content_type')).toEqual('image/png');
+        });
+      });
+
+      it('should find a matching license url if missing', function() {
+        pictureGrabber.setup(button, controller);
+        var image = null;
+        stub(contentGrabbers, 'save_record', function(img) {
+          image = img;
+          return Ember.RSVP.resolve();
+        });
+        var done = false;
+        pictureGrabber.save_image_preview({
+          url: valid_image(),
+          license: {type: 'CC By'}
+        }).then(function() { done = true; }, function() { done = true; });
+        waitsFor(function() { return done; });
+        runs(function() {
+          expect(image).toNotEqual(null);
+          expect(image.get('license.copyright_notice_url')).toEqual("http://creativecommons.org/licenses/by/4.0/");
+        });
+      });
+
+      it('should load the image for measuring', function() {
+        pictureGrabber.setup(button, controller);
+        var image = null;
+        stub(contentGrabbers, 'save_record', function(img) {
+          image = img;
+          return Ember.RSVP.resolve();
+        });
+        var done = false;
+        pictureGrabber.save_image_preview({
+          url: valid_image(),
+          license: {type: 'CC By'}
+        }).then(function() { done = true; }, function() { done = true; });
+        waitsFor(function() { return done; });
+        runs(function() {
+          expect(image).toNotEqual(null);
+          expect(image.get('width')).toEqual(300);
+          expect(image.get('height')).toEqual(150);
+        });
+      });
+
+      it('should create and save the record on successful measurement', function() {
+        pictureGrabber.setup(button, controller);
+        var image = null;
+        stub(contentGrabbers, 'save_record', function(img) {
+          image = img;
+          return Ember.RSVP.resolve();
+        });
+        var done = false;
+        pictureGrabber.save_image_preview({
+          url: valid_image(),
+          license: {type: 'CC By'}
+        }).then(function() { done = true; }, function() { done = true; });
+        waitsFor(function() { return done; });
+        runs(function() {
+          expect(image).toNotEqual(null);
+        });
+      });
+    });
   });
 
   describe('searching for a picture', function() {
