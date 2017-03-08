@@ -1,8 +1,10 @@
 import { context, it, expect, stub, waitsFor, runs } from 'frontend/tests/helpers/jasmine';
+import { queryLog } from 'frontend/tests/helpers/ember_helper';
 import Button from '../../utils/button';
 import app_state from '../../utils/app_state';
 import persistence from '../../utils/persistence';
 import progress_tracker from '../../utils/progress_tracker';
+import CoughDrop from '../../app';
 import Ember from 'ember';
 
 context('Button', function() {
@@ -323,5 +325,338 @@ context('Button', function() {
   });
   it("should run this test once too", function() {
     expect(1).toEqual(1);
+  });
+
+  context("load_image", function() {
+    it('should resolve with no image_id', function() {
+      var b = Button.create();
+      var resolved = false;
+      b.load_image().then(function(res) {
+        resolved = true;
+      });
+      waitsFor(function() { return resolved; });
+      runs();
+    });
+
+    it('should not lookup the image if already loaded', function() {
+      var b = Button.create();
+      var i = CoughDrop.store.push({ data: {
+        id: 'asdf',
+        type: 'image',
+        attributes: {
+          url: 'http://www.example.com/pic.png'
+        }
+      }});
+      var checked = false;
+      stub(i, 'checkForDataURL', function() {
+        checked = true;
+        return Ember.RSVP.resolve('asdf');
+      });
+      var loaded = false;
+      b.image_id = 'asdf';
+      b.load_image().then(function(res) {
+        loaded = true;
+      });
+      waitsFor(function() { return loaded; });
+      runs(function() {
+        expect(checked).toEqual(true);
+        expect(b.get('local_image_url')).toEqual('http://www.example.com/pic.png');
+      });
+    });
+
+    it('should reject if not already loaded and no_lookups set', function() {
+      var b = Button.create();
+      b.set('no_lookups', true);
+      var loaded = false;
+      b.image_id = 'asdf';
+      b.load_image().then(null, function(res) {
+        loaded = true;
+      });
+      waitsFor(function() { return loaded; });
+      runs(function() {
+        expect(b.get('local_image_url')).toEqual(undefined);
+      });
+    });
+
+    it('should look up the image', function() {
+      var b = Button.create();
+      b.image_id = 'asdf';
+      var loaded = false;
+
+      queryLog.defineFixture({
+        method: 'GET',
+        type: 'image',
+        id: 'asdf',
+        response: Ember.RSVP.resolve({image: {
+          id: 'asdf',
+          url: 'http://www.example.com/pic.png'
+        }})
+      });
+
+      b.load_image().then(function(res) {
+        loaded = true;
+      });
+      waitsFor(function() { return loaded; });
+      runs(function() {
+        expect(b.get('local_image_url')).toEqual('http://www.example.com/pic.png');
+      });
+    });
+  });
+
+  context("load_sound", function() {
+    it('should resolve with no sound_id', function() {
+      var b = Button.create();
+      var resolved = false;
+      b.load_sound().then(function(res) {
+        resolved = true;
+      });
+      waitsFor(function() { return resolved; });
+      runs();
+    });
+
+    it('should not lookup the sound if already loaded', function() {
+      var b = Button.create();
+      var i = CoughDrop.store.push({ data: {
+        id: 'asdf',
+        type: 'sound',
+        attributes: {
+          url: 'http://www.example.com/pic.png'
+        }
+      }});
+      var checked = false;
+      stub(i, 'checkForDataURL', function() {
+        checked = true;
+        return Ember.RSVP.resolve('asdf');
+      });
+      var loaded = false;
+      b.sound_id = 'asdf';
+      b.load_sound().then(function(res) {
+        loaded = true;
+      });
+      waitsFor(function() { return loaded; });
+      runs(function() {
+        expect(checked).toEqual(true);
+        expect(b.get('local_sound_url')).toEqual('http://www.example.com/pic.png');
+      });
+    });
+
+    it('should reject if not already loaded and no_lookups set', function() {
+      var b = Button.create();
+      b.sound_id = 'asdf';
+      b.set('no_lookups', true);
+      var loaded = false;
+      b.load_sound().then(null, function(res) {
+        loaded = true;
+      });
+      waitsFor(function() { return loaded; });
+      runs(function() {
+        expect(b.get('local_sound_url')).toEqual(undefined);
+      });
+    });
+
+    it('should look up the sound', function() {
+      var b = Button.create();
+      b.sound_id = 'asdf';
+      var loaded = false;
+
+      queryLog.defineFixture({
+        method: 'GET',
+        type: 'sound',
+        id: 'asdf',
+        response: Ember.RSVP.resolve({sound: {
+          id: 'asdf',
+          url: 'http://www.example.com/pic.png'
+        }})
+      });
+
+      b.load_sound().then(function(res) {
+        loaded = true;
+      });
+      waitsFor(function() { return loaded; });
+      runs(function() {
+        expect(b.get('local_sound_url')).toEqual('http://www.example.com/pic.png');
+      });
+    });
+  });
+
+  context("findContentLocally", function() {
+    it('should resolve if already loaded', function() {
+      var b = Button.create();
+      b.image_id = 'asdf';
+      b.set('local_image_url', 'http://www.example.com/pic.png');
+      b.sound_id = 'qwer';
+      b.set('local_sound_url', 'http://www.example.com/sound.mp3');
+      var done = false;
+      b.findContentLocally().then(function(res) {
+        done = true;
+        expect(res).toEqual(true);
+      });
+      waitsFor(function() { return done; });
+      runs();
+    });
+
+    it('should resolve if ids not specified', function() {
+      var b = Button.create();
+      var done = false;
+      b.findContentLocally().then(function(res) {
+        done = true;
+        expect(res).toEqual(true);
+      });
+      waitsFor(function() { return done; });
+      runs();
+    });
+
+    it('should not call load_image if the url is already cached', function() {
+      var b = Button.create();
+      var image_load = false;
+      var sound_load = false;
+      stub(b, 'load_image', function() { image_load = true; return Ember.RSVP.reject(); });
+      stub(b, 'load_sound', function() { sound_load = true; return Ember.RSVP.reject(); });
+      var done = false;
+      b.image_id = 'asdf';
+      b.image_url = 'http://www.example.com/pic.png';
+      persistence.url_cache = {'http://www.example.com/pic.png': 'file://something.png'};
+      b.findContentLocally().then(function(res) {
+        done = true;
+      });
+      waitsFor(function() { return done; });
+      runs(function() {
+        expect(image_load).toEqual(false);
+        expect(sound_load).toEqual(false);
+        expect(b.get('local_image_url')).toEqual('file://something.png');
+      });
+    });
+
+    it('should call load_image if needed', function() {
+      var b = Button.create();
+      var image_load = false;
+      var sound_load = false;
+      stub(b, 'load_image', function() { image_load = true; return Ember.RSVP.resolve(); });
+      stub(b, 'load_sound', function() { sound_load = true; return Ember.RSVP.resolve(); });
+      var done = false;
+      b.image_id = 'asdf';
+      b.image_url = 'http://www.example.com/pic.png';
+      persistence.url_cache = {};
+      b.findContentLocally().then(function(res) {
+        done = true;
+      });
+      waitsFor(function() { return done; });
+      runs(function() {
+        expect(image_load).toEqual(true);
+        expect(sound_load).toEqual(false);
+        expect(b.get('local_image_url')).toEqual(undefined);
+      });
+    });
+
+    it('should reject if image lookup fails', function() {
+      var b = Button.create();
+      var image_load = false;
+      var sound_load = false;
+      stub(b, 'load_image', function() { image_load = true; return Ember.RSVP.reject(); });
+      stub(b, 'load_sound', function() { sound_load = true; return Ember.RSVP.resolve(); });
+      var done = false;
+      b.image_id = 'asdf';
+      b.image_url = 'http://www.example.com/pic.png';
+      persistence.url_cache = {};
+      b.findContentLocally().then(function(res) {
+        done = true;
+      });
+      waitsFor(function() { return done; });
+      runs(function() {
+        expect(image_load).toEqual(true);
+        expect(sound_load).toEqual(false);
+        expect(b.get('local_image_url')).toEqual(undefined);
+      });
+    });
+
+    it('should not call load_sound if the url is already cached', function() {
+      var b = Button.create();
+      var image_load = false;
+      var sound_load = false;
+      stub(b, 'load_image', function() { image_load = true; return Ember.RSVP.reject(); });
+      stub(b, 'load_sound', function() { sound_load = true; return Ember.RSVP.reject(); });
+      var done = false;
+      b.sound_id = 'asdf';
+      b.sound_url = 'http://www.example.com/pic.png';
+      persistence.url_cache = {'http://www.example.com/pic.png': 'file://something.png'};
+      b.findContentLocally().then(function(res) {
+        done = true;
+      });
+      waitsFor(function() { return done; });
+      runs(function() {
+        expect(image_load).toEqual(false);
+        expect(sound_load).toEqual(false);
+        expect(b.get('local_sound_url')).toEqual('file://something.png');
+      });
+    });
+
+    it('should call load_sound if needed', function() {
+      var b = Button.create();
+      var image_load = false;
+      var sound_load = false;
+      stub(b, 'load_image', function() { image_load = true; return Ember.RSVP.resolve(); });
+      stub(b, 'load_sound', function() { sound_load = true; return Ember.RSVP.resolve(); });
+      var done = false;
+      b.sound_id = 'asdf';
+      b.sound_url = 'http://www.example.com/pic.png';
+      persistence.url_cache = {};
+      b.findContentLocally().then(function(res) {
+        done = true;
+      });
+      waitsFor(function() { return done; });
+      runs(function() {
+        expect(image_load).toEqual(false);
+        expect(sound_load).toEqual(true);
+        expect(b.get('local_sound_url')).toEqual(undefined);
+      });
+    });
+
+    it('should reject if sound lookup fails', function() {
+      var b = Button.create();
+      var image_load = false;
+      var sound_load = false;
+      stub(b, 'load_image', function() { image_load = true; return Ember.RSVP.resolve(); });
+      stub(b, 'load_sound', function() { sound_load = true; return Ember.RSVP.reject(); });
+      var done = false;
+      b.sound_id = 'asdf';
+      b.sound_url = 'http://www.example.com/pic.png';
+      persistence.url_cache = {};
+      b.findContentLocally().then(function(res) {
+        done = true;
+      });
+      waitsFor(function() { return done; });
+      runs(function() {
+        expect(image_load).toEqual(false);
+        expect(sound_load).toEqual(true);
+        expect(b.get('local_sound_url')).toEqual(undefined);
+      });
+    });
+
+    it('should not lookup if no id specified', function() {
+      var b = Button.create();
+      var done = false;
+      b.findContentLocally().then(function(res) {
+        done = true;
+        expect(res).toEqual(true);
+      });
+      waitsFor(function() { return done; });
+      runs();
+    });
+  });
+
+  context('fast_html', function() {
+    it('should return html', function() {
+      var b = Button.create();
+      var html = b.get('fast_html');
+      expect(!!html.string.match(/div/)).toEqual(true);
+    });
+
+    it('should sanitize text appropriately', function() {
+      var b = Button.create();
+      b.set('label', "<script>alert('asdf');</script>");
+      var html = b.get('fast_html');
+      expect(html.string.indexOf("<script>alert('asdf');</script>")).toEqual(-1);
+      expect(html.string.indexOf("&lt;script&gt;alert('asdf');&lt;/script&gt;")).toNotEqual(-1);
+    });
   });
 });

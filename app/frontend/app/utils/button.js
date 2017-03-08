@@ -7,6 +7,16 @@ import i18n from './i18n';
 import stashes from './_stashes';
 import progress_tracker from './progress_tracker';
 
+var clean_url = function(str) {
+  str = str || "";
+  return str.replace(/"/g, "%22");
+};
+var dom = document.createElement('div');
+var clean_text = function(str) {
+  dom.textContent = str;
+  return dom.innerHTML;
+};
+
 var Button = Ember.Object.extend({
   init: function() {
     this.updateAction();
@@ -178,10 +188,6 @@ var Button = Ember.Object.extend({
   }.property('apps.web.launch_url'),
   fast_html: function() {
     var res = "";
-    var clean_url = function(str) {
-      str = str || "";
-      return str.replace(/"/g, "%22")
-    };
     res = res + "<div style='" + this.get('computed_style') + "' class='" + this.get('computed_class') + "' data-id='" + this.get('id') + "' tabindex='0'>";
     if(this.get('pending')) {
       res = res + "<div class='pending'><img src='" + Ember.templateHelpers.path('images/spinner.gif') + "' /></div>";
@@ -201,7 +207,7 @@ var Button = Ember.Object.extend({
       res = res + "<audio style='display: none;' preload='auto' src=\"" + clean_url(this.get('local_sound_url')) + "\" rel=\"" + clean_url(this.get('sound.url')) + "\"></audio>";
     }
     res = res + "<div class='" + app_state.get('button_symbol_class') + "'>";
-    res = res + "<span class='" + (this.get('hide_label') ? "button-label hide-label" : "button-label") + "'>" + this.get('label') + "</span>";
+    res = res + "<span class='" + (this.get('hide_label') ? "button-label hide-label" : "button-label") + "'>" + clean_text(this.get('label')) + "</span>";
     res = res + "</div>";
 
     res = res + "</div>";
@@ -211,12 +217,12 @@ var Button = Ember.Object.extend({
     var pos = this.get('positioning');
     if(!pos || !pos.image_height) { return ""; }
     return new Ember.String.htmlSafe("margin-top: " + pos.image_top_margin + "px; vertical-align: top; display: inline-block; width: " + pos.image_square + "px; height: " + pos.image_height + "px; line-height: " + pos.image_height + "px;");
-  }.property('positioning'),
+  }.property('positioning', 'positioning.image_height', 'positioning.image_top_margin', 'positioning.image_square'),
   image_style: function() {
     var pos = this.get('positioning');
     if(!pos || !pos.image_height) { return ""; }
     return new Ember.String.htmlSafe("width: 100%; vertical-align: middle; max-height: " + pos.image_square + "px;");
-  }.property('positioning'),
+  }.property('positioning', 'positioning.image_height', 'positioning.image_square'),
   computed_style: function() {
     var pos = this.get('positioning');
     if(!pos) { return new Ember.String.htmlSafe(""); }
@@ -233,7 +239,7 @@ var Button = Ember.Object.extend({
       str = str + "height: " + Math.max(pos.height, 20) + "px;";
     }
     return new Ember.String.htmlSafe(str);
-  }.property('positioning'),
+  }.property('positioning', 'positioning.height', 'positioning.width', 'positioning.left', 'positioning.top'),
   computed_class: function() {
     var res = this.get('display_class') + " ";
     if(this.get('board.text_size')) {
@@ -272,6 +278,7 @@ var Button = Ember.Object.extend({
   },
   load_image: function() {
     var _this = this;
+    if(!_this.image_id) { return Ember.RSVP.resolve(); }
     var image = CoughDrop.store.peekRecord('image', _this.image_id);
     if(image && (!image.get('isLoaded') || !image.get('best_url'))) { image = null; }
     _this.set('image', image);
@@ -294,11 +301,14 @@ var Button = Ember.Object.extend({
       }
     } else {
       _this.set('local_image_url', image.get('best_url'));
-      return image.checkForDataURL().then(null, function() { return Ember.RSVP.resolve(image); });
+      return image.checkForDataURL().then(function() {
+        _this.set('local_image_url', image.get('best_url'));
+      }, function() { return Ember.RSVP.resolve(image); });
     }
   },
   load_sound: function() {
     var _this = this;
+    if(!_this.sound_id) { return Ember.RSVP.resolve(); }
     var sound = CoughDrop.store.peekRecord('sound', _this.sound_id);
     if(sound && (!sound.get('isLoaded') || !sound.get('best_url'))) { sound = null; }
     _this.set('sound', sound);
@@ -319,12 +329,15 @@ var Button = Ember.Object.extend({
       }
     } else {
       _this.set('local_sound_url', sound.get('best_url'));
-      return sound.checkForDataURL().then(null, function() { return Ember.RSVP.resolve(sound); });
+      return sound.checkForDataURL().then(function() {
+        _this.set('local_sound_url', sound.get('best_url'));
+      }, function() { return Ember.RSVP.resolve(sound); });
     }
   },
   findContentLocally: function() {
     var _this = this;
     if((!this.image_id || this.get('local_image_url')) && (!this.sound_id || this.get('local_sound_url'))) {
+      _this.set('content_status', 'ready');
       return Ember.RSVP.resolve(true);
     }
     this.set('content_status', 'pending');

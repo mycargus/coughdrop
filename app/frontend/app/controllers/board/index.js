@@ -252,7 +252,6 @@ export default Ember.Controller.extend({
       return res;
     };
 
-
     CoughDrop.log.track('computing dimensions');
     ob.forEach(function(row, i) {
       row.forEach(function(button, j) {
@@ -344,7 +343,6 @@ export default Ember.Controller.extend({
         if(currentLabelHeight === 0 || _this.get('text_position') != 'text_position_top') {
           top_margin = 0;
         }
-
         button.set('positioning', {
           top: top,
           left: left - inner_pad - inner_pad - inner_pad,

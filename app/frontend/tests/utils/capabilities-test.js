@@ -44,6 +44,70 @@ describe("capabilities", function() {
     });
   });
 
+//       silent_mode: function() {
+//         var res = capabilities.mini_promise();
+//         if(window.cordova && window.cordova.plugins && window.cordova.plugins.SilentMode) {
+//           debugger
+//           window.cordova.plugins.SileentMode.isMuted(function(res) {
+//             debugger
+//             res.resolve(true);
+//           }, function() {
+//             res.resolve(false);
+//           });
+//         } else {
+//           res.resolve(false);
+//         }
+//         return res;
+//       },
+
+  describe('silent_mode', function() {
+    it('should return a promise', function() {
+      var res = capabilities.silent_mode();
+      expect(res.then).toNotEqual(undefined);
+    });
+
+    it('should resolve false if plugin not found', function() {
+      stub(window, 'cordova', {});
+      var done = false;
+      capabilities.silent_mode().then(function(res) {
+        done = true;
+        expect(res).toEqual(false);
+      });
+      waitsFor(function() { return done; });
+      runs();
+    });
+
+    it('should resolve true if muted', function() {
+      stub(window, 'cordova', {plugins: {SilentMode: {
+        isMuted: function(yes, no) {
+          yes();
+        }
+      }}});
+      var done = false;
+      capabilities.silent_mode().then(function(res) {
+        done = true;
+        expect(res).toEqual(true);
+      });
+      waitsFor(function() { return done; });
+      runs();
+    });
+
+    it('should resolve false if not muted', function() {
+      stub(window, 'cordova', {plugins: {SilentMode: {
+        isMuted: function(yes, no) {
+          no();
+        }
+      }}});
+      var done = false;
+      capabilities.silent_mode().then(function(res) {
+        done = true;
+        expect(res).toEqual(false);
+      });
+      waitsFor(function() { return done; });
+      runs();
+    });
+  });
+
   describe("setup_database", function() {
 
     it("should try flushing databases on error", function() {
