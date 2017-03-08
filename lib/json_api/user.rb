@@ -73,6 +73,11 @@ module JsonApi::User
       else
         json['preferences']['device']['ever_synced'] = true if json['preferences']['device']['ever_synced'] == nil
       end
+      if FeatureFlags.user_created_after?(user, 'folder_icons')
+        json['preferences']['folder_icons'] ||= false
+      else
+        json['preferences']['folder_icons'] = true if json['preferences']['folder_icons'] == nil
+      end
       json['preferences']['device']['voice'] ||= {}
       json['preferences']['device']['alternate_voice'] ||= {}
 

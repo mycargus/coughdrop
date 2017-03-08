@@ -587,7 +587,7 @@ export default Ember.Controller.extend({
   }.property('nothing_visible', 'app_state.edit_mode'),
   display_class: function() {
     var res = "board advanced_selection ";
-    if(true) {
+    if(!app_state.get('currentUser.preferences.folder_icons')) {
       res = res + "colored_icons ";
     }
     if(this.get('model.finding_target')) {
@@ -630,7 +630,7 @@ export default Ember.Controller.extend({
       }
     }
     return res;
-  }.property('stashes.all_buttons_enabled', 'stashes.current_mode', 'paint_mode', 'border_style', 'text_style', 'model.finding_target', 'app_state.currentUser.preferences.hidden_buttons', 'app_state.currentUser.hide_symbols'),
+  }.property('stashes.all_buttons_enabled', 'stashes.current_mode', 'paint_mode', 'border_style', 'text_style', 'model.finding_target', 'app_state.currentUser.preferences.hidden_buttons', 'app_state.currentUser.hide_symbols', 'app_state.currentUser.preferences.folder_icons'),
   suggestion_class: function() {
     var res = "advanced_selection ";
     if(this.get('text_style')) {
