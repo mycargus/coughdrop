@@ -473,6 +473,18 @@ CoughDrop.expired = function() {
   var diff = now - version;
   return diff > 30;
 };
+CoughDrop.log = {
+  start: function() {
+    CoughDrop.log.started = (new Date()).getTime();
+  },
+  track: function(msg) {
+    if(!CoughDrop.loggy) { return; }
+    var now = (new Date()).getTime();
+    if(CoughDrop.log.started) {
+      console.debug("TRACK:" + msg, now - CoughDrop.log.started);
+    }
+  }
+};
 window.CoughDrop = CoughDrop;
 window.CoughDrop.VERSION = window.app_version;
 

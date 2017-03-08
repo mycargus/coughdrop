@@ -86,7 +86,7 @@
               {{#each ordered_buttons as |row|}}
                 <div class="button_row">
                   {{#each row as |button|}}
-                    {{partial "button-unbound"}}
+                    {{button.fast_html}}
                   {{/each}}
                 </div>
               {{/each}}

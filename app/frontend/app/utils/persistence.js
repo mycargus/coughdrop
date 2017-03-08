@@ -332,7 +332,7 @@ var persistence = Ember.Object.extend({
       var matching_boards = [];
       boards.forEach(function(board) {
         var str = board.get('key') + " " + board.get('name') + " " + board.get('description');
-        board.get('buttons').forEach(function(button) {
+        (board.get('buttons') || []).forEach(function(button) {
           str = str + " " + (button.label || button.vocalization);
         });
         if(str.match(re)) {

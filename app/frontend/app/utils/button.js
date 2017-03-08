@@ -176,6 +176,37 @@ var Button = Ember.Object.extend({
     }
     return url;
   }.property('apps.web.launch_url'),
+  fast_html: function() {
+    var res = "";
+    var clean_url = function(str) {
+      str = str || "";
+      return str.replace(/"/g, "%22")
+    };
+    res = res + "<div style='" + this.get('computed_style') + "' class='" + this.get('computed_class') + "' data-id='" + this.get('id') + "' tabindex='0'>";
+    if(this.get('pending')) {
+      res = res + "<div class='pending'><img src='" + Ember.templateHelpers.path('images/spinner.gif') + "' /></div>";
+    }
+    res = res + "<div class='" + this.get('action_class') + "'>";
+    res = res + "<span class='action'>";
+    res = res + "<img src='" + this.get('action_image') + "' alt='" + this.get('action_alt') + "' />";
+    res = res + "</span>";
+    res = res + "</div>";
+
+    res = res + "<span style='" + this.get('image_holder_style') + "'>";
+    if(!app_state.get('currentUser.hide_symbols')) {
+      res = res + "<img src=\"" + clean_url(this.get('local_image_url')) + "\" onerror='button_broken_image(this);' style='" + this.get('image_style') + "' class='symbol' />";
+    }
+    res = res + "</span>";
+    if(this.get('sound')) {
+      res = res + "<audio style='display: none;' preload='auto' src=\"" + clean_url(this.get('local_sound_url')) + "\" rel=\"" + clean_url(this.get('sound.url')) + "\"></audio>";
+    }
+    res = res + "<div class='" + app_state.get('button_symbol_class') + "'>";
+    res = res + "<span class='" + (this.get('hide_label') ? "button-label hide-label" : "button-label") + "'>" + this.get('label') + "</span>";
+    res = res + "</div>";
+
+    res = res + "</div>";
+    return new Ember.String.htmlSafe(res);
+  }.property('refresh_token', 'positioning', 'computed_style', 'computed_class', 'label', 'action_class', 'action_image', 'action_alt', 'image_holder_style', 'local_image_url', 'image_style', 'local_sound_url', 'sound.url', 'hide_label'),
   image_holder_style: function() {
     var pos = this.get('positioning');
     if(!pos || !pos.image_height) { return ""; }
@@ -227,13 +258,15 @@ var Button = Ember.Object.extend({
     return this.get('pending_image') || this.get('pending_sound');
   }.property('pending_image', 'pending_sound'),
   everything_local: function() {
-    if(this.image_id && !this.get('image')) {
+    if(this.image_id && this.image_url && persistence.url_cache && persistence.url_cache[this.image_url]) {
+    } else if(this.image_id && !this.get('image')) {
       var rec = CoughDrop.store.peekRecord('image', this.image_id);
-      if(!rec || !rec.get('isLoaded')) { return false; }
+      if(!rec || !rec.get('isLoaded')) { console.log("missing image for", this.get('label')); return false; }
     }
-    if(this.sound_id && !this.get('sound')) {
+    if(this.sound_id && this.sound_url && persistence.url_cache && persistence.url_cache[this.sound_url]) {
+    } else if(this.sound_id && !this.get('sound')) {
       var rec = CoughDrop.store.peekRecord('sound', this.sound_id);
-      if(!rec || !rec.get('isLoaded')) { return false; }
+      if(!rec || !rec.get('isLoaded')) { console.log("missing sound for", this.get('label')); return false; }
     }
     return true;
   },

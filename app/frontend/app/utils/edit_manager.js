@@ -456,6 +456,7 @@ var editManager = Ember.Object.extend({
     this.check_button(id);
   },
   process_for_displaying: function() {
+    CoughDrop.log.track('processing for displaying');
     var controller = this.controller;
     var board = controller.get('model');
     var buttons = board.get('buttons');
@@ -478,12 +479,14 @@ var editManager = Ember.Object.extend({
 
     // build the ordered grid
     // TODO: work without ordered grid (i.e. scene displays)
+    CoughDrop.log.track('finding content locally');
     var prefetch = board.find_content_locally().then(null, function(err) {
       return Ember.RSVP.resolve();
     });
 
     var image_urls = board.get('image_urls');
     prefetch.then(function() {
+      CoughDrop.log.track('creating buttons');
       for(var idx = 0; idx < grid.rows; idx++) {
         var row = [];
         for(var jdx = 0; jdx < grid.columns; jdx++) {
@@ -516,12 +519,15 @@ var editManager = Ember.Object.extend({
         result.push(row);
       }
       if(!allButtonsReady) {
+        CoughDrop.log.track('need to wait for buttons');
         board.set('pending_buttons', pending_buttons);
         board.addObserver('all_ready', function() {
           if(!controller.get('ordered_buttons')) {
             board.set('pending_buttons', null);
             controller.set('ordered_buttons',result);
+            CoughDrop.log.track('redrawing if needed');
             controller.redraw_if_needed();
+            CoughDrop.log.track('done redrawing if needed');
             Ember.run.later(function() {
               if(app_state.controller) {
                 app_state.controller.send('highlight_button');
@@ -534,8 +540,11 @@ var editManager = Ember.Object.extend({
         });
         controller.set('ordered_buttons', null);
       } else {
+        CoughDrop.log.track('buttons did not need waiting');
         controller.set('ordered_buttons', result);
+        CoughDrop.log.track('redrawing if needed');
         controller.redraw_if_needed();
+        CoughDrop.log.track('done redrawing if needed');
         for(var idx = 0; idx < result.length; idx++) {
           for(var jdx = 0; jdx < result[idx].length; jdx++) {
             var button = result[idx][jdx];

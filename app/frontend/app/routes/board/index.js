@@ -10,14 +10,17 @@ import persistence from '../../utils/persistence';
 
 export default Ember.Route.extend({
   model: function(params) {
+    CoughDrop.log.track('getting model');
     var res = this.modelFor('board');
     if(res.get('should_reload')) {
       res.set('should_reload', false);
+      CoughDrop.log.track('reloading');
       res.reload();
     }
     return res;
   },
   setupController: function(controller, model) {
+    CoughDrop.log.track('setting up controller');
     var _this = this;
     controller.set('model', model);
     controller.set('ordered_buttons', null);
@@ -47,6 +50,7 @@ export default Ember.Route.extend({
     });
     contentGrabbers.board_controller = controller;
     var prior_revision = model.get('current_revision');
+    CoughDrop.log.track('processing buttons without lookups');
     model.without_lookups(function() {
       controller.processButtons();
     });
@@ -59,6 +63,7 @@ export default Ember.Route.extend({
     if(model.get('integration')) { return; }
     var insufficient_data = model.get('id') && (!controller.get('ordered_buttons') || (!model.get('pseudo_board') && model.get('permissions') === undefined));
     if(persistence.get('online') || insufficient_data) {
+      CoughDrop.log.track('considering reload');
       var reload = Ember.RSVP.resolve();
       // if we're online then we should reload, but do it softly if we're in speak mode
       if(persistence.get('online')) {
@@ -77,6 +82,7 @@ export default Ember.Route.extend({
 
       reload.then(function(updated) {
         if(!controller.get('ordered_buttons') || updated.get('current_revision') != prior_revision) {
+          CoughDrop.log.track('processing buttons again');
           controller.processButtons();
         }
       }, function(error) {

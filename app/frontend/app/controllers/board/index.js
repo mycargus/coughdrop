@@ -26,6 +26,7 @@ export default Ember.Controller.extend({
   }.property('model.name'),
   ordered_buttons: null,
   processButtons: function() {
+    this.update_button_symbol_class();
     boundClasses.add_rules(this.get('model.buttons'));
     this.computeHeight();
     if(this.get('model.word_suggestions')) {
@@ -171,6 +172,7 @@ export default Ember.Controller.extend({
     }
   },
   redraw: function(klass, change, redraw_button_id) {
+    CoughDrop.log.track('redrawing');
     var foundy = Math.round(10 * Math.random());
     var draw_id = redraw_button_id ? this.get('last_draw_id') : Math.random();
     this.set('last_draw_id', draw_id);
@@ -251,6 +253,7 @@ export default Ember.Controller.extend({
     };
 
 
+    CoughDrop.log.track('computing dimensions');
     ob.forEach(function(row, i) {
       row.forEach(function(button, j) {
         var button_height = starting_height - (extra_pad * 2);
@@ -353,6 +356,7 @@ export default Ember.Controller.extend({
           image_top_margin: top_margin,
           border: inner_pad
         });
+        button.get('fast_html');
 
         if(context) {
           if(!button.get('empty_or_hidden') && (!redraw_button_id || redraw_button_id == button.id)) {
@@ -649,7 +653,7 @@ export default Ember.Controller.extend({
     res = res + this.get('text_style') + " ";
     return res;
   }.property('text_style', 'button_style', 'text_style'),
-  button_symbol_class: function() {
+  update_button_symbol_class: function() {
     var res = "button-label-holder ";
     if(this.get('app_state.currentUser.hide_symbols')) {
       res = res + "no_image ";
@@ -657,8 +661,10 @@ export default Ember.Controller.extend({
     if(this.get('app_state.currentUser.preferences.device.button_text_position') == 'top') {
       res = res + "top ";
     }
+    app_state.set('button_symbol_class', res);
+    this.set('button_symbol_class', res);
     return res;
-  }.property('app_state.currentUser.hide_symbols', 'app_state.currentUser.preferences.device.button_text_position'),
+  }.observes('app_state.currentUser.hide_symbols', 'app_state.currentUser.preferences.device.button_text_position'),
   reload_on_connect: function() {
     if(persistence.get('online') && !this.get('model.id')) {
       var _this = this;

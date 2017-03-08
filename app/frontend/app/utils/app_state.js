@@ -177,7 +177,8 @@ var app_state = Ember.Object.extend({
     if(transition.targetName == 'board.index') {
       boundClasses.setup();
       var delay = app_state.get('currentUser.preferences.board_jump_delay') || window.user_preferences.any_user.board_jump_delay;
-      Ember.run.later(this, this.check_for_board_readiness, delay, 100);
+      CoughDrop.log.track('global transition handled');
+      Ember.run.later(this, this.check_for_board_readiness, delay, 50);
     }
     var controller = this.controller;
     controller.updateTitle();
@@ -236,6 +237,7 @@ var app_state = Ember.Object.extend({
       var _this = this;
       if($integration.length || ($board.length && $board.find(".button_row,canvas").length)) {
         Ember.run.later(function() {
+          CoughDrop.log.track('done transitioning');
           buttonTracker.transitioning = false;
         }, delay);
         return;
@@ -1023,6 +1025,7 @@ var app_state = Ember.Object.extend({
     }
   }.observes('short_refresh_stamp', 'sessionUser'),
   activate_button: function(button, obj) {
+    CoughDrop.log.start();
     if(button.hidden && !this.get('edit_mode') && this.get('currentUser.preferences.hidden_buttons') == 'grid') {
       return false;
     }
@@ -1122,12 +1125,13 @@ var app_state = Ember.Object.extend({
 //     }
 
         Ember.run.later(function() {
+        CoughDrop.log.track('jumping to new board');
         _this.jump_to_board({
           id: button.load_board.id,
           key: button.load_board.key,
           home_lock: button.home_lock
         }, obj.board);
-        }, 100);
+        }, 50);
       }
     } else if(button.url) {
       if(stashes.get('sticky_board') && app_state.get('speak_mode')) {
