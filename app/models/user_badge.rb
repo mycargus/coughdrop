@@ -156,7 +156,7 @@ class UserBadge < ActiveRecord::Base
   def self.check_for(user_id, stats_id=nil, allow_forever_check=false)
     user = User.find_by_path(user_id)
     stats = WeeklyStatsSummary.find_by_global_id(stats_id) if stats_id
-    stats_start = Date.commercial(stats.weekyear / 100, stats.weekyear % 100, 1) if stats
+    stats_start = (Date.commercial(stats.weekyear / 100, stats.weekyear % 100, 1) + 6) if stats
     # TODO: sharding
     badges = UserBadge.where(:user_id => user.id)
     globals = UserGoal.where(:global => true)
@@ -327,7 +327,7 @@ class UserBadge < ActiveRecord::Base
         units.each do |unit|
           # TODO: sharding
           next if unit[:date] > today
-          sessions = LogSession.where(:user_id => user.id, :goal_id => goal.id, :log_type => 'assessment').where(['started_at >= ? AND ended_at <= ?', unit[:date], unit[:date] + 1])
+          sessions = LogSession.where(:user_id => user.id, :goal_id => goal.id, :log_type => 'assessment').where(['started_at >= ? AND ended_at <= ?', unit[:date], unit[:date] + 0.5])
           session = sessions.detect{|s| s.data['assessment'] && s.data['assessment']['automatic'] }
           if !session
             session = LogSession.process_new({
