@@ -46,6 +46,8 @@ var Subscription = Ember.Object.extend({
     this.set('finalizing_purchase', false);
     this.set('purchase_complete', false);
     this.set('canceling', false);
+    this.set('user_expires', false);
+    this.set('user_expiring', false);
 
     var now = window.moment()._d;
     var sale = new Date(CoughDrop.sale * 1000);
