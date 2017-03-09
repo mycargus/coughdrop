@@ -12,7 +12,7 @@
       {{#if usage_stats.popular_words}}
         {{#each usage_stats.popular_words as |word|}}
           <tr>
-            <td><a href="#" {{action 'word_data' word.text}}" style='text-decoration: none; color: #000;'>{{word.text}}</a></td>
+            <td><a href="#" {{action 'word_data' word.text}} style='text-decoration: none; color: #000;'>{{word.text}}</a></td>
             <td>{{word.count}}</td>
           </tr>
         {{/each}}

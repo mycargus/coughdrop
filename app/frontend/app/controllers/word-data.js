@@ -33,11 +33,17 @@ export default modal.ModalController.extend({
     var res = {};
     var word = this.get('model.word').toLowerCase();
     if(lists && lists.reachable_for_user) {
-      var found = lists.reachable_for_user.find(function(w) { return w.toLowerCase() == word; });
+      var found = lists.for_user.find(function(w) { return w.toLowerCase() == word; });
+      var reachable_found = lists.reachable_for_user.find(function(w) { return w.toLowerCase() == word; });
       if(found) {
-        res.reachable = true;
+        res.core = true;
+        if(reachable_found) {
+          res.reachable = true;
+        } else {
+          res.unreachable = true;
+        }
       } else {
-        res.unreachable = true;
+        res.not_core = true;
       }
     }
     return res;
