@@ -71,12 +71,10 @@ export default Ember.Controller.extend({
     }
     var last_finished_word = ((last_button && (last_button.vocalization || last_button.label)) || "").toLowerCase();
     var word_in_progress = ((current_button && (current_button.vocalization || current_button.label)) || "").toLowerCase();
-
     word_suggestions.lookup({
       last_finished_word: last_finished_word,
       word_in_progress: word_in_progress,
-      button_set: this.get('model.button_set'),
-      board_id: this.get('model.id')
+      board_ids: [app_state.get('current_user.preferences.home_board.id'), stashes.get('temporary_root_board_state.id')]
     }).then(function(result) {
       _this.set('suggestions.list', result);
     }, function() {
