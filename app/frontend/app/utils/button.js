@@ -264,12 +264,12 @@ var Button = Ember.Object.extend({
     return this.get('pending_image') || this.get('pending_sound');
   }.property('pending_image', 'pending_sound'),
   everything_local: function() {
-    if(this.image_id && this.image_url && persistence.url_cache && persistence.url_cache[this.image_url]) {
+    if(this.image_id && this.image_url && persistence.url_cache && persistence.url_cache[this.image_url] && (!persistence.url_uncache || !persistence.url_uncache[this.image_url])) {
     } else if(this.image_id && !this.get('image')) {
       var rec = CoughDrop.store.peekRecord('image', this.image_id);
       if(!rec || !rec.get('isLoaded')) { console.log("missing image for", this.get('label')); return false; }
     }
-    if(this.sound_id && this.sound_url && persistence.url_cache && persistence.url_cache[this.sound_url]) {
+    if(this.sound_id && this.sound_url && persistence.url_cache && persistence.url_cache[this.sound_url] && (!persistence.url_uncache || !persistence.url_uncache[this.sound_url])) {
     } else if(this.sound_id && !this.get('sound')) {
       var rec = CoughDrop.store.peekRecord('sound', this.sound_id);
       if(!rec || !rec.get('isLoaded')) { console.log("missing sound for", this.get('label')); return false; }
@@ -343,13 +343,13 @@ var Button = Ember.Object.extend({
     this.set('content_status', 'pending');
     return new Ember.RSVP.Promise(function(resolve, reject) {
       var promises = [];
-      if(_this.image_id && _this.image_url && persistence.url_cache && persistence.url_cache[_this.image_url]) {
+      if(_this.image_id && _this.image_url && persistence.url_cache && persistence.url_cache[_this.image_url] && (!persistence.url_uncache || !persistence.url_uncache[_this.image_url])) {
         _this.set('local_image_url', persistence.url_cache[_this.image_url]);
         promises.push(Ember.RSVP.resolve());
       } else if(_this.image_id) {
         promises.push(_this.load_image());
       }
-      if(_this.sound_id && _this.sound_url && persistence.url_cache && persistence.url_cache[_this.sound_url]) {
+      if(_this.sound_id && _this.sound_url && persistence.url_cache && persistence.url_cache[_this.sound_url] && (!persistence.url_uncache || !persistence.url_uncache[_this.sound_url])) {
         _this.set('local_sound_url', persistence.url_cache[_this.sound_url]);
         promises.push(Ember.RSVP.resolve());
       } else if(_this.sound_id) {
