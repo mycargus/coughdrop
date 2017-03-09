@@ -432,12 +432,18 @@ export default Ember.Controller.extend({
       id: board.get('id'),
       key: board.get('key')
     };
+    var image_url = button.image;
+    if(image && image.get('personalized_url')) {
+      image_url = image.get('personalized_url');
+    } else if(button.get('original_image_url')) {
+      image_url = CoughDrop.Image.personalize_url(button.get('original_image_url'), app_state.get('currentUser.user_token'));
+    }
     var obj = {
       label: button.label,
       vocalization: button.vocalization,
-      image: (image && image.get('personalized_url')) || button.image,
+      image: image_url,
       button_id: button.id,
-      sound: (sound && sound.get('url')),
+      sound: (sound && sound.get('url')) || button.get('original_sound_url'),
       board: oldState,
       completion: button.completion,
       blocking_speech: button.blocking_speech,

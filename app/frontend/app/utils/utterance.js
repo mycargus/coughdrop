@@ -170,8 +170,12 @@ var utterance = Ember.Object.extend({
     }
     var b = Ember.$.extend({}, button);
     if(original_button) {
-      b.image_license = original_button.get('image.license');
-      b.sound_license = original_button.get('sound.license');
+      original_button.load_image().then(function() {
+        Ember.set(b, 'image_license', original_button.get('image.license'));
+      });
+      original_button.load_sound().then(function() {
+        Ember.set(b, 'sound_license', original_button.get('sound.license');
+      });
     }
     var list = this.get('rawButtonList');
     list.pushObject(b);

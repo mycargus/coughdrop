@@ -199,7 +199,7 @@ var Button = Ember.Object.extend({
     res = res + "</div>";
 
     res = res + "<span style='" + this.get('image_holder_style') + "'>";
-    if(!app_state.get('currentUser.hide_symbols')) {
+    if(!app_state.get('currentUser.hide_symbols') && this.get('local_image_url')) {
       res = res + "<img src=\"" + clean_url(this.get('local_image_url')) + "\" onerror='button_broken_image(this);' style='" + this.get('image_style') + "' class='symbol' />";
     }
     res = res + "</span>";
@@ -306,6 +306,11 @@ var Button = Ember.Object.extend({
       }, function() { return Ember.RSVP.resolve(image); });
     }
   },
+  update_local_image_url: function() {
+    if(this.get('image.best_url')) {
+      this.set('local_image_url', this.get('image.best_url'));
+    }
+  }.observes('image.best_url'),
   load_sound: function() {
     var _this = this;
     if(!_this.sound_id) { return Ember.RSVP.resolve(); }
@@ -334,6 +339,11 @@ var Button = Ember.Object.extend({
       }, function() { return Ember.RSVP.resolve(sound); });
     }
   },
+  update_local_sound_url: function() {
+    if(this.get('sound.best_url')) {
+      this.set('local_sound_url', this.get('sound.best_url'));
+    }
+  }.observes('image.best_url'),
   findContentLocally: function() {
     var _this = this;
     if((!this.image_id || this.get('local_image_url')) && (!this.sound_id || this.get('local_sound_url'))) {
@@ -345,12 +355,14 @@ var Button = Ember.Object.extend({
       var promises = [];
       if(_this.image_id && _this.image_url && persistence.url_cache && persistence.url_cache[_this.image_url] && (!persistence.url_uncache || !persistence.url_uncache[_this.image_url])) {
         _this.set('local_image_url', persistence.url_cache[_this.image_url]);
+        _this.set('original_image_url', _this.image_url);
         promises.push(Ember.RSVP.resolve());
       } else if(_this.image_id) {
         promises.push(_this.load_image());
       }
       if(_this.sound_id && _this.sound_url && persistence.url_cache && persistence.url_cache[_this.sound_url] && (!persistence.url_uncache || !persistence.url_uncache[_this.sound_url])) {
         _this.set('local_sound_url', persistence.url_cache[_this.sound_url]);
+        _this.set('original_sound_url', _this.sound_url);
         promises.push(Ember.RSVP.resolve());
       } else if(_this.sound_id) {
         promises.push(_this.load_sound());
@@ -444,8 +456,8 @@ Button.broken_image = function(image) {
   var fallback = Ember.templateHelpers.path('images/square.svg');
   if(image.src && image.src != fallback && !image.src.match(/^data/)) {
     console.log("bad image url: " + image.src);
-    image.rel = image.src;
-    image.onerror = "";
+    image.setAttribute('rel', image.src);
+    image.setAttribute('onerror', '');
     image.src = fallback;
     persistence.find_url(image.src).then(function(data_uri) {
       image.src = data_uri;
