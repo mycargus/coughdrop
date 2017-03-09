@@ -227,7 +227,7 @@ module Purchasing
           user && user.log_subscription_event({:log => 'new subscription for existing customer'})
           sub = nil
           if customer.subscriptions.count > 0
-            sub = customer.subscriptions.data.detect{|s| s.status == 'active' }
+            sub = customer.subscriptions.data.detect{|s| s.status == 'active' || s.status == 'past_due' || s.status == 'unpaid' }
           end
           if sub
             sub.source = token['id']
