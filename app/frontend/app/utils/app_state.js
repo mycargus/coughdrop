@@ -289,7 +289,31 @@ var app_state = Ember.Object.extend({
     }
     stashes.set('modeling', !!enable);
     app_state.set('modeling', !!enable);
+    if(enable) {
+      app_state.get('modeling_started', (new Date()).getTime());
+    }
   },
+  auto_clear_modeling: function() {
+    if(this.get('modeling')) {
+      var now = (new Date()).getTime();
+      if(!app_state.get('last_activation')) {
+        app_state.set('last_activation', now);
+      }
+      // progressively get more aggressive at auto-clearing modeling flag
+      var duration = now - app_state.get('modeling_started');
+      var cutoff = 60 * 1000;
+      if(duration > (10 * 60 * 1000)) {
+        cutoff = 5 * 1000;
+      } else if(duration > (5 * 60 * 1000)) {
+        cutoff = 15 * 1000;
+      } else if(duration > (2 * 60 * 1000)) {
+        cutoff = 30 * 1000;
+      }
+      if(now - app_state.get('last_activation') > cutoff) {
+        app_state.toggle_modeling();
+      }
+    }
+  }.observes('short_refresh_stamp', 'modeling'),
   back_one_board: function() {
     buttonTracker.transitioning = true;
     var history = this.get_history();
@@ -1029,11 +1053,13 @@ var app_state = Ember.Object.extend({
     if(button.hidden && !this.get('edit_mode') && this.get('currentUser.preferences.hidden_buttons') == 'grid') {
       return false;
     }
+    var now = (new Date()).getTime();
     if(app_state.get('modeling')) {
       obj.modeling = true;
-    } else if(stashes.last_selection && stashes.last_selection.modeling && stashes.last_selection.ts > ((new Date()).getTime() - 500)) {
+    } else if(stashes.last_selection && stashes.last_selection.modeling && stashes.last_selection.ts > (now - 500)) {
       obj.modeling = true;
     }
+    app_state.set('last_activation', now);
     if(button.link_disabled) {
       button.apps = null;
       button.url = null;
