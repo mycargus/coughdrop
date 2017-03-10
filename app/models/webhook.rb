@@ -64,6 +64,7 @@ class Webhook < ActiveRecord::Base
   end
   
   def self.notify_all_with_code(record_code, notification_type, additional_args)
+    # TODO: this can run really long (like 20 minutes) if there are a lot of recipients
     record = find_record(record_code)
     res = []
     if record
