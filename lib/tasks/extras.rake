@@ -14,6 +14,16 @@ task "extras:assert_js" do
   `touch ./app/frontend/dist/assets/vendor.js`
 end
 
+task "extras:jobs_list" do
+  require 'worker'
+  puts "default queue"
+  puts Worker.scheduled_actions('default')
+  puts "priority queue"
+  puts Worker.scheduled_actions('priority')
+  puts "slow queue"
+  puts Worker.scheduled_actions('slow')
+end
+
 task "extras:clear_report_tallies" => :environment do
   RedisInit.default.del('missing_words')
   RedisInit.default.del('missing_symbols')
