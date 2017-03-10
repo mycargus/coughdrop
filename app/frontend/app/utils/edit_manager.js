@@ -686,7 +686,7 @@ var editManager = Ember.Object.extend({
     ids.forEach(function(id) {
       var board_id = _this.controller.get('model.id');
       var button = _this.find_button(id);
-      if(button && button.label && !button.image) {
+      if(button && button.label && !button.image && !button.local_image_url) {
         button.set('pending_image', true);
         button.set('pending', true);
         if(button && button.label && !button.image) {
