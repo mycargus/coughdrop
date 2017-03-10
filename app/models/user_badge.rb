@@ -19,7 +19,7 @@ class UserBadge < ActiveRecord::Base
   add_permissions('view') {|user| self.user && self.user.allows?(user, 'supervise') }
   add_permissions('view', 'edit', 'delete') {|user| self.user && self.user.allows?(user, 'edit') }
 
-  has_paper_trail :only => [:data, :earned]
+#  has_paper_trail :only => [:data, :earned]
   secure_serialize :data
   
   def generate_defaults

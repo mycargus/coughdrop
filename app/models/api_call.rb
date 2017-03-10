@@ -4,6 +4,8 @@ class ApiCall < ActiveRecord::Base
   replicated_model
   
   def self.log(token, user, request, response, time)
+    return true if ENV['DISABLE_API_CALL_LOGGING']
+    # TODO: is there a better way to log this? It's too huge to actually use
     if request && request.path && request.path.match(/^\/api\/v\d+/) && token && user && response
       call = ApiCall.new
       call.user_id = user.id
@@ -17,5 +19,9 @@ class ApiCall < ActiveRecord::Base
     else
       false
     end
+  end
+  
+  def self.flush
+    ApiCall.where(['created_at < ?', 2.months.ago]).delete_all
   end
 end

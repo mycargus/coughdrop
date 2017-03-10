@@ -19,7 +19,7 @@ class LogSession < ActiveRecord::Base
   after_save :update_board_connections
   replicated_model  
 
-  has_paper_trail :only => [:data, :user_id, :author_id, :device_id]
+  has_paper_trail :on => [:destroy] #:only => [:data, :user_id, :author_id, :device_id]
   secure_serialize :data
 
   def generate_defaults

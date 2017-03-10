@@ -13,7 +13,7 @@ class ButtonImage < ActiveRecord::Base
   after_create :track_image_use_later
   replicated_model  
 
-  has_paper_trail :only => [:settings, :board_id, :user_id, :public, :path, :url, :data]
+  has_paper_trail :on => [:destroy] #:only => [:settings, :board_id, :user_id, :public, :path, :url, :data]
   secure_serialize :settings
   
   add_permissions('view', ['*']) { true }

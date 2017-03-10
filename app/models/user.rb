@@ -20,7 +20,9 @@ class User < ActiveRecord::Base
   after_save :track_boards
   after_save :notify_of_changes
 
-  has_paper_trail :only => [:settings, :user_name]
+  has_paper_trail :only => [:settings, :user_name],
+                  :if => Proc.new{|u| PaperTrail.whodunnit && !PaperTrail.whodunnit.match(/^job/) }
+              
   secure_serialize :settings
   attr_accessor :permission_scopes_device
 

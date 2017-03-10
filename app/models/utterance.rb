@@ -15,7 +15,7 @@ class Utterance < ActiveRecord::Base
   
   add_permissions('view', ['*']) { true }
   add_permissions('view', 'edit') {|user| self.user_id == user.id || (self.user && self.user.allows?(user, 'edit')) }
-  has_paper_trail :only => [:data, :user_id]
+#  has_paper_trail :only => [:data, :user_id]
   secure_serialize :data
 
   def generate_defaults

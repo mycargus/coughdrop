@@ -27,7 +27,8 @@ class Board < ActiveRecord::Base
   after_save :post_process
   after_destroy :flush_related_records
   
-  has_paper_trail :only => [:current_revision, :settings, :name, :key, :public, :parent_board_id, :user_id]
+  has_paper_trail :only => [:current_revision, :settings, :name, :key, :public, :parent_board_id, :user_id],
+                  :if => Proc.new{|b| PaperTrail.whodunnit && !PaperTrail.whodunnit.match(/^job/) }
   secure_serialize :settings
 
   # cache should be invalidated if:

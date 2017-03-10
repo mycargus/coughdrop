@@ -14,7 +14,7 @@ class ButtonSound < ActiveRecord::Base
   after_save :schedule_transcription
   replicated_model  
 
-  has_paper_trail :only => [:settings, :board_id, :user_id, :public, :path, :url, :data]
+  has_paper_trail :on => [:destroy] #:only => [:settings, :board_id, :user_id, :public, :path, :url, :data]
   secure_serialize :settings
 
   add_permissions('view', ['*']) { true }
