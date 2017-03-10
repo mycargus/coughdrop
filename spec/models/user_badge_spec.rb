@@ -760,6 +760,7 @@ describe UserBadge, type: :model do
       expect(badges.count).to eq(2)
       
       auto_tracks = LogSession.where(:log_type => 'assessment', :user_id => u.id).order('id DESC')
+
       expect(auto_tracks.count).to eq(5)
       expect(auto_tracks.map{|s| s.started_at.to_date.iso8601 }).to eq(["2016-06-09", "2016-06-08", "2016-06-07", "2016-06-06", "2016-06-05"])
       expect(auto_tracks.map{|s| s.data['assessment']['totals']['correct']}).to eq([1, 0, 1, 0, 0])

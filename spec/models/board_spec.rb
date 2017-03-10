@@ -187,8 +187,8 @@ describe Board, :type => :model do
       u2 = User.create
       b.star!(u2, true)
       expect(b.settings['starred_user_ids']).to eq([u2.global_id])
-      expect(b.versions.length).to eq(2)
-      expect(b.versions.map(&:whodunnit)).to eq(['nunya', 'job:star_user'])
+      expect(b.versions.length).to eq(1)
+      expect(b.versions.map(&:whodunnit)).to eq(['nunya'])
     end
   end
 
@@ -575,6 +575,7 @@ describe Board, :type => :model do
       expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil]})).to eq(false)
       Worker.flush_queues
       b.instance_variable_set('@buttons_changed', true)
+      b.instance_variable_set('@button_links_changed', true)
       b.save
       expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], true]})).to eq(true)
       Worker.flush_queues
@@ -681,6 +682,32 @@ describe Board, :type => :model do
       }])
     end
     
+    it "should not schedule track_boards when notifying users of board changes" do
+      u = User.create
+      u2 = User.create
+      b = Board.create(:user => u)
+      u.settings['preferences']['home_board'] = {'id' => b.global_id, 'key' => b.key }
+      u.save
+      Worker.process_queues
+      
+      b.settings['buttons'] = [
+        {'id' => 1},
+        {'id' => 2, 'load_board' => {'id' => '12345'}},
+        {'id' => 3, 'load_board' => {'id' => '12345'}},
+        {'id' => 4, 'load_board' => {'id' => '23456'}}
+      ]
+      b.instance_variable_set('@buttons_changed', true)
+      b.save
+      expect(Worker.scheduled_for?(:slow, User, :perform_action, {'id' => u.id, 'method' => 'track_boards', 'arguments' => [true]})).to eq(false)
+      expect(Worker.scheduled_for?(:slow, User, :perform_action, {'id' => u2.id, 'method' => 'track_boards', 'arguments' => [true]})).to eq(false)
+      Worker.process_queues
+      expect(Worker.scheduled_for?(:slow, User, :perform_action, {'id' => u.id, 'method' => 'track_boards', 'arguments' => [true]})).to eq(false)
+      expect(Worker.scheduled_for?(:slowUser, :perform_action, {'id' => u2.id, 'method' => 'track_boards', 'arguments' => [true]})).to eq(false)
+
+      expect(u.reload.settings['user_notifications'].length).to eq(1)
+      expect(u2.reload.settings['user_notifications']).to eq(nil)
+    end
+    
     it "should not alert when the board buttons haven't actually changed" do
       u = User.create
       b = Board.create(:user => u)
@@ -689,9 +716,6 @@ describe Board, :type => :model do
       u.save
       
       b.process({})
-    end
-    
-    it "should not alert when the board buttons haven't actually changed" do
     end
   end
 
@@ -807,7 +831,7 @@ describe Board, :type => :model do
       ], nil)
       expect(b.settings['buttons']).not_to eq(nil)
       expect(b.settings['buttons'].length).to eq(1)
-      expect(b.instance_variable_get('@buttons_changed')).to eq(true)
+      expect(!!b.instance_variable_get('@buttons_changed')).to eq(true)
       b.instance_variable_set('@buttons_changed', false)
       b.process_buttons([
         {'id' => '1_2', 'label' => 'hat', 'hidden' => true, 'chicken' => '1234'}

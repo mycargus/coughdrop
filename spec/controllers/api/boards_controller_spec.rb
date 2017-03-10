@@ -947,16 +947,31 @@ describe Api::BoardsController, :type => :controller do
         vs = Board.user_versions(new_b.global_id)
         expect(vs.length).to eq(2)
         vs2 = Board.user_versions(new_b2.global_id)
-        expect(vs.length).to eq(2)
+        expect(vs2.length).to eq(1)
         
         get :history, params: {:board_id => new_b2.key}
         expect(response).to be_success
         json = JSON.parse(response.body)
         expect(json['boardversion']).not_to eq(nil)
         expect(json['boardversion'].length).to eq(1)
-        expect(json['boardversion'][0]['action']).to eq('copied')
+        expect(json['boardversion'][0]['action']).to eq('created')
         expect(json['boardversion'][0]['modifier']).not_to eq(nil)
         expect(json['boardversion'][0]['modifier']['user_name']).to eq(@user.user_name)
+        
+        new_b2.save!
+        vs2 = Board.user_versions(new_b2.global_id)
+        expect(vs2.length).to eq(2)
+        get :history, params: {:board_id => new_b2.key}
+        expect(response).to be_success
+        json = JSON.parse(response.body)
+        expect(json['boardversion']).not_to eq(nil)
+        expect(json['boardversion'].length).to eq(2)
+        expect(json['boardversion'][0]['action']).to eq('updated')
+        expect(json['boardversion'][0]['modifier']).not_to eq(nil)
+        expect(json['boardversion'][0]['modifier']['user_name']).to eq(@user.user_name)
+        expect(json['boardversion'][1]['action']).to eq('copied')
+        expect(json['boardversion'][1]['modifier']).not_to eq(nil)
+        expect(json['boardversion'][1]['modifier']['user_name']).to eq(@user.user_name)
       end
     
       it "should not return a list of versions for a deleted board if not allowed" do

@@ -165,7 +165,7 @@ describe JsonApi::BoardVersion do
       b.destroy
       
       vs = PaperTrail::Version.where(:item_type => 'Board', :item_id => b.id)
-      expect(vs.length).to eq(5)
+      expect(vs.length).to eq(3)
       
       versions = Board.user_versions(b.global_id)
       expect(versions.length).to eq(3)

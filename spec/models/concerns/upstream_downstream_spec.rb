@@ -213,6 +213,7 @@ describe UpstreamDownstream, :type => :model do
         {'id' => 5}
       ]
       b3.instance_variable_set('@buttons_changed', true)
+      b3.instance_variable_set('@button_links_changed', true)
       b3.save
       Worker.process_queues
       Worker.process_queues

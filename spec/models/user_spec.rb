@@ -242,6 +242,7 @@ describe User, :type => :model do
   describe "track_boards" do
     it "should schedule a background job by default" do
       u = User.create
+      u.instance_variable_set('@do_track_boards', true)
       expect(u.track_boards).to eq(true)
       expect(Worker.scheduled_for?(:slow, User, :perform_action, {'id' => u.id, 'method' => 'track_boards', 'arguments' => [true]})).to eq(true)
     end
@@ -261,8 +262,8 @@ describe User, :type => :model do
       o = [b]
       expect(Board).to receive(:where).with(:id => [b.id]).and_return(o)
       expect(o).to receive(:select).with('id').and_return([b])
-      expect(b).to receive(:schedule_once).with(:save_without_post_processing)
       u.track_boards(true)
+      expect(Worker.scheduled?(Board, :perform_action, {'method' => 'save_without_post_processing', 'arguments' => [[b.global_id]]})).to eq(true)
     end
 
     it "should create missing connections" do
@@ -1278,59 +1279,6 @@ describe User, :type => :model do
     end
   end
   
-
-#   def handle_notification(notification_type, record, args)
-#     if notification_type == 'push_message'
-#       if record.user_id == self.id
-#         self.settings['unread_messages'] ||= 0
-#         self.settings['unread_messages'] += 1
-#         self.settings['last_message_read'] = (record.started_at || 0).to_i
-#         self.save
-#       end
-#       self.add_user_notification({
-#         :id => record.global_id,
-#         :type => notification_type,
-#         :user_name => record.user.user_name,
-#         :author_user_name => record.author.user_name,
-#         :text => record.data['note']['text'],
-#         :occurred_at => record.started_at.iso8601
-#       })
-#       UserMailer.schedule_delivery(:log_message, self.global_id, record.global_id)
-#     elsif notification_type == 'board_buttons_changed'
-#       my_ubcs = UserBoardConnection.where(:user_id => self.id, :board_id => record.id)
-#       supervisee_ubcs = UserBoardConnection.where(:user_id => supervisees.map(&:id), :board_id => record.id)
-#       self.add_user_notification({
-#         :type => notification_type,
-#         :occurred_at => record.updated_at.iso8601,
-#         :for_user => my_ubcs.count > 0,
-#         :for_supervisees => supervisee_ubcs.map{|ubc| ubc.user.user_name }.sort,
-#         :previous_revision => args['revision'],
-#         :name => record.settings['name'],
-#         :key => record.key,
-#         :id => record.global_id
-#       })
-#     elsif notification_type == 'utterance_shared'
-#       pref = (self.settings && self.settings['preferences'] && self.settings['preferences']['share_notifications']) || 'email'
-#       if pref == 'email'
-#         UserMailer.schedule_delivery(:utterance_share, {
-#           'subject' => args['text'],
-#           'sharer_id' => args['sharer']['user_id'],
-#           'message' => args['text'],
-#           'to' => self.settings['email']
-#         })
-#       elsif pref == 'text'
-#         # TODO: twilio or something
-#       elsif pref == 'none'
-#         return
-#       end
-#       self.add_user_notification({
-#         :type => notification_type,
-#         :occurred_at => record.updated_at.iso8601,
-#         :sharer_user_name => args['sharer']['user_name'],
-#         :text => args['text']
-#       })
-#     end
-#   end
   describe "handle_notification" do
     it "should add a notification to the dashboard list"
     
@@ -1757,31 +1705,6 @@ describe User, :type => :model do
     end
   end
   
-  describe "versions" do
-    it "should track versions correctly" do
-      u = User.create!
-      u.reload
-      u.settings['email'] = 'email@example.com'
-      u.save!
-      u.reload
-      u.settings['email'] = 'emails@example.com'
-      u.settings['something_else'] = 'frogs'
-      u.save!
-      u.reload
-      u.settings['something_else'] = 'cool'
-      u.save!
-      u.reload
-      expect(u.versions.count).to eq(4)
-      expect(User.load_version(u.versions[-1]).settings['something_else']).to eq('cool')
-      expect(User.load_version(u.versions[-1]).settings['email']).to eq('emails@example.com')
-      expect(User.load_version(u.versions[-2]).settings['something_else']).to eq('frogs')
-      expect(User.load_version(u.versions[-2]).settings['email']).to eq('emails@example.com')
-      expect(User.load_version(u.versions[-3]).settings['something_else']).to eq(nil)
-      expect(User.load_version(u.versions[-3]).settings['email']).to eq('email@example.com')
-      expect(User.load_version(u.versions[-4])).to eq(nil)
-    end
-  end
-  
   describe "record_locking" do
     it "should not run an update on an out-of-date entry" do
       u = User.create
@@ -1830,6 +1753,32 @@ describe User, :type => :model do
       expect(User.find_by_token('asdf')).to eq(nil)
       expect(User.find_by_token("#{u.global_id}-whatever")).to eq(nil)
       expect(User.find_by_token(nil)).to eq(nil)
+    end
+  end
+  
+  describe "versions" do
+    it "should track versions correctly" do
+      PaperTrail.whodunnit = 'user:bob'
+      u = User.create!
+      u.reload
+      u.settings['email'] = 'email@example.com'
+      u.save!
+      u.reload
+      u.settings['email'] = 'emails@example.com'
+      u.settings['something_else'] = 'frogs'
+      u.save!
+      u.reload
+      u.settings['something_else'] = 'cool'
+      u.save!
+      u.reload
+      expect(u.versions.count).to eq(4)
+      expect(User.load_version(u.versions[-1]).settings['something_else']).to eq('cool')
+      expect(User.load_version(u.versions[-1]).settings['email']).to eq('emails@example.com')
+      expect(User.load_version(u.versions[-2]).settings['something_else']).to eq('frogs')
+      expect(User.load_version(u.versions[-2]).settings['email']).to eq('emails@example.com')
+      expect(User.load_version(u.versions[-3]).settings['something_else']).to eq(nil)
+      expect(User.load_version(u.versions[-3]).settings['email']).to eq('email@example.com')
+      expect(User.load_version(u.versions[-4])).to eq(nil)
     end
   end
 end

@@ -155,14 +155,15 @@ describe Worker do
   
   describe "whodunnit" do
     it "should mark whodunnit correctly" do
+      PaperTrail.whodunnit = 'user:bob'
       u = User.create
-      expect(u.versions.last.whodunnit).to eq(nil)
+      expect(u.versions.last.whodunnit).to eq('user:bob')
       expect(u.reload.versions.count).to eq(1)
 
       u.schedule(:enable_feature, 'bacon')
       Worker.process_queues
-      expect(u.reload.versions.count).to eq(2)
-      expect(u.versions.last.whodunnit).to eq("job:User . enable_feature (#{u.id})")
+      expect(u.reload.versions.count).to eq(1)
+      expect(u.versions.last.whodunnit).to eq("user:bob")
     end
   end
 end

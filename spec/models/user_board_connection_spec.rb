@@ -18,6 +18,20 @@ describe UserBoardConnection, :type => :model do
     expect(UserBoardConnection.count).to eq(1)
     expect(UserBoardConnection.first.home).to eq(true)
   end
+
+  it "should be created for home boards only when tracking boards" do
+    u = User.create
+    Worker.process_queues
+    b = Board.create(:user => u)
+    u.settings['preferences']['home_board'] = {'id' => b.global_id, 'key' => b.key}
+    u.save
+    Worker.process_queues
+    expect(UserBoardConnection.count).to eq(0)
+    u.process({'preferences' => {'home_board' => {'id' => b.global_id, 'key' => b.key}}})
+    Worker.process_queues
+    expect(UserBoardConnection.count).to eq(1)
+    expect(UserBoardConnection.first.home).to eq(true)
+  end
   
   it "should be created for sidebar boards" do
     u = User.create

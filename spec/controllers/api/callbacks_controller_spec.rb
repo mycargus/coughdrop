@@ -4,6 +4,7 @@ describe Api::CallbacksController, :type => :controller do
   describe 'callback' do
     it 'should error on confirming invalid arn' do
       expect(ENV).to receive('[]').with('SNS_ARNS').and_return('bacon,fried')
+      expect(ENV).to receive('[]').with('DISABLE_API_CALL_LOGGING').and_return('true')
       request.headers['x-amz-sns-message-type'] = 'SubscriptionConfirmation'
       request.headers['x-amz-sns-topic-arn'] = 'ham'
       post 'callback'
