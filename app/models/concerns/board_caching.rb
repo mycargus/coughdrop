@@ -57,7 +57,7 @@ module BoardCaching
     self.settings['available_private_board_ids']['view'] = view_ids
     self.settings['available_private_board_ids']['edit'] = edit_ids
     # save those lists
-    @skip_track_boards = true
+    @do_track_boards = false
     self.assert_current_record!
     self.save
     # if the lists changed, schedule this same update for all users

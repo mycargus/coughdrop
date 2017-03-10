@@ -218,10 +218,12 @@ module UpstreamDownstream
   
   def update_immediately_downstream_board_ids
     downs = get_immediately_downstream_board_ids
-    if self.settings['immediately_downstream_board_ids'] != downs || @buttons_changed
+    if self.settings['immediately_downstream_board_ids'] != downs || @button_links_changed
       @track_downstream_boards = true
       @buttons_affecting_upstream_changed = @buttons_changed
       self.settings['immediately_downstream_board_ids'] = downs
+    elsif @buttons_changed
+      @buttons_affecting_upstream_changed = @buttons_changed
     end
   end
   

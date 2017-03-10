@@ -249,6 +249,7 @@ class User < ActiveRecord::Base
       self.possibly_full_premium = true if self.full_premium?
       self.possibly_full_premium ||= rand(10) == 1
     end
+    @do_track_boards = true if !self.id
     
     true
   end
@@ -299,22 +300,22 @@ class User < ActiveRecord::Base
   # frd == "For Reals, Dude" obviously. It's a thing, I guess you just didn't know about it.
   # TODO: add "frd" to urban dictionary
   def track_boards(frd=false)
-    if @skip_track_boards
-      @skip_track_boards = false
+    if !@do_track_boards && !frd
       return true
     end
-    if !frd
+    @do_track_boards = false
+    if frd != true
       args = {'id' => self.id, 'method' => 'track_boards', 'arguments' => [true]}
       if !Worker.scheduled_for?(:slow, self.class, :perform_action, args)
         Worker.schedule_for(:slow, self.class, :perform_action, args)
       end
-      
       return true
     end
     # TODO: trigger background process to create user_board_connection records for all boards
     previous_connections = UserBoardConnection.where(:user_id => self.id)
     orphan_board_ids = previous_connections.map(&:board_id)
     linked_boards = []
+    board_ids_to_recalculate = []
     if self.settings['preferences'] && self.settings['preferences']['home_board'] && self.settings['preferences']['home_board']['id']
       linked_boards << {
         board: Board.find_by_path(self.settings['preferences']['home_board']['id']),
@@ -348,10 +349,14 @@ class User < ActiveRecord::Base
         Board.select('id').find_all_by_global_id(board.settings['downstream_board_ids']).each do |downstream_board|
           if downstream_board
             orphan_board_ids -= [downstream_board.id]
-            UserBoardConnection.find_or_create_by(:board_id => downstream_board.id, :user_id => self.id)
+            downstream_board_added = false
+            UserBoardConnection.find_or_create_by(:board_id => downstream_board.id, :user_id => self.id) do |rec|
+              board_added = true
+              downstream_board_added = true
+            end
             # When a user updated their home board/sidebar, all linked boards will have updated
             # tallies for popularity, home_popularity, etc.
-            downstream_board.schedule_once(:save_without_post_processing)
+            board_ids_to_recalculate << downstream_board.global_id
           end
         end
         Rails.logger.info("done checking downstream boards for #{self.global_id}, #{board.global_id}")
@@ -369,11 +374,9 @@ class User < ActiveRecord::Base
     
     UserBoardConnection.where(:user_id => self.id, :board_id => orphan_board_ids).delete_all
     # TODO: sharding
-    Board.where(:id => orphan_board_ids).select('id').each do |board|
-      if board
-        board.schedule_once(:save_without_post_processing)
-      end
-    end
+    board_ids_to_recalculate += Board.where(:id => orphan_board_ids).select('id').map(&:global_id)
+    # to regenerates stats?
+    Board.schedule(:save_without_post_processing, board_ids_to_recalculate) if board_ids_to_recalculate.length > 0
     true
   end
 
@@ -493,6 +496,7 @@ class User < ActiveRecord::Base
       end
     end
     
+    @do_track_boards = true
     process_sidebar_boards(params['preferences']['sidebar_boards'], non_user_params) if params['preferences'] && params['preferences']['sidebar_boards']
     process_home_board(params['preferences']['home_board'], non_user_params) if params['preferences'] && params['preferences']['home_board'] && params['preferences']['home_board']['id']
     process_device(params['preferences']['device'], non_user_params) if params['preferences'] && params['preferences']['device']

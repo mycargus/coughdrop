@@ -197,6 +197,7 @@ class Board < ActiveRecord::Base
     end
     @brand_new = !self.id
     @buttons_changed = true if self.settings['buttons'] && !self.id
+    @button_links_changed = true if (self.settings['buttons'] || []).any?{|b| b['load_board'] } && !self.id
     if @edit_description
       if self.settings['edit_description'] && self.settings['edit_description']['timestamp'] < @edit_description['timestamp'] - 1
         @edit_description = nil
@@ -304,13 +305,20 @@ class Board < ActiveRecord::Base
         'suggest_symbol' => true
       }
       self.settings['buttons'] << button
-      @buttons_changed = true
+      @buttons_changed = 'populated_from_labels'
+      
       row = idx % self.settings['grid']['rows']
       col = (idx - row) / self.settings['grid']['rows']
       if row < self.settings['grid']['rows'] && col < self.settings['grid']['columns']
         self.settings['grid']['order'][row][col] = button['id']
       end
       idx += 1
+    end
+  end
+  
+  def self.save_without_post_processing(board_ids)
+    Board.find_all_by_global_id(board_ids).each do |board|
+      board.save_without_post_processing if board
     end
   end
   
@@ -327,7 +335,7 @@ class Board < ActiveRecord::Base
     end
     
     rev = (((self.settings || {})['revision_hashes'] || [])[-2] || [])[0]
-    notify('board_buttons_changed', {'revision' => rev}) if @buttons_changed && !@brand_new
+    notify('board_buttons_changed', {'revision' => rev, 'reason' => @buttons_changed}) if @buttons_changed && !@brand_new
     # Can't be backgrounded because board rendering depends on this
     self.map_images
     
@@ -343,7 +351,7 @@ class Board < ActiveRecord::Base
       self.schedule(:check_for_parts_of_speech)
       @check_for_parts_of_speech = nil
     end
-    schedule(:update_affected_users, @brand_new) if @buttons_changed || @brand_new
+    schedule(:update_affected_users, @brand_new) if @button_links_changed || @brand_new
 
     schedule_downstream_checks
   end
@@ -358,7 +366,7 @@ class Board < ActiveRecord::Base
         if button['load_board'] && button['load_board']['id'] && button['load_board']['id'] == self.related_global_id(self.parent_board_id)
           button['load_board']['id'] = self.global_id
           button['load_board']['key'] = self.key
-          @buttons_changed = true
+          @buttons_changed = 'updating_self_reference'
         end
       end
       self.settings['buttons'] = buttons
@@ -387,7 +395,7 @@ class Board < ActiveRecord::Base
     # (i.e. users with a connection to an upstream board)
     if is_new_board
       users.each do |user|
-        user.track_boards
+        user.track_boards('schedule')
       end
     end
   end
@@ -414,6 +422,7 @@ class Board < ActiveRecord::Base
   def map_images
     return unless @buttons_changed
     @buttons_changed = false
+    @button_links_changed = false
 
     images = []
     sounds = []
@@ -575,6 +584,7 @@ class Board < ActiveRecord::Base
     @check_for_parts_of_speech = true
     prior_buttons = self.settings['buttons'] || []
     approved_link_ids = []
+    new_link_ids = []
     prior_buttons.each do |button|
       if button['load_board']
         approved_link_ids << button['load_board']['id']
@@ -592,6 +602,7 @@ class Board < ActiveRecord::Base
           if !link || (!link.allows?(editor, 'view') && !link.allows?(secondary_editor, 'view'))
             button.delete('load_board')
           end
+          new_link_ids << button['load_board']
         end
       end
       if button['part_of_speech'] && button['part_of_speech'] == ''
@@ -607,7 +618,8 @@ class Board < ActiveRecord::Base
 
     if self.settings['buttons'].to_json != prior_buttons.to_json
       @edit_notes << "modified buttons"
-      @buttons_changed = true 
+      @buttons_changed = 'buttons processed' 
+      @button_links_changed = true if new_link_ids.length > 0
     end
     self.settings['buttons']
   end
@@ -644,11 +656,11 @@ class Board < ActiveRecord::Base
       self.settings['buttons'].each do |button|
         if button['label'] && translations[button['label']]
           button['label'] = translations[button['label']]
-          @buttons_changed = true
+          @buttons_changed = 'translated'
         end
         if button['vocalization'] && translations[button['vocalization']]
           button['vocalization'] = translations[button['vocalization']]
-          @buttons_changed = true
+          @buttons_changed = 'translated'
         end
       end
       self.save
@@ -677,7 +689,7 @@ class Board < ActiveRecord::Base
           if image_data
             bi = ButtonImage.process_new(image_data, {user: author})
             button['image_id'] = bi.global_id
-            @buttons_changed = true
+            @buttons_changed = 'swapped images'
           end
         end
       end
