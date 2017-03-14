@@ -1,6 +1,9 @@
 <div class='row' style="touch-action: none;">
+  {{#if left}}
+    <p>{{t "You may need to log in to access this information" key='login_needed'}}</p>
+  {{/if}}
   {{#if stashes.enabled}}
-    <div class='col-md-offset-4 col-md-4 col-sm-offset-3 col-sm-6'>
+    <div class={{if left 'col-md-4 col-sm-6' 'col-md-offset-4 col-md-4 col-sm-offset-3 col-sm-6'}}>
       <form {{action "authenticate" on='submit'}} autocomplete="off" class="form-horizontal" id="login_form">
         <div class="form-group">
           {{lowercase-text-field id='identification' class="form-control input-lg touchy" value=identification placeholder='username'}}

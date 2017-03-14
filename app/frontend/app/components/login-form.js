@@ -24,10 +24,13 @@ export default Ember.Component.extend({
       this.set('client_secret', token);
     } else {
       this.set('checking_for_secret', true);
+      var timeout = this.get('restore') === false ? 100 : 2000;
       Ember.run.later(function() {
         _this.check_for_missing_token();
-      }, 2000);
-      session.restore(true);
+      }, timeout);
+      if(this.get('restore') !== false) {
+        session.restore(true);
+      }
     }
     if(this.get('set_overflow')) {
       Ember.$("html,body").css('overflow', 'hidden');
@@ -86,7 +89,10 @@ export default Ember.Component.extend({
           if(Ember.testing) {
             console.error("would have redirected to home");
           } else {
-            if(capabilities.installed_app) {
+            if(_this.get('return')) {
+              location.reload();
+              session.set('return', true);
+            } else if(capabilities.installed_app) {
               location.href = '#/';
               location.reload();
             } else {

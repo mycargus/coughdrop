@@ -129,7 +129,7 @@ export default Ember.Component.extend({
           var message = (err.result && err.result.error) || err.error || err;
           if(message && message.match(/Access token required/)) {
             console.error('purchase_subscription_missing_token');
-            _this.sendAction('subscription_authentication_error', i18n.t('user_subscription_unauthenticated', "Purchase failed, it looks like your login may have timed out. Please try logging out and back in. If that doesn't help, please contact support and we'll help get your sorter."));
+            _this.sendAction('subscription_authentication_error', i18n.t('user_subscription_unauthenticated', "Purchase failed, it looks like your login may have timed out. Please try logging out and back in. If that doesn't help, please contact support and we'll help figure things out."));
           } else {
             _this.sendAction('subscription_error', i18n.t('user_subscription_update_failed', "Purchase failed unexpectedly. Please try logging out and back in. If that doesn't work, please contact support for help."));
           }

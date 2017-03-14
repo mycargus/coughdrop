@@ -1,439 +1,419 @@
-<h2>{{t "General Preferences" key='general_preferences'}}</h2>
-<form class="form-horizontal" {{action "savePreferences" on="submit"}}>
-<div class="form-group">
-  <label for="role" class="col-sm-3 control-label">{{t "Dashboard" key='role'}}</label>
-  <div class="col-sm-5">
-    {{bound-select select_class="form-control" select_id="role" content=dashboardViewList selection=model.preferences.role action=(action (mut model.preferences.role)) }}
-  </div>
-</div>
-{{#unless non_communicator}}
+{{#if model.permissions.edit}}
+  <h2>{{t "General Preferences" key='general_preferences'}}</h2>
+  <form class="form-horizontal" {{action "savePreferences" on="submit"}}>
   <div class="form-group">
-    <label for="role" class="col-sm-3 control-label">{{t "On Launch" key='on_launch'}}</label>
+    <label for="role" class="col-sm-3 control-label">{{t "Dashboard" key='role'}}</label>
+    <div class="col-sm-5">
+      {{bound-select select_class="form-control" select_id="role" content=dashboardViewList selection=model.preferences.role action=(action (mut model.preferences.role)) }}
+    </div>
+  </div>
+  {{#unless non_communicator}}
+    <div class="form-group">
+      <label for="role" class="col-sm-3 control-label">{{t "On Launch" key='on_launch'}}</label>
+      <div class="col-sm-5">
+        <div class="checkbox">
+          <label>
+            {{input type="checkbox" checked=model.preferences.auto_open_speak_mode}}
+            {{t "Start app in Speak Mode on launch" key='start_in_speak_mode_on_launch'}}
+          </label>
+        </div>
+    </div>
+  </div>
+  {{/unless}}
+  <div class="form-group">
+    <label for="require_speak_mode_pin" class="col-sm-3 control-label">{{t "Exiting" key='editing'}}</label>
     <div class="col-sm-5">
       <div class="checkbox">
         <label>
-          {{input type="checkbox" checked=model.preferences.auto_open_speak_mode}}
-          {{t "Start app in Speak Mode on launch" key='start_in_speak_mode_on_launch'}}
+          {{input type="checkbox" checked=model.preferences.require_speak_mode_pin id="require_speak_mode_pin"}}
+          {{t "Require a PIN when exiting Speak Mode" key='require_speak_mode_pin'}}
         </label>
       </div>
-  </div>
-</div>
-{{/unless}}
-<div class="form-group">
-  <label for="require_speak_mode_pin" class="col-sm-3 control-label">{{t "Exiting" key='editing'}}</label>
-  <div class="col-sm-5">
-    <div class="checkbox">
-      <label>
-        {{input type="checkbox" checked=model.preferences.require_speak_mode_pin id="require_speak_mode_pin"}}
-        {{t "Require a PIN when exiting Speak Mode" key='require_speak_mode_pin'}}
-      </label>
     </div>
   </div>
-</div>
-{{#if model.preferences.require_speak_mode_pin}}
+  {{#if model.preferences.require_speak_mode_pin}}
+    <div class="form-group">
+      <label for="speak_mode_pin" class="col-sm-3 control-label">{{t "Speak Mode PIN" key='speak_mode_pin'}}</label>
+      <div class="col-sm-5">
+        <label>
+          {{input value=model.preferences.speak_mode_pin class="form-control" id="speak_mode_pin" placeholder="4-digit numerical PIN"}}
+        </label>
+      </div>
+    </div>
+  {{/if}}
   <div class="form-group">
-    <label for="speak_mode_pin" class="col-sm-3 control-label">{{t "Speak Mode PIN" key='speak_mode_pin'}}</label>
+    <label for="auto_home_return" class="col-sm-3 control-label">{{t "On Select" key='on_select'}}</label>
     <div class="col-sm-5">
-      <label>
-        {{input value=model.preferences.speak_mode_pin class="form-control" id="speak_mode_pin" placeholder="4-digit numerical PIN"}}
-      </label>
-    </div>
-  </div>
-{{/if}}
-<div class="form-group">
-  <label for="auto_home_return" class="col-sm-3 control-label">{{t "On Select" key='on_select'}}</label>
-  <div class="col-sm-5">
-    <div class="checkbox">
-      <label>
-        {{input type="checkbox" checked=model.preferences.vocalize_buttons id="vocalize_buttons"}}
-        {{t "Vocalize after each button press" key='vocalize_buttons'}}
-      </label>
-    </div>
-    {{#if advanced}}
-      {{#if model.preferences.vocalize_buttons}}
       <div class="checkbox">
         <label>
-          {{input type="checkbox" checked=model.preferences.vocalize_linked_buttons id="vocalize_linked_buttons"}}
-          {{t "Vocalize when hitting linked buttons" key='vocalize_linked_buttons'}}
+          {{input type="checkbox" checked=model.preferences.vocalize_buttons id="vocalize_buttons"}}
+          {{t "Vocalize after each button press" key='vocalize_buttons'}}
         </label>
       </div>
-      <div class="checkbox">
-        <label>
-          {{input type="checkbox" checked=model.preferences.silence_spelling_buttons id="silence_spelling_buttons"}}
-          {{t "Don't vocalize when spelling until the word is completed" key='silence_spelling_buttons'}}
-        </label>
-      </div>
-      {{/if}}
-      <div class="checkbox">
-        <label>
-          {{input type="checkbox" checked=model.preferences.auto_home_return id="auto_home_return"}}
-          {{t "Automatically return to Home board after an unlinked button is selected" key='auto_home_return'}}
-        </label>
-      </div>
-    {{/if}}
-  </div>
-</div>
-<div class="form-group">
-  <label for="logging" class="col-sm-3 control-label">{{t "Logging" key='logging'}}</label>
-  <div class="col-sm-5">
-    <div class="checkbox">
-      <label>
-        {{input type="checkbox" checked=model.preferences.logging id="logging"}}
-        {{t "Log and analyze all Speak Mode actions" key='log_all_actions'}}
-      </label>
-    </div>
-    {{#if model.preferences.logging}}
-      <div class="checkbox">
-        <label>
-          {{input type="checkbox" checked=model.preferences.allow_log_reports id="allow_log_reports"}}
-          {{t "Allow anonymized log data to be used for AAC research purposes" key='allow_log_reports'}}
-        </label>
-      </div>
-      <div class="checkbox">
-        <label>
-          {{input type="checkbox" checked=model.preferences.geo_logging id="geo_logging"}}
-          {{t "Include geolocation in Speak Mode logs" key='include_geo_in_logs'}}
-        </label>
-      </div>
-    {{else}}
       {{#if advanced}}
-        {{#if model.permissions.delete}}
-          <div style="margin-top: 10px;">
-            <button type="button" class='btn btn-default' {{action "delete_logs"}}>{{t "Delete all stored logs" key='delete_logs'}}</button>
-          </div>
+        {{#if model.preferences.vocalize_buttons}}
+        <div class="checkbox">
+          <label>
+            {{input type="checkbox" checked=model.preferences.vocalize_linked_buttons id="vocalize_linked_buttons"}}
+            {{t "Vocalize when hitting linked buttons" key='vocalize_linked_buttons'}}
+          </label>
+        </div>
+        <div class="checkbox">
+          <label>
+            {{input type="checkbox" checked=model.preferences.silence_spelling_buttons id="silence_spelling_buttons"}}
+            {{t "Don't vocalize when spelling until the word is completed" key='silence_spelling_buttons'}}
+          </label>
+        </div>
+        {{/if}}
+        <div class="checkbox">
+          <label>
+            {{input type="checkbox" checked=model.preferences.auto_home_return id="auto_home_return"}}
+            {{t "Automatically return to Home board after an unlinked button is selected" key='auto_home_return'}}
+          </label>
+        </div>
+      {{/if}}
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="logging" class="col-sm-3 control-label">{{t "Logging" key='logging'}}</label>
+    <div class="col-sm-5">
+      <div class="checkbox">
+        <label>
+          {{input type="checkbox" checked=model.preferences.logging id="logging"}}
+          {{t "Log and analyze all Speak Mode actions" key='log_all_actions'}}
+        </label>
+      </div>
+      {{#if model.preferences.logging}}
+        <div class="checkbox">
+          <label>
+            {{input type="checkbox" checked=model.preferences.allow_log_reports id="allow_log_reports"}}
+            {{t "Allow anonymized log data to be used for AAC research purposes" key='allow_log_reports'}}
+          </label>
+        </div>
+        <div class="checkbox">
+          <label>
+            {{input type="checkbox" checked=model.preferences.geo_logging id="geo_logging"}}
+            {{t "Include geolocation in Speak Mode logs" key='include_geo_in_logs'}}
+          </label>
+        </div>
+      {{else}}
+        {{#if advanced}}
+          {{#if model.permissions.delete}}
+            <div style="margin-top: 10px;">
+              <button type="button" class='btn btn-default' {{action "delete_logs"}}>{{t "Delete all stored logs" key='delete_logs'}}</button>
+            </div>
+          {{/if}}
         {{/if}}
       {{/if}}
-    {{/if}}
-    <div style="margin-top: 10px;">
-      {{t "NOTE: When logging is enabled, anonymous usage data will be sent to Google services for generating reports" key='logging_uses_google'}}
-    </div>
-  </div>
-</div>
-{{#unless advanced}}
-<div class="form-group">
-  <div class="col-sm-5 col-sm-offset-3">
-    <a href="#" {{action 'toggle_advanced'}}>{{t "more options" key='more_options'}}</a>
-  </div>
-</div>
-{{/unless}}
-{{#if advanced}}
-<div class="form-group">
-  <label for="auto_home_return" class="col-sm-3 control-label">{{t "On Vocalize" key='on_vocalize'}}</label>
-  <div class="col-sm-5">
-    <div class="checkbox">
-      <label>
-        {{input type="checkbox" checked=model.preferences.clear_on_vocalize id="clear_on_vocalize"}}
-        {{t "Automatically clear the current utterance after vocalization" key='clear_on_vocalize'}}
-      </label>
-    </div>
-  </div>
-</div>
-<div class="form-group">
-  <label for="auto_home_return" class="col-sm-3 control-label">{{t "Status" key='status'}}</label>
-  <div class="col-sm-5">
-    <div class="checkbox">
-      <label>
-        {{input type="checkbox" checked=model.preferences.blank_status id="blank_status"}}
-        {{t "Show time and device status when vocalization window is empty" key='blank_status'}}
-      </label>
-    </div>
-  </div>
-</div>
-<div class="form-group">
-  <label for="sharing" class="col-sm-3 control-label">{{t "Sharing" key='sharing'}}</label>
-  <div class="col-sm-5">
-    <div class="checkbox">
-      <label>
-        {{input type="checkbox" checked=model.preferences.sharing id="sharing"}}
-        {{t "Show \"Share This\" option in speak menu for sharing to social networks" key='allow_sharing'}}
-      </label>
-    </div>
-  </div>
-</div>
-<div class="form-group">
-  <label for="skip_supervisee_sync" class="col-sm-3 control-label">{{t "Syncing" key='syncing'}}</label>
-  <div class="col-sm-5">
-    <div class="checkbox">
-      <label>
-        {{input type="checkbox" checked=model.preferences.skip_supervisee_sync id="skip_supervisee_sync"}}
-        {{t "Don't sync boards for my supervisors, only sync my boards" key='skip_supervisee_sync'}}
-      </label>
-    </div>
-  </div>
-</div>
-<div class="form-group">
-  <label for="speak_on_speak_mode" class="col-sm-3 control-label">{{t "Speak Mode" key='speak_mode'}}</label>
-  <div class="col-sm-5">
-    <div class="checkbox">
-      <label>
-        {{input type="checkbox" checked=model.preferences.speak_on_speak_mode id="speak_on_speak_mode"}}
-        {{t "Speak a phrase when entering Speak Mode to warm up the speech engine" key='speak_on_speak_mode'}}
-      </label>
-    </div>
-  </div>
-</div>
-
-<div class="form-group">
-  <label for="external_links" class="col-sm-3 control-label">{{t "External Links" key='external_links'}}</label>
-  <div class="col-sm-5">
-    <div class="checkbox">
-      <label>
-        {{input type="checkbox" checked=model.preferences.confirm_external_links id="external_links"}}
-        {{t "Confirm before opening externally-linked buttons" key='confirm_before_opening_links'}}
-      </label>
-    </div>
-  </div>
-</div>
-<div class="form-group">
-  <label for="folder_icons" class="col-sm-3 control-label">{{t "Folder Icons" key='folder_icons'}}</label>
-  <div class="col-sm-5">
-    <div class="checkbox">
-      <label>
-        {{input type="checkbox" checked=model.preferences.folder_icons id="folder_icons"}}
-        {{t "Show folder icons instead of colored corners for buttons that link to other boards" key='show_folder_icons'}}
-      </label>
-    </div>
-  </div>
-</div>
-<div class="form-group">
-  <label for="board_background" class="col-sm-3 control-label">{{t "Board Background Color" key='board_background'}}</label>
-  <div class="col-sm-5">
-    {{bound-select select_class="form-control" select_id="board_background" content=buttonBackgroundList selection=model.preferences.board_background action=(action (mut model.preferences.board_background)) }}
-  </div>
-</div>
-<div class="form-group">
-  <label for="stretch_buttons" class="col-sm-3 control-label">{{t "Fill Empty Button Spaces" key='stretch_buttons'}}</label>
-  <div class="col-sm-5">
-    {{bound-select select_class="form-control" select_id="stretch_buttons" content=buttonSpaceList selection=model.preferences.stretch_buttons action=(action (mut model.preferences.stretch_buttons)) }}
-  </div>
-</div>
-<div class="form-group">
-  <label for="activation_on_start" class="col-sm-3 control-label">{{t "Select on Press" key='activation_on_start'}}</label>
-  <div class="col-sm-5">
-    <div class="checkbox">
-      <label>
-        {{input type="checkbox" checked=model.preferences.activation_on_start id="device_home"}}
-        {{t "Select the button as soon as it is pressed" key='select_immediately'}}
-      </label>
-    </div>
-  </div>
-</div>
-{{#unless model.preferences.activation_on_start}}
-  <div class="form-group">
-    <label for="activation_location" class="col-sm-3 control-label">{{t "Select Based on" key='activation_location'}}</label>
-    <div class="col-sm-5">
-      {{bound-select select_class="form-control" select_id="activation_location" content=activationLocationList selection=model.preferences.activation_location action=(action (mut model.preferences.activation_location)) }}
-    </div>
-  </div>
-  <div class="form-group">
-    <label for="activation_cutoff" class="col-sm-3 control-label">{{t "Select Without Release After" key='activation_cutoff'}}</label>
-    <div class="col-sm-3">
-      <div class="input-group">
-        <span class="input-group-btn">
-          <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.activation_cutoff"}}>-</button>
-        </span>
-        {{input value=model.preferences.activation_cutoff class="form-control" id="activation_cutoff" placeholder="disabled"}}
-        <span class="input-group-btn">
-          <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.activation_cutoff"}}>+</button>
-        </span>
+      <div style="margin-top: 10px;">
+        {{t "NOTE: When logging is enabled, anonymous usage data will be sent to Google services for generating reports" key='logging_uses_google'}}
       </div>
     </div>
-    <div class="col-sm-2">
-      <p class="form-control-static">{{t "milliseconds" key='milliseconds'}}</p>
-    </div>
   </div>
+  {{#unless advanced}}
   <div class="form-group">
-    <label for="activation_minimum" class="col-sm-3 control-label">{{t "Must Press Button At Least" key='activation_minimum'}}</label>
-    <div class="col-sm-3">
-      <div class="input-group">
-        <span class="input-group-btn">
-          <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.activation_minimum"}}>-</button>
-        </span>
-        {{input value=model.preferences.activation_minimum class="form-control" id="activation_minimum" placeholder="disabled"}}
-        <span class="input-group-btn">
-          <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.activation_minimum"}}>+</button>
-        </span>
-      </div>
-    </div>
-    <div class="col-sm-2">
-      <p class="form-control-static">{{t "milliseconds" key='milliseconds'}}</p>
+    <div class="col-sm-5 col-sm-offset-3">
+      <a href="#" {{action 'toggle_advanced'}}>{{t "more options" key='more_options'}}</a>
     </div>
   </div>
-{{/unless}}
-<div class="form-group">
-  <label for="board_jump_delay" class="col-sm-3 control-label">{{t "On Load, Prevent Selection For" key='board_jump_delay'}}</label>
-  <div class="col-sm-3">
-    <div class="input-group">
-      <span class="input-group-btn">
-        <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.board_jump_delay"}}>-</button>
-      </span>
-      {{input value=model.preferences.board_jump_delay class="form-control" id="board_jump_delay" placeholder="500"}}
-      <span class="input-group-btn">
-        <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.board_jump_delay"}}>+</button>
-      </span>
-    </div>
-  </div>
-  <div class="col-sm-2">
-    <p class="form-control-static">{{t "milliseconds" key='milliseconds'}}</p>
-  </div>
-</div>
-<div class="form-group">
-  <label for="long_press_edit" class="col-sm-3 control-label">{{t "Long-Press to Edit" key='long_press_edit'}}</label>
-  <div class="col-sm-5">
-    <div class="checkbox">
-      <label>
-        {{input type="checkbox" checked=model.preferences.long_press_edit id="long_press_edit"}}
-        {{t "Automatically enter edit mode on long button press" key='enter_edit_mode_on_long_press'}}
-      </label>
-    </div>
-  </div>
-</div>
-{{/if}}
-<!--
-  TODO: Sizing and Timing:
-  (have a little preview & testing area kind of like the rows/cols box in new board)
-  - Speak Mode header size (in pixels? or small|normal|large. prolly the latter)
-  - Button Spacing (same, small|normal|large)
-  - When to Select (when I release my touch/click|after I hold for 1/2 second|after I hold 1 second)
-  - Which to Select (where I started|where I ended|where I spent the most time)
--->
-<h2 style="margin: 50px 0 20px 0;">{{t "Core & Modeling" key='sidebar_layout'}}</h2>
-<div class="form-group">
-  <label for="core_word_list" class="col-sm-3 control-label">{{t "Core Word List" key='core_word_list'}}</label>
-  <div class='col-sm-6'>
-    {{#if core_lists.loading}}
-      <p class='form-control-static'>{{t "Loading..." key='loading'}}</p>
-    {{else if core_lists.error}}
-      <p class='form-control-static'>{{t "Error loading core word list" key='error_loading_core_word_list'}}</p>
-    {{else if core_lists}}
-      <p class='form-control-static'><em>{{t "Core words are the most common words in a language, and often express multiple intents or meanings. The following list of words will be marked as \"core\" (as opposed to \"fringe\") for this user." key='core_words_explainer'}}</em></p>
-      <div style='max-height: 100px; overflow: auto; padding: 5px 15px; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; margin-bottom: 5px;'>
-        {{#each core_lists.for_user as |word|}}
-          <span style='padding-right: 5px;'>{{word}}</span>
-        {{/each}}
-      </div>
-      <button type='button' {{action 'modify_core'}} class='btn btn-default'>{{t "Modify Core Word List" key='modify_core_word_list'}}</button>
-      <span style='padding-left: 10px;'>
-        {{t "core word" count=core_lists.for_user.length}}
-        {{t "listed" key='listed'}}
-      </span>
-    {{else}}
-      <p class='form-control-static'>{{t "None available" key='none_available'}}</p>
-    {{/if}}
-  </div>
-</div>
-{{#unless advanced}}
-<div class="form-group">
-  <div class="col-sm-5 col-sm-offset-3">
-    <a href="#" {{action 'toggle_advanced'}}>{{t "more options" key='more_options'}}</a>
-  </div>
-</div>
-{{else}}
-  {{#if app_state.feature_flags.modeling}}
+  {{/unless}}
+  {{#if advanced}}
   <div class="form-group">
-    <label for="dwell_modeling" class="col-sm-3 control-label">{{t "Modeling" key='modeling'}}</label>
+    <label for="auto_home_return" class="col-sm-3 control-label">{{t "On Vocalize" key='on_vocalize'}}</label>
     <div class="col-sm-5">
       <div class="checkbox">
         <label>
-          {{input type="checkbox" checked=model.preferences.multi_touch_modeling id="multi_touch_modeling"}}
-          {{t "Mark two-finger touches as modeling events, not user selections" key='multi_touch_modeling'}}
+          {{input type="checkbox" checked=model.preferences.clear_on_vocalize id="clear_on_vocalize"}}
+          {{t "Automatically clear the current utterance after vocalization" key='clear_on_vocalize'}}
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="auto_home_return" class="col-sm-3 control-label">{{t "Status" key='status'}}</label>
+    <div class="col-sm-5">
+      <div class="checkbox">
+        <label>
+          {{input type="checkbox" checked=model.preferences.blank_status id="blank_status"}}
+          {{t "Show time and device status when vocalization window is empty" key='blank_status'}}
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="sharing" class="col-sm-3 control-label">{{t "Sharing" key='sharing'}}</label>
+    <div class="col-sm-5">
+      <div class="checkbox">
+        <label>
+          {{input type="checkbox" checked=model.preferences.sharing id="sharing"}}
+          {{t "Show \"Share This\" option in speak menu for sharing to social networks" key='allow_sharing'}}
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="skip_supervisee_sync" class="col-sm-3 control-label">{{t "Syncing" key='syncing'}}</label>
+    <div class="col-sm-5">
+      <div class="checkbox">
+        <label>
+          {{input type="checkbox" checked=model.preferences.skip_supervisee_sync id="skip_supervisee_sync"}}
+          {{t "Don't sync boards for my supervisors, only sync my boards" key='skip_supervisee_sync'}}
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="speak_on_speak_mode" class="col-sm-3 control-label">{{t "Speak Mode" key='speak_mode'}}</label>
+    <div class="col-sm-5">
+      <div class="checkbox">
+        <label>
+          {{input type="checkbox" checked=model.preferences.speak_on_speak_mode id="speak_on_speak_mode"}}
+          {{t "Speak a phrase when entering Speak Mode to warm up the speech engine" key='speak_on_speak_mode'}}
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="external_links" class="col-sm-3 control-label">{{t "External Links" key='external_links'}}</label>
+    <div class="col-sm-5">
+      <div class="checkbox">
+        <label>
+          {{input type="checkbox" checked=model.preferences.confirm_external_links id="external_links"}}
+          {{t "Confirm before opening externally-linked buttons" key='confirm_before_opening_links'}}
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="folder_icons" class="col-sm-3 control-label">{{t "Folder Icons" key='folder_icons'}}</label>
+    <div class="col-sm-5">
+      <div class="checkbox">
+        <label>
+          {{input type="checkbox" checked=model.preferences.folder_icons id="folder_icons"}}
+          {{t "Show folder icons instead of colored corners for buttons that link to other boards" key='show_folder_icons'}}
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="board_background" class="col-sm-3 control-label">{{t "Board Background Color" key='board_background'}}</label>
+    <div class="col-sm-5">
+      {{bound-select select_class="form-control" select_id="board_background" content=buttonBackgroundList selection=model.preferences.board_background action=(action (mut model.preferences.board_background)) }}
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="stretch_buttons" class="col-sm-3 control-label">{{t "Fill Empty Button Spaces" key='stretch_buttons'}}</label>
+    <div class="col-sm-5">
+      {{bound-select select_class="form-control" select_id="stretch_buttons" content=buttonSpaceList selection=model.preferences.stretch_buttons action=(action (mut model.preferences.stretch_buttons)) }}
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="activation_on_start" class="col-sm-3 control-label">{{t "Select on Press" key='activation_on_start'}}</label>
+    <div class="col-sm-5">
+      <div class="checkbox">
+        <label>
+          {{input type="checkbox" checked=model.preferences.activation_on_start id="device_home"}}
+          {{t "Select the button as soon as it is pressed" key='select_immediately'}}
+        </label>
+      </div>
+    </div>
+  </div>
+  {{#unless model.preferences.activation_on_start}}
+    <div class="form-group">
+      <label for="activation_location" class="col-sm-3 control-label">{{t "Select Based on" key='activation_location'}}</label>
+      <div class="col-sm-5">
+        {{bound-select select_class="form-control" select_id="activation_location" content=activationLocationList selection=model.preferences.activation_location action=(action (mut model.preferences.activation_location)) }}
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="activation_cutoff" class="col-sm-3 control-label">{{t "Select Without Release After" key='activation_cutoff'}}</label>
+      <div class="col-sm-3">
+        <div class="input-group">
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.activation_cutoff"}}>-</button>
+          </span>
+          {{input value=model.preferences.activation_cutoff class="form-control" id="activation_cutoff" placeholder="disabled"}}
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.activation_cutoff"}}>+</button>
+          </span>
+        </div>
+      </div>
+      <div class="col-sm-2">
+        <p class="form-control-static">{{t "milliseconds" key='milliseconds'}}</p>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="activation_minimum" class="col-sm-3 control-label">{{t "Must Press Button At Least" key='activation_minimum'}}</label>
+      <div class="col-sm-3">
+        <div class="input-group">
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.activation_minimum"}}>-</button>
+          </span>
+          {{input value=model.preferences.activation_minimum class="form-control" id="activation_minimum" placeholder="disabled"}}
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.activation_minimum"}}>+</button>
+          </span>
+        </div>
+      </div>
+      <div class="col-sm-2">
+        <p class="form-control-static">{{t "milliseconds" key='milliseconds'}}</p>
+      </div>
+    </div>
+  {{/unless}}
+  <div class="form-group">
+    <label for="board_jump_delay" class="col-sm-3 control-label">{{t "On Load, Prevent Selection For" key='board_jump_delay'}}</label>
+    <div class="col-sm-3">
+      <div class="input-group">
+        <span class="input-group-btn">
+          <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.board_jump_delay"}}>-</button>
+        </span>
+        {{input value=model.preferences.board_jump_delay class="form-control" id="board_jump_delay" placeholder="500"}}
+        <span class="input-group-btn">
+          <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.board_jump_delay"}}>+</button>
+        </span>
+      </div>
+    </div>
+    <div class="col-sm-2">
+      <p class="form-control-static">{{t "milliseconds" key='milliseconds'}}</p>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="long_press_edit" class="col-sm-3 control-label">{{t "Long-Press to Edit" key='long_press_edit'}}</label>
+    <div class="col-sm-5">
+      <div class="checkbox">
+        <label>
+          {{input type="checkbox" checked=model.preferences.long_press_edit id="long_press_edit"}}
+          {{t "Automatically enter edit mode on long button press" key='enter_edit_mode_on_long_press'}}
         </label>
       </div>
     </div>
   </div>
   {{/if}}
+  <!--
+    TODO: Sizing and Timing:
+    (have a little preview & testing area kind of like the rows/cols box in new board)
+    - Speak Mode header size (in pixels? or small|normal|large. prolly the latter)
+    - Button Spacing (same, small|normal|large)
+    - When to Select (when I release my touch/click|after I hold for 1/2 second|after I hold 1 second)
+    - Which to Select (where I started|where I ended|where I spent the most time)
+  -->
+  <h2 style="margin: 50px 0 20px 0;">{{t "Core & Modeling" key='sidebar_layout'}}</h2>
   <div class="form-group">
-    <label for="word_suggestion_images" class="col-sm-3 control-label">{{t "Keyboard Suggestions" key='keyboard_suggestions'}}</label>
-    <div class="col-sm-5">
-      <div class="checkbox">
-        <label>
-          {{input type="checkbox" checked=model.preferences.word_suggestion_images id="word_suggestion_images"}}
-          {{t "Show images for keyboard suggestions" key='word_suggestion_images'}}
-        </label>
-      </div>
-    </div>
-  </div>
-  <div class="form-group">
-    <label for="hidden_buttons" class="col-sm-3 control-label">{{t "Hidden Buttons" key='hidden_buttons'}}</label>
-    <div class="col-sm-5">
-      {{bound-select select_class="form-control" select_id="hidden_buttons" content=hiddenButtonsList selection=model.preferences.hidden_buttons action=(action (mut model.preferences.hidden_buttons)) }}
-    </div>
-  </div>
-{{/unless}}
-
-<h2 style="margin: 50px 0 20px 0;">{{t "Sidebar Layout" key='sidebar_layout'}}</h2>
-<div class="form-group">
-  <label for="quick_sidebar" class="col-sm-3 control-label">{{t "Quick Actions" key='quick_actions'}}</label>
-  <div class="col-sm-5">
-    <div class="checkbox">
-      <label>
-        {{input type="checkbox" checked=model.preferences.quick_sidebar id="quick_sidebar"}}
-        {{t "Always show quick actions sidebar" key='always_show_quick_sidebar'}}
-      </label>
-    </div>
-    {{#unless model.preferences.quick_sidebar}}
-      <div class="checkbox">
-        <label>
-          {{input type="checkbox" checked=model.preferences.disable_quick_sidebar id="disable_quick_sidebar"}}
-          {{t "Remove quick actions sidebar completely" key='never_show_quick_sidebar'}}
-        </label>
-      </div>
-    {{else}}
-      <div class="checkbox">
-        <label>
-          {{input type="checkbox" checked=model.preferences.lock_quick_sidebar id="lock_quick_sidebar"}}
-          {{t "Don't allow hiding quick actions sidebar" key='never_hide_quick_sidebar'}}
-        </label>
-      </div>
-    {{/unless}}
-  </div>
-</div>
-{{#if app_state.feature_flags.custom_sidebar}}
-  {{#unless model.preferences.disable_quick_sidebar}}
-    <div class="form-group">
-      <label class="col-sm-3 control-label">{{t "Links and Buttons" key='links_and_buttons'}}</label>
-      <div class="col-sm-5">
-        <p class="form-control-static">
-          <strong>Active</strong>
-        </p>
-        <ul class="list-group">
-          {{#each active_sidebar_options as |option|}}
-            <li class="list-group-item" style="height: 60px;">
-              <img src={{option.image}} style="float: left; height: 40px; max-width: 40px;"  {{action "sidebar_button_settings" option}}/>
-              <span style="float: right; margin-top: 5px;">
-                <button class='btn btn-default btn-sm' title={{t "move up" key='move_up'}} {{action 'move_sidebar_button' option 'up'}} style={{if option.top 'visibility: hidden;' ''}}><span class='glyphicon glyphicon-arrow-up'></span></button>
-                <button class='btn btn-default btn-sm' title={{t "move down" key='move_down'}} {{action 'move_sidebar_button' option 'down'}}style={{if option.bottom 'visibility:hidden;' ''}}><span class='glyphicon glyphicon-arrow-down'></span></button>
-                <button class='btn btn-default btn-sm' title={{t "remove" key='remove'}} {{action 'move_sidebar_button' option 'delete'}}><span class='glyphicon glyphicon-trash'></span></button>
-              </span>
-              <span style="cursor: pointer; margin-top: 10px; display: inline-block; margin-left: 5px;" {{action "sidebar_button_settings" option}}>
-                {{#if option.alert}}
-                  <span class="glyphicon glyphicon-bullhorn"></span>
-                {{else if option.home_lock}}
-                  <span class="glyphicon glyphicon-home"></span>
-                {{/if}}
-                {{#if option.highlight_type}}
-                  <span class="glyphicon glyphicon-map-marker"></span>
-                {{/if}}
-                {{option.name}}
-              </span>
-              <span style="clear: both;"></span>
-            </li>
+    <label for="core_word_list" class="col-sm-3 control-label">{{t "Core Word List" key='core_word_list'}}</label>
+    <div class='col-sm-6'>
+      {{#if core_lists.loading}}
+        <p class='form-control-static'>{{t "Loading..." key='loading'}}</p>
+      {{else if core_lists.error}}
+        <p class='form-control-static'>{{t "Error loading core word list" key='error_loading_core_word_list'}}</p>
+      {{else if core_lists}}
+        <p class='form-control-static'><em>{{t "Core words are the most common words in a language, and often express multiple intents or meanings. The following list of words will be marked as \"core\" (as opposed to \"fringe\") for this user." key='core_words_explainer'}}</em></p>
+        <div style='max-height: 100px; overflow: auto; padding: 5px 15px; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; margin-bottom: 5px;'>
+          {{#each core_lists.for_user as |word|}}
+            <span style='padding-right: 5px;'>{{word}}</span>
           {{/each}}
-        </ul>
-        {{#if disabled_sidebar_options_or_prior_sidebar_boards}}
+        </div>
+        <button type='button' {{action 'modify_core'}} class='btn btn-default'>{{t "Modify Core Word List" key='modify_core_word_list'}}</button>
+        <span style='padding-left: 10px;'>
+          {{t "core word" count=core_lists.for_user.length}}
+          {{t "listed" key='listed'}}
+        </span>
+      {{else}}
+        <p class='form-control-static'>{{t "None available" key='none_available'}}</p>
+      {{/if}}
+    </div>
+  </div>
+  {{#unless advanced}}
+  <div class="form-group">
+    <div class="col-sm-5 col-sm-offset-3">
+      <a href="#" {{action 'toggle_advanced'}}>{{t "more options" key='more_options'}}</a>
+    </div>
+  </div>
+  {{else}}
+    {{#if app_state.feature_flags.modeling}}
+    <div class="form-group">
+      <label for="dwell_modeling" class="col-sm-3 control-label">{{t "Modeling" key='modeling'}}</label>
+      <div class="col-sm-5">
+        <div class="checkbox">
+          <label>
+            {{input type="checkbox" checked=model.preferences.multi_touch_modeling id="multi_touch_modeling"}}
+            {{t "Mark two-finger touches as modeling events, not user selections" key='multi_touch_modeling'}}
+          </label>
+        </div>
+      </div>
+    </div>
+    {{/if}}
+    <div class="form-group">
+      <label for="word_suggestion_images" class="col-sm-3 control-label">{{t "Keyboard Suggestions" key='keyboard_suggestions'}}</label>
+      <div class="col-sm-5">
+        <div class="checkbox">
+          <label>
+            {{input type="checkbox" checked=model.preferences.word_suggestion_images id="word_suggestion_images"}}
+            {{t "Show images for keyboard suggestions" key='word_suggestion_images'}}
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="hidden_buttons" class="col-sm-3 control-label">{{t "Hidden Buttons" key='hidden_buttons'}}</label>
+      <div class="col-sm-5">
+        {{bound-select select_class="form-control" select_id="hidden_buttons" content=hiddenButtonsList selection=model.preferences.hidden_buttons action=(action (mut model.preferences.hidden_buttons)) }}
+      </div>
+    </div>
+  {{/unless}}
+
+  <h2 style="margin: 50px 0 20px 0;">{{t "Sidebar Layout" key='sidebar_layout'}}</h2>
+  <div class="form-group">
+    <label for="quick_sidebar" class="col-sm-3 control-label">{{t "Quick Actions" key='quick_actions'}}</label>
+    <div class="col-sm-5">
+      <div class="checkbox">
+        <label>
+          {{input type="checkbox" checked=model.preferences.quick_sidebar id="quick_sidebar"}}
+          {{t "Always show quick actions sidebar" key='always_show_quick_sidebar'}}
+        </label>
+      </div>
+      {{#unless model.preferences.quick_sidebar}}
+        <div class="checkbox">
+          <label>
+            {{input type="checkbox" checked=model.preferences.disable_quick_sidebar id="disable_quick_sidebar"}}
+            {{t "Remove quick actions sidebar completely" key='never_show_quick_sidebar'}}
+          </label>
+        </div>
+      {{else}}
+        <div class="checkbox">
+          <label>
+            {{input type="checkbox" checked=model.preferences.lock_quick_sidebar id="lock_quick_sidebar"}}
+            {{t "Don't allow hiding quick actions sidebar" key='never_hide_quick_sidebar'}}
+          </label>
+        </div>
+      {{/unless}}
+    </div>
+  </div>
+  {{#if app_state.feature_flags.custom_sidebar}}
+    {{#unless model.preferences.disable_quick_sidebar}}
+      <div class="form-group">
+        <label class="col-sm-3 control-label">{{t "Links and Buttons" key='links_and_buttons'}}</label>
+        <div class="col-sm-5">
           <p class="form-control-static">
-            <strong>Disabled</strong>
+            <strong>Active</strong>
           </p>
           <ul class="list-group">
-            {{#each disabled_sidebar_options as |option|}}
+            {{#each active_sidebar_options as |option|}}
               <li class="list-group-item" style="height: 60px;">
-                <img src={{option.image}} style="float: left; height: 40px; max-width: 40px;"/>
+                <img src={{option.image}} style="float: left; height: 40px; max-width: 40px;"  {{action "sidebar_button_settings" option}}/>
                 <span style="float: right; margin-top: 5px;">
-                  <button class='btn btn-default btn-sm' title={{t "restore" key='restore'}} {{action 'move_sidebar_button' option 'restore'}} style={{if option.top 'visibility: hidden;' ''}}><span class='glyphicon glyphicon-arrow-up'></span></button>
+                  <button class='btn btn-default btn-sm' title={{t "move up" key='move_up'}} {{action 'move_sidebar_button' option 'up'}} style={{if option.top 'visibility: hidden;' ''}}><span class='glyphicon glyphicon-arrow-up'></span></button>
+                  <button class='btn btn-default btn-sm' title={{t "move down" key='move_down'}} {{action 'move_sidebar_button' option 'down'}}style={{if option.bottom 'visibility:hidden;' ''}}><span class='glyphicon glyphicon-arrow-down'></span></button>
+                  <button class='btn btn-default btn-sm' title={{t "remove" key='remove'}} {{action 'move_sidebar_button' option 'delete'}}><span class='glyphicon glyphicon-trash'></span></button>
                 </span>
-                <span style="margin-top: 10px; display: inline-block; margin-left: 5px;">
+                <span style="cursor: pointer; margin-top: 10px; display: inline-block; margin-left: 5px;" {{action "sidebar_button_settings" option}}>
                   {{#if option.alert}}
                     <span class="glyphicon glyphicon-bullhorn"></span>
+                  {{else if option.home_lock}}
+                    <span class="glyphicon glyphicon-home"></span>
+                  {{/if}}
+                  {{#if option.highlight_type}}
+                    <span class="glyphicon glyphicon-map-marker"></span>
                   {{/if}}
                   {{option.name}}
                 </span>
@@ -441,557 +421,583 @@
               </li>
             {{/each}}
           </ul>
-          {{#if model.preferences.prior_sidebar_boards}}
-            {{#unless include_prior_sidebar_buttons}}
-              <a href="#" {{action 'include_prior_sidebar_buttons'}}>{{t "show prior sidebar links and buttons" key='show_prior_buttons'}}</a>
-            {{/unless}}
+          {{#if disabled_sidebar_options_or_prior_sidebar_boards}}
+            <p class="form-control-static">
+              <strong>Disabled</strong>
+            </p>
+            <ul class="list-group">
+              {{#each disabled_sidebar_options as |option|}}
+                <li class="list-group-item" style="height: 60px;">
+                  <img src={{option.image}} style="float: left; height: 40px; max-width: 40px;"/>
+                  <span style="float: right; margin-top: 5px;">
+                    <button class='btn btn-default btn-sm' title={{t "restore" key='restore'}} {{action 'move_sidebar_button' option 'restore'}} style={{if option.top 'visibility: hidden;' ''}}><span class='glyphicon glyphicon-arrow-up'></span></button>
+                  </span>
+                  <span style="margin-top: 10px; display: inline-block; margin-left: 5px;">
+                    {{#if option.alert}}
+                      <span class="glyphicon glyphicon-bullhorn"></span>
+                    {{/if}}
+                    {{option.name}}
+                  </span>
+                  <span style="clear: both;"></span>
+                </li>
+              {{/each}}
+            </ul>
+            {{#if model.preferences.prior_sidebar_boards}}
+              {{#unless include_prior_sidebar_buttons}}
+                <a href="#" {{action 'include_prior_sidebar_buttons'}}>{{t "show prior sidebar links and buttons" key='show_prior_buttons'}}</a>
+              {{/unless}}
+            {{/if}}
           {{/if}}
-        {{/if}}
-        <em>{{t "You can add any boards you find by finding them and selecting <span style='white-space: nowrap'>More -> Add to Sidebar</span>" key='add_to_sidebar_hint'}}</em>
+          <em>{{t "You can add any boards you find by finding them and selecting <span style='white-space: nowrap'>More -> Add to Sidebar</span>" key='add_to_sidebar_hint'}}</em>
+        </div>
+      </div>
+    {{/unless}}
+  {{/if}}
+  <h2 style="margin: 50px 0 20px 0;">{{t "Device Preferences" key='device_preferences'}} ({{model.preferences.device.name}})</h2>
+  <div class="form-group">
+    <label for="vocalization_height" class="col-sm-3 control-label">{{t "Vocalization Window Size" key='vocalization_height'}}</label>
+    <div class="col-sm-5">
+      {{bound-select select_class="form-control" select_id="vocalization_height" content=vocalizationHeightList selection=model.preferences.device.vocalization_height action=(action (mut model.preferences.device.vocalization_height)) }}
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="button_spacing" class="col-sm-3 control-label">{{t "Button Spacing" key='button_spacing'}}</label>
+    <div class="col-sm-5">
+      {{bound-select select_class="form-control" select_id="button_spacing" content=buttonSpacingList selection=model.preferences.device.button_spacing action=(action (mut model.preferences.device.button_spacing)) }}
+    </div>
+  </div>
+  {{#if advanced}}
+  <div class="form-group">
+    <label for="button_border" class="col-sm-3 control-label">{{t "Button Border Size" key='button_border'}}</label>
+    <div class="col-sm-5">
+      {{bound-select select_class="form-control" select_id="button_border" content=buttonBorderList selection=model.preferences.device.button_border action=(action (mut model.preferences.device.button_border)) }}
+    </div>
+  </div>
+  {{/if}}
+  <div class="form-group">
+    <label for="button_text" class="col-sm-3 control-label">{{t "Button Text Size" key='button_text'}}</label>
+    <div class="col-sm-5">
+      {{bound-select select_class="form-control" select_id="button_text" content=buttonTextList selection=model.preferences.device.button_text action=(action (mut model.preferences.device.button_text)) }}
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="button_text_position" class="col-sm-3 control-label">{{t "Button Text Position" key='button_text_position'}}</label>
+    <div class="col-sm-5">
+      {{bound-select select_class="form-control" select_id="button_text_position" content=buttonTextPositionList selection=model.preferences.device.button_text_position action=(action (mut model.preferences.device.button_text_position)) }}
+    </div>
+  </div>
+  {{#if app_state.feature_flags.canvas_render}}
+    <div class="form-group">
+      <label for="canvas_render" class="col-sm-3 control-label">{{t "Rendering" key='rendering'}}</label>
+      <div class="col-sm-5">
+        <div class="checkbox">
+          <label>
+            {{input type="checkbox" checked=model.preferences.device.canvas_render id="canvas_render"}}
+            {{t "Render using Canvas in Speak Mode (experimental)" key='canvas_render'}}
+          </label>
+        </div>
       </div>
     </div>
-  {{/unless}}
-{{/if}}
-<h2 style="margin: 50px 0 20px 0;">{{t "Device Preferences" key='device_preferences'}} ({{model.preferences.device.name}})</h2>
-<div class="form-group">
-  <label for="vocalization_height" class="col-sm-3 control-label">{{t "Vocalization Window Size" key='vocalization_height'}}</label>
-  <div class="col-sm-5">
-    {{bound-select select_class="form-control" select_id="vocalization_height" content=vocalizationHeightList selection=model.preferences.device.vocalization_height action=(action (mut model.preferences.device.vocalization_height)) }}
-  </div>
-</div>
-<div class="form-group">
-  <label for="button_spacing" class="col-sm-3 control-label">{{t "Button Spacing" key='button_spacing'}}</label>
-  <div class="col-sm-5">
-    {{bound-select select_class="form-control" select_id="button_spacing" content=buttonSpacingList selection=model.preferences.device.button_spacing action=(action (mut model.preferences.device.button_spacing)) }}
-  </div>
-</div>
-{{#if advanced}}
-<div class="form-group">
-  <label for="button_border" class="col-sm-3 control-label">{{t "Button Border Size" key='button_border'}}</label>
-  <div class="col-sm-5">
-    {{bound-select select_class="form-control" select_id="button_border" content=buttonBorderList selection=model.preferences.device.button_border action=(action (mut model.preferences.device.button_border)) }}
-  </div>
-</div>
-{{/if}}
-<div class="form-group">
-  <label for="button_text" class="col-sm-3 control-label">{{t "Button Text Size" key='button_text'}}</label>
-  <div class="col-sm-5">
-    {{bound-select select_class="form-control" select_id="button_text" content=buttonTextList selection=model.preferences.device.button_text action=(action (mut model.preferences.device.button_text)) }}
-  </div>
-</div>
-<div class="form-group">
-  <label for="button_text_position" class="col-sm-3 control-label">{{t "Button Text Position" key='button_text_position'}}</label>
-  <div class="col-sm-5">
-    {{bound-select select_class="form-control" select_id="button_text_position" content=buttonTextPositionList selection=model.preferences.device.button_text_position action=(action (mut model.preferences.device.button_text_position)) }}
-  </div>
-</div>
-{{#if app_state.feature_flags.canvas_render}}
+  {{/if}}
+  {{#if advanced}}
   <div class="form-group">
-    <label for="canvas_render" class="col-sm-3 control-label">{{t "Rendering" key='rendering'}}</label>
+    <label for="button_text" class="col-sm-3 control-label">{{t "Button Text Style" key='button_style'}}</label>
+    <div class="col-sm-5">
+      {{bound-select select_class="form-control" select_id="button_style" content=buttonStyleList selection=model.preferences.device.button_style action=(action (mut model.preferences.device.button_style)) }}
+      <div class={{text_sample_class}} style="margin-left: 20px; margin-top: 5px;">{{t "This is a Text Sample" key='this_is_a_text_sample'}}</div>
+    </div>
+  </div>
+  {{/if}}
+  {{#if fullscreen_capable}}
+    <div class="form-group">
+      <label for="fullscreen" class="col-sm-3 control-label">{{t "Full Screen" key='full_screen'}}</label>
+      <div class="col-sm-5">
+        <div class="checkbox">
+          <label>
+            {{input type="checkbox" checked=model.preferences.device.fullscreen id="fullscreen"}}
+            {{t "Launch Full Screen when entering Speak Mode" key='full_screen_speak_mode'}}
+          </label>
+        </div>
+      </div>
+    </div>
+  {{/if}}
+  <div class="form-group">
+    <label for="auto_sync" class="col-sm-3 control-label">{{t "Auto-Sync" key='auto_sync'}}</label>
     <div class="col-sm-5">
       <div class="checkbox">
         <label>
-          {{input type="checkbox" checked=model.preferences.device.canvas_render id="canvas_render"}}
-          {{t "Render using Canvas in Speak Mode (experimental)" key='canvas_render'}}
+          {{input type="checkbox" checked=model.preferences.device.auto_sync id="auto_sync"}}
+          {{t "Automatically Sync if online and there are changes to boards" key='auto_sync_if_changes_and_online'}}
         </label>
       </div>
     </div>
   </div>
-{{/if}}
-{{#if advanced}}
-<div class="form-group">
-  <label for="button_text" class="col-sm-3 control-label">{{t "Button Text Style" key='button_style'}}</label>
-  <div class="col-sm-5">
-    {{bound-select select_class="form-control" select_id="button_style" content=buttonStyleList selection=model.preferences.device.button_style action=(action (mut model.preferences.device.button_style)) }}
-    <div class={{text_sample_class}} style="margin-left: 20px; margin-top: 5px;">{{t "This is a Text Sample" key='this_is_a_text_sample'}}</div>
-  </div>
-</div>
-{{/if}}
-{{#if fullscreen_capable}}
-  <div class="form-group">
-    <label for="fullscreen" class="col-sm-3 control-label">{{t "Full Screen" key='full_screen'}}</label>
-    <div class="col-sm-5">
-      <div class="checkbox">
-        <label>
-          {{input type="checkbox" checked=model.preferences.device.fullscreen id="fullscreen"}}
-          {{t "Launch Full Screen when entering Speak Mode" key='full_screen_speak_mode'}}
-        </label>
-      </div>
-    </div>
-  </div>
-{{/if}}
-<div class="form-group">
-  <label for="auto_sync" class="col-sm-3 control-label">{{t "Auto-Sync" key='auto_sync'}}</label>
-  <div class="col-sm-5">
-    <div class="checkbox">
-      <label>
-        {{input type="checkbox" checked=model.preferences.device.auto_sync id="auto_sync"}}
-        {{t "Automatically Sync if online and there are changes to boards" key='auto_sync_if_changes_and_online'}}
-      </label>
-    </div>
-  </div>
-</div>
 
-{{#if wakelock_capable}}
-  <div class="form-group">
-    <label for="wakelock" class="col-sm-3 control-label">{{t "Screen Wake" key='screen_wake'}}</label>
-    <div class="col-sm-5">
-      <div class="checkbox">
-        <label>
-          {{input type="checkbox" checked=model.preferences.device.wakelock id="wakelock"}}
-          {{t "Keep the screen awake when in Speak Mode" key='wakelock_speak_mode'}}
-        </label>
-      </div>
-    </div>
-  </div>
-{{/if}}
-{{#if advanced}}
-  <div class="form-group">
-    <label for="scanning" class="col-sm-3 control-label">{{t "Scanning" key='scanning'}}</label>
-    <div class="col-sm-5">
-      <div class="checkbox">
-        <label>
-          {{input type="checkbox" checked=model.preferences.device.scanning id="scanning"}}
-          {{t "Enable switch-activated scanning" key='enable_scanning'}}
-        </label>
-      </div>
-    </div>
-  </div>
-  {{#if model.preferences.device.scanning}}
+  {{#if wakelock_capable}}
     <div class="form-group">
-      <label for="scanning_mode" class="col-sm-3 control-label">{{t "Scanning Mode" key='scanning_mode'}}</label>
-      <div class="col-sm-5">
-        {{bound-select select_class="form-control" select_id="scanning_mode" content=scanningModeList selection=model.preferences.device.scanning_mode action=(action (mut model.preferences.device.scanning_mode)) }}
-      </div>
-    </div>
-    {{#if region_scanning}}
-      <div class="form-group">
-        <label for="scanning_size" class="col-sm-3 control-label">{{t "Scanning Grid of" key='scanning_size'}}</label>
-        <div class="col-sm-2">
-          <div class="input-group">
-            <span class="input-group-btn">
-              <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.scanning_region_rows"}}>-</button>
-            </span>
-            {{input value=model.preferences.device.scanning_region_rows class="form-control" id="scanning_region_rows" placeholder="rows"}}
-            <span class="input-group-btn">
-              <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.scanning_region_rows"}}>+</button>
-            </span>
-          </div>
-        </div>
-        <div class="col-sm-1">
-          <p class="form-control-static">
-            {{t "by" key='by'}}
-          </p>
-        </div>
-        <div class="col-sm-2">
-          <div class="input-group">
-            <span class="input-group-btn">
-              <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.scanning_region_columns"}}>-</button>
-            </span>
-            {{input value=model.preferences.device.scanning_region_columns class="form-control" id="scanning_region_columns" placeholder="cols"}}
-            <span class="input-group-btn">
-              <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.scanning_region_columns"}}>+</button>
-            </span>
-          </div>
-        </div>
-      </div>
-    {{/if}}
-    <div class="form-group">
-      <label for="scanning_interval" class="col-sm-3 control-label">{{t "Scanning Interval" key='scanning_interval'}}</label>
-      <div class="col-sm-3">
-        <div class="input-group">
-          <span class="input-group-btn">
-            <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.scanning_interval"}}>-</button>
-          </span>
-          {{input value=model.preferences.device.scanning_interval class="form-control" id="scanning_interval" placeholder="1000"}}
-          <span class="input-group-btn">
-            <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.scanning_interval"}}>+</button>
-          </span>
-        </div>
-      </div>
-      <div class="col-sm-2">
-        <p class="form-control-static">{{t "milliseconds" key='milliseconds'}}</p>
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="scanning_prompt" class="col-sm-3 control-label">{{t "Scanning Prompt" key='scanning_prompt'}}</label>
+      <label for="wakelock" class="col-sm-3 control-label">{{t "Screen Wake" key='screen_wake'}}</label>
       <div class="col-sm-5">
         <div class="checkbox">
           <label>
-            {{input type="checkbox" checked=model.preferences.device.scanning_prompt id="scanning_prompt"}}
-            {{t "Speak Audio Prompts While Scanning" key='speak_audio_prompts'}}
-          </label>
-        </div>
-      </div>
-    </div>
-    {{#if model.preferences.device.scanning_prompt}}
-      <div class="form-group">
-        <label for="scanning_voice" class="col-sm-3 control-label">{{t "Scanning Voice" key='scanning_voice'}}</label>
-        <div class="col-sm-5">
-          <div class="checkbox">
-            <label>
-              {{input type="checkbox" checked=model.preferences.device.alternate_voice.enabled id="scanning_voice"}}
-              {{t "Use a Different Voice for Audio Prompts" key='scanning_voice'}}
-            </label>
-          </div>
-        </div>
-      </div>
-      {{#if model.preferences.device.alternate_voice.enabled}}
-        {{#if user_voice_list}}
-          <div class="form-group">
-            <label for="alternate_voice_pitch" class="col-sm-3 col-xs-12 control-label">{{t "Scanning Voice" key='alternate_voiceURI'}}</label>
-            <div class="col-sm-3 col-xs-7">
-              {{bound-select select_class="form-control" select_id="voiceURI" content=user_voice_list selection=model.preferences.device.alternate_voice.voice_uri action=(action (mut model.preferences.device.alternate_voice.voice_uri)) }}
-            </div>
-          </div>
-        {{/if}}
-        <div class="form-group">
-          <label for="alternate_voice_rate" class="col-sm-3 col-xs-12 control-label">{{t "Scanning Voice Rate" key='alternate_voice_rate'}}</label>
-          <div class="col-sm-3 col-xs-7">
-            <div class="input-group">
-              <span class="input-group-btn">
-                <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.alternate_voice.rate"}}>-</button>
-              </span>
-              {{input value=model.preferences.device.alternate_voice.rate class="form-control" id="alternate_voice_rate" placeholder="1.0"}}
-              <span class="input-group-btn">
-                <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.alternate_voice.rate"}}>+</button>
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="alternate_voice_pitch" class="col-sm-3 col-xs-12 control-label">{{t "Scanning Voice Pitch" key='voice_pitch'}}</label>
-          <div class="col-sm-3 col-xs-7">
-            <div class="input-group">
-              <span class="input-group-btn">
-                <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.alternate_voice.pitch"}}>-</button>
-              </span>
-              {{input value=model.preferences.device.alternate_voice.pitch class="form-control" id="alternate_voice_pitch" placeholder="1.0"}}
-              <span class="input-group-btn">
-                <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.alternate_voice.pitch"}}>+</button>
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="alternate_voice_volume" class="col-sm-3 col-xs-12 control-label">{{t "Scanning Voice Volume" key='alternate_voice_volume'}}</label>
-          <div class="col-sm-3 col-xs-7">
-            <div class="input-group">
-              <span class="input-group-btn">
-                <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.alternate_voice.volume"}}>-</button>
-              </span>
-              {{input value=model.preferences.device.alternate_voice.volume class="form-control" id="alternate_voice_volume" placeholder="1.0"}}
-              <span class="input-group-btn">
-                <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.alternate_voice.volume"}}>+</button>
-              </span>
-            </div>
-          </div>
-          <div class="col-sm-2 col-xs-5">
-            <button class='btn btn-default' {{action "test_voice" 'alternate'}}>{{t "Test Voice" key='test_voice'}}</button>
-          </div>
-        </div>
-      {{/if}}
-    {{/if}}
-    <div class="form-group">
-      <label for="scanning_select_on_any_event" class="col-sm-3 control-label">{{t "Scanning Pseudo-Switch" key='psuedo-switch'}}</label>
-      <div class="col-sm-5">
-        <div class="checkbox">
-          <label>
-            {{input type="checkbox" checked=model.preferences.device.scanning_select_on_any_event id="scanning_select_on_any_event"}}
-            {{t "Select on Any Key Press or Screen Touch/Click" key='scanning_select_on_any_event'}}
-          </label>
-        </div>
-      </div>
-    </div>
-    {{#if model.preferences.device.scanning_select_on_any_event}}
-      <label for="scanning_screen_buttons" class="col-sm-3 control-label">{{t "Psuedo-Switch Screen Buttons" key='psuedo-switch_buttons'}}</label>
-      <div class="form-group">
-        <div class="col-sm-2">
-          <p class="form-control-static"><label for="scan_left">{{t "Left Half" key='left_half'}}</label></p>
-          {{bound-select select_class="form-control" select_id="scan_left" content=scan_pseudo_options selection=model.preferences.device.scanning_left_screen_action action=(action (mut model.preferences.device.scanning_left_screen_action)) }}
-        </div>
-        <div class="col-sm-2">
-          <p class="form-control-static"><label for="scan_right">{{t "Right Half" key='right_half'}}</label></p>
-          {{bound-select select_class="form-control" select_id="scan_right" content=scan_pseudo_options selection=model.preferences.device.scanning_right_screen_action action=(action (mut model.preferences.device.scanning_right_screen_action)) }}
-        </div>
-      </div>
-    {{else}}
-      <div class="form-group">
-        <label for="scanning_select_keycode" class="col-sm-3 control-label">{{t "Scanning \"Select\" Key" key='scanning_select_keycode'}}</label>
-        <div class="col-sm-5">
-          <label style="width: 50px;">
-            {{key-code-text-field id='scanning_select_keycode' class='form-control' value=model.preferences.device.scanning_select_keycode action=(action (mut model.preferences.device.scanning_select_keycode)) placeholder='hit any key'}}
-          </label>
-          &nbsp;{{select_keycode_string}}
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="scanning_next_keycode" class="col-sm-3 control-label">{{t "Scanning \"Next\" Key" key='scanning_next_keycode'}}</label>
-        <div class="col-sm-5">
-          <label style="width: 50px;">
-            {{key-code-text-field id='scanning_next_keycode' class='form-control' value=model.preferences.device.scanning_next_keycode placeholder='hit any key'}}
-          </label>
-          &nbsp;{{next_keycode_string}}
-        </div>
-      </div>
-    {{/if}}
-    <div class="form-group">
-      <label for="scanning_auto_select" class="col-sm-3 control-label">{{t "Scanning Auto-Select" key='scanning_auto_select'}}</label>
-      <div class="col-sm-5">
-        <div class="checkbox">
-          <label>
-            {{input type="checkbox" checked=model.preferences.device.scanning_auto_select id="scanning_auto_select"}}
-            {{t "Select after the interval if no \"Next\" button hit" key='auto_select_after_delay'}}
+            {{input type="checkbox" checked=model.preferences.device.wakelock id="wakelock"}}
+            {{t "Keep the screen awake when in Speak Mode" key='wakelock_speak_mode'}}
           </label>
         </div>
       </div>
     </div>
   {{/if}}
-  <div class="form-group">
-    <label for="scanning" class="col-sm-3 control-label">{{t "Dwell/Eye Tracking" key='dwell_eye_tracking'}}</label>
-    <div class="col-sm-5">
-      <div class="checkbox">
-        {{#if eyegaze_or_dwell_capable}}
+  {{#if advanced}}
+    <div class="form-group">
+      <label for="scanning" class="col-sm-3 control-label">{{t "Scanning" key='scanning'}}</label>
+      <div class="col-sm-5">
+        <div class="checkbox">
           <label>
-            {{input type="checkbox" checked=model.preferences.device.dwell id="eyegaze"}}
-            {{t "Enable dwell/eye-tracking" key='eyegaze'}}
+            {{input type="checkbox" checked=model.preferences.device.scanning id="scanning"}}
+            {{t "Enable switch-activated scanning" key='enable_scanning'}}
           </label>
-        {{else}}
-          <em>{{t "Eye-gaze or dwell tracking is a beta feature on Windows or other cursor-based system, please contact support for more information" key='eye_tracking_beta'}}</em>
-        {{/if}}
+        </div>
       </div>
     </div>
-  </div>
-  {{#if model.preferences.device.dwell}}
-    <div class="form-group">
-      <label for="dwell_type" class="col-sm-3 control-label">{{t "Dwell Type" key='dwell_type'}}</label>
-      <div class="col-sm-3">
-        {{bound-select select_class="form-control" select_id="scanning_mode" content=dwellList selection=model.preferences.device.dwell_type action=(action (mut model.preferences.device.dwell_type)) }}
+    {{#if model.preferences.device.scanning}}
+      <div class="form-group">
+        <label for="scanning_mode" class="col-sm-3 control-label">{{t "Scanning Mode" key='scanning_mode'}}</label>
+        <div class="col-sm-5">
+          {{bound-select select_class="form-control" select_id="scanning_mode" content=scanningModeList selection=model.preferences.device.scanning_mode action=(action (mut model.preferences.device.scanning_mode)) }}
+        </div>
       </div>
-      <div class="col-sm-2">
-        <button class='btn btn-default' {{action "test_dwell"}}>
-          {{#if testing_dwell}}
-            {{t "Stop Tracking" key='stop_test_dwell'}}
-          {{else}}
-            {{t "Test Dwell Tracking" key='test_dwell'}}
+      {{#if region_scanning}}
+        <div class="form-group">
+          <label for="scanning_size" class="col-sm-3 control-label">{{t "Scanning Grid of" key='scanning_size'}}</label>
+          <div class="col-sm-2">
+            <div class="input-group">
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.scanning_region_rows"}}>-</button>
+              </span>
+              {{input value=model.preferences.device.scanning_region_rows class="form-control" id="scanning_region_rows" placeholder="rows"}}
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.scanning_region_rows"}}>+</button>
+              </span>
+            </div>
+          </div>
+          <div class="col-sm-1">
+            <p class="form-control-static">
+              {{t "by" key='by'}}
+            </p>
+          </div>
+          <div class="col-sm-2">
+            <div class="input-group">
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.scanning_region_columns"}}>-</button>
+              </span>
+              {{input value=model.preferences.device.scanning_region_columns class="form-control" id="scanning_region_columns" placeholder="cols"}}
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.scanning_region_columns"}}>+</button>
+              </span>
+            </div>
+          </div>
+        </div>
+      {{/if}}
+      <div class="form-group">
+        <label for="scanning_interval" class="col-sm-3 control-label">{{t "Scanning Interval" key='scanning_interval'}}</label>
+        <div class="col-sm-3">
+          <div class="input-group">
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.scanning_interval"}}>-</button>
+            </span>
+            {{input value=model.preferences.device.scanning_interval class="form-control" id="scanning_interval" placeholder="1000"}}
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.scanning_interval"}}>+</button>
+            </span>
+          </div>
+        </div>
+        <div class="col-sm-2">
+          <p class="form-control-static">{{t "milliseconds" key='milliseconds'}}</p>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="scanning_prompt" class="col-sm-3 control-label">{{t "Scanning Prompt" key='scanning_prompt'}}</label>
+        <div class="col-sm-5">
+          <div class="checkbox">
+            <label>
+              {{input type="checkbox" checked=model.preferences.device.scanning_prompt id="scanning_prompt"}}
+              {{t "Speak Audio Prompts While Scanning" key='speak_audio_prompts'}}
+            </label>
+          </div>
+        </div>
+      </div>
+      {{#if model.preferences.device.scanning_prompt}}
+        <div class="form-group">
+          <label for="scanning_voice" class="col-sm-3 control-label">{{t "Scanning Voice" key='scanning_voice'}}</label>
+          <div class="col-sm-5">
+            <div class="checkbox">
+              <label>
+                {{input type="checkbox" checked=model.preferences.device.alternate_voice.enabled id="scanning_voice"}}
+                {{t "Use a Different Voice for Audio Prompts" key='scanning_voice'}}
+              </label>
+            </div>
+          </div>
+        </div>
+        {{#if model.preferences.device.alternate_voice.enabled}}
+          {{#if user_voice_list}}
+            <div class="form-group">
+              <label for="alternate_voice_pitch" class="col-sm-3 col-xs-12 control-label">{{t "Scanning Voice" key='alternate_voiceURI'}}</label>
+              <div class="col-sm-3 col-xs-7">
+                {{bound-select select_class="form-control" select_id="voiceURI" content=user_voice_list selection=model.preferences.device.alternate_voice.voice_uri action=(action (mut model.preferences.device.alternate_voice.voice_uri)) }}
+              </div>
+            </div>
           {{/if}}
-        </button>
-      </div>
-      {{#if testing_dwell}}
-        <div class="col-sm-2">
-          {{dwell-tracker user=model}}
-        </div>
+          <div class="form-group">
+            <label for="alternate_voice_rate" class="col-sm-3 col-xs-12 control-label">{{t "Scanning Voice Rate" key='alternate_voice_rate'}}</label>
+            <div class="col-sm-3 col-xs-7">
+              <div class="input-group">
+                <span class="input-group-btn">
+                  <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.alternate_voice.rate"}}>-</button>
+                </span>
+                {{input value=model.preferences.device.alternate_voice.rate class="form-control" id="alternate_voice_rate" placeholder="1.0"}}
+                <span class="input-group-btn">
+                  <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.alternate_voice.rate"}}>+</button>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="alternate_voice_pitch" class="col-sm-3 col-xs-12 control-label">{{t "Scanning Voice Pitch" key='voice_pitch'}}</label>
+            <div class="col-sm-3 col-xs-7">
+              <div class="input-group">
+                <span class="input-group-btn">
+                  <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.alternate_voice.pitch"}}>-</button>
+                </span>
+                {{input value=model.preferences.device.alternate_voice.pitch class="form-control" id="alternate_voice_pitch" placeholder="1.0"}}
+                <span class="input-group-btn">
+                  <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.alternate_voice.pitch"}}>+</button>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="alternate_voice_volume" class="col-sm-3 col-xs-12 control-label">{{t "Scanning Voice Volume" key='alternate_voice_volume'}}</label>
+            <div class="col-sm-3 col-xs-7">
+              <div class="input-group">
+                <span class="input-group-btn">
+                  <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.alternate_voice.volume"}}>-</button>
+                </span>
+                {{input value=model.preferences.device.alternate_voice.volume class="form-control" id="alternate_voice_volume" placeholder="1.0"}}
+                <span class="input-group-btn">
+                  <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.alternate_voice.volume"}}>+</button>
+                </span>
+              </div>
+            </div>
+            <div class="col-sm-2 col-xs-5">
+              <button class='btn btn-default' {{action "test_voice" 'alternate'}}>{{t "Test Voice" key='test_voice'}}</button>
+            </div>
+          </div>
+        {{/if}}
       {{/if}}
-    </div>
-    {{#if eyegaze_type}}
       <div class="form-group">
-        <div class="col-sm-5 col-sm-offset-3">
-          <p class="form-control-static"><em>{{t "CoughDrop eye tracking currently works with EyeX and EyeTribe eye trackers. We hope to add more devices soon, but in the mean time you can try cursor-based tracking." key='supported_eye_trackers'}}</em></p>
-        </div>
-      </div>
-    {{/if}}
-    <div class="form-group">
-      <label for="dwell_no_cutoff" class="col-sm-3 control-label">{{t "Dwell Cutoff" key='dwell_no_cutoff'}}</label>
-      <div class="col-sm-5">
-        <div class="checkbox">
-          <label>
-            {{input type="checkbox" checked=model.preferences.device.dwell_no_cutoff id="dwell_no_cutoff"}}
-            {{t "Keep dwell targeting even if cursor stops moving" key='dwell_no_cutoff'}}
-          </label>
-        </div>
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="dwell_cursor" class="col-sm-3 control-label">{{t "Dwell Cursor" key='dwell_cursor'}}</label>
-      <div class="col-sm-5">
-        <div class="checkbox">
-          <label>
-            {{input type="checkbox" checked=model.preferences.device.dwell_cursor id="dwell_cursor"}}
-            {{t "Show small icon at current dwell location" key='dwell_cursor'}}
-          </label>
-        </div>
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="dwell_duration" class="col-sm-3 control-label">{{t "Dwell Time" key='dwell_duration'}}</label>
-      <div class="col-sm-3">
-        <div class="input-group">
-          <span class="input-group-btn">
-            <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.dwell_duration"}}>-</button>
-          </span>
-          {{input value=model.preferences.device.dwell_duration class="form-control" id="dwell_duration" placeholder="1000"}}
-          <span class="input-group-btn">
-            <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.dwell_duration"}}>+</button>
-          </span>
-        </div>
-      </div>
-      <div class="col-sm-2">
-        <p class="form-control-static">{{t "milliseconds" key='milliseconds'}}</p>
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="dwell_delay" class="col-sm-3 control-label">{{t "Dwell Selection Delay" key='dwell_delay'}}</label>
-      <div class="col-sm-3">
-        <div class="input-group">
-          <span class="input-group-btn">
-            <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.dwell_delay"}}>-</button>
-          </span>
-          {{input value=model.preferences.device.dwell_delay class="form-control" id="dwell_delay" placeholder="100"}}
-          <span class="input-group-btn">
-            <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.dwell_delay"}}>+</button>
-          </span>
-        </div>
-      </div>
-      <div class="col-sm-2">
-        <p class="form-control-static">{{t "milliseconds" key='milliseconds'}}</p>
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="dwell_release_distance" class="col-sm-3 control-label">{{t "Next Dwell Movement" key='dwell_release'}}</label>
-      <div class="col-sm-2">
-        {{bound-select select_class="form-control" select_id="dwell_release_distance" content=dwellReleaseDistanceList selection=model.preferences.device.dwell_release_distance action=(action (mut model.preferences.device.dwell_release_distance)) }}
-      </div>
-      <div class="col-sm-3">
-        <p class='form-control-static'>{{t "before starting a new selection" key='move_after_select'}}</p>
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="dwell_targeting" class="col-sm-3 control-label">{{t "Dwell Targeting Style" key='dwell_targeting'}}</label>
-      <div class="col-sm-5">
-        {{bound-select select_class="form-control" select_id="scanning_mode" content=targetingList selection=model.preferences.device.dwell_targeting action=(action (mut model.preferences.device.dwell_targeting)) }}
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="dwell_gravity" class="col-sm-3 control-label">{{t "Dwell Gravity" key='dwell_gravity'}}</label>
-      <div class="col-sm-5">
-        <div class="checkbox">
-          <label>
-            {{input type="checkbox" checked=model.preferences.device.dwell_gravity id="dwell_gravity"}}
-            {{t "Stay on the same target if the user's gaze leaves a bit" key='enable_dwell_gravity'}}
-          </label>
-        </div>
-      </div>
-    </div>
-    {{#if app_state.feature_flags.modeling}}
-      <div class="form-group">
-        <label for="dwell_modeling" class="col-sm-3 control-label">{{t "Dwell Modeling" key='dwell_modeling'}}</label>
+        <label for="scanning_select_on_any_event" class="col-sm-3 control-label">{{t "Scanning Pseudo-Switch" key='psuedo-switch'}}</label>
         <div class="col-sm-5">
           <div class="checkbox">
             <label>
-              {{input type="checkbox" checked=model.preferences.device.dwell_modeling id="dwell_modeling"}}
-              {{t "Mark clicks/touches as modeling events, not user selections" key='touch_as_modeling'}}
+              {{input type="checkbox" checked=model.preferences.device.scanning_select_on_any_event id="scanning_select_on_any_event"}}
+              {{t "Select on Any Key Press or Screen Touch/Click" key='scanning_select_on_any_event'}}
+            </label>
+          </div>
+        </div>
+      </div>
+      {{#if model.preferences.device.scanning_select_on_any_event}}
+        <label for="scanning_screen_buttons" class="col-sm-3 control-label">{{t "Psuedo-Switch Screen Buttons" key='psuedo-switch_buttons'}}</label>
+        <div class="form-group">
+          <div class="col-sm-2">
+            <p class="form-control-static"><label for="scan_left">{{t "Left Half" key='left_half'}}</label></p>
+            {{bound-select select_class="form-control" select_id="scan_left" content=scan_pseudo_options selection=model.preferences.device.scanning_left_screen_action action=(action (mut model.preferences.device.scanning_left_screen_action)) }}
+          </div>
+          <div class="col-sm-2">
+            <p class="form-control-static"><label for="scan_right">{{t "Right Half" key='right_half'}}</label></p>
+            {{bound-select select_class="form-control" select_id="scan_right" content=scan_pseudo_options selection=model.preferences.device.scanning_right_screen_action action=(action (mut model.preferences.device.scanning_right_screen_action)) }}
+          </div>
+        </div>
+      {{else}}
+        <div class="form-group">
+          <label for="scanning_select_keycode" class="col-sm-3 control-label">{{t "Scanning \"Select\" Key" key='scanning_select_keycode'}}</label>
+          <div class="col-sm-5">
+            <label style="width: 50px;">
+              {{key-code-text-field id='scanning_select_keycode' class='form-control' value=model.preferences.device.scanning_select_keycode action=(action (mut model.preferences.device.scanning_select_keycode)) placeholder='hit any key'}}
+            </label>
+            &nbsp;{{select_keycode_string}}
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="scanning_next_keycode" class="col-sm-3 control-label">{{t "Scanning \"Next\" Key" key='scanning_next_keycode'}}</label>
+          <div class="col-sm-5">
+            <label style="width: 50px;">
+              {{key-code-text-field id='scanning_next_keycode' class='form-control' value=model.preferences.device.scanning_next_keycode placeholder='hit any key'}}
+            </label>
+            &nbsp;{{next_keycode_string}}
+          </div>
+        </div>
+      {{/if}}
+      <div class="form-group">
+        <label for="scanning_auto_select" class="col-sm-3 control-label">{{t "Scanning Auto-Select" key='scanning_auto_select'}}</label>
+        <div class="col-sm-5">
+          <div class="checkbox">
+            <label>
+              {{input type="checkbox" checked=model.preferences.device.scanning_auto_select id="scanning_auto_select"}}
+              {{t "Select after the interval if no \"Next\" button hit" key='auto_select_after_delay'}}
             </label>
           </div>
         </div>
       </div>
     {{/if}}
+    <div class="form-group">
+      <label for="scanning" class="col-sm-3 control-label">{{t "Dwell/Eye Tracking" key='dwell_eye_tracking'}}</label>
+      <div class="col-sm-5">
+        <div class="checkbox">
+          {{#if eyegaze_or_dwell_capable}}
+            <label>
+              {{input type="checkbox" checked=model.preferences.device.dwell id="eyegaze"}}
+              {{t "Enable dwell/eye-tracking" key='eyegaze'}}
+            </label>
+          {{else}}
+            <em>{{t "Eye-gaze or dwell tracking is a beta feature on Windows or other cursor-based system, please contact support for more information" key='eye_tracking_beta'}}</em>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+    {{#if model.preferences.device.dwell}}
+      <div class="form-group">
+        <label for="dwell_type" class="col-sm-3 control-label">{{t "Dwell Type" key='dwell_type'}}</label>
+        <div class="col-sm-3">
+          {{bound-select select_class="form-control" select_id="scanning_mode" content=dwellList selection=model.preferences.device.dwell_type action=(action (mut model.preferences.device.dwell_type)) }}
+        </div>
+        <div class="col-sm-2">
+          <button class='btn btn-default' {{action "test_dwell"}}>
+            {{#if testing_dwell}}
+              {{t "Stop Tracking" key='stop_test_dwell'}}
+            {{else}}
+              {{t "Test Dwell Tracking" key='test_dwell'}}
+            {{/if}}
+          </button>
+        </div>
+        {{#if testing_dwell}}
+          <div class="col-sm-2">
+            {{dwell-tracker user=model}}
+          </div>
+        {{/if}}
+      </div>
+      {{#if eyegaze_type}}
+        <div class="form-group">
+          <div class="col-sm-5 col-sm-offset-3">
+            <p class="form-control-static"><em>{{t "CoughDrop eye tracking currently works with EyeX and EyeTribe eye trackers. We hope to add more devices soon, but in the mean time you can try cursor-based tracking." key='supported_eye_trackers'}}</em></p>
+          </div>
+        </div>
+      {{/if}}
+      <div class="form-group">
+        <label for="dwell_no_cutoff" class="col-sm-3 control-label">{{t "Dwell Cutoff" key='dwell_no_cutoff'}}</label>
+        <div class="col-sm-5">
+          <div class="checkbox">
+            <label>
+              {{input type="checkbox" checked=model.preferences.device.dwell_no_cutoff id="dwell_no_cutoff"}}
+              {{t "Keep dwell targeting even if cursor stops moving" key='dwell_no_cutoff'}}
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="dwell_cursor" class="col-sm-3 control-label">{{t "Dwell Cursor" key='dwell_cursor'}}</label>
+        <div class="col-sm-5">
+          <div class="checkbox">
+            <label>
+              {{input type="checkbox" checked=model.preferences.device.dwell_cursor id="dwell_cursor"}}
+              {{t "Show small icon at current dwell location" key='dwell_cursor'}}
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="dwell_duration" class="col-sm-3 control-label">{{t "Dwell Time" key='dwell_duration'}}</label>
+        <div class="col-sm-3">
+          <div class="input-group">
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.dwell_duration"}}>-</button>
+            </span>
+            {{input value=model.preferences.device.dwell_duration class="form-control" id="dwell_duration" placeholder="1000"}}
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.dwell_duration"}}>+</button>
+            </span>
+          </div>
+        </div>
+        <div class="col-sm-2">
+          <p class="form-control-static">{{t "milliseconds" key='milliseconds'}}</p>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="dwell_delay" class="col-sm-3 control-label">{{t "Dwell Selection Delay" key='dwell_delay'}}</label>
+        <div class="col-sm-3">
+          <div class="input-group">
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.dwell_delay"}}>-</button>
+            </span>
+            {{input value=model.preferences.device.dwell_delay class="form-control" id="dwell_delay" placeholder="100"}}
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.dwell_delay"}}>+</button>
+            </span>
+          </div>
+        </div>
+        <div class="col-sm-2">
+          <p class="form-control-static">{{t "milliseconds" key='milliseconds'}}</p>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="dwell_release_distance" class="col-sm-3 control-label">{{t "Next Dwell Movement" key='dwell_release'}}</label>
+        <div class="col-sm-2">
+          {{bound-select select_class="form-control" select_id="dwell_release_distance" content=dwellReleaseDistanceList selection=model.preferences.device.dwell_release_distance action=(action (mut model.preferences.device.dwell_release_distance)) }}
+        </div>
+        <div class="col-sm-3">
+          <p class='form-control-static'>{{t "before starting a new selection" key='move_after_select'}}</p>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="dwell_targeting" class="col-sm-3 control-label">{{t "Dwell Targeting Style" key='dwell_targeting'}}</label>
+        <div class="col-sm-5">
+          {{bound-select select_class="form-control" select_id="scanning_mode" content=targetingList selection=model.preferences.device.dwell_targeting action=(action (mut model.preferences.device.dwell_targeting)) }}
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="dwell_gravity" class="col-sm-3 control-label">{{t "Dwell Gravity" key='dwell_gravity'}}</label>
+        <div class="col-sm-5">
+          <div class="checkbox">
+            <label>
+              {{input type="checkbox" checked=model.preferences.device.dwell_gravity id="dwell_gravity"}}
+              {{t "Stay on the same target if the user's gaze leaves a bit" key='enable_dwell_gravity'}}
+            </label>
+          </div>
+        </div>
+      </div>
+      {{#if app_state.feature_flags.modeling}}
+        <div class="form-group">
+          <label for="dwell_modeling" class="col-sm-3 control-label">{{t "Dwell Modeling" key='dwell_modeling'}}</label>
+          <div class="col-sm-5">
+            <div class="checkbox">
+              <label>
+                {{input type="checkbox" checked=model.preferences.device.dwell_modeling id="dwell_modeling"}}
+                {{t "Mark clicks/touches as modeling events, not user selections" key='touch_as_modeling'}}
+              </label>
+            </div>
+          </div>
+        </div>
+      {{/if}}
+    {{/if}}
   {{/if}}
-{{/if}}
-{{#if user_voice_list}}
+  {{#if user_voice_list}}
+    <div class="form-group">
+      <label for="voice_pitch" class="col-sm-3 col-xs-12 control-label">{{t "Voice" key='voiceURI'}}</label>
+      <div class="col-sm-3 col-xs-7">
+        {{bound-select select_class="form-control" select_id="voiceURI" content=user_voice_list selection=model.preferences.device.voice.voice_uri action=(action (mut model.preferences.device.voice.voice_uri)) }}
+      </div>
+      <div class="col-sm-2 col-xs-5">
+        <button class='btn btn-default' {{action "premium_voices"}}>{{t "Premium Voices" key='premium_voices'}}</button>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top: -15px;">
+      <div class="col-sm-6 col-sm-offset-3">
+        (some voices don't support changing pitch/volume/etc.)
+      </div>
+    </div>
+  {{/if}}
   <div class="form-group">
-    <label for="voice_pitch" class="col-sm-3 col-xs-12 control-label">{{t "Voice" key='voiceURI'}}</label>
+    <label for="voice_rate" class="col-sm-3 col-xs-12 control-label">{{t "Voice Rate" key='voice_rate'}}</label>
     <div class="col-sm-3 col-xs-7">
-      {{bound-select select_class="form-control" select_id="voiceURI" content=user_voice_list selection=model.preferences.device.voice.voice_uri action=(action (mut model.preferences.device.voice.voice_uri)) }}
+      <div class="input-group">
+        <span class="input-group-btn">
+          <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.voice.rate"}}>-</button>
+        </span>
+        {{input value=model.preferences.device.voice.rate class="form-control" id="voice_rate" placeholder="1.0"}}
+        <span class="input-group-btn">
+          <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.voice.rate"}}>+</button>
+        </span>
+      </div>
     </div>
-    <div class="col-sm-2 col-xs-5">
-      <button class='btn btn-default' {{action "premium_voices"}}>{{t "Premium Voices" key='premium_voices'}}</button>
+    {{#unless advanced}}
+      <div class="col-sm-2 col-xs-5">
+        <button class='btn btn-default' {{action "test_voice"}}>{{t "Test Voice" key='test_voice'}}</button>
+      </div>
+    {{/unless}}
+  </div>
+  {{#if advanced}}
+  <div class="form-group">
+    <label for="voice_pitch" class="col-sm-3 col-xs-12 control-label">{{t "Voice Pitch" key='voice_pitch'}}</label>
+    <div class="col-sm-3 col-xs-7">
+      <div class="input-group">
+        <span class="input-group-btn">
+          <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.voice.pitch"}}>-</button>
+        </span>
+        {{input value=model.preferences.device.voice.pitch class="form-control" id="voice_pitch" placeholder="1.0"}}
+        <span class="input-group-btn">
+          <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.voice.pitch"}}>+</button>
+        </span>
+      </div>
     </div>
   </div>
-  <div class="form-group" style="margin-top: -15px;">
-    <div class="col-sm-6 col-sm-offset-3">
-      (some voices don't support changing pitch/volume/etc.)
+  <div class="form-group">
+    <label for="voice_volume" class="col-sm-3 col-xs-12 control-label">{{t "Voice Volume" key='voice_volume'}}</label>
+    <div class="col-sm-3 col-xs-7">
+      <div class="input-group">
+        <span class="input-group-btn">
+          <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.voice.volume"}}>-</button>
+        </span>
+        {{input value=model.preferences.device.voice.volume class="form-control" id="voice_volume" placeholder="1.0"}}
+        <span class="input-group-btn">
+          <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.voice.volume"}}>+</button>
+        </span>
+      </div>
     </div>
-  </div>
-{{/if}}
-<div class="form-group">
-  <label for="voice_rate" class="col-sm-3 col-xs-12 control-label">{{t "Voice Rate" key='voice_rate'}}</label>
-  <div class="col-sm-3 col-xs-7">
-    <div class="input-group">
-      <span class="input-group-btn">
-        <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.voice.rate"}}>-</button>
-      </span>
-      {{input value=model.preferences.device.voice.rate class="form-control" id="voice_rate" placeholder="1.0"}}
-      <span class="input-group-btn">
-        <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.voice.rate"}}>+</button>
-      </span>
-    </div>
-  </div>
-  {{#unless advanced}}
     <div class="col-sm-2 col-xs-5">
       <button class='btn btn-default' {{action "test_voice"}}>{{t "Test Voice" key='test_voice'}}</button>
     </div>
+  </div>
+  {{/if}}
+  {{#if model.preferences.device.allows_home_override}}
+    <div class="form-group">
+      <label for="hard_sidebar" class="col-sm-3 control-label">{{t "Device Home" key='device_home'}}</label>
+      <div class="col-sm-5">
+        <div class="checkbox">
+          <label>
+            {{input type="checkbox" checked=model.preferences.device.device_home id="device_home"}}
+            {{t "Replace the device's home screen with CoughDrop" key='device_home_screen'}}
+          </label>
+        </div>
+      </div>
+    </div>
+  {{/if}}
+  {{#if model.preferences.device.allows_eye_tracking}}
+    <div class="form-group">
+      <label for="eye_tracking" class="col-sm-3 control-label">{{t "Eye Gaze" key='eye_gaze'}}</label>
+      <div class="col-sm-5">
+        <div class="checkbox">
+          <label>
+            {{input type="checkbox" checked=model.preferences.device.eye_tracking id="eye_tracking"}}
+            {{t "Enable eye tracking option in the settings sidebar" key='enable_eye_tracking'}}
+          </label>
+        </div>
+      </div>
+    </div>
+  {{/if}}
+  {{#unless advanced}}
+    <div class="form-group">
+      <div class="col-sm-5 col-sm-offset-3">
+        <a href="#" {{action 'toggle_advanced'}}>{{t "more options" key='more_options'}}</a>
+      </div>
+    </div>
   {{/unless}}
-</div>
-{{#if advanced}}
-<div class="form-group">
-  <label for="voice_pitch" class="col-sm-3 col-xs-12 control-label">{{t "Voice Pitch" key='voice_pitch'}}</label>
-  <div class="col-sm-3 col-xs-7">
-    <div class="input-group">
-      <span class="input-group-btn">
-        <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.voice.pitch"}}>-</button>
-      </span>
-      {{input value=model.preferences.device.voice.pitch class="form-control" id="voice_pitch" placeholder="1.0"}}
-      <span class="input-group-btn">
-        <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.voice.pitch"}}>+</button>
-      </span>
-    </div>
-  </div>
-</div>
-<div class="form-group">
-  <label for="voice_volume" class="col-sm-3 col-xs-12 control-label">{{t "Voice Volume" key='voice_volume'}}</label>
-  <div class="col-sm-3 col-xs-7">
-    <div class="input-group">
-      <span class="input-group-btn">
-        <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.voice.volume"}}>-</button>
-      </span>
-      {{input value=model.preferences.device.voice.volume class="form-control" id="voice_volume" placeholder="1.0"}}
-      <span class="input-group-btn">
-        <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.voice.volume"}}>+</button>
-      </span>
-    </div>
-  </div>
-  <div class="col-sm-2 col-xs-5">
-    <button class='btn btn-default' {{action "test_voice"}}>{{t "Test Voice" key='test_voice'}}</button>
-  </div>
-</div>
-{{/if}}
-{{#if model.preferences.device.allows_home_override}}
   <div class="form-group">
-    <label for="hard_sidebar" class="col-sm-3 control-label">{{t "Device Home" key='device_home'}}</label>
-    <div class="col-sm-5">
-      <div class="checkbox">
-        <label>
-          {{input type="checkbox" checked=model.preferences.device.device_home id="device_home"}}
-          {{t "Replace the device's home screen with CoughDrop" key='device_home_screen'}}
-        </label>
-      </div>
+    <div class="col-sm-offset-3 col-sm-5">
+      <button type="submit" class="btn btn-primary">{{t "Save Preferences" key='save_preferences'}}</button>
+      <button type="button" class="btn btn-default" {{action "cancelSave"}}>{{t "Cancel" key='cancel'}}</button>
     </div>
   </div>
+  </form>
+{{else if session.isAuthenticated}}
+  <p>{{t "It looks like you don't have permission to access this information" key='not_authorized'}}</p>
+{{else}}
+  {{login-form left=true return=true}}
 {{/if}}
-{{#if model.preferences.device.allows_eye_tracking}}
-  <div class="form-group">
-    <label for="eye_tracking" class="col-sm-3 control-label">{{t "Eye Gaze" key='eye_gaze'}}</label>
-    <div class="col-sm-5">
-      <div class="checkbox">
-        <label>
-          {{input type="checkbox" checked=model.preferences.device.eye_tracking id="eye_tracking"}}
-          {{t "Enable eye tracking option in the settings sidebar" key='enable_eye_tracking'}}
-        </label>
-      </div>
-    </div>
-  </div>
-{{/if}}
-{{#unless advanced}}
-  <div class="form-group">
-    <div class="col-sm-5 col-sm-offset-3">
-      <a href="#" {{action 'toggle_advanced'}}>{{t "more options" key='more_options'}}</a>
-    </div>
-  </div>
-{{/unless}}
-<div class="form-group">
-  <div class="col-sm-offset-3 col-sm-5">
-    <button type="submit" class="btn btn-primary">{{t "Save Preferences" key='save_preferences'}}</button>
-    <button type="button" class="btn btn-default" {{action "cancelSave"}}>{{t "Cancel" key='cancel'}}</button>
-  </div>
-</div>
-</form>

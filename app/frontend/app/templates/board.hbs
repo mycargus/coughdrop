@@ -1,4 +1,4 @@
-{{#if model.id}}
+{{#if model.valid_id}}
   {{outlet}}
 {{else}}
   <div class="board_status">
@@ -18,5 +18,10 @@
     {{else}}
       <p>{{t "This board isn't available, or hasn't been synced for offline use." key='board_not_synced'}}</p>
     {{/if}}
+    {{#unless session.isAuthenticated}}
+      <div style="margin: 50px 15px;">
+        {{login-form left=true return=true restore=false}}
+      </div>
+    {{/unless}}
   </div>
 {{/if}}

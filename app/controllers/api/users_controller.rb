@@ -235,6 +235,8 @@ class Api::UsersController < ApplicationController
   
   def subscribe
     user = User.find_by_path(params['user_id'])
+    return unless exists?(user, params['user_id'])
+
     admin = Organization.admin
     token = nil
     if params['token'] && params['token'].respond_to?(:to_unsafe_h)

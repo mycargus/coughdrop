@@ -80,7 +80,6 @@
         <span>
           {{t "COUGHDROP" key="coughdrop"}}
         </span>
-        <span class="label label-primary" style="display: none;">{{t "BETA" key='beta'}}</span>
       </a>
     </h1>
     {{#if app_state.currentBoardState.id}}
@@ -91,6 +90,8 @@
           {{else}}
             {{#if board.model.image_url}}
               <img src={{board.model.image_url}} style="width: 30px; height: 30px; vertical-align: bottom;"/>
+            {{else}}
+              <span style="display: inline-block; height: 30px;"></span>
             {{/if}}
           {{/if}}
           {{#if app_state.current_board_in_board_set}}

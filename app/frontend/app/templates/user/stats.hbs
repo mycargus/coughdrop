@@ -136,7 +136,7 @@
     <h2>{{t "Usage Reports" key='usage_reports'}}</h2>
     <p>{{t "Looks like this user has logging turned off, and you don't have permission to enable it for the user." key='unauthorized_reports'}}</p>
   {{/if}}
-{{else}}
+{{else if session.isAuthenticated}}
   <h2>{{t "Premium Membership Required" key='premium_required'}}</h2>
   <p>
     {{t "CoughDrop is a powerful, flexible communication tool with lots of great features. Some features, including this one, are only available to users who have purchased a premium account. Please " key='purchase_subscription_1'}}
@@ -147,5 +147,7 @@
     {{/if}}
     {{t "to support this good cause and to unlock this feature." key='purchase_subscription_3'}}
   </p>
+{{else}}
+  {{login-form left=true return=true}}
 {{/if}}
 {{/opening-observer}}

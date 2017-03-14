@@ -43,7 +43,7 @@ export default Ember.Route.extend({
         data.set('lookup_key', params.key);
         return Ember.RSVP.resolve(data);
       }, function(err) {
-        var res = CoughDrop.store.createRecord('board', {key: params.key});
+        var res = CoughDrop.store.createRecord('board', {id: 'bad', key: params.key});
         res.set('lookup_key', params.key);
         res.set('error', err);
         return Ember.RSVP.resolve(res);

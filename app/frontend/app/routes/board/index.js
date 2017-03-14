@@ -62,7 +62,8 @@ export default Ember.Route.extend({
     // additional lookups
     if(model.get('integration')) { return; }
     var insufficient_data = model.get('id') && (!controller.get('ordered_buttons') || (!model.get('pseudo_board') && model.get('permissions') === undefined));
-    if(persistence.get('online') || insufficient_data) {
+    if(!model.get('valid_id')) {
+    } else if(persistence.get('online') || insufficient_data) {
       CoughDrop.log.track('considering reload');
       var reload = Ember.RSVP.resolve();
       // if we're online then we should reload, but do it softly if we're in speak mode

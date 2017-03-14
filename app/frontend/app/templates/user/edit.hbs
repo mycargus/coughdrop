@@ -1,267 +1,273 @@
-<h2>{{t "Profile for %{term}" key='profile_for' term=model.user_name}}</h2>
-<form class="form-horizontal" {{action "saveProfile" on="submit"}}>
-<div class="form-group">
-  <label for="name" class="col-sm-3 control-label">{{t "Name" key='name'}}</label>
-  <div class="col-sm-5">
-    {{input value=model.name class="form-control" id="name" placeholder="Full Name"}}
-  </div>
-</div>
-<div class="form-group">
-  <label for="user_name" class="col-sm-3 control-label">{{t "Username" key='username'}}</label>
-  <div class="col-sm-5">
-    <label class="control-label">
-      {{ model.user_name }}
-    </label>
-  </div>
-</div>
-<div class="form-group">
-  <label for="email" class="col-sm-3 control-label">{{t "Email" key='email'}}</label>
-  <div class="col-sm-5">
-    {{input value=model.email class="form-control" id="email" placeholder=""}}
-  </div>
-</div>
-<div class="form-group">
-  <label for="email" class="col-sm-3 control-label">{{t "Cell Phone" key='cell_phone'}}</label>
-  <div class="col-sm-5">
-    {{input value=model.cell_phone class="form-control" id="cell_phone" placeholder="optional, for alerts"}}
-  </div>
-</div>
-<div class="form-group">
-  <label for="notification_frequency" class="col-sm-3 control-label">{{t "Usage Summaries" key='notification_frequency'}}</label>
-  <div class="col-sm-5">
-    {{bound-select select_class="form-control" select_id="notification_frequency" content=notification_frequency_options selection=model.preferences.notification_frequency action=(action (mut model.preferences.notification_frequency)) }}
-  </div>
-</div>
-{{#if app_state.feature_flags.goals}}
+{{#if model.permissions.edit}}
+  <h2>{{t "Profile for %{term}" key='profile_for' term=model.user_name}}</h2>
+  <form class="form-horizontal" {{action "saveProfile" on="submit"}}>
   <div class="form-group">
-    <label for="goal_notifications" class="col-sm-3 control-label">{{t "Goal Updates" key='goal_notifications'}}</label>
+    <label for="name" class="col-sm-3 control-label">{{t "Name" key='name'}}</label>
     <div class="col-sm-5">
-      {{bound-select select_class="form-control" select_id="goal_notifications" content=goal_notification_options selection=model.preferences.goal_notifications action=(action (mut model.preferences.goal_notifications)) }}
+      {{input value=model.name class="form-control" id="name" placeholder="Full Name"}}
     </div>
   </div>
-{{/if}}
-<div class="form-group">
-  <label for="registration_type" class="col-sm-3 control-label">{{t "Notifying of Shares" key='share_notifications'}}</label>
-  <div class="col-sm-5">
-    {{bound-select select_class="form-control" select_id="share_notifications" content=allow_shares_options selection=model.preferences.share_notifications action=(action (mut model.preferences.share_notifications)) }}
-  </div>
-</div>
-<div class="form-group">
-  <label for="registration_type" class="col-sm-3 control-label">{{t "Login is for" key='login_is_for'}}</label>
-  <div class="col-sm-5">
-    {{bound-select select_class="form-control" select_id="registration_type" content=registration_types selection=model.preferences.registration_type action=(action (mut model.preferences.registration_type)) }}
-  </div>
-</div>
-<div class="form-group">
-  <label for="voice_pitch" class="col-sm-3 control-label">{{t "Home Board" key='home_board'}}</label>
-  <div class="col-sm-5">
-    <p class="form-control-static">
-      {{#if model.preferences.home_board.key}}
-        {{#link-to 'board' model.preferences.home_board.key}}{{model.preferences.home_board.key}}{{/link-to}}
-      {{else}}
-        {{t "None selected. Find the home board you would like and pick it!" key='none_selected_find_one'}}
-      {{/if}}
-    </p>
-  </div>
-</div>
-<div class="form-group">
-  <label for="public" class="col-sm-3 control-label">{{t "Public" key='public'}}</label>
-  <div class="col-sm-5">
-    <div class="checkbox">
-      <label>
-        {{input type="checkbox" checked=model.public id="public"}}
-        {{t "Anyone can see my profile" key='anyone_can_see_profile'}}
-        <br/><em>{{t "(your email and cell will stay private)" key='email_stays_private'}}</em>
+  <div class="form-group">
+    <label for="user_name" class="col-sm-3 control-label">{{t "Username" key='username'}}</label>
+    <div class="col-sm-5">
+      <label class="control-label">
+        {{ model.user_name }}
       </label>
     </div>
   </div>
-</div>
-{{#unless change_password}}
   <div class="form-group">
-    <label class="col-sm-3 control-label">{{t "Password" key='password'}}</label>
+    <label for="email" class="col-sm-3 control-label">{{t "Email" key='email'}}</label>
+    <div class="col-sm-5">
+      {{input value=model.email class="form-control" id="email" placeholder=""}}
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="email" class="col-sm-3 control-label">{{t "Cell Phone" key='cell_phone'}}</label>
+    <div class="col-sm-5">
+      {{input value=model.cell_phone class="form-control" id="cell_phone" placeholder="optional, for alerts"}}
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="notification_frequency" class="col-sm-3 control-label">{{t "Usage Summaries" key='notification_frequency'}}</label>
+    <div class="col-sm-5">
+      {{bound-select select_class="form-control" select_id="notification_frequency" content=notification_frequency_options selection=model.preferences.notification_frequency action=(action (mut model.preferences.notification_frequency)) }}
+    </div>
+  </div>
+  {{#if app_state.feature_flags.goals}}
+    <div class="form-group">
+      <label for="goal_notifications" class="col-sm-3 control-label">{{t "Goal Updates" key='goal_notifications'}}</label>
+      <div class="col-sm-5">
+        {{bound-select select_class="form-control" select_id="goal_notifications" content=goal_notification_options selection=model.preferences.goal_notifications action=(action (mut model.preferences.goal_notifications)) }}
+      </div>
+    </div>
+  {{/if}}
+  <div class="form-group">
+    <label for="registration_type" class="col-sm-3 control-label">{{t "Notifying of Shares" key='share_notifications'}}</label>
+    <div class="col-sm-5">
+      {{bound-select select_class="form-control" select_id="share_notifications" content=allow_shares_options selection=model.preferences.share_notifications action=(action (mut model.preferences.share_notifications)) }}
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="registration_type" class="col-sm-3 control-label">{{t "Login is for" key='login_is_for'}}</label>
+    <div class="col-sm-5">
+      {{bound-select select_class="form-control" select_id="registration_type" content=registration_types selection=model.preferences.registration_type action=(action (mut model.preferences.registration_type)) }}
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="voice_pitch" class="col-sm-3 control-label">{{t "Home Board" key='home_board'}}</label>
     <div class="col-sm-5">
       <p class="form-control-static">
-        <a href="#" {{action "enable_change_password"}}>change password</a>
+        {{#if model.preferences.home_board.key}}
+          {{#link-to 'board' model.preferences.home_board.key}}{{model.preferences.home_board.key}}{{/link-to}}
+        {{else}}
+          {{t "None selected. Find the home board you would like and pick it!" key='none_selected_find_one'}}
+        {{/if}}
       </p>
     </div>
   </div>
-{{else}}
   <div class="form-group">
-    <label class="col-sm-3 control-label">{{t "Password" key='password'}}</label>
+    <label for="public" class="col-sm-3 control-label">{{t "Public" key='public'}}</label>
     <div class="col-sm-5">
-      {{input type="password" value=model.old_password class="form-control" id="old_password" placeholder="current password"}}
+      <div class="checkbox">
+        <label>
+          {{input type="checkbox" checked=model.public id="public"}}
+          {{t "Anyone can see my profile" key='anyone_can_see_profile'}}
+          <br/><em>{{t "(your email and cell will stay private)" key='email_stays_private'}}</em>
+        </label>
+      </div>
+    </div>
+  </div>
+  {{#unless change_password}}
+    <div class="form-group">
+      <label class="col-sm-3 control-label">{{t "Password" key='password'}}</label>
+      <div class="col-sm-5">
+        <p class="form-control-static">
+          <a href="#" {{action "enable_change_password"}}>change password</a>
+        </p>
+      </div>
+    </div>
+  {{else}}
+    <div class="form-group">
+      <label class="col-sm-3 control-label">{{t "Password" key='password'}}</label>
+      <div class="col-sm-5">
+        {{input type="password" value=model.old_password class="form-control" id="old_password" placeholder="current password"}}
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-sm-3 control-label"></label>
+      <div class="col-sm-5">
+        {{input type="password" value=model.password class="form-control" id="password" placeholder="new password"}}
+      </div>
+    </div>
+  {{/unless}}
+  <div class="form-group">
+    <label for="description" class="col-sm-3 control-label">{{t "One-Liner" key='one_liner'}}</label>
+    <div class="col-sm-5">
+      {{input value=model.description class="form-control" id="description" placeholder="a short bio"}}
     </div>
   </div>
   <div class="form-group">
-    <label class="col-sm-3 control-label"></label>
+    <label for="url" class="col-sm-3 control-label">{{t "URL" key='url'}}</label>
     <div class="col-sm-5">
-      {{input type="password" value=model.password class="form-control" id="password" placeholder="new password"}}
+      {{input value=model.details_url class="form-control" id="url" placeholder="http://"}}
     </div>
   </div>
-{{/unless}}
-<div class="form-group">
-  <label for="description" class="col-sm-3 control-label">{{t "One-Liner" key='one_liner'}}</label>
-  <div class="col-sm-5">
-    {{input value=model.description class="form-control" id="description" placeholder="a short bio"}}
-  </div>
-</div>
-<div class="form-group">
-  <label for="url" class="col-sm-3 control-label">{{t "URL" key='url'}}</label>
-  <div class="col-sm-5">
-    {{input value=model.details_url class="form-control" id="url" placeholder="http://"}}
-  </div>
-</div>
-<div class="form-group">
-  <label for="location" class="col-sm-3 control-label">{{t "Location" key='location'}}</label>
-  <div class="col-sm-5">
-    {{input value=model.location class="form-control" id="location" placeholder="City, State, Whatever"}}
-  </div>
-</div>
-<div class="form-group">
-  <label for="location" class="col-sm-3 control-label">{{t "Avatar" key='avatar'}}</label>
-  <div class="col-sm-5">
-    <img src={{model.avatar_url_with_fallback}} style="max-height: 30px;"/>
-    <a href="#" {{action 'pick_avatar'}}>{{t "Choose a different profile pic" key='choose_a_different_profile_pic'}}</a>
-    <a href="http://www.gravatar.com" target="_blank" style="display: none;">{{t "Change your avatar at Gravatar.com" key='change_at_gravatar'}}</a>
-  </div>
-</div>
-{{#if tools}}
   <div class="form-group">
-    <label for="location" class="col-sm-3 control-label">{{t "Installed Tools" key='installed_tools'}}</label>
+    <label for="location" class="col-sm-3 control-label">{{t "Location" key='location'}}</label>
     <div class="col-sm-5">
-      {{#each tools as |tool|}}
-        <div style='float: left; cursor: pointer;' {{action 'integration_details' tool}}>
-          <img src={{tool.icon_url}} alt={{tool.name}} title={{tool.name}} style='max-height: 30px;'/>
-        </div>
-      {{/each}}
-      <div style='clear: left;'></div>
+      {{input value=model.location class="form-control" id="location" placeholder="City, State, Whatever"}}
     </div>
   </div>
-{{/if}}
-<div class="form-group">
-  <div class="col-sm-offset-3 col-sm-4">
-    <button type="submit" class="btn btn-primary">{{t "Save Profile" key='save_profile'}}</button>
-    <button type="button" class="btn btn-default" {{action "cancelSave"}}>{{t "Cancel" key='cancel'}}</button>
+  <div class="form-group">
+    <label for="location" class="col-sm-3 control-label">{{t "Avatar" key='avatar'}}</label>
+    <div class="col-sm-5">
+      <img src={{model.avatar_url_with_fallback}} style="max-height: 30px;"/>
+      <a href="#" {{action 'pick_avatar'}}>{{t "Choose a different profile pic" key='choose_a_different_profile_pic'}}</a>
+      <a href="http://www.gravatar.com" target="_blank" style="display: none;">{{t "Change your avatar at Gravatar.com" key='change_at_gravatar'}}</a>
+    </div>
   </div>
-</div>
-</form>
+  {{#if tools}}
+    <div class="form-group">
+      <label for="location" class="col-sm-3 control-label">{{t "Installed Tools" key='installed_tools'}}</label>
+      <div class="col-sm-5">
+        {{#each tools as |tool|}}
+          <div style='float: left; cursor: pointer;' {{action 'integration_details' tool}}>
+            <img src={{tool.icon_url}} alt={{tool.name}} title={{tool.name}} style='max-height: 30px;'/>
+          </div>
+        {{/each}}
+        <div style='clear: left;'></div>
+      </div>
+    </div>
+  {{/if}}
+  <div class="form-group">
+    <div class="col-sm-offset-3 col-sm-4">
+      <button type="submit" class="btn btn-primary">{{t "Save Profile" key='save_profile'}}</button>
+      <button type="button" class="btn btn-default" {{action "cancelSave"}}>{{t "Cancel" key='cancel'}}</button>
+    </div>
+  </div>
+  </form>
 
-<div style='margin-top: 50px;'>
-  {{#if app_state.feature_flags.lessonpix}}
-    <div style='margin-bottom: 10px;'>
-      <button class='btn btn-default' {{action 'browse_tools' 'lessonpix'}}>
-        <img src='https://pbs.twimg.com/profile_images/779207722306854912/6rPpJceZ.jpg' style='height: 30px; max-width: 50px; padding-right: 5px;'/>
-        {{t "Connect To a LessonPix Account" key='connect_lessonpix'}}
-      </button>
-    </div>
-  {{/if}}
-  {{#if app_state.feature_flags.app_connections}}
-    {{#if managing_connections}}
-      <h2>{{t "Connections" key='connections'}}</h2>
-      <div class='row' style='margin-top: 20px;'>
-        <div class='col-sm-3'>
-          <h4>{{t "Connected Tools" key='connected_tools'}}</h4>
-        </div>
-        <div class='col-sm-8'>
-          {{#if model.integrations.loading}}
-            <span style='margin-top: 10px; display: inline-block;'>{{t "Loading connected tools..." key='loading_connected_tools'}}</span>
-          {{else if model.integrations.error}}
-            <span style='margin-top: 10px; display: inline-block;'>{{t "There was an error loading connected tools" key='error_loading_connected_tools'}}</span>
-          {{else if model.integrations}}
-            <table class='table table-striped table-hover' style='margin-bottom: 5px;'>
-              <tbody>
-                {{#each model.integrations as |integration|}}
-                  <tr>
-                    <td>
-                      <div {{action 'integration_details' integration}} style='cursor: pointer;'>
-                        {{#if integration.icon_url}}
-                          <img src={{integration.icon_url}} style='height: 40px; max-width: 50px; vertical-align: middle; padding-right: 10px;' />
-                        {{else}}
-                          <span class='glyphicon glyphicon-wrench' style='font-size: 30px; vertical-align: middle; padding-right: 10px;'></span>
-                        {{/if}}
-                        {{integration.name}}
-                      </div>
-                    </td>
-                    <td>
-                      {{#if integration.custom_integration}}
-                        {{t "API: %{token}" token=integration.truncated_access_token key='displayable_access_token'}}<br/>
-                        {{t "Webhooks: %{token}" token=integration.truncated_token key='displayable_token'}}
-                      {{else}}
-                        {{t "recognized tool" key='known_tool'}}
-                      {{/if}}
-                    </td>
-                    {{#if model.permissions.edit}}
-                      <td>
-                        <a href="#" {{action 'delete_integration' integration}}><span class='glyphicon glyphicon-trash'></span><span class='sr-only'>{{t "delete connected tool" key='delete_connected_tool'}}</span></a>
-                      </td>
-                    {{/if}}
-                  </tr>
-                {{/each}}
-              </tbody>
-            </table>
-          {{else}}
-            <span style='margin-top: 10px; display: inline-block;'>{{t "No tools connected" key='no_tools_connected'}}</span>
-          {{/if}}
-          {{#if model.permissions.edit}}
-            <div>
-              <a href="#" class='btn btn-default' {{action 'browse_tools'}}>{{t "browse tools" key='browse_tools'}}</a>
-              <a href="#" class='btn btn-default' {{action 'add_integration'}}>{{t "add custom tool" key='add_connected_tool'}}</a>
-            </div>
-          {{/if}}
-        </div>
+  <div style='margin-top: 50px;'>
+    {{#if app_state.feature_flags.lessonpix}}
+      <div style='margin-bottom: 10px;'>
+        <button class='btn btn-default' {{action 'browse_tools' 'lessonpix'}}>
+          <img src='https://pbs.twimg.com/profile_images/779207722306854912/6rPpJceZ.jpg' style='height: 30px; max-width: 50px; padding-right: 5px;'/>
+          {{t "Connect To a LessonPix Account" key='connect_lessonpix'}}
+        </button>
       </div>
-      <div class='row' style='margin-top: 20px;'>
-        <div class='col-sm-3'>
-          <h4>{{t "Event Handlers" key='event_handlers'}}</h4>
-        </div>
-        <div class='col-sm-8'>
-          {{#if webhooks.loading}}
-            <span style='margin-top: 10px; display: inline-block;'>{{t "Loading event handlers..." key='loading_event_handlers'}}</span>
-          {{else if webhooks.error}}
-            <span style='margin-top: 10px; display: inline-block;'>{{t "There was an error loading event handlers" key='error_loading_webhooks'}}</span>
-          {{else if webhooks}}
-            <table class='table table-striped table-hover' style='margin-bottom: 5px;'>
-              <tbody>
-                {{#each webhooks as |webhook|}}
-                  <tr>
-                    <td>
-                    <span class='glyphicon glyphicon-phone-alt' style='font-size: 20px; vertical-align: middle; padding: 5px;'></span>
-                    {{webhook.name}}
-                    {{#if webhook.include_content}}
-                      {{t "(sends content)" key='sends_content'}}
-                    {{/if}}
-                    {{#if webhook.webhooks}}
-                      <em>{{webhook.webhooks_list}}</em>
-                    {{/if}}
-                    </td>
-                    <td>
-                      {{#if webhook.custom_configuration}}
-                        <a href="#" {{action 'test_webhook' webhook}}>
-                          {{t "test" key='test'}}
-                        </a>
-                      {{/if}}
-                    </td>
-                    {{#if model.permissions.edit}}
-                      <td>
-                        <a href="#" {{action 'delete_webhook' webhook}}><span class='glyphicon glyphicon-trash'></span><span class='sr-only'>{{t "delete event handler" key='delete_event_handler'}}</span></a>
-                      </td>
-                    {{/if}}
-                  </tr>
-                {{/each}}
-              </tbody>
-            </table>
-          {{else}}
-            <span style='margin-top: 10px; display: inline-block;'>{{t "None enabled" key='none_enabled'}}</span>
-          {{/if}}
-          {{#if model.permissions.edit}}
-            <div>
-              <a href="#" class='btn btn-sm btn-default' {{action 'add_webhook'}}>{{t "add custom handler" key='add_handler'}}</a>
-            </div>
-          {{/if}}
-        </div>
-      </div>
-    {{else}}
-      <a href="#" class='btn btn-default' {{action 'manage_connections'}}>{{t "Manage Tools and Connections" key='manage_connections'}}</a>
     {{/if}}
-  {{/if}}
-</div>
+    {{#if app_state.feature_flags.app_connections}}
+      {{#if managing_connections}}
+        <h2>{{t "Connections" key='connections'}}</h2>
+        <div class='row' style='margin-top: 20px;'>
+          <div class='col-sm-3'>
+            <h4>{{t "Connected Tools" key='connected_tools'}}</h4>
+          </div>
+          <div class='col-sm-8'>
+            {{#if model.integrations.loading}}
+              <span style='margin-top: 10px; display: inline-block;'>{{t "Loading connected tools..." key='loading_connected_tools'}}</span>
+            {{else if model.integrations.error}}
+              <span style='margin-top: 10px; display: inline-block;'>{{t "There was an error loading connected tools" key='error_loading_connected_tools'}}</span>
+            {{else if model.integrations}}
+              <table class='table table-striped table-hover' style='margin-bottom: 5px;'>
+                <tbody>
+                  {{#each model.integrations as |integration|}}
+                    <tr>
+                      <td>
+                        <div {{action 'integration_details' integration}} style='cursor: pointer;'>
+                          {{#if integration.icon_url}}
+                            <img src={{integration.icon_url}} style='height: 40px; max-width: 50px; vertical-align: middle; padding-right: 10px;' />
+                          {{else}}
+                            <span class='glyphicon glyphicon-wrench' style='font-size: 30px; vertical-align: middle; padding-right: 10px;'></span>
+                          {{/if}}
+                          {{integration.name}}
+                        </div>
+                      </td>
+                      <td>
+                        {{#if integration.custom_integration}}
+                          {{t "API: %{token}" token=integration.truncated_access_token key='displayable_access_token'}}<br/>
+                          {{t "Webhooks: %{token}" token=integration.truncated_token key='displayable_token'}}
+                        {{else}}
+                          {{t "recognized tool" key='known_tool'}}
+                        {{/if}}
+                      </td>
+                      {{#if model.permissions.edit}}
+                        <td>
+                          <a href="#" {{action 'delete_integration' integration}}><span class='glyphicon glyphicon-trash'></span><span class='sr-only'>{{t "delete connected tool" key='delete_connected_tool'}}</span></a>
+                        </td>
+                      {{/if}}
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            {{else}}
+              <span style='margin-top: 10px; display: inline-block;'>{{t "No tools connected" key='no_tools_connected'}}</span>
+            {{/if}}
+            {{#if model.permissions.edit}}
+              <div>
+                <a href="#" class='btn btn-default' {{action 'browse_tools'}}>{{t "browse tools" key='browse_tools'}}</a>
+                <a href="#" class='btn btn-default' {{action 'add_integration'}}>{{t "add custom tool" key='add_connected_tool'}}</a>
+              </div>
+            {{/if}}
+          </div>
+        </div>
+        <div class='row' style='margin-top: 20px;'>
+          <div class='col-sm-3'>
+            <h4>{{t "Event Handlers" key='event_handlers'}}</h4>
+          </div>
+          <div class='col-sm-8'>
+            {{#if webhooks.loading}}
+              <span style='margin-top: 10px; display: inline-block;'>{{t "Loading event handlers..." key='loading_event_handlers'}}</span>
+            {{else if webhooks.error}}
+              <span style='margin-top: 10px; display: inline-block;'>{{t "There was an error loading event handlers" key='error_loading_webhooks'}}</span>
+            {{else if webhooks}}
+              <table class='table table-striped table-hover' style='margin-bottom: 5px;'>
+                <tbody>
+                  {{#each webhooks as |webhook|}}
+                    <tr>
+                      <td>
+                      <span class='glyphicon glyphicon-phone-alt' style='font-size: 20px; vertical-align: middle; padding: 5px;'></span>
+                      {{webhook.name}}
+                      {{#if webhook.include_content}}
+                        {{t "(sends content)" key='sends_content'}}
+                      {{/if}}
+                      {{#if webhook.webhooks}}
+                        <em>{{webhook.webhooks_list}}</em>
+                      {{/if}}
+                      </td>
+                      <td>
+                        {{#if webhook.custom_configuration}}
+                          <a href="#" {{action 'test_webhook' webhook}}>
+                            {{t "test" key='test'}}
+                          </a>
+                        {{/if}}
+                      </td>
+                      {{#if model.permissions.edit}}
+                        <td>
+                          <a href="#" {{action 'delete_webhook' webhook}}><span class='glyphicon glyphicon-trash'></span><span class='sr-only'>{{t "delete event handler" key='delete_event_handler'}}</span></a>
+                        </td>
+                      {{/if}}
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            {{else}}
+              <span style='margin-top: 10px; display: inline-block;'>{{t "None enabled" key='none_enabled'}}</span>
+            {{/if}}
+            {{#if model.permissions.edit}}
+              <div>
+                <a href="#" class='btn btn-sm btn-default' {{action 'add_webhook'}}>{{t "add custom handler" key='add_handler'}}</a>
+              </div>
+            {{/if}}
+          </div>
+        </div>
+      {{else}}
+        <a href="#" class='btn btn-default' {{action 'manage_connections'}}>{{t "Manage Tools and Connections" key='manage_connections'}}</a>
+      {{/if}}
+    {{/if}}
+  </div>
+{{else if session.isAuthenticated}}
+  <p>{{t "It appears you don't have permission to access this user's information" key='not_allowed'}}</p>
+{{else}}
+  {{login-form left=true return=true}}
+{{/if}}
