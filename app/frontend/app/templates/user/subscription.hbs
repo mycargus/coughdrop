@@ -1,124 +1,155 @@
-<h2>{{t "Billing Details" key='billing_details'}}</h2>
-<div class="row">
-<div class='col-sm-9'>
-  {{#if subscription.user.subscription.never_expires}}
-    <span class='glyphicon glyphicon-heart' style="float: left; font-size: 30px; margin-right: 10px;"></span>
-    {{t "You are lucky! Somehow you get set up with a subscription plan that never expires! Like, never, ever! If you for some reason you want to change that you're welcome to." key='never_expires_explanation'}}
-  {{else if subscription.user.is_sponsored}}
-    {{#if subscription.user.pending_org}}
-      <span class='glyphicon glyphicon-user' style="float: left; font-size: 30px; margin-right: 10px;"></span>
-      {{t "<b>%{org}</b> wants to sponsor this user as part of their organization. This addition must be approved before it is complete." key='confirm_pending_org' org=model.pending_org.name}}
-      <br/><br/>
-      <button class="btn btn-default" {{action 'approve_or_reject_org' true}}>{{t "Approve %{org}" org=model.pending_org.name}}</button>
-      <button class="btn btn-default" {{action 'approve_or_reject_org' false}}>{{t "Deny Access"}}</button>
+{{#if model.subscription}}
+  <h2>{{t "Billing Details" key='billing_details'}}</h2>
+  <div class="row">
+  <div class='col-sm-9'>
+    {{#if subscription.user.subscription.never_expires}}
+      <span class='glyphicon glyphicon-heart' style="float: left; font-size: 30px; margin-right: 10px;"></span>
+      {{t "You are lucky! Somehow you get set up with a subscription plan that never expires! Like, never, ever! If you for some reason you want to change that you're welcome to." key='never_expires_explanation'}}
+    {{else if subscription.user.is_sponsored}}
+      {{#if subscription.user.pending_org}}
+        <span class='glyphicon glyphicon-user' style="float: left; font-size: 30px; margin-right: 10px;"></span>
+        {{t "<b>%{org}</b> wants to sponsor this user as part of their organization. This addition must be approved before it is complete." key='confirm_pending_org' org=model.pending_org.name}}
+        <br/><br/>
+        <button class="btn btn-default" {{action 'approve_or_reject_org' true}}>{{t "Approve %{org}" org=model.pending_org.name}}</button>
+        <button class="btn btn-default" {{action 'approve_or_reject_org' false}}>{{t "Deny Access"}}</button>
+      {{else}}
+        <span class='glyphicon glyphicon-user' style="float: left; font-size: 30px; margin-right: 10px;"></span>
+        {{t "Your account is being sponsored by the organization, <b>%{org}</b>. We hope everything is going well for you and CoughDrop is making a difference!" key='org_managed' org=subscription.user.managing_org.name}}
+      {{/if}}
+    {{else if subscription.user_expired}}
+      <span class='glyphicon glyphicon-exclamation-sign' style="float: left; font-size: 30px; margin-right: 10px;"></span>
+      {{t "Your premium account has expired. Please select a new billing option." key='subscription_expired'}}
+    {{else if subscription.user.subscription.started}}
+      {{#if subscription.user_expiring}}
+        <span class='glyphicon glyphicon-time' style="float: left; font-size: 30px; margin-right: 10px;"></span>
+        {{t "You were signed up for the monthly subscription plan, <b>%{plan}</b>, but it is no longer in effect, and you should update your subscription. Your premium subscription is set to expire " key='subscription_expires' plan=subscription.subscription_plan_description}} <span style='white-space: nowrap;'>{{date subscription.user.subscription.expires}}</span>.
+      {{else}}
+        <span class='glyphicon glyphicon-calendar' style="float: left; font-size: 30px; margin-right: 10px;"></span>
+        {{t "You are signed up for the monthly subscription plan, <b>%{plan}</b>. We hope everything is going well for you and CoughDrop is making a difference!" key='monthly_plan' plan=subscription.subscription_plan_description}}
+      {{/if}}
+    {{else if subscription.user.subscription.purchased}}
+      {{# if subscription.user_expiring}}
+        <span class='glyphicon glyphicon-time' style="float: left; font-size: 30px; margin-right: 10px;"></span>
+        {{t "You've purchased a CoughDrop license, <b>%{plan}</b>. You've had access to cloud extras like reporting and team communication, but those will be expiring soon unless you update your purchase. Your account will continue working for communication, but access to cloud extras like reporting and team communication will expire " key='long_term_expiring' plan=subscription.subscription_plan_description}}<span style='white-space: nowrap;'>{{date subscription.user.subscription.expires}}</span>
+      {{else}}
+        <span class='glyphicon glyphicon-calendar' style="float: left; font-size: 30px; margin-right: 10px;"></span>
+        {{t "You've purchased a CoughDrop license, <b>%{plan}</b>. We hope everything is going well for you and CoughDrop is making a difference! You can use CoughDrop as long as you like, but keep in mind that access to cloud extras like reporting and team communication are set to expire " key='long_term_explanation' plan=subscription.subscription_plan_description}} <span style='white-space: nowrap;'>{{date subscription.user.subscription.expires}}</span>
+      {{/if}}
     {{else}}
-      <span class='glyphicon glyphicon-user' style="float: left; font-size: 30px; margin-right: 10px;"></span>
-      {{t "Your account is being sponsored by the organization, <b>%{org}</b>. We hope everything is going well for you and CoughDrop is making a difference!" key='org_managed' org=subscription.user.managing_org.name}}
+      <span class='glyphicon glyphicon-info-sign' style="float: left; font-size: 30px; margin-right: 10px;"></span>
+      {{t "You haven't purchased CoughDrop yet. Currently you're running a free trial, hopefully you're learning a lot and getting excited for what CoughDrop can do! Your trial will end" key='trial_ending'}} <span style='white-space: nowrap;'>{{date subscription.user.subscription.expires}}</span>.
     {{/if}}
-  {{else if subscription.user_expired}}
-    <span class='glyphicon glyphicon-exclamation-sign' style="float: left; font-size: 30px; margin-right: 10px;"></span>
-    {{t "Your premium account has expired. Please select a new billing option." key='subscription_expired'}}
-  {{else if subscription.user.subscription.started}}
-    {{#if subscription.user_expiring}}
-      <span class='glyphicon glyphicon-time' style="float: left; font-size: 30px; margin-right: 10px;"></span>
-      {{t "You were signed up for the monthly subscription plan, <b>%{plan}</b>, but it is no longer in effect, and you should update your subscription. Your premium subscription is set to expire " key='subscription_expires' plan=subscription.subscription_plan_description}} <span style='white-space: nowrap;'>{{date subscription.user.subscription.expires}}</span>.
-    {{else}}
-      <span class='glyphicon glyphicon-calendar' style="float: left; font-size: 30px; margin-right: 10px;"></span>
-      {{t "You are signed up for the monthly subscription plan, <b>%{plan}</b>. We hope everything is going well for you and CoughDrop is making a difference!" key='monthly_plan' plan=subscription.subscription_plan_description}}
-    {{/if}}
-  {{else if subscription.user.subscription.purchased}}
-    {{# if subscription.user_expiring}}
-      <span class='glyphicon glyphicon-time' style="float: left; font-size: 30px; margin-right: 10px;"></span>
-      {{t "You've purchased a CoughDrop license, <b>%{plan}</b>. You've had access to cloud extras like reporting and team communication, but those will be expiring soon unless you update your purchase. Your account will continue working for communication, but access to cloud extras like reporting and team communication will expire " key='long_term_expiring' plan=subscription.subscription_plan_description}}<span style='white-space: nowrap;'>{{date subscription.user.subscription.expires}}</span>
-    {{else}}
-      <span class='glyphicon glyphicon-calendar' style="float: left; font-size: 30px; margin-right: 10px;"></span>
-      {{t "You've purchased a CoughDrop license, <b>%{plan}</b>. We hope everything is going well for you and CoughDrop is making a difference! You can use CoughDrop as long as you like, but keep in mind that access to cloud extras like reporting and team communication are set to expire " key='long_term_explanation' plan=subscription.subscription_plan_description}} <span style='white-space: nowrap;'>{{date subscription.user.subscription.expires}}</span>
-    {{/if}}
-  {{else}}
-    <span class='glyphicon glyphicon-info-sign' style="float: left; font-size: 30px; margin-right: 10px;"></span>
-    {{t "You haven't purchased CoughDrop yet. Currently you're running a free trial, hopefully you're learning a lot and getting excited for what CoughDrop can do! Your trial will end" key='trial_ending'}} <span style='white-space: nowrap;'>{{date subscription.user.subscription.expires}}</span>.
-  {{/if}}
-  <div style="clear: left;"></div>
-  <p style="margin-top: 10px;">
-    <a href="#" {{action 'show_expiration_notes'}}>{{t "what happens if my \"cloud extras\" access expires?" key='what_happens_expires'}}</a>
-  </p>
-  {{#if show_expiration_notes}}
-    <p class="explanation" style="margin-top: 10px;">
-      {{t "We don't want to shut off anyone's voice, even if funding unexpectedly becomes an issue down the line. When a user's subscription expires CoughDrop will still work as a communication system but premium features like reporting and video notes will be disabled. If you need help with funding please <a href='https://coughdrop.zendesk.com'>contact our support team</a> for more information." key='expiration_notes'}}
+    <div style="clear: left;"></div>
+    <p style="margin-top: 10px;">
+      <a href="#" {{action 'show_expiration_notes'}}>{{t "what happens if my \"cloud extras\" access expires?" key='what_happens_expires'}}</a>
     </p>
-  {{/if}}
-</div>
-</div>
-{{#if app_state.installed_app}}
-  <p style="margin: 50px 0; font-size: 18px;">
-    {{t "To modify your billing settings, please update your account by <b>visiting mycoughdrop.com</b> in your web browser. Make sure to sync this device after you purchase to update your changes." key='go_to_web_site'}}
-  </p>
-  {{#unless subscription.show_options}}
-    {{#unless subscription.user.is_sponsored}}
-      {{#if subscription.user.subscription.started}}
-        <div style="margin-top: 20px;">
-          <a class='btn btn-default' href="#" {{action 'cancel_subscription'}}>{{t "Cancel my Subscription" key='cancel_my_subscription'}}</a>
-        </div>
-      {{/if}}
-    {{/unless}}
-  {{else}}
-    {{#if subscription.show_cancel}}
-      <div style="margin-top: 20px;">
-        <h3>{{t "Cancel Subscription" key='cancel_subscription'}}</h3>
-        {{#if subscription.canceling}}
-          <p>{{t "Canceling subscription..." key='canceling'}}</p>
-        {{else}}
-          <p>{{t "Are you sure you want to cancel your subscription? This will remove your access to premium features in CoughDrop like reports and logging." key='confirm_cancel_subscription'}}</p>
-          <button type="button" class="btn btn-primary" {{action 'cancel_subscription' true}}>{{t "Cancel Subscription" key='cancel_subscription'}}</button>
-          <button type="button" class="btn btn-default" {{action "reset"}}>{{t "Never Mind" key='never_mind'}}</button>
-        {{/if}}
-      </div>
+    {{#if show_expiration_notes}}
+      <p class="explanation" style="margin-top: 10px;">
+        {{t "We don't want to shut off anyone's voice, even if funding unexpectedly becomes an issue down the line. When a user's subscription expires CoughDrop will still work as a communication system but premium features like reporting and video notes will be disabled. If you need help with funding please <a href='https://coughdrop.zendesk.com'>contact our support team</a> for more information." key='expiration_notes'}}
+      </p>
     {{/if}}
-  {{/unless}}
-{{else}}
-  {{#unless subscription.show_options}}
-    {{#unless subscription.user.is_sponsored}}
-      <div style="margin-top: 20px;">
-        <a class='btn btn-default' href="#" {{action 'show_options'}}>{{t "Update my Billing Settings" key='change_my_subscription'}}</a>
+  </div>
+  </div>
+  {{#if app_state.installed_app}}
+    <p style="margin: 50px 0; font-size: 18px;">
+      {{t "To modify your billing settings, please update your account by <b>visiting mycoughdrop.com</b> in your web browser. Make sure to sync this device after you purchase to update your changes." key='go_to_web_site'}}
+    </p>
+    {{#unless subscription.show_options}}
+      {{#unless subscription.user.is_sponsored}}
         {{#if subscription.user.subscription.started}}
-          <a class='btn btn-default' href="#" {{action 'cancel_subscription'}}>{{t "Cancel my Subscription" key='cancel_my_subscription'}}</a>
+          <div style="margin-top: 20px;">
+            <a class='btn btn-default' href="#" {{action 'cancel_subscription'}}>{{t "Cancel my Subscription" key='cancel_my_subscription'}}</a>
+          </div>
         {{/if}}
-        {{#link-to 'gift_purchase' class='btn btn-default'}}{{t "Purchase as a Gift" key='purchase_as_a_gift'}}{{/link-to}}
-      </div>
-    {{/unless}}
-  {{else if subscription.finalizing_purchase}}
-    <h4>{{t "Confirming purchase update..." key='finalizing_subscription'}}</h4>
-  {{else}}
-    {{#if subscription.show_cancel}}
-      <div style="margin-top: 20px;">
-        <h3>{{t "Cancel Subscription" key='cancel_subscription'}}</h3>
-        {{#if subscription.canceling}}
-          <p>{{t "Canceling subscription..." key='canceling'}}</p>
-        {{else}}
-          <p>{{t "Are you sure you want to cancel your subscription? This will remove your access to premium features in CoughDrop like reports and logging." key='confirm_cancel_subscription'}}</p>
-          <button type="button" class="btn btn-primary" {{action 'cancel_subscription' true}}>{{t "Cancel Subscription" key='cancel_subscription'}}</button>
-          <button type="button" class="btn btn-default" {{action "reset"}}>{{t "Never Mind" key='never_mind'}}</button>
-        {{/if}}
-      </div>
+      {{/unless}}
     {{else}}
-      {{#if subscription.discount_period}}
-        <div class="row">
-          <div class="col-sm-9">
-            <strong>{{t "Discount available!" key='temporary_discount'}}</strong>
-            {{t "When you purchase a CoughDrop communicator account within 24 hours after signing up, you'll receive a 25% discount. If you sign up for a monthly account we won't start charging for 2 months, and a long-term purchase will still get your 2 free months as well, so feel free to sign up now!" key='temporary_discount_explanation'}}
+      {{#if subscription.show_cancel}}
+        {{#if session.isAuthenticated}}
+          <div style="margin-top: 20px;">
+            <h3>{{t "Cancel Subscription" key='cancel_subscription'}}</h3>
+            {{#if subscription.canceling}}
+              <p>{{t "Canceling subscription..." key='canceling'}}</p>
+            {{else}}
+              <p>{{t "Are you sure you want to cancel your subscription? This will remove your access to premium features in CoughDrop like reports and logging." key='confirm_cancel_subscription'}}</p>
+              <button type="button" class="btn btn-primary" {{action 'cancel_subscription' true}}>{{t "Cancel Subscription" key='cancel_subscription'}}</button>
+              <button type="button" class="btn btn-default" {{action "reset"}}>{{t "Never Mind" key='never_mind'}}</button>
+            {{/if}}
           </div>
-        </div>
-      {{else if subscription.sale}}
-        <div class="row">
-          <div class="col-sm-9">
-            <strong>{{t "CoughDrop is currently on sale!" key='on_sale'}}</strong>
-            {{t "You can purchase a communicator account right now at a discount! This sale ends" key='on_sale_explanation'}}
-            {{date subscription.sale_ends 'day'}}
-            {{t "so sign up now or help spread the word!" key='on_sale_explanation2'}}
+        {{else}}
+          <div style="margin-top: 20px;">
+            <h3>{{t "Cancel Subscription" key='cancel_subscription'}}</h3>
+            <p>{{t "You'll need to log in before you can cancel your subscription" key='login_before_canceling'}}</p>
+            {{login-form left=true return=true}}
           </div>
-        </div>
+        {{/if}}
       {{/if}}
-      {{subscription-form user=model subscription=subscription subscription_error='subscription_error' subscription_success='subscription_success'}}
-    {{/if}}
-  {{/unless}}
+    {{/unless}}
+  {{else}}
+    {{#unless subscription.show_options}}
+      {{#unless subscription.user.is_sponsored}}
+        <div style="margin-top: 20px;">
+          <a class='btn btn-default' href="#" {{action 'show_options'}}>{{t "Update my Billing Settings" key='change_my_subscription'}}</a>
+          {{#if subscription.user.subscription.started}}
+            <a class='btn btn-default' href="#" {{action 'cancel_subscription'}}>{{t "Cancel my Subscription" key='cancel_my_subscription'}}</a>
+          {{/if}}
+          {{#unless confirmation}}
+            {{#link-to 'gift_purchase' class='btn btn-default'}}{{t "Purchase as a Gift" key='purchase_as_a_gift'}}{{/link-to}}
+          {{/unless}}
+        </div>
+      {{/unless}}
+    {{else if subscription.finalizing_purchase}}
+      <h4>{{t "Confirming purchase update..." key='finalizing_subscription'}}</h4>
+    {{else}}
+      {{#if subscription.show_cancel}}
+        {{#if session.isAuthenticated}}
+          <div style="margin-top: 20px;">
+            <h3>{{t "Cancel Subscription" key='cancel_subscription'}}</h3>
+            {{#if subscription.canceling}}
+              <p>{{t "Canceling subscription..." key='canceling'}}</p>
+            {{else}}
+              <p>{{t "Are you sure you want to cancel your subscription? This will remove your access to premium features in CoughDrop like reports and logging." key='confirm_cancel_subscription'}}</p>
+              <button type="button" class="btn btn-primary" {{action 'cancel_subscription' true}}>{{t "Cancel Subscription" key='cancel_subscription'}}</button>
+              <button type="button" class="btn btn-default" {{action "reset"}}>{{t "Never Mind" key='never_mind'}}</button>
+            {{/if}}
+          </div>
+        {{else}}
+          <div style="margin-top: 20px;">
+            <h3>{{t "Cancel Subscription" key='cancel_subscription'}}</h3>
+            <p>{{t "You'll need to log in before you can cancel your subscription" key='login_before_canceling'}}</p>
+            <div style="margin-left: 15px;">
+              {{login-form left=true return=true}}
+            </div>
+          </div>
+        {{/if}}
+      {{else}}
+        {{#if subscription.discount_period}}
+          <div class="row">
+            <div class="col-sm-9">
+              <strong>{{t "Discount available!" key='temporary_discount'}}</strong>
+              {{t "When you purchase a CoughDrop communicator account within 24 hours after signing up, you'll receive a 25% discount. If you sign up for a monthly account we won't start charging for 2 months, and a long-term purchase will still get your 2 free months as well, so feel free to sign up now!" key='temporary_discount_explanation'}}
+            </div>
+          </div>
+        {{else if subscription.sale}}
+          <div class="row">
+            <div class="col-sm-9">
+              <strong>{{t "CoughDrop is currently on sale!" key='on_sale'}}</strong>
+              {{t "You can purchase a communicator account right now at a discount! This sale ends" key='on_sale_explanation'}}
+              {{date subscription.sale_ends 'day'}}
+              {{t "so sign up now or help spread the word!" key='on_sale_explanation2'}}
+            </div>
+          </div>
+        {{/if}}
+        {{subscription-form user=model subscription=subscription subscription_error='subscription_error' subscription_success='subscription_success'}}
+      {{/if}}
+    {{/unless}}
+  {{/if}}
+{{else if subscription.loading}}
+  <p>{{t "Loading subscription details..." key='loading_subscription_details'}}</p>
+{{else if session.isAuthenticated}}
+  <p>{{t "It looks like you don't have permission to access this information" key='not_authorized'}}</p>
+{{else}}
+  {{#if subscription.error}}
+    <p>{{t "There was an error loading subscription details" key='error_loading_subscription_details'}}</p>
+  {{/if}}
+  {{login-form left=true prompt=true return=true}}
 {{/if}}

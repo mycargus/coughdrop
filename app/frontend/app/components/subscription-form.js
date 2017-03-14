@@ -94,7 +94,8 @@ export default Ember.Component.extend({
           type: 'POST',
           data: {
             token: token,
-            type: type
+            type: type,
+            confirmation: subscription.get('confirmation')
           }
         }).then(function(data) {
           progress_tracker.track(data.progress, function(event) {
@@ -112,14 +113,18 @@ export default Ember.Component.extend({
               _this.send('reset');
               console.log(event);
             } else if(event.status == 'finished') {
-              user.reload().then(function() {
-                user.set('preferences.progress.subscription_set', true);
-                user.save();
-                _this.send('reset');
-                _this.sendAction('subscription_success', i18n.t('user_subscribed', "Your purchase succeeded! Thank you for supporting CoughDrop!"));
-              }, function() {
-                _this.sendAction('subscription_error', i18n.t('user_subscription_reload_failed', "Purchase succeeded, but there was a problem reloading your user account. Please try loading this page again."));
-              });
+              if(user.get('preferences')) {
+                user.reload().then(function() {
+                  user.set('preferences.progress.subscription_set', true);
+                  user.save();
+                  _this.send('reset');
+                  _this.sendAction('subscription_success', i18n.t('user_subscribed', "Your purchase succeeded! Thank you for supporting CoughDrop!"));
+                }, function() {
+                  _this.sendAction('subscription_error', i18n.t('user_subscription_reload_failed', "Purchase succeeded, but there was a problem reloading your user account. Please try loading this page again."));
+                });
+              } else {
+                location.reload();
+              }
             }
           });
         }, function(err) {

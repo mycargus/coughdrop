@@ -30,7 +30,7 @@ CoughDrop.Board = DS.Model.extend({
   sound_urls: DS.attr('raw'),
   translations: DS.attr('raw'),
   valid_id: function() {
-    return this.get('id') && this.get('id') != 'bad';
+    return !!(this.get('id') && this.get('id') != 'bad');
   }.property('id'),
   could_be_in_use: function() {
     // no longer using (this.get('public') && this.get('brand_new'))

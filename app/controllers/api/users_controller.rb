@@ -1,18 +1,23 @@
 class Api::UsersController < ApplicationController
   extend ::NewRelic::Agent::MethodTracer
 
-  before_action :require_api_token, :except => [:update, :show, :create, :confirm_registration, :forgot_password, :password_reset, :protected_image]
+  before_action :require_api_token, :except => [:update, :show, :create, :confirm_registration, :forgot_password, :password_reset, :protected_image, :subscribe]
   def show
     user = User.find_by_path(params['id'])
     user_device = @api_user == user && @api_device
     allowed = false
+    return unless exists?(user, params['id'])
+    if user.registration_code && params['confirmation'] == user.registration_code
+      allowed = true
+      @include_subscription = true
+    end
     self.class.trace_execution_scoped(['user/permission_check']) do
-      allowed = allowed?(user, 'view_existence')
+      allowed ||= allowed?(user, 'view_existence')
     end
     return unless allowed
     json = {}
     self.class.trace_execution_scoped(['user/json_render']) do
-      json = JsonApi::User.as_json(user, :wrapper => true, :permissions => @api_user, :device => user_device)
+      json = JsonApi::User.as_json(user, :wrapper => true, :permissions => @api_user, :device => user_device, :include_subscription => @include_subscription)
     end
     
     render json: json.to_json
@@ -245,13 +250,19 @@ class Api::UsersController < ApplicationController
       token = params['token'].to_h
     end
     if params['type'] == 'gift_code'
+      return require_api_token unless @api_user
       return unless allowed?(user, 'edit')
       progress = Progress.schedule(user, :redeem_gift_token, token['code'])
-    elsif ['never_expires', 'eval', 'add_1', 'manual_supporter', 'add_voice', 'communicator_trial', 'force_logout'].include?(params['type'])
+    elsif['never_expires', 'eval', 'add_1', 'manual_supporter', 'add_voice', 'communicator_trial', 'force_logout'].include?(params['type'])
+      return require_api_token unless @api_user
       return unless allowed?(user, 'admin_support_actions')
       progress = Progress.schedule(user, :subscription_override, params['type'], @api_user && @api_user.global_id)
     else
-      return unless allowed?(user, 'edit')
+      if user.registration_code && params['confirmation'] == user.registration_code
+      else
+        return require_api_token unless @api_user
+        return unless allowed?(user, 'edit')
+      end
       progress = Progress.schedule(user, :process_subscription_token, token, params['type'])
     end
     render json: JsonApi::Progress.as_json(progress, :wrapper => true)

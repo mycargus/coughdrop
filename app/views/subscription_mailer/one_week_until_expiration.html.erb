@@ -12,7 +12,7 @@ forward for the thousands communicators in need around the world!<br/><br/>
 
 Your account is set to expire <b><%= @user.expires_at.to_s(:long_ordinal) %></b>. 
 Please 
-<a href="<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription">update your subscription settings</a> 
+<a href="<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription?confirmation=<%= @user.registration_code %>">update your subscription settings</a> 
 so that you don't miss out on the great resource CoughDrop can be to help
 struggling communicators.<br/><br/>
 

@@ -1,7 +1,7 @@
 Hello! This is a final reminder that the <%= @user.grace_period? ? "free trial" : "subscription" %> for the CoughDrop 
 user account <b><%= @user.user_name %></b> is about to expire. It is set to expire 
 <b><%= @user.expires_at.to_s(:long_ordinal) %></b>. Please
-<a href="<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription">update your subscription settings</a> 
+<a href="<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription?confirmation=<%= @user.registration_code %>">update your subscription settings</a> 
 so you don't lose out on CoughDrop's rich set of communication and tracking
 tools.<br/><br/>
 
@@ -11,7 +11,7 @@ a different a team-enabling tool like CoughDrop can make in helping communicator
 be heard, and we need your help spreading that vision. Your subscription doesn't
 just help you, it can help fund the app for families in need, and also supports
 initiatives for more openness and interoperability in AAC. We hope you'll consider
-<a href="<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription">purchasing a subscription</a>
+<a href="<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription?confirmation=<%= @user.registration_code %>">purchasing a subscription</a>
 to help in this good work.
 
 If you need help finding a funding solution yourself, please don't be afraid to reach out to us, 

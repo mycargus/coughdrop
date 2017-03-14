@@ -4,7 +4,7 @@ the card failed multiple times or the subscription was manually canceled, or som
 unexpected occurred.<br/><br/>
 
 To address this problem please 
-<a href="<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription">update your subscription settings in CoughDrop</a>.<br/><br/>
+<a href="<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription?confirmation=<%= @user.registration_code %>">update your subscription settings in CoughDrop</a>.<br/><br/>
 
 If you need more time on your trial or think this message was sent in error, please let us know
 and we'll help get to the bottom of things. Just 

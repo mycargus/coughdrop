@@ -125,6 +125,8 @@ module JsonApi::User
       json['subscription'] = user.subscription_hash
       ::Device.where(:user_id => user.id).sort_by{|d| (d.settings['token_history'] || [])[-1] || 0 }.reverse
       json['devices'] = devices.select{|d| !d.hidden? }.map{|d| JsonApi::Device.as_json(d, :current_device => args[:device]) }
+    elsif args[:include_subscription]
+      json['subscription'] = user.subscription_hash
     end
     
     if args[:limited_identity]

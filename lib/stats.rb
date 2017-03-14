@@ -891,4 +891,4 @@ module Stats
   end
   
   class StatsError < StandardError; end
-end
+end 

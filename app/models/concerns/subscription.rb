@@ -121,12 +121,12 @@ module Subscription
   
   def transfer_subscription_to(user, skip_remote_update=false)
     transfer_keys = ['started', 'plan_id', 'subscription_id', 'token_summary', 'free_premium', 
-      'never_expires', 'seconds_left', 'customer_id']
+      'never_expires', 'seconds_left', 'customer_id', 'last_purchase_plan_id']
     did_change = false
     transfer_keys.each do |key|
       self.settings['subscription'] ||= {}
       user.settings['subscription'] ||= {}
-      if self.settings['subscription'][key] != nil
+      if self.settings['subscription'][key] != nil || user.settings['subscription'][key] != nil
         did_change = true if ['subscription_id', 'customer_id'].include?(key)
         user.settings['subscription'][key] = self.settings['subscription'][key]
         self.settings['subscription'].delete(key)
@@ -176,6 +176,8 @@ module Subscription
           self.settings['subscription']['free_premium'] = args['plan_id'] == 'slp_monthly_free'
           self.settings['preferences']['role'] = role
           self.settings['pending'] = false unless self.settings['subscription']['free_premium']
+          self.settings['preferences']['progress'] ||= {}
+          self.settings['preferences']['progress']['subscription_set'] = true
           self.expires_at = nil
           self.assert_current_record!
           self.save
@@ -221,6 +223,8 @@ module Subscription
           self.settings['subscription']['last_purchase_id'] = args['purchase_id']
           self.settings['subscription']['last_purchase_seconds_added'] = args['seconds_to_add']
           self.settings['preferences']['role'] = role
+          self.settings['preferences']['progress'] ||= {}
+          self.settings['preferences']['progress']['subscription_set'] = true
           self.expires_at = [self.expires_at, Time.now].compact.max
           self.expires_at += args['seconds_to_add']
         end

@@ -1,6 +1,6 @@
 Thank you for subscribing to CoughDrop! Unfortunately there was an unexpected problem processing your purchase for the user account "<%= @user.user_name %>". Please confirm your credit card information and purchase settings and update your subscription settings again:
 
-<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription
+<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription?confirmation=<%= @user.registration_code %>
 
 If you need help finding a funding solution, please don't be afraid to reach out to us, we're willing to work with individuals to find a good solution. Just access our support site (https://coughdrop.zendesk.com) to make a request.
 

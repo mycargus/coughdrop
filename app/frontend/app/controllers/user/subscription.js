@@ -6,8 +6,9 @@ import persistence from '../../utils/persistence';
 import progress_tracker from '../../utils/progress_tracker';
 
 export default Ember.Controller.extend({
-  queryParams: ['code'],
+  queryParams: ['code', 'confirmation'],
   code: null,
+  confirmation: null,
   actions: {
     subscription_error: function(err) {
       modal.error(err);

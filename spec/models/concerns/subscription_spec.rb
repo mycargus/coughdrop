@@ -1424,7 +1424,8 @@ describe Subscription, :type => :model do
         'bacon' => '1234',
         'started' => 1234,
         'token_summary' => 'asdfjkl',
-        'never_expires' => true
+        'never_expires' => true,
+        'last_purchase_plan_id' => 'asdf'
       }
       u1.transfer_subscription_to(u2)
       expect(u1.settings['subscription']).to eq({
@@ -1435,7 +1436,8 @@ describe Subscription, :type => :model do
         'started' => 1234,
         'token_summary' => 'asdfjkl',
         'never_expires' => true, 
-        'transferred_from' => [u1.global_id]
+        'transferred_from' => [u1.global_id],
+        'last_purchase_plan_id' => 'asdf'
       })
     end
     

@@ -8,17 +8,50 @@ describe Api::UsersController, :type => :controller do
       expect(response).to be_success
     end
     
-    it "should require view permissions" do
+    it "should require a valid record" do
       get :show, params: {:id => "asdf"}
-      assert_unauthorized
+      assert_not_found('asdf');
     end
-    
+
     it "should return a valid object" do
       u = User.create
       get :show, params: {:id => u.global_id}
       expect(response).to be_success
       json = JSON.parse(response.body)
       expect(json['user']['id']).to eq(u.global_id)
+      expect(json['user']['subscription']).to eq(nil)
+      expect(json['user']['user_token']).to eq(nil)
+    end
+    
+    it "should allow access with a confirmation code" do
+      u = User.create
+      get :show, params: {:id => u.global_id, :confirmation => u.registration_code}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['user']['id']).to eq(u.global_id)
+      expect(json['user']['subscription']).to_not eq(nil)
+      expect(json['user']['user_token']).to eq(nil)
+    end
+    
+    it "should return restricted information with only a confirmation code" do
+      u = User.create
+      get :show, params: {:id => u.global_id, :confirmation => u.registration_code}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['user']['id']).to eq(u.global_id)
+      expect(json['user']['subscription']).to_not eq(nil)
+      expect(json['user']['user_token']).to eq(nil)
+    end
+    
+    it "should return full information if authorized, while also having a confirmation code" do
+      token_user
+      get :show, params: {:id => @user.global_id, :confirmation => @user.registration_code}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['user']['id']).to eq(@user.global_id)
+      expect(json['user']['subscription']).to_not eq(nil)
+      expect(json['user']['permissions']['edit']).to eq(true)
+      expect(json['user']['user_token']).to_not eq(nil)
     end
   end
   
@@ -751,9 +784,9 @@ describe Api::UsersController, :type => :controller do
   describe "subscribe" do
     it "should require an api token" do
       post :subscribe, params: {:user_id => 'asdf'}
-      assert_missing_token
+      assert_not_found('asdf')
     end
-    
+
     it "should require edit permissions" do
       token_user
       u = User.create
@@ -878,6 +911,44 @@ describe Api::UsersController, :type => :controller do
       assert_unauthorized
       
       expect(u.reload.settings['premium_voices']).to eq(nil)
+    end
+    
+    it "should require api token for gift_code requests" do
+      g = GiftPurchase.process_new({}, {
+        'email' => 'bob@example.com',
+        'seconds' => 3.years.to_i
+      })
+      @user = User.create
+      exp = @user.expires_at
+      
+      post :subscribe, params: {:user_id => @user.global_id, :token => {'code' => g.code}, :type => 'gift_code'}
+      assert_missing_token
+    end
+    
+    it "should require api token for override requests" do
+      @user = User.create
+      u = User.create
+      o = Organization.create(:admin => true, :settings => {'total_licenses' => 1})
+      o.add_manager(@user.user_name, true)
+      
+      post :subscribe, params: {:user_id => u.global_id, :type => 'never_expires'}
+      assert_missing_token
+    end
+    
+    it "should allow updating a subscription with no api token, but a confirmation code" do
+      @user = User.create
+      p = Progress.create
+      expect(Progress).to receive(:schedule).with(@user, :process_subscription_token, {'code' => 'abc'}, 'monthly_6').and_return(p)
+      post :subscribe, params: {:user_id => @user.global_id, :confirmation => @user.registration_code, :token => {'code' => 'abc'}, :type => 'monthly_6'}
+      expect(response.success?).to eq(true)
+      json = JSON.parse(response.body)
+      expect(json['progress']).not_to eq(nil)
+    end
+    
+    it "should not allow updating a subscription with no api token and no confirmation code" do
+      @user = User.create
+      post :subscribe, params: {:user_id => @user.global_id, :confirmation => 'abc', :token => {'code' => 'abc'}, :type => 'monthly_6'}
+      assert_missing_token
     end
   end
   

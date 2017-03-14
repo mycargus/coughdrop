@@ -251,7 +251,7 @@ describe JsonApi::User do
         })
       end
       
-      it "should return a subscription object of explicitly specified" do
+      it "should return a subscription object if explicitly specified" do
         u = User.create
         u2 = User.create
         o = Organization.create(:admin => true)
@@ -260,6 +260,18 @@ describe JsonApi::User do
         json = JsonApi::User.build_json(u)
         expect(json['subscription']).to eq(nil)
         json = JsonApi::User.build_json(u, :limited_identity => true, :subscription => true)
+        expect(json['subscription']).not_to eq(nil)
+      end
+      
+      it "should include subscription object if include_subscription specified, even without limited_identity" do
+        u = User.create
+        u2 = User.create
+        o = Organization.create(:admin => true)
+        o.add_manager(u2.user_name, true)
+        
+        json = JsonApi::User.build_json(u)
+        expect(json['subscription']).to eq(nil)
+        json = JsonApi::User.build_json(u, :include_subscription => true)
         expect(json['subscription']).not_to eq(nil)
       end
     end
