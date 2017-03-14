@@ -344,6 +344,46 @@ var Button = Ember.Object.extend({
       this.set('local_sound_url', this.get('sound.best_url'));
     }
   }.observes('image.best_url'),
+  update_translations: function() {
+    var label_locale = app_state.get('label_locale') || this.get('board.translations.current_label') || this.get('board.locale') || 'en';
+    var vocalization_locale = app_state.get('vocalization_locale') || this.get('board.translations.current_vocalization') || this.get('board.locale') || 'en';
+    var _this = this;
+    var res = _this.get('translations') || [];
+    var hash = _this.get('translations_hash') || {};
+    var idx = 0;
+    for(var code in hash) {
+      var label = hash[code].label;
+      if(label_locale == code) { label = _this.get('label'); }
+      var vocalization = hash[code].vocalization;
+      if(vocalization_locale == code) { vocalization = _this.get('vocalization'); }
+      if(res[idx]) {
+        Ember.set(res[idx], 'label', label);
+        Ember.set(res[idx], 'vocalization', vocalization);
+      } else {
+        res.push({
+          code: code,
+          locale: code,
+          label: label,
+          vocalization: vocalization
+        });
+      }
+      idx++;
+    }
+    this.set('translations', res);
+  }.observes('translations_hash', 'label', 'vocalization'),
+  update_settings_from_translations: function() {
+    var label_locale = app_state.get('label_locale') || this.get('board.translations.current_label') || this.get('board.locale') || 'en';
+    var vocalization_locale = app_state.get('vocalization_locale') || this.get('board.translations.current_vocalization') || this.get('board.locale') || 'en';
+    var _this = this;
+    (this.get('translations') || []).forEach(function(locale) {
+      if(locale.code == label_locale && locale.label) {
+        _this.set('label', locale.label);
+      }
+      if(locale.code == vocalization_locale && locale.vocalization) {
+        _this.set('vocalization', locale.vocalization);
+      }
+    });
+  }.observes('translations.@each.label', 'translations.@each.vocalization'),
   findContentLocally: function() {
     var _this = this;
     if((!this.image_id || this.get('local_image_url')) && (!this.sound_id || this.get('local_sound_url'))) {

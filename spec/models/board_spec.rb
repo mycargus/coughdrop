@@ -868,6 +868,29 @@ describe Board, :type => :model do
       expect(b.settings['buttons'][2]['load_board']).not_to eq(nil)
     end
     
+    it "should process translations from buttons" do
+      b = Board.new
+      b.settings ||= {}
+      b.process_buttons([
+        {'id' => '1_2', 'label' => 'hat', 'hidden' => true, 'chicken' => '1234', 'translations' => [
+          {'locale' => 'en', 'label' => 'hat'},
+          {'locale' => 'es', 'label' => 'hatzy', 'vocalization' => 'hatz'}
+        ]}
+      ], nil)
+      expect(b.settings['buttons']).not_to eq(nil)
+      expect(b.settings['buttons'].length).to eq(1)
+      expect(b.settings['translations']).to eq({
+        '1_2' => {
+          'en' => {
+            'label' => 'hat'
+          },
+          'es' => {
+            'label' => 'hatzy',
+            'vocalization' => 'hatz'
+          }
+        }
+      })
+    end
   end
 
   describe "process_params" do
@@ -1711,6 +1734,40 @@ describe Board, :type => :model do
       expect(b3.reload.settings['buttons'].map{|b| b['vocalization'] }).to eq(['top'])
       expect(b4.reload.settings['buttons'].map{|b| b['label'] }).to eq(['hat'])
       expect(b5.reload.settings['buttons'].map{|b| b['label'] }).to eq(['hat'])
+    end
+    
+    it "should remember button-level translations" do
+      u = User.create
+      b = Board.create(:user => u)
+      b.settings['buttons'] = [
+        {'id' => 1, 'label' => 'hat'},
+        {'id' => 2, 'label' => 'cat'}
+      ]
+      b.save
+      res = b.translate_set({'hat' => 'sat', 'cat' => 'rat'}, 'en', 'es', [b.global_id])
+      expect(res[:done]).to eq(true)
+      expect(b.settings['buttons'][0]['label']).to eq('sat')
+      expect(b.settings['translations']).to eq({
+        'default' => 'en',
+        'current_label' => 'es',
+        'current_vocalization' => 'es',
+        '1' => {
+          'en' => {
+            'label' => 'hat'
+          },
+          'es' => {
+            'label' => 'sat'
+          }
+        },
+        '2' => {
+          'en' => {
+            'label' => 'cat'
+          },
+          'es' => {
+            'label' => 'rat'
+          }
+        }
+      })
     end
   end
   

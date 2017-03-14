@@ -18,6 +18,7 @@ export default modal.ModalController.extend({
     button.load_sound();
     this.set('board', this.get('model.board'));
     this.set('model', button);
+    button.set('translations_hash', this.get('board').translations_for_button(button.id));
     this.set('handle_updates', true);
     contentGrabbers.setup(button, this);
 
@@ -204,6 +205,9 @@ export default modal.ModalController.extend({
   }.property('state'),
   soundState: function() {
     return this.get('state') == 'sound';
+  }.property('state'),
+  languageState: function() {
+    return this.get('state') == 'language';
   }.property('state'),
   special_modifier: function() {
     var voc = this.get('model.vocalization');

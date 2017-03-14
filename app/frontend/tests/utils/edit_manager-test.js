@@ -27,6 +27,9 @@ describe('editManager', function() {
       find_content_locally: function() {
         this.set('found_content_locally', true);
         return Ember.RSVP.resolve();
+      },
+      translated_buttons: function() {
+        return this.get('buttons');
       }
     }).create();
     stub(app_state, 'controller', Ember.Object.create({
@@ -1634,6 +1637,7 @@ describe('editManager', function() {
         blocking_speech: false,
         hidden: false,
         add_to_vocalization: false,
+        hide_label: false,
         home_lock: false
       });
       expect(state.buttons[1]).toEqual({
@@ -1647,6 +1651,7 @@ describe('editManager', function() {
         blocking_speech: false,
         hidden: false,
         add_to_vocalization: false,
+        hide_label: false,
         home_lock: false
       });
       expect(state.buttons[2]).toEqual({
@@ -1658,6 +1663,7 @@ describe('editManager', function() {
         blocking_speech: false,
         hidden: false,
         add_to_vocalization: false,
+        hide_label: false,
         home_lock: false
       });
     });
@@ -1710,6 +1716,7 @@ describe('editManager', function() {
         link_disabled: false,
         blocking_speech: false,
         hidden: false,
+        hide_label: false,
         part_of_speech: 'noun',
         suggested_part_of_speech: 'verb',
         add_to_vocalization: false,
@@ -1725,6 +1732,7 @@ describe('editManager', function() {
         link_disabled: false,
         blocking_speech: false,
         hidden: false,
+        hide_label: false,
         part_of_speech: 'noun',
         painted_part_of_speech: 'noun',
         add_to_vocalization: false,
@@ -1739,7 +1747,8 @@ describe('editManager', function() {
         blocking_speech: false,
         hidden: false,
         add_to_vocalization: false,
-        home_lock: false
+        home_lock: false,
+        hide_label: false
       });
     });
 
@@ -1787,6 +1796,7 @@ describe('editManager', function() {
         background_color: 'rgb(255, 0, 0)',
         hidden: false,
         add_to_vocalization: false,
+        hide_label: false,
         home_lock: false
       });
       expect(state.buttons[1]).toEqual({
@@ -1798,42 +1808,11 @@ describe('editManager', function() {
         blocking_speech: false,
         hidden: false,
         add_to_vocalization: false,
+        hide_label: false,
         home_lock: false
       });
     });
 
-//           if(currentButton.get('buttonAction') == 'talk') {
-//             delete newButton['load_board'];
-//             delete newButton['apps'];
-//             delete newButton['url'];
-//             delete newButton['integration'];
-//           } else if(currentButton.get('buttonAction') == 'link') {
-//             delete newButton['load_board'];
-//             delete newButton['apps'];
-//             delete newButton['integration'];
-//             newButton.url = currentButton.get('fixed_url');
-//             if(currentButton.get('video')) {
-//               newButton.video = currentButton.get('video');
-//             }
-//           } else if(currentButton.get('buttonAction') == 'app') {
-//             delete newButton['load_board'];
-//             delete newButton['url'];
-//             delete newButton['integration'];
-//             newButton.apps = currentButton.get('apps');
-//             if(newButton.apps.web && newButton.apps.web.launch_url) {
-//               newButton.apps.web.launch_url = currentButton.get('fixed_app_url');
-//             }
-//           } else if(currentButton.get('buttonAction') == 'integration') {
-//             delete newButton['load_board'];
-//             delete newButton['apps'];
-//             delete newButton['url'];
-//             newButton.integration = currentButton.get('integration');
-//           } else {
-//             delete newButton['url'];
-//             delete newButton['apps'];
-//             delete newButton['integration'];
-//             newButton.load_board = currentButton.load_board;
-//           }
     it("should handle integration buttons", function() {
       editManager.setup(board);
       var button = Button.create({
@@ -1867,7 +1846,48 @@ describe('editManager', function() {
         border_color: 'rgba(170, 187, 255, 0.53)',
         hidden: false,
         add_to_vocalization: false,
+        hide_label: false,
         home_lock: false
+      });
+    });
+
+    it('should set translations if defined for a button', function() {
+      editManager.setup(board);
+      var button = Button.create({
+        label: 'okay hat',
+        vocalization: 'hat',
+        integration: {okay: true},
+        background_color: 'mahogany',
+        border_color: '#88aabbff',
+        id: 245
+      });
+      button.set('translations', [{245: {}}]);
+      var button2 = editManager.fake_button();
+      var button3 = editManager.fake_button();
+      var button4 = editManager.fake_button();
+      board.set('ordered_buttons', [[button, button2],[button3, button4]]);
+      board.set('model.buttons', []);
+      var state = editManager.process_for_saving();
+
+      expect(state.buttons.length).toEqual(1);
+      expect(state.grid).toEqual({
+        rows: 2,
+        columns: 2,
+        order: [[1, null],[null, null]]
+      });
+      expect(state.buttons[0]).toEqual({
+        id: 1,
+        label: 'okay hat',
+        integration: {okay: true},
+        vocalization: 'hat',
+        link_disabled: false,
+        blocking_speech: false,
+        border_color: 'rgba(170, 187, 255, 0.53)',
+        hidden: false,
+        add_to_vocalization: false,
+        hide_label: false,
+        home_lock: false,
+        translations: [{245: {}}]
       });
     });
   });
@@ -2079,6 +2099,59 @@ describe('editManager', function() {
       });
       waitsFor(function() { return button && button.get('content_status') == 'ready'; });
       runs();
+    });
+
+    it('should pull the correct translations', function() {
+      app_state.set('label_locale', 'es');
+      app_state.set('vocalization_locale', 'fr');
+      var model = CoughDrop.store.createRecord('board');
+      model.set('buttons', [
+        {id: 1, label: 'fast'},
+        {id: 2, label: 'jump', vocalization: 'jumping'}
+      ]);
+      model.set('translations', {
+        1: {
+          en: {
+            label: 'fast'
+          },
+          es: {
+            label: 'zoom',
+            vocalization: 'zoom-zoom'
+          },
+          fr: {
+            label: 'wee',
+            vocalization: 'wee-wee'
+          }
+        },
+        2: {
+          en: {
+            label: 'jump',
+            vocalization: 'jumping'
+          },
+          es: {
+            label: 'leap'
+          },
+          fr: {
+            label: 'above'
+          }
+        }
+      });
+      board.set('model', model);
+      board.set('model.grid', {
+        rows: 1,
+        columns: 2,
+        order: [[1, 2]]
+      });
+      editManager.setup(board);
+      editManager.process_for_displaying();
+      waitsFor(function() { return board.get('ordered_buttons'); });
+      runs(function() {
+        expect(board.get('ordered_buttons')).not.toEqual(null);
+        expect(board.get('ordered_buttons')[0][0].get('label')).toEqual('zoom');
+        expect(board.get('ordered_buttons')[0][0].get('vocalization')).toEqual('wee-wee');
+        expect(board.get('ordered_buttons')[0][1].get('label')).toEqual('leap');
+        expect(board.get('ordered_buttons')[0][1].get('vocalization')).toEqual('above');
+      });
     });
   });
 

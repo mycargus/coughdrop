@@ -33,7 +33,7 @@ export default modal.ModalController.extend({
       _this.set('translations', {});
       if(list.length > 0) { lists.push(list); }
 
-      lists.forEach(function(buttons) {
+      lists.forEach(function(buttons, idx) {
         var words = [];
         buttons.forEach(function(b) {
           if(b.label) {
@@ -43,19 +43,26 @@ export default modal.ModalController.extend({
             words.push(b.vocalization);
           }
         });
-        promises.push(persistence.ajax('/api/v1/users/self/translate', {
-          type: 'POST',
-          data: {
-            words: words,
-            destination_lang: _this.get('model.locale'),
-            source_lang: _this.get('model.board.locale') || 'en'
-          }
-        }).then(function(data) {
-          var trans = _this.get('translations');
-          for(var key in data.translations) {
-            trans[key] = data.translations[key];
-          }
-          _this.set('translation_index', (_this.get('translation_index') || 0) + 1);
+        promises.push(new Ember.RSVP.Promise(function(res, rej) {
+          Ember.run.later(function() {
+            persistence.ajax('/api/v1/users/self/translate', {
+              type: 'POST',
+              data: {
+                words: words,
+                destination_lang: _this.get('model.locale'),
+                source_lang: _this.get('model.board.locale') || 'en'
+              }
+            }).then(function(data) {
+              var trans = _this.get('translations');
+              for(var key in data.translations) {
+                trans[key] = data.translations[key];
+              }
+              _this.set('translation_index', (_this.get('translation_index') || 0) + 1);
+              res(data);
+            }, function(err) {
+              rej(err);
+            });
+          }, idx * 1000);
         }));
       });
       Ember.RSVP.all_wait(promises).then(function(res) {

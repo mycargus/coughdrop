@@ -417,6 +417,8 @@ afterEach(function() {
   capabilities.setup_database.already_tried_deleting = false;
   capabilities.setup_database.already_tried_deleting_all = false;
   capabilities.dbman = capabilities.dbman || capabilities.original_dbman;
+  app_state.set('label_locale', null);
+  app_state.set('vocalization_locale', null);
   while(queryLog.length > 0) {
     queryLog.pop();
   }

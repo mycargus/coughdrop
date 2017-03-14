@@ -77,6 +77,7 @@ module JsonApi::Board
       json['sounds'].each{|i| json['board']['sound_urls'][i['id']] = i['url'] }
     end
     if args.key?(:permissions)
+      json['board']['translations'] = board.settings['translations'] if board.settings['translations']
       self.trace_execution_scoped(['json/board/copy_check']) do
         copies = board.find_copies_by(args[:permissions])
         copy = copies[0]

@@ -420,6 +420,13 @@ export default Ember.Controller.extend({
     },
     toggle_modeling: function() {
       app_state.toggle_modeling(true);
+    },
+    switch_languages: function() {
+      modal.open('switch-languages', {board: this.get('board.model')}).then(function(res) {
+        if(res && res.switched) {
+          editManager.process_for_displaying();
+        }
+      });
     }
   },
   activateButton: function(button, options) {

@@ -11,6 +11,9 @@
           <li class={{if pictureState 'active' 'inactive'}} {{action 'setState' "picture"}}><a href="#">{{t "Picture" key='picture'}}</a></li>
           <li class={{if actionState 'active' 'inactive'}} {{action 'setState' "action"}}><a href="#">{{t "Action" key='action'}}</a></li>
           <li class={{if soundState 'active' 'inactive'}} {{action 'setState' "sound"}}><a href="#">{{t "Sound" key='sound'}}</a></li>
+          {{#if board.translations}}
+            <li class={{if languageState 'active' 'inactive'}} {{action 'setState' "language"}}><a href="#">{{t "Language" key='language'}}</a></li>
+          {{/if}}
         </ul>
       </div>
       <div class="col-sm-9 content">
@@ -18,6 +21,7 @@
         {{partial "button-settings-picture"}}
         {{partial "button-settings-action"}}
         {{partial "button-settings-sound"}}
+        {{partial "button-settings-language"}}
       </div>
     </div>
   </div>

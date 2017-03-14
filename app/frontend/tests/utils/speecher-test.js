@@ -69,6 +69,7 @@ describe('speecher', function() {
         expect(utterance.text).toEqual("hippo");
       });
     });
+
     it("should speak using alternate voice settings if specified", function() {
       var cancelled = false;
       var utterance = null;
@@ -83,6 +84,60 @@ describe('speecher', function() {
       runs(function() {
         expect(cancelled).toEqual(true);
         expect(utterance.voiceURI).toEqual('bacon');
+        expect(utterance.volume).toEqual(0.5);
+        expect(utterance.pitch).toEqual(2.0);
+        expect(utterance.text).toEqual("hippo");
+      });
+    });
+    it('should switch to a locale-appropriate voice if default state has been overridden', function() {
+      var cancelled = false;
+      var utterance = null;
+      app_state.set('vocalization_locale', 'fr');
+      speecher.set('voices', [
+        {lang: 'fr', voiceURI: 'french1'},
+        {lang: 'en', voiceURI: 'english1'},
+        {lang: 'fr-US', vouceURI: 'french2'},
+        {land: 'en-US', voiceURI: 'english2'}
+      ]);
+      speecher.volume = 0.5;
+      speecher.pitch = 2.0;
+      speecher.alternate_voiceURI = 'bacon';
+
+      stub(window.speecher.scope, 'SpeechSynthesisUtterance', Object);
+      stub(window.speechSynthesis, 'speak', function(u) { utterance = u; });
+      stub(window.speechSynthesis, 'cancel', function() { cancelled = true; });
+      speecher.speak_text("hippo", 'asdf');
+      waitsFor(function() { return cancelled && utterance; });
+      runs(function() {
+        expect(cancelled).toEqual(true);
+        expect(utterance.voiceURI).toEqual('french1');
+        expect(utterance.volume).toEqual(0.5);
+        expect(utterance.pitch).toEqual(2.0);
+        expect(utterance.text).toEqual("hippo");
+      });
+    });
+
+    it('should switch to a locale-appropriate alternate voice if default state has been overridden', function() {
+      var cancelled = false;
+      var utterance = null;
+      app_state.set('vocalization_locale', 'fr');
+      speecher.set('voices', [
+        {lang: 'fr', voiceURI: 'french1'},
+        {lang: 'en', voiceURI: 'english1'},
+        {lang: 'fr-US', vouceURI: 'french2'},
+        {land: 'en-US', voiceURI: 'english2'}
+      ]);
+      speecher.alternate_volume = 0.5;
+      speecher.alternate_pitch = 2.0;
+      speecher.alternate_voiceURI = 'bacon';
+
+      stub(window.speechSynthesis, 'speak', function(u) { utterance = u; });
+      stub(window.speechSynthesis, 'cancel', function() { cancelled = true; });
+      speecher.speak_text("hippo", 'asdf', {alternate_voice: true});
+      waitsFor(function() { return cancelled && utterance; });
+      runs(function() {
+        expect(cancelled).toEqual(true);
+        expect(utterance.voiceURI).toEqual('french2');
         expect(utterance.volume).toEqual(0.5);
         expect(utterance.pitch).toEqual(2.0);
         expect(utterance.text).toEqual("hippo");

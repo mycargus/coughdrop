@@ -459,7 +459,7 @@ var editManager = Ember.Object.extend({
     CoughDrop.log.track('processing for displaying');
     var controller = this.controller;
     var board = controller.get('model');
-    var buttons = board.get('buttons');
+    var buttons = board.translated_buttons(app_state.get('label_locale'), app_state.get('vocalization_locale'));
     var grid = board.get('grid');
     if(!grid) { return; }
     var allButtonsReady = true;
@@ -615,6 +615,9 @@ var editManager = Ember.Object.extend({
           newButton.home_lock = !!currentButton.home_lock;
           newButton.hide_label = !!currentButton.hide_label;
           newButton.blocking_speech = !!currentButton.blocking_speech;
+          if(currentButton.get('translations.length') > 0) {
+            newButton.translations = currentButton.get('translations');
+          }
           if(currentButton.part_of_speech) {
             newButton.part_of_speech = currentButton.part_of_speech;
             newButton.suggested_part_of_speech = currentButton.suggested_part_of_speech;

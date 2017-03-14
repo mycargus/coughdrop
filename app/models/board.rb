@@ -592,6 +592,7 @@ class Board < ActiveRecord::Base
       end
     end
     self.settings['buttons'] = buttons.map do |button|
+      trans = button['translations']
       button = button.slice('id', 'hidden', 'link_disabled', 'image_id', 'sound_id', 'label', 'vocalization', 
             'background_color', 'border_color', 'load_board', 'hide_label', 'url', 'apps', 
             'integration', 'video', 'part_of_speech', 'suggested_part_of_speech', 
@@ -603,6 +604,13 @@ class Board < ActiveRecord::Base
             button.delete('load_board')
           end
           new_link_ids << button['load_board']
+        end
+      end
+      if trans
+        self.settings['translations'] ||= {}
+        trans.each do |tran|
+          self.settings['translations'][button['id'].to_s] ||= {}
+          self.settings['translations'][button['id'].to_s][tran['locale']] = tran.slice('label', 'vocalization')
         end
       end
       if button['part_of_speech'] && button['part_of_speech'] == ''
@@ -646,19 +654,36 @@ class Board < ActiveRecord::Base
 
   def translate_set(translations, source_lang, dest_lang, board_ids, user_local_id=nil, visited_board_ids=[])
     user_local_id ||= self.user_id
+    source_lang = 'en' if source_lang.blank?
+    label_lang = dest_lang
+    vocalization_lang = dest_lang
     return {done: true, translated: false, reason: 'mismatched user'} if user_local_id != self.user_id
-    if self.settings['locale'] == dest_lang
+    if self.settings['locale'] == label_lang
     elsif board_ids.blank? || board_ids.include?(self.global_id)
-      self.settings['locale'] = dest_lang
+      self.settings['locale'] = label_lang
       if self.settings['name'] && translations[self.settings['name']]
         self.settings['name'] = translations[self.settings['name']]
       end
+      self.settings['translations'] ||= {}
+      self.settings['translations']['default'] ||= source_lang
+      self.settings['translations']['current_label'] = label_lang
+      self.settings['translations']['current_vocalization'] = vocalization_lang
       self.settings['buttons'].each do |button|
         if button['label'] && translations[button['label']]
+          self.settings['translations'][button['id']] ||= {}
+          self.settings['translations'][button['id']][source_lang] ||= {}
+          self.settings['translations'][button['id']][source_lang]['label'] ||= button['label']
+          self.settings['translations'][button['id']][dest_lang] ||= {}
+          self.settings['translations'][button['id']][dest_lang]['label'] = translations[button['label']]
           button['label'] = translations[button['label']]
           @buttons_changed = 'translated'
         end
         if button['vocalization'] && translations[button['vocalization']]
+          self.settings['translations'][button['id']] ||= {}
+          self.settings['translations'][button['id']][source_lang] ||= {}
+          self.settings['translations'][button['id']][source_lang]['vocalization'] ||= button['vocalization']
+          self.settings['translations'][button['id']][dest_lang] ||= {}
+          self.settings['translations'][button['id']][dest_lang]['vocalization'] = translations[button['vocalization']]
           button['vocalization'] = translations[button['vocalization']]
           @buttons_changed = 'translated'
         end

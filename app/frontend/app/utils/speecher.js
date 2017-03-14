@@ -2,6 +2,7 @@ import Ember from 'ember';
 import capabilities from './capabilities';
 import persistence from './persistence';
 import tts_voices from './tts_voices';
+import app_state from './app_state';
 import i18n from './i18n';
 
 var speecher = Ember.Object.extend({
@@ -80,10 +81,13 @@ var speecher = Ember.Object.extend({
       var found_voice = voices.find(function(v) { return v.voiceURI == voice.voice_uri; });
       if(found_voice) {
         this.voiceURI = found_voice.voiceURI;
+        this.voiceLang = found_voice.lang;
       } else if(voice.voice_uri == 'force_default') {
         this.voiceURI = 'force_default';
+        this.voiceLang = navigator.language;
       } else if(!this.voiceURI && voices.length > 0) {
         this.voiceURI = voices[0].voiceURI;
+        this.voiceLang = voices[0].lang;
       }
     }
     if(alternate_voice && alternate_voice.enabled && alternate_voice.voice_uri) {
@@ -95,8 +99,10 @@ var speecher = Ember.Object.extend({
       var found_voice = voices.find(function(v) { return v.voiceURI == alternate_voice.voice_uri; });
       if(found_voice) {
         this.alternate_voiceURI = found_voice.voiceURI;
+        this.alternate_voiceLang = found_voice.lang;
       } else if(alternate_voice.voice_uri == 'force_default') {
         this.alternate_voiceURI = 'force_default';
+        this.alternate_voiceLang = navigator.language;
       }
     }
   },
@@ -161,15 +167,35 @@ var speecher = Ember.Object.extend({
     next_piece();
   },
   speak_raw_text: function(text, collection_id, opts, callback) {
+    var _this = this;
     if(opts.alternate_voice) {
       opts.volume = this.alternate_volume || ((opts.volume || 1.0) * 0.75);
       opts.pitch = this.alternate_pitch;
       opts.rate = this.alternate_rate;
       opts.voiceURI = this.alternate_voiceURI;
+      if(app_state.get('vocalization_locale')) {
+        var set_locale = app_state.get('vocalization_locale').split(/[-_]/)[0].toLowerCase();
+        var voice_locale = (this.alternate_voiceLang || navigator.language).split(/[-_]/)[0].toLowerCase();
+        if(set_locale != voice_locale) {
+          var list = this._this('voices').filter(function(v) { return v.lang && v.lang.split(/[-_]/)[0].toLowerCase() == set_locale; });
+          opts.voiceURI = (list[1] && list[1].voiceURI) || (list[0] && list[0].voiceURI) || _this.alternate_voiceURI;
+        }
+      }
     }
     opts.rate = opts.rate || this.rate || this.default_rate();
     opts.volume = opts.volume || this.volume || 1.0;
     opts.pitch = opts.pitch || this.pitch || 1.0;
+    if(!opts.voiceURI) {
+      opts.voiceURI = this.voiceURI;
+      if(app_state.get('vocalization_locale')) {
+        var set_locale = app_state.get('vocalization_locale').split(/[-_]/)[0].toLowerCase();
+        var voice_locale = (this.alternate_voiceLang || navigator.language).split(/[-_]/)[0].toLowerCase();
+        if(set_locale != voice_locale) {
+          var list = _this.get('voices').filter(function(v) { return v.lang && v.lang.split(/[-_]/)[0].toLowerCase() == set_locale; });
+          opts.voiceURI = (list[1] && list[1].voiceURI) || (list[0] && list[0].voiceURI) || _this.voiceURI;
+        }
+      }
+    }
     opts.voiceURI = opts.voiceURI || this.voiceURI;
     var _this = this;
     if(speecher.scope.speechSynthesis) {

@@ -3,6 +3,7 @@ import persistence from './persistence';
 import capabilities from './capabilities';
 import Utils from './misc';
 import app_state from './app_state';
+import CoughDrop from '../app';
 
 var word_suggestions = Ember.Object.extend({
   load: function() {

@@ -484,6 +484,9 @@
               {{#if app_state.currentBoardState}}
                 {{#if app_state.speak_mode}}
                     <!--li><a href="#" {{action "startRecording"}}>{{t "Recording (not yet)" key='start_recording'}}</a></li-->
+                  {{#if app_state.currentBoardState.translatable}}
+                    <li><a href="#" {{action "switch_languages"}}>{{t "Switch Languages" key='switch_languages'}}</a></li>
+                  {{/if}}
                   {{#if stashes.sticky_board}}
                     <li><a href="#" {{action "toggle_sticky_board"}}>{{t "Release Board Lock" key='release_board_lock'}}</a></li>
                   {{else}}

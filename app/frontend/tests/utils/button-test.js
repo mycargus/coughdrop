@@ -659,4 +659,99 @@ context('Button', function() {
       expect(html.string.indexOf("&lt;script&gt;alert('asdf');&lt;/script&gt;")).toNotEqual(-1);
     });
   });
+
+  context('update_translations', function() {
+    it('should update matching translation in-place when label changes', function() {
+      var board = CoughDrop.store.createRecord('board');
+      board.set('locale', 'en');
+      var button = Button.create({board: board});
+      button.set('translations_hash', {
+        'en': {
+          'label': 'cat'
+        },
+        'es': {
+          'label': 'tac',
+          'vocalization': 'stac'
+        }
+      });
+      expect(button.get('translations')).toEqual([
+        {code: 'en', locale: 'en', label: undefined, vocalization: undefined},
+        {code: 'es', locale: 'es', label: 'tac', vocalization: 'stac'}
+      ]);
+      button.set('label', 'cans');
+      expect(button.get('translations')).toEqual([
+        {code: 'en', locale: 'en', label: 'cans', vocalization: undefined},
+        {code: 'es', locale: 'es', label: 'tac', vocalization: 'stac'}
+      ]);
+    });
+
+    it('should update matching vocalization in-place when vocalization changes', function() {
+      var board = CoughDrop.store.createRecord('board');
+      board.set('locale', 'en');
+      var button = Button.create({board: board});
+      button.set('translations_hash', {
+        'en': {
+          'label': 'cat'
+        },
+        'es': {
+          'label': 'tac',
+          'vocalization': 'stac'
+        }
+      });
+      expect(button.get('translations')).toEqual([
+        {code: 'en', locale: 'en', label: undefined, vocalization: undefined},
+        {code: 'es', locale: 'es', label: 'tac', vocalization: 'stac'}
+      ]);
+      board.set('locale', 'es');
+      button.set('vocalization', 'bleh');
+      expect(button.get('translations')).toEqual([
+        {code: 'en', locale: 'en', label: 'cat', vocalization: undefined},
+        {code: 'es', locale: 'es', label: 'tac', vocalization: 'bleh'}
+      ]);
+    });
+
+    it('should update translations record when the hash is set', function() {
+      var b = Button.create();
+      b.set('translations_hash', {
+        'fr': {
+          'label': 'cat',
+          'vocalization': 'cats'
+        },
+        'es': {
+          'label': 'tac',
+          'vocalization': 'stac'
+        }
+      });
+      expect(b.get('translations')).toEqual([
+        {code: 'fr', locale: 'fr', label: 'cat', vocalization: 'cats'},
+        {code: 'es', locale: 'es', label: 'tac', vocalization: 'stac'}
+      ]);
+    });
+  });
+
+  context('update_settings_from_translations', function() {
+    it('should update label and vocalization when translation values change', function() {
+      var b = Button.create();
+      b.set('label', 'fred');
+      b.set('vocalization', 'freddy');
+      b.set('translations', [
+        {code: 'en', locale: 'en', label: 'max', vocalization: 'maximum'},
+        {code: 'es', locale: 'es', label: 'big', vocalization: 'really big'}
+      ]);
+      expect(b.get('label')).toEqual('max');
+      expect(b.get('vocalization')).toEqual('maximum');
+    });
+
+    it('should not update label and vocalization when non-matching translation values change', function() {
+      var b = Button.create();
+      b.set('label', 'fred');
+      b.set('vocalization', 'freddy');
+      b.set('translations', [
+        {code: 'fr', locale: 'en', label: 'max', vocalization: 'maximum'},
+        {code: 'es', locale: 'es', label: 'big', vocalization: 'really big'}
+      ]);
+      expect(b.get('label')).toEqual('fred');
+      expect(b.get('vocalization')).toEqual('freddy');
+    });
+  });
 });

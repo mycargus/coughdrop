@@ -599,4 +599,128 @@ describe('Board', function() {
       expect(b.get('protected_material')).toEqual(true);
     });
   });
+
+  describe("valid_id", function() {
+    it('should return the correct value', function() {
+      var b = CoughDrop.store.createRecord('board');
+      expect(b.get('valid_id')).toEqual(false);
+      b.set('id', '1234');
+      expect(b.get('valid_id')).toEqual(true);
+      b.set('id', '1_123');
+      expect(b.get('valid_id')).toEqual(true);
+      b.set('id', 'bad');
+      expect(b.get('valid_id')).toEqual(false);
+    });
+  });
+
+  describe("locales", function() {
+    it('should return correct values', function() {
+      var b = CoughDrop.store.createRecord('board');
+      expect(b.get('locales')).toEqual([]);
+      b.set('translations', {});
+      expect(b.get('locales')).toEqual([]);
+      b.set('translations', {
+        'a': {
+          'en': 'something',
+          'es': 'something'
+        },
+        'b': {
+          'en': 'something',
+          'fr': 'something'
+        }
+      });
+      expect(b.get('locales')).toEqual(['en', 'es', 'fr']);
+    });
+  });
+
+  describe("translations_for_button", function() {
+    it('should should find matching buttons', function() {
+      var b = CoughDrop.store.createRecord('board');
+      b.set('translations', {
+        '123': {
+          'en': {'a': 1}
+        },
+        '234': {
+          'es': {'b': 2}
+        }
+      });
+      expect(b.translations_for_button('234')).toEqual({
+        'en': {},
+        'es': {'b': 2}
+      });
+    });
+
+    it('should return correctly when no button found', function() {
+      var b = CoughDrop.store.createRecord('board');
+      expect(b.translations_for_button('asdf')).toEqual({});
+    });
+  });
+
+  describe("translated_buttons", function() {
+    it('should return the original list if no translations defined', function() {
+      var b = CoughDrop.store.createRecord('board');
+      expect(b.translated_buttons()).toEqual([]);
+      b.set('buttons', [{id: '1', label: 'hat'}, {id: '2', label: 'car', vocalization: 'friend'}]);
+      expect(b.translated_buttons('en', 'en')).toEqual([
+        {id: '1', label: 'hat'},
+        {id: '2', label: 'car', vocalization: 'friend'}
+      ]);
+    });
+
+    it('should return translated for the specified locales', function() {
+      var b = CoughDrop.store.createRecord('board');
+      expect(b.translated_buttons()).toEqual([]);
+      b.set('buttons', [{id: '1', label: 'hat'}, {id: '2', label: 'car', vocalization: 'friend'}]);
+      b.set('translations', {
+        current_label: 'en',
+        current_vocalization: 'en',
+        '1': {
+          'es': {
+            label: 'has'
+          }
+        },
+        '2': {
+          'es': {
+            label: 'cat'
+          }
+        }
+      });
+      expect(b.translated_buttons('es', 'es')).toEqual([
+        {id: '1', label: 'has', vocalization: 'has'},
+        {id: '2', label: 'cat', vocalization: 'cat'}
+      ]);
+      expect(b.translated_buttons('en', 'es')).toEqual([
+        {id: '1', label: 'hat', vocalization: 'has'},
+        {id: '2', label: 'car', vocalization: 'cat'}
+      ]);
+      expect(b.translated_buttons('es', 'en')).toEqual([
+        {id: '1', label: 'has'},
+        {id: '2', label: 'cat', vocalization: 'friend'}
+      ]);
+    });
+
+    it('should return the original list if already in the right locales', function() {
+      var b = CoughDrop.store.createRecord('board');
+      expect(b.translated_buttons()).toEqual([]);
+      b.set('buttons', [{id: '1', label: 'hat'}, {id: '2', label: 'car', vocalization: 'friend'}]);
+      b.set('translations', {
+        current_label: 'en',
+        current_vocalization: 'en',
+        '1': {
+          'en': {
+            label: 'has'
+          }
+        },
+        '2': {
+          'en': {
+            label: 'cat'
+          }
+        }
+      });
+      expect(b.translated_buttons('en', 'en')).toEqual([
+        {id: '1', label: 'hat'},
+        {id: '2', label: 'car', vocalization: 'friend'}
+      ]);
+    });
+  });
 });

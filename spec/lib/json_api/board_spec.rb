@@ -30,6 +30,12 @@ describe JsonApi::Board do
       expect(JsonApi::Board.build_json(b, :permissions => u)['starred']).to eq(false)
     end
     
+    it "should include translations if defined" do
+      u = User.create
+      b = Board.create(:user => u)
+      b.settings['translations'] = {'a' => 1}
+      expect(JsonApi::Board.as_json(b, :permissions => u, :wrapper => true)['board']['translations']).to eq({'a' => 1})
+    end
   end
   
   describe "extra_includes" do

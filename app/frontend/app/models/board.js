@@ -141,6 +141,51 @@ CoughDrop.Board = DS.Model.extend({
     callback();
     this.set('no_lookups', false);
   },
+  locales: function() {
+    var res = [];
+    var button_ids = (this.get('translations') || {});
+    var all_langs = [];
+    for(var button_id in button_ids) {
+      var keys = Object.keys(button_ids[button_id] || {});
+      all_langs = all_langs.concat(keys);
+    }
+    all_langs.forEach(function(lang) {
+      if(res.indexOf(lang) == -1) {
+        res.push(lang);
+      }
+    });
+    return res;
+  }.property('translations'),
+  translations_for_button: function(button_id) {
+    // necessary otherwise button that wasn't translated at first will never be translatable
+    var trans = (this.get('translations') || {})[button_id] || {};
+    (this.get('locales') || []).forEach(function(locale) {
+      trans[locale] = trans[locale] || {};
+    });
+    return trans;
+  },
+  translated_buttons: function(label_locale, vocalization_locale) {
+    var res = [];
+    var trans = this.get('translations') || {};
+    var buttons = this.get('buttons') || [];
+    if(!trans) { return buttons; }
+    label_locale = label_locale || trans.current_label || this.get('locale') || 'en';
+    vocalization_locale = vocalization_locale || trans.current_vocalization || this.get('locale') || 'en';
+    if(trans.current_label == label_locale && trans.current_vocalization == vocalization_locale) { return buttons; }
+    buttons.forEach(function(button) {
+      var b = Ember.$.extend({}, button);
+      if(trans[b.id]) {
+        if(trans[b.id][label_locale] && trans[b.id][label_locale].label) {
+          b.label = trans[b.id][label_locale].label;
+        }
+        if(trans[b.id][vocalization_locale] && (trans[b.id][vocalization_locale].vocalization || trans[b.id][vocalization_locale].label)) {
+          b.vocalization = (trans[b.id][vocalization_locale].vocalization || trans[b.id][vocalization_locale].label);
+        }
+      }
+      res.push(b);
+    });
+    return res;
+  },
   find_content_locally: function() {
     var _this = this;
     var fetch_promise = this.get('fetch_promise');
@@ -264,7 +309,7 @@ CoughDrop.Board = DS.Model.extend({
       });
       labels = new_labels;
     }
-    return this.get('name') + " (" + date + ") - " + this.get('user_name') + " - " + labels;
+    return this.get('key') + " (" + date + ") - " + this.get('user_name') + " - " + labels;
   }.property('name', 'labels', 'user_name', 'created'),
   search_string: function() {
     return this.get('name') + " " + this.get('user_name') + " " + this.get('labels');
