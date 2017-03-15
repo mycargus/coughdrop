@@ -2,6 +2,15 @@
 
 ## Master
 
+### 2017-03-15
+- core word reports (feature flag)
+- faster board load times
+- more efficient syncing
+- improved support for eye trackers
+- option to show simpler folder indicate (on by default for new users)
+- better support for subscription updating from emails
+- quick-switch between languages on translated boards (feature flag)
+
 ### 2017-02-07
 - support for searching Pixabay for images
 - fixed syncing to be less eager, more effective
