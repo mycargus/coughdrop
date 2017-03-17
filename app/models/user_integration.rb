@@ -138,7 +138,8 @@ class UserIntegration < ActiveRecord::Base
       end
       self.settings['user_settings'] = user_params
       if params['integration_key'] == 'lessonpix' && user_params['username']
-        self.unique_key = Security.sha512(user_params['username']['value'], 'lessonpix-username')
+        identifiers = ['username']
+        self.unique_key = Security.sha512(user_params['username']['value'], "#{params['integration_key']}-#{identifiers.join('-')}")
         match = UserIntegration.find_by(unique_key: self.unique_key)
         if match && match.id != self.id
           add_processing_error('account credentials already in use')
@@ -146,7 +147,6 @@ class UserIntegration < ActiveRecord::Base
         end
         res = Uploader.find_images('hat', 'lessonpix', self)
         if res == false
-          cred = Uploader.lessonpix_credentials(self)
           add_processing_error('invalid user credentials')
           return false
         end

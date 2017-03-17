@@ -75,6 +75,73 @@ describe Api::IntegrationsController, :type => :controller do
       expect(json['integration']['icon_url']).to eq('http://www.example.com/icon.png')
       expect(json['integration']['template_key']).to eq('something_cool')
     end
+    
+    it "should error if the integration's settings don't work" do
+      token_user
+      template = UserIntegration.create(template: true, integration_key: 'lessonpix', settings: {'icon_url' => 'http://www.example.com/icon.png', 'user_parameters' => [
+        {'name' => 'username', 'type' => 'text'},
+        {'name' => 'password', 'type' => 'password'}
+      ]})
+      expect(UserIntegration.count).to eq(1)
+      expect(Uploader).to receive(:find_images){|str, library, ui|
+        expect(str).to eq('hat')
+        expect(library).to eq('lessonpix')
+        expect(ui).to_not eq(nil)
+        expect(ui.id).to eq(nil)
+      }.and_return(false)
+      post 'create', params:{'integration' => {'user_id' => @user.global_id, 'integration_key' => 'lessonpix', 'user_parameters' => [
+        {'name' => 'username', 'type' => 'text', 'value' => 'bacon'},
+        {'name' => 'password', 'type' => 'password', 'value' => 'maple'}
+      ]}}
+      expect(response).to_not be_success
+      json = JSON.parse(response.body)
+      expect(json['error']).to eq('integration creation failed')
+      expect(json['errors']).to eq(['invalid user credentials'])
+      expect(UserIntegration.count).to eq(1)
+    end
+    
+    it "should error if the integration's settings are already in use" do
+      token_user
+      u = User.create
+      template = UserIntegration.create(template: true, integration_key: 'lessonpix', settings: {'icon_url' => 'http://www.example.com/icon.png', 'user_parameters' => [
+        {'name' => 'username', 'type' => 'text'},
+        {'name' => 'password', 'type' => 'password'}
+      ]})
+      expect(Uploader).to_not receive(:find_images)
+      ui = UserIntegration.create(user: u, template_integration: template, unique_key: Security.sha512('bacon', 'lessonpix-username'))
+      expect(UserIntegration.count).to eq(2)
+      post 'create', params:{'integration' => {'user_id' => @user.global_id, 'integration_key' => 'lessonpix', 'user_parameters' => [
+        {'name' => 'username', 'type' => 'text', 'value' => 'bacon'},
+        {'name' => 'password', 'type' => 'password', 'value' => 'maple'}
+      ]}}
+      expect(response).to_not be_success
+      json = JSON.parse(response.body)
+      expect(json['error']).to eq('integration creation failed')
+      expect(json['errors']).to eq(['account credentials already in use'])
+      expect(UserIntegration.count).to eq(2)
+    end
+    
+    it "should succeed if the integration settings do work" do
+      token_user
+      template = UserIntegration.create(template: true, integration_key: 'lessonpix', settings: {'icon_url' => 'http://www.example.com/icon.png', 'user_parameters' => [
+        {'name' => 'username', 'type' => 'text'},
+        {'name' => 'password', 'type' => 'password'}
+      ]})
+      expect(UserIntegration.count).to eq(1)
+      expect(Uploader).to receive(:find_images){|str, library, ui|
+        expect(str).to eq('hat')
+        expect(library).to eq('lessonpix')
+        expect(ui).to_not eq(nil)
+        expect(ui.id).to eq(nil)
+      }.and_return([])
+      post 'create', params:{'integration' => {'user_id' => @user.global_id, 'integration_key' => 'lessonpix', 'user_parameters' => [
+        {'name' => 'username', 'type' => 'text', 'value' => 'bacon'},
+        {'name' => 'password', 'type' => 'password', 'value' => 'maple'}
+      ]}}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(UserIntegration.count).to eq(2)
+    end
   end
   
   describe "put 'update'" do

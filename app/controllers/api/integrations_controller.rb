@@ -30,7 +30,7 @@ class Api::IntegrationsController < ApplicationController
     integration = nil
     if params['integration'] && params['integration']['integration_key']
       template = UserIntegration.find_by(template: true, integration_key: params['integration']['integration_key'])
-      integration = UserIntegration.find_or_create_by(user: user, template_integration: template)
+      integration = UserIntegration.find_or_initialize_by(user: user, template_integration: template)
     end
     if integration
       integration.process(params['integration'], {user: user})
