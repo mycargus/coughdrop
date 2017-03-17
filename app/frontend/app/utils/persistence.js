@@ -1217,8 +1217,8 @@ var persistence = Ember.Object.extend({
 
     var peeked = CoughDrop.store.peekRecord('board', lookup_id);
     var key_for_id = lookup_id.match(/\//);
-    var partial_load = peeked && !peeked.get('permissions');
-    if(peeked && !peeked.get('permissions')) { peeked = null; }
+    var partial_load = peeked && (!peeked.get('permissions') || !peeked.get('image_urls'));
+    if(peeked && (!peeked.get('permissions') || !peeked.get('image_urls')) { peeked = null; }
     var find_board = null;
     // because of async, it's possible that two threads will try
     // to look up the same board independently, especially with supervisees
@@ -1232,7 +1232,7 @@ var persistence = Ember.Object.extend({
         if(!fresh || key_for_id || partial_load) {
           local_full_set_revision = record.get('full_set_revision');
           // If the board is in the list of already-up-to-date, don't call reload
-          if(record.get('permissions') && safely_cached_boards[id] && !cache_mismatch) {
+          if(record.get('permissions') && record.get('image_urls') && safely_cached_boards[id] && !cache_mismatch) {
             board_statuses.push({id: id, key: record.get('key'), status: 'cached'});
             return record;
           } else if(record.get('permissions') && fresh_board_revisions && fresh_board_revisions[id] && fresh_board_revisions[id] == record.get('current_revision')) {
