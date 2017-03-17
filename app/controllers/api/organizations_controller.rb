@@ -25,21 +25,21 @@ class Api::OrganizationsController < ApplicationController
     end
     prefix = "/organizations/#{@org.global_id}/users"
     org_manager = @org.allows?(@api_user, 'manage')
-    render json: JsonApi::User.paginate(params, users, {:limited_identity => true, :organization => @org, :prefix => prefix, :organization_manager => org_manager})
+    render json: JsonApi::User.paginate(params, users, {:limited_identity => true, :include_email => true, :organization => @org, :prefix => prefix, :organization_manager => org_manager})
   end
   
   def supervisors
     return unless allowed?(@org, 'edit')
     users = @org.supervisors.order('user_name')
     prefix = "/organizations/#{@org.global_id}/supervisors"
-    render json: JsonApi::User.paginate(params, users, {:limited_identity => true, :organization => @org, :prefix => prefix})
+    render json: JsonApi::User.paginate(params, users, {:limited_identity => true, :include_email => true, :organization => @org, :prefix => prefix})
   end
 
   def managers
     return unless allowed?(@org, 'edit')
     users = @org.managers.order('user_name')
     prefix = "/organizations/#{@org.global_id}/managers"
-    render json: JsonApi::User.paginate(params, users, {:limited_identity => true, :organization => @org, :prefix => prefix})
+    render json: JsonApi::User.paginate(params, users, {:limited_identity => true, :include_email => true, :organization => @org, :prefix => prefix})
   end
   
   def stats

@@ -133,6 +133,7 @@ module JsonApi::User
       json['name'] = user.settings['name']
       json['avatar_url'] = user.generated_avatar_url
       json['unread_messages'] = user.settings['unread_messages'] || 0
+      json['email'] = user.settings['email'] if args[:include_email]
       if args[:supervisor]
         json['edit_permission'] = args[:supervisor].edit_permission_for?(user)
         json['premium'] = user.premium?
