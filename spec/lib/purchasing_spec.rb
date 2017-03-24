@@ -344,17 +344,23 @@ describe Purchasing do
       it "should retrieve the existing customer record if there is one" do
         u = User.create
         u.settings['subscription'] = {'customer_id' => '12345'}
-        subs = []
-        expect(Stripe::Customer).to receive(:retrieve).with('12345').and_return(OpenStruct.new({
-          subscriptions: subs
-        }))
-        expect(subs).to receive(:create).with({
-          :plan => 'monthly_6',
-          :source => 'token'
-        }).and_return({
+        subs = OpenStruct.new(data: [], count: 0)
+        new_sub = OpenStruct.new({
           'id' => '3456',
-          'customer' => '12345'
+          'customer' => '12345',
+          'status' => 'active'
         })
+        expect(Stripe::Customer).to receive(:retrieve).with('12345').and_return(OpenStruct.new({
+          subscriptions: subs,
+          id: '12345'
+        })).at_least(1).times
+        expect(subs).to receive(:create){|opts|
+          expect(opts).to eq({
+            :plan => 'monthly_6',
+            :source => 'token'
+          })
+          subs.data.push(new_sub)
+        }.and_return(new_sub)
         expect(Purchasing).to receive(:cancel_other_subscriptions).with(u, '3456')
         Purchasing.purchase(u, {'id' => 'token'}, 'monthly_6')
       end
@@ -369,16 +375,22 @@ describe Purchasing do
           })],
           count: 1
         })
-        expect(Stripe::Customer).to receive(:retrieve).with('12345').and_return(OpenStruct.new({
-          subscriptions: subs
-        }))
-        expect(subs).to receive(:create).with({
-          :plan => 'monthly_6',
-          :source => 'token'
-        }).and_return({
+        new_sub = OpenStruct.new({
           'id' => '3457',
-          'customer' => '12345'
+          'customer' => '12345',
+          'status' => 'active'
         })
+        expect(Stripe::Customer).to receive(:retrieve).with('12345').and_return(OpenStruct.new({
+          subscriptions: subs,
+          id: '12345'
+        })).at_least(1).times
+        expect(subs).to receive(:create){|opts|
+          expect(opts).to eq({
+            :plan => 'monthly_6',
+            :source => 'token'
+          })
+          subs.data.push(new_sub)
+        }.and_return(new_sub)
         expect(Purchasing).to receive(:cancel_other_subscriptions).with(u, '3457')
         Purchasing.purchase(u, {'id' => 'token'}, 'monthly_6')
       end
@@ -386,17 +398,26 @@ describe Purchasing do
       it "should trigger a subscription event for an existing customer record" do
         u = User.create
         u.settings['subscription'] = {'customer_id' => '12345'}
-        subs = []
-        expect(Stripe::Customer).to receive(:retrieve).with('12345').and_return(OpenStruct.new({
-          subscriptions: subs
-        }))
-        expect(subs).to receive(:create).with({
-          :plan => 'monthly_6',
-          :source => 'token'
-        }).and_return({
-          'id' => '3456',
-          'customer' => '12345'
+        subs = OpenStruct.new({
+          data: [],
+          count: 0
         })
+        new_sub = OpenStruct.new({
+          'id' => '3456',
+          'customer' => '12345',
+          'status' => 'active'
+        })
+        expect(Stripe::Customer).to receive(:retrieve).with('12345').and_return(OpenStruct.new({
+          subscriptions: subs,
+          id: '12345'
+        })).at_least(1).times
+        expect(subs).to receive(:create){|opts|
+          expect(opts).to eq({
+            :plan => 'monthly_6',
+            :source => 'token'
+          })
+          subs.data.push(new_sub)
+        }.and_return(new_sub)
         expect(User).to receive(:subscription_event).with({
           'subscribe' => true,
           'user_id' => u.global_id,
@@ -412,20 +433,34 @@ describe Purchasing do
 
       it "should create a customer if one doesn't exist" do
         u = User.create
-        subs = []
+        subs = OpenStruct.new({
+          'data' => [
+            OpenStruct.new({'status' => 'broken', 'id' => 'sub1'}),
+            OpenStruct.new({'status' => 'busted', 'id' => 'sub2'})
+          ],
+          'count' => 2,
+          'id' => '12345'
+        })
+        new_sub = OpenStruct.new({
+          'id' => '3456',
+          'customer' => '12345',
+          'status' => 'active'
+        })
+        cus = OpenStruct.new({
+          subscriptions: subs
+        })
         expect(Stripe::Customer).to receive(:create).with({
           :metadata => {'user_id' => u.global_id},
-          :plan => 'monthly_6',
-          :email => nil,
-          :source => 'token'
-        }).and_return(OpenStruct.new({
-          subscriptions: {
-            'data' => [
-              {'status' => 'broken', 'id' => 'sub1'},
-              {'status' => 'active', 'id' => 'sub2'}
-            ]
-          }
-        }))
+          :email => nil
+        }).and_return(cus)
+        expect(Stripe::Customer).to receive(:retrieve).and_return(cus).at_least(1).times
+        expect(cus.subscriptions).to receive(:create){|opts|
+          expect(opts).to eq({
+            :plan => 'monthly_6',
+            :source => 'token'
+          })
+          subs.data.push(new_sub)
+        }.and_return(new_sub)
         Purchasing.purchase(u, {'id' => 'token'}, 'monthly_6')
       end
 
@@ -433,20 +468,22 @@ describe Purchasing do
         u = User.create
         u.settings['email'] = 'testing@example.com'
         u.save
-        subs = []
+        subs = OpenStruct.new({
+          data: [
+            OpenStruct.new({'status' => 'broken', 'id' => 'sub1'}),
+            OpenStruct.new({'status' => 'active', 'id' => 'sub2'})
+          ],
+          count: 2
+        })
+        cus = OpenStruct.new({
+          subscriptions: subs,
+          id: '12345'
+        })
         expect(Stripe::Customer).to receive(:create).with({
           :metadata => {'user_id' => u.global_id},
-          :plan => 'monthly_6',
-          :email => 'testing@example.com',
-          :source => 'token'
-        }).and_return(OpenStruct.new({
-          subscriptions: {
-            'data' => [
-              {'status' => 'broken', 'id' => 'sub1'},
-              {'status' => 'active', 'id' => 'sub2'}
-            ]
-          }
-        }))
+          :email => 'testing@example.com'
+        }).and_return(cus)
+        expect(Stripe::Customer).to receive(:retrieve).with('12345').and_return(cus)
         Purchasing.purchase(u, {'id' => 'token'}, 'monthly_6')
       end
 
@@ -455,40 +492,59 @@ describe Purchasing do
         u.settings['email'] = 'testing@example.com'
         u.settings['authored_organization_id'] = 'asdf'
         u.save
-        subs = []
+        s2 = OpenStruct.new({'status' => 'active', 'id' => 'sub2'})
+        subs = OpenStruct.new({
+          data: [
+            OpenStruct.new({'status' => 'broken', 'id' => 'sub1'}),
+            s2
+          ],
+          count: 2
+        })
+        cus = OpenStruct.new({
+          subscriptions: subs,
+          id: '12345'
+        })
         expect(Stripe::Customer).to receive(:create).with({
           :metadata => {'user_id' => u.global_id},
-          :plan => 'monthly_6',
-          :email => nil,
-          :source => 'token'
-        }).and_return(OpenStruct.new({
-          subscriptions: {
-            'data' => [
-              {'status' => 'broken', 'id' => 'sub1'},
-              {'status' => 'active', 'id' => 'sub2'}
-            ]
-          }
-        }))
+          :email => nil
+        }).and_return(cus)
+        expect(s2).to receive(:save) do
+          expect(s2.source).to eq('token')
+          expect(s2.plan).to eq('monthly_6')
+          expect(s2.prorate).to eq(true)
+        end
+        expect(Stripe::Customer).to receive(:retrieve).with('12345').and_return(cus)
+        expect(subs).to_not receive(:create)
         Purchasing.purchase(u, {'id' => 'token'}, 'monthly_6')
       end
 
       it "should trigger a subscription event for a new customer" do
         u = User.create
-        subs = []
+        subs = OpenStruct.new({
+          data: [],
+          count: 0
+        })
+        cus = OpenStruct.new({
+          id: '9876',
+          subscriptions: subs
+        })
+        new_sub = OpenStruct.new({
+          id: 'sub2',
+          status: 'active',
+          customer: '9876'
+        })
         expect(Stripe::Customer).to receive(:create).with({
           :metadata => {'user_id' => u.global_id},
-          :plan => 'monthly_6',
-          :email => nil,
-          :source => 'token'
-        }).and_return(OpenStruct.new({
-          id: '9876',
-          subscriptions: {
-            'data' => [
-              {'status' => 'canceled', 'id' => 'sub1'},
-              {'status' => 'active', 'id' => 'sub2'}
-            ]
-          }
-        }))
+          :email => nil
+        }).and_return(cus)
+        expect(Stripe::Customer).to receive(:retrieve).with('9876').and_return(cus)
+        expect(subs).to receive(:create){|opts|
+          expect(opts).to eq({
+            plan: 'monthly_6',
+            source: 'token'
+          })
+          subs.data.push(new_sub)
+        }.and_return(new_sub)
         expect(User).to receive(:subscription_event).with({
           'user_id' => u.global_id,
           'subscribe' => true,
@@ -509,13 +565,14 @@ describe Purchasing do
           'id' => '3456',
           'status' => 'active'
         })
-        subs = [sub1]
+        subs = OpenStruct.new({
+          data: [sub1],
+          count: 1
+        })
         expect(Stripe::Customer).to receive(:retrieve).with('12345').and_return(OpenStruct.new({
-          subscriptions: OpenStruct.new({
-            data: subs,
-            count: 1
-          })
-        }))
+          subscriptions: subs,
+          id: '12345'
+        })).at_least(1).times
         expect(sub1).to receive(:save).and_return(true)
         
         expect(Purchasing).to receive(:cancel_other_subscriptions).with(u, '3456')

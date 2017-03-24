@@ -223,6 +223,15 @@ module Purchasing
           user && user.log_subscription_event({:log => 'retrieving existing customer'})
           customer = Stripe::Customer.retrieve(user.settings['subscription']['customer_id']) rescue nil
         end
+        if !customer
+          user && user.log_subscription_event({:log => 'creating new customer'})
+          customer = Stripe::Customer.create({
+            :metadata => {
+              'user_id' => user.global_id
+            },
+            :email => (user && user.external_email_allowed?) ? (user && user.settings && user.settings['email']) : nil
+          })
+        end
         if customer
           user && user.log_subscription_event({:log => 'new subscription for existing customer'})
           sub = nil
@@ -235,11 +244,20 @@ module Purchasing
             sub.prorate = true
             sub.save
           else
+            trial_end = 'now'
+            if user.created_at > 60.days.ago
+              trial_end = (user.created_at + 60.days).to_i
+            end
             sub = customer.subscriptions.create({
               :plan => plan_id,
-              :source => token['id']
+              :source => token['id'],
+              # TODO: uncomment this to let people finish their free trial before being charged
+#              :trial_end => trial_end
             })
           end
+          customer = Stripe::Customer.retrieve(customer.id)
+          any_sub = customer.subscriptions.data.detect{|s| s.status == 'active' || s.status == 'trialing' }
+          raise "no valid subscription found" unless any_sub
           user && user.log_subscription_event({:log => 'persisting subscription update'})
           updated = User.subscription_event({
             'subscribe' => true,
@@ -252,28 +270,7 @@ module Purchasing
             'source' => 'new subscription'
           })
         else
-          user && user.log_subscription_event({:log => 'creating new customer'})
-          customer = Stripe::Customer.create({
-            :metadata => {
-              'user_id' => user.global_id
-            },
-            :email => (user && user.external_email_allowed?) ? (user && user.settings && user.settings['email']) : nil,
-            :plan => plan_id,
-            :source => token['id']
-          })
-          sub = customer.subscriptions['data'].detect{|s| s['status'] == 'active' || s['status'] == 'trialing' }
-          raise "no valid subscription found" unless sub
-          user && user.log_subscription_event({:log => 'persisting subscription update'})
-          updated = User.subscription_event({
-            'subscribe' => true,
-            'user_id' => user.global_id,
-            'subscription_id' => sub['id'],
-            'customer_id' => customer['id'],
-            'token_summary' => token['summary'],
-            'plan_id' => plan_id,
-            'cancel_others_on_update' => true,
-            'source' => 'new subscription'
-          })
+          raise "customer should have been created but wasn't"
         end
       end
     rescue Stripe::CardError => err
