@@ -1218,7 +1218,7 @@ var persistence = Ember.Object.extend({
     var peeked = CoughDrop.store.peekRecord('board', lookup_id);
     var key_for_id = lookup_id.match(/\//);
     var partial_load = peeked && (!peeked.get('permissions') || !peeked.get('image_urls'));
-    if(peeked && (!peeked.get('permissions') || !peeked.get('image_urls')) { peeked = null; }
+    if(peeked && (!peeked.get('permissions') || !peeked.get('image_urls'))) { peeked = null; }
     var find_board = null;
     // because of async, it's possible that two threads will try
     // to look up the same board independently, especially with supervisees
