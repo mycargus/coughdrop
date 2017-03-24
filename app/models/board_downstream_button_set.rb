@@ -51,6 +51,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
             'board_key' => board_to_visit.key,
             'hidden' => !!button['hidden'],
             'image' => image && image.url,
+            'sound_id' => button['sound_id'],
             'label' => button['label'],
             'vocalization' => button['vocalization'],
             'link_disabled' => !!button['link_disabled'],

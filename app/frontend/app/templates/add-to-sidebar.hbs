@@ -4,7 +4,7 @@
     <h3>
       {{t "Add Board to Sidebar" key='add_board_to_sidebar'}}
     </h3>
-  </div>  
+  </div>
   <div class="modal-body">
     <form class="form-horizontal" {{action 'nothing' on='submit'}}>
       <p>
@@ -40,13 +40,13 @@
       </div>
     </form>
 
-    {{#if model.supervisees}}
+    {{#if has_supervisees}}
       <p>
         {{t "For which user would you like to add <b>%{board_key}</b> as a sidebar board?" key='which_user_set_as_home' board_key=model.board.key}}
       </p>
-      {{partial "select-user"}}
+      {{user-select select_id="currently_selected_id" buttons=true selection=currently_selected_id action=(action (mut currently_selected_id)) }}
     {{/if}}
-    
+
     {{#if error}}
       <p class='text-danger'>{{t "Adding to sidebar failed unexpectedly" key='add_to_sidebar_failed'}}</p>
     {{/if}}

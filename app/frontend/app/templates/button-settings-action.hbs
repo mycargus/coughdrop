@@ -99,11 +99,11 @@
       </div>
     </div>
     {{#if pending_board}}
-      {{#if supervisees}}
+      {{#if has_supervisees}}
         <div class="form-group">
           <label for="for_user_id" class="col-sm-2 control-label">{{t "For" key='for'}}</label>
           <div class="col-sm-10">
-            {{user-select select_id="for_user_id" users=supervisees selection=pending_board.for_user_id action=(action (mut pending_board.for_user_id)) }}
+            {{user-select select_id="for_user_id" selection=pending_board.for_user_id action=(action (mut pending_board.for_user_id)) }}
           </div>
         </div>
       {{/if}}
@@ -165,11 +165,11 @@
       </div>
     {{/if}}
   {{else if model.integrationAction}}
-    {{#if supervisees}}
+    {{#if has_supervisees}}
       <div class="form-group">
         <label for="for_user_id" class="col-sm-2 control-label">{{t "For" key='for'}}</label>
         <div class="col-sm-10">
-          {{user-select select_id="for_user_id" users=supervisees selection=model.integration_user_id action=(action (mut model.integration_user_id)) }}
+          {{user-select select_id="for_user_id" selection=model.integration_user_id action=(action (mut model.integration_user_id)) }}
         </div>
       </div>
     {{/if}}

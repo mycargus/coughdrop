@@ -6,16 +6,14 @@ import CoughDrop from '../app';
 
 export default modal.ModalController.extend({
   opening: function() {
-    var supervisees = [];
-    if(app_state.get('sessionUser.supervisees')) {
-      app_state.get('sessionUser.supervisees').forEach(function(supervisee) {
-        var res = Ember.Object.create(supervisee);
-        res.set('disabled', !supervisee.edit_permission);
-        supervisees.push(res);
-      });
-    }
-    this.set('model.supervisees', supervisees);
+    this.set('has_supervisees', app_state.get('sessionUser.supervisees.length') > 0);
+    this.set('currently_selected_id', null);
   },
+  select_on_change: function() {
+    if(this.get('currently_selected_id')) {
+      this.send('select', this.get('currently_selected_id'));
+    }
+  }.observes('currently_selected_id'),
   actions: {
     select: function(for_user_id) {
       var _this = this;

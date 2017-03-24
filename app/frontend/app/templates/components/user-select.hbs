@@ -1,8 +1,26 @@
-{{#if for_user_image}}
-  <span style="display: inline-block; width: 35px;">
-    <img src={{for_user_image}} style="height: 35px; max-width: 35px;"/>
+{{#if buttons}}
+  <div class="row">
+    {{#each users as |supervisee|}}
+      <div class="col-md-3 col-sm-4 col-xs-6">
+        <button disabled={{supervisee.disabled}} class={{if supervisee.currently_selected 'btn btn-info' 'btn btn-default'}} {{action 'select' supervisee.id}} style="width: 100%; padding-top: 10px; padding-bottom: 10px; margin-bottom: 20px;">
+          <img src={{supervisee.image}} style="height: 60px; max-width: 100px;"/><br/>
+          {{supervisee.name}}<br/>
+          {{#if supervisee.disabled}}
+            <em class='text-muted'>{{t "not allowed" key='not_allowed'}}</em>
+          {{else}}
+            &nbsp;
+          {{/if}}
+        </button>
+      </div>
+    {{/each}}
+  </div>
+{{else}}
+  {{#if for_user_image}}
+    <span style="display: inline-block; width: 35px;">
+      <img src={{for_user_image}} style="height: 35px; max-width: 35px;"/>
+    </span>
+  {{/if}}
+  <span style="display: inline-block; width: calc(100% - 40px);">
+    {{bound-select select_class="form-control" select_id=select_id content=users selection=selection action=action }}
   </span>
 {{/if}}
-<span style="display: inline-block; width: calc(100% - 40px);">
-  {{bound-select select_class="form-control" select_id=select_id content=users selection=selection action=action }}
-</span>

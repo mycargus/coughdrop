@@ -106,9 +106,6 @@ export default modal.ModalController.extend({
     },
     close: function() {
       modal.close(false);
-    },
-    select: function(for_user_id) {
-      this.set('currently_selected_id', for_user_id);
     }
   }
 });

@@ -6,19 +6,17 @@ export default modal.ModalController.extend({
   opening: function() {
     this.set('model.jump_home', true);
     this.set('model.keep_as_self', false);
-    var supervisees = [];
-    if(app_state.get('sessionUser.supervisees')) {
-      app_state.get('sessionUser.supervisees').forEach(function(supervisee) {
-        var res = Ember.Object.create(supervisee);
-        res.set('currently_selected', app_state.get('currentUser.id') == supervisee.id);
-        supervisees.push(res);
-      });
-    }
-    this.set('model.supervisees', supervisees);
+    this.set('has_supervisees', app_state.get('sessionUser.supervisees.length') > 0);
+    this.set('currently_selected_id', null);
   },
   self_currently_selected: function() {
     return app_state.get('currentUser.id') && app_state.get('currentUser.id') == app_state.get('sessionUser.id');
   }.property('app_state.currentUser.id'),
+  select_on_change: function() {
+    if(this.get('currently_selected_id')) {
+      this.send('select', this.get('currently_selected_id'));
+    }
+  }.observes('currently_selected_id'),
   actions: {
     select: function(board_for_user_id) {
       var jump_home = this.get('model.jump_home');

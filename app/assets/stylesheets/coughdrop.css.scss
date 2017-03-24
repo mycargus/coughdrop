@@ -1788,7 +1788,7 @@ video.button_image {
   right: calc(100% / 4); 
   width: auto; 
   opacity: 1.0; 
-  z-index: 3;
+  z-index: 1050;
   transition: visibility 0s 2s linear, opacity 1s ease-in-out 1s;
   -webkit-transition: visibility 0s 2s linear, opacity 1s ease-in-out 1s;
 }
@@ -1914,48 +1914,49 @@ video.button_image {
 #recording_status {
   display: block;
   background: none;
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   border: 2px solid #f66;
-  border-radius: 40px;
+  border-radius: 50px;
   margin: 50px auto;
   padding: 0;
 }
 #recording_status .sub_status {
   display: block;
-  width: 70px;
-  height: 70px;
+  width: 90px;
+  height: 90px;
   margin: 3px;
   background: #f66;
-  border-radius: 35px;
+  border-radius: 45px;
   border: 0;
 }
 @keyframes recording_throb {
   0% {
-    width: 72px;
-    height: 72px;
-    border-radius: 36px;
-    margin: 2px 2.5px;
+    width: 94px;
+    height: 94px;
+    border-radius: 47px;
+    margin: 1px 1.5px;
   }
   80% {
-    width: 66px;
-    height: 66px;
-    border-radius: 33px;
-    margin: 5px 5.5px;
+    width: 82px;
+    height: 82px;
+    border-radius: 41px;
+    margin: 7px 7.5px;
   }
 }
+
 @-webkit-keyframes recording_throb {
   0% {
-    width: 72px;
-    height: 72px;
-    border-radius: 36px;
-    margin: 2px 2.5px;
+    width: 94px;
+    height: 94px;
+    border-radius: 47px;
+    margin: 1px 1.5px;
   }
   80% {
-    width: 66px;
-    height: 66px;
-    border-radius: 33px;
-    margin: 5px 5.5px;
+    width: 82px;
+    height: 82px;
+    border-radius: 41px;
+    margin: 7px 7.5px;
   }
 }
 #recording_status:hover, #recording_status.recording {

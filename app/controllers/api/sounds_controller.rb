@@ -26,17 +26,31 @@ class Api::SoundsController < ApplicationController
     end
   end
   
+  def import
+    if params['url']
+      progress = Progress.schedule(ButtonSound, :import_for, @api_user.global_id, params['url'])
+      render json: JsonApi::Progress.as_json(progress, :wrapper => true).to_json
+    else
+      remote_path = "imports/sounds/#{@api_user.global_id}/upload-#{Security.nonce('filename')}.zip"
+      content_type = "application/zip"
+      params = Uploader.remote_upload_params(remote_path, content_type)
+      url = params[:upload_url] + remote_path
+      params[:success_url] = "/api/v1/sounds/imports?url=#{CGI.escape(url)}"
+      render json: {'remote_upload' => params}.to_json
+    end
+  end
+  
   def show
     sound = ButtonSound.find_by_path(params['id'])
-    return unless exists?(sound)
+    return unless exists?(sound, params['id'])
     return unless allowed?(sound, 'view')
     render json: JsonApi::Sound.as_json(sound, :wrapper => true, :permissions => @api_user).to_json
   end
   
   def update
     sound = ButtonSound.find_by_path(params['id'])
-    return unless exists?(sound)
-    return unless allowed?(sound, 'view')
+    return unless exists?(sound, params['id'])
+    return unless allowed?(sound, 'edit')
     if sound.process(params['sound'])
       render json: JsonApi::Sound.as_json(sound, :wrapper => true, :permissions => @api_user).to_json
     else
@@ -45,7 +59,14 @@ class Api::SoundsController < ApplicationController
   end
   
   def destroy
-    api_error 400, {error: 'not enabled'}
+    sound = ButtonSound.find_by_path(params['id'])
+    return unless exists?(sound, params['id'])
+    return unless allowed?(sound, 'edit')
+    if sound.destroy
+      render json: JsonApi::Sound.as_json(sound, :wrapper => true, :permissions => @api_user).to_json
+    else
+      api_error(400, {error: "sound deletion failed"})
+    end
     # delete the sound, any board connections, and remove it from s3
   end
 end

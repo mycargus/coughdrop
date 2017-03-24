@@ -178,6 +178,7 @@ Coughdrop::Application.routes.draw do
     
     resources :sounds do
       get 'upload_success'
+      post 'imports' => 'sounds#import', on: :collection
     end
 
     resources :videos do

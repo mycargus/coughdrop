@@ -4,7 +4,7 @@
     <h3>
       {{t "Set Home Board" key='set_home_board'}}
     </h3>
-  </div>  
+  </div>
   <div class="modal-body">
     <p>
       {{t "For which user would you like to set <b>%{board_key}</b> as the new home board?" key='which_user_set_as_home' board_key=model.board.key}}
@@ -12,7 +12,7 @@
     {{#if errored}}
       <p class='text-danger'>{{t "Setting home board failed, please try again." key='set_as_home_failed'}}</p>
     {{/if}}
-    {{partial "select-user"}}
+    {{user-select select_id="currently_selected_id" buttons=true selection=currently_selected_id action=(action (mut currently_selected_id)) }}
   </div>
   <div class="modal-footer">
     <button {{action "close"}} class="btn btn-default">{{t "Cancel" key='cancel'}}</button>

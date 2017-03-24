@@ -11,6 +11,7 @@ class ButtonImage < ActiveRecord::Base
   belongs_to :user
   before_save :generate_defaults
   after_create :track_image_use_later
+  after_destroy :remove_connections
   replicated_model  
 
   has_paper_trail :on => [:destroy] #:only => [:settings, :board_id, :user_id, :public, :path, :url, :data]
@@ -27,6 +28,11 @@ class ButtonImage < ActiveRecord::Base
     }
     self.public ||= false
     true
+  end
+  
+  def remove_connections
+    # TODO: sharding
+    BoardButtonImage.where(:button_image_id => self.id).delete_all
   end
   
   def protected?

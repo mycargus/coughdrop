@@ -102,6 +102,59 @@ module Uploader
     }
   end
   
+  def self.remote_zip(url, &block)
+    result = []
+    Progress.update_current_progress(0.1, :downloading_file)
+    response = Typhoeus.get(url)
+    Progress.update_current_progress(0.2, :processing_file)
+    file = Tempfile.new('stash')
+    file.binmode
+    file.write response.body
+    file.close
+    OBF::Utils.load_zip(file.path) do |zipper|
+      Progress.as_percent(0.2, 1.0) do
+        block.call(zipper)
+      end
+    end
+    file.unlink
+  end
+  
+  def self.generate_zip(urls, filename)
+    Progress.update_current_progress(0.2, :checking_files)
+    path = OBF::Utils.temp_path("stash")
+
+    content_type = 'application/zip'
+    
+    hash = Digest::MD5.hexdigest(urls.to_json)
+    key = Security.sha512(hash, 'url_list')
+    remote_path = "downloads/#{key}/#{filename}"
+    url = Uploader.check_existing_upload(remote_path)
+    return url if url
+    Progress.update_current_progress(0.3, :zipping_files)
+    
+    Progress.as_percent(0.3, 0.8) do
+      OBF::Utils.build_zip(path) do |zipper|
+        urls.each_with_index do |ref, idx|
+          if ref['url']
+            # download the file
+            fetch = OBF::Utils.get_url(ref['url'])
+            url_filename = ref['name']
+            # add it to the zip
+            zipper.add(url_filename, fetch['data'])
+          elsif ref['data']
+            zipper.add(ref['name'], ref['data'])
+          end
+          Progress.update_current_progress(idx.to_f / urls.length.to_f)
+        end
+      end
+    end
+    Progress.update_current_progress(0.9, :uploading_file)
+    url = Uploader.remote_upload(remote_path, path, content_type)
+    raise "File not uploaded" unless url
+    File.unlink(path) if File.exist?(path)
+    return url
+  end
+  
   def self.valid_remote_url?(url)
     # TODO: this means we can never delete files from the bucket... is that ok?
     res = self.removable_remote_url?(url)

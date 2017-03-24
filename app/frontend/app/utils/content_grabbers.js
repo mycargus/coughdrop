@@ -115,6 +115,46 @@ var contentGrabbers = Ember.Object.extend({
     });
     return promise;
   },
+  upload_for_processing: function(file, url, params, progressor) {
+    var data_uri = null;
+
+    var generate_data_uri = contentGrabbers.read_file(file);
+
+    var prep = generate_data_uri.then(function(data) {
+      data_uri = data.target.result;
+      return persistence.ajax(url, {
+        type: 'POST',
+        data: params
+      });
+    });
+
+    var upload = prep.then(function(meta) {
+      meta.remote_upload.data_url = data_uri;
+      meta.remote_upload.success_method = 'POST';
+      return contentGrabbers.upload_to_remote(meta.remote_upload);
+    });
+
+    var progress = upload.then(function(data) {
+      if(data.progress) {
+        return new Ember.RSVP.Promise(function(resolve, reject) {
+          progress_tracker.track(data.progress, function(event) {
+            progressor.set('progress', event);
+            if(event.status == 'errored') {
+              progressor.set('status', {errored: true});
+              reject({error: 'processing failed'});
+            } else if(event.status == 'finished') {
+              progressor.set('status', {finished: true});
+              resolve(event.result);
+            }
+          });
+        });
+      } else {
+        return Ember.RSVP.reject({error: 'not confirmed'});
+      }
+    });
+
+    return progress;
+  },
   data_uri_to_blob: function(data_uri) {
     var pre = data_uri.split(/;/)[0];
     var type = pre.split(/:/)[1];
@@ -150,7 +190,7 @@ var contentGrabbers = Ember.Object.extend({
     }
   },
   file_selected: function(type, files) {
-    var image = null, sound = null, board = null, video = null;
+    var image = null, sound = null, board = null, video = null, zip = null;
     for(var idx = 0; idx < files.length; idx++) {
       if(!image && files[idx].type.match(/^image/)) {
         image = files[idx];
@@ -161,6 +201,9 @@ var contentGrabbers = Ember.Object.extend({
       } else {
         if(!board && files[idx].name.match(/\.(obf|obz)$/)) {
           board = files[idx];
+        }
+        if(!zip && files[idx].name.match(/\.zip$/)) {
+          zip = files[idx];
         }
       }
     }
@@ -184,6 +227,8 @@ var contentGrabbers = Ember.Object.extend({
       }
     } else if(type == 'board') {
       boardGrabber.file_selected(board);
+    } else if(type == 'recording') {
+      soundGrabber.recording_selected(zip || sound);
     } else {
       alert(i18n.t('bad_file', "bad file"));
     }
@@ -1436,15 +1481,16 @@ var videoGrabber = Ember.Object.extend({
       preview.content_type = preview.content_type || preview.url.split(/;/)[0].split(/:/)[1];
     }
     if(!preview.license || !preview.license.copyright_notice_url) {
-      preview.license = preview.license || {};
+      var preview_license = preview.license || {};
       var license_url = null;
       var licenses = CoughDrop.licenseOptions;
       for(var idx = 0; idx < licenses.length; idx++) {
-        if(licenses[idx].id == preview.license.type) {
+        if(licenses[idx].id == preview_license.type) {
           license_url = licenses[idx].url;
         }
       }
-      preview.license.copyright_notice_url = license_url;
+      preview_license.copyright_notice_url = license_url;
+      Ember.set(preview, 'license', preview_license);
     }
 
     var video_load = _this.measure_duration(preview.local_url || preview.url, preview.duration);
@@ -1549,6 +1595,7 @@ var soundGrabber = Ember.Object.extend({
   file_selected: function(file) {
     var _this = this;
     var reader = contentGrabbers.read_file(file);
+    this.controller.set('browse_audio', null);
     reader.then(function(data) {
       _this.controller.set('sound_preview', {
         url: data.target.result,
@@ -1556,16 +1603,69 @@ var soundGrabber = Ember.Object.extend({
       });
     });
   },
+  recording_selected: function(file) {
+    var error = modal.error;
+    var _this = this;
+
+    var type = null;
+    if(file && file.type.match(/^audio/)) {
+      type = 'sound';
+    } else if(file && file.name.match(/\.zip$/)) {
+      type = 'zip';
+    }
+
+    if(type == 'sound') {
+      // upload the sound and then reload the list if on the recordings page
+      var reader = contentGrabbers.read_file(file);
+      var _this = this;
+      if(_this.recordings_controller) {
+        _this.recordings_controller.set('upload_status', {uploading: true});
+      }
+      reader.then(function(data) {
+        _this.select_sound_preview({
+          url: data.target.result,
+          name: file.name
+        }).then(function(sound) {
+          if(_this.recordings_controller) {
+            _this.recordings_controller.set('upload_status', null);
+            _this.recordings_controller.load_recordings();
+          }
+        }, function(err) {
+          if(_this.recordings_controller) {
+            _this.recordings_controller.set('upload_status', {error: true});
+          }
+          error(i18n.t('sound_upload_failed', "Upload failed"));
+        });
+      });
+    } else if(type == 'zip') {
+      var progressor = Ember.Object.create();
+      modal.open('importing-recordings', progressor);
+      // do the hard stuff
+      var progress = contentGrabbers.upload_for_processing(file, '/api/v1/sounds/imports', {}, progressor);
+
+      progress.then(function(sounds) {
+        if(_this.recordings_controller) {
+          _this.recordings_controller.load_recordings();
+        }
+        modal.close('importing-recordings');
+        modal.success(i18n.t('sounds_imported', "Your recordings have been imported or updated!"));
+      }, function() { });
+    } else {
+      modal.error(i18n.t('unrecognized_sound_type', "The file you uploaded doesn't appear to be a valid audio or zip file"));
+      return;
+    }
+  },
   recorder_available: function() {
     return !!(navigator.getUserMedia || (navigator.device && navigator.device.capture && navigator.device.capture.captureAudio));
   },
-  record_sound: function() {
+  record_sound: function(auto_loading) {
     var _this = this;
     this.controller.set('sound_recording', {
       stream: this.controller.get('sound_recording.stream'),
       ready: true
     });
     this.controller.set('sound_preview', null);
+    this.controller.set('browse_audio', null);
 
     function stream_ready(stream) {
       _this.controller.set('sound_recording.stream', stream);
@@ -1612,7 +1712,7 @@ var soundGrabber = Ember.Object.extend({
       navigator.getUserMedia({audio: true}, function(stream) {
         var mr = stream_ready(stream);
 
-        if(stream && stream.id) {
+        if(stream && stream.id && document.getElementById('sound_levels')) {
           var context = new window.AudioContext();
           var source = context.createMediaStreamSource(stream);
           var analyser = context.createAnalyser();
@@ -1657,7 +1757,12 @@ var soundGrabber = Ember.Object.extend({
       }, function() {
         console.log("permission not granted");
       });
-    } else if(navigator.device && navigator.device.capture && navigator.device.capture.captureAudio) {
+    } else if(!auto_loading && navigator.device && navigator.device.capture && navigator.device.capture.captureAudio) {
+      this.native_record_sound();
+    }
+  },
+  native_record_sound: function() {
+    if(navigator.device && navigator.device.capture && navigator.device.capture.captureAudio) {
       navigator.device.capture.captureAudio(function(files) {
         var media_file = files[0];
         var file = new window.File(media_file.name, media_file.localURL, media_file.type, media_file.lastModifiedDate, media_file.size);
@@ -1666,38 +1771,48 @@ var soundGrabber = Ember.Object.extend({
     }
   },
   toggle_recording_sound: function(action) {
+    var mr = this.controller.get('sound_recording.media_recorder');
+    if(!mr && navigator.device && navigator.device.capture && navigator.device.capture.captureAudio) {
+      this.native_record_sound();
+      return;
+    }
     if(!action) {
       action = this.controller.get('sound_recording.recording') ? 'stop' : 'start';
     }
-    var mr = this.controller.get('sound_recording.media_recorder');
     if(action == 'start' && mr && mr.state == 'inactive') {
-      this.controller.set('sound_recording.blob', null);
-      this.controller.set('sound_recording.recording', true);
-      mr.start(10000);
+      var _this = this;
+      Ember.run.later(function() {
+        _this.controller.set('sound_recording.blob', null);
+        _this.controller.set('sound_recording.recording', true);
+        mr.start(60000);
+      }, 500);
     } else if(action == 'stop' && mr && mr.state == 'recording') {
       this.controller.set('sound_recording.recording', false);
       mr.stop();
     }
   },
-  select_sound_preview: function() {
-    var preview = this.controller && this.controller.get('sound_preview');
+  select_sound_preview: function(preview) {
+    preview = preview || (this.controller && this.controller.get('sound_preview'));
     if(!preview || !preview.url) { return; }
     var _this = this;
 
-    this.controller.set('model.pending_sound', true);
+    if(this.controller) {
+      this.controller.set('model.pending_sound', true);
+    }
     if(preview.url.match(/^data:/)) {
       preview.content_type = preview.content_type || preview.url.split(/;/)[0].split(/:/)[1];
     }
     if(!preview.license || !preview.license.copyright_notice_url) {
-      preview.license = preview.license || {};
+      var preview_license = preview.license || {};
       var license_url = null;
       var licenses = CoughDrop.licenseOptions;
       for(var idx = 0; idx < licenses.length; idx++) {
-        if(licenses[idx].id == preview.license.type) {
+        if(licenses[idx].id == preview_license.type) {
           license_url = licenses[idx].url;
         }
       }
-      preview.license.copyright_notice_url = license_url;
+      preview_license.copyright_notice_url = license_url;
+      Ember.set(preview, 'license', preview_license);
     }
 
     var sound_load = new Ember.RSVP.Promise(function(resolve, reject) {
@@ -1717,7 +1832,9 @@ var soundGrabber = Ember.Object.extend({
       var sound = CoughDrop.store.createRecord('sound', {
         content_type: preview.content_type || '',
         url: preview.url,
+        name: preview.name,
         duration: data.duration,
+        transcription: preview.transcription,
         license: preview.license
       });
 
@@ -1726,15 +1843,17 @@ var soundGrabber = Ember.Object.extend({
 
     return save_sound.then(function(sound) {
       var button_sound = {url: sound.get('url'), id: sound.id};
-      _this.controller.set('model.sound', sound);
-      _this.clear_sound_work();
-      if(_this.button) {
-        editManager.change_button(_this.controller.get('model.id'), {
-          'sound': sound,
-          'sound_id': sound.id
-        });
+      if(_this.controller) {
+        _this.controller.set('model.sound', sound);
+        _this.clear_sound_work();
+        if(_this.button) {
+          editManager.change_button(_this.controller.get('model.id'), {
+            'sound': sound,
+            'sound_id': sound.id
+          });
+        }
+        _this.controller.set('model.pending_sound', false);
       }
-      _this.controller.set('model.pending_sound', false);
       return {
         url: sound.get('url'),
         id: sound.id
@@ -1744,7 +1863,9 @@ var soundGrabber = Ember.Object.extend({
       err.error = err.error || "unexpected error";
       coughDropExtras.track_error("upload failed: " + err.error);
       alert(i18n.t('upload_failed', "upload failed: " + err.error));
-      _this.controller.set('model.pending_sound', false);
+      if(_this.controller) {
+        _this.controller.set('model.pending_sound', false);
+      }
     });
   },
   save_pending: function() {
@@ -1767,36 +1888,7 @@ var soundGrabber = Ember.Object.extend({
   },
   browse_audio: function() {
     var controller = this.controller;
-    controller.set('browse_audio', {loading: true});
-    var user_id = app_state.get('currentUser.id');
-    // TODO: allow browsing for supervisees too
-    Utils.all_pages('sound', {user_id: user_id}, function(res) {
-      controller.set('browse_audio', {results: res.slice(0, 10), full_results: res, filtered_results: res});
-    }).then(function(res) {
-      controller.set('browse_audio', {results: res.slice(0, 10), full_results: res, filtered_results: res});
-    }, function(err) {
-      controller.set('browse_audio', {error: true});
-    });
-  },
-  filter_browsed_audio: function(str) {
-    var re = new RegExp(str, 'i');
-    var controller = this.controller;
-    if(controller.get('browse_audio.full_results')) {
-      var all = controller.get('browse_audio.full_results');
-      controller.set('browse_audio.filtered_results', all.filter(function(r) { return r.get('search_string').match(re); }));
-      controller.set('browse_audio.results', controller.get('browse_audio.filtered_results').slice(0, 10));
-    }
-  },
-  more_browsed_audio: function() {
-    var controller = this.controller;
-    if(controller.get('browse_audio.results')) {
-      controller.set('browse_audio.results', controller.get('browse_audio.filtered_results').slice(0, controller.get('browse_audio.results').length + 10));
-    }
-  },
-  select_browsed_audio: function(sound) {
-    var controller = this.controller;
-    controller.set('browse_audio', null);
-    controller.set('model.sound', sound);
+    controller.set('browse_audio', true);
   },
   find_element: function(id) {
     return document.getElementById(id);
@@ -2014,39 +2106,7 @@ var boardGrabber = Ember.Object.extend({
       type = 'obz';
     }
 
-    var prep = generate_data_uri.then(function(data) {
-      data_uri = data.target.result;
-      return persistence.ajax('/api/v1/boards/imports', {
-        type: 'POST',
-        data: {
-          type: type
-        }
-      });
-    });
-
-    var upload = prep.then(function(meta) {
-      meta.remote_upload.data_url = data_uri;
-      meta.remote_upload.success_method = 'POST';
-      return contentGrabbers.upload_to_remote(meta.remote_upload);
-    });
-
-    var progress = upload.then(function(data) {
-      if(data.progress) {
-        return new Ember.RSVP.Promise(function(resolve, reject) {
-          progress_tracker.track(data.progress, function(event) {
-            if(event.status == 'errored') {
-              progressor.set('errored', true);
-              reject({error: 'processing failed'});
-            } else if(event.status == 'finished') {
-              progressor.set('finished', true);
-              resolve(event.result);
-            }
-          });
-        });
-      } else {
-        return Ember.RSVP.reject({error: 'not confirmed'});
-      }
-    });
+    var progress = contentGrabbers.upload_for_processing(board, '/api/v1/boards/imports', {type: type}, progressor);
 
     progress.then(function(boards) {
       if(boards[0] && boards[0].key) {
@@ -2121,13 +2181,14 @@ var linkGrabber = Ember.Object.extend({
   }
 }).create();
 
-Ember.$(document).on('change', '#image_upload,#sound_upload,#board_upload,#avatar_upload,#video_upload,#badge_upload', function(event) {
+Ember.$(document).on('change', '#image_upload,#sound_upload,#board_upload,#avatar_upload,#video_upload,#badge_upload,#recording_upload', function(event) {
   var type = 'image';
   if(event.target.id == 'sound_upload') { type = 'sound'; }
   if(event.target.id == 'video_upload') { type = 'video'; }
   if(event.target.id == 'board_upload') { type = 'board'; }
   if(event.target.id == 'avatar_upload') { type = 'avatar'; }
   if(event.target.id == 'badge_upload') { type = 'badge'; }
+  if(event.target.id == 'recording_upload') { type = 'recording'; }
   var files = event.target.files;
   contentGrabbers.file_selected(type, files);
 }).on('paste', '#find_picture', function(event) {
@@ -2156,6 +2217,16 @@ Ember.$(document).on('change', '#image_upload,#sound_upload,#board_upload,#avata
   event.preventDefault();
   event.stopPropagation();
   boardGrabber.files_dropped(event.dataTransfer.files);
+}).on('keydown', '.form-horizontal', function(event) {
+  if(event.keyCode == 32 && event.target.tagName == 'BUTTON') {
+    if(Ember.$(event.target).closest("#button_settings").length > 0) {
+      if(Ember.$("#recording_status").length > 0) {
+        Ember.$("#recording_status").focus();
+        event.preventDefault();
+        soundGrabber.toggle_recording_sound();
+      }
+    }
+  }
 });
 
 contentGrabbers.boardGrabber = boardGrabber;

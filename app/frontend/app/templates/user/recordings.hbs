@@ -1,24 +1,112 @@
 {{#if model.permissions.supervise}}
   <h2>{{t "User Recordings" key='user_recordings'}}</h2>
+  {{#if recordings.loading}}
+    <p>{{t "Loading Recordings..." key='loading_recordings'}}</p>
+  {{else if recordings.error}}
+    <p>{{t "Error loading recordings" key='error_loading_recordings'}}</p>
+  {{else if recordings}}
+    <div class="table-responsive">
+      <table class="table table-hover table-bordered">
+        <thead>
+          <tr>
+            <th>{{t "Summary" key='summary'}}</th>
+            <th>{{t "Duration" key='duration'}}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="3">
+              <div style='max-width: 300px;'>
+                {{input type='text' value=search_string class='form-control' placeholder='find recordings'}}
+              </div>
+            </td>
+          </tr>
+          {{#if filtered_recordings}}
+            {{#each filtered_recordings as |sound|}}
+              {{#if sound.url}}
+                <tr>
+                  <td>
+                    {{sound.name}} {{t "created" key='created'}} {{date sound.created 'short_day'}}
+                    <div class='text-muted' style='margin-left: 30px;'>
+                      {{#if sound.transcription}}
+                        {{sound.transcription}}
+                        {{#if model.permissions.edit}}
+                          <a href="#" {{action 'edit_sound' sound}}>{{t "edit" key='edit'}}</a>
+                        {{/if}}
+                      {{else}}
+                        {{t "no transcription" key='no_transcription'}}
+                      {{/if}}
+                    </div>
+                  </td>
+                  <td>
+                    <button class='btn btn-default btn' {{action 'play_audio' sound}} style='margin-right: 5px; height: 40px;'>
+                      {{#if sound.playing}}
+                        <span class='glyphicon glyphicon-pause'></span>
+                        <span class='sr-only'>{{t "pause" key='pause'}}</span>
+                      {{else}}
+                        <span class='glyphicon glyphicon-play'></span>
+                        <span class='sr-only'>{{t "play" key='play'}}</span>
+                      {{/if}}
+                    </button>
+                    <span class='text-muted'>
+                      {{duration sound.duration}}
+                    </span>
+                    <audio id={{sound.id}} src={{sound.url}}></audio>
+                    <div style='clear: right;'></div>
+                  </td>
+                  <td>
+                    {{#if model.permissions.edit}}
+                      <button {{action 'edit_sound' sound}} class='btn btn-default'><span class='glyphicon glyphicon-pencil'></span></button>
+                      <button {{action 'delete_sound' sound}} class='btn btn-default'><span class='glyphicon glyphicon-trash'></span></button>
+                    {{/if}}
+                  </td>
+                </tr>
+              {{/if}}
+            {{/each}}
+          {{else}}
+            <td colspan='3'><p style='margin: 10px 20px;'>{{t "No matching recordings" key='no_matching_recordings'}}</p></td>
+          {{/if}}
+        </tbody>
+      </table>
+    </div>
+  {{else}}
+    <p>{{t "No recordings available" key='no_recordings_available'}}</p>
+  {{/if}}
+
+  <div>
+    <button class='btn btn-default' {{action 'batch_recording'}}>{{t "Record Message Bank Phrases" key='record_message_bank_phrases'}}</button>
+    <span class="file_select_holder">
+      <button type="button" class='btn btn-default'>
+        {{#if upload_status.uploading}}
+          {{t "Uploading Recording(s)..." key='uploading_recordings'}}
+        {{else if upload_status.errored}}
+          {{t "Error Upload Recording(s)" key='error_upload_recordings'}}
+        {{else}}
+          {{t "Upload Recording(s)" key='upload_recordings'}}
+        {{/if}}
+      </button>
+      <input type="file" name="recording_upload" id="recording_upload"/>
+    </span>
+    {{#if recordings.length}}
+      <button class='btn btn-default' {{action 'download_recordings'}}>{{t "Download All Recordings" key='download_all_recordings'}}</button>
+    {{/if}}
+  </div>
+
   <div style='white-space: pre'>
-  - list all recordings
-    - can edit transcription inline
-    - can listen inline
-    - can delete
-  - filter to matching recordings
   - big message banking message and button
-    - navigate through different categories of messages
-    - list of the ones already recorded (match by transcription, how fuzzy to get?)
     - can click one to record it directly
     - can click to add other messages in the same category (should remember category when saving)
     - custom tags?
-  - batch upload option (lots of wav files, or a zip with json from tobii)
-  - bulk download option
   - when you add sound to a button, set the label to the transcription if no label defined
   - when recording a sound for a button, include dropdown to choose whose account the sound should be tied to
-  - option to hit spacebar to start/stop recording more quietly
   - batch-recording based on phrases already programmed into buttons
-  -
+  - quick way to see which recordings aren't already assigned to a button in the user's board set
+  - batch-add recordings to a board
+  - spinner while recordings are still being transcribed
+  - from edit or board details, "show missing..." with list of either core words or recorded phrases not in use yet
+  - record single message from recordings page
+  - show total recorded messages in batch main view
   </div>
 {{else if session.isAuthenticated}}
   <p>{{t "It looks like you don't have permission to access this information" key='not_authorized'}}</p>

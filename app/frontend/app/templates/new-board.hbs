@@ -22,11 +22,11 @@
           {{input value=model.name class="form-control" id="new_board_name" placeholder="My Board"}}
         </div>
       </div>
-      {{#if supervisees}}
+      {{#if has_supervisees}}
         <div class="form-group">
           <label for="for_user_id" class="col-sm-2 control-label">{{t "For" key='for'}}</label>
           <div class="col-sm-10">
-            {{user-select select_id="for_user_id" users=supervisees selection=model.for_user_id action=(action (mut model.for_user_id)) }}
+            {{user-select select_id="for_user_id" selection=model.for_user_id action=(action (mut model.for_user_id)) }}
           </div>
         </div>
       {{/if}}

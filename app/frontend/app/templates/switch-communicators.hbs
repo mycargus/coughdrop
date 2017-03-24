@@ -4,7 +4,7 @@
     <h3>
       {{t "Switch Communicators" key='complete_registration'}}
     </h3>
-  </div>  
+  </div>
   <div class="modal-body">
     <p>
       <label>
@@ -18,7 +18,7 @@
         Speak as me, not the selected communicator
       </label>
     </p>
-    {{partial "select-user"}}
+    {{user-select select_id="currently_selected_id" buttons=true selection=currently_selected_id action=(action (mut currently_selected_id)) }}
   </div>
   <div class="modal-footer">
     <button {{action "close"}} class="btn btn-default">{{t "Cancel" key='cancel'}}</button>

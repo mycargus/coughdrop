@@ -157,6 +157,7 @@ module Uploadable
   def upload_to_remote(url)
     raise "must have id first" unless self.id
     self.settings['pending_url'] = nil
+    url = self.settings['data_uri'] if url == 'data_uri'
     file = Tempfile.new("stash")
     file.binmode
     if url.match(/^data:/)
@@ -203,6 +204,7 @@ module Uploadable
     if res.success?
       self.url = params[:upload_url] + self.full_filename
       self.settings['pending'] = false
+      self.settings['data_uri'] = nil
       self.settings['pending_url'] = nil
       self.save
     else

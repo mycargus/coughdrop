@@ -11,7 +11,7 @@
     <h4>{{t "Copy of " key='copy_of'}} {{ model.board.key }}</h4>
     {{#if model.supervisees}}
       <p>{{t "For which user would you like to make a copy of this board? If you are planning to use this board for multiple communicators, you should probably copy it for yourself and manually add it for each communicator." key='which-user'}}</p>
-      {{partial "select-user"}}
+      {{user-select select_id="currently_selected_id" buttons=true selection=currently_selected_id action=(action (mut currently_selected_id)) }}
     {{/if}}
     <p>
       {{#if loading}}

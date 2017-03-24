@@ -3,6 +3,7 @@ import { fakeAudio } from 'frontend/tests/helpers/ember_helper';
 import stashes from '../../utils/_stashes';
 import capabilities from '../../utils/capabilities';
 import speecher from '../../utils/speecher';
+import app_state from '../../utils/app_state';
 import persistence from '../../utils/persistence';
 import Ember from 'ember';
 

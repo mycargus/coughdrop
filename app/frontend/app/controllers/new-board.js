@@ -33,25 +33,7 @@ export default modal.ModalController.extend({
       }
     }
 
-    if(app_state.get('sessionUser.supervisees')) {
-      app_state.get('sessionUser.supervisees').forEach(function(supervisee) {
-        supervisees.push({
-          name: supervisee.user_name,
-          image: supervisee.avatar_url,
-          disabled: !supervisee.edit_permission,
-          id: supervisee.id
-        });
-      });
-      if(supervisees.length > 0) {
-        supervisees.unshift({
-          name: i18n.t('me', "me"),
-          id: 'self',
-          image: app_state.get('sessionUser.avatar_url_with_fallback')
-        });
-      }
-      this.set('model.for_user_id', 'self');
-    }
-    this.set('supervisees', supervisees);
+    this.set('has_supervisees', app_state.get('sessionUser.supervisees.length') > 0);
   },
   locales: function() {
     var list = i18n.get('locales');
