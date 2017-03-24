@@ -637,6 +637,21 @@ class Board < ActiveRecord::Base
     self.settings['image_url'].blank? ? fallback : self.settings['image_url']
   end
   
+  def rollback_board_set(date)
+    boards = [self]
+    downstreams = self.settings['downstream_board_ids']
+    downs = Board.find_all_by_global_id(downstreams).select{|b| b.cached_user_name == self.cached_user_name }
+    boards += downs
+    boards.each do |board|
+      puts "rolling back #{board.key} to #{date.to_s}"
+      begin 
+        board.rollback_to(date) 
+      rescue => e
+        puts "  rollback error, #{e.to_s}"
+      end
+    end
+  end
+  
   def flush_related_records
     DeletedBoard.process(self)
   end
