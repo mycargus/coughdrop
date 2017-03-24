@@ -496,8 +496,8 @@ class Organization < ActiveRecord::Base
     two_weeks_ago_iso = 2.weeks.ago.iso8601
     res['user_counts']['goal_recently_logged'] = approved_users.select{|u| u.settings['primary_goal'] && u.settings['primary_goal']['last_tracked'] && u.settings['primary_goal']['last_tracked'] > two_weeks_ago_iso }.length
     
-    res['user_counts']['recent_session_count'] = sessions.count
-    res['user_counts']['recent_session_user_count'] = sessions.distinct.count('user_id')
+    res['user_counts']['recent_session_count'] = sessions.where(['started_at > ?', 2.weeks.ago]).count
+    res['user_counts']['recent_session_user_count'] = sessions.where(['started_at > ?', 2.weeks.ago]).distinct.count('user_id')
     res['user_counts']['total_users'] = approved_users.count
     
     sessions.group("date_trunc('week', started_at)").count.sort_by{|d, c| d }.each do |date, count|
