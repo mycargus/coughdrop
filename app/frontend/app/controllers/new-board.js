@@ -16,8 +16,6 @@ export default modal.ModalController.extend({
       }
     }
 
-    var supervisees = [];
-
     var locale = window.navigator.language.replace(/-/g, '_');
     var pieces = locale.split(/_/);
     if(pieces[0]) { pieces[0] = pieces[0].toLowerCase(); }
