@@ -145,12 +145,18 @@ class Api::BoardsController < ApplicationController
   
   def create
     @board_user = @api_user
-    if params['board'] && params['board']['for_user_id'] && params['board']['for_user_id'] != 'self'
-      user = User.find_by_path(params['board']['for_user_id'])
+    processed_params = params
+    # Necessary because by default Rails is stripping out nil references in an array, which
+    # messes up grid.order
+    if request.content_type == 'application/json'
+      processed_params = JSON.parse(request.body.read)
+    end
+    if processed_params['board'] && processed_params['board']['for_user_id'] && processed_params['board']['for_user_id'] != 'self'
+      user = User.find_by_path(processed_params['board']['for_user_id'])
       return unless allowed?(user, 'edit')
       @board_user = user
     end
-    board = Board.process_new(params['board'], {:user => @board_user, :author => @api_user, :key => params['board']['key']})
+    board = Board.process_new(processed_params['board'], {:user => @board_user, :author => @api_user, :key => params['board']['key']})
     if board.errored?
       api_error(400, {error: "board creation failed", errors: board && board.processing_errors})
     else
@@ -183,6 +189,8 @@ class Api::BoardsController < ApplicationController
     return unless exists?(board)
     return unless allowed?(board, 'edit')
     processed_params = params
+    # Necessary because by default Rails is stripping out nil references in an array, which
+    # messes up grid.order
     if request.content_type == 'application/json'
       processed_params = JSON.parse(request.body.read)
     end

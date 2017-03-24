@@ -439,6 +439,26 @@ describe Api::BoardsController, :type => :controller do
       post :create, params: {:board => {:name => "my board", :for_user_id => com.global_id}}
       assert_unauthorized
     end
+
+    it "should preserve grid order" do
+      token_user
+      request.headers['Content-Type'] = 'application/json'
+      post :create, params: {}, body: 
+      {
+        :board => {
+          :name => "cool board 2",
+          :buttons => [{'id' => '1', 'label' => 'can'}, {'id' => '2', 'label' => 'span'}],
+          :grid => {
+            'rows' => 1, 'columns' => 3,
+            'order' => [[1, nil, 2]]
+          }
+        }
+      }.to_json
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['board']['name']).to eq("cool board 2")
+      expect(json['board']['grid']['order']).to eq([[1, nil, 2]])
+    end
   end
   
   describe "update" do
