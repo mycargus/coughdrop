@@ -573,7 +573,29 @@ describe('app_state', function() {
       stashes.set('current_mode', 'default');
       app_state.toggle_speak_mode('rememberRealHome');
       expect(mode).toEqual('speak');
-      expect(options).toEqual({override_state: {key: 'scarf', id: '1_1', text_direction: undefined}});
+      expect(options).toEqual({override_state: {key: 'scarf', id: '1_1'}});
+    });
+
+    it("should set the correct text_direction", function() {
+      var mode = null;
+      var options = null;
+      stub(app_state, 'toggle_mode', function(m, o) {
+        mode = m;
+        options = o;
+      });
+      app_state.set('sessionUser', Ember.Object.create({
+        preferences: {
+          home_board: {
+            key: 'scarf',
+            id: '1_1'
+          }
+        }
+      }));
+      app_state.set('currentBoardState', {key: 'scarves', id: '1_2', text_direction: 'rtl'});
+      stashes.set('current_mode', 'default');
+      app_state.toggle_speak_mode('rememberRealHome');
+      expect(mode).toEqual('speak');
+      expect(options).toEqual({override_state: {key: 'scarf', id: '1_1', text_direction: 'rtl'}});
     });
   });
 

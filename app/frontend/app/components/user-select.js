@@ -27,7 +27,7 @@ export default Ember.Component.extend({
         this.sendAction('action', 'self');
       }
     }
-    if(!app_state.get('sessionUser.supervisees') || supervisees.length == 0) {
+    if(!app_state.get('sessionUser.supervisees') || supervisees.length === 0) {
       this.sendAction('action', 'self');
     }
     this.set('users', this.get('users') || supervisees);

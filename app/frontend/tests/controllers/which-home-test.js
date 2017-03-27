@@ -10,12 +10,12 @@ describe('WhichHomeController', 'controller:which-home', function() {
 });
 // import modal from '../utils/modal';
 // import app_state from '../utils/app_state';
-// 
+//
 // export default modal.ModalController.extend({
 //   needs: 'application',
 //   actions: {
 //     toggleSpeakMode: function(decision) {
 //       app_state.toggle_speak_mode(decision);
 //     }
-//   }  
+//   }
 // });

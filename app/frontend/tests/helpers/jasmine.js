@@ -28,13 +28,14 @@ function test_wrap(name, instance, befores, afters, lookup) {
   });
   current_afters = post;
   QUnit.test(name, function(current_assert) {
+    var _this = this;
     assert = current_assert;
     Ember.run(function() {
       pre.forEach(function(callback) {
-        callback();
+        callback.call(_this);
       });
 
-      var this_arg = window;
+      var this_arg = _this;
 
       if(lookup) {
         this_arg = new testHelpers.TestModule(lookup, name, []);
@@ -47,7 +48,7 @@ function test_wrap(name, instance, befores, afters, lookup) {
       runs(function() {
         current_afters = [];
         post.forEach(function(callback) {
-          callback();
+          callback.call(_this);
         });
       });
     });
@@ -93,6 +94,7 @@ var expect = function(data) {
     } else if((typeof data === 'object') || (typeof arg === 'object')) {
       assert.deepEqual(data, arg);
     } else {
+      if(!assert) { console.error('not run as part of a test'); }
       assert.equal(data, arg);
     }
   };

@@ -199,6 +199,8 @@ describe('boardGrabber', function() {
         template = t;
       });
       stub(modal, 'error', function(t) { });
+      stub(contentGrabbers, 'upload_for_processing', function() { return Ember.RSVP.reject(); });
+      stub(contentGrabbers, 'read_file', function() { return Ember.RSVP.reject(); });
       boardGrabber.file_selected({});
       expect(template).toEqual('importing-boards');
     });

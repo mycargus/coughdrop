@@ -6,6 +6,7 @@ import persistence from '../../utils/persistence';
 import app_state from '../../utils/app_state';
 import editManager from '../../utils/edit_manager';
 import stashes from '../../utils/_stashes';
+import progress_tracker from '../../utils/progress_tracker';
 
 describe("contentGrabbers", function() {
   var button, controller;
@@ -520,6 +521,32 @@ describe("contentGrabbers", function() {
       contentGrabbers.file_selected('bacon', []);
       expect(alert_message).toEqual("bad file");
     });
+
+    it("should call recording_selected when appropriate", function() {
+      var file = null;
+      var i1 = {type: 'application/zip', name: 'something.zip'};
+      var i2 = {type: 'audio/mp3', name: 'something.mp3'};
+      var i3 = {type: 'image/png', name: 'something.png'};
+      stub(soundGrabber, 'recording_selected', function(r) {
+        file = r;
+      });
+      contentGrabbers.file_selected('recording', [
+        i1, i2
+      ]);
+      expect(file.name).toEqual('something.zip');
+      contentGrabbers.file_selected('recording', [
+        i2, i1
+      ]);
+      expect(file.name).toEqual('something.zip');
+      contentGrabbers.file_selected('recording', [
+        i2, i3
+      ]);
+      expect(file.name).toEqual('something.mp3');
+      contentGrabbers.file_selected('recording', [
+        i3
+      ]);
+      expect(file).toEqual(null);
+    });
   });
 
   describe("content_dropped", function() {
@@ -626,6 +653,140 @@ describe("contentGrabbers", function() {
       });
       waitsFor(function() { return data_returned; });
       runs();
+    });
+  });
+
+  describe("upload_for_processing", function() {
+    it('should read the file', function() {
+      var f = {name: 'file.txt', type: 'text/zip'};
+      stub(contentGrabbers, 'read_file', function(file) {
+        expect(file).toEqual(f);
+        return Ember.RSVP.reject({a: 1});
+      });
+      var p = contentGrabbers.upload_for_processing(f, 'api/url', {a: 2}, Ember.Object.create());
+      var result = null;
+      var error = null;
+      p.then(function(res) { result = res; }, function(err) { error = err; });
+      waitsFor(function() { return error; });
+      runs(function() {
+        expect(error).toEqual({a: 1});
+      });
+    });
+
+    it('should post to the URL', function() {
+      var f = {name: 'file.txt', type: 'text/zip'};
+      stub(contentGrabbers, 'read_file', function(file) {
+        expect(file).toEqual(f);
+        return Ember.RSVP.resolve({
+          target: {
+            result: 'asdf'
+          }
+        });
+      });
+      stub(persistence, 'ajax', function(url, opts) {
+        expect(url).toEqual('api/url');
+        expect(opts).toEqual({
+          type: 'POST',
+          data: {a: 2}
+        });
+        return Ember.RSVP.reject({b: 1});
+      });
+      var p = contentGrabbers.upload_for_processing(f, 'api/url', {a: 2}, Ember.Object.create());
+      var result = null;
+      var error = null;
+      p.then(function(res) { result = res; }, function(err) { error = err; });
+      waitsFor(function() { return error; });
+      runs(function() {
+        expect(error).toEqual({b: 1});
+      });
+    });
+
+    it('should call upload_to_remote', function() {
+      var f = {name: 'file.txt', type: 'text/zip'};
+      stub(contentGrabbers, 'read_file', function(file) {
+        expect(file).toEqual(f);
+        return Ember.RSVP.resolve({
+          target: {
+            result: 'asdf'
+          }
+        });
+      });
+      stub(persistence, 'ajax', function(url, opts) {
+        expect(url).toEqual('api/url');
+        expect(opts).toEqual({
+          type: 'POST',
+          data: {a: 2}
+        });
+        return Ember.RSVP.resolve({remote_upload: {}});
+      });
+      stub(contentGrabbers, 'upload_to_remote', function(opts) {
+        expect(opts).toEqual({data_url: 'asdf', success_method: 'POST'});
+        return Ember.RSVP.resolve({progress: {c: 1}});
+      });
+      stub(progress_tracker, 'track', function(progress, callback) {
+        expect(progress).toEqual({c: 1});
+        callback({status: 'errored'});
+      });
+      var prog = Ember.Object.create();
+      var p = contentGrabbers.upload_for_processing(f, 'api/url', {a: 2}, prog);
+      var result = null;
+      var error = null;
+      p.then(function(res) { result = res; }, function(err) { error = err; });
+      waitsFor(function() { return error; });
+      runs(function() {
+        expect(prog.get('status')).toEqual({errored: true});
+        expect(error).toEqual({error: 'processing failed'});
+      });
+    });
+
+    it('should track progress', function() {
+      var f = {name: 'file.txt', type: 'text/zip'};
+      stub(contentGrabbers, 'read_file', function(file) {
+        expect(file).toEqual(f);
+        return Ember.RSVP.resolve({
+          target: {
+            result: 'asdf'
+          }
+        });
+      });
+      stub(persistence, 'ajax', function(url, opts) {
+        expect(url).toEqual('api/url');
+        expect(opts).toEqual({
+          type: 'POST',
+          data: {a: 2}
+        });
+        return Ember.RSVP.resolve({remote_upload: {}});
+      });
+      stub(contentGrabbers, 'upload_to_remote', function(opts) {
+        expect(opts).toEqual({data_url: 'asdf', success_method: 'POST'});
+        return Ember.RSVP.resolve({progress: {c: 1}});
+      });
+      stub(progress_tracker, 'track', function(progress, callback) {
+        expect(progress).toEqual({c: 1});
+        callback({status: 'finished', result: 'winning'});
+      });
+      var prog = Ember.Object.create();
+      var p = contentGrabbers.upload_for_processing(f, 'api/url', {a: 2}, prog);
+      var result = null;
+      var error = null;
+      p.then(function(res) { result = res; }, function(err) { error = err; });
+      waitsFor(function() { return result; });
+      runs(function() {
+        expect(prog.get('status')).toEqual({finished: true});
+        expect(result).toEqual('winning');
+      });
+    });
+
+    it('should return a promise', function() {
+      var f = {name: 'file.txt', type: 'text/zip'};
+      stub(contentGrabbers, 'read_file', function(file) {
+        expect(file).toEqual(f);
+        return Ember.RSVP.reject({a: 1});
+      });
+      var p = contentGrabbers.upload_for_processing(f, 'api/url', {a: 2}, Ember.Object.create());
+      expect(p).not.toEqual(null);
+      expect(p.then).not.toEqual(null);
+      p.then(null, function() { });
     });
   });
 });

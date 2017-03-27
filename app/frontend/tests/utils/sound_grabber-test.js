@@ -3,6 +3,7 @@ import { fakeRecorder, queryLog } from 'frontend/tests/helpers/ember_helper';
 import contentGrabbers from '../../utils/content_grabbers';
 import editManager from '../../utils/edit_manager';
 import app_state from '../../utils/app_state';
+import modal from '../../utils/modal';
 import Utils from '../../utils/misc';
 import Ember from 'ember';
 
@@ -10,6 +11,7 @@ import Ember from 'ember';
 describe('soundGrabber', function() {
   var soundGrabber = contentGrabbers.soundGrabber;
   var navigator = window.navigator;
+  var wav_data_uri = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
 
   var controller = null;
   var button = null;
@@ -126,10 +128,36 @@ describe('soundGrabber', function() {
       expect(mr.started).not.toEqual(true);
       expect(controller.get('sound_recording').recording).toEqual(false);
       mr.state = 'inactive';
+
       soundGrabber.toggle_recording_sound('start');
-      expect(mr.started).toEqual(true);
-      expect(controller.get('sound_recording').recording).toEqual(true);
+      waitsFor(function() { return mr.started; });
+      runs(function() {
+        expect(mr.started).toEqual(true);
+        expect(controller.get('sound_recording').recording).toEqual(true);
+      });
     });
+
+    it('should trigger the native recording if possible on toggle_recording_sound', function() {
+      soundGrabber.setup(button, controller);
+      var mr = fakeRecorder();
+      mr.state = 'recording';
+      controller.set('sound_recording', null);
+
+      var called = false;
+      stub(soundGrabber, 'native_record_sound', function() {
+        called = true;
+      });
+      stub(navigator, 'device', {
+        capture: {
+          captureAudio: function() { }
+        }
+      });
+
+      soundGrabber.toggle_recording_sound('start');
+      waitsFor(function() { return called; });
+      runs();
+    });
+
     it('should set data on the controller when recording is finished', function() {
       function MR2(stream) {
         this.stream = stream;
@@ -244,142 +272,47 @@ describe('soundGrabber', function() {
       waitsFor(function() { return correct_license; });
       runs();
     });
-  });
 
-  describe("browse_audio", function() {
-    it('should set status correctly', function() {
-      soundGrabber.setup(button, controller);
-      var called = false;
-      app_state.set('currentUser', {id: 'bob'});
-      stub(Utils, 'all_pages', function(type, params, progress) {
-        called = true;
-        expect(type).toEqual('sound');
-        expect(params).toEqual({user_id: 'bob'});
-        return Ember.RSVP.resolve([]);
+    it('should take the preview as an argument if specified', function() {
+      var sound = null;
+      stub(contentGrabbers, 'save_record', function(s) {
+        sound = s;
+        return Ember.RSVP.resolve(Ember.Object.create());
       });
-      soundGrabber.browse_audio();
-      expect(controller.get('browse_audio')).toEqual({loading: true});
-      waitsFor(function() { return controller.get('browse_audio.loading') == null; });
+      soundGrabber.select_sound_preview({
+        url: wav_data_uri,
+        name: "sound.wav",
+        transcription: 'hello my friend'
+      });
+      waitsFor(function() { return sound; });
       runs(function() {
-        expect(called).toEqual(true);
-        expect(controller.get('browse_audio')).toEqual({results: [], full_results: [], filtered_results: []});
+        expect(sound.get('url')).toEqual(wav_data_uri);
+        expect(sound.get('name')).toEqual('sound.wav');
+        expect(sound.get('transcription')).toEqual('hello my friend');
+        expect(sound.get('duration')).toEqual(0.000023);
+        expect(sound.get('license')).toEqual({copyright_notice_url: null});
       });
     });
 
-    it('should lookup all results', function() {
-      soundGrabber.setup(button, controller);
-      app_state.set('currentUser', {id: 'bob'});
-      var called = false;
-      stub(Utils, 'all_pages', function(type, params, progress) {
-        called = true;
-        expect(type).toEqual('sound');
-        expect(params).toEqual({user_id: 'bob'});
-        return Ember.RSVP.resolve([]);
+    it('should include the transcription if defined', function() {
+      var sound = null;
+      stub(contentGrabbers, 'save_record', function(s) {
+        sound = s;
+        return Ember.RSVP.resolve(Ember.Object.create());
       });
-      soundGrabber.browse_audio();
-      expect(controller.get('browse_audio')).toEqual({loading: true});
-      waitsFor(function() { return controller.get('browse_audio.loading') == null; });
+      soundGrabber.select_sound_preview({
+        url: wav_data_uri,
+        name: "sound.wav",
+        transcription: 'hello my friend'
+      });
+      waitsFor(function() { return sound; });
       runs(function() {
-        expect(called).toEqual(true);
-        expect(controller.get('browse_audio')).toEqual({results: [], full_results: [], filtered_results: []});
+        expect(sound.get('url')).toEqual(wav_data_uri);
+        expect(sound.get('name')).toEqual('sound.wav');
+        expect(sound.get('transcription')).toEqual('hello my friend');
+        expect(sound.get('duration')).toEqual(0.000023);
+        expect(sound.get('license')).toEqual({copyright_notice_url: null});
       });
-    });
-
-    it('should error correctly', function() {
-      soundGrabber.setup(button, controller);
-      app_state.set('currentUser', {id: 'bob'});
-      var called = false;
-      stub(Utils, 'all_pages', function(type, params, progress) {
-        called = true;
-        expect(type).toEqual('sound');
-        expect(params).toEqual({user_id: 'bob'});
-        return Ember.RSVP.reject([]);
-      });
-      soundGrabber.browse_audio();
-      expect(controller.get('browse_audio')).toEqual({loading: true});
-      waitsFor(function() { return controller.get('browse_audio.loading') == null; });
-      runs(function() {
-        expect(called).toEqual(true);
-        expect(controller.get('browse_audio')).toEqual({error: true});
-      });
-    });
-  });
-
-  describe("filter_browsed_audio", function() {
-    it('should return a filtered list', function() {
-      soundGrabber.setup(button, controller);
-      controller.set('browse_audio', {
-        full_results: [
-          Ember.Object.create({search_string: 'hat is good'}),
-          Ember.Object.create({search_string: 'hat is bad'}),
-          Ember.Object.create({search_string: 'hat is swell'}),
-          Ember.Object.create({search_string: 'hat is neat'}),
-          Ember.Object.create({search_string: 'hat is something'}),
-          Ember.Object.create({search_string: 'hat is ok'}),
-          Ember.Object.create({search_string: 'hat is awesome'}),
-          Ember.Object.create({search_string: 'hat is cheese'}),
-          Ember.Object.create({search_string: 'splat is cool'}),
-          Ember.Object.create({search_string: 'hat is from'}),
-          Ember.Object.create({search_string: 'hat is windy'}),
-          Ember.Object.create({search_string: 'hat is above'}),
-          Ember.Object.create({search_string: 'hat is flat'}),
-        ]
-      });
-      soundGrabber.filter_browsed_audio('hat');
-      expect(controller.get('browse_audio.filtered_results.length')).toEqual(12);
-      expect(controller.get('browse_audio.results.length')).toEqual(10);
-    });
-  });
-
-  describe("more_browsed_audio", function() {
-    it('should add to the list', function() {
-      soundGrabber.setup(button, controller);
-      var list = [];
-      for(var idx = 0; idx < 100; idx++) {
-        list.push(Ember.Object.create());
-      }
-
-      controller.set('browse_audio', {
-        results: list.slice(0, 5),
-        filtered_results: list.slice(0, 30),
-        full_results: list
-      });
-      soundGrabber.more_browsed_audio();
-      expect(controller.get('browse_audio.results.length')).toEqual(15);
-      expect(controller.get('browse_audio.filtered_results.length')).toEqual(30);
-      soundGrabber.more_browsed_audio();
-      expect(controller.get('browse_audio.results.length')).toEqual(25);
-      expect(controller.get('browse_audio.filtered_results.length')).toEqual(30);
-      soundGrabber.more_browsed_audio();
-      expect(controller.get('browse_audio.results.length')).toEqual(30);
-      expect(controller.get('browse_audio.filtered_results.length')).toEqual(30);
-    });
-
-    it('should do nothing if already fully loaded', function() {
-      soundGrabber.setup(button, controller);
-      var list = [];
-      for(var idx = 0; idx < 100; idx++) {
-        list.push(Ember.Object.create());
-      }
-
-      controller.set('browse_audio', {
-        results: list,
-        filtered_results: list.slice(0, 30),
-        full_results: list
-      });
-      soundGrabber.more_browsed_audio();
-      expect(controller.get('browse_audio.results.length')).toEqual(30);
-      expect(controller.get('browse_audio.filtered_results.length')).toEqual(30);
-    });
-  });
-
-  describe("select_browsed_audio", function() {
-    it('should update correctly', function() {
-      soundGrabber.setup(button, controller);
-      controller.set('browse_audio', {loading: true});
-      soundGrabber.select_browsed_audio('asdf');
-      expect(controller.get('browse_audio')).toEqual(null);
-      expect(controller.get('model.sound')).toEqual('asdf');
     });
   });
 
@@ -434,6 +367,186 @@ describe('soundGrabber', function() {
     it('should not error when element not found', function() {
       soundGrabber.play_audio(Ember.Object.create({id: 'asdf'}));
       expect(1).toEqual(1);
+    });
+  });
+
+  describe("recording_selected", function() {
+    it('should error on unrecognized type', function() {
+      var message = null;
+      stub(modal, 'error', function(m) {
+        message = m;
+      });
+      soundGrabber.recording_selected({type: 'asdf', name: 'bacon'});
+      waitsFor(function() { return message; });
+      runs(function() {
+        expect(message).toEqual("The file you uploaded doesn't appear to be a valid audio or zip file");
+      });
+    });
+
+    it('should read the sound file', function() {
+      var f = {type: 'audio/mp3'};
+      var read = false;
+      stub(contentGrabbers, 'read_file', function(file) {
+        read = true;
+        expect(file).toEqual(f);
+        return Ember.RSVP.reject();
+      });
+      soundGrabber.recording_selected(f);
+      waitsFor(function() { return read; });
+      runs();
+    });
+
+    it('should call select_sound_preview on the read file', function() {
+      var f = {type: 'audio/mp3', name: 'sound.mp3'};
+      var read = false;
+      var selected = false;
+      var loading = false;
+      soundGrabber.recordings_controller = Ember.Object.create({upload_status: 'bacon'});
+      stub(soundGrabber.recordings_controller, 'load_recordings', function() {
+        loading = true;
+      });
+      stub(soundGrabber, 'select_sound_preview', function(opts) {
+        selected = true;
+        expect(opts).toEqual({
+          url: 'asdf',
+          name: 'sound.mp3'
+        });
+        return Ember.RSVP.resolve();
+      });
+      stub(contentGrabbers, 'read_file', function(file) {
+        read = true;
+        expect(file).toEqual(f);
+        return Ember.RSVP.resolve({
+          target: {
+            result: "asdf"
+          }
+        });
+      });
+      soundGrabber.recording_selected(f);
+      waitsFor(function() { return read && selected && loading; });
+      runs(function() {
+        expect(soundGrabber.recordings_controller.get('upload_status')).toEqual(null);
+      });
+    });
+
+    it('should handle errors correctly on sound upload', function() {
+      var f = {type: 'audio/mp3', name: 'sound.mp3'};
+      var read = false;
+      var selected = false;
+      var message = null;
+      stub(modal, 'error', function(m) {
+        message = m;
+      });
+      stub(soundGrabber, 'select_sound_preview', function(opts) {
+        selected = true;
+        expect(opts).toEqual({
+          url: 'asdf',
+          name: 'sound.mp3'
+        });
+        return Ember.RSVP.reject();
+      });
+      stub(contentGrabbers, 'read_file', function(file) {
+        read = true;
+        expect(file).toEqual(f);
+        return Ember.RSVP.resolve({
+          target: {
+            result: "asdf"
+          }
+        });
+      });
+      soundGrabber.recording_selected(f);
+      waitsFor(function() { return read && selected; });
+      runs(function() {
+        expect(message).toEqual('Upload failed');
+      });
+    });
+
+    it('should call upload_for_processing for zips', function() {
+      var f = {type: 'application/zip', name: 'something.zip'};
+      var view = null;
+      stub(modal, 'open', function(v) {
+        view = v;
+      });
+      var called = false;
+      stub(contentGrabbers, 'upload_for_processing', function(file, url, opts, progressor) {
+        called = true;
+        expect(file).toEqual(f);
+        expect(url).toEqual('/api/v1/sounds/imports');
+        expect(opts).toEqual({});
+        expect(progressor).not.toEqual(null);
+        return Ember.RSVP.reject();
+      });
+      soundGrabber.recording_selected(f);
+      waitsFor(function() { return called && view; });
+      runs(function() {
+        expect(view).toEqual('importing-recordings');
+      });
+    });
+
+    it('should succeed correctly on zip uploads', function() {
+      var f = {type: 'application/zip', name: 'something.zip'};
+      var view = null;
+      stub(modal, 'open', function(v) { view = v; });
+      var message = null;
+      stub(modal, 'success', function(m) { message = m; });
+      soundGrabber.recordings_controller = Ember.Object.create();
+      var loading = false;
+      stub(soundGrabber.recordings_controller, 'load_recordings', function() {
+        loading = true;
+      });
+      var called = false;
+      stub(contentGrabbers, 'upload_for_processing', function(file, url, opts, progressor) {
+        called = true;
+        expect(file).toEqual(f);
+        expect(url).toEqual('/api/v1/sounds/imports');
+        expect(opts).toEqual({});
+        expect(progressor).not.toEqual(null);
+        return Ember.RSVP.resolve();
+      });
+      soundGrabber.recording_selected(f);
+      waitsFor(function() { return called && loading; });
+      runs(function() {
+        expect(view).toEqual('importing-recordings');
+        expect(message).toEqual('Your recordings have been imported or updated!');
+      });
+    });
+  });
+
+  describe("native_record_sound", function() {
+    it('should make the correct native call', function() {
+      var called = false;
+      stub(navigator, 'device', {
+        capture: {
+          captureAudio: function(callback) {
+            called = true;
+          }
+        }
+      });
+      expect(called).toEqual(false);
+      soundGrabber.native_record_sound();
+      expect(called).toEqual(true);
+    });
+
+    it('should trigger file_selected on result', function() {
+      var file = null;
+      stub(soundGrabber, 'file_selected', function(f) {
+        file = f;
+      });
+      stub(navigator, 'device', {
+        capture: {
+          captureAudio: function(callback) {
+            callback([
+              {name: [], localURL: 'bob.png'},
+              {name: [], localURL: 'fred.mp3'}
+            ]);
+          }
+        }
+      });
+      soundGrabber.native_record_sound();
+      waitsFor(function() { return file; });
+      runs(function() {
+        expect(file.name).toEqual('bob.png');
+      });
     });
   });
 });

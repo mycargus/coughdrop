@@ -29,6 +29,7 @@ var contentGrabbers = Ember.Object.extend({
     pictureGrabber.button = null;
     soundGrabber.controller = null;
     soundGrabber.button = null;
+    soundGrabber.recordings_controller = null;
     boardGrabber.controller = null;
     boardGrabber.button = null;
   },
@@ -1762,6 +1763,7 @@ var soundGrabber = Ember.Object.extend({
     }
   },
   native_record_sound: function() {
+    var _this = this;
     if(navigator.device && navigator.device.capture && navigator.device.capture.captureAudio) {
       navigator.device.capture.captureAudio(function(files) {
         var media_file = files[0];
@@ -1781,11 +1783,17 @@ var soundGrabber = Ember.Object.extend({
     }
     if(action == 'start' && mr && mr.state == 'inactive') {
       var _this = this;
-      Ember.run.later(function() {
+      var delay = Ember.testing ? 0 : 500;
+      var start = function() {
         _this.controller.set('sound_recording.blob', null);
         _this.controller.set('sound_recording.recording', true);
         mr.start(60000);
-      }, 500);
+      };
+      if(Ember.testing) {
+        start();
+      } else {
+        Ember.run.later(start, 500);
+      }
     } else if(action == 'stop' && mr && mr.state == 'recording') {
       this.controller.set('sound_recording.recording', false);
       mr.stop();
