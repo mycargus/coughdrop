@@ -142,6 +142,9 @@ var Subscription = Ember.Object.extend({
     }
     return this.get('subscription_amount');
   }.property('subscription_amount', 'discount_period'),
+  subscription_discount: function() {
+    return !!(this.get('user.subscription.plan_id') || '').match(/monthly_3/);
+  }.property('user.subscription.plan_id'),
   much_cheaper_offer: function() {
     return !!(this.get('sale') || (this.get('user.subscription.plan_id') || '').match(/monthly_3/));
   }.property('sale', 'user.subscription.plan_id'),
@@ -155,7 +158,7 @@ var Subscription = Ember.Object.extend({
       }
       if(this.get('subscription_type') == 'monthly') {
         if(!this.get('subscription_amount') || !this.get('subscription_amount').match(/^monthly_/)) {
-          if(this.get('much_cheaper_offer')) {
+          if(this.get('subscription_discount')) {
             this.set('subscription_amount', 'monthly_3');
           } else if(this.get('cheaper_offer')) {
             this.set('subscription_amount', 'monthly_6');
