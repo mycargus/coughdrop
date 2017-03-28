@@ -247,6 +247,39 @@ describe Uploadable, :type => :model do
       expect(s.settings['width']).to eq(100)
       expect(s.settings['height']).to eq(150)
     end
+    
+    it "should use the data uri if specified" do
+      s = ButtonImage.create(:settings => {'data_uri' => 'data:image/png;base64,R0lGODdh'})
+      res = OpenStruct.new(:success? => true)
+      expect(Typhoeus).to receive(:post) { |url, args|
+        f = args[:body][:file]
+        expect(f.size).to eq(6)
+      }.and_return(res)
+      
+      s.upload_to_remote('data_uri')
+      expect(s.url).not_to eq(nil)
+      expect(s.settings['pending']).to eq(false)
+      expect(s.settings['content_type']).to eq('image/png')
+      expect(s.settings['data_uri']).to eq(nil)
+    end
+    
+    it "should clear the data uri on success" do
+      s = ButtonImage.create(:settings => {'data_uri' => 'data:image/png;base64,000'})
+      res = OpenStruct.new(:success? => true, :headers => {'Content-Type' => 'image/png'}, :body => "abcdefg")
+      expect(Typhoeus).to receive(:get).and_return(res)
+      res = OpenStruct.new(:success? => true)
+      expect(Typhoeus).to receive(:post) { |url, args|
+        f = args[:body][:file]
+        expect(f.size).to eq(7)
+      }.and_return(res)
+      
+      expect(s).to receive(:'`').and_return("A\nB\nGeometry:  100x150")
+      s.upload_to_remote("http://pic.com/cow.png")
+      expect(s.url).not_to eq(nil)
+      expect(s.settings['pending']).to eq(false)
+      expect(s.settings['content_type']).to eq('image/png')
+      expect(s.settings['data_uri']).to eq(nil)
+    end
   end
   
   describe "url_for" do

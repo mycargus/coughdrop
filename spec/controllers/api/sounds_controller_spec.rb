@@ -40,20 +40,6 @@ describe Api::SoundsController, :type => :controller do
       expect(json['error']).to eq("sound creation failed")
       expect(json['errors']).to eq(["bacon"])
     end
-    
-#   def create
-#     user = @api_user
-#     if params['user_id']
-#       user = User.find_by_path(params['user_id'])
-#       return unless allowed?(user, 'supervise')
-#     end
-#     sound = ButtonSound.process_new(params['sound'], {:user => user, :remote_upload_possible => true})
-#     if !sound || sound.errored?
-#       api_error(400, {error: "sound creation failed", errors: sound && sound.processing_errors})
-#     else
-#       render json: JsonApi::Sound.as_json(sound, :wrapper => true, :permissions => @api_user).to_json
-#     end
-#   end
 
     it "should allow creating sounds on behalf of a supervisee" do
       token_user
@@ -129,7 +115,7 @@ describe Api::SoundsController, :type => :controller do
     it "should error on not found" do
       token_user
       get :show, params: {:id => '1234'}
-      assert_not_found
+      assert_not_found('1234')
     end
     
     it "should return a found object" do
@@ -152,7 +138,7 @@ describe Api::SoundsController, :type => :controller do
     it "should error on not found" do
       token_user
       put :update, params: {:id => "1234"}
-      assert_not_found
+      assert_not_found('1234')
     end
     
     it "should update an object" do
@@ -213,10 +199,45 @@ describe Api::SoundsController, :type => :controller do
       assert_missing_token
     end
     
-    it "should return an error" do
+    it "should require a valid sound" do
       token_user
       delete :destroy, params: {id: 'asdf'}
-      assert_error('not enabled')
+      assert_not_found('asdf')
+    end
+    
+    it "should return an error" do
+      token_user
+      s = ButtonSound.create(user: @user)
+      delete :destroy, params: {id: s.global_id}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['sound']['id']).to eq(s.global_id)
+    end
+  end
+  
+  describe "import" do
+    it "should require api token" do
+      post :import, params: {:url => 'http://www.example.com/sound.zip'}
+      assert_missing_token
+    end
+    
+    it "should schedule processing for url" do
+      token_user
+      p = Progress.create
+      expect(Progress).to receive(:schedule).with(ButtonSound, :import_for, @user.global_id, 'http://www.example.com/sound.zip').and_return(p)
+      post :import, params: {:url => 'http://www.example.com/sound.zip'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['progress']['id']).to eq(p.global_id)
+    end
+    
+    it "should return import upload parameters for no url" do
+      token_user
+      post :import, params: {:type => 'zip'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['remote_upload']).to_not eq(nil)
+      expect(json['remote_upload']['upload_url']).to_not eq(nil)
     end
   end
 end

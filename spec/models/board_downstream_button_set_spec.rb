@@ -42,6 +42,7 @@ describe BoardDownstreamButtonSet, :type => :model do
         'board_key' => b.key,
         'depth' => 0,
         'hidden' => false,
+        'sound_id' => nil,
         'image' => nil,
         'link_disabled' => false,
         'vocalization' => nil,
@@ -53,6 +54,46 @@ describe BoardDownstreamButtonSet, :type => :model do
         'board_id' => b.global_id,
         'board_key' => b.key,
         'depth' => 0,
+        'sound_id' => nil,
+        'hidden' => true,
+        'image' => nil,
+        'link_disabled' => false,
+        'vocalization' => nil,
+        'locale' => 'en'
+      })
+    end
+    
+    it "should include sound ids" do
+      u = User.create
+      b = Board.create(:user => u)
+      s = ButtonSound.create(:user => u)
+      b.process({'buttons' => [
+        {'id' => 1, 'label' => 'hat', 'sound_id' => s.global_id},
+        {'id' => 2, 'label' => 'car', 'hidden' => true}
+      ]})
+      bs = BoardDownstreamButtonSet.update_for(b.global_id)
+      expect(bs).not_to eq(nil)
+      expect(bs.data['buttons'].length).to eq(2)
+      expect(bs.data['buttons'][0]).to eq({
+        'id' => 1,
+        'label' => 'hat',
+        'board_id' => b.global_id,
+        'board_key' => b.key,
+        'depth' => 0,
+        'hidden' => false,
+        'sound_id' => s.global_id,
+        'image' => nil,
+        'link_disabled' => false,
+        'vocalization' => nil,
+        'locale' => 'en'
+      })
+      expect(bs.data['buttons'][1]).to eq({
+        'id' => 2,
+        'label' => 'car',
+        'board_id' => b.global_id,
+        'board_key' => b.key,
+        'depth' => 0,
+        'sound_id' => nil,
         'hidden' => true,
         'image' => nil,
         'link_disabled' => false,
@@ -79,6 +120,7 @@ describe BoardDownstreamButtonSet, :type => :model do
         'id' => 1,
         'label' => 'yellow',
         'board_id' => b2.global_id,
+        'sound_id' => nil,
         'board_key' => b2.key,
         'depth' => 1,
         'hidden' => false,
@@ -108,6 +150,7 @@ describe BoardDownstreamButtonSet, :type => :model do
         'label' => 'hat',
         'board_id' => b.global_id,
         'board_key' => b.key,
+        'sound_id' => nil,
         'depth' => 0,
         'hidden' => false,
         'image' => nil,
@@ -137,6 +180,7 @@ describe BoardDownstreamButtonSet, :type => :model do
         'board_id' => b.global_id,
         'board_key' => b.key,
         'depth' => 0,
+        'sound_id' => nil,
         'hidden' => false,
         'image' => nil,
         'link_disabled' => false,

@@ -74,6 +74,49 @@ describe ButtonSound, :type => :model do
       expect(i.settings['url']).to eq(nil)
       expect(i.settings['pending_url']).to eq('http://www.example.com')
     end
+    
+    it "should include transcription" do
+      u = User.new
+      s = ButtonSound.new(:user_id => 1)
+      expect(s.process_params({
+        'transcription' => 'good stuff'
+      }, {})).to eq(true)
+      expect(s.settings['transcription']).to eq('good stuff')
+    end
+    
+    it "should include tags" do
+      u = User.new
+      s = ButtonSound.new(:user_id => 1)
+      expect(s.process_params({
+        'tag' => 'bacon'
+      }, {})).to eq(true)
+      expect(s.settings['tags']).to eq(['bacon'])
+      expect(s.process_params({
+        'tag' => 'cheddar'
+      }, {})).to eq(true)
+      expect(s.settings['tags']).to eq(['bacon', 'cheddar'])
+      expect(s.process_params({
+        'tag' => 'bacon'
+      }, {})).to eq(true)
+      expect(s.settings['tags']).to eq(['bacon', 'cheddar'])
+    end
+    
+    it "should correctly clear related tags" do
+      u = User.new
+      s = ButtonSound.new(:user_id => 1)
+      expect(s.process_params({
+        'tag' => 'bacon'
+      }, {})).to eq(true)
+      expect(s.settings['tags']).to eq(['bacon'])
+      expect(s.process_params({
+        'tag' => 'not:bacon'
+      }, {})).to eq(true)
+      expect(s.settings['tags']).to eq(['not:bacon'])
+      expect(s.process_params({
+        'tag' => 'bacon'
+      }, {})).to eq(true)
+      expect(s.settings['tags']).to eq(['bacon'])
+    end
   end
     
   it "should securely serialize settings" do
@@ -93,5 +136,218 @@ describe ButtonSound, :type => :model do
     expect(Uploader).to receive(:remote_remove).with("asdf")
     i.destroy
     Worker.process_queues
+  end
+  
+  describe "remove_connections" do
+    it "should remove connections on destroy" do
+      u = User.create
+      s = ButtonSound.create(:user => u)
+      BoardButtonSound.create(:button_sound_id => s.id)
+      BoardButtonSound.create(:button_sound_id => s.id)
+      BoardButtonSound.create(:button_sound_id => s.id)
+      expect(BoardButtonSound.where(:button_sound_id => s.id).count).to eq(3)
+      s.destroy
+      expect(BoardButtonSound.where(:button_sound_id => s.id).count).to eq(0)
+    end
+  end
+  
+  describe "secondary_url" do
+    it "should return the correct value" do
+      u = User.create
+      s = ButtonSound.new(:user => u)
+      expect(s.secondary_url).to eq(nil)
+      expect(s).to receive(:remote_upload_params).and_return({
+        :upload_url => 'http://www.example.com/uploads/'
+      })
+      s.save
+      s.settings['secondary_output'] = {'filename' => 'something.wav'}
+      expect(s.secondary_url).to eq('http://www.example.com/uploads/something.wav')
+    end
+  end
+  
+  describe "generate_zip_for" do
+    it "should call generate_zip with correct parameters" do
+      u = User.create
+      bs1 = ButtonSound.create(user: u, settings: {
+        'content_type' => 'audio/mp3',
+        'name' => 'Sound 1'
+      }, url: 'http://www.example.com/sound1.mp3')
+      bs2 = ButtonSound.create(user: u, settings: {
+        'content_type' => 'audio/mp3',
+        'name' => 'Sound 2',
+        'transcription' => 'This is good stuff',
+        'duration' => 1.5
+      }, url: 'http://www.example.com/sound2.mp3')
+      bs3 = ButtonSound.create(user: u, settings: {
+        'content_type' => 'audio/wav',
+        'name' => 'Sound 3',
+        'transcription' => 'I love this part',
+        'transcription_by_user' => true
+      }, url: 'http://www.example.com/sound3.wav')
+      bs4 = ButtonSound.create(user: u, settings: {
+        'content_type' => 'audio/mp3',
+        'name' => 'Sound 4',
+        'duration' => 1.7,
+        'secondary_output' => {
+          'filename' => 'sound4.wav',
+          'content_type' => 'audio/wav'
+        }
+      }, url: 'http://www.example.com/sound4.mp3')
+      expect(Uploader).to receive(:generate_zip) do |opts, filename|
+        params = Uploader.remote_upload_params('something.mp3', 'audio/mp3')
+        expect(filename).to eq("sounds-#{u.user_name}.zip")
+        expect(opts.length).to eq(5)
+        expect(opts[0]['url']).to eq('http://www.example.com/sound1.mp3')
+        n1 = opts[0]['name']
+        expect(opts[1]['url']).to eq('http://www.example.com/sound2.mp3')
+        n2 = opts[1]['name']
+        expect(opts[2]['url']).to eq('http://www.example.com/sound3.wav')
+        n3 = opts[2]['name']
+        expect(opts[3]['url']).to eq("#{params[:upload_url]}sound4.wav")
+        n4 = opts[3]['name']
+        expect(opts[4]['name']).to eq("MessageBank.json")
+        json = JSON.parse(opts[4]['data'])
+        expect(json['RecordedMessages'].length).to eq(4)
+        expect(json['RecordedMessages'][0]).to eq({
+          'Id' => bs1.global_id,
+          'FileName' => n1,
+          'Label' => 'Sound 1',
+          'Length' => '00:00:00',
+          'LastModified' => bs1.updated_at.iso8601,
+          'CreatedTime' => bs1.created_at.iso8601
+        })
+        expect(json['RecordedMessages'][1]).to eq({
+          'Id' => bs2.global_id,
+          'FileName' => n2,
+          'Label' => 'Sound 2',
+          'Length' => '00:00:01.5',
+          'LastModified' => bs2.updated_at.iso8601,
+          'CreatedTime' => bs2.created_at.iso8601,
+          'Transcription' => {'Text' => 'This is good stuff', 'Source' => 'auto', 'Verified' => false}
+        })
+        expect(json['RecordedMessages'][2]).to eq({
+          'Id' => bs3.global_id,
+          'FileName' => n3,
+          'Label' => 'Sound 3',
+          'Length' => '00:00:00',
+          'LastModified' => bs3.updated_at.iso8601,
+          'CreatedTime' => bs3.created_at.iso8601,
+          'Transcription' => {'Text' => 'I love this part', 'Source' => 'user', 'Verified' => true}
+        })
+        expect(json['RecordedMessages'][3]).to eq({
+          'Id' => bs4.global_id,
+          'FileName' => n4,
+          'Label' => 'Sound 4',
+          'Length' => '00:00:01.7',
+          'LastModified' => bs4.updated_at.iso8601,
+          'CreatedTime' => bs4.created_at.iso8601
+        })
+      end
+      ButtonSound.generate_zip_for(u)
+    end
+  end
+  describe "import_for" do
+    class TestZipper
+      def glob(search)
+        if search == 'MessageBank.json'
+          if @no_json
+            return []
+          else          
+            return ['MessageBank.json']
+          end
+        elsif search == '*.mp3'
+          return ['sound1.mp3', 'sound2.mp3']
+        elsif search == '*.wav'
+          return ['sound3.wav']
+        else
+          return []
+        end
+      end
+      
+      def read(filename)
+        return {
+          'RecordedMessages' => [
+            {
+              'Id' => 'abc1',
+              'FileName' => 'sound1.mp3',
+              'Label' => 'Sound 1'
+            },
+            {
+              'Id' => 'abc2',
+              'FileName' => 'sound2.mp3',
+              'Label' => 'Sound 2',
+              'Duration' => '00:01:11',
+              'Transcription' => {
+                'Text' => 'How are you',
+                'Source' => 'user',
+                'Verified' => true
+              }
+            }
+          ]
+        }.to_json
+      end
+      
+      def read_as_data(filename)
+        if filename == 'sound1.mp3'
+          return {'data' => 'data:audio/mp3;base64,000'}
+        elsif filename == 'sound2.mp3'
+          return {'data' => 'data:audio/mp3;base64,111'}
+        elsif filename == 'sound3.wav'
+          return {'data' => 'data:audio/wav;base64,222'}
+        end
+      end
+    end
+    it "should import sounds" do
+      allow_any_instance_of(ButtonSound).to receive(:upload_to_remote).with('data_uri').and_return(true)
+      expect(Uploader).to receive(:remote_zip).with('http://www.example.com/import.zip').and_yield(TestZipper.new)
+      u = User.create
+      res = ButtonSound.import_for(u.global_id, 'http://www.example.com/import.zip')
+      expect(res.length).to eq(3)
+      expect(ButtonSound.where(:user_id => u.id).count).to eq(3)
+      bs1 = ButtonSound.where(:user_id => u.id).find_by_global_id(res[0]['id'])
+      bs2 = ButtonSound.where(:user_id => u.id).find_by_global_id(res[1]['id'])
+      bs3 = ButtonSound.where(:user_id => u.id).find_by_global_id(res[2]['id'])
+      expect(bs1.settings['content_type']).to eq('audio/mp3')
+      expect(bs1.settings['data_uri']).to eq('data:audio/mp3;base64,000')
+      expect(bs1.settings['transcription']).to eq(nil)
+      expect(bs1.settings['transcription_by_user']).to eq(nil)
+      expect(bs1.settings['duration']).to eq(nil)
+      expect(bs2.settings['content_type']).to eq('audio/mp3')
+      expect(bs2.settings['data_uri']).to eq('data:audio/mp3;base64,111')
+      expect(bs2.settings['transcription']).to eq('How are you')
+      expect(bs2.settings['transcription_by_user']).to eq(true)
+      expect(bs2.settings['duration']).to eq(nil)
+      expect(bs3.settings['content_type']).to eq('audio/x-wav')
+      expect(bs3.settings['data_uri']).to eq('data:audio/wav;base64,222')
+      expect(bs3.settings['transcription']).to eq(nil)
+      expect(bs3.settings['transcription_by_user']).to eq(nil)
+      expect(bs3.settings['duration']).to eq(nil)
+    end
+    
+    it "should work even without MessageBank.json" do
+      allow_any_instance_of(ButtonSound).to receive(:upload_to_remote).with('data_uri').and_return(true)
+      zipper = TestZipper.new
+      zipper.instance_variable_set('@no_json', true)
+      expect(Uploader).to receive(:remote_zip).with('http://www.example.com/import.zip').and_yield(zipper)
+      u = User.create
+      res = ButtonSound.import_for(u.global_id, 'http://www.example.com/import.zip')
+      expect(res.length).to eq(3)
+      expect(ButtonSound.where(:user_id => u.id).count).to eq(3)
+      bs1 = ButtonSound.where(:user_id => u.id).find_by_global_id(res[0]['id'])
+      bs2 = ButtonSound.where(:user_id => u.id).find_by_global_id(res[1]['id'])
+      bs3 = ButtonSound.where(:user_id => u.id).find_by_global_id(res[2]['id'])
+      expect(bs1.settings['content_type']).to eq('audio/mp3')
+      expect(bs1.settings['data_uri']).to eq('data:audio/mp3;base64,000')
+      expect(bs1.settings['transcription']).to eq(nil)
+      expect(bs1.settings['transcription_by_user']).to eq(nil)
+      expect(bs2.settings['content_type']).to eq('audio/mp3')
+      expect(bs2.settings['data_uri']).to eq('data:audio/mp3;base64,111')
+      expect(bs2.settings['transcription']).to eq(nil)
+      expect(bs2.settings['transcription_by_user']).to eq(nil)
+      expect(bs3.settings['content_type']).to eq('audio/x-wav')
+      expect(bs3.settings['data_uri']).to eq('data:audio/wav;base64,222')
+      expect(bs3.settings['transcription']).to eq(nil)
+      expect(bs3.settings['transcription_by_user']).to eq(nil)
+    end
   end
 end

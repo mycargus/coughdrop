@@ -190,7 +190,7 @@ describe ApplicationController, :type => :controller do
   
   describe "require_api_token" do
     controller do
-      before_filter :require_api_token, :only => [:index]
+      before_action :require_api_token, :only => [:index]
       def index; render :plain => "ok"; end
     end
     it "should error if no token parameter is sent" do
@@ -212,7 +212,7 @@ describe ApplicationController, :type => :controller do
   
   describe "api_error" do
     controller do
-      before_filter :require_api_token, :only => [:index]
+      before_action :require_api_token, :only => [:index]
       def index; render :text => "ok"; end
     end
     it "should return a correct status code by default" do

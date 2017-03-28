@@ -404,4 +404,93 @@ describe Uploader do
       expect(Uploader.protected_remote_url?('/api/v1/users/bob/protected_image/a/b')).to eq(true)
     end
   end
+  
+  describe "remote_zip" do
+    it "should call the block with the loaded zip" do
+      expect(OBF::Utils).to receive(:load_zip).and_yield({zipper: true})
+      res = OpenStruct.new(body: 'abc')
+      expect(Typhoeus).to receive(:get).with('http://www.example.com/import.zip').and_return(res)
+      Uploader.remote_zip('http://www.example.com/import.zip') do |zipper|
+        expect(zipper).to eq({zipper: true})
+      end
+    end
+  end
+ 
+#   def self.generate_zip(urls, filename)
+#     Progress.update_current_progress(0.2, :checking_files)
+#     path = OBF::Utils.temp_path("stash")
+# 
+#     content_type = 'application/zip'
+#     
+#     hash = Digest::MD5.hexdigest(urls.to_json)
+#     key = Security.sha512(hash, 'url_list')
+#     remote_path = "downloads/#{key}/#{filename}"
+#     url = Uploader.check_existing_upload(remote_path)
+#     return url if url
+#     Progress.update_current_progress(0.3, :zipping_files)
+#     
+#     Progress.as_percent(0.3, 0.8) do
+#       OBF::Utils.build_zip(path) do |zipper|
+#         urls.each_with_index do |ref, idx|
+#           if ref['url']
+#             # download the file
+#             fetch = OBF::Utils.get_url(ref['url'])
+#             url_filename = ref['name']
+#             # add it to the zip
+#             zipper.add(url_filename, fetch['data'])
+#           elsif ref['data']
+#             zipper.add(ref['name'], ref['data'])
+#           end
+#           Progress.update_current_progress(idx.to_f / urls.length.to_f)
+#         end
+#       end
+#     end
+#     Progress.update_current_progress(0.9, :uploading_file)
+#     url = Uploader.remote_upload(remote_path, path, content_type)
+#     raise "File not uploaded" unless url
+#     File.unlink(path) if File.exist?(path)
+#     return url
+#   end 
+  describe "generate_zip" do
+    class TestZipper
+      def add(filename, data)
+        @files ||= []
+        @files << [filename, data]
+      end
+      
+      def files
+        @files
+      end
+    end
+    
+    it "should return the known url if known" do
+      hash = Digest::MD5.hexdigest([].to_json)
+      key = Security.sha512(hash, 'url_list')
+      expect(Uploader).to receive(:check_existing_upload).with("downloads/#{key}/zippy.zip").and_return('http://www.example.com/zip.zip')
+      res = Uploader.generate_zip([], 'zippy.zip')
+      expect(res).to eq('http://www.example.com/zip.zip')
+    end
+    
+    it "should add urls to the zip" do
+      zipper = TestZipper.new
+      expect(OBF::Utils).to receive(:build_zip).and_yield(zipper)
+      expect(Uploader).to receive(:remote_upload).and_return('http://www.example.com/import.zip')
+      expect(OBF::Utils).to receive(:get_url).with('http://www.example.com/pic.png').and_return({'data' => 'data:image/png;base64,R0lGODdh'})
+      res = Uploader.generate_zip([
+        {
+          'name' => 'file.png',
+          'url' => 'http://www.example.com/pic.png'
+        },
+        {
+          'name' => 'file2.png',
+          'data' => 'data:image/png;base64,R0lGODdh'
+        }
+      ], 'zippy.zip')
+      expect(res).to eq('http://www.example.com/import.zip')
+      expect(zipper.files).to eq([
+        ['file.png', 'data:image/png;base64,R0lGODdh'],
+        ['file2.png', 'data:image/png;base64,R0lGODdh']
+      ])
+    end
+  end
 end

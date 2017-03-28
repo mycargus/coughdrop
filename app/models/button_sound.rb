@@ -99,14 +99,16 @@ class ButtonSound < ActiveRecord::Base
         'name' => filename
       }
       duration = sound.settings['duration'] || 0
-      seconds = duration % 60
-      minutes = ((duration - seconds) / 60) % 60
-      hours = (((duration - seconds) / 60) - minutes) / 60
+      seconds = (duration % 60).to_i
+      frac = (duration % 60) - seconds.to_f
+      dec = frac > 0 ? ".#{frac.to_s.split(/\./)[1]}" : ""
+      minutes = (((duration - seconds) / 60) % 60).to_i
+      hours = ((((duration - seconds) / 60) - minutes) / 60).to_i
       message = {
         Id: sound.global_id,
         FileName: filename,
         Label: sound.settings['name'],
-        Length: "#{hours}:#{minutes.to_s.rjust(2, '0')}:#{seconds.to_s.rjust(2, '0')}",
+        Length: "#{hours.to_s.rjust(2, '0')}:#{minutes.to_s.rjust(2, '0')}:#{seconds.to_s.rjust(2, '0')}#{dec}",
         LastModified: sound.updated_at.iso8601,
         CreatedTime: sound.created_at.iso8601
       }

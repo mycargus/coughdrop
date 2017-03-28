@@ -200,4 +200,17 @@ describe ButtonImage, :type => :model do
     i.destroy
     Worker.process_queues
   end
+  
+  describe "remove_connections" do
+    it "should remove connections on destroy" do
+      u = User.create
+      s = ButtonImage.create(:user => u)
+      BoardButtonImage.create(:button_image_id => s.id)
+      BoardButtonImage.create(:button_image_id => s.id)
+      BoardButtonImage.create(:button_image_id => s.id)
+      expect(BoardButtonImage.where(:button_image_id => s.id).count).to eq(3)
+      s.destroy
+      expect(BoardButtonImage.where(:button_image_id => s.id).count).to eq(0)
+    end
+  end
 end
