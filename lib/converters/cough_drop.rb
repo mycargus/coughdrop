@@ -1,6 +1,8 @@
 require 'obf'
 
 module Converters::CoughDrop
+  EXT_PARAMS = ['link_disabled', 'add_to_vocalization', 'hide_label', 'home_lock', 'blocking_speech', 'part_of_speech']
+
   def self.to_obf(board, dest_path, path_hash=nil)
     json = to_external(board, {})
     OBF::External.to_obf(json, dest_path, path_hash)
@@ -57,17 +59,10 @@ module Converters::CoughDrop
       if original_button['url']
         button['url'] = original_button['url']
       end
-      if original_button['link_disabled']
-        button['ext_coughdrop_link_disabled'] = original_button['link_disabled']
-      end
-      if original_button['add_to_vocalization'] != nil
-        button['ext_coughdrop_add_to_vocalization'] = original_button['add_to_vocalization']
-      end
-      if original_button['home_lock']
-        button['ext_coughdrop_home_lock'] = original_button['home_lock']
-      end
-      if original_button['part_of_speech']
-        button['ext_coughdrop_part_of_speech'] = original_button['part_of_speech']
+      EXT_PARAMS.each do |param|
+        if original_button[param]
+          button["ext_coughdrop_#{param}"] = original_button[param]
+        end
       end
 
       if original_button['apps']
@@ -200,15 +195,10 @@ module Converters::CoughDrop
       if button['sound_id']
         new_button['sound_id'] = hashes[button['sound_id']]
       end
-      if button['ext_coughdrop_link_disabled']
-        new_button['link_disabled'] = button['ext_coughdrop_link_disabled']
-      end
-      if button['ext_coughdrop_part_of_speech']
-        new_button['part_of_speech'] = button['ext_coughdrop_part_of_speech']
-      end
-      new_button['add_to_vocalization'] = button['ext_coughdrop_add_to_vocalization'] != false
-      if button['ext_coughdrop_home_lock']
-        new_button['home_lock'] = button['ext_coughdrop_home_lock']
+      EXT_PARAMS.each do |param|
+        if button["ext_coughdrop_#{param}"]
+          new_button[param] = button["ext_coughdrop_#{param}"]
+        end
       end
 
       if button['load_board']
