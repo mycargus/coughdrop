@@ -680,7 +680,7 @@ var app_state = Ember.Object.extend({
     return res;
   }.property('currentUser.feature_flags'),
   set_filesystem: function() {
-    stashes.set('allow_local_filesystem_request', !!this.get('feature_flags.chrome_filesystem'));
+    stashes.set('allow_local_filesystem_request', !!(!capabilities.installed_app && this.get('feature_flags.chrome_filesystem')));
   }.observes('feature_flags.chrome_filesystem'),
   empty_header: function() {
     return !!(this.get('default_mode') && !this.get('currentBoardState') && !this.get('hide_search'));

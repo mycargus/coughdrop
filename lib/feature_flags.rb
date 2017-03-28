@@ -4,9 +4,12 @@ module FeatureFlags
               'video_recording', 'goals', 'app_connections', 'translation', 'geo_sidebar',
               'modeling', 'edit_before_copying', 'core_reports', 'lessonpix',
               'audio_recordings']
+  # NOTE: chrome filesystem has a different expiration policy than the datastore, and
+  # it appears to be more aggressive, so it is probably not a good solution. At least,
+  # that's how it seems after having it enabled on the windows app.
   ENABLED_FRONTEND_FEATURES = ['subscriptions', 'assessments', 'custom_sidebar', 'snapshots',
               'video_recording', 'goals', 'modeling', 'geo_sidebar', 'edit_before_copying',
-              'core_reports', 'chrome_filesystem']
+              'core_reports']
   DISABLED_CANARY_FEATURES = []
   FEATURE_DATES = {
     'word_suggestion_images' => 'Jan 21, 2017',
