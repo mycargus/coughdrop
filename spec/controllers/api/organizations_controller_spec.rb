@@ -645,7 +645,7 @@ describe Api::OrganizationsController, :type => :controller do
       get :stats, params: {:organization_id => o.global_id}
       expect(response).to be_success
       json = JSON.parse(response.body)
-      expect(json).to eq({'weeks' => [], 'user_counts' => {'goal_set' => 0, 'goal_recently_logged' => 0, 'recent_session_count' => 0, 'recent_session_user_count' => 0, 'total_users' => 0}})
+      expect(json).to eq({'weeks' => [], 'user_counts' => {'goal_set' => 0, 'goal_recently_logged' => 0, 'recent_session_count' => 0, 'recent_session_user_count' => 0, 'total_users' => 0, 'recent_session_seconds' => 0.0, 'recent_session_hours' => 0.0}})
       
       LogSession.process_new({
         :events => [
@@ -663,7 +663,7 @@ describe Api::OrganizationsController, :type => :controller do
       get :stats, params: {:organization_id => o.global_id}
       expect(response).to be_success
       json = JSON.parse(response.body)
-      expect(json).to eq({'weeks' => [], 'user_counts' => {'goal_set' => 0, 'goal_recently_logged' => 0, 'recent_session_count' => 0, 'recent_session_user_count' => 0, 'total_users' => 0}})
+      expect(json).to eq({'weeks' => [], 'user_counts' => {'goal_set' => 0, 'goal_recently_logged' => 0, 'recent_session_count' => 0, 'recent_session_user_count' => 0, 'total_users' => 0, 'recent_session_seconds' => 0.0, 'recent_session_hours' => 0.0}})
       
       o.add_user(user.user_name, false, false)
       expect(o.reload.approved_users.length).to eq(1)
@@ -693,7 +693,7 @@ describe Api::OrganizationsController, :type => :controller do
       get :stats, params: {:organization_id => o.global_id}
       expect(response).to be_success
       json = JSON.parse(response.body)
-      expect(json).to eq({'weeks' => [], 'user_counts' => {'goal_set' => 0, 'goal_recently_logged' => 0, 'recent_session_count' => 0, 'recent_session_user_count' => 0, 'total_users' => 0}})
+      expect(json).to eq({'weeks' => [], 'user_counts' => {'goal_set' => 0, 'goal_recently_logged' => 0, 'recent_session_count' => 0, 'recent_session_user_count' => 0, 'recent_session_seconds' => 0.0, 'recent_session_hours' => 0.0, 'total_users' => 0}})
       
       get :stats, params: {:organization_id => o.global_id}
       expect(response).to be_success
@@ -703,6 +703,8 @@ describe Api::OrganizationsController, :type => :controller do
         'goal_recently_logged' => 0, 
         'recent_session_count' => 0, 
         'recent_session_user_count' => 0, 
+        'recent_session_seconds' => 0.0,
+        'recent_session_hours' => 0.0,
         'total_users' => 0
       })
       
@@ -715,7 +717,9 @@ describe Api::OrganizationsController, :type => :controller do
         'goal_set' => 1,
         'goal_recently_logged' => 1, 
         'recent_session_count' => 0, 
-        'recent_session_user_count' => 0, 
+        'recent_session_user_count' => 0,
+        'recent_session_seconds' => 0.0,
+        'recent_session_hours' => 0.0,
         'total_users' => 1
       })
     end

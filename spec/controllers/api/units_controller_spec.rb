@@ -193,7 +193,7 @@ describe Api::UnitsController, :type => :controller do
       get :stats, params: {:unit_id => u.global_id}
       expect(response).to be_success
       json = JSON.parse(response.body)
-      expect(json).to eq({'weeks' => [], 'user_weeks' => {}, 'user_counts' => {'goal_set' => 0, 'goal_recently_logged' => 0, 'recent_session_count' => 0, 'recent_session_user_count' => 0, 'total_users' => 0}})
+      expect(json).to eq({'weeks' => [], 'user_weeks' => {}, 'user_counts' => {'goal_set' => 0, 'goal_recently_logged' => 0, 'recent_session_count' => 0, 'recent_session_user_count' => 0, 'total_users' => 0, 'recent_session_seconds' => 0.0, 'recent_session_hours' => 0.0}})
       
       LogSession.process_new({
         :events => [
@@ -211,7 +211,7 @@ describe Api::UnitsController, :type => :controller do
       get :stats, params: {:unit_id => u.global_id}
       expect(response).to be_success
       json = JSON.parse(response.body)
-      expect(json).to eq({'weeks' => [], 'user_weeks' => {}, 'user_counts' => {'goal_set' => 0, 'goal_recently_logged' => 0, 'recent_session_count' => 0, 'recent_session_user_count' => 0, 'total_users' => 0}})
+      expect(json).to eq({'weeks' => [], 'user_weeks' => {}, 'user_counts' => {'goal_set' => 0, 'goal_recently_logged' => 0, 'recent_session_count' => 0, 'recent_session_user_count' => 0, 'total_users' => 0, 'recent_session_seconds' => 0.0, 'recent_session_hours' => 0.0}})
       
       expect(u.add_communicator(user.user_name)).to eq(true)
       expect(u.reload.all_user_ids.length).to eq(2)
@@ -243,7 +243,7 @@ describe Api::UnitsController, :type => :controller do
       get :stats, params: {:unit_id => u.global_id}
       expect(response).to be_success
       json = JSON.parse(response.body)
-      expect(json).to eq({'weeks' => [], 'user_weeks' => {}, 'user_counts' => {'goal_set' => 0, 'goal_recently_logged' => 0, 'recent_session_count' => 0, 'recent_session_user_count' => 0, 'total_users' => 0}})
+      expect(json).to eq({'weeks' => [], 'user_weeks' => {}, 'user_counts' => {'goal_set' => 0, 'goal_recently_logged' => 0, 'recent_session_count' => 0, 'recent_session_user_count' => 0, 'total_users' => 0, 'recent_session_seconds' => 0.0, 'recent_session_hours' => 0.0}})
       
       get :stats, params: {:unit_id => u.global_id}
       expect(response).to be_success
@@ -253,6 +253,8 @@ describe Api::UnitsController, :type => :controller do
         'goal_recently_logged' => 0, 
         'recent_session_count' => 0, 
         'recent_session_user_count' => 0, 
+        'recent_session_seconds' => 0.0,
+        'recent_session_hours' => 0.0,
         'total_users' => 0
       })
       
@@ -265,7 +267,9 @@ describe Api::UnitsController, :type => :controller do
         'goal_set' => 1,
         'goal_recently_logged' => 1,
         'recent_session_count' => 0, 
-        'recent_session_user_count' => 0, 
+        'recent_session_user_count' => 0,
+        'recent_session_seconds' => 0.0,
+        'recent_session_hours' => 0.0, 
         'total_users' => 1
       })
     end

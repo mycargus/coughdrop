@@ -31,17 +31,22 @@
             {{t "Recently-logged users" key='recently_logged_users'}}
           </div>
           <div class="panel-body">
-            {{t "user" key='users' count=model.recent_session_user_count}}
+            {{model.recent_session_user_count}} / {{model.total_users}}
+            {{t "users" key='users'}}
           </div>
         </div>
       </div>
       <div class="col-sm-3 col-xs-6">
         <div class="panel panel-default summary smaller">
           <div class="panel-heading">
-            {{t "Total users" key='total_users'}}
+            {{t "Recently-logged hours" key='recently_logged_hours'}}
           </div>
           <div class="panel-body">
-            {{t "user" key='users' count=model.total_users}}
+            {{#if user_counts}}
+              {{t "hour" key='n_hours' count=user_counts.recent_session_hours}}
+            {{else}}
+              {{t "..." key='ellipsis'}}
+            {{/if}}
           </div>
         </div>
       </div>

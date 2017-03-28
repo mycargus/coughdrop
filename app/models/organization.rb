@@ -481,7 +481,7 @@ class Organization < ActiveRecord::Base
   end
   
   def self.usage_stats(approved_users, admin=false)
-    sessions = LogSession.where(['started_at > ?', 4.months.ago])
+    sessions = LogSession.where(['started_at > ?', 4.months.ago]).where({log_type: 'session'})
     res = {
       'weeks' => [],
       'user_counts' => {}
@@ -496,14 +496,22 @@ class Organization < ActiveRecord::Base
     two_weeks_ago_iso = 2.weeks.ago.iso8601
     res['user_counts']['goal_recently_logged'] = approved_users.select{|u| u.settings['primary_goal'] && u.settings['primary_goal']['last_tracked'] && u.settings['primary_goal']['last_tracked'] > two_weeks_ago_iso }.length
     
-    res['user_counts']['recent_session_count'] = sessions.where(['started_at > ?', 2.weeks.ago]).count
-    res['user_counts']['recent_session_user_count'] = sessions.where(['started_at > ?', 2.weeks.ago]).distinct.count('user_id')
+    recent = sessions.where(['started_at > ?', 2.weeks.ago])
+    res['user_counts']['recent_session_count'] = recent.count
+    res['user_counts']['recent_session_seconds'] = recent.sum('EXTRACT(epoch FROM (ended_at - started_at))')
+    res['user_counts']['recent_session_hours'] = (res['user_counts']['recent_session_seconds'] / 3600.0).round(2)
+    res['user_counts']['recent_session_user_count'] = recent.distinct.count('user_id')
     res['user_counts']['total_users'] = approved_users.count
     
-    sessions.group("date_trunc('week', started_at)").count.sort_by{|d, c| d }.each do |date, count|
+    
+    sessions.group("date_trunc('week', started_at)").select("date_trunc('week', started_at)", "SUM(EXTRACT(epoch FROM (ended_at - started_at)))", "COUNT(*)").sort_by{|s| s.date_trunc }.each do |s|
+      date = s.date_trunc
+      count = s.count
+      sum = s.sum
       if date && date < Time.now
         res['weeks'] << {
           'timestamp' => date.to_time.to_i,
+          'session_seconds' => sum,
           'sessions' => count
         }
       end
