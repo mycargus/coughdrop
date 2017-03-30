@@ -452,6 +452,7 @@ class Api::UsersController < ApplicationController
     user = User.find_by_path(params['user_id'])
     api_user = User.find_by_token(params['user_token'])
     if !api_user
+      expires_in 30.minutes, :public => true
       return redirect_to (Uploader.fallback_image_url(params['image_id'], params['library']) || '/images/square.svg')
     end
     users = [user, api_user]
@@ -460,6 +461,7 @@ class Api::UsersController < ApplicationController
       next if valid_result || !user
       safe_url = ButtonImage.cached_copy_url(request.original_url, user)
       if safe_url
+        expires_in 12.days, :public => true
         return redirect_to safe_url
       end
       url = Uploader.found_image_url(params['image_id'], params['library'], user)
@@ -468,6 +470,7 @@ class Api::UsersController < ApplicationController
           Timeout.timeout(5) do
             res = Typhoeus.get(url)
             if res.headers['Location']
+              expires_in 24.hours, :public => true
               return redirect_to res.headers['Location']
             elsif res.headers['Content-Type'] && res.headers['Content-Type'].match(/image/)
               valid_result = res
@@ -479,8 +482,10 @@ class Api::UsersController < ApplicationController
       end
     end
     if valid_result
+      expires_in 24.hours, :public => true
       send_data valid_result.body, :type => valid_result.headers['Content-Type'], :disposition => 'inline'
     else
+      expires_in 30.minutes, :public => true
       redirect_to (Uploader.fallback_image_url(params['image_id'], params['library']) || '/images/error.png')
     end
   end

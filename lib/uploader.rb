@@ -235,6 +235,7 @@ module Uploader
         next if !obj || obj['iscategory'] == 't'
         list << {
           'url' => "#{JsonApi::Json.current_host}/api/v1/users/#{user.global_id}/protected_image/lessonpix/#{obj['image_id']}",
+          'thumbnail_url' => self.fallback_image_url(obj['image_id'], 'lessonpix'),
           'content_type' => 'image/png',
           'name' => obj['title'],
           'width' => 300,

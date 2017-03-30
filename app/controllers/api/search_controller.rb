@@ -7,6 +7,7 @@ class Api::SearchController < ApplicationController
     results.each do |result|
       type = MIME::Types.type_for(result['extension'])[0]
       result['content_type'] = type.content_type
+      result['thumbnail_url'] ||= result['image_url']
     end
     if results.empty? && params['q'] && RedisInit.default
       RedisInit.default.hincrby('missing_symbols', params['q'].to_s, 1)
@@ -33,6 +34,7 @@ class Api::SearchController < ApplicationController
     res.each do |item|
       formatted << {
         'image_url' => item['url'],
+        'thumbnail_url' => item['thumbnail_url'] || item['url'],
         'content_type' => item['content_type'],
         'name' => item['name'],
         'width' => item['width'],

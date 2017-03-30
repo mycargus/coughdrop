@@ -84,7 +84,7 @@
       {{#if image_search.previews}}
         <div style="margin: 10px 0 10px 0;">
           {{#each image_search.previews as |image|}}
-            <img src={{image.image_url}} {{action "pick_preview" image}} style="height: 50px; max-width: 100px; border: 1px solid #ccc; padding: 1px; margin-bottom: 4px;"/>
+            <img src={{image.thumbnail_url}} {{action "pick_preview" image}} style="height: 50px; max-width: 100px; border: 1px solid #ccc; padding: 1px; margin-bottom: 4px;"/>
           {{/each}}
         </div>
         <button type='button' class='btn btn-default' {{action 'word_art'}}>{{t "Make Word Art" key='make_word_art'}}</button>
