@@ -54,6 +54,7 @@ export default Ember.Route.extend({
         return;
       }
     }
+    var _this = this;
 
     app_state.clear_mode();
     if(!app_state.get('currentUser.preferences.home_board.id')) {

@@ -73,8 +73,8 @@
       {{/triple-click-listener}}
     </span>
   {{else}}
-    <span id="nav_header" class='no_beta'>
-    <h1 class={{if app_state.currentBoardState 'with_board'}}>
+    <span id="nav_header" class={{app_state.nav_header_class}}>
+    <h1 class={{app_state.h1_class}}>
       <a href="#" {{action "index"}}>
         <img src="{{path 'images/logo-big.png'}}" alt="CoughDrop"/>
         <span>
@@ -83,13 +83,20 @@
       </a>
     </h1>
     {{#if app_state.currentBoardState.id}}
+      {{#if app_state.from_route}}
+        <button id='board_done' class='btn btn-default' {{action 'back_to_from_route'}}>
+          <span style='font-size: 30px; line-height: 14px; vertical-align: bottom; padding-right: 5px;'>&times;</span>
+          <span style='font-size: 16px;'>{{t "Done" key='done'}}</span>
+          <span style='font-size: 11px; display: block; padding-left: 27px; margin-top: -4px;'>{{t "with boards" key='with_boards'}}</span>
+        </button>
+      {{/if}}
       {{#unless app_state.edit_mode}}
         <span id="board_id">
           {{#if app_state.current_board_is_home}}
-            <img src="https://s3.amazonaws.com/opensymbols/libraries/noun-project/Home-c167425c69.svg" style="height: 30px; width: 30px; vertical-align: bottom;"/>
+            <img src="https://s3.amazonaws.com/opensymbols/libraries/noun-project/Home-c167425c69.svg" style="height: 20px; width: 20px; vertical-align: bottom; margin-top: 10px;"/>
           {{else}}
             {{#if board.model.image_url}}
-              <img src={{board.model.image_url}} style="width: 30px; height: 30px; vertical-align: bottom;"/>
+              <img src={{board.model.image_url}} style="width: 20px; height: 20px; vertical-align: bottom; margin-top: 10px;"/>
             {{else}}
               <span style="display: inline-block; height: 30px;"></span>
             {{/if}}

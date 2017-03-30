@@ -167,8 +167,24 @@ var app_state = Ember.Object.extend({
   },
   global_transition: function(transition) {
     if(transition.isAborted) { return; }
+    app_state.set('from_url', app_state.get('route.router.url'));
+    var pieces = this.get('route.router.router.recognizer').recognize(app_state.get('from_url'));
+    var args = [pieces[pieces.length - 1].handler];
+    for(var idx = 0; idx < pieces.length; idx++) {
+      var piece = pieces[idx];
+      if(piece && piece.isDynamic) {
+        transition.router.getHandler(piece.handler)._names.forEach(function(name) {
+          args.push(piece.params[name]);
+        });
+      }
+    };
+    if(args[0] != 'board.index') {
+      app_state.set('from_route', args);
+    }
+//     console.log("came from", app_state.get('from_route'));
     app_state.set('latest_board_id', null);
     app_state.set('login_modal', false);
+
     // On desktop, setting too soon causes a re-render, but on mobile
     // calling it too late does.
     if(capabilities.mobile) {
@@ -223,6 +239,23 @@ var app_state = Ember.Object.extend({
     CoughDrop.protected_user = protect_user;
     stashes.persist('protected_user', protect_user);
   }.observes('currentUser.preferences.protected_usage'),
+  h1_class: function() {
+    var res = "";
+    if(this.get('currentBoardState.id')) {
+      res = res + "with_board " ;
+      if(this.get('from_route')) {
+        res = res + "sr-only ";
+      }
+    }
+    return new Ember.String.htmlSafe(res);
+  }.property('currentBoardState.id', 'from_route'),
+  nav_header_class: function() {
+    var res = "no_beta ";
+    if(this.get('currentBoardState.id') && this.get('from_route')) {
+      res = res + "board_done ";
+    }
+    return new Ember.String.htmlSafe(res);
+  }.property('currentBoardState.id', 'from_route'),
   set_latest_board_id: function() {
     this.set('latest_board_id', this.get('currentBoardState.id'));
   }.observes('currentBoardState.id'),

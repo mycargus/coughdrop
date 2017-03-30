@@ -427,6 +427,13 @@ export default Ember.Controller.extend({
           editManager.process_for_displaying();
         }
       });
+    },
+    back_to_from_route: function() {
+      if(app_state.get('from_route')) {
+        this.transitionToRoute.apply(this, app_state.get('from_route'));
+      } else {
+        this.transitionToRoute('index');
+      }
     }
   },
   activateButton: function(button, options) {
