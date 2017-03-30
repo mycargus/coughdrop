@@ -779,15 +779,15 @@
           </button>
         </div>
         {{#if testing_dwell}}
-          <div class="col-sm-2">
-            {{dwell-tracker user=model}}
+          <div class="col-sm-5 col-sm-offset-3">
+            {{dwell-tracker user=model type=model.preferences.device.dwell_type}}
           </div>
         {{/if}}
       </div>
       {{#if eyegaze_type}}
         <div class="form-group">
           <div class="col-sm-5 col-sm-offset-3">
-            <p class="form-control-static"><em>{{t "CoughDrop eye tracking currently works with EyeX and EyeTribe eye trackers. We hope to add more devices soon, but in the mean time you can try cursor-based tracking." key='supported_eye_trackers'}}</em></p>
+            <p class="form-control-static"><em>{{t "Many eye trackers will work in CoughDrop using cursor control mode. We have built-in integrations for some, including EyeX and EyeTribe trackers, and hope to add more devices soon." key='supported_eye_trackers'}}</em></p>
           </div>
         </div>
       {{/if}}
