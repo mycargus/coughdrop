@@ -31,7 +31,7 @@
             {{t "Recently-logged users" key='recently_logged_users'}}
           </div>
           <div class="panel-body">
-            {{model.recent_session_user_count}} / {{model.total_users}}
+            {{model.recent_session_user_count}}{{#if model.total_users}} / {{model.total_users}}{{/if}}
             {{t "users" key='users'}}
           </div>
         </div>

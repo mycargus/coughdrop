@@ -329,8 +329,15 @@ var stashes = Ember.Object.extend({
     if(daily_use.length > 1 && stashes.get('online')) {
       var days = [];
       daily_use.forEach(function(d) {
+        var level = 0;
+        if(d.total_minutes >= 60) { level = 5; }
+        else if(d.total_minutes >= 30) { level = 4; }
+        else if(d.total_minutes >= 15) { level = 3; }
+        else if(d.total_minutes >= 5) { level = 2; }
+        else if(d.total_minutes > 0) { level = 1; }
         days.push({
           date: d.date,
+          activity_level: level,
           active: d.total_minutes > 30
         });
       });
