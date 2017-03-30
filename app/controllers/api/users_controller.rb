@@ -467,7 +467,9 @@ class Api::UsersController < ApplicationController
         begin
           Timeout.timeout(5) do
             res = Typhoeus.get(url)
-            if res.headers['Content-Type'] && res.headers['Content-Type'].match(/image/)
+            if res.headers['Location']
+              return redirect_to res.headers['Location']
+            elsif res.headers['Content-Type'] && res.headers['Content-Type'].match(/image/)
               valid_result = res
             end
           end
