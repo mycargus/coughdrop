@@ -83,14 +83,14 @@
       </a>
     </h1>
     {{#if app_state.currentBoardState.id}}
-      {{#if app_state.from_route}}
-        <button id='board_done' class='btn btn-default' {{action 'back_to_from_route'}}>
-          <span style='font-size: 30px; line-height: 14px; vertical-align: bottom; padding-right: 5px;'>&times;</span>
-          <span style='font-size: 16px;'>{{t "Done" key='done'}}</span>
-          <span style='font-size: 11px; display: block; padding-left: 27px; margin-top: -4px;'>{{t "with boards" key='with_boards'}}</span>
-        </button>
-      {{/if}}
       {{#unless app_state.edit_mode}}
+        {{#if app_state.from_route}}
+          <button id='board_done' class='btn btn-default' {{action 'back_to_from_route'}}>
+            <span style='font-size: 30px; line-height: 14px; vertical-align: bottom; padding-right: 5px;'>&times;</span>
+            <span style='font-size: 16px;'>{{t "Done" key='done'}}</span>
+            <span style='font-size: 11px; display: block; padding-left: 27px; margin-top: -4px;'>{{t "with boards" key='with_boards'}}</span>
+          </button>
+        {{/if}}
         <span id="board_id">
           {{#if app_state.current_board_is_home}}
             <img src="https://s3.amazonaws.com/opensymbols/libraries/noun-project/Home-c167425c69.svg" style="height: 20px; width: 20px; vertical-align: bottom; margin-top: 10px;"/>

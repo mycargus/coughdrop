@@ -243,15 +243,15 @@ var app_state = Ember.Object.extend({
     var res = "";
     if(this.get('currentBoardState.id')) {
       res = res + "with_board " ;
-      if(this.get('from_route')) {
+      if(this.get('from_route') && !this.get('edit_mode')) {
         res = res + "sr-only ";
       }
     }
     return new Ember.String.htmlSafe(res);
-  }.property('currentBoardState.id', 'from_route'),
+  }.property('currentBoardState.id', 'from_route', 'edit_mode'),
   nav_header_class: function() {
     var res = "no_beta ";
-    if(this.get('currentBoardState.id') && this.get('from_route')) {
+    if(this.get('currentBoardState.id') && this.get('from_route') && !this.get('edit_mode')) {
       res = res + "board_done ";
     }
     return new Ember.String.htmlSafe(res);
