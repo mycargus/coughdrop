@@ -456,10 +456,7 @@ class Api::UsersController < ApplicationController
       expires_in 30.minutes, :public => true
       fallback = Uploader.fallback_image_url(params['image_id'], params['library'])
       if fallback
-        res = Typhoeus.get(fallback)
-        if res.headers['Location']
-          res = Typhoeus.get(URI.escape(res.headers['Location']))
-        end
+        res = grab_url(fallback)
         send_data res.body, :type => res.headers['Content-Type'], :disposition => 'inline'
         return
       end
@@ -475,13 +472,11 @@ class Api::UsersController < ApplicationController
         end
         url = Uploader.found_image_url(params['image_id'], params['library'], user)
         if url
+          url = url.sub(/^https/, 'http') if params['library'] == 'lessonpix'
           begin
             Timeout.timeout(5) do
-              res = Typhoeus.get(url)
-              if res.headers['Location']
-                valid_result = Typhoeus.get(URI.escape(res.headers['Location']))
-                expires_in 12.days, :public => true
-              elsif res.headers['Content-Type'] && res.headers['Content-Type'].match(/image/)
+              res = grab_url(url)
+              if res.headers['Content-Type'] && res.headers['Content-Type'].match(/image/)
                 valid_result = res
                 expires_in 12.days, :public => true
               end
@@ -499,10 +494,7 @@ class Api::UsersController < ApplicationController
       expires_in 30.minutes, :public => true
       fallback = Uploader.fallback_image_url(params['image_id'], params['library'])
       if fallback
-        res = Typhoeus.get(fallback)
-        if res.headers['Location']
-          res = Typhoeus.get(URI.escape(res.headers['Location']))
-        end
+        res = grab_url(fallback)
         send_data res.body, :type => res.headers['Content-Type'], :disposition => 'inline'                
       else
         redirect_to '/images/error.png'
@@ -517,5 +509,15 @@ class Api::UsersController < ApplicationController
     return unless allowed?(user, 'delete')
     res = WordData.translate_batch(params['words'].map{|w| {:text => w } }, params['source_lang'], params['destination_lang'])
     render json: res.to_json
+  end
+  
+  protected
+  def grab_url(url)
+    url = url.sub(/^https/, 'http') if url.match(/lessonpix/)
+    res = Typhoeus.get(url)
+    if res.headers['Location']
+      res = Typhoeus.get(URI.escape(res.headers['Location']))
+    end
+    res
   end
 end
