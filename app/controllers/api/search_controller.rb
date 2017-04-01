@@ -77,9 +77,14 @@ class Api::SearchController < ApplicationController
     uri = URI.parse(params['url']) rescue nil
     uri ||= URI.parse(URI.escape(params['url']))
     # TODO: add timeout for slow requests
-    request = Typhoeus::Request.new(uri.to_s, followlocation: true)
+    request = Typhoeus::Request.new(uri.to_s, followlocation: true, follow_location: true)
     begin
       content_type, body = get_url_in_chunks(request)
+      if content_type == 'redirect'
+        uri = URI.parse(body)
+        request = Typhoeus::Request.new(uri.to_s, followlocation: true, follow_location: true)
+        content_type, body = get_url_in_chunks(request)
+      end
     rescue BadFileError => e
       error = e.message
     end
@@ -110,6 +115,9 @@ class Api::SearchController < ApplicationController
     so_far = 0
     done = false
     request.on_headers do |response|
+      if response.headers['Location']
+        return ['redirect', response.headers['Location']]
+      end
       if response.success? || response.code == 200
         # TODO: limit to accepted file types
         content_type = response.headers['Content-Type']
