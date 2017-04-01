@@ -112,40 +112,7 @@ module Uploadable
   end
   
   def assert_cached_copy
-    if self.url && Uploader.protected_remote_url?(self.url)
-      ref = self.class.cached_copy_identifiers(self.url)
-      return false unless ref
-      bi = ButtonImage.find_by_url(ref[:url])
-      if self.settings['copy_attempts'] && self.settings['copy_attempts'] > 2
-        return false
-      end
-      if !bi
-        user = User.find_by_path(ref[:user_id])
-        remote_url = Uploader.found_image_url(ref[:image_id], ref[:library], user)
-        if remote_url
-          bi = ButtonImage.create(url: ref[:url], public: false)
-          bi.upload_to_remote(remote_url)
-          if bi.settings['errored_pending_url']
-            bi.destroy
-            self.settings['copy_attempts'] = (self.settings['copy_attempts'] || 0) + 1
-            self.save
-            self.schedule(:assert_cached_copy)
-            return false
-          else
-            bi.settings['cached_copy_url'] = remote_url
-            bi.url = ref[:url]
-            bi.save
-            return true
-          end
-        else
-          return false
-        end
-      else
-        return true
-      end
-    else
-      false
-    end
+    self.class.assert_cached_copy(self.url)
   end
   
   def remote_upload_params
@@ -167,6 +134,9 @@ module Uploadable
     else
       self.settings['source_url'] = url
       res = Typhoeus.get(URI.escape(url))
+      if res.headers['Location']
+        res = Typhoeus.get(URI.escape(res.headers['Location']))
+      end
       # TODO: regex depending on self.file_type
       re = /^audio/
       re = /^image/ if file_type == 'images'
@@ -213,20 +183,122 @@ module Uploadable
     end
   end
 
-  module ClassMethods  
-    def cached_copy_url(url, user)
+  module ClassMethods
+    def assert_cached_copies(urls)
+      res = {}
+      ref_urls = urls.map{|u| (self.cached_copy_identifiers(u) || {})[:url] }
+      bis = ButtonImage.where(:url => ref_urls.compact.uniq).to_a
+      urls.each_with_index do |url, idx|
+        bi = bis.detect{|bi| bi.url == ref_urls[idx] }
+        if bi && bi.settings['cached_copy_url']
+          res[url] = true
+        else
+          res[url] = assert_cached_copy(url)
+        end
+      end
+      res
+    end
+    
+    def assert_cached_copy(url)
       if url && Uploader.protected_remote_url?(url)
         ref = self.cached_copy_identifiers(url)
-        if ref[:library] == 'lessonpix'
-          return nil unless user && Uploader.lessonpix_credentials(user)
-        else
-          return nil
-        end
+        return false unless ref
         bi = ButtonImage.find_by_url(ref[:url])
-        return bi && bi.settings['cached_copy_url']
+        if bi && bi.settings['copy_attempts'].select{|a| a > 24.hours.ago.to_i }.length > 2
+          return false
+        end
+        if !bi || !bi.settigs['cached_copy_url']
+          user = User.find_by_path(ref[:user_id])
+          remote_url = Uploader.found_image_url(ref[:image_id], ref[:library], user)
+          if remote_url
+            bi = ButtonImage.create(url: ref[:url], public: false)
+            bi.upload_to_remote(remote_url)
+            if bi.settings['errored_pending_url']
+              bi.settings['copy_attempts'] ||= []
+              bi.settings['copy_attempts'] << Time.now.to_i
+              bi.save
+              self.schedule(:assert_cached_copies, [url])
+              return false
+            else
+              bi.settings['cached_copy_url'] = bi.url
+              bi.settings['copy_attempts'] = []
+              bi.url = ref[:url]
+              bi.save
+              return true
+            end
+          else
+            return false
+          end
+        else
+          return true
+        end
       else
-        nil
+        false
       end
+    end
+
+    def cached_copy_urls(records, user, allow_fallbacks=true)
+      lessonpix_ok = user && Uploader.lessonpix_credentials(user)
+      lookups = {}
+      caches = {}
+      fallbacks = {}
+      records.each do |record|
+        url = record.is_a?(String) ? record : record.url
+        ref = self.cached_copy_identifiers(url)
+        next unless ref
+        if !record.is_a?(String) && record.settings['cached_copy_url']
+          if ref[:library] == 'lessonpix'
+            fallbacks[url] = Uploader.fallback_image_url(ref[:image_id], ref[:library])
+            if lessonpix_ok
+              caches[url] = record.settings['cached_copy_url']
+            end
+          end
+        else
+          if url && Uploader.protected_remote_url?(url)
+            if ref[:library] == 'lessonpix'
+              fallbacks[url] = Uploader.fallback_image_url(ref[:image_id], ref[:library])
+              if lessonpix_ok
+                lookups[ref[:url]] = url
+              end
+            end
+          end
+        end
+      end
+      if lookups.keys.length > 0 || fallbacks.keys.length > 0
+        if lookups.keys.length > 0
+          ButtonImage.where(:url => lookups.keys).each do |bi|
+            caches[lookups[bi.url]] = bi.settings['cached_copy_url'] if bi.settings['cached_copy_url']
+          end
+        end
+        records.each do |record|
+          url = record.is_a?(String) ? record : record.url
+          if !record.is_a?(String)
+            record.settings['fallback_copy_url'] ||= fallbacks[url] || caches[url]
+            if caches[url] && record.settings['cached_copy_url'] != caches[url]
+              record.settings['cached_copy_url'] = caches[url]
+              record.save
+            end
+          end
+        end
+      end
+      fallbacks = {} if !allow_fallbacks
+      fallbacks.merge(caches)
+    end
+    
+    def cached_copy_url(url, user, allow_fallbacks=true)
+      cached_copy_urls([url], user, allow_fallbacks)[url]
+#       if url && Uploader.protected_remote_url?(url)
+#         ref = self.cached_copy_identifiers(url)
+#         if ref[:library] == 'lessonpix'
+#           return nil unless user && Uploader.lessonpix_credentials(user)
+#         else
+#           return nil
+#         end
+#         bi = ButtonImage.find_by_url(ref[:url])
+#         return bi && bi.settings['cached_copy_url']
+#       else
+#         nil
+#       end
     end
 
     def cached_copy_identifiers(url)
@@ -237,6 +309,7 @@ module Uploadable
           user_id: parts[1],
           library: parts[2],
           image_id: parts[3],
+          original_url: url,
           url: "coughdrop://protected_image/#{parts[2]}/#{parts[3]}"
         }
         return res

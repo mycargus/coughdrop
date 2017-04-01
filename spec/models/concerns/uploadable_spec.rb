@@ -340,7 +340,8 @@ describe Uploadable, :type => :model do
       expect(bi.assert_cached_copy).to eq(false)
       bi.url = "http://www.example.com/pic.png"
       bi.save
-      expect(Uploader).to receive(:protected_remote_url?).with("http://www.example.com/pic.png").at_least(1).times.and_return(true)
+      expect(Uploader).to receive(:protected_remote_url?).with("http://www.example.com/pic.png").and_return(true)
+      expect(Uploader).to receive(:protected_remote_url?).with("http://www.example.com/uploads/pic.png").and_return(false)
       expect(Uploader).to receive(:protected_remote_url?).with("coughdrop://something.png").and_return(false)
       expect(ButtonImage).to receive(:cached_copy_identifiers).with("http://www.example.com/pic.png").and_return({
         library: 'lessonpix',
@@ -350,11 +351,15 @@ describe Uploadable, :type => :model do
       })
       expect(Uploader).to receive(:found_image_url).with('12345', 'lessonpix', u).and_return('http://www.example.com/pics/pic.png')
       expect(ButtonImage).to receive(:create).and_return(bi2)
-      expect(bi2).to receive(:upload_to_remote).with('http://www.example.com/pics/pic.png').and_return(true)
+      expect(bi2).to receive(:upload_to_remote){|url|
+        expect(url).to eq('http://www.example.com/pics/pic.png')
+        bi2.url = 'http://www.example.com/uploads/pic.png'
+        bi2.save
+      }.and_return(true)
       expect(bi.assert_cached_copy).to eq(true)
       bi2.reload
       expect(bi2.url).to eq("coughdrop://something.png")
-      expect(bi2.settings['cached_copy_url']).to eq('http://www.example.com/pics/pic.png')
+      expect(bi2.settings['cached_copy_url']).to eq('http://www.example.com/uploads/pic.png')
     end
     
     it "should retry on failed cache copy assertion" do
@@ -376,20 +381,369 @@ describe Uploadable, :type => :model do
       bi2.save
       expect(bi2).to receive(:upload_to_remote).with('http://www.example.com/pics/pic.png').and_return(true)
       expect(bi.assert_cached_copy).to eq(false)
-      expect(ButtonImage.find_by(id: bi2.id)).to eq(nil)
+      expect(ButtonImage.find_by(id: bi2.id)).to_not eq(nil)
+      bi2.reload
+      expect(bi2.settings['cached_copy_url']).to eq(nil)
+      expect(bi2.settings['copy_attempts'].length).to eq(1)
       bi.reload
-      expect(bi.settings['copy_attempts']).to eq(1)
       expect(Worker.scheduled?(ButtonImage, 'perform_action', {'id' => bi.id, 'method' => 'assert_cached_copy', 'arguments' => []})).to eq(true)
     end
     
     it "should find the cached copy if available" do
       bi = ButtonImage.new
       u = User.create
-      expect(ButtonImage.cached_copy_url("http://www.example.com/api/v1/users/#{u.global_id}/protected_image/lessonpix/12345", u)).to eq(nil)
+      expect(ButtonImage.cached_copy_url("http://www.example.com/api/v1/users/#{u.global_id}/protected_image/lessonpix/12345", u)).to eq("https://lessonpix.com/drawings/12345/100x100/12345.png")
       
       bi2 = ButtonImage.create(url: 'coughdrop://protected_image/lessonpix/12345', settings: {'cached_copy_url' => 'http://www.example.com/pic.png'})
       expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return({})
       expect(ButtonImage.cached_copy_url("http://www.example.com/api/v1/users/#{u.global_id}/protected_image/lessonpix/12345", u)).to eq('http://www.example.com/pic.png')
+    end
+    
+    it "should find the cached copy for a different user who is also authorized" do
+      bi = ButtonImage.new
+      u = User.create
+      u2 = User.create
+      expect(ButtonImage.cached_copy_url("http://www.example.com/api/v1/users/#{u.global_id}/protected_image/lessonpix/12345", u)).to eq("https://lessonpix.com/drawings/12345/100x100/12345.png")
+      
+      bi2 = ButtonImage.create(url: 'coughdrop://protected_image/lessonpix/12345', settings: {'cached_copy_url' => 'http://www.example.com/pic.png'})
+      expect(Uploader).to receive(:lessonpix_credentials).with(u2).and_return({})
+      expect(ButtonImage.cached_copy_url("http://www.example.com/api/v1/users/#{u.global_id}/protected_image/lessonpix/12345", u2)).to eq('http://www.example.com/pic.png')
+    end
+    
+    it "should not find the cached copy for a different user who is not authorized" do
+      bi = ButtonImage.new
+      u = User.create
+      u2 = User.create
+      expect(ButtonImage.cached_copy_url("http://www.example.com/api/v1/users/#{u.global_id}/protected_image/lessonpix/12345", u)).to eq("https://lessonpix.com/drawings/12345/100x100/12345.png")
+      
+      bi2 = ButtonImage.create(url: 'coughdrop://protected_image/lessonpix/12345', settings: {'cached_copy_url' => 'http://www.example.com/pic.png'})
+      expect(Uploader).to receive(:lessonpix_credentials).with(u2).and_return(nil)
+      expect(ButtonImage.cached_copy_url("http://www.example.com/api/v1/users/#{u.global_id}/protected_image/lessonpix/12345", u2)).to eq("https://lessonpix.com/drawings/12345/100x100/12345.png")
+    end
+    
+    describe "assert_cached_copies" do
+      it "should call assert_cached_copy for any non-cached urls" do
+        url1 = "http://www.example.com/pics/1"
+        url2 = "http://www.example.com/pics/1"
+        url3 = "http://www.example.com/pics/2"
+        url4 = "http://www.example.com/pics/3"
+        url5 = "http://www.example.com/pics/4"
+        url6 = "http://www.example.com/pics/5"
+        bi = ButtonImage.create(:url => 'pic:1', :settings => {'cached_copy_url' => 'http://www.example/cache/1'})
+        bi = ButtonImage.create(:url => 'pic:2', :settings => {'cached_copy_url' => 'http://www.example/cache/2'})
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/pics/1').and_return({
+          user_id: 'sue', library: 'lessonpix', image_id: '123', url: 'pic:1'
+        }).exactly(2).times
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/pics/2').and_return({
+          user_id: 'jane', library: 'lessonpix', image_id: '234', url: 'pic:2'
+        }).exactly(1).times
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/pics/3').and_return({
+          user_id: 'alice', library: 'lessonpix', image_id: '345', url: 'pic:3'
+        }).exactly(1).times
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/pics/4').and_return({
+          user_id: 'minnie', library: 'lessonpix', image_id: '456', url: 'pic:4'
+        })
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/pics/5').and_return(nil)
+        expect(ButtonImage).to receive(:assert_cached_copy).with('http://www.example.com/pics/3').and_return(true)
+        expect(ButtonImage).to receive(:assert_cached_copy).with('http://www.example.com/pics/4').and_return(false)
+        expect(ButtonImage).to receive(:assert_cached_copy).with('http://www.example.com/pics/5').and_return(false)
+        res = ButtonImage.assert_cached_copies([url1, url2, url3, url4, url5, url6])
+        expect(res).to eq({
+          'http://www.example.com/pics/1' => true,
+          'http://www.example.com/pics/2' => true,
+          'http://www.example.com/pics/3' => true,
+          'http://www.example.com/pics/4' => false,
+          'http://www.example.com/pics/5' => false
+        })
+      end
+    end
+    
+    describe "cached_copy_urls" do
+      it "should return a list of url mappings" do
+        bi1 = ButtonImage.create(:url => "bacon:1", :settings => {'cached_copy_url' => 'http://www.example.com/bacon/cache/1'})
+        bi2 = ButtonImage.create(:url => "bacon:2", :settings => {'cached_copy_url' => 'http://www.example.com/bacon/cache/2'})
+        bbi1 = ButtonImage.create(:url => 'http://www.example.com/bacon/1')
+        bbi2 = ButtonImage.create(:url => 'http://www.example.com/bacon/1')
+        bbi3 = ButtonImage.create(:url => 'http://www.example.com/bacon/2')
+        bbi4 = ButtonImage.create(:url => 'http://www.example.com/bacon/3')
+        bbi5 = ButtonImage.create(:url => 'http://www.example.com/bacon/4')
+        u = User.create
+        expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return({})
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/1').and_return({
+          user_id: 'sam',
+          library: 'lessonpix',
+          image_id: '123',
+          url: 'bacon:1'
+        }).exactly(2).times
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/2').and_return({
+          user_id: 'sam',
+          library: 'lessonpix',
+          image_id: '123',
+          url: 'bacon:2'
+        })
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/3').and_return({
+          user_id: 'sam',
+          library: 'lessonpix',
+          image_id: '123',
+          url: 'bacon:3'
+        })
+        expect(Uploader).to receive(:protected_remote_url?).and_return(true).exactly(7).times
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/4').and_return(nil)
+        expect(Uploader).to receive(:fallback_image_url).and_return("http://www.example.com/bacon/cache/fallback").exactly(4).times
+        hash = ButtonImage.cached_copy_urls([bbi1, bbi2, bbi3, bbi4, bbi5], u)
+        expect(hash).to eq({
+          'http://www.example.com/bacon/1' => 'http://www.example.com/bacon/cache/1',
+          'http://www.example.com/bacon/2' => 'http://www.example.com/bacon/cache/2',
+          'http://www.example.com/bacon/3' => 'http://www.example.com/bacon/cache/fallback'
+        })
+        expect(bbi1.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/1')
+        expect(bbi1.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi2.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/1')
+        expect(bbi2.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi3.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/2')
+        expect(bbi3.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi4.settings['cached_copy_url']).to eq(nil)
+        expect(bbi4.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi5.settings['cached_copy_url']).to eq(nil)
+        expect(bbi5.settings['fallback_copy_url']).to eq(nil)
+      end
+
+      it "should update any records where a cached url is found" do
+        bi1 = ButtonImage.create(:url => "bacon:1", :settings => {'cached_copy_url' => 'http://www.example.com/bacon/cache/1'})
+        bi2 = ButtonImage.create(:url => "bacon:2", :settings => {'cached_copy_url' => 'http://www.example.com/bacon/cache/2'})
+        bbi1 = ButtonImage.create(:url => 'http://www.example.com/bacon/1')
+        bbi2 = ButtonImage.create(:url => 'http://www.example.com/bacon/1')
+        bbi3 = ButtonImage.create(:url => 'http://www.example.com/bacon/2')
+        bbi4 = ButtonImage.create(:url => 'http://www.example.com/bacon/3')
+        bbi5 = ButtonImage.create(:url => 'http://www.example.com/bacon/4')
+        u = User.create
+        expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return({})
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/1').and_return({
+          user_id: 'sam',
+          library: 'lessonpix',
+          image_id: '123',
+          url: 'bacon:1'
+        }).exactly(2).times
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/2').and_return({
+          user_id: 'sam',
+          library: 'lessonpix',
+          image_id: '123',
+          url: 'bacon:2'
+        })
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/3').and_return({
+          user_id: 'sam',
+          library: 'lessonpix',
+          image_id: '123',
+          url: 'bacon:3'
+        })
+        expect(Uploader).to receive(:protected_remote_url?).and_return(true).exactly(7).times
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/4').and_return(nil)
+        expect(Uploader).to receive(:fallback_image_url).and_return("http://www.example.com/bacon/cache/fallback").exactly(4).times
+        hash = ButtonImage.cached_copy_urls([bbi1, bbi2, bbi3, bbi4, bbi5], u)
+        expect(hash).to eq({
+          'http://www.example.com/bacon/1' => 'http://www.example.com/bacon/cache/1',
+          'http://www.example.com/bacon/2' => 'http://www.example.com/bacon/cache/2',
+          'http://www.example.com/bacon/3' => 'http://www.example.com/bacon/cache/fallback'
+        })
+        expect(bbi1.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/1')
+        expect(bbi1.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi2.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/1')
+        expect(bbi2.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi3.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/2')
+        expect(bbi3.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi4.settings['cached_copy_url']).to eq(nil)
+        expect(bbi4.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi5.settings['cached_copy_url']).to eq(nil)
+        expect(bbi5.settings['fallback_copy_url']).to eq(nil)
+        expect(bbi1.reload.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/1')
+        expect(bbi1.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi2.reload.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/1')
+        expect(bbi2.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi3.reload.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/2')
+        expect(bbi3.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi4.reload.settings['cached_copy_url']).to eq(nil)
+        expect(bbi4.settings['fallback_copy_url']).to eq(nil)
+        expect(bbi5.reload.settings['cached_copy_url']).to eq(nil)
+        expect(bbi5.settings['fallback_copy_url']).to eq(nil)
+      end
+      
+      it "should not update records where a cached url is found if it already has a cached url (unless it happens to find a better url)" do
+        bi1 = ButtonImage.create(:url => "bacon:1", :settings => {'cached_copy_url' => 'http://www.example.com/bacon/cache/1'})
+        bi2 = ButtonImage.create(:url => "bacon:2", :settings => {'cached_copy_url' => 'http://www.example.com/bacon/cache/2'})
+        bbi1 = ButtonImage.create(:url => 'http://www.example.com/bacon/1')
+        bbi2 = ButtonImage.create(:url => 'http://www.example.com/bacon/1', :settings => {'cached_copy_url' => 'http://www.example.com/cheddar/cache/1'})
+        bbi3 = ButtonImage.create(:url => 'http://www.example.com/bacon/2', :settings => {'cached_copy_url' => 'http://www.example.com/cheddar/cache/2'})
+        bbi4 = ButtonImage.create(:url => 'http://www.example.com/bacon/3')
+        bbi5 = ButtonImage.create(:url => 'http://www.example.com/bacon/4')
+        u = User.create
+        expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return({})
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/1').and_return({
+          user_id: 'sam',
+          library: 'lessonpix',
+          image_id: '123',
+          url: 'bacon:1'
+        }).exactly(2).times
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/2').and_return({
+          user_id: 'sam',
+          library: 'lessonpix',
+          image_id: '123',
+          url: 'bacon:2'
+        })
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/3').and_return({
+          user_id: 'sam',
+          library: 'lessonpix',
+          image_id: '123',
+          url: 'bacon:3'
+        })
+        expect(Uploader).to receive(:protected_remote_url?).and_return(true).exactly(4).times
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/4').and_return(nil)
+        expect(Uploader).to receive(:fallback_image_url).and_return("http://www.example.com/bacon/cache/fallback").exactly(4).times
+        hash = ButtonImage.cached_copy_urls([bbi1, bbi2, bbi3, bbi4, bbi5], u)
+        expect(hash).to eq({
+          'http://www.example.com/bacon/1' => 'http://www.example.com/bacon/cache/1',
+          'http://www.example.com/bacon/2' => 'http://www.example.com/cheddar/cache/2',
+          'http://www.example.com/bacon/3' => 'http://www.example.com/bacon/cache/fallback'
+        })
+        expect(bbi1.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/1')
+        expect(bbi1.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi2.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/1')
+        expect(bbi2.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi3.settings['cached_copy_url']).to eq('http://www.example.com/cheddar/cache/2')
+        expect(bbi3.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi4.settings['cached_copy_url']).to eq(nil)
+        expect(bbi4.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi5.settings['cached_copy_url']).to eq(nil)
+        expect(bbi5.settings['fallback_copy_url']).to eq(nil)
+        expect(bbi1.reload.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/1')
+        expect(bbi1.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi2.reload.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/1')
+        expect(bbi2.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi3.reload.settings['cached_copy_url']).to eq('http://www.example.com/cheddar/cache/2')
+        expect(bbi3.settings['fallback_copy_url']).to eq(nil)
+        expect(bbi4.reload.settings['cached_copy_url']).to eq(nil)
+        expect(bbi4.settings['fallback_copy_url']).to eq(nil)
+        expect(bbi5.reload.settings['cached_copy_url']).to eq(nil)
+        expect(bbi5.settings['fallback_copy_url']).to eq(nil)
+      end
+      
+      it "should not update records that only have fallback urls" do
+        bi1 = ButtonImage.create(:url => "bacon:1", :settings => {'cached_copy_url' => 'http://www.example.com/bacon/cache/1'})
+        bi2 = ButtonImage.create(:url => "bacon:2", :settings => {'cached_copy_url' => 'http://www.example.com/bacon/cache/2'})
+        bbi1 = ButtonImage.create(:url => 'http://www.example.com/bacon/1')
+        bbi2 = ButtonImage.create(:url => 'http://www.example.com/bacon/1')
+        bbi3 = ButtonImage.create(:url => 'http://www.example.com/bacon/2')
+        bbi4 = ButtonImage.create(:url => 'http://www.example.com/bacon/3')
+        bbi5 = ButtonImage.create(:url => 'http://www.example.com/bacon/4')
+        u = User.create
+        expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return({})
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/1').and_return({
+          user_id: 'sam',
+          library: 'lessonpix',
+          image_id: '123',
+          url: 'bacon:1'
+        }).exactly(2).times
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/2').and_return({
+          user_id: 'sam',
+          library: 'lessonpix',
+          image_id: '123',
+          url: 'bacon:2'
+        })
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/3').and_return({
+          user_id: 'sam',
+          library: 'lessonpix',
+          image_id: '123',
+          url: 'bacon:3'
+        })
+        expect(Uploader).to receive(:protected_remote_url?).and_return(true).exactly(7).times
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/4').and_return(nil)
+        expect(Uploader).to receive(:fallback_image_url).and_return("http://www.example.com/bacon/cache/fallback").exactly(4).times
+        hash = ButtonImage.cached_copy_urls([bbi1, bbi2, bbi3, bbi4, bbi5], u)
+        expect(hash).to eq({
+          'http://www.example.com/bacon/1' => 'http://www.example.com/bacon/cache/1',
+          'http://www.example.com/bacon/2' => 'http://www.example.com/bacon/cache/2',
+          'http://www.example.com/bacon/3' => 'http://www.example.com/bacon/cache/fallback'
+        })
+        expect(bbi1.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/1')
+        expect(bbi1.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi2.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/1')
+        expect(bbi2.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi3.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/2')
+        expect(bbi3.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi4.settings['cached_copy_url']).to eq(nil)
+        expect(bbi4.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi5.settings['cached_copy_url']).to eq(nil)
+        expect(bbi5.settings['fallback_copy_url']).to eq(nil)
+        expect(bbi1.reload.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/1')
+        expect(bbi1.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi2.reload.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/1')
+        expect(bbi2.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi3.reload.settings['cached_copy_url']).to eq('http://www.example.com/bacon/cache/2')
+        expect(bbi3.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi4.reload.settings['cached_copy_url']).to eq(nil)
+        expect(bbi4.settings['fallback_copy_url']).to eq(nil)
+        expect(bbi5.reload.settings['cached_copy_url']).to eq(nil)
+        expect(bbi5.settings['fallback_copy_url']).to eq(nil)
+      end
+      
+      it "should return fallback urls if available and the user isn't authorized for the real one" do
+        bi1 = ButtonImage.create(:url => "bacon:1", :settings => {'cached_copy_url' => 'http://www.example.com/bacon/cache/1'})
+        bi2 = ButtonImage.create(:url => "bacon:2", :settings => {'cached_copy_url' => 'http://www.example.com/bacon/cache/2'})
+        bbi1 = ButtonImage.create(:url => 'http://www.example.com/bacon/1')
+        bbi2 = ButtonImage.create(:url => 'http://www.example.com/bacon/1')
+        bbi3 = ButtonImage.create(:url => 'http://www.example.com/bacon/2')
+        bbi4 = ButtonImage.create(:url => 'http://www.example.com/bacon/3')
+        bbi5 = ButtonImage.create(:url => 'http://www.example.com/bacon/4')
+        u = User.create
+        expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return(nil)
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/1').and_return({
+          user_id: 'sam',
+          library: 'lessonpix',
+          image_id: '123',
+          url: 'bacon:1'
+        }).exactly(2).times
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/2').and_return({
+          user_id: 'sam',
+          library: 'lessonpix',
+          image_id: '123',
+          url: 'bacon:2'
+        })
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/3').and_return({
+          user_id: 'sam',
+          library: 'lessonpix',
+          image_id: '123',
+          url: 'bacon:3'
+        })
+        expect(Uploader).to receive(:protected_remote_url?).and_return(true).exactly(4).times
+        expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/4').and_return(nil)
+        expect(Uploader).to receive(:fallback_image_url).and_return("http://www.example.com/bacon/cache/fallback").exactly(4).times
+        hash = ButtonImage.cached_copy_urls([bbi1, bbi2, bbi3, bbi4, bbi5], u)
+        expect(hash).to eq({
+          'http://www.example.com/bacon/1' => 'http://www.example.com/bacon/cache/fallback',
+          'http://www.example.com/bacon/2' => 'http://www.example.com/bacon/cache/fallback',
+          'http://www.example.com/bacon/3' => 'http://www.example.com/bacon/cache/fallback'
+        })
+        expect(bbi1.settings['cached_copy_url']).to eq(nil)
+        expect(bbi1.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi2.settings['cached_copy_url']).to eq(nil)
+        expect(bbi2.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi3.settings['cached_copy_url']).to eq(nil)
+        expect(bbi3.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi4.settings['cached_copy_url']).to eq(nil)
+        expect(bbi4.settings['fallback_copy_url']).to eq('http://www.example.com/bacon/cache/fallback')
+        expect(bbi5.settings['cached_copy_url']).to eq(nil)
+        expect(bbi5.settings['fallback_copy_url']).to eq(nil)
+        expect(bbi1.reload.settings['cached_copy_url']).to eq(nil)
+        expect(bbi1.settings['fallback_copy_url']).to eq(nil)
+        expect(bbi2.reload.settings['cached_copy_url']).to eq(nil)
+        expect(bbi2.settings['fallback_copy_url']).to eq(nil)
+        expect(bbi3.reload.settings['cached_copy_url']).to eq(nil)
+        expect(bbi3.settings['fallback_copy_url']).to eq(nil)
+        expect(bbi4.reload.settings['cached_copy_url']).to eq(nil)
+        expect(bbi4.settings['fallback_copy_url']).to eq(nil)
+        expect(bbi5.reload.settings['cached_copy_url']).to eq(nil)
+        expect(bbi5.settings['fallback_copy_url']).to eq(nil)
+      end
+      
     end
     
     describe "cached_copy_identifiers" do
@@ -400,6 +754,7 @@ describe Uploadable, :type => :model do
           user_id: 'bob',
           library: 'lessonpix',
           image_id: '12345',
+          original_url: 'http://www.example.com/api/v1/users/bob/protected_image/lessonpix/12345?a=1234',
           url: 'coughdrop://protected_image/lessonpix/12345'
         })
       end

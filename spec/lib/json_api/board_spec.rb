@@ -89,7 +89,123 @@ describe JsonApi::Board do
       expect(hash['board']['image_urls']).to eq(img)
       expect(hash['board']['sound_urls']).to eq({})
     end
+    
+    it "should include cached image urls" do
+      bi1 = ButtonImage.create(:url => "bacon:1", :settings => {'cached_copy_url' => 'http://www.example.com/bacon/cache/1'})
+      bi2 = ButtonImage.create(:url => "bacon:2", :settings => {'cached_copy_url' => 'http://www.example.com/bacon/cache/2'})
+      bbi1 = ButtonImage.create(:url => 'http://www.example.com/bacon/1')
+      bbi2 = ButtonImage.create(:url => 'http://www.example.com/bacon/1')
+      bbi3 = ButtonImage.create(:url => 'http://www.example.com/bacon/2')
+      bbi4 = ButtonImage.create(:url => 'http://www.example.com/bacon/3')
+      bbi5 = ButtonImage.create(:url => 'http://www.example.com/bacon/4')
+      u = User.create
+      expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return({})
+      expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/1').and_return({
+        user_id: 'sam',
+        library: 'lessonpix',
+        image_id: '123',
+        url: 'bacon:1'
+      }).exactly(2).times
+      expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/2').and_return({
+        user_id: 'sam',
+        library: 'lessonpix',
+        image_id: '123',
+        url: 'bacon:2'
+      })
+      expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/3').and_return({
+        user_id: 'sam',
+        library: 'lessonpix',
+        image_id: '123',
+        url: 'bacon:3'
+      })
+      expect(Uploader).to receive(:protected_remote_url?).and_return(true).exactly(7).times
+      expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/4').and_return(nil)
+      expect(Uploader).to receive(:fallback_image_url).and_return("http://www.example.com/bacon/cache/fallback").exactly(4).times
+      
+      b = Board.create(:user => u)
+      b.instance_variable_set('@buttons_changed', true)
+      b.settings['buttons'] = [
+        {'id' => 1, 'image_id' => bbi1.global_id, 'label' => 'a'},
+        {'id' => 2, 'image_id' => bbi2.global_id, 'label' => 'b'},
+        {'id' => 3, 'image_id' => bbi3.global_id, 'label' => 'c'},
+        {'id' => 4, 'image_id' => bbi4.global_id, 'label' => 'd'},
+        {'id' => 5, 'image_id' => bbi5.global_id, 'label' => 'e'},
+      ]
+      b.save
+      
+      hash = JsonApi::Board.as_json(b.reload, :permissions => u, :wrapper => true)
+      expect(hash['images'].length).to eq(5)
+      images = hash['images'].sort_by{|i| i['id'] }
+      expect(images[0]['id']).to eq(bbi1.global_id)
+      expect(images[0]['url']).to eq('http://www.example.com/bacon/cache/1')
+      expect(images[1]['id']).to eq(bbi2.global_id)
+      expect(images[1]['url']).to eq('http://www.example.com/bacon/cache/1')
+      expect(images[2]['id']).to eq(bbi3.global_id)
+      expect(images[2]['url']).to eq('http://www.example.com/bacon/cache/2')
+      expect(images[3]['id']).to eq(bbi4.global_id)
+      expect(images[3]['url']).to eq('http://www.example.com/bacon/cache/fallback')
+      expect(images[4]['id']).to eq(bbi5.global_id)
+      expect(images[4]['url']).to eq('http://www.example.com/bacon/4')
+    end
 
+    it "should include cached fallback urls" do
+      bi1 = ButtonImage.create(:url => "bacon:1", :settings => {'cached_copy_url' => 'http://www.example.com/bacon/cache/1'})
+      bi2 = ButtonImage.create(:url => "bacon:2", :settings => {'cached_copy_url' => 'http://www.example.com/bacon/cache/2'})
+      bbi1 = ButtonImage.create(:url => 'http://www.example.com/bacon/1')
+      bbi2 = ButtonImage.create(:url => 'http://www.example.com/bacon/1')
+      bbi3 = ButtonImage.create(:url => 'http://www.example.com/bacon/2')
+      bbi4 = ButtonImage.create(:url => 'http://www.example.com/bacon/3')
+      bbi5 = ButtonImage.create(:url => 'http://www.example.com/bacon/4')
+      u = User.create
+      expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return(nil)
+      expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/1').and_return({
+        user_id: 'sam',
+        library: 'lessonpix',
+        image_id: '123',
+        url: 'bacon:1'
+      }).exactly(2).times
+      expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/2').and_return({
+        user_id: 'sam',
+        library: 'lessonpix',
+        image_id: '123',
+        url: 'bacon:2'
+      })
+      expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/3').and_return({
+        user_id: 'sam',
+        library: 'lessonpix',
+        image_id: '123',
+        url: 'bacon:3'
+      })
+      expect(Uploader).to receive(:protected_remote_url?).and_return(true).exactly(4).times
+      expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/bacon/4').and_return(nil)
+      expect(Uploader).to receive(:fallback_image_url).and_return("http://www.example.com/bacon/cache/fallback").exactly(4).times
+      
+      b = Board.create(:user => u)
+      b.instance_variable_set('@buttons_changed', true)
+      b.settings['buttons'] = [
+        {'id' => 1, 'image_id' => bbi1.global_id, 'label' => 'a'},
+        {'id' => 2, 'image_id' => bbi2.global_id, 'label' => 'b'},
+        {'id' => 3, 'image_id' => bbi3.global_id, 'label' => 'c'},
+        {'id' => 4, 'image_id' => bbi4.global_id, 'label' => 'd'},
+        {'id' => 5, 'image_id' => bbi5.global_id, 'label' => 'e'},
+      ]
+      b.save
+      
+      hash = JsonApi::Board.as_json(b.reload, :permissions => u, :wrapper => true)
+      expect(hash['images'].length).to eq(5)
+      images = hash['images'].sort_by{|i| i['id'] }
+      expect(images[0]['id']).to eq(bbi1.global_id)
+      expect(images[0]['url']).to eq('http://www.example.com/bacon/cache/fallback')
+      expect(images[1]['id']).to eq(bbi2.global_id)
+      expect(images[1]['url']).to eq('http://www.example.com/bacon/cache/fallback')
+      expect(images[2]['id']).to eq(bbi3.global_id)
+      expect(images[2]['url']).to eq('http://www.example.com/bacon/cache/fallback')
+      expect(images[3]['id']).to eq(bbi4.global_id)
+      expect(images[3]['url']).to eq('http://www.example.com/bacon/cache/fallback')
+      expect(images[4]['id']).to eq(bbi5.global_id)
+      expect(images[4]['url']).to eq('http://www.example.com/bacon/4')
+    end
+    
     it "should include copy information if any for the current user" do
       u = User.create
       b = Board.create(:user => u)

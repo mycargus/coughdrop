@@ -1598,10 +1598,13 @@ describe Api::UsersController, :type => :controller do
       expect(response.location).to eq('http://test.host/images/square.svg')
     end
 
-    it 'should redirect to a fallback url if defined' do
+    it 'should stream to a fallback url if defined' do
+      res = OpenStruct.new(headers: {'Content-Type' => 'image/png', body: 'asdf'})
+      expect(Typhoeus).to receive(:get).with('https://lessonpix.com/drawings/123/100x100/123.png').and_return(res)
       get 'protected_image', params: {'user_id' => 'asdf', 'library' => 'lessonpix', 'image_id' => '123'}
-      expect(response).to be_redirect
-      expect(response.location).to eq('https://lessonpix.com/drawings/123/100x100/123.png')
+      expect(response).to be_success
+      expect(response.headers['Content-Type']).to eq('image/png')
+      expect(response.headers['Content-Disposition']).to eq('inline')
     end
     
     it 'should redirect if no match found' do
@@ -1612,12 +1615,15 @@ describe Api::UsersController, :type => :controller do
       expect(response.location).to eq('http://test.host/images/error.png')
     end
 
-    it 'should redirect if no match found to a fallback url if defined' do
+    it 'should stream a fallback url if defined if no match found' do
       u = User.create
       expect(Uploader).to receive(:found_image_url).with('123', 'lessonpix', u).and_return(nil).at_least(1).times
+      res = OpenStruct.new(headers: {'Content-Type' => 'image/png', body: 'asdf'})
+      expect(Typhoeus).to receive(:get).with('https://lessonpix.com/drawings/123/100x100/123.png').and_return(res)
       get 'protected_image', params: {'user_id' => u.global_id, 'user_token' => u.user_token, 'library' => 'lessonpix', 'image_id' => '123'}
-      expect(response).to be_redirect
-      expect(response.location).to eq('https://lessonpix.com/drawings/123/100x100/123.png')
+      expect(response).to be_success
+      expect(response.headers['Content-Type']).to eq('image/png')
+      expect(response.headers['Content-Disposition']).to eq('inline')
     end
     
     it 'should return the correct search result' do
@@ -1625,6 +1631,19 @@ describe Api::UsersController, :type => :controller do
       expect(Uploader).to receive(:found_image_url).with('123', 'good_library', u).and_return('http://www.example.com/pic.png')
       res = OpenStruct.new(headers: {'Content-Type' => 'image/png', body: 'asdf'})
       expect(Typhoeus).to receive(:get).with('http://www.example.com/pic.png').and_return(res)
+      get 'protected_image', params: {'user_id' => u.global_id, 'user_token' => u.user_token, 'library' => 'good_library', 'image_id' => '123'}
+      expect(response).to be_success
+      expect(response.headers['Content-Type']).to eq('image/png')
+      expect(response.headers['Content-Disposition']).to eq('inline')
+    end
+    
+    it "should handle a single redirect if defined" do
+      u = User.create
+      expect(Uploader).to receive(:found_image_url).with('123', 'good_library', u).and_return('http://www.example.com/pic.png')
+      res1 = OpenStruct.new(headers: {'Location' => 'http://www.example.com/redirect/pic.png'})
+      res2 = OpenStruct.new(headers: {'Content-Type' => 'image/png', body: 'asdf'})
+      expect(Typhoeus).to receive(:get).with('http://www.example.com/pic.png').and_return(res1)
+      expect(Typhoeus).to receive(:get).with('http://www.example.com/redirect/pic.png').and_return(res2)
       get 'protected_image', params: {'user_id' => u.global_id, 'user_token' => u.user_token, 'library' => 'good_library', 'image_id' => '123'}
       expect(response).to be_success
       expect(response.headers['Content-Type']).to eq('image/png')

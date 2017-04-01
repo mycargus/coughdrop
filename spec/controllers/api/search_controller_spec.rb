@@ -19,8 +19,8 @@ describe Api::SearchController, :type => :controller do
       expect(response).to be_success
       json = JSON.parse(response.body)
       expect(json).to eq([
-        {'extension' => 'png', 'content_type' => 'image/png', 'name' => 'bob'},
-        {'extension' => 'gif', 'content_type' => 'image/gif', 'name' => 'fred'}
+        {'extension' => 'png', 'content_type' => 'image/png', 'name' => 'bob', 'thumbnail_url' => nil},
+        {'extension' => 'gif', 'content_type' => 'image/gif', 'name' => 'fred', 'thumbnail_url' => nil}
       ])
     end
     
@@ -137,6 +137,7 @@ describe Api::SearchController, :type => :controller do
       expect(json).to eq([
         {
          'image_url' => 'http://www.example.com/pic1.png',
+         'thumbnail_url' => 'http://www.example.com/pic1.png',
          'content_type' => 'image/png',
          'name' => 'my pic',
          'width' => 200,
@@ -153,6 +154,7 @@ describe Api::SearchController, :type => :controller do
         },
         {
          'image_url' => 'http://www.example.com/pic2.jpg',
+         'thumbnail_url' => 'http://www.example.com/pic2.jpg',
          'content_type' => 'image/jpeg',
          'name' => 'my pic',
          'width' => 300,

@@ -253,6 +253,10 @@ module Uploader
           }          
         }
       end
+      Worker.schedule_for(:slow, ButtonImage, :perform_action, {
+        'method' => 'assert_cached_copies',
+        'arguments' => [list.map{|r| r['url'] }]
+      })
       return list
     elsif ['pixabay_vectors', 'pixabay_photos'].include?(library)
       type = library.match(/vector/) ? 'vector' : 'photo'

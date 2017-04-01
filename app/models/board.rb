@@ -661,7 +661,10 @@ class Board < ActiveRecord::Base
     res = get_cached(key)
     return res if res
     res = {}
-    res['images'] = self.button_images.map{|i| JsonApi::Image.as_json(i) }
+    bis = self.button_images
+    ButtonImage.cached_copy_urls(bis, user)
+    
+    res['images'] = bis.map{|i| JsonApi::Image.as_json(i) }
     res['sounds'] = self.button_sounds.map{|s| JsonApi::Sound.as_json(s) }
     set_cached(key, res)
     res

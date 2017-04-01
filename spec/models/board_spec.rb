@@ -1993,4 +1993,5 @@ describe Board, :type => :model do
       ])
     end
   end
+  
 end
