@@ -802,28 +802,28 @@ describe LogSession, :type => :model do
       res = LogSession.process_as_follow_on({
         'type' => 'daily_use',
         'events' => [
-          {'date' => '2016-01-01', 'active' => true},
-          {'date' => '2016-01-03', 'active' => false}
+          {'date' => '2016-01-01', 'active' => true, 'activity_level' => 4},
+          {'date' => '2016-01-03', 'active' => false, 'activity_level' => 0}
         ]
       }, {:device => d, :author => u, :user => u})
       expect(res.log_type).to eq('daily_use')
       expect(res.data['days']).to eq({
-        '2016-01-01' => {'date' => '2016-01-01', 'active' => true},
-        '2016-01-03' => {'date' => '2016-01-03', 'active' => false}
+        '2016-01-01' => {'date' => '2016-01-01', 'active' => true, 'activity_level' => 4},
+        '2016-01-03' => {'date' => '2016-01-03', 'active' => false, 'activity_level' => 0}
       })
       res2 = LogSession.process_as_follow_on({
         'type' => 'daily_use',
         'events' => [
-          {'date' => '2016-01-03', 'active' => true},
+          {'date' => '2016-01-03', 'active' => true, 'activity_level' => 2},
           {'date' => '2016-01-05', 'active' => false}
         ]
       }, {:device => d, :author => u, :user => u})
       expect(res2).to eq(res)
       expect(res2.log_type).to eq('daily_use')
       expect(res2.data['days']).to eq({
-        '2016-01-01' => {'date' => '2016-01-01', 'active' => true},
-        '2016-01-03' => {'date' => '2016-01-03', 'active' => true},
-        '2016-01-05' => {'date' => '2016-01-05', 'active' => false}
+        '2016-01-01' => {'date' => '2016-01-01', 'active' => true, 'activity_level' => 4},
+        '2016-01-03' => {'date' => '2016-01-03', 'active' => true, 'activity_level' => 2},
+        '2016-01-05' => {'date' => '2016-01-05', 'active' => false, 'activity_level' => nil}
       })
     end
     
@@ -2060,22 +2060,22 @@ describe LogSession, :type => :model do
       }, {:device => d, :author => u, :user => u})
       expect(s.log_type).to eq('daily_use')
       expect(s.data['days']).to eq({
-        '2016-01-01' => {'date' => '2016-01-01', 'active' => true},
-        '2016-01-03' => {'date' => '2016-01-03', 'active' => false}
+        '2016-01-01' => {'date' => '2016-01-01', 'active' => true, 'activity_level' => nil},
+        '2016-01-03' => {'date' => '2016-01-03', 'active' => false, 'activity_level' => nil}
       })
       s2 = LogSession.process_daily_use({
         'type' => 'daily_use',
         'events' => [
-          {'date' => '2016-01-03', 'active' => true},
-          {'date' => '2016-01-05', 'active' => false}
+          {'date' => '2016-01-03', 'active' => true, 'activity_level' => nil},
+          {'date' => '2016-01-05', 'active' => false, 'activity_level' => nil}
         ]
       }, {:device => d, :author => u, :user => u})
       expect(s2).to eq(s)
       expect(s2.log_type).to eq('daily_use')
       expect(s2.data['days']).to eq({
-        '2016-01-01' => {'date' => '2016-01-01', 'active' => true},
-        '2016-01-03' => {'date' => '2016-01-03', 'active' => true},
-        '2016-01-05' => {'date' => '2016-01-05', 'active' => false}
+        '2016-01-01' => {'date' => '2016-01-01', 'active' => true, 'activity_level' => nil},
+        '2016-01-03' => {'date' => '2016-01-03', 'active' => true, 'activity_level' => nil},
+        '2016-01-05' => {'date' => '2016-01-05', 'active' => false, 'activity_level' => nil}
       })
     end
   end

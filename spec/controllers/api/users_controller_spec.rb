@@ -1448,7 +1448,7 @@ describe Api::UsersController, :type => :controller do
       expect(json['log']).to_not eq(nil)
       expect(json['log']['id']).to eq(log.global_id)
       expect(json['log']['daily_use']).to eq([{
-        'date' => Date.today.iso8601, 'active' => true
+        'date' => Date.today.iso8601, 'active' => true, 'activity_level' => nil
       }])
     end
   end
