@@ -182,7 +182,7 @@ module Uploader
     if opts.is_a?(User)
       template = UserIntegration.find_by(template: true, integration_key: 'lessonpix')
       ui = template && UserIntegration.find_by(user: opts, template_integration: template)
-      return nil unless ui
+      return nil unless ui && ui.settings && ui.settings['user_settings'] && ui.settings['user_settings']['username']
       username = ui.settings['user_settings']['username']['value']
       password_md5 = Security.decrypt(ui.settings['user_settings']['password']['value_crypt'], ui.settings['user_settings']['password']['salt'], 'integration_password')
     elsif opts.is_a?(UserIntegration)

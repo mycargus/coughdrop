@@ -204,10 +204,10 @@ module Uploadable
         ref = self.cached_copy_identifiers(url)
         return false unless ref
         bi = ButtonImage.find_by_url(ref[:url])
-        if bi && bi.settings['copy_attempts'].select{|a| a > 24.hours.ago.to_i }.length > 2
+        if bi && (bi.settings['copy_attempts'] || []).select{|a| a > 24.hours.ago.to_i }.length > 2
           return false
         end
-        if !bi || !bi.settigs['cached_copy_url']
+        if !bi || !bi.settings['cached_copy_url']
           user = User.find_by_path(ref[:user_id])
           remote_url = Uploader.found_image_url(ref[:image_id], ref[:library], user)
           if remote_url
