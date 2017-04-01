@@ -8,7 +8,8 @@ module JsonApi::Image
   def self.build_json(image, args={})
     json = {}
     json['id'] = image.global_id
-    json['url'] = image.settings['cached_copy_url'] || image.settings['fallback_copy_url'] || image.url
+    json['url'] = image.settings['cached_copy_url'] || image.url
+#    json['url'] = image.settings['cached_copy_url'] || image.settings['fallback_copy_url'] || image.url
     ['pending', 'content_type', 'width', 'height'].each do |key|
       json[key] = image.settings[key]
     end
