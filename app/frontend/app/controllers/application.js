@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import CoughDrop from '../app';
+import Image from '../models/image';
 import app_state from '../utils/app_state';
 import stashes from '../utils/_stashes';
 import utterance from '../utils/utterance';
