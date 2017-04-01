@@ -1,6 +1,6 @@
 import Ember from 'ember';
 import CoughDrop from '../app';
-import Image from '../models/image';
+import CoughDropImage from '../models/image';
 import app_state from '../utils/app_state';
 import stashes from '../utils/_stashes';
 import utterance from '../utils/utterance';
@@ -13,7 +13,6 @@ import capabilities from '../utils/capabilities';
 import speecher from '../utils/speecher';
 import session from '../utils/session';
 import Button from '../utils/button';
-
 export default Ember.Controller.extend({
   board: Ember.inject.controller('board.index'),
   updateTitle: function(str) {
@@ -451,7 +450,7 @@ export default Ember.Controller.extend({
     if(image && image.get('personalized_url')) {
       image_url = image.get('personalized_url');
     } else if(button.get('original_image_url')) {
-      image_url = CoughDrop.Image.personalize_url(button.get('original_image_url'), app_state.get('currentUser.user_token'));
+      image_url = CoughDropImage.personalize_url(button.get('original_image_url'), app_state.get('currentUser.user_token'));
     }
     var obj = {
       label: button.label,
