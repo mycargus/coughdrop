@@ -1457,7 +1457,7 @@ var persistence = Ember.Object.extend({
                 var keep_big = !!(board.get('grid.rows') < 3 || board.get('grid.columns') < 6);
                 if(image.get('url') && image.get('url').match(/^http/)) {
                  visited_board_promises.push(//persistence.queue_sync_action('store_button_image', function() {
-                    /*return*/ persistence.store_url(image.get('url'), 'image', keep_big, force).then(null, function() {
+                    /*return*/ persistence.store_url(image.get('personalized_url'), 'image', keep_big, force).then(null, function() {
                       return Ember.RSVP.reject({error: "button image failed to sync, " + image.get('url')});
                     })
                  /*})*/);
