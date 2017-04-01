@@ -458,7 +458,7 @@ class Api::UsersController < ApplicationController
       if fallback
         res = Typhoeus.get(fallback)
         if res.headers['Location']
-          res = Typhoeus.get(res.headers['Location'])
+          res = Typhoeus.get(URI.escape(res.headers['Location']))
         end
         send_data res.body, :type => res.headers['Content-Type'], :disposition => 'inline'
         return
@@ -479,7 +479,7 @@ class Api::UsersController < ApplicationController
             Timeout.timeout(5) do
               res = Typhoeus.get(url)
               if res.headers['Location']
-                valid_result = Typhoeus.get(res.headers['Location'])
+                valid_result = Typhoeus.get(URI.escape(res.headers['Location']))
                 expires_in 12.days, :public => true
               elsif res.headers['Content-Type'] && res.headers['Content-Type'].match(/image/)
                 valid_result = res
@@ -501,7 +501,7 @@ class Api::UsersController < ApplicationController
       if fallback
         res = Typhoeus.get(fallback)
         if res.headers['Location']
-          res = Typhoeus.get(res.headers['Location'])
+          res = Typhoeus.get(URI.escape(res.headers['Location']))
         end
         send_data res.body, :type => res.headers['Content-Type'], :disposition => 'inline'                
       else

@@ -116,7 +116,7 @@ class Api::SearchController < ApplicationController
     done = false
     request.on_headers do |response|
       if response.headers['Location']
-        return ['redirect', response.headers['Location']]
+        return ['redirect', URI.escape(response.headers['Location'])]
       end
       if response.success? || response.code == 200
         # TODO: limit to accepted file types
