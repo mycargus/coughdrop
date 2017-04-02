@@ -267,12 +267,12 @@ var Button = Ember.Object.extend({
     if(this.image_id && this.image_url && persistence.url_cache && persistence.url_cache[this.image_url] && (!persistence.url_uncache || !persistence.url_uncache[this.image_url])) {
     } else if(this.image_id && !this.get('image')) {
       var rec = CoughDrop.store.peekRecord('image', this.image_id);
-      if(!rec || !rec.get('isLoaded')) { console.log("missing image for", this.get('label')); return false; }
+      if(!rec || !rec.get('isLoaded')) { /* console.log("missing image for", this.get('label')); */ return false; }
     }
     if(this.sound_id && this.sound_url && persistence.url_cache && persistence.url_cache[this.sound_url] && (!persistence.url_uncache || !persistence.url_uncache[this.sound_url])) {
     } else if(this.sound_id && !this.get('sound')) {
       var rec = CoughDrop.store.peekRecord('sound', this.sound_id);
-      if(!rec || !rec.get('isLoaded')) { console.log("missing sound for", this.get('label')); return false; }
+      if(!rec || !rec.get('isLoaded')) { /* console.log("missing sound for", this.get('label')); */ return false; }
     }
     return true;
   },
