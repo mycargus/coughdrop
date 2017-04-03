@@ -9,7 +9,7 @@ module FeatureFlags
   # that's how it seems after having it enabled on the windows app.
   ENABLED_FRONTEND_FEATURES = ['subscriptions', 'assessments', 'custom_sidebar', 'snapshots',
               'video_recording', 'goals', 'modeling', 'geo_sidebar', 'edit_before_copying',
-              'core_reports']
+              'core_reports', 'lessonpix']
   DISABLED_CANARY_FEATURES = []
   FEATURE_DATES = {
     'word_suggestion_images' => 'Jan 21, 2017',
