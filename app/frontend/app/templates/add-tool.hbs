@@ -15,7 +15,7 @@
         <img src={{selected_tool.icon_url}} style='height: 50px; max-width: 70px; padding-right: 10px;'/>
         {{selected_tool.name}}
       </h3>
-      <span style='white-space: pre-line'>{{selected_tool.description}}</span>
+      <span style='white-space: pre-line'>{{safe selected_tool.description}}</span>
       {{#if user_parameters}}
         <form class="form-horizontal" {{action "nothing" on="submit"}}>
           <div class="form-group">
@@ -43,7 +43,7 @@
           <div class='well' {{action 'select_tool' tool}}>
             <img src={{tool.icon_url}} style='height: 30px; max-width: 50px;'/>
             {{tool.name}}<br/><br/>
-            {{tool.description}}
+            {{safe tool.description}}
           </div>
         {{/each}}
       {{else}}
