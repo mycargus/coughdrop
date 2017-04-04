@@ -855,8 +855,10 @@ module Stats
     puts "users: #{res[:users]}"
     res[:boards] = Board.where(['created_at < ?', date]).count
     puts "boards: #{res[:boards]}"
-    res[:logs] = LogSession.where(['created_at < ?', date]).count
+    res[:logs] = LogSession.where(:log_type => 'session').where(['created_at < ?', date]).count
     puts "logs: #{res[:logs]}"
+    res[:hours] = LogSession.where(:log_type => 'session').where(['started_at > ? AND started_at < ?', date - 30.days, date]).sum('EXTRACT(epoch FROM (ended_at - started_at))')
+    puts "log hours: #{res[:hour]}"
     res[:premium_users] = User.where(['created_at < ?', date]).where(:possibly_full_premium => true).select(&:full_premium?).count
     puts "premium_users: #{res[:premium_users]}"
     res[:communicators] = 0
