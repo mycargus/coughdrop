@@ -1778,7 +1778,7 @@ var soundGrabber = Ember.Object.extend({
   },
   toggle_recording_sound: function(action) {
     var mr = this.controller.get('sound_recording.media_recorder');
-    if(!mr && navigator.device && navigator.device.capture && navigator.device.capture.captureAudio) {
+    if(action != 'stop' && !mr && navigator.device && navigator.device.capture && navigator.device.capture.captureAudio) {
       this.native_record_sound();
       return;
     }
