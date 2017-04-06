@@ -109,7 +109,11 @@ export default Ember.Component.extend({
                 console.error('purchase_progress_failed');
               }
             } else if(event.status == 'finished' && event.result && event.result.success === false && event.result.error == 'card_declined') {
-              _this.sendAction('subscription_error', i18n.t('card_declined', "Purchase failed, your card was declined. Please try a different card or contact support for help."));
+              var str = i18n.t('card_declined', "Purchase failed, your card was declined. Please try a different card or contact support for help.");
+              if(event.result.decline_code && event.result.decline_code == 'fraudulent') {
+                str = i18n.t('card_declined_by_billing', "Purchase failed, our billing system has flagged your card as high-risk. Please try a different card or contact support for help.");
+              }
+              _this.sendAction('subscription_error', str);
               _this.send('reset');
               console.log(event);
             } else if(event.status == 'finished') {
