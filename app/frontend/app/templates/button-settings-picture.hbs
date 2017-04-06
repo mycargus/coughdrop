@@ -2,7 +2,7 @@
 <div class={{if pictureState 'active' 'hidden'}}>
   <div style="margin-bottom: 10px;" class="options">
     <span class="picture_search_field">
-      {{input id='find_picture' value=model.image_field enter="find_picture" placeholder="URL or search term" class="form-control inline"}}
+      {{input id='find_picture' value=model.image_field enter="find_picture" placeholder=search_prompt class="form-control inline"}}
     </span>
     <button type="button" class='btn btn-default' {{action "find_picture"}}>{{t "Search" key='search'}}</button>
     <button type="button" {{action "webcamPicture" on="click"}} disabled={{webcam_unavailable}} class="btn btn-default" style='width: 42px; height: 34px; overflow: hidden;'>
@@ -81,7 +81,14 @@
         <button type="button" class='btn btn-default' {{action "clearImageWork"}}>{{t "Cancel" key='cancel'}}</button>
       </div>
     {{else}}
-      {{#if image_search.previews}}
+      {{#if missing_library}}
+        <div style="margin: 10px 0 10px 0;">
+          <img src="https://pbs.twimg.com/profile_images/779207722306854912/6rPpJceZ.jpg" style='width: 50px; float: left; margin-right: 10px; margin-bottom: 5px;'/>
+          {{t "LessonPix is a paid third-party symbol library with over 33,000 symbols. If you have a <a href='http://lessonpix.com' target='_blank'>LessonPix account</a> you can connect it to your CoughDrop account, and then you and any supervisors will be able to add LessonPix symbols to your boards." key='lessonpix_detailer'}}
+        </div>
+        <button type='button' class='btn btn-default' {{action 'word_art'}}>{{t "Make Word Art" key='make_word_art'}}</button>
+        <button type="button" class='btn btn-default' {{action "clearImageWork"}}>{{t "Cancel" key='cancel'}}</button>
+      {{else if image_search.previews}}
         <div style="margin: 10px 0 10px 0;">
           {{#each image_search.previews as |image|}}
             <img src={{image.thumbnail_url}} {{action "pick_preview" image}} style="height: 50px; max-width: 100px; border: 1px solid #ccc; padding: 1px; margin-bottom: 4px;"/>

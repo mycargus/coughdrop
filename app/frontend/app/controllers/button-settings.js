@@ -76,6 +76,12 @@ export default modal.ModalController.extend({
       {name: i18n.t('render_page', "Load a tool-rendered page"), id: 'render'}
     ];
   }.property(),
+  missing_library: function() {
+    return this.get('image_library') == 'lessonpix_required';
+  }.property('image_library'),
+  search_prompt: function() {
+    return "\"" + this.get('model.label') + "\"" + " or URL or search term";
+  }.property('model.label'),
   image_libraries: function() {
     var res = [
       {name: i18n.t('open_symbols', "opensymbols.org (default)"), id: 'opensymbols'}
@@ -92,6 +98,8 @@ export default modal.ModalController.extend({
     }
     if(this.get('lessonpix_enabled')) {
       res.push({name: i18n.t('lessonpix_images', "LessonPix Images"), id: 'lessonpix'});
+    } else {
+      res.push({name: i18n.t('lessonpix_images', "LessonPix Images"), id: 'lessonpix_required'});
     }
 
 //    res.push({name: i18n.t('openclipart', "OpenClipart"), id: 'openclipart'});

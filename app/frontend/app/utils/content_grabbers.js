@@ -696,6 +696,7 @@ var pictureGrabber = Ember.Object.extend({
         if(license) {
           res.push({
             image_url: "https://farm" + photo.farm + ".staticflickr.com/" + photo.server + "/" + photo.id + "_" + photo.secret + "_n.jpg",
+            thumbnail_url: "https://farm" + photo.farm + ".staticflickr.com/" + photo.server + "/" + photo.id + "_" + photo.secret + "_n.jpg",
             content_type: 'image/jpeg',
             license: license.name,
             author: photo.ownername,
@@ -718,6 +719,7 @@ var pictureGrabber = Ember.Object.extend({
       ((data || {}).payload || []).forEach(function(hit) {
         res.push({
           image_url: hit.svg.url,
+          thumbnail_url: hit.svg.url,
           content_type: 'image/svg',
           width: hit.dimensions.png_thumb.width,
           height: hit.dimensions.png_thumb.height,
@@ -753,6 +755,7 @@ var pictureGrabber = Ember.Object.extend({
         }
         res.push({
           image_url: hit.webformatURL,
+          thumbnail_url: hit.previewURL || hit.webformatURL,
           content_type: content_type,
           width: hit.webformatWidth,
           height: hit.webformatHeight,
@@ -791,6 +794,7 @@ var pictureGrabber = Ember.Object.extend({
         if(mime && cse.src) {
           res.push({
             image_url: cse.src || item.link,
+            thumbnail_url: cse.src || item.link,
             license: 'public domain',
             content_type: mime,
             width: img.width,

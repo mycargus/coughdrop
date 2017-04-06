@@ -277,7 +277,7 @@ module Purchasing
       json = err.json_body
       err = json[:error]
       user && user.log_subscription_event({:error => 'stripe card_exception', :json => json})
-      return {success: false, error: err[:code]}
+      return {success: false, error: err[:code], decline_code: err[:decline_code]}
     rescue => err
       type = (err.respond_to?('[]') && err[:type])
       code = (err.respond_to?('[]') && err[:code]) || 'unknown'

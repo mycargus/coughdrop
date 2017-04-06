@@ -272,6 +272,7 @@ module Uploader
         type = MIME::Types.type_for(ext)[0]
         list << {
           'url' => obj['webformatURL'],
+          'thumbnail_url' => obj['previewURL'] || obj['webformatURL'],
           'content_type' => (type && type.content_type) || 'image/jpeg',
           'width' => obj['webformatWidth'],
           'height' => obj['webformatHeight'],
@@ -303,6 +304,7 @@ module Uploader
       results.each do |obj|
         list << {
           'url' => obj['image_url'],
+          'thumbnail_url' => obj['image_url'],
           'content_type' => obj['content_type'],
           'width' => obj['width'],
           'height' => obj['height'],
