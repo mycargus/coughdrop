@@ -16,6 +16,7 @@ module JsonApi::Gift
     json['active'] = gift.active
     json['purchased'] = gift.purchased?
     json['organization'] = gift.settings['organization']
+    json['gift_name'] = gift.settings['gift_name']
     json['email'] = gift.settings['email'] if json['organization']
     json['amount'] = gift.settings['amount']
     

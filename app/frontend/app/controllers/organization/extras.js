@@ -59,6 +59,7 @@ export default Ember.Controller.extend({
       } else {
         var years = parseFloat(this.get('duration')) || 3;
         gift.set('seconds', years * 365.25 * 24 * 60 * 60);
+        gift.set('gift_name', this.get('gift_name'));
       }
       var _this = this;
       gift.save().then(function() {

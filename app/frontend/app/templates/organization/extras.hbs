@@ -59,6 +59,7 @@
                 {{date gift.created 'day'}}
               </div>
             {{else}}
+              {{#if gift.gift_name}}{{gift.gift_name}}<br/>{{/if}}
               {{gift.code}} - {{gift.duration}}
               <div class='text-muted' style='font-size: 12px; margin-left: 15px;'>
                 {{#if gift.active}}
@@ -74,6 +75,7 @@
         {{/each}}
       </div>
       <div>
+        {{input value=gift_name placeholder="gift name" class="form-control inline inline-masquerade input-sm"}}
         {{input value=duration placeholder="# of years" class="form-control inline inline-masquerade input-sm"}}
         <button class="btn btn-default btn-sm" {{action "add_gift" 'gift'}}>{{t "Create Gift Code" key='create_gift_code'}}</button>
       </div>

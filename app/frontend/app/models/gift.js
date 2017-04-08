@@ -12,6 +12,7 @@ CoughDrop.Gift = DS.Model.extend({
   active: DS.attr('boolean'),
   purchase: DS.attr('string'),
   organization: DS.attr('string'),
+  gift_name: DS.attr('string'),
   email: DS.attr('string'),
   amount: DS.attr('number')
 });
