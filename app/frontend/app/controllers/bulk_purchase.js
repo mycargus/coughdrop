@@ -12,6 +12,7 @@ export default Ember.Controller.extend({
     var _this = this;
     _this.set('gift', {loading: true});
     _this.store.findRecord('gift', gift_id).then(function(gift) {
+      gift.reload();
       _this.set('gift', gift);
       _this.set('subscription.email', gift.get('email'));
       _this.set('subscription.purchase_licenses', gift.get('licenses'));
