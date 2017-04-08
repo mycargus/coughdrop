@@ -21,7 +21,8 @@ class Api::GiftsController < ApplicationController
       'licenses' => params['gift']['licenses'],
       'amount' => params['gift']['amount'],
       'email' => params['gift']['email'],
-      'organization' => params['gift']['organization']
+      'organization' => params['gift']['organization'],
+      'gift_name' => params['gift']['gift_name']
     }, {
       'giver' => @api_user,
       'email' => @api_user.settings['email'],

@@ -37,7 +37,7 @@ Ember.templateHelpers.date_ago = function(date, precision) {
   return moment.fromNow();
 };
 
-Ember.templateHelpers.delimit = function(num) {
+Ember.templateHelpers.delimit = function(num, type) {
   var val = parseFloat(num);
   var pieces = [];
   var leftover = val;
@@ -50,7 +50,7 @@ Ember.templateHelpers.delimit = function(num) {
   pieces = pieces.reverse().map(function(p, idx) { p = p.toString(); while(idx > 0 && p.length < 3) { p = "0" + p; } return p; });
   if(pieces.length == 1) {
     return val.toString();
-  } else if(pieces.length > 2) {
+  } else if(pieces.length > 2 && type != 'full') {
     pieces.pop();
     return i18n.t('n_thousand', "%{num}k", {num: pieces.join(',')});
   } else {
