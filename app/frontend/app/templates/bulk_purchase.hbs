@@ -57,7 +57,7 @@
             <div class="col-sm-12" style="padding-top: 30px;">
               <label>{{t "Purchase Amount" key='purchase_amount'}}</label><br/>
               <p style='font-size: 30px;'>
-                {{t "$%{dollars}" dollars=subscription.subscription_custom_amount key='dollar_amount'}}
+                {{t "$" key='dollars'}}{{delimit subscription.subscription_custom_amount}}
               </p>
             </div>
           </div>
