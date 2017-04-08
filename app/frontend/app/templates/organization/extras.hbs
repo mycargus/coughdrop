@@ -46,7 +46,7 @@
             {{#if gift.licenses}}
               <a href="/purchase/{{gift.code}}">
                 {{#if gift.organization}}{{gift.organization}}{{else}}{{t "User-generated Gift" key='user_generated_gift'}}{{/if}}<br/>
-                {{t "$" key='dollar_sign'}}{{delimit gift.amount}}
+                {{t "$" key='dollar_sign'}}{{delimit gift.amount 'full'}}
                 {{t "license" count=gift.licenses key='n_licenses'}}
               </a>
               <div class='text-muted' style='font-size: 12px; margin-left: 15px;'>
