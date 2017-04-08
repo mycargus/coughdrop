@@ -320,19 +320,23 @@ module Purchasing
           'plan_id' => type
         }
       })
-      gift = GiftPurchase.process_new({}, {
+      gift = GiftPurchase.find_by_code(opts['code']) if opts['code']
+      gift ||= GiftPurchase.process_new({}, {
         'giver' => user, 
         'email' => opts['email'],
+        'seconds' => seconds
+      })
+      gift.process({}, {
         'customer_id' => charge['customer'],
         'token_summary' => token['summary'],
         'plan_id' => type,
         'purchase_id' => charge['id'],
-        'seconds' => seconds
       })
+      gift.notify_of_creation
     rescue Stripe::CardError => err
       json = err.json_body
       err = json[:error]
-      return {success: false, error: err[:code]}
+      return {success: false, error: err[:code], decline_code: err[:decline_code]}
     rescue => err
       type = (err.respond_to?('[]') && err[:type])
       code = (err.respond_to?('[]') && err[:code]) || 'unknown'

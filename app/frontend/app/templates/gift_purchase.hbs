@@ -20,6 +20,13 @@
       </div>
     {{else}}
       <form {{action "purchase" on="submit"}}>
+        {{#if purchase_error}}
+          <div class="form-group">
+            <div class="col-sm-9" style="padding-top: 30px;">
+              <p class='text-danger'>{{purchase_error}}</p>
+            </div>
+          </div>
+        {{/if}}
         <div class="form-group">
           <div class="col-sm-9" style="padding-top: 30px;">
             <label>{{t "Your Email" key='your_email'}}</label><br/>

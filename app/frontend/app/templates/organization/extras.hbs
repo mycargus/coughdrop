@@ -7,7 +7,7 @@
     {{else if blocked_emails.error}}
       <p>{{t "There was an error loading blocked emails" key='error_loading_blocked_emails'}}</p>
     {{else if blocked_emails}}
-      <div class='list-group' style='max-width: 400px;'>
+      <div class='list-group' style='max-width: 400px; margin-bottom: 5px;'>
         {{#each blocked_emails as |email|}}
           <a class='list-group-item'>{{email}}</a>
         {{/each}}
@@ -15,10 +15,80 @@
     {{else}}
       <p>{{t "No data available" key='no_data_available'}}</p>
     {{/if}}
-    <div style='margin-top: -15px;'>
+    <div>
       {{input value=blocked_email_address placeholder="email address" class="form-control inline inline-masquerade input-sm"}}
       <button class="btn btn-default btn-sm" {{action "block_email"}}>{{t "Block Email Address" key='block_email_address'}}</button>
     </div>
+    <h4 style='margin-top: 20px;'>{{t "Custom Purchases" key='custom_purchases'}}</h4>
+    {{#if gifts.loading}}
+      <p>{{t "Loading..." key='loading'}}</p>
+    {{else if gifts.error}}
+      <p>{{t "Error loading custom purchases" key='error_loading_gifts'}}</p>
+    {{else if gifts}}
+      <div class='list-group' style='max-width: 400px; margin-bottom: 5px;'>
+        {{#each gifts as |gift|}}
+          <a class='list-group-item'>
+            <span style='float: left; font-size: 30px; padding-right: 10px;'>
+              {{#if gift.licenses}}
+                {{#if gift.active}}
+                  <span class='glyphicon glyphicon-usd'></span>
+                {{else}}
+                  <span class='glyphicon glyphicon-ok'></span>
+                {{/if}}
+              {{else}}
+                {{#if gift.active}}
+                  <span class='glyphicon glyphicon-heart'></span>
+                {{else}}
+                  <span class='glyphicon glyphicon-ok'></span>
+                {{/if}}
+              {{/if}}
+            </span>
+            {{#if gift.licenses}}
+              <a href="/purchase/{{gift.code}}">
+                {{#if gift.organization}}{{gift.organization}}<br/>{{/if}}
+                {{t "$%{amount}," amount=gift.amount key='dollars'}}
+                {{t "license" count=gift.licenses key='n_licenses'}}
+              </a>
+              <div class='text-muted' style='font-size: 12px; margin-left: 15px;'>
+                {{#if gift.active}}
+                  {{t "pending," key='pending'}}
+                {{else}}
+                  {{t "purchased," key='purchased'}}
+                {{/if}}
+                {{t "created" key='created'}}
+                {{date gift.created 'day'}}
+              </div>
+            {{else}}
+              {{gift.code}} - {{gift.duration}}
+              <div class='text-muted' style='font-size: 12px; margin-left: 15px;'>
+                {{#if gift.active}}
+                  {{t "pending," key='pending'}}
+                {{else}}
+                  {{t "redeemed," key='redeemed'}}
+                {{/if}}
+                {{t "created" key='created'}}
+                {{date gift.created 'day'}}
+              </div>
+            {{/if}}
+          </a>
+        {{/each}}
+      </div>
+      <div>
+        {{input value=duration placeholder="# of years" class="form-control inline inline-masquerade input-sm"}}
+        <button class="btn btn-default btn-sm" {{action "add_gift" 'gift'}}>{{t "Create Gift Code" key='create_gift_code'}}</button>
+      </div>
+      <div style='margin-top: 15px;'>
+        <div style='margin-bottom: 5px;'>
+          {{input value=org placeholder="client name" class="form-control inline inline-masquerade input-sm"}}
+          {{input value=email placeholder="client email" class="form-control inline inline-masquerade input-sm"}}
+        </div>
+        {{input value=amount placeholder="dollars" class="form-control inline inline-masquerade input-sm"}}
+        {{input value=licenses placeholder="# of licenses" class="form-control inline inline-masquerade input-sm"}}
+        <button class="btn btn-default btn-sm" {{action "add_gift" 'purchase'}}>{{t "Create Purchase Page" key='create_purchase_page'}}</button>
+      </div>
+    {{else}}
+      <p>{{t "No data available" key='no_data_available'}}</p>
+    {{/if}}
   {{else}}
     <p>{{t "Not authorized" key='not_authorized'}}</p>
   {{/if}}

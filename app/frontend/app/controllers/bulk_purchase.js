@@ -8,6 +8,19 @@ import progress_tracker from '../utils/progress_tracker';
 
 export default Ember.Controller.extend({
   update_classes: Subscription.obs_func.observes.apply(Subscription.obs_func, Subscription.obs_properties),
+  load_gift: function(gift_id) {
+    var _this = this;
+    _this.set('gift', {loading: true});
+    _this.store.findRecord('gift', gift_id).then(function(gift) {
+      _this.set('gift', gift);
+      _this.set('subscription.email', gift.get('email'));
+      _this.set('subscription.purchase_licenses', gift.get('licenses'));
+      _this.set('subscription.subscription_amount', 'long_term_custom');
+      _this.set('subscription.subscription_custom_amount', gift.get('amount'));
+    }, function(err) {
+      _this.set('gift', {error: true});
+    });
+  },
   subscription: function() {
     var res;
     if(app_state.get('currentUser')) {
@@ -43,8 +56,16 @@ export default Ember.Controller.extend({
   actions: {
     reset: function() {
       this.get('subscription').reset();
-      this.set('subscription.user_type', 'communicator');
-      this.set('subscription.subscription_type', 'long_term_gift');
+      var _this = this;
+      var gift = this.get('gift');
+      if(gift) {
+        _this.set('subscription.user_type', 'communicator');
+        _this.set('subscription.subscription_type', 'long_term_gift');
+        _this.set('subscription.email', gift.get('email'));
+        _this.set('subscription.purchase_licenses', gift.get('licenses'));
+        _this.set('subscription.subscription_amount', 'long_term_custom');
+        _this.set('subscription.subscription_custom_amount', gift.get('amount'));
+      }
     },
     set_subscription: function(amount) {
       this.set('subscription.subscription_amount', amount);
@@ -58,8 +79,9 @@ export default Ember.Controller.extend({
         return;
       }
       var _this = this;
-      _this.set('purchase_error', null);
       var user = _this.get('model');
+      var reset = function() {
+      };
       var subscribe = function(token, type) {
         subscription.set('finalizing_purchase', true);
         persistence.ajax('/api/v1/purchase_gift', {
@@ -67,6 +89,7 @@ export default Ember.Controller.extend({
           data: {
             token: token,
             type: type,
+            code: _this.get('gift.code'),
             email: _this.get('subscription.email')
           }
         }).then(function(data) {

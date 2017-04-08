@@ -113,6 +113,7 @@ Coughdrop::Application.routes.draw do
   get ':id/icon' => 'boards#icon', :constraints => {:id => board_id_regex}
   
   get 'login' => ember_handler
+  get 'organizations/:org_id/:path' => ember_handler
   get ':id/confirm_registration/:key' => ember_handler, :constraints => {:id => user_id_regex}
   get ':id/password_reset/:key' => ember_handler, :constraints => {:id => user_id_regex}
   get 'api/v1/token_check' => 'session#token_check'

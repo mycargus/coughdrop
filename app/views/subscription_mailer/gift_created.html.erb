@@ -1,3 +1,14 @@
+<% if @gift.bulk_purchase? %>
+Thank you for purchasing CoughDrop for your group or organization! CoughDrop is a powerful
+communication tool that we hope can make a difference in the lives of the communicators
+you work with. Our sales team will follow up with you soon to finalize the purchase process.
+Below are the details of your purchase:<br/><br/>
+
+Organization: <%= @gift.settings['organization'] %><br/>
+Email: <%= @gift.settings['email'] %><br/>
+Purchase Amount: $<%= @gift.settings['amount'] %><br/>
+Licenses: <%= @gift.settings['licenses'] %><br/><br/>
+<% else %>
 Thank you for purchasing CoughDrop as a gift for someone else! CoughDrop is a powerful
 communication tool that we hope can make a difference in the lives of 
 struggling communicators. Below you will find the redemption code you can share
@@ -12,6 +23,7 @@ accessing this link</a>.<br/><br/>
 To share this gift, just forward this email to someone, or copy the
 gift code and share that with them. You will receive an email when the
 gift code is redeemed.<br/><br/>
+<% end %>
 
 Thanks again for sharing CoughDrop! Please don't hesitate to let us know if 
 you have any questions or concerns.<br/><br/>

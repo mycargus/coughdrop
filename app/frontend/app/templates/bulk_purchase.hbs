@@ -1,0 +1,75 @@
+<div class="row">
+  <div class="col-sm-8 col-sm-offset-2 col-lg-6 col-lg-offset-3">
+    <h2>{{t "CoughDrop Purchase" key='coughdrop_purchase'}}{{#if gift.organization}}{{t ", " key='comma'}}
+        {{gift.organization}}
+      {{/if}}
+    </h2>
+    <span class="glyphicon glyphicon-paperclip" style="font-size: 50px; float: left; margin: 5px 15px 5px 0;"></span>
+    <p style='margin-bottom: 20px;'>
+      {{t "Thank you for your interest in purchasing CoughDrop! CoughDrop is a powerful tool for struggling communicators, and the support team around them. We are confident that CoughDrop can make a different for the communicators you work with. Please enter the following information to complete your purchase. If you have any questions, feel free to contact our support team." key='bulk_purchase_intro'}}
+    </p>
+    {{#if gift.loading}}
+      <p>{{t "Loading purchase information..." key='loading_purchase'}}</p>
+    {{else if gift.error}}
+      <p>{{t "This purchase link appears to have been disabled. If you believe there is an error, please contact our support team." key='invalid_gift'}}</p>
+    {{else if gift.active}}
+      {{#if subscription.purchase_complete}}
+        <div style="margin: 50px 0;">
+          <h4>
+            <span class="glyphicon glyphicon-ok"></span>
+            {{t "Purchase complete! Thank you!" key='purchase_complete'}}
+          </h4>
+          <p>{{t "You should receive an email with the details of this purchase. Make sure to check your spam box if you're not seeing the email come through within a few minutes." key='purchase_in_email'}}</p>
+        </div>
+      {{else if subscription.finalizing_purchase}}
+        <div style="margin: 50px 0;">
+          <h4>
+            <span class="glyphicon glyphicon-refresh spinning"></span>
+            {{t "Confirming purchase..." key='finalizing_subscription'}}
+          </h4>
+        </div>
+      {{else}}
+        <form {{action "purchase" on="submit"}}>
+          {{#if purchase_error}}
+            <div class="form-group">
+              <div class="col-sm-9" style="padding-top: 30px;">
+                <p class='text-danger'>{{purchase_error}}</p>
+              </div>
+            </div>
+          {{/if}}
+          <div class="form-group">
+            <div class="col-sm-9" style="padding-top: 30px;">
+              <label>{{t "Your Email" key='your_email'}}</label><br/>
+              <span style="display: inline-block; width: 300px;">
+                {{input type='text' value=subscription.email class='form-control input-lg' placeholder='email@example.com'}}
+              </span>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-12" style="padding-top: 30px;">
+              <label>{{t "Total Licenses" key='total_licenses'}}</label><br/>
+              <p style='font-size: 30px;'>
+                {{t "license" count=subscription.purchase_licenses key='n_licenses'}}
+              </p>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-12" style="padding-top: 30px;">
+              <label>{{t "Purchase Amount" key='purchase_amount'}}</label><br/>
+              <p style='font-size: 30px;'>
+                {{t "$%{dollars}" dollars=subscription.subscription_custom_amount key='dollar_amount'}}
+              </p>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-9" style='margin-top: 20px;'>
+              <button type="submit" class="btn btn-lg btn-primary">{{t "Purchase Now" key='purchase_now'}}</button>
+            </div>
+          </div>
+        </form>
+      {{/if}}
+    {{else}}
+      <p>{{t "This purchase link appears to have been disabled. If you believe there is an error, please contact our support team." key='invalid_gift'}}</p>
+    {{/if}}
+  </div>
+</div>

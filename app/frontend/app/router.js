@@ -70,6 +70,7 @@ Router.map(function() {
   this.route('redeem', { path: '/redeem' });
   this.route('redeem_with_code', { path: '/redeem/:code' });
   this.route('gift_purchase', { path: '/gift' });
+  this.route('bulk_purchase', { path: '/purchase/:id'});
   this.route('troubleshooting', { path: '/troubleshooting' });
   this.route('user', { resetNamespalce: true, path: '/:user_id' }, function() {
     this.route('edit');

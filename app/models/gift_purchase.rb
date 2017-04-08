@@ -5,7 +5,6 @@ class GiftPurchase < ActiveRecord::Base
   include Processable
   secure_serialize :settings
   before_save :generate_defaults
-  after_create :notify_of_creation
   replicated_model  
   
   add_permissions('view') { self.active == true }
@@ -18,9 +17,11 @@ class GiftPurchase < ActiveRecord::Base
   def generate_defaults
     self.settings ||= {}
     self.active = true if self.active == nil
+    self.active = false if self.settings['purchase_id'] && self.settings['licenses']
+    self.settings['code_length'] = 20 if self.settings['licenses']
     if !self.code
       code = nil
-      length = 5
+      length = self.settings['code_length'] || 8
       while !code || GiftPurchase.where(:active => true, :code => code).count > 0
         code = Security.nonce('gift_code')[0, length.floor]
         length += 0.3
@@ -31,10 +32,8 @@ class GiftPurchase < ActiveRecord::Base
   end
   
   def notify_of_creation
-    if self.settings && self.settings['giver_email']
-      SubscriptionMailer.schedule_delivery(:gift_created, self.global_id)
-      SubscriptionMailer.schedule_delivery(:gift_updated, self.global_id, 'purchase')
-    end
+    SubscriptionMailer.schedule_delivery(:gift_created, self.global_id)
+    SubscriptionMailer.schedule_delivery(:gift_updated, self.global_id, 'purchase')
     true
   end
   
@@ -70,6 +69,14 @@ class GiftPurchase < ActiveRecord::Base
     User.find_by_global_id(id)
   end
   
+  def bulk_purchase?
+    !!self.settings['licenses']
+  end
+  
+  def purchased?
+    !!(self.settings && self.settings['purchase_id'])
+  end
+  
   def process_params(params, non_user_params)
     self.settings ||= {}
     self.settings['giver_email'] = params['email'] if params['email']
@@ -77,6 +84,10 @@ class GiftPurchase < ActiveRecord::Base
     if non_user_params['giver']
       self.settings['giver_id'] = non_user_params['giver'].global_id
       self.settings['giver_email'] ||= non_user_params['giver'].settings['email']
+    end
+
+    ['licenses', 'amount', 'email', 'organization'].each do |arg|
+      self.settings[arg] = params[arg] if params[arg] && !params[arg].blank?
     end
     ['customer_id', 'token_summary', 'plan_id', 'purchase_id'].each do |arg|
       self.settings[arg] = non_user_params[arg] if non_user_params[arg]
