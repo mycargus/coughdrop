@@ -18,6 +18,7 @@ export default Ember.Controller.extend({
       _this.set('subscription.purchase_licenses', gift.get('licenses'));
       _this.set('subscription.subscription_amount', 'long_term_custom');
       _this.set('subscription.subscription_custom_amount', gift.get('amount'));
+      _this.set('subscription.any_subscription_amount', true);
     }, function(err) {
       _this.set('gift', {error: true});
     });

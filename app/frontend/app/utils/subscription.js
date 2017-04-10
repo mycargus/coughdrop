@@ -116,7 +116,7 @@ var Subscription = Ember.Object.extend({
     } else if(this.get('subscription_type') == 'long_term_gift') {
       if(this.get('subscription_amount') == 'long_term_custom') {
         var amount = parseInt(this.get('subscription_custom_amount'), 10);
-        return amount > 100 && (amount % 50 === 0);
+        return this.get('any_subscription_amount') || (amount > 100 && (amount % 50 === 0));
       } else {
         return !!(this.get('email') && ['long_term_150', 'long_term_200', 'long_term_250', 'long_term_300'].indexOf(this.get('subscription_amount')) != -1);
       }
