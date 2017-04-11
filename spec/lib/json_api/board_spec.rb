@@ -143,7 +143,7 @@ describe JsonApi::Board do
       expect(images[2]['id']).to eq(bbi3.global_id)
       expect(images[2]['url']).to eq('http://www.example.com/bacon/cache/2')
       expect(images[3]['id']).to eq(bbi4.global_id)
-      expect(images[3]['url']).to eq('http://www.example.com/bacon/cache/fallback')
+      expect(images[3]['url']).to eq('http://www.example.com/bacon/3')
       expect(images[4]['id']).to eq(bbi5.global_id)
       expect(images[4]['url']).to eq('http://www.example.com/bacon/4')
     end

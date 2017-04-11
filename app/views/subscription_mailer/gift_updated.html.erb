@@ -1,5 +1,5 @@
 <% if @gift.bulk_purchase? %>
-The bulk purchase for <b><%= gift.settings['organization'] || 'Unnamed Org' %></b> was just purchased.<br/><br/>
+The bulk purchase for <b><%= @gift.settings['organization'] || 'Unnamed Org' %></b> was just purchased.<br/><br/>
 
 <% if @gift.settings['email'] %>
 Email: <%= @gift.settings['email'] %><br/>
@@ -9,6 +9,9 @@ Amount: $<%= @gift.settings['amount'] %><br/><br/>
 <% else %>
 The gift code <b><%= @gift.code %></b> was just <%= @action_type.downcase %>.<br/><br/>
 
+<% if @gift.settings['gift_name'] %>
+Name: <%= @gift.settings['gift_name'] %><br/>
+<% end %>
 <% if @gift.receiver %>
 Recipient: <%= @gift.receiver.user_name %><br/>
 <% end %>

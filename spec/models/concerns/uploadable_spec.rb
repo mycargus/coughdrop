@@ -311,12 +311,40 @@ describe Uploadable, :type => :model do
       i = ButtonImage.new(url: 'http://www.example.com/pic.png')
       expect(i.assert_cached_copy).to eq(false)
     end
+
+    it "should not create a new record on error, just use the same record again" do
+      i = ButtonImage.new(url: 'http://www.example.com/pic.svg')
+      bi = ButtonImage.create(url: 'bacon')
+      expect(Uploader).to receive(:protected_remote_url?).with('http://www.example.com/pic.svg').and_return(true)
+      expect(Uploader).to receive(:protected_remote_url?).with('bacon').and_return(false)
+      expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/pic.svg').and_return({url: 'bacon'})
+      expect(Uploader).to receive(:found_image_url).and_return('http://www.example.com/cache/pic.svg')
+      expect(ButtonImage).to receive(:find_by_url).with('bacon').and_return(bi)
+      expect(bi).to receive(:upload_to_remote) do |url|
+        bi.settings['errored_pending_url'] = 'http://something'
+        expect(url).to eq('http://www.example.com/cache/pic.svg')
+      end
+      expect(i.assert_cached_copy).to eq(false)
+      expect(ButtonImage.count).to eq(1)
+      expect(bi.reload.settings['copy_attempts'].length).to eq(1)
+      expect(bi.reload.settings['copy_attempts'][0]).to be > 2.seconds.ago.to_i
+    end
     
     it "should return false if too many failed attempts" do
       i = ButtonImage.new(url: 'http://www.example.com/pic.svg')
+      bi = ButtonImage.create(url: 'bacon', settings: {'copy_attempts' => [2.hours.ago.to_i, 1.hour.ago.to_i, 30.minutes.ago.to_i]})
       expect(Uploader).to receive(:protected_remote_url?).with('http://www.example.com/pic.svg').and_return(true)
-      expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/pic.svg').and_return({})
-      i.settings = {'copy_attempts' => 3}
+      expect(Uploader).to_not receive(:found_image_url)
+      expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/pic.svg').and_return({url: 'bacon'})
+      expect(i.assert_cached_copy).to eq(false)
+    end
+    
+    it "should not stop if too few failed attempts" do
+      i = ButtonImage.new(url: 'http://www.example.com/pic.svg')
+      bi = ButtonImage.create(url: 'bacon', settings: {'copy_attempts' => [2.hours.ago.to_i, 1.hour.ago.to_i]})
+      expect(Uploader).to receive(:protected_remote_url?).with('http://www.example.com/pic.svg').and_return(true)
+      expect(Uploader).to receive(:found_image_url).and_return(nil)
+      expect(ButtonImage).to receive(:cached_copy_identifiers).with('http://www.example.com/pic.svg').and_return({url: 'bacon'})
       expect(i.assert_cached_copy).to eq(false)
     end
     
@@ -332,6 +360,35 @@ describe Uploadable, :type => :model do
       expect(i.assert_cached_copy).to eq(false)
     end
     
+    it "should not error if cached button_image is found, but no result on it yet" do
+      bi = ButtonImage.new
+      bi2 = ButtonImage.create(url: 'coughdrop://something.png', settings: {'error_pending_url' => 'coughdrop://something.png', 'copy_attempts' => [2.hours.ago.to_i, 1.hour.ago.to_i]})
+      u = User.create
+      expect(bi.assert_cached_copy).to eq(false)
+      bi.url = "http://www.example.com/pic.png"
+      bi.save
+      expect(Uploader).to receive(:protected_remote_url?).with("http://www.example.com/pic.png").and_return(true)
+      expect(Uploader).to receive(:protected_remote_url?).with("http://www.example.com/uploads/pic.png").and_return(false)
+      expect(Uploader).to receive(:protected_remote_url?).with("coughdrop://something.png").and_return(false)
+      expect(ButtonImage).to receive(:cached_copy_identifiers).with("http://www.example.com/pic.png").and_return({
+        library: 'lessonpix',
+        user_id: u.global_id,
+        image_id: '12345',
+        url: 'coughdrop://something.png'
+      })
+      expect(Uploader).to receive(:found_image_url).with('12345', 'lessonpix', u).and_return('http://www.example.com/pics/pic.png')
+      expect(ButtonImage).to receive(:find_by_url).with('coughdrop://something.png').and_return(bi2)
+      expect(bi2).to receive(:upload_to_remote){|url|
+        expect(url).to eq('http://www.example.com/pics/pic.png')
+        bi2.url = 'http://www.example.com/uploads/pic.png'
+        bi2.save
+      }.and_return(true)
+      expect(bi.assert_cached_copy).to eq(true)
+      bi2.reload
+      expect(bi2.url).to eq("coughdrop://something.png")
+      expect(bi2.settings['cached_copy_url']).to eq('http://www.example.com/uploads/pic.png')
+      expect(bi2.settings['copy_attempts']).to eq([])
+    end
     
     it "should assert a cached copy" do
       bi = ButtonImage.new
@@ -380,13 +437,14 @@ describe Uploadable, :type => :model do
       bi2.settings['errored_pending_url'] = 'asdf'
       bi2.save
       expect(bi2).to receive(:upload_to_remote).with('http://www.example.com/pics/pic.png').and_return(true)
+      Worker.flush_queues
       expect(bi.assert_cached_copy).to eq(false)
       expect(ButtonImage.find_by(id: bi2.id)).to_not eq(nil)
       bi2.reload
       expect(bi2.settings['cached_copy_url']).to eq(nil)
       expect(bi2.settings['copy_attempts'].length).to eq(1)
       bi.reload
-      expect(Worker.scheduled?(ButtonImage, 'perform_action', {'id' => bi.id, 'method' => 'assert_cached_copy', 'arguments' => []})).to eq(true)
+      expect(Worker.scheduled?(ButtonImage, 'perform_action', {'method' => 'assert_cached_copies', 'arguments' => [["http://www.example.com/api/v1/users/bob/protected_image/pic/123"]]})).to eq(true)
     end
     
     it "should find the cached copy if available" do

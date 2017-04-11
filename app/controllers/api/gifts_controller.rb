@@ -38,8 +38,8 @@ class Api::GiftsController < ApplicationController
   
   def destroy
     return unless allowed?(@api_user, 'admin_support_actions')
-    gift = GiftPurchase.find_by_code(params['gift_id'])
-    return unless exists?(gift, params['gift_id'])
+    gift = GiftPurchase.find_by_code(params['id'])
+    return unless exists?(gift, params['id'])
     gift.active = false
     gift.save
     render json: JsonApi::Gift.as_json(gift, :wrapper => true, :permissions => @api_user).to_json

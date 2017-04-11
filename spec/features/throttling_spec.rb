@@ -133,7 +133,7 @@ describe "throttling URLs" do
       @user = User.create
       @device = Device.create(:user => @user, :developer_key_id => 1, :device_key => 'hippo')
       p = Progress.create
-      expect(Progress).to receive(:schedule).with(GiftPurchase, :process_subscription_token, {'id' => 'abc'}, {'type' => 'long_term_150', 'email' => nil, 'user_id' => @user.global_id}).and_return(p).exactly(10).times
+      expect(Progress).to receive(:schedule).with(GiftPurchase, :process_subscription_token, {'id' => 'abc'}, {'type' => 'long_term_150', 'email' => nil, 'user_id' => @user.global_id, 'code' => nil}).and_return(p).exactly(10).times
       aggressive_throttle_check(->{
         header 'Authorization', "Bearer #{@device.token}"
         header 'Check-Token', 'true'

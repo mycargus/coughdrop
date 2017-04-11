@@ -19,7 +19,14 @@ describe JsonApi::Gift do
         'id' => g.code,
         'code' => g.code,
         'seconds' => 2.years.to_i,
-        'duration' => '2 years'
+        'duration' => '2 years',
+        'active' => true,
+        'amount' => nil,
+        'created' => g.created_at.iso8601,
+        'gift_name' => nil,
+        'licenses' => nil,
+        'organization' => nil,
+        'purchased' => false
       })
     end
   end

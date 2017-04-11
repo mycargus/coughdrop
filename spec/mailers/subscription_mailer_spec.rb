@@ -213,6 +213,34 @@ describe SubscriptionMailer, :type => :mailer do
       expect(text).to match(/"#{gift.code}"/)
       expect(text).to match(/2 years/)
     end
+    
+    it "should generate a bulk purchase message if appropriate" do
+      giver = User.create(:settings => {'email' => 'fred@example.com'})
+      gift = GiftPurchase.process_new({
+        'licenses' => 4,
+        'amount' => '1234',
+        'organization' => 'org name',
+        'email' => 'bob@example.com'
+      }, {
+      })
+      m = SubscriptionMailer.gift_created(gift.global_id)
+      expect(m.to).to eq(['bob@example.com'])
+      expect(m.subject).to eq("CoughDrop - Bulk Purchase")
+
+      html = message_body(m, :html)
+      expect(html).to match(/Below are the details of your purchase:/)
+      expect(html).to match(/Organization: org name/)
+      expect(html).to match(/Email: bob@example.com/)
+      expect(html).to match(/Purchase Amount: \$1234/)
+      expect(html).to match(/Licenses: 4/)
+      
+      text = message_body(m, :text)
+      expect(text).to match(/Below are the details of your purchase:/)
+      expect(text).to match(/Organization: org name/)
+      expect(text).to match(/Email: bob@example.com/)
+      expect(text).to match(/Purchase Amount: \$1234/)
+      expect(text).to match(/Licenses: 4/)
+    end
   end
   
   describe "gift_redeemed" do
@@ -302,22 +330,52 @@ describe SubscriptionMailer, :type => :mailer do
       giver = User.create(:settings => {'email' => 'fred@example.com'})
       recipient = User.create(:settings => {'email' => 'susan@example.com'})
       
-      gift = GiftPurchase.process_new({}, {
+      gift = GiftPurchase.process_new({
+        'gift_name' => 'good one'
+      }, {
         'email' => 'bob@example.com',
         'seconds' => 3.years.to_i
       })
       gift.settings['receiver_id'] = recipient.global_id
       gift.save
+      expect(gift.reload.settings['gift_name']).to eq('good one')
       
       m = SubscriptionMailer.gift_updated(gift.global_id, 'redeem')
       expect(m.to).to eq(['nobody@example.com'])
       expect(m.subject).to eq("CoughDrop - Gift Redeemed")
 
       html = m.body.to_s
+      expect(html).to match(/Name: good one/)
       expect(html).to match(/Giver: bob@example.com/)
       expect(html).to match(/Recipient: #{recipient.user_name}/)
       expect(html).to match(/<b>#{gift.code}<\/b>/)
       expect(html).to match(/Duration: 3 years/)
+    end
+    
+    it "should generate the bulk purchase message if specified" do
+      ENV['NEW_REGISTRATION_EMAIL'] = "nobody@example.com"
+      giver = User.create(:settings => {'email' => 'fred@example.com'})
+      recipient = User.create(:settings => {'email' => 'susan@example.com'})
+      
+      gift = GiftPurchase.process_new({
+        'licenses' => 4,
+        'amount' => 12345,
+        'organization' => 'org name',
+        'email' => 'org@example.com'
+      }, {
+      })
+      gift.settings['receiver_id'] = recipient.global_id
+      gift.save
+      
+      m = SubscriptionMailer.gift_updated(gift.global_id, 'redeem')
+      expect(m.to).to eq(['nobody@example.com'])
+      expect(m.subject).to eq("CoughDrop - Bulk Purchase")
+
+      html = m.body.to_s
+      expect(html).to match(/Email: org@example.com/)
+      expect(html).to match(/Licenses: 4/)
+      expect(html).to match(/Amount: \$12345/)
+      expect(html).to_not match(gift.code)
     end
   end
 end

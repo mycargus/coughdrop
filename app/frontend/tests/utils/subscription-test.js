@@ -125,6 +125,11 @@ describe('subscription', function() {
       expect(s.get('valid')).toEqual(false);
       s.set('subscription_custom_amount', '5000');
       expect(s.get('valid')).toEqual(true);
+      s.set('any_subscription_amount', true);
+      s.set('subscription_custom_amount', '222');
+      expect(s.get('valid')).toEqual(true);
+      s.set('subscription_custom_amount', '10');
+      expect(s.get('valid')).toEqual(true);
     });
   });
 

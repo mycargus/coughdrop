@@ -21,8 +21,18 @@ describe Api::PurchasingController, :type => :controller do
     it "should call the purchasing library and return a progress object" do
       token_user
       p = Progress.create
-      expect(Progress).to receive(:schedule).with(GiftPurchase, :process_subscription_token, {'id' => 'abc'}, {'type' => 'long_term_150', 'email' => nil, 'user_id' => @user.global_id}).and_return(p)
+      expect(Progress).to receive(:schedule).with(GiftPurchase, :process_subscription_token, {'id' => 'abc'}, {'type' => 'long_term_150', 'email' => nil, 'user_id' => @user.global_id, 'code' => nil}).and_return(p)
       post :purchase_gift, params: {:token => {'id' => 'abc'}, :type => 'long_term_150'}
+      expect(response.success?).to eq(true)
+      json = JSON.parse(response.body)
+      expect(json['progress']).not_to eq(nil)
+    end
+    
+    it "should pass the code of specified" do
+      token_user
+      p = Progress.create
+      expect(Progress).to receive(:schedule).with(GiftPurchase, :process_subscription_token, {'id' => 'abc'}, {'type' => 'long_term_150', 'email' => nil, 'user_id' => @user.global_id, 'code' => 'asdfasdf'}).and_return(p)
+      post :purchase_gift, params: {:token => {'id' => 'abc'}, :type => 'long_term_150', :code => 'asdfasdf'}
       expect(response.success?).to eq(true)
       json = JSON.parse(response.body)
       expect(json['progress']).not_to eq(nil)

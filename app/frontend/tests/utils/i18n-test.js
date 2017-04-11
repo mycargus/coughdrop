@@ -653,6 +653,7 @@ describe("i18n", function() {
       expect(Ember.templateHelpers.delimit(5000.0004)).toEqual("5,000");
       expect(Ember.templateHelpers.delimit(999999.987)).toEqual("999,999");
       expect(Ember.templateHelpers.delimit(123456789)).toEqual("123,456k");
+      expect(Ember.templateHelpers.delimit(123456789, 'full')).toEqual("123,456,789");
     });
   });
 
@@ -744,7 +745,7 @@ describe("i18n", function() {
       expect(i18n.text_direction('ar')).toEqual('rtl');
       expect(i18n.text_direction('ar-BH')).toEqual('rtl');
       expect(i18n.text_direction('fr')).toEqual('ltr');
-      expect(i18n.text_directoin('he')).toEqual('rtl');
+      expect(i18n.text_direction('he')).toEqual('rtl');
       expect(i18n.text_direction('en-XX')).toEqual('ltr');
     });
   });

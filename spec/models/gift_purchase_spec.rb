@@ -9,11 +9,11 @@ describe GiftPurchase, :type => :model do
   end
   
   it "should generate a unique code on create" do
-    expect(Security).to receive(:nonce).with('gift_code').and_return('abcdefg').exactly(6).times
+    expect(Security).to receive(:nonce).with('gift_code').and_return('abcdefghij').exactly(6).times
     g = GiftPurchase.create
-    expect(g.code).to eq('abcde')
+    expect(g.code).to eq('abcdefgh')
     g2 = GiftPurchase.create
-    expect(g2.code).to eq('abcdef')
+    expect(g2.code).to eq('abcdefghi')
   end
   
   it "should trigger a notification on create with a giver specified" do
@@ -30,6 +30,8 @@ describe GiftPurchase, :type => :model do
     }.exactly(2).times
     g = GiftPurchase.create
     g2 = GiftPurchase.create(:settings => {'giver_email' => 'bob@example.com'})
+    expect(methods).to eq([])
+    g2.notify_of_creation
     expect(methods).to eq([:gift_created, :gift_updated])
   end
   
@@ -102,5 +104,53 @@ describe GiftPurchase, :type => :model do
     expect(g.settings['plan_id']).to eq('long_term_150')
     expect(g.settings['purchase_id']).to eq('23456')
     expect(g.settings['bacon']).to eq(nil)
+  end
+  
+  it "should process bulk purchase settings" do
+    g = GiftPurchase.process_new({
+      'licenses' => 4,
+      'amount' => 234,
+      'organization' => 'asdf',
+      'email' => 'bob@example.com'
+    }, {
+    })
+    expect(g.settings['licenses']).to eq(4)
+    expect(g.settings['amount']).to eq(234)
+    expect(g.settings['organization']).to eq('asdf')
+    expect(g.settings['email']).to eq('bob@example.com')
+  end
+  
+  it "should return correct value for purchased?" do
+    g = GiftPurchase.new(settings: {})
+    expect(g.purchased?).to eq(false)
+    g.settings['purchase_id']  = 'asdf'
+    expect(g.purchased?).to eq(true)
+  end
+  
+  it "should return correct value for bulk_purchase?" do
+    g = GiftPurchase.process_new({
+      'licenses' => 4,
+      'amount' => 234,
+      'organization' => 'asdf',
+      'email' => 'bob@example.com'
+    }, {
+    })
+    expect(g.settings['licenses']).to eq(4)
+    expect(g.settings['amount']).to eq(234)
+    expect(g.settings['organization']).to eq('asdf')
+    expect(g.settings['email']).to eq('bob@example.com')
+    expect(g.bulk_purchase?).to eq(true)
+    g = GiftPurchase.new
+    expect(g.bulk_purchase?).to eq(false)
+  end
+  
+  it "should inactivate bulk purchases when redeemed" do
+    g = GiftPurchase.create
+    g.settings['licenses'] = 4
+    g.save
+    expect(g.active).to eq(true)
+    g.settings['purchase_id'] = 'asdf'
+    g.save
+    expect(g.active).to eq(false)
   end
 end

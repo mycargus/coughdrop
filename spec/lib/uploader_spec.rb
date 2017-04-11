@@ -231,6 +231,7 @@ describe Uploader do
       images = Uploader.find_images('bacon', 'arasaac', nil)
       expect(images).to eq([{
         'url' => 'http://www.example.com/pic.png',
+        'thumbnail_url' => 'http://www.example.com/pic.png',
         'content_type' => 'image/png',
         'width' => '200',
         'height' => '200',
@@ -267,6 +268,7 @@ describe Uploader do
       images = Uploader.find_images('bacon', 'pixabay_vectors', nil)
       expect(images).to eq([{
         'url' => 'http://www.example.com/pic.png',
+        'thumbnail_url' => 'http://www.example.com/pic.png',
         'content_type' => 'image/png',
         'width' => 200,
         'height' => 200,
@@ -282,6 +284,7 @@ describe Uploader do
         }
       }, {
         'url' => 'http://www.example.com/pic2.jpg',
+        'thumbnail_url' => 'http://www.example.com/pic2.jpg',
         'content_type' => 'image/jpeg',
         'width' => 123,
         'height' => 234,
@@ -364,7 +367,7 @@ describe Uploader do
       expect(Worker).to receive(:schedule_for).with(:slow, ButtonImage, :perform_action, {'method' => 'assert_cached_copies', 'arguments' => [["http://localhost:3000/api/v1/users/#{u.global_id}/protected_image/lessonpix/2345"]]})
       expect(Uploader.find_images('cheddar', 'lessonpix', u)).to eq([
         {
-          'url' => "#{JsonApi::Json.current_host}/api/v1/users/#{u.global_id}/protected_image/lessonpix/2345",
+          'url' => "http://test.host/api/v1/users/#{u.global_id}/protected_image/lessonpix/2345",
           'thumbnail_url' => "https://lessonpix.com/drawings/2345/100x100/2345.png",
           'content_type' => 'image/png',
           'name' => 'good pic',

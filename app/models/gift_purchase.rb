@@ -70,7 +70,7 @@ class GiftPurchase < ActiveRecord::Base
   end
   
   def bulk_purchase?
-    !!self.settings['licenses']
+    !!(self.settings && self.settings['licenses'])
   end
   
   def purchased?

@@ -3,6 +3,16 @@ require 'ostruct'
 require 'stringio'
 
 describe Purchasing do
+  class FakeCardError < Stripe::CardError
+    def initialize(json)
+      @json_body = json.with_indifferent_access
+    end
+    
+    def json_body
+      @json_body
+    end
+  end
+
   def stripe_event_request(type, object, previous=nil)
     req = OpenStruct.new
     id = 'obj_' + rand(9999).to_s
@@ -338,6 +348,18 @@ describe Purchasing do
       res = Purchasing.purchase(nil, 'token', 'bacon')
       expect(res.is_a?(Hash)).to eq(true)
       expect(res[:success]).not_to eq(nil)
+    end
+    
+    it "should return the correct error code for declined cards" do
+      u = User.create
+      
+      expect(Stripe::Charge).to receive(:create).and_raise(FakeCardError.new({error: {code: 'no', decline_code: 'no way'}}))
+      res = Purchasing.purchase(u, {'id' => 'token'}, 'long_term_150')
+      expect(res).to eq({
+        success: false,
+        error: 'no',
+        decline_code: 'no way'
+      })
     end
 
     describe "subscription" do
@@ -980,16 +1002,19 @@ describe Purchasing do
         'customer' => '12345',
         'id' => '23456'
       })
+      g = GiftPurchase.new
       expect(GiftPurchase).to receive(:process_new).with({}, {
         'giver' => u,
         'email' => 'bob@example.com',
+        'seconds' => 5.years.to_i
+      }).and_return(g)
+      res = Purchasing.purchase_gift({'id' => 'token'}, {'type' => 'long_term_150', 'user_id' => u.global_id, 'email' => 'bob@example.com'})
+      expect(g.reload.settings).to eq({
         'customer_id' => '12345',
         'token_summary' => 'Unknown Card',
         'plan_id' => 'long_term_150',
         'purchase_id' => '23456',
-        'seconds' => 5.years.to_i
-      }).and_return(true)
-      res = Purchasing.purchase_gift({'id' => 'token'}, {'type' => 'long_term_150', 'user_id' => u.global_id, 'email' => 'bob@example.com'})
+      })
     end
 
     it "should generate a custom purchase object on success" do
@@ -1008,17 +1033,20 @@ describe Purchasing do
         'customer' => '12345',
         'id' => '23456'
       })
+      g = GiftPurchase.new
       expect(GiftPurchase).to receive(:process_new).with({}, {
         'giver' => u,
         'email' => 'bob@example.com',
+        'seconds' => 5.years.to_i
+      }).and_return(g)
+      res = Purchasing.purchase_gift({'id' => 'token'}, {'type' => 'long_term_custom_500', 'user_id' => u.global_id, 'email' => 'bob@example.com'})
+      expect(res).to eq({:success => true, :type => 'long_term_custom_500'})
+      expect(g.reload.settings).to eq({
         'customer_id' => '12345',
         'token_summary' => 'Unknown Card',
         'plan_id' => 'long_term_custom_500',
-        'purchase_id' => '23456',
-        'seconds' => 5.years.to_i
-      }).and_return(true)
-      res = Purchasing.purchase_gift({'id' => 'token'}, {'type' => 'long_term_custom_500', 'user_id' => u.global_id, 'email' => 'bob@example.com'})
-      expect(res).to eq({:success => true, :type => 'long_term_custom_500'})
+        'purchase_id' => '23456'
+      })
     end
     
     it "should trigger a notification on success" do
@@ -1059,6 +1087,65 @@ describe Purchasing do
       expect(g.settings['giver_email']).to eq('bob@example.com')
       expect(g.settings['seconds_to_add']).to eq(5.years.to_i)
       expect(notifications).to eq([:gift_created, :gift_updated])
+    end
+    
+    it "should update an existing bulk purchase if defined" do
+      u = User.create
+      expect(Stripe::Charge).to receive(:create).with({
+        :amount => 50000,
+        :currency => 'usd',
+        :source => 'token',
+        :description => 'sponsored license purchase $500',
+        :metadata => {
+          'giver_id' => u.global_id,
+          'giver_email' => 'bob@example.com',
+          'plan_id' => 'long_term_custom_500'
+        }
+      }).and_return({
+        'customer' => '12345',
+        'id' => '23456'
+      })
+      gift = GiftPurchase.create(settings: {
+        'licenses' => 4,
+        'amount' => 500,
+        'organization' => 'org name'
+      })
+      expect(gift.active).to eq(true)
+      res = Purchasing.purchase_gift({'id' => 'token'}, {'type' => 'long_term_custom_500', 'user_id' => u.global_id, 'email' => 'bob@example.com', 'code' => gift.code})
+      expect(res).to eq({:success => true, :type => 'long_term_custom_500'})
+      expect(gift.reload.settings).to eq({
+        'customer_id' => '12345',
+        'plan_id' => 'long_term_custom_500',
+        'purchase_id' => '23456',
+        'token_summary' => 'Unknown Card',
+        'code_length' => 20,
+        'amount' => 500,
+        'licenses' => 4,
+        'organization' => 'org name'
+      })
+      expect(gift.active).to eq(false)
+    end
+    
+    it "should fail with the correct decline code" do
+      u = User.create
+      expect(Stripe::Charge).to receive(:create).with({
+        :amount => 50000,
+        :currency => 'usd',
+        :source => 'token',
+        :description => 'sponsored license purchase $500',
+        :metadata => {
+          'giver_id' => u.global_id,
+          'giver_email' => 'bob@example.com',
+          'plan_id' => 'long_term_custom_500'
+        }
+      }).and_raise(FakeCardError.new({error: {code: 'no', decline_code: 'no way'}}))
+
+      gift = GiftPurchase.create
+      expect(gift.active).to eq(true)
+      res = Purchasing.purchase_gift({'id' => 'token'}, {'type' => 'long_term_custom_500', 'user_id' => u.global_id, 'email' => 'bob@example.com', 'code' => gift.code})
+      expect(res).to eq({:success => false, :error => 'no', :decline_code => 'no way'})
+      expect(gift.reload.settings).to eq({})
+      expect(gift.active).to eq(true)
     end
   end
 
