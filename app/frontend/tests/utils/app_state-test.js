@@ -35,7 +35,16 @@ describe('app_state', function() {
     };
     route = Ember.Object.extend({
       disconnectOutlet: function() { }
-    }).create({session: Ember.Object.create()});
+    }).create({
+      session: Ember.Object.create(),
+      router: {
+        router: {
+          recognizer: {
+            recognize: function() { return []; }
+          }
+        }
+      }
+    });
     controller = Ember.Object.extend({
       transitionToRoute: function() { },
       updateTitle: function() { },

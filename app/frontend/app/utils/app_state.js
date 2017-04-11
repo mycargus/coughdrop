@@ -169,17 +169,20 @@ var app_state = Ember.Object.extend({
     if(transition.isAborted) { return; }
     app_state.set('from_url', app_state.get('route.router.url'));
     var pieces = this.get('route.router.router.recognizer').recognize(app_state.get('from_url'));
-    var args = [pieces[pieces.length - 1].handler];
-    for(var idx = 0; idx < pieces.length; idx++) {
-      var piece = pieces[idx];
-      if(piece && piece.isDynamic) {
-        transition.router.getHandler(piece.handler)._names.forEach(function(name) {
-          args.push(piece.params[name]);
-        });
+    if(pieces && pieces.length > 0) {
+      var args = [pieces[pieces.length - 1].handler];
+      var handle_piece = function(name) {
+        args.push(piece.params[name]);
+      };
+      for(var idx = 0; idx < pieces.length; idx++) {
+        var piece = pieces[idx];
+        if(piece && piece.isDynamic) {
+          transition.router.getHandler(piece.handler)._names.forEach(handle_piece);
+        }
       }
-    };
-    if(args[0] != 'board.index') {
-      app_state.set('from_route', args);
+      if(args[0] != 'board.index') {
+        app_state.set('from_route', args);
+      }
     }
 //     console.log("came from", app_state.get('from_route'));
     app_state.set('latest_board_id', null);
