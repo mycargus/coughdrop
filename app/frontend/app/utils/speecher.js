@@ -175,9 +175,9 @@ var speecher = Ember.Object.extend({
       opts.voiceURI = this.alternate_voiceURI;
       if(app_state.get('vocalization_locale')) {
         var set_locale = app_state.get('vocalization_locale').split(/[-_]/)[0].toLowerCase();
-        var voice_locale = (this.alternate_voiceLang || navigator.language).split(/[-_]/)[0].toLowerCase();
+        var voice_locale = (_this.alternate_voiceLang || navigator.language).split(/[-_]/)[0].toLowerCase();
         if(set_locale != voice_locale) {
-          var list = this._this('voices').filter(function(v) { return v.lang && v.lang.split(/[-_]/)[0].toLowerCase() == set_locale; });
+          var list = _this.get('voices').filter(function(v) { return v.lang && v.lang.split(/[-_]/)[0].toLowerCase() == set_locale; });
           opts.voiceURI = (list[1] && list[1].voiceURI) || (list[0] && list[0].voiceURI) || _this.alternate_voiceURI;
         }
       }
