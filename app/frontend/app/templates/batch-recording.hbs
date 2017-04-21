@@ -2,12 +2,18 @@
   <div class="modal-header">
     <button type="button" class="close" {{action 'close'}}>&times;</button>
     <h3>
-      {{t "Batch Recording" key='batch_recording'}}
+      {{#if model.single}}
+        {{t "Record Audio" key='record_audio'}}
+      {{else}}
+        {{t "Batch Recording" key='batch_recording'}}
+      {{/if}}
     </h3>
   </div>
   <div class="modal-body">
     {{#if model.user}}
-      {{#if phrase}}
+      {{#if model.single}}
+        {{audio-recorder id=phrase.id pending_sound=phrase.pending_sound text=phrase.text next_phrase=next_phrase sound=phrase.sound decide_on_recording="decide_on_recording" select_phrase="select_phrase" audio_ready="audio_ready" audio_not_ready="audio_not_ready"}}
+      {{else if phrase}}
         <button class='btn btn-default' {{action 'select_phrase'}} style='float: left; margin-right: 5px; height: 50px;'><span class='glyphicon glyphicon-arrow-left'></span><span class='sr-only'>{{t "Back to %{category}" key='back_to_category' category=category.name}}</span></button>
         <h4 style='margin-bottom: 0;'>
           "{{phrase.text}}"
