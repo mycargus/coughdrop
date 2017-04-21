@@ -21,8 +21,9 @@ class Api::UtterancesController < ApplicationController
     utterance = Utterance.find_by_global_id(params['utterance_id'])
     return unless exists?(utterance)
     return unless allowed?(utterance, 'edit')
-    if utterance.share_with(params, @api_user)
-      render json: {shared: true}.to_json
+    res = utterance.share_with(params, @api_user)
+    if res
+      render json: {shared: true, details: res}.to_json
     else
       api_error(400, {error: "utterance share failed"})
     end

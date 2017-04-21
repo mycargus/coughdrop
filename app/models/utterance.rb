@@ -52,10 +52,11 @@ class Utterance < ActiveRecord::Base
   def share_with(params, sharer)
     return false unless sharer
     if params['supervisor_id']
-      if sharer && sharer.supervisor_user_ids.include?(params['supervisor_id'])
+      if sharer.supervisor_user_ids.include?(params['supervisor_id'])
         sup = User.find_by_path(params['supervisor_id'])
+        return false unless sup
         self.schedule(:deliver_to, {'user_id' => sup.global_id, 'sharer_id' => sharer.global_id})
-        return true
+        return {to: sup.global_id, from: sharer.global_id, type: 'utterance'}
       end
     elsif params['email']
       self.schedule(:deliver_to, {
@@ -64,14 +65,14 @@ class Utterance < ActiveRecord::Base
         'subject' => params['subject'] || params['message'] || params['sentence'],
         'message' => params['message'] || params['sentence']
       })
-      return true
+      return {to: params['email'], from: sharer.global_id, type: 'email'}
     end
     return false
   end
   
   def deliver_to(args)
     sharer = User.find_by_path(args['sharer_id'])
-    return false unless sharer
+    raise "sharer required" unless sharer
     text = args['message'] || self.data['sentence']
     subject = args['subject'] || self.data['sentence']
     if args['email']
@@ -93,7 +94,7 @@ class Utterance < ActiveRecord::Base
       end
       return true
     end
-    false
+    raise "share failed"
   end
   
   def additional_listeners(type, args)

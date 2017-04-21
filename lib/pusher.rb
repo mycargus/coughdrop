@@ -3,11 +3,12 @@ require 'aws-sdk'
 module Pusher
   def self.sms(phone, message)
     client = config
-    return unless phone && message
+    raise "phone missing" unless phone
+    raise "message missing" unless message
     if !phone.match(/^\+\d/)
       phone = "+1" + phone
     end
-    client.publish({
+    res = client.publish({
       phone_number: phone,
       message: "CoughDrop: #{message}",
       message_attributes: {
@@ -21,6 +22,7 @@ module Pusher
         }
       }
     })
+    message_id = res.message_id
   end
 
   def self.config
