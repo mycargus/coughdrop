@@ -830,6 +830,10 @@ var app_state = Ember.Object.extend({
         stashes.persist('sticky_board', false);
         stashes.persist('speak_mode_user_id', null);
         stashes.persist('all_buttons_enabled', null);
+        app_state.set('label_locale', null);
+        stashes.persist('label_locale', null);
+        app_state.set('vocalization_locale', null);
+        stashes.persist('vocalization_locale', null);
       }
     }
     this.set('last_speak_mode', !!this.get('speak_mode'));
