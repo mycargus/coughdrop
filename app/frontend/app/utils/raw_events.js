@@ -255,6 +255,7 @@ var buttonTracker = Ember.Object.extend({
     }
 
     if(buttonTracker.buttonDown && buttonTracker.any_select && buttonTracker.scanning_enabled) {
+      if(event.type != 'mousedown' && event.type != 'touchstart') { return false; }
       var override_allowed = false;
       if(event.type == 'mousedown') {
         if(Ember.$(event.target).closest("#identity_button,#exit_speak_mode").length > 0) {
@@ -264,21 +265,28 @@ var buttonTracker = Ember.Object.extend({
       if(!override_allowed) {
         buttonTracker.ignoreUp = true;
       }
-      var width = Ember.$(window).width();
-      if(event.clientX <= (width / 2)) {
-        if(buttonTracker.left_screen_action == 'next') {
-          return scanner.next();
-        } else {
-          return scanner.pick();
-        }
+      var now = (new Date()).getTime();
+      if(event.type == 'mousedown' && buttonTracker.last_scanner_select && (now - buttonTracker.last_scanner_select) < 500) {
+        return false;
       } else {
-        if(buttonTracker.right_screen_action == 'next') {
-          return scanner.next();
+        if(event.type == 'touchstart') {
+          buttonTracker.last_scanner_select = now;
+        }
+        var width = Ember.$(window).width();
+        if(event.clientX <= (width / 2)) {
+          if(buttonTracker.left_screen_action == 'next') {
+            return scanner.next();
+          } else {
+            return scanner.pick();
+          }
         } else {
-          return scanner.pick();
+          if(buttonTracker.right_screen_action == 'next') {
+            return scanner.next();
+          } else {
+            return scanner.pick();
+          }
         }
       }
-
     }
     if(buttonTracker.buttonDown && !Ember.$(event.target).hasClass('highlight')) {
       modal.close_highlight();

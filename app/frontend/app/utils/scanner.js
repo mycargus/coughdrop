@@ -456,7 +456,9 @@ var scanner = Ember.Object.extend({
       frame_listener.trigger_target_event(elem.dom[0], 'scanover', 'over');
     }
     modal.highlight(elem.dom, options).then(function() {
-      scanner.pick();
+      if(!buttonTracker.any_select) {
+        scanner.pick();
+      }
     }, function() { });
     scanner.interval = Ember.run.later(function() {
       if(scanner.current_element == elem) {
