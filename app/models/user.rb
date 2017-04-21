@@ -819,8 +819,29 @@ class User < ActiveRecord::Base
       elsif pref == 'text'
         from = args['sharer']['user_name']
         text = args['text']
+        if record && record.data
+          record.reload
+          record.data['sms_attempts'] ||= []
+          record.data['sms_attempts'] << {
+            cell: self.settings['cell_phone'],
+            timestamp: Time.now.to_i,
+            text: "from #{from} - #{text}"
+          }
+          record.save
+        end
         if self.settings && self.settings['cell_phone']
           Worker.schedule_for(:priority, Pusher, :sms, self.settings['cell_phone'], "from #{from} - #{text}")
+          if record && record.data
+            record.reload
+            record.data['sms_attempts'] ||= []
+            record.data['sms_attempts'] << {
+              cell: self.settings['cell_phone'],
+              timestamp: Time.now.to_i,
+              pushed: true,
+              text: "from #{from} - #{text}"
+            }
+            record.save
+          end
         end
       elsif pref == 'none'
         return
