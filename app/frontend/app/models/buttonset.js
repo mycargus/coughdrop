@@ -22,7 +22,7 @@ CoughDrop.Buttonset = DS.Model.extend({
     this.set('buttons', buttons);
   }.observes('buttons_json'),
   find_buttons: function(str, from_board_id, user, include_home_and_sidebar) {
-    if(str.length === 0) { return []; }
+    if(str.length === 0) { return Ember.RSVP.resolve([]); }
     var buttons = this.get('buttons') || [];
     var images = CoughDrop.store.peekAll('image');
 

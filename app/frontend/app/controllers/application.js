@@ -434,6 +434,9 @@ export default Ember.Controller.extend({
       } else {
         this.transitionToRoute('index');
       }
+    },
+    suggestions: function() {
+      modal.open('button-suggestions', {board: this.get('board.model'), user: app_state.get('currentUser')});
     }
   },
   activateButton: function(button, options) {

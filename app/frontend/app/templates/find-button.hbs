@@ -46,6 +46,9 @@
                 {{error}}
               {{else}}
                 {{t "No buttons found" key='no_buttons_found'}}
+                <div style='margin-top: 30px;'>
+                  <a href="#" {{action 'request_button'}}>{{t "Request this phrase as a new button" key='request_as_a_new_button'}}</a>
+                </div>
               {{/if}}
             {{/if}}
           </div>

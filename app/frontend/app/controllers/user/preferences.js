@@ -137,6 +137,19 @@ export default Ember.Controller.extend({
       _this.set('core_lists', {error: true});
     });
   },
+  requested_phrases: function() {
+    var list = [].concat(this.get('core_lists.requested_phrases_for_user') || []);
+    var changes = this.get('model.preferences.requested_phrase_changes') || [];
+    changes.forEach(function(change) {
+      var str = change.replace(/^(add:|remove:)/, '');
+      if(change.match(/^add:/)) {
+        list.push({text: str});
+      } else if(change.match(/^remove:/)) {
+        list = list.filter(function(w) { return w.text != str; });
+      }
+    });
+    return list;
+  }.property('core_lists.requested_phrases_for_user', 'model.preferences.requested_phrase_changes'),
   check_voices_available: function() {
     var _this = this;
     if(capabilities.installed_app) {
@@ -320,6 +333,7 @@ export default Ember.Controller.extend({
       user.set('preferences.progress.preferences_edited', true);
       var _this = this;
       user.save().then(function(user) {
+        _this.check_core_words();
         if(user.get('id') == app_state.get('currentUser.id')) {
           app_state.set('currentUser', user);
         }
@@ -394,6 +408,19 @@ export default Ember.Controller.extend({
       modal.open('modify-core-words', {user: this.get('model')}).then(function() {
         _this.check_core_words();
       });
+    },
+    add_phrase: function() {
+      var list = this.get('model.preferences.requested_phrase_changes') || [];
+      var str = this.get('new_phrase');
+      list = list.filter(function(p) { return (p != "add:" + str) && (p != "remove:" + str); });
+      list.push("add:" + str);
+      this.set('model.preferences.requested_phrase_changes', list);
+    },
+    remove_phrase: function(str) {
+      var list = this.get('model.preferences.requested_phrase_changes') || [];
+      list = list.filter(function(p) { return (p != "add:" + str) && (p != "remove:" + str); });
+      list.push("remove:" + str);
+      this.set('model.preferences.requested_phrase_changes', list);
     }
   }
 });

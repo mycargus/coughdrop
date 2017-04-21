@@ -55,24 +55,30 @@
           </div>
         {{/if}}
       {{else if repository}}
-        <h4>{{repository.name}}</h4>
-        <div class='text-muted' style='font-size: 10px;'>
-          {{repository.description}}
-          {{#if repository.url}}
-            <a href={{repository.url}} target="_blank">{{t "learn more" key='learn_more'}}</a>
-          {{/if}}
-        </div>
-        <div class="btn-group-vertical" style="width: 100%; margin-top: 20px;">
-          {{#each repository.categories as |cat|}}
-            <button class='btn btn-default' style='height: 50px; text-align: left;' {{action 'select_category' cat.id}}>
-              {{#if cat.pending_sound}}
-                <span class='glyphicon glyphicon-warning-sign'></span>
-              {{/if}}
-              {{cat.name}}
-              ( {{cat.recordings}} / {{cat.phrases.length}} )
-            </button>
-          {{/each}}
-        </div>
+        {{#if repository.loading}}
+          <p>{{t "Loading repository..." key='loading_repository'}}</p>
+        {{else if repository.error}}
+          <p>{{t "Error loading repository" key='error_loading_repository'}}</p>
+        {{else }}
+          <h4>{{repository.name}}</h4>
+          <div class='text-muted' style='font-size: 10px;'>
+            {{repository.description}}
+            {{#if repository.url}}
+              <a href={{repository.url}} target="_blank">{{t "learn more" key='learn_more'}}</a>
+            {{/if}}
+          </div>
+          <div class="btn-group-vertical" style="width: 100%; margin-top: 20px;">
+            {{#each repository.categories as |cat|}}
+              <button class='btn btn-default' style='height: 50px; text-align: left;' {{action 'select_category' cat.id}}>
+                {{#if cat.pending_sound}}
+                  <span class='glyphicon glyphicon-warning-sign'></span>
+                {{/if}}
+                {{cat.name}}
+                ( {{cat.recordings}} / {{cat.phrases.length}} )
+              </button>
+            {{/each}}
+          </div>
+        {{/if}}
       {{else}}
         ho hum, not working
       {{/if}}

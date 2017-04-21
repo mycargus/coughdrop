@@ -22,6 +22,17 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
     self.data && self.data['json_response']
   end
   
+  def self.for_user(user)
+    board_ids = []
+    if user.settings['preferences'] && user.settings['preferences']['home_board']
+      board_ids << user.settings['preferences']['home_board']['id']
+    end
+    board_ids += user.sidebar_boards.map{|b| b[:key] }
+    boards = Board.find_all_by_path(board_ids).uniq
+    
+    button_sets = boards.map{|b| b.board_downstream_button_set }.compact.uniq
+  end
+  
   def self.update_for(board_id)
     board = Board.find_by_global_id(board_id)
     if board

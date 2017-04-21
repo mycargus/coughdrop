@@ -163,6 +163,7 @@ Coughdrop::Application.routes.draw do
       get 'daily_use' => 'users#daily_use'
       get 'core_lists' => 'users#core_lists'
       put 'core_list' => 'users#update_core_list'
+      get 'message_bank_suggestions' => 'users#message_bank_suggestions'
       get 'protected_image/:library/:image_id' => 'users#protected_image'
     end
     
@@ -172,6 +173,7 @@ Coughdrop::Application.routes.draw do
     end
     
     get "buttonsets/:id" => "button_sets#show"
+    get "buttonsets" => "button_sets#index"
     get "boardversions" => "boards#history"
     get "userversions" => "users#history"
     

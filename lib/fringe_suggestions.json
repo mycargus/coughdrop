@@ -1,0 +1,23 @@
+[
+  {
+    "id": "common_fringe",
+    "name": "Common Fringe Words",
+    "description": "Sometimes it's hard to remember what fringe words to include. Here's a list of common fringe words to use, or just to jog your memory.",
+    "categories": [
+      {
+        "id": "food",
+        "name": "Food",
+        "words": [
+          "pizza"
+        ]
+      },
+      {
+        "id": "plants",
+        "name": "Plants",
+        "words": [
+          "flower"
+        ]
+      }
+    ]
+  }
+]

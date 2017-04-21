@@ -174,6 +174,16 @@ class WordData < ActiveRecord::Base
     self.core_list_for(user).map(&:downcase).include?(word.downcase.sub(/[^\w]+$/, ''))
   end
   
+  def self.core_and_fringe_for(user)
+    res = {}
+    res[:for_user] = WordData.core_list_for(user)
+    button_sets = BoardDownstreamButtonSet.for_user(user)
+    res[:reachable_for_user] = WordData.reachable_core_list_for(user, button_sets)
+    res[:reachable_fringe_for_user] = WordData.fringe_list_for(user, button_sets)
+    res[:requested_phrases_for_user] = WordData.requested_phrases_for(user, button_sets)
+    res
+  end
+  
   def self.core_list_for(user)
     template = UserIntegration.find_by(:template => true, :integration_key => 'core_word_list')
     ui = template && UserIntegration.find_by(:template_integration => template, :user => user)
@@ -184,16 +194,65 @@ class WordData < ActiveRecord::Base
     end
   end
   
-  def self.reachable_core_list_for(user)
-    list = self.core_list_for(user)
-    board_ids = []
-    if user.settings['preferences'] && user.settings['preferences']['home_board']
-      board_ids << user.settings['preferences']['home_board']['id']
+  def self.requested_phrases_for(user, button_sets)
+    phrases = (user.settings && user.settings['preferences'] && user.settings['preferences']['requested_phrases']) || []
+    button_sets ||= BoardDownstreamButtonSet.for_user(user)
+    res = []
+    words = {}
+    button_sets.each do |bs|
+      bs.data['buttons'].each do |b| 
+        if b['hidden']
+          nil
+        elsif b['linked_board_id'] && !b['link_disabled']
+          nil
+        else
+          if b['label'] || b['vocalization']
+            words[(b['label'] || b['vocalization']).downcase.sub(/[^\w]+$/, '')] = true
+          end
+        end
+      end
     end
-    board_ids += user.sidebar_boards.map{|b| b[:key] }
-    boards = Board.find_all_by_path(board_ids).uniq
-    
-    button_sets = boards.map{|b| b.board_downstream_button_set }.compact.uniq
+    phrases.each do |str|
+      word = {text: str}
+      if words[str.downcase.sub(/[^\w]+$/, '')]
+        word[:used] = true
+      end
+      res << word
+    end
+    res
+  end
+  
+  def self.fringe_list_for(user, button_sets=nil)
+    list = self.fringe_lists[0]
+    button_sets ||= BoardDownstreamButtonSet.for_user(user)
+    res = []
+    words = {}
+    button_sets.each do |bs| 
+      bs.data['buttons'].each do |b| 
+        if b['hidden']
+          nil
+        elsif b['linked_board_id'] && !b['link_disabled']
+          nil
+        else
+          if b['label'] || b['vocalization']
+            words[(b['label'] || b['vocalization']).downcase.sub(/[^\w]+$/, '')] = true
+          end
+        end
+      end
+    end
+    list['categories'].each do |category|
+      category['words'].each do |word|
+        if words[word.downcase.sub(/[^\w]+$/, '')]
+          res << word
+        end
+      end
+    end
+    res.uniq
+  end
+  
+  def self.reachable_core_list_for(user, button_sets=nil)
+    list = self.core_list_for(user)
+    button_sets ||= BoardDownstreamButtonSet.for_user(user)
     reachable_words = button_sets.map{|bs| 
       bs.data['buttons'].map{|b| 
         if b['hidden']
@@ -235,6 +294,17 @@ class WordData < ActiveRecord::Base
     @@core_lists
   end
   
+  def self.fringe_lists
+    @@fringe_lists ||= nil
+    return @@fringe_lists if @@fringe_lists
+    json = JSON.parse(File.read('./lib/fringe_suggestions.json')) rescue nil
+    if json
+      @@fringe_lists = json
+    end
+    @@fringe_lists ||= []
+    @@fringe_lists
+  end
+  
   def self.import_suggestions
     suggestions = JSON.parse(File.read('./lib/core_suggestions.json')) rescue nil
     return false unless suggestions
@@ -245,5 +315,16 @@ class WordData < ActiveRecord::Base
       end
     end
     true
+  end
+  
+  def self.message_bank_suggestions
+    @@message_bank_suggestions ||= nil
+    return @@message_bank_suggestions if @@message_bank_suggestions
+    json = JSON.parse(File.read('./lib/message_bank_suggestions.json')) rescue nil
+    if json
+      @@message_bank_suggestions = json
+    end
+    @@message_bank_suggestions ||= []
+    @@message_bank_suggestions
   end
 end

@@ -495,6 +495,18 @@ class User < ActiveRecord::Base
         self.settings['preferences']['progress'][attr] = params['preferences']['progress'][attr] if params['preferences']['progress'][attr]
       end
     end
+    if params['preferences'] && params['preferences']['requested_phrase_changes']
+      (params['preferences']['requested_phrase_changes'] || []).each do |change|
+        pieces = (change || "").to_s.split(/:/, 2)
+        self.settings['preferences']['requested_phrases'] ||= []
+        if pieces[0] == 'add'
+          self.settings['preferences']['requested_phrases'] += [pieces[1]]
+        elsif pieces[0] == 'remove'
+          self.settings['preferences']['requested_phrases'] -= [pieces[1]]
+        end
+        self.settings['preferences']['requested_phrases'].uniq!
+      end
+    end
     
     @do_track_boards = true
     process_sidebar_boards(params['preferences']['sidebar_boards'], non_user_params) if params['preferences'] && params['preferences']['sidebar_boards']

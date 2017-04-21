@@ -53,8 +53,10 @@ export default Ember.Component.extend({
       contentGrabbers.soundGrabber.toggle_recording_sound(action);
     },
     audio_selected: function(sound) {
-      this.set('sound', sound);
       this.sendAction('audio_ready', sound);
+      try {
+        this.set('sound', sound);
+      } catch(e) { }
       contentGrabbers.soundGrabber.clear_sound_work();
     },
     select_sound_preview: function() {

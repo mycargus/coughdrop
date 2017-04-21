@@ -212,6 +212,8 @@ var editManager = Ember.Object.extend({
       for(var jdx = 0; jdx < ob[idx].length; jdx++) {
         if(id && ob[idx][jdx].id == id) {
           return ob[idx][jdx];
+        } else if(id == 'empty' && ob[idx][jdx].empty) {
+          return ob[idx][jdx];
         }
       }
     }

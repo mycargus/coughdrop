@@ -200,6 +200,7 @@
             </li>
           </ul>
         </span>
+        <button class="btn btn-default wide" {{action "suggestions"}}><span class="wide">{{t "Ideas" key="ideas"}}</span><span class="skinny glyphicon glyphicon-tasks"></span></button>
         <span class="dropdown" style="display: inline-block;">
           <button class="btn btn-default" data-toggle="dropdown"><span class="wide">{{t "More" key="more"}}</span><span class="skinny glyphicon glyphicon-wrench"></span> <span class='caret'></span></button>
           <ul class="dropdown-menu skinny_right" role="menu" aria-labelledby="dLabel">
@@ -406,7 +407,7 @@
         </a>
         <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" style="right: 0; left: inherit; text-align: left;">
           {{#if app_state.speak_mode}}
-            <li role="presentation" class='big'>
+            <li role="presentation" class='big' id='exit_speak_mode'>
               <a href="#" {{action "toggleSpeakMode"}}>{{t "Exit Speak Mode" key="exit_speak_mode"}}</a>
             </li>
             {{#if app_state.embedded}}

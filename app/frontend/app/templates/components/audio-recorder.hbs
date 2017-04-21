@@ -85,6 +85,14 @@
             {{/if}}
           </div>
         </div>
+      {{else if sound.errored}}
+        <div style='margin: 50px 0 80px; text-align: center;'>
+          <p>{{t "There was an unexpected error loading the recorded audio" key='error_loading_audio'}}</p>
+        </div>
+      {{else if sound.unloaded}}
+        <div style='margin: 50px 0 80px; text-align: center;'>
+          <p>{{t "Loading recorded audio..." key='loading_audio'}}</p>
+        </div>
       {{else}}
         <div style='margin: 50px 0 80px; text-align: center;'>
           <p>{{t "There was an unexpected error getting ready to record audio" key='error_recording_audio'}}</p>

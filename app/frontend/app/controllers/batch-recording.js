@@ -3,7 +3,9 @@ import modal from '../utils/modal';
 import app_state from '../utils/app_state';
 import i18n from '../utils/i18n';
 import Utils from '../utils/misc';
+import persistence from '../utils/persistence';
 import word_suggestions from '../utils/word_suggestions';
+import CoughDrop from '../app';
 
 export default modal.ModalController.extend({
   opening: function() {
@@ -17,48 +19,63 @@ export default modal.ModalController.extend({
       this.set('model.user', app_state.get('currentUser'));
     }
     this.load_recordings();
-    this.set('repository',   {
-      "id": "boston_childrens",
-      "name": "Boston Children's Hospital Message Banking Suggestions",
-      "url": "https://www.facebook.com/ACPCHBoston/posts/1253658727989495",
-      "description": "This list is not intended as a minimum list of phrases, but rather as a collection of possible phrases others have used that might be beneficial. You should choose the phrases that feel most natural or useful (or use them as inspiration for your own phrases) instead of trying to record them all.",
-      "categories": [
-        {
-          "id": "idioms",
-          "name": "Idioms",
-          "phrases": [
-            {"id": "not_my_cup_of_tea", "text": "It's not my cup of tea"},
-            {"id": "just_like_a_dream", "text": "Just like a dream"},
-            {"id": "off_the_deep_end", "text": "Off the deep end"},
-            {"id": "once_in_a_blue_moon", "text": "Once in a blue moon"},
-            {"id": "out_of_the_clear_blue", "text": "Out of the clear blue"},
-            {"id": "practice_makes_perfect", "text": "Practice makes perfect"},
-            {"id": "way_the_cookie_crumbles", "text": "That's the way the cookie crumbles"},
-            {"id": "missed_the_boat", "text": "You missed the boat"}
-          ]
-        },
-        {
-          "id": "social_requests",
-          "name": "Social Requests",
-          "phrases": [
-            {"id": "come_talk_with_me", "text": "Come talk with me"},
-            {"id": "i_want_a_hug", "text": "I want a hug"},
-            {"id": "i_want_a_kiss", "text": "I want a kiss"},
-            {"id": "sorry_have_an_appointment", "text": "I'm sorry but I have an appointment now"},
-            {"id": "leave_me_alone", "text": "Leave me alone"},
-            {"id": "go_with_you", "text": "May I go with you?"},
-            {"id": "sit_with_me", "text": "Sit over here with me"},
-            {"id": "like_me_to_go_with_you", "text": "Would you like me to go with you?"},
-            {"id": "youll_have_to_go", "text": "You'll have to go"}
-          ]
-        }
-      ]
-    });
+    if(this.get('model.board')) {
+      var repo = {
+        id: 'board_buttons',
+        name: i18n.t('board_buttons', "Board Buttons"),
+        description: i18n.t('select_buttons_to_record', "Browse through this board and its linked boards to find phrases that haven't been recorded yet"),
+        categories: [],
+        loading: true
+      };
+      this.get('model.board').load_button_set(true).then(function(bs) {
+        var categories = [];
+        var cats_hash = {};
+        bs.get('buttons').forEach(function(button) {
+          if(button && button.label && !button.hidden) {
+            if(categories.indexOf(button.board_key) == -1) {
+              categories.push(button.board_key);
+              cats_hash[button.board_key] = [];
+            }
+            var phrase = {
+              id: button.id.toString(),
+              board_id: button.board_id,
+              button_id: button.id,
+              text: button.label || button.vocalization
+            };
+            if(button.sound_id) {
+              phrase.sound = {
+                id: button.sound_id,
+                unloaded: true,
+              };
+            }
+            cats_hash[button.board_key].push(phrase);
+          }
+        });
+        categories.forEach(function(name) {
+          repo.categories.pushObject({
+            id: name,
+            name: name,
+            phrases: cats_hash[name]
+          });
+        });
+      }, function() {
+        Ember.set(repo, 'error', true);
+      });
+      this.set('repository', repo);
+    } else {
+      var _this = this;
+      this.set('repository', {loading: true});
+      persistence.ajax('/api/v1/users/' + this.get('model.user.id') + '/message_bank_suggestions', {type: 'GET'}).then(function(res) {
+        _this.set('repository', res[0]);
+      }, function(err) {
+        _this.set('repository', {error: true});
+      });
+    }
   },
   load_recordings: function(force) {
     if(!this.get('model.recordings') || force) {
       var _this = this;
-      Utils.all_pages('sound', {user_id: this.get('model.id')}, function(res) {
+      Utils.all_pages('sound', {user_id: this.get('model.user.id')}, function(res) {
       }).then(function(res) {
         _this.set('model.recordings', res);
       }, function(err) {
@@ -126,7 +143,7 @@ export default modal.ModalController.extend({
       });
     }
     this.count_totals();
-  }.observes('recordings', 'repository.id'),
+  }.observes('recordings', 'repository.id', 'repository.categories.length'),
   count_totals: function() {
     if(this.get('repository.id')) {
       var rep = this.get('repository');
@@ -221,13 +238,44 @@ export default modal.ModalController.extend({
       });
       this.set('phrase', phrase);
       this.set('next_phrase', next_phrase);
+      if(this.get('phrase.sound.unloaded')) {
+        var _this = this;
+        CoughDrop.store.findRecord('sound', this.get('phrase.sound.id')).then(function(sound) {
+          _this.set('phrase.sound', sound);
+        }, function() {
+          _this.set('phrase.sound.errored', true);
+        });
+      }
       Ember.run.later(function() {
         Ember.$(".modal-content").scrollTop(0);
       });
     },
     audio_ready: function(sound) {
-      if(this.get('phrase')) {
+      if(this.get('model.single')) {
+        modal.close('batch-recording');
+      } else if(this.get('phrase')) {
         this.set('phrase.sound', sound);
+        if(this.get('phrase.button_id') && this.get('phrase.board_id')) {
+          persistence.ajax('/api/v1/boards/' + this.get('phrase.board_id'), {
+            type: 'POST',
+            data: {
+              '_method': 'PUT',
+              'button': {
+                id: this.get('phrase.button_id'),
+                sound_id: sound.get('id')
+              }
+            }
+          }).then(function(data) {
+//             CoughDrop.store.push({
+//               id: data.board.id,
+//               type: 'board',
+//               attributes: data.board
+//             });
+          }, function() {
+            modal.error(i18n.t('error_updating_button', "There was an unexpected error adding the sound to the button"));
+          });
+        }
+        this.set('phrase.sound_unloaded', false);
         this.send('decide_on_recording', 'accept');
       }
     },

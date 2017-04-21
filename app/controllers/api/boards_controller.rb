@@ -194,7 +194,13 @@ class Api::BoardsController < ApplicationController
     if request.content_type == 'application/json'
       processed_params = JSON.parse(request.body.read)
     end
-    if board.process(processed_params['board'], {:user => @api_user, :starrer => @api_user})
+    res = false
+    if processed_params['button']
+      res = board.process_button(processed_params['button'])
+    else
+      res = board.process(processed_params['board'], {:user => @api_user, :starrer => @api_user})
+    end
+    if res
       render json: JsonApi::Board.as_json(board, :wrapper => true, :permissions => @api_user).to_json
     else
       api_error(400, {error: "board update failed", errors: board.processing_errors})

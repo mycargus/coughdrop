@@ -330,6 +330,33 @@
     </div>
   </div>
   {{else}}
+    {{#if core_lists.for_user}}
+      <div class="form-group">
+        <label for="core_word_list" class="col-sm-3 control-label">{{t "Requested Phrases" key='requested_phrases'}}</label>
+        <div class='col-sm-6'>
+          <p class='form-control-static'><em>{{t "Communicators and supporters can request that phrases or words be added to a communicator's vocabular set. Those requests are listed here." key='requested_phrases_explainer'}}</em></p>
+          <div style='max-height: 100px; overflow: auto; padding: 5px 15px; border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; margin-bottom: 5px;'>
+            {{#if requested_phrases}}
+              {{#each requested_phrases as |phrase|}}
+                <div style='padrequested_phrase_changesding-left: 10px;'>
+                  {{#if phrase.used}}<span class='glyphicon glyphicon-ok'></span>{{/if}}
+                  {{phrase.text}}
+                  <a href="#" {{action 'remove_phrase' phrase.text}} style='padding-left: 5px; font-size: 12px;'>{{t "remove" key='remove'}}</a>
+                </div>
+              {{/each}}
+            {{else}}
+              <p>{{t "No requested phrases" key='no_requested_phrases'}}</p>
+            {{/if}}
+          </div>
+        </div>
+        <div class='col-sm-3 col-sm-offset-3'>
+          {{input type='text' class='form-control' value=new_phrase placeholder="request additional phrase"}}
+        </div>
+        <div class='col-sm-1'>
+          <button type='button' class='btn btn-default' {{action 'add_phrase'}}>{{t "Add" key='add'}}</button>
+        </div>
+      </div>
+    {{/if}}
     {{#if app_state.feature_flags.modeling}}
     <div class="form-group">
       <label for="dwell_modeling" class="col-sm-3 control-label">{{t "Modeling" key='modeling'}}</label>

@@ -2,6 +2,14 @@ class Api::ButtonSetsController < ApplicationController
   extend ::NewRelic::Agent::MethodTracer
   before_action :require_api_token, :except => [:show]
   
+  def index
+    user = User.find_by_path(params['user_id'])
+    return unless exists?(user, params['user_id'])
+    return unless allowed?(user, 'supervise')
+    button_sets = BoardDownstreamButtonSet.for_user(user)
+    render json: JsonApi::ButtonSet.paginate(params, button_sets)
+  end
+  
   def show
     Rails.logger.warn('looking up board')
     board = nil

@@ -48,12 +48,21 @@ export default Ember.Controller.extend({
         }
       });
     },
+    record_sound: function() {
+      var _this = this;
+      modal.open('batch-recording', {user: this.get('model'), recordings: null, single: true}).then(function() {
+        _this.load_recordings();
+      });
+    },
     batch_recording: function() {
       var rec = null;
       if(this.get('recordings.length') > 0) {
         rec = this.get('recordings');
       }
-      modal.open('batch-recording', {user: this.get('model'), recordings: rec});
+      var _this = this;
+      modal.open('batch-recording', {user: this.get('model'), recordings: rec}).then(function() {
+        _this.load_recordings();
+      });
     }
   }
 });

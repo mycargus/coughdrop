@@ -1,5 +1,12 @@
 {{#if license.uneditable}}
-  {{license-attribution license=license}}
+  <div class="form-group">
+    <label for="license" class="col-sm-2 control-label">{{t "License" key='license'}}</label>
+    <div class="col-sm-10">
+      <p class='form-control-static'>
+        {{license-attribution license=license}}
+      </p>
+    </div>
+  </div>
 {{else}}
   <div class="form-group">
     <label for="license" class="col-sm-2 control-label">{{t "License" key='license'}}</label>

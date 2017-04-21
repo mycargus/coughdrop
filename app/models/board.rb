@@ -579,6 +579,31 @@ class Board < ActiveRecord::Base
     self.schedule_once(:check_for_parts_of_speech)
   end
   
+  def process_button(button)
+    found_button = (self.settings['buttons'] || []).detect{|b| b['id'].to_s == button['id'].to_s }
+    if button['sound_id']
+      found_button['sound_id'] = button['sound_id']
+    end
+    self.schedule_once(:update_button_sets)
+    self.save!
+  end
+  
+  def update_button_sets
+    upstreams = [self]
+    visited_ids = []
+    while upstreams.length > 0
+      board = upstreams.shift
+      BoardDownstreamButtonSet.schedule_once(:update_for, board.global_id)
+      visited_ids << board.global_id
+      ups = Board.find_all_by_global_id(board.settings['immediately_upstream_board_ids'])
+      ups.each do |up|
+        if !visited_ids.include?(up.global_id)
+          upstreams.push(up)
+        end
+      end
+    end
+  end
+  
   def process_buttons(buttons, editor, secondary_editor=nil)
     @edit_notes ||= []
     @check_for_parts_of_speech = true

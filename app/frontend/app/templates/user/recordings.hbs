@@ -56,9 +56,10 @@
                     <div style='clear: right;'></div>
                   </td>
                   <td>
+                    <a href={{sound.url}} class='btn btn-default' title={{t "download" key='download'}}><span class='glyphicon glyphicon-cloud-download'></span></a>
                     {{#if model.permissions.edit}}
-                      <button {{action 'edit_sound' sound}} class='btn btn-default'><span class='glyphicon glyphicon-pencil'></span></button>
-                      <button {{action 'delete_sound' sound}} class='btn btn-default'><span class='glyphicon glyphicon-trash'></span></button>
+                      <button {{action 'edit_sound' sound}} class='btn btn-default' title={{t "edit" key='edit'}}><span class='glyphicon glyphicon-pencil'></span></button>
+                      <button {{action 'delete_sound' sound}} class='btn btn-default' title={{t "delete" key='delete'}}><span class='glyphicon glyphicon-trash'></span></button>
                     {{/if}}
                   </td>
                 </tr>
@@ -75,7 +76,8 @@
   {{/if}}
 
   <div>
-    <button class='btn btn-default' {{action 'batch_recording'}}>{{t "Record Message Bank Phrases" key='record_message_bank_phrases'}}</button>
+    <button class='btn btn-default' {{action 'record_sound'}}>{{t "Record Message" key='record_message'}}</button>
+    <button class='btn btn-default' {{action 'batch_recording'}}>{{t "Message Bank Phrases" key='record_message_bank_phrases'}}</button>
     <span class="file_select_holder">
       <button type="button" class='btn btn-default'>
         {{#if upload_status.uploading}}
@@ -94,10 +96,6 @@
   </div>
 
   <div style='white-space: pre'>
-  - big message banking message and button
-    - can click one to record it directly
-    - can click to add other messages in the same category (should remember category when saving)
-    - custom tags?
   - when you add sound to a button, set the label to the transcription if no label defined
   - when recording a sound for a button, include dropdown to choose whose account the sound should be tied to
   - batch-recording based on phrases already programmed into buttons
@@ -105,7 +103,6 @@
   - batch-add recordings to a board
   - spinner while recordings are still being transcribed
   - from edit or board details, "show missing..." with list of either core words or recorded phrases not in use yet
-  - record single message from recordings page
   - show total recorded messages in batch main view
   </div>
 {{else if session.isAuthenticated}}

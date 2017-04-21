@@ -385,13 +385,12 @@ class Api::UsersController < ApplicationController
   end
   
   def core_lists
-    res = {defaults: WordData.core_lists}
+    res = {defaults: WordData.core_lists, fringe: WordData.fringe_lists}
     if params['user_id'] != 'none'
       user = User.find_by_path(params['user_id'])
       return unless exists?(user, params['user_id'])
       return unless allowed?(user, 'supervise')
-      res[:for_user] = WordData.core_list_for(user)
-      res[:reachable_for_user] = WordData.reachable_core_list_for(user)
+      res.merge!(WordData.core_and_fringe_for(user))
     end
     render json: res
   end
@@ -412,6 +411,11 @@ class Api::UsersController < ApplicationController
     }
     ui.save
     render json: {updated: true, words: ui.settings['core_word_list']}
+  end
+  
+  def message_bank_suggestions
+    list = WordData.message_bank_suggestions
+    render json: list
   end
   
   def daily_stats
