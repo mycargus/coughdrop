@@ -613,7 +613,7 @@ module Stats
         location[:readable_ip_address] = cluster.data['readable_ip_address']
         location[:ip_address] = cluster.data['ip_address']
       end
-      if cluster.geo?
+      if cluster.geo? && cluster.data && cluster.data['geo']
         location[:geo] = {
           :latitude => cluster.data['geo'][0],
           :longitude => cluster.data['geo'][1],
