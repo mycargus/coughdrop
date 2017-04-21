@@ -33,7 +33,7 @@ Ember.$(document).on('mousedown touchstart', function(event) {
   }
   buttonTracker.touch_start(event)  ;
   if(capabilities.mobile && event.type == 'touchstart' && app_state.get('speak_mode') && scanner.scanning) {
-    Ember.$("#hidden_input").select().focus();
+    scanner.listen_for_input();
   }
 }).on('gazelinger mousemove touchmove mousedown touchstart', function(event) {
   if(event.type == 'mousemove' || event.type == 'mousedown') {
@@ -255,7 +255,11 @@ var buttonTracker = Ember.Object.extend({
     }
 
     if(buttonTracker.buttonDown && buttonTracker.any_select && buttonTracker.scanning_enabled) {
-      if(event.type != 'mousedown' && event.type != 'touchstart') { return false; }
+      if(event.type != 'mousedown' && event.type != 'touchstart') {
+        event.preventDefault();
+        buttonTracker.ignoreUp = true;
+        return false;
+      }
       var override_allowed = false;
       if(event.type == 'mousedown') {
         if(Ember.$(event.target).closest("#identity_button,#exit_speak_mode").length > 0) {
