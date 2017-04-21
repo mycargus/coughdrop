@@ -181,7 +181,7 @@ var buttonTracker = Ember.Object.extend({
       }
     }
   },
-  // used for handling dragging
+  // used for handling dragging, scanning selection
   touch_continue: function(event) {
     if(buttonTracker.transitioning) {
       event.preventDefault();
@@ -255,6 +255,15 @@ var buttonTracker = Ember.Object.extend({
     }
 
     if(buttonTracker.buttonDown && buttonTracker.any_select && buttonTracker.scanning_enabled) {
+      var override_allowed = false;
+      if(event.type == 'mousedown') {
+        if(Ember.$(event.target).closest("#identity_button,#exit_speak_mode").length > 0) {
+          override_allowed = true;
+        }
+      }
+      if(!override_allowed) {
+        buttonTracker.ignoreUp = true;
+      }
       var width = Ember.$(window).width();
       if(event.clientX <= (width / 2)) {
         if(buttonTracker.left_screen_action == 'next') {

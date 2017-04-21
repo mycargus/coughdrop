@@ -492,18 +492,7 @@ var app_state = Ember.Object.extend({
         // if scanning mode... has to be here because focus will only reliably work when
         // a user-controlled event has occurred, so can't be on a listener
         if(app_state.get('currentUser.preferences.device.scanning') && capabilities.mobile && capabilities.installed_app) { // scanning mode
-          var $elem = Ember.$("#hidden_input");
-          if($elem.length === 0) {
-            $elem = Ember.$("<input/>", {id: 'hidden_input', autocomplete: 'off', autocorrect: 'off', autocapitalize: 'off', spellcheck: 'off'});
-            $elem.css({position: 'absolute', left: '-1000px'});
-            document.body.appendChild($elem[0]);
-            window.addEventListener('keyboardWillShow', function () {
-              if(window.Keyboard && window.Keyboard.hide && app_state.get('speak_mode') && scanner.scanning) {
-                window.Keyboard.hide();
-              }
-            });
-          }
-          $elem.select().focus();
+          scanner.listen_for_input();
         }
       }
       stashes.persist('current_mode', mode);

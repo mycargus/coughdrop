@@ -302,6 +302,7 @@ var scanner = Ember.Object.extend({
   reset: function() {
     Ember.run.cancel(scanner.interval);
     this.start();
+    this.listen_for_input();
   },
   stop: function()  {
     Ember.run.cancel(scanner.interval);
@@ -370,6 +371,32 @@ var scanner = Ember.Object.extend({
       });
     }
   },
+  listen_for_input: function() {
+    // Listens for bluetooth/external keyboard events. On iOS we only get those when
+    // focused on a form element like a text box, which is actually lame and makes
+    // things really complicated.
+
+    var $elem = Ember.$("#hidden_input");
+    var hide = function() {
+      if(window.Keyboard && window.Keyboard.hide && app_state.get('speak_mode') && scanner.scanning) {
+        if(Ember.$("#hidden_input:focus").length > 0) {
+          window.Keyboard.hide();
+        }
+      }
+    }
+    if($elem.length === 0) {
+      var type = capabilities.system == 'iOS' ? 'text' : 'checkbox';
+      $elem = Ember.$("<input/>", {type: type, id: 'hidden_input', autocomplete: 'off', autocorrect: 'off', autocapitalize: 'off', spellcheck: 'off'});
+      $elem.css({position: 'absolute', left: '-1000px'});
+      document.body.appendChild($elem[0]);
+      window.addEventListener('keyboardWillShow', function () {
+        hide();
+      });
+    }
+    $elem.select().focus();
+    hide();
+    Ember.run.later(function() { hide(); }, 100);
+  },
   load_children: function(elem, elements, index) {
     var parent = Ember.$.extend({higher_level: elements, higher_level_index: index}, elem);
     if(elem.reload_children) {
@@ -421,6 +448,7 @@ var scanner = Ember.Object.extend({
         speecher.speak_text(clean_label, false, {alternate_voice: true, interrupt: false});
       }
     }
+    scanner.listen_for_input();
     if(capabilities.mobile && capabilities.installed_app && app_state.get('speak_mode') && scanner.find_elem("#hidden_input:focus").length === 0) {
       modal.warning(i18n.t('tap_first', "Your switch may not be completely enabled. Tap somewhere on the screen to finish enabling it."), true);
     }
