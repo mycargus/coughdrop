@@ -307,6 +307,7 @@ var scanner = Ember.Object.extend({
   stop: function()  {
     Ember.run.cancel(scanner.interval);
     this.scanning = false;
+    this.keyboard_tried_to_show = false;
     modal.close_highlight();
   },
   scan_elements: function(elements, options) {
@@ -371,31 +372,29 @@ var scanner = Ember.Object.extend({
       });
     }
   },
+  hide_input: function() {
+    if(window.Keyboard && window.Keyboard.hide && app_state.get('speak_mode') && scanner.scanning) {
+      if(Ember.$("#hidden_input:focus").length > 0) {
+        window.Keyboard.hide();
+      }
+    }
+  },
   listen_for_input: function() {
     // Listens for bluetooth/external keyboard events. On iOS we only get those when
     // focused on a form element like a text box, which is actually lame and makes
     // things really complicated.
 
     var $elem = Ember.$("#hidden_input");
-    var hide = function() {
-      if(window.Keyboard && window.Keyboard.hide && app_state.get('speak_mode') && scanner.scanning) {
-        if(Ember.$("#hidden_input:focus").length > 0) {
-          window.Keyboard.hide();
-        }
-      }
-    }
     if($elem.length === 0) {
       var type = capabilities.system == 'iOS' ? 'text' : 'checkbox';
       $elem = Ember.$("<input/>", {type: type, id: 'hidden_input', autocomplete: 'off', autocorrect: 'off', autocapitalize: 'off', spellcheck: 'off'});
       $elem.css({position: 'absolute', left: '-1000px'});
       document.body.appendChild($elem[0]);
-      window.addEventListener('keyboardWillShow', function () {
-        hide();
-      });
     }
-    $elem.select().focus();
-    hide();
-    Ember.run.later(function() { hide(); }, 100);
+    if(Ember.$("#hidden_input:focus").length === 0 && !this.keyboard_tried_to_show) {
+      $elem.select().focus();
+    }
+    scanner.hide_input();
   },
   load_children: function(elem, elements, index) {
     var parent = Ember.$.extend({higher_level: elements, higher_level_index: index}, elem);
@@ -449,7 +448,7 @@ var scanner = Ember.Object.extend({
       }
     }
     scanner.listen_for_input();
-    if(capabilities.mobile && capabilities.installed_app && app_state.get('speak_mode') && scanner.find_elem("#hidden_input:focus").length === 0) {
+    if(capabilities.mobile && capabilities.installed_app && app_state.get('speak_mode') && scanner.find_elem("#hidden_input:focus").length === 0 && !scanner.keyboard_tried_to_show) {
       modal.warning(i18n.t('tap_first', "Your switch may not be completely enabled. Tap somewhere on the screen to finish enabling it."), true);
     }
     if(elem.dom.hasClass('integration_target')) {
@@ -471,5 +470,11 @@ var scanner = Ember.Object.extend({
     }, options.interval || 1000);
   }
 }).create();
+window.addEventListener('keyboardWillShow', function() {
+  if(window.Keyboard && window.Keyboard.hide && app_state.get('speak_mode') && scanner.scanning) {
+    scanner.keyboard_tried_to_show = true;
+  }
+  scanner.hide_input();
+});
 
 export default scanner;
