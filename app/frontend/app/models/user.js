@@ -117,6 +117,7 @@ CoughDrop.User = DS.Model.extend({
       var voice = null;
       var voices = speecher.get('voices');
       var voiceURIs = this.get('preferences.device.voice.voice_uris') || [];
+      if(this.get('preferences.device.voice.voice_uri')) { voiceURIs.push(this.get('preferences.device.voice.voice_uri')); }
       var finder = function(v) { return v.voiceURI == voiceURI; };
       for(var idx = 0; idx < voiceURIs.length && !voice; idx++) {
         var voiceURI = voiceURIs[idx];
@@ -131,6 +132,7 @@ CoughDrop.User = DS.Model.extend({
       var voice = null;
       var voices = speecher.get('voices');
       var voiceURIs = this.get('preferences.device.alternate_voice.voice_uris') || [];
+      if(this.get('preferences.device.alternate_voice.voice_uri')) { voiceURIs.push(this.get('preferences.device.alternate_voice.voice_uri')); }
       var finder = function(v) { return v.voiceURI == voiceURI; };
       for(var idx = 0; idx < voiceURIs.length && !voice; idx++) {
         var voiceURI = voiceURIs[idx];
@@ -141,7 +143,7 @@ CoughDrop.User = DS.Model.extend({
       }
       this.set('preferences.device.alternate_voice.voice_uri', voice && voice.voiceURI);
     }
-  }.observes('preferences.device.voice.voice_uris', 'preferences.device.alternate_voice.voice_uris'),
+  }.observes('preferences.device.voice.voice_uri', 'preferences.device.voice.voice_uris', 'preferences.device.alternate_voice.voice_uri', 'preferences.device.alternate_voice.voice_uris'),
   stats: DS.attr('raw'),
   avatar_url_with_fallback: function() {
     var url = this.get('avatar_data_uri') || this.get('avatar_url');

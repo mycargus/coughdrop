@@ -667,9 +667,9 @@
         {{#if model.preferences.device.alternate_voice.enabled}}
           {{#if user_voice_list}}
             <div class="form-group">
-              <label for="alternate_voice_pitch" class="col-sm-3 col-xs-12 control-label">{{t "Scanning Voice" key='alternate_voiceURI'}}</label>
+              <label for="alternate_voice_uri" class="col-sm-3 col-xs-12 control-label">{{t "Scanning Voice" key='alternate_voiceURI'}}</label>
               <div class="col-sm-3 col-xs-7">
-                {{bound-select select_class="form-control" select_id="voiceURI" content=user_voice_list selection=model.preferences.device.alternate_voice.voice_uri action=(action (mut model.preferences.device.alternate_voice.voice_uri)) }}
+                {{bound-select select_class="form-control" select_id="alternate_voice_uri" content=user_voice_list selection=model.preferences.device.alternate_voice.voice_uri action=(action (mut model.preferences.device.alternate_voice.voice_uri)) }}
               </div>
             </div>
           {{/if}}
