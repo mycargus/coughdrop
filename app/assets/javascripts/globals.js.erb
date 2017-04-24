@@ -13,3 +13,6 @@ window.user_preferences = <%= User.preference_defaults.to_json %>;
 <% if ENV['GCSE_KEY'] %>
   window.custom_search_key = "<%= ENV['GCSE_KEY'] %>";
 <% end %>
+<% if ENV['GIPHY_KEY'] %>
+  window.giphy_key = "<%= ENV['GIPHY_KEY'] %>";
+<% end %>

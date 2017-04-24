@@ -635,6 +635,8 @@ var pictureGrabber = Ember.Object.extend({
       search = function(str) { return _this.pixabay_search(str, 'photo'); };
     } else if(library == 'pixabay_vectors') {
       search = function(str) { return _this.pixabay_search(str, 'vector'); };
+    } else if(library == 'giphy_asl') {
+      search = function(str) { return _this.protected_search(str, 'giphy_asl', user_name, fallback); };
     } else if(library == 'lessonpix') {
       search = function(str) { return _this.protected_search(str, library, user_name, fallback); };
     } else if(library == 'openclipart') {

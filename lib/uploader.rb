@@ -289,6 +289,33 @@ module Uploader
         }
       end
       return list
+    elsif ['giphy_asl'].include?(library)
+      str = "#asl #{keyword}"
+      key = ENV['GIPHY_KEY'] || 'dc6zaTOxFJmzC'
+      res = Typhoeus.get("http://api.giphy.com/v1/gifs/search?q=#{CGI.escape(str)}&api_key=#{key}")
+      results = JSON.parse(res.body)
+      list = []
+      results['data'].each do |result|
+        if result['slug'].match(/signwithrobert/) || result['slug'].match(/asl/)
+          list << {
+            'url' => result['images']['original']['url'],
+            'thumbnail_url' => result['images']['downsized_still']['url'],
+            'content_type' => 'image/gif',
+            'width' => result['images']['original']['width'].to_i,
+            'height' => result['images']['original']['height'].to_i,
+            'public' => false,
+            'license' => {
+              'type' => 'private',
+              'copyright_notice_url' => 'https://giphy.com/terms',
+              'source_url' => result['url'],
+              'author_name' => result['username'],
+              'author_url' => result['user'] && result['user']['profile_url'],
+              'uneditable' => true
+            }
+          }
+        end
+      end
+      return list
     elsif ['noun-project', 'sclera', 'arasaac', 'mulberry', 'tawasol'].include?(library)
       str = "#{keyword} repo:#{library}"
       res = Typhoeus.get("https://www.opensymbols.org/api/v1/symbols/search?q=#{CGI.escape(str)}", :ssl_verifypeer => false)

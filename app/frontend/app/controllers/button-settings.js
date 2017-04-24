@@ -79,6 +79,11 @@ export default modal.ModalController.extend({
   missing_library: function() {
     return this.get('image_library') == 'lessonpix_required';
   }.property('image_library'),
+  current_library: function() {
+    var res = {};
+    res[this.get('image_library')] = true;
+    return res;
+  }.property('image_library'),
   search_prompt: function() {
     return "\"" + this.get('model.label') + "\"" + " or URL or search term";
   }.property('model.label'),
@@ -95,6 +100,9 @@ export default modal.ModalController.extend({
     if(window.pixabay_key) {
       res.push({name: i18n.t('pixabay_photos', "Pixabay Photos"), id: 'pixabay_photos'});
       res.push({name: i18n.t('pixabay_vectors', "Pixabay Vector Images"), id: 'pixabay_vectors'});
+    }
+    if(window.giphy_key) {
+      res.push({name: i18n.t('giphy_asl', "GIPHY ASL Signs"), id: 'giphy_asl'});
     }
     if(this.get('lessonpix_enabled')) {
       res.push({name: i18n.t('lessonpix_images', "LessonPix Images"), id: 'lessonpix'});
