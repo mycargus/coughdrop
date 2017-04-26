@@ -8,14 +8,14 @@
         "id": "food",
         "name": "Food",
         "words": [
-          "pizza"
+          "pizza", "burrito", "lasagna"
         ]
       },
       {
         "id": "plants",
         "name": "Plants",
         "words": [
-          "flower"
+          "flower", "rose", "tulip", "bush", "tree"
         ]
       }
     ]

@@ -13,6 +13,7 @@ module JsonApi::Sound
     ['pending', 'content_type', 'duration', 'name', 'transcription', 'tags'].each do |key|
       json[key] = sound.settings[key]
     end
+    json['untranscribable'] = true if sound.settings['transcription_uncertain']
     json['name'] ||= 'Sound'
     json['protected'] = !!sound.protected?
     json['license'] = OBF::Utils.parse_license(sound.settings['license'])

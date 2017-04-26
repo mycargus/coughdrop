@@ -568,8 +568,9 @@ module Stats
   def self.find_sessions(user_id, options)
     sanitize_find_options!(options)
     user = user_id && User.find_by_global_id(user_id)
-    raise(StatsError, "user not found") unless user
-    sessions = LogSession.where(['user_id = ? AND started_at > ? AND ended_at < ?', user.id, options[:start_at], options[:end_at]])
+    raise(StatsError, "user not found") unless user || user_id == 'all'
+    sessions = LogSession.where(['started_at > ? AND ended_at < ?', options[:start_at], options[:end_at]])
+    sessions = sessions.where({'user_id' => user.id}) unless user_id == 'all'
     if options[:device_ids]
       devices = Device.find_all_by_global_id(options[:device_ids]).select{|d| d.user_id == user.id }
       sessions = sessions.where(:device_id => devices.map(&:id))

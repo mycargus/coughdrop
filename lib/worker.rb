@@ -7,11 +7,19 @@ module Worker
   
   def self.schedule_for(queue, klass, method_name, *args)
     @queue = queue.to_s
+    job_hash = Digest::MD5.hexdigest(args.to_json)
+    note_job(job_hash)
     if queue == :slow
       Resque.enqueue(SlowWorker, klass.to_s, method_name, *args)
     else
       Resque.enqueue(Worker, klass.to_s, method_name, *args)
     end
+  end
+  
+  def self.note_job(hash)
+  end
+  
+  def self.clear_job(hash)
   end
   
   def self.schedule(klass, method_name, *args)
@@ -35,6 +43,7 @@ module Worker
     klass_string = args_copy.shift
     klass = Object.const_get(klass_string)
     method_name = args_copy.shift
+    job_hash = Digest::MD5.hexdigest(args_copy.to_json)
     hash = args_copy[0] if args_copy[0].is_a?(Hash)
     hash ||= {'method' => method_name}
     action = "#{klass_string} . #{hash['method']} (#{hash['id']})"
@@ -52,6 +61,7 @@ module Worker
       Rails.logger.error("long-running job, #{action} (expected slow), #{diff}s")
     end
     PaperTrail.whodunnit = pre_whodunnit
+    clear_job(job_hash)
   rescue Resque::TermException
     Resque.enqueue(self, *args)
   end
@@ -82,7 +92,7 @@ module Worker
   def self.scheduled_for?(queue, klass, method_name, *args)
     idx = Resque.size(queue)
     queue_class = (queue == :slow ? 'SlowWorker' : 'Worker')
-    idx.times do |i|
+    [idx, 500].min.times do |i|
       schedule = Resque.peek(queue, i)
       if schedule && schedule['class'] == queue_class && schedule['args'][0] == klass.to_s && schedule['args'][1] == method_name.to_s
         if args.to_json == schedule['args'][2..-1].to_json

@@ -519,6 +519,55 @@ describe User, :type => :model do
       expect(u.settings['location']).to eq('link')
       expect(u.settings['public']).to eq(true)
     end
+    
+    it "should add requested phrase" do
+      u = User.new
+      u.process_params({'preferences' => {
+        'requested_phrase_changes' => [
+          'add:I like you',
+          'add:I am you'
+        ]
+      }}, {})
+      expect(u.settings['preferences']['requested_phrases']).to eq(['I like you', 'I am you'])
+    end
+    
+    it "should remove requested phrase" do
+      u = User.new
+      u.process_params({'preferences' => {
+        'requested_phrase_changes' => [
+          'add:I like you',
+          'add:I am you'
+        ]
+      }}, {})
+      expect(u.settings['preferences']['requested_phrases']).to eq(['I like you', 'I am you'])
+      u.process_params({'preferences' => {
+        'requested_phrase_changes' => [
+          'remove:I like you',
+          'remove:I like you'
+        ]
+      }}, {})
+      expect(u.settings['preferences']['requested_phrases']).to eq(['I am you'])
+    end
+    
+    it "should not repeat added requested phrase" do
+      u = User.new
+      u.process_params({'preferences' => {
+        'requested_phrase_changes' => [
+          'add:I like you',
+          'add:I am you',
+          'add:I like you'
+        ]
+      }}, {})
+      expect(u.settings['preferences']['requested_phrases']).to eq(['I like you', 'I am you'])
+      u.process_params({'preferences' => {
+        'requested_phrase_changes' => [
+          'add:I like you',
+          'add:I am you',
+          'add:I like you'
+        ]
+      }}, {})
+      expect(u.settings['preferences']['requested_phrases']).to eq(['I like you', 'I am you'])
+    end
   end
 
   describe "replace_board" do

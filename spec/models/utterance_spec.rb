@@ -90,7 +90,7 @@ describe Utterance, :type => :model do
       res = u.share_with({
         'supervisor_id' => u2.global_id
       }, u1)
-      expect(res).to eq(true)
+      expect(res).to eq({:to => u2.global_id, :from => u1.global_id, :type => 'utterance'})
       expect(Worker.scheduled?(Utterance, :perform_action, {'id' => u.id, 'method' => 'deliver_to', 'arguments' => [{
         'user_id' => u2.global_id,
         'sharer_id' => u1.global_id
@@ -111,7 +111,7 @@ describe Utterance, :type => :model do
         'email' => 'bob@example.com',
         'message' => 'hat cat scat'
       }, u1)
-      expect(res).to eq(true)
+      expect(res).to eq({:from => u1.global_id, :to => 'bob@example.com', :type => 'email'})
       expect(Worker.scheduled?(Utterance, :perform_action, {'id' => u.id, 'method' => 'deliver_to', 'arguments' => [{
         'sharer_id' => u1.global_id,
         'email' => 'bob@example.com',
@@ -134,7 +134,7 @@ describe Utterance, :type => :model do
         'email' => 'bob@example.com',
         'message' => 'hat cat scat'
       }, u1)
-      expect(res).to eq(true)
+      expect(res).to eq({:from => u1.global_id, :to => 'bob@example.com', :type => 'email'})
       expect(Worker.scheduled?(Utterance, :perform_action, {'id' => u.id, 'method' => 'deliver_to', 'arguments' => [{
         'sharer_id' => u1.global_id,
         'email' => 'bob@example.com',
@@ -180,8 +180,8 @@ describe Utterance, :type => :model do
   describe "deliver_to" do
     it "should do nothing without a sharer" do
       u = Utterance.create
-      expect(u.deliver_to({})).to eq(false)
-      expect(u.deliver_to({'email' => 'bob@example.com'})).to eq(false)
+      expect{ u.deliver_to({}) }.to raise_error('sharer required')
+      expect{ u.deliver_to({'email' => 'bob@example.com'}) }.to raise_error('sharer required')
     end
     
     it "should deliver to an email address" do

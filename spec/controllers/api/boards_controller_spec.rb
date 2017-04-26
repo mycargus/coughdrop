@@ -566,6 +566,22 @@ describe Api::BoardsController, :type => :controller do
       expect(json['board']['name']).to eq("cool board 2")
       expect(json['board']['grid']['order']).to eq([[1, nil, 2]])
     end
+    
+    it "should support single-button updating" do
+      token_user
+      b = Board.create(:user => @user)
+      b.settings['buttons'] = [
+        {'id' => '1', 'label' => 'fred'}, {'id' => '2', 'label' => 'drop dead'}
+      ]
+      b.save
+      put :update, params: {:id => b.global_id, 'button' => {
+        'id' => '2',
+        'sound_id' => '12345'
+      }}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['board']['buttons'][1]).to eq({'id' => '2', 'label' => 'drop dead', 'sound_id' => '12345'})
+    end
   end
   
   describe "star" do

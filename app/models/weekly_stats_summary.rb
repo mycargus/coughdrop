@@ -19,7 +19,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     true
   end
   
-  def self.update_for(log_session_id)
+  def self.update_for(log_session_id, all=false)
     log_session = LogSession.find_by_global_id(log_session_id)
     return if !log_session || log_session.log_type != 'session'
     return unless log_session.user_id && log_session.started_at && log_session.data && log_session.data['stats']
@@ -31,8 +31,8 @@ class WeeklyStatsSummary < ActiveRecord::Base
     cwyear = start_at.to_date.cwyear
     weekyear = (cwyear * 100) + cweek
 
-    summary = WeeklyStatsSummary.find_or_create_by(:weekyear => weekyear, :user_id => log_session.user_id)
-    sessions = Stats.find_sessions(log_session.user.global_id, {:start_at => start_at, :end_at => end_at})
+    summary = WeeklyStatsSummary.find_or_create_by(:weekyear => weekyear, :user_id => (all ? 0 : log_session.user_id))
+    sessions = Stats.find_sessions((all ? 'all' : log_session.user.global_id), {:start_at => start_at, :end_at => end_at})
     
     total_stats = Stats.init_stats(sessions)
     days = {}

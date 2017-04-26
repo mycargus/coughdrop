@@ -344,6 +344,106 @@ describe Uploader do
       ])
     end
     
+    it "should handle giphy searches" do
+      ENV['GIPHY_KEY'] = 'giphy'
+      expect(Typhoeus).to receive(:get).with("http://api.giphy.com/v1/gifs/search?q=%23asl+bacon&api_key=giphy").and_return(OpenStruct.new({
+        body: {
+          data: [
+            {
+              slug: 'signwithrobert',
+              url: 'http://www.example.com/pic1',
+              username: 'bob',
+              user: {profile_url: 'http://www.example.com/bob'},
+              images: {
+                original: {url: 'http://www.example.com/pic1.gif', width: 100, height: 100},
+                downsized_still: {url: 'http://www.example.com/pic1-small.gif'}
+              }
+            },
+            {
+              slug: 'asl-is-cool',
+              url: 'http://www.example.com/pic2',
+              username: 'sue',
+              user: {profile_url: 'http://www.example.com/sue'},
+              images: {
+                original: {url: 'http://www.example.com/pic2.gif', width: 100, height: 100},
+                downsized_still: {url: 'http://www.example.com/pic2-small.gif'}
+              }
+            },
+            {
+              slug: 'good-stuff',
+              url: 'http://www.example.com/pic3',
+              username: 'max',
+              user: {profile_url: 'http://www.example.com/max'},
+              images: {
+                original: {url: 'http://www.example.com/pic3.gif', width: 100, height: 100},
+                downsized_still: {url: 'http://www.example.com/pic3-small.gif'}
+              }
+            },
+            {
+              slug: 'signwithrobert',
+              url: 'http://www.example.com/pic4',
+              username: 'ren',
+              user: {profile_url: 'http://www.example.com/ren'},
+              images: {
+                original: {url: 'http://www.example.com/pic4.gif', width: 100, height: 100},
+                downsized_still: {url: 'http://www.example.com/pic4-small.gif'}
+              }
+            }
+          ]
+        }.to_json
+      }))
+      expect(Uploader.find_images('bacon', 'giphy_asl', nil)).to eq([
+        {
+          'url' => 'http://www.example.com/pic1.gif',
+          'thumbnail_url' => 'http://www.example.com/pic1-small.gif',
+          'content_type' => 'image/gif',
+          'width' => 100,
+          'height' => 100,
+          'public' => false,
+          'license' => {
+            'type' => 'private',
+            'copyright_notice_url' => 'https://giphy.com/terms',
+            'source_url' => 'http://www.example.com/pic1',
+            'author_name' => 'bob',
+            'author_url' => 'http://www.example.com/bob',
+            'uneditable' => true
+          }
+        },
+        {
+          'url' => 'http://www.example.com/pic2.gif',
+          'thumbnail_url' => 'http://www.example.com/pic2-small.gif',
+          'content_type' => 'image/gif',
+          'width' => 100,
+          'height' => 100,
+          'public' => false,
+          'license' => {
+            'type' => 'private',
+            'copyright_notice_url' => 'https://giphy.com/terms',
+            'source_url' => 'http://www.example.com/pic2',
+            'author_name' => 'sue',
+            'author_url' => 'http://www.example.com/sue',
+            'uneditable' => true
+          }
+        },
+        {
+          'url' => 'http://www.example.com/pic4.gif',
+          'thumbnail_url' => 'http://www.example.com/pic4-small.gif',
+          'content_type' => 'image/gif',
+          'width' => 100,
+          'height' => 100,
+          'public' => false,
+          'license' => {
+            'type' => 'private',
+            'copyright_notice_url' => 'https://giphy.com/terms',
+            'source_url' => 'http://www.example.com/pic4',
+            'author_name' => 'ren',
+            'author_url' => 'http://www.example.com/ren',
+            'uneditable' => true
+          }
+        }
+      ])
+    end
+        
     it 'should schedule caching action for returned results' do
       expect(Uploader).to receive(:lessonpix_credentials).with(nil).and_return(nil)
       expect(Uploader.find_images('bacon', 'lessonpix', nil)).to eq(false)

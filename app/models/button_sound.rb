@@ -41,19 +41,51 @@ class ButtonSound < ActiveRecord::Base
   end
   
   def schedule_transcription(frd=false)
-    if self.url && (!self.settings['transcription'] || self.settings['transcription'] == '') && self.settings['secondary_output']
+    if self.secondary_url && (!self.settings['transcription'] || self.settings['transcription'] == '') && (self.settings['transcription_errors'] || 0) < 2
       if frd
+        # https://cloud.google.com/speech/reference/rest/
         ref = self.settings['secondary_output']
+        secondary_url = self.secondary_url
+        key = ENV['GOOGLE_TRANSLATE_TOKEN']
         # download the wav file
+        req = Typhoeus.get(secondary_url)
+        encoded_content = [req.body].pack('m0').gsub(/\=+\Z/, '').tr('+/', '-_') # base64 url encoding
+        opts = {
+          config: {
+            encoding: 'LINEAR16',
+            sampleRateHertz: 44100,
+            languageCode: 'en',
+            profanityFilter: true
+          },
+          audio: {
+            content: encoded_content
+          }
+        }.to_json
+        url = "https://speech.googleapis.com/v1/speech:recognize?key=#{key}"
         # pass it to google cloud recognition async
         # (wav file, 44100Hz, linear PCM)
-        # wait for a result
+        res = Typhoeus.post(url, body: opts, headers: { 'Accept-Encoding' => 'application/json', 'Content-Type' => 'application/json'})
+        json = JSON.parse(res.body)
         # on success, set transcription (including confidence) and delete the wav file from S3
-        # on error, increment failed attempts and give up after 3
-        # https://cloud.google.com/speech/reference/rest/
+        if json['results'] && json['results'][0] && json['results'][0]['alternatives'] && json['results'][0]['alternatives'][0]
+          alt = json['results'][0]['alternatives'][0]
+          if alt['confidence'] > 0.3
+            self.settings['transcription'] = alt['transcript']
+            self.settings['transcription_confidence'] = alt['confidence']
+          else
+            self.settings['transcription_uncertain'] = true
+          end
+          self.settings['secondary_output'] = nil
+          self.save
+          Uploader.remote_remove(secondary_url)
+        # on error, increment failed attempts and give up after second attempt
+        else
+          self.settings['transcription_errors'] ||= 0
+          self.settings['transcription_errors'] += 1
+          self.save
+          schedule_once(:schedule_transcription, true)
+        end
       else
-        # if too many failed attempts, don't schedule again
-        # if last attempt was too recent, don't schedule again
         schedule_once(:schedule_transcription, true)
       end
     end
@@ -200,6 +232,8 @@ class ButtonSound < ActiveRecord::Base
     if !params['transcription'].blank?
       if params['transcription'] != self.settings['transcription']
         self.settings['transcription_by_user'] = true
+        self.settings['transcription_confidence'] = 1.0
+        self.settings['transcription_uncertain'] = false
       end
       self.settings['transcription'] = params['transcription']
     end

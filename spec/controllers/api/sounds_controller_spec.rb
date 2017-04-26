@@ -46,7 +46,7 @@ describe Api::SoundsController, :type => :controller do
       u = User.create
       User.link_supervisor_to_user(@user, u)
       url = "https://#{ENV['UPLOADS_S3_BUCKET']}.s3.amazonaws.com/bacon.mp3"
-      post :create, params: {'user_id' => u.global_id, :sound => {'url' => url, 'content_type' => 'audio/mp3'}}
+      post :create, params: {:sound => {'user_id' => u.global_id, 'url' => url, 'content_type' => 'audio/mp3'}}
       expect(response).to be_success
       json = JSON.parse(response.body)
       expect(json['sound']['id']).not_to eq(nil)
@@ -61,7 +61,7 @@ describe Api::SoundsController, :type => :controller do
       token_user
       u = User.create
       url = "https://#{ENV['UPLOADS_S3_BUCKET']}.s3.amazonaws.com/bacon.mp3"
-      post :create, params: {'user_id' => u.global_id, :sound => {'url' => url, 'content_type' => 'audio/mp3'}}
+      post :create, params: {:sound => {'user_id' => u.global_id, 'url' => url, 'content_type' => 'audio/mp3'}}
       assert_unauthorized
     end
   end

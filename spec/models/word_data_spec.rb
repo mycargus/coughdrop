@@ -316,4 +316,85 @@ RSpec.describe WordData, :type => :model do
       expect(word['sentences']).to eq([{'sentence' => 'I like my hat', 'approved' => true}])
     end
   end
+  
+  describe "core_and_fringe_for" do
+    it "should include core and fringe lists" do
+      u = User.create
+      expect(WordData).to receive(:core_list_for).with(u).and_return(['a'])
+      expect(WordData).to receive(:reachable_core_list_for).with(u, []).and_return(['b'])
+      expect(WordData).to receive(:fringe_list_for).with(u, []).and_return(['c'])
+      expect(WordData).to receive(:requested_phrases_for).with(u, []).and_return(['d'])
+      expect(WordData.core_and_fringe_for(u)).to eq({
+        :for_user => ['a'],
+        :reachable_for_user => ['b'],
+        :reachable_fringe_for_user => ['c'],
+        :requested_phrases_for_user => ['d']
+      })
+    end
+  end
+
+  describe "requested_phrases_for" do
+    it "should return a list with used buttons marked" do
+      bs = BoardDownstreamButtonSet.new(:data => {
+        'buttons' => [
+          {'label' => 'hipster'},
+          {'label' => 'hippie'},
+          {'label' => 'hippo', 'hidden' => true},
+          {'label' => 'hipchat', 'linked_board_id' => 'asdf', 'link_disabled' => true},
+          {'label' => 'hipmonk', 'linked_board_id' => 'asdf'}
+        ]
+      })
+      u = User.new(:settings => {
+        'preferences' => {
+          'requested_phrases' => [
+            'hippie', 'hippo', 'hipchat', 'hipmonk'
+          ]
+        }
+      })
+      expect(WordData.requested_phrases_for(u, [bs])).to eq([
+        {text: 'hippie', used: true},
+        {text: 'hippo'},
+        {text: 'hipchat', used: true},
+        {text: 'hipmonk'}
+      ])
+    end
+  end
+  
+  describe "fringe_lists" do
+    it "should return a list of lists" do
+      expect(WordData.fringe_lists[0]['id']).to eq('common_fringe')
+    end
+  end
+ 
+  describe "fringe_list_for" do
+    it "should return only accessible fringe words" do
+      u = User.create
+      b1 = Board.create(:user => u)
+      b1.settings['buttons'] = [{'id' => 1, 'label' => 'pizza'}]
+      b1.save
+      b2 = Board.create(:user => u)
+      b2.settings['buttons'] = [{'id' => 2, 'label' => 'flower'}, {'id' => 3, 'label' => 'rose'}, {'id' => 4, 'label' => 'where'}]
+      b2.save
+      
+      u.settings['preferences']['home_board'] = {'id' => b1.global_id, 'key' => b1.key}
+      u.settings['preferences']['sidebar_boards'] = [{'key' => b2.key}]
+      u.save
+      BoardDownstreamButtonSet.update_for(b1.global_id)
+      BoardDownstreamButtonSet.update_for(b2.global_id)
+      expect(u.sidebar_boards).to eq([{'key' => b2.key}])
+      expect(BoardDownstreamButtonSet.for_user(u).map(&:board_id).sort).to eq([b1.id, b2.id].sort)
+      expect(WordData.fringe_list_for(u)).to eq([
+        "pizza", "flower", "rose"
+      ])
+    end
+  end
+  
+  describe "message_bank_suggestions" do
+    it "should return a list" do
+      expect(WordData.message_bank_suggestions.length).to be > 0
+      expect(WordData.message_bank_suggestions[0]['id']).to eq('boston_childrens')
+    end
+  end
 end
+
+

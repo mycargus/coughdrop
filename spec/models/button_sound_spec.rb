@@ -350,4 +350,145 @@ describe ButtonSound, :type => :model do
       expect(bs3.settings['transcription_by_user']).to eq(nil)
     end
   end
+  
+  describe "schedule_transcription" do
+    it "should do nothing without a secondary url" do
+      bs = ButtonSound.new(:settings => {})
+      bs.schedule_transcription
+      expect(Worker.scheduled_actions.length).to eq(0)
+    end
+    
+    it "should do nothing if there's already a transcription set for the sound" do
+      bs = ButtonSound.new({
+        :settings => {
+          'transcription' => 'aha'
+        }
+      })
+      expect(bs).to receive(:secondary_url).and_return("http://www.example.com/sound.wav")
+      bs.schedule_transcription
+      expect(Worker.scheduled_actions.length).to eq(0)
+    end
+    
+    it "should schedule if not manually running" do
+      bs = ButtonSound.create(:settings => {})
+      expect(bs).to receive(:secondary_url).and_return("http://www.example.com/sound.wav")
+      bs.schedule_transcription
+      expect(Worker.scheduled?(ButtonSound, :perform_action, {:id => bs.id, :method => 'schedule_transcription', :arguments => [true]})).to eq(true)
+    end
+    
+    it "should query for a transcription" do
+      bs = ButtonSound.new(:settings => {
+      })
+      expect(bs).to receive(:secondary_url).and_return("http://www.example.com/sound.wav").at_least(1).times
+      expect(Typhoeus).to receive(:get).with("http://www.example.com/sound.wav").and_return(OpenStruct.new({
+        body: 'asdf'
+      }))
+      ENV['GOOGLE_TRANSLATE_TOKEN'] = 'tokeny'
+      expect(Typhoeus).to receive(:post).with("https://speech.googleapis.com/v1/speech:recognize?key=tokeny", {
+        body: {config: {encoding: 'LINEAR16', sampleRateHertz: 44100, languageCode: 'en', profanityFilter: true}, audio: {content: 'YXNkZg'}}.to_json, 
+        headers: { 'Accept-Encoding' => 'application/json', 'Content-Type' => 'application/json'}
+      }).and_return(OpenStruct.new({
+        body: {
+          results: [
+            {alternatives: [
+              transcript: 'ahem',
+              confidence: 0.45
+            ]}
+          ]
+        }.to_json
+      }))
+      expect(Uploader).to receive(:remote_remove).with("http://www.example.com/sound.wav").and_return(true)
+      bs.schedule_transcription(true)
+      expect(bs.settings['transcription']).to eq('ahem')
+      expect(bs.settings['transcription_confidence']).to eq(0.45)
+    end
+    
+    it "should set the transcription on query success" do
+      bs = ButtonSound.new(:settings => {
+      })
+      expect(bs).to receive(:secondary_url).and_return("http://www.example.com/sound.wav").at_least(1).times
+      expect(Typhoeus).to receive(:get).with("http://www.example.com/sound.wav").and_return(OpenStruct.new({
+        body: 'asdf'
+      }))
+      ENV['GOOGLE_TRANSLATE_TOKEN'] = 'tokeny'
+      expect(Typhoeus).to receive(:post).with("https://speech.googleapis.com/v1/speech:recognize?key=tokeny", {
+        body: {config: {encoding: 'LINEAR16', sampleRateHertz: 44100, languageCode: 'en', profanityFilter: true}, audio: {content: 'YXNkZg'}}.to_json, 
+        headers: { 'Accept-Encoding' => 'application/json', 'Content-Type' => 'application/json'}
+      }).and_return(OpenStruct.new({
+        body: {
+          results: [
+            {alternatives: [
+              transcript: 'ahem',
+              confidence: 0.45
+            ]}
+          ]
+        }.to_json
+      }))
+      expect(Uploader).to receive(:remote_remove).with("http://www.example.com/sound.wav").and_return(true)
+      bs.schedule_transcription(true)
+      expect(bs.settings['transcription']).to eq('ahem')
+      expect(bs.settings['transcription_confidence']).to eq(0.45)
+    end
+    
+    it "should not set the transcription if too low a confidence" do
+      bs = ButtonSound.new(:settings => {
+      })
+      expect(bs).to receive(:secondary_url).and_return("http://www.example.com/sound.wav").at_least(1).times
+      expect(Typhoeus).to receive(:get).with("http://www.example.com/sound.wav").and_return(OpenStruct.new({
+        body: 'asdf'
+      }))
+      ENV['GOOGLE_TRANSLATE_TOKEN'] = 'tokeny'
+      expect(Typhoeus).to receive(:post).with("https://speech.googleapis.com/v1/speech:recognize?key=tokeny", {
+        body: {config: {encoding: 'LINEAR16', sampleRateHertz: 44100, languageCode: 'en', profanityFilter: true}, audio: {content: 'YXNkZg'}}.to_json, 
+        headers: { 'Accept-Encoding' => 'application/json', 'Content-Type' => 'application/json'}
+      }).and_return(OpenStruct.new({
+        body: {
+          results: [
+            {alternatives: [
+              transcript: 'ahem',
+              confidence: 0.11
+            ]}
+          ]
+        }.to_json
+      }))
+      expect(Uploader).to receive(:remote_remove).with("http://www.example.com/sound.wav").and_return(true)
+      bs.schedule_transcription(true)
+      expect(bs.settings['transcription']).to eq(nil)
+      expect(bs.settings['transcription_confidence']).to eq(nil)
+      expect(bs.settings['transcription_uncertain']).to eq(true)
+    end
+    
+    it "should reschedule transcription if there is an error" do
+      bs = ButtonSound.new(:settings => {
+      })
+      expect(bs).to receive(:secondary_url).and_return("http://www.example.com/sound.wav").at_least(1).times
+      expect(Typhoeus).to receive(:get).with("http://www.example.com/sound.wav").and_return(OpenStruct.new({
+        body: 'asdf'
+      }))
+      ENV['GOOGLE_TRANSLATE_TOKEN'] = 'tokeny'
+      expect(Typhoeus).to receive(:post).with("https://speech.googleapis.com/v1/speech:recognize?key=tokeny", {
+        body: {config: {encoding: 'LINEAR16', sampleRateHertz: 44100, languageCode: 'en', profanityFilter: true}, audio: {content: 'YXNkZg'}}.to_json, 
+        headers: { 'Accept-Encoding' => 'application/json', 'Content-Type' => 'application/json'}
+      }).and_return(OpenStruct.new({
+        body: {
+          error: "no"
+        }.to_json
+      }))
+      expect(Uploader).to_not receive(:remote_remove).with("http://www.example.com/sound.wav")
+      bs.schedule_transcription(true)
+      expect(bs.settings['transcription']).to eq(nil)
+      expect(bs.settings['transcription_confidence']).to eq(nil)
+      expect(bs.settings['transcription_uncertain']).to eq(nil)
+      expect(bs.settings['transcription_errors']).to eq(1)
+    end
+    
+    it "should do nothing if too many attempts have been made" do
+      bs = ButtonSound.new(:settings => {
+        'transcription_errors' => 3
+      })
+      expect(bs).to receive(:secondary_url).and_return("http://www.example.com/sound.wav").at_least(1).times
+      bs.schedule_transcription(true)
+      expect(Typhoeus).to_not receive(:get)
+    end
+  end
 end

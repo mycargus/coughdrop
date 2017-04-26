@@ -42,7 +42,7 @@ module Transcoder
   end
   
   AUDIO_PRESET = '1351620000001-300040' # MP3 - 128k
-  AUDIO_TRANSCRIBE_PRESET = '1351620000001-300300' # WAV 44100Hz, 16-bit
+  AUDIO_TRANSCRIBE_PRESET = '1493160167887-5xkjsb' # WAV 44100Hz, 16-bit, 1-channel
   VIDEO_PRESET = '1351620000001-000030' # MP4 480p 4:3
   
   def self.convert_audio(button_sound_id, prefix, transcoding_key)

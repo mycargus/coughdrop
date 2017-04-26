@@ -351,5 +351,27 @@ describe BoardDownstreamButtonSet, :type => :model do
       expect(bs.data['buttons'].length).to eq(3)
     end
   end
+  
+  describe "for_user" do
+    it "should include the user home board" do
+      u = User.create
+      b = Board.create(:user => u)
+      BoardDownstreamButtonSet.update_for(b.global_id)
+      u.settings['preferences']['home_board'] = {'id' => b.global_id}
+      res = BoardDownstreamButtonSet.for_user(u)
+      expect(res.length).to eq(1)
+      expect(res[0].board_id).to eq(b.id)
+    end
+    
+    it "should include the user's sidebar boards" do
+      u = User.create
+      b = Board.create(:user => u)
+      BoardDownstreamButtonSet.update_for(b.global_id)
+      u.settings['preferences']['sidebar_boards'] = [{'key' => b.key}, {'key' => 'asdf'}]
+      u.settings['preferences']['home_board'] = {'id' => 'qwer'}
+      res = BoardDownstreamButtonSet.for_user(u)
+      expect(res.length).to eq(1)
+      expect(res[0].board_id).to eq(b.id)
+    end
+  end
 end
-

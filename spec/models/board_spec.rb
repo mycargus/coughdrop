@@ -689,7 +689,8 @@ describe Board, :type => :model do
       u.settings['preferences']['home_board'] = {'id' => b.global_id, 'key' => b.key }
       u.save
       Worker.process_queues
-      
+      Worker.process_queues
+
       b.settings['buttons'] = [
         {'id' => 1},
         {'id' => 2, 'load_board' => {'id' => '12345'}},
@@ -1994,4 +1995,57 @@ describe Board, :type => :model do
     end
   end
   
+  describe "process_button" do
+    it "should update the button if found" do
+      u = User.create
+      b = Board.create(:user => u, :settings => {
+        'buttons' => [
+          {'id' => '123'}, {'id' => '234'}
+        ]
+      })
+      b.process_button({
+        'id' => '234',
+        'sound_id' => '12345'
+      })
+      expect(b.reload.settings['buttons']).to eq([
+        {'id' => '123'}, {'id' => '234', 'sound_id' => '12345'}
+      ])
+    end 
+    
+    it "should schedule a button set update" do
+      u = User.create
+      b = Board.create(:user => u, :settings => {
+        'buttons' => [
+          {'id' => '123'}, {'id' => '234'}
+        ]
+      })
+      b.process_button({
+        'id' => '234',
+        'sound_id' => '12345'
+      })
+      expect(b.reload.settings['buttons']).to eq([
+        {'id' => '123'}, {'id' => '234', 'sound_id' => '12345'}
+      ])
+      expect(Worker.scheduled?(Board, :perform_action, {:id => b.id, :method => 'update_button_sets', :arguments => []})).to eq(true)
+    end
+  end
+  
+  describe "update_button_sets" do
+    it "should schedule updates for all upstream button sets" do
+      u = User.create
+      b1 = Board.create(:user => u)
+      b2 = Board.create(:user => u, :settings => {
+        'immediately_upstream_board_ids' => [b1.global_id]
+      })
+      b3 = Board.create(:user => u, :settings => {
+        'immediately_upstream_board_ids' => [b2.global_id]
+      })
+      b2.settings['immediately_upstream_board_ids'] = [b1.global_id, b3.global_id]
+      b2.save
+      b3.update_button_sets
+      expect(Worker.scheduled?(BoardDownstreamButtonSet, :perform_action, {:method => 'update_for', :arguments => [b1.global_id]})).to eq(true)
+      expect(Worker.scheduled?(BoardDownstreamButtonSet, :perform_action, {:method => 'update_for', :arguments => [b2.global_id]})).to eq(true)
+      expect(Worker.scheduled?(BoardDownstreamButtonSet, :perform_action, {:method => 'update_for', :arguments => [b3.global_id]})).to eq(true)
+    end
+  end
 end

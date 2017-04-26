@@ -1542,6 +1542,37 @@ describe Api::UsersController, :type => :controller do
       expect(json['for_user']).to eq(['a', 'b', 'c', 'd'])
       expect(json['defaults'].length).to be > 0
     end
+    
+    it "should include fringe lists" do
+      token_user
+      ui = UserIntegration.create(:template => true, :integration_key => 'core_word_list')
+      ui2 = UserIntegration.create(:template_integration_id => ui.id, :user => @user)
+      ui2.settings['core_word_list'] = {
+        id: 'bacon',
+        words: ['a', 'b', 'c', 'd']
+      }
+      ui2.save
+      get 'core_lists', params: {'user_id' => @user.global_id}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['reachable_fringe_for_user']).to eq([])
+    end
+  end
+  
+  describe "message_bank_suggestions" do
+    it "should require api token" do
+      get 'message_bank_suggestions', params: {'user_id' => 'asdf'}
+      assert_missing_token
+    end
+    
+    it "should return a list" do
+      token_user
+      get 'message_bank_suggestions', params: {'user_id' => 'asdf'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json.length).to be > 0
+      expect(json[0]['id']).to eq('boston_childrens')
+    end
   end
   
   describe "update_core_list" do
