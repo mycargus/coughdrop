@@ -13,9 +13,9 @@ class Api::SoundsController < ApplicationController
   
   def create
     user = @api_user
-    if params['user_id']
-      user = User.find_by_path(params['user_id'])
-      return unless exists?(user, params['user_id'])
+    if params['sound']['user_id']
+      user = User.find_by_path(params['sound']['user_id'])
+      return unless exists?(user, params['sound']['user_id'])
       return unless allowed?(user, 'supervise')
     end
     sound = ButtonSound.process_new(params['sound'], {:user => user, :remote_upload_possible => true})

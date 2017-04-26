@@ -27,13 +27,15 @@
               {{#if sound.url}}
                 <tr>
                   <td>
-                    {{sound.name}} {{t "created" key='created'}} {{date sound.created 'short_day'}}
+                    {{sound.name}} <span class='text-muted'>{{t "created" key='created'}} {{date sound.created 'short_day'}}</span>
                     <div class='text-muted' style='margin-left: 30px;'>
                       {{#if sound.transcription}}
                         {{sound.transcription}}
                         {{#if model.permissions.edit}}
                           <a href="#" {{action 'edit_sound' sound}}>{{t "edit" key='edit'}}</a>
                         {{/if}}
+                      {{else if sound.transcription_pending}}
+                        {{t "checking for transcription..." key='transcription_pending'}}
                       {{else}}
                         {{t "no transcription" key='no_transcription'}}
                       {{/if}}
@@ -93,17 +95,6 @@
     {{#if recordings.length}}
       <button class='btn btn-default' {{action 'download_recordings'}}>{{t "Download All Recordings" key='download_all_recordings'}}</button>
     {{/if}}
-  </div>
-
-  <div style='white-space: pre'>
-  - when you add sound to a button, set the label to the transcription if no label defined
-  - when recording a sound for a button, include dropdown to choose whose account the sound should be tied to
-  - batch-recording based on phrases already programmed into buttons
-  - quick way to see which recordings aren't already assigned to a button in the user's board set
-  - batch-add recordings to a board
-  - spinner while recordings are still being transcribed
-  - from edit or board details, "show missing..." with list of either core words or recorded phrases not in use yet
-  - show total recorded messages in batch main view
   </div>
 {{else if session.isAuthenticated}}
   <p>{{t "It looks like you don't have permission to access this information" key='not_authorized'}}</p>

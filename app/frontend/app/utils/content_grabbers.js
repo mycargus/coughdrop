@@ -1842,6 +1842,7 @@ var soundGrabber = Ember.Object.extend({
       a.src = preview.url;
     });
 
+    var user_id = this.controller.get('user_id');
     var save_sound = sound_load.then(function(data) {
       var sound = CoughDrop.store.createRecord('sound', {
         content_type: preview.content_type || '',
@@ -1849,7 +1850,8 @@ var soundGrabber = Ember.Object.extend({
         name: preview.name,
         duration: data.duration,
         transcription: preview.transcription,
-        license: preview.license
+        license: preview.license,
+        user_id: user_id
       });
 
       return contentGrabbers.save_record(sound);

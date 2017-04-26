@@ -12,8 +12,8 @@
       {{notif.text}}
     </span>
   {{else if notif.utterance_shared}}
-    {{#link-to 'user' notif.sharer.user_name}}
-      {{notif.sharer.user_name}}
+    {{#link-to 'user' notif.sharer_user_name}}
+      {{notif.sharer_user_name}}
     {{/link-to}}
     {{t "said to you, " key='said' }}
     {{#link-to 'utterance' notif.utterance_id}}

@@ -10,15 +10,17 @@ import CoughDrop from '../app';
 export default modal.ModalController.extend({
   opening: function() {
     var supervisees = [];
-    this.set('for_user_id', null);
     this.set('phrase', null);
     this.set('category', null);
     this.set('supervisees', supervisees);
     this.set('custom_phrase', null);
+    this.set('for_user_id', this.get('model.user.id'));
     if(supervisees.length === 0 && !this.get('model.user')) {
       this.set('model.user', app_state.get('currentUser'));
+      this.set('for_user_id', 'self');
     }
     this.load_recordings();
+    var _this = this;
     if(this.get('model.board')) {
       var repo = {
         id: 'board_buttons',
@@ -27,28 +29,31 @@ export default modal.ModalController.extend({
         categories: [],
         loading: true
       };
+      var user_name = this.get('model.board.user_name');
       this.get('model.board').load_button_set(true).then(function(bs) {
         var categories = [];
         var cats_hash = {};
         bs.get('buttons').forEach(function(button) {
-          if(button && button.label && !button.hidden) {
-            if(categories.indexOf(button.board_key) == -1) {
-              categories.push(button.board_key);
-              cats_hash[button.board_key] = [];
-            }
-            var phrase = {
-              id: button.id.toString(),
-              board_id: button.board_id,
-              button_id: button.id,
-              text: button.label || button.vocalization
-            };
-            if(button.sound_id) {
-              phrase.sound = {
-                id: button.sound_id,
-                unloaded: true,
+          if(button.board_key.split(/\//)[0] == user_name) {
+            if(button && button.label && !button.hidden) {
+              if(categories.indexOf(button.board_key) == -1) {
+                categories.push(button.board_key);
+                cats_hash[button.board_key] = [];
+              }
+              var phrase = {
+                id: button.id.toString(),
+                board_id: button.board_id,
+                button_id: button.id,
+                text: button.label || button.vocalization
               };
+              if(button.sound_id) {
+                phrase.sound = {
+                  id: button.sound_id,
+                  unloaded: true,
+                };
+              }
+              cats_hash[button.board_key].push(phrase);
             }
-            cats_hash[button.board_key].push(phrase);
           }
         });
         categories.forEach(function(name) {
@@ -58,12 +63,12 @@ export default modal.ModalController.extend({
             phrases: cats_hash[name]
           });
         });
+        _this.set('repository.loading', false);
       }, function() {
         Ember.set(repo, 'error', true);
       });
       this.set('repository', repo);
     } else {
-      var _this = this;
       this.set('repository', {loading: true});
       persistence.ajax('/api/v1/users/' + this.get('model.user.id') + '/message_bank_suggestions', {type: 'GET'}).then(function(res) {
         _this.set('repository', res[0]);
@@ -73,11 +78,12 @@ export default modal.ModalController.extend({
     }
   },
   load_recordings: function(force) {
-    if(!this.get('model.recordings') || force) {
+    if(this.get('model.user.id') && (!this.get('model.recordings') || force)) {
       var _this = this;
       Utils.all_pages('sound', {user_id: this.get('model.user.id')}, function(res) {
       }).then(function(res) {
         _this.set('model.recordings', res);
+        _this.set('recordings', res);
       }, function(err) {
         modal.error(i18n.t('error_loading_recordings', "There was an unexpected error loading user recordings"));
       });
@@ -100,7 +106,10 @@ export default modal.ModalController.extend({
         Ember.set(cat, 'pending_sound', false);
         // check existing categories for matching sounds
         (cat.phrases || []).forEach(function(phrase) {
-          Ember.set(phrase, 'pending_sound', false);
+          if(Ember.get(phrase, 'pending_sound')) {
+            Ember.set(phrase, 'sound', false);
+            Ember.set(phrase, 'pending_sound', false);
+          }
           var tag = rep.id + ":" + cat.id + ":" + phrase.id;
           if(sounds_hash[tag]) {
             Ember.set(phrase, 'sound', sounds_hash[tag]);
@@ -147,6 +156,8 @@ export default modal.ModalController.extend({
   count_totals: function() {
     if(this.get('repository.id')) {
       var rep = this.get('repository');
+      var total = 0;
+      var recorded = 0;
       (rep.categories || []).forEach(function(cat) {
         var cat_sounds = 0;
         // remove any custom-added recordings that the user cleared
@@ -162,22 +173,30 @@ export default modal.ModalController.extend({
         });
         Ember.set(cat, 'phrases', list);
         Ember.set(cat, 'recordings', cat_sounds);
+        total = total + list.length;
+        recorded = recorded + cat_sounds;
       });
+      this.set('repository.total', total);
+      this.set('repository.recorded', recorded);
     }
   },
   needs_user: function() {
     return !this.get('model.user');
   }.property('model.user'),
   update_user: function() {
-    if(this.get('for_user_id')) {
-      if(this.get('for_user_id') == 'self') {
-        this.set('model.user', app_state.get('current_user'));
+    var for_user_id = this.get('for_user_id');
+    var current_user_id = this.get('model.user.id');
+    if(this.get('model.user.id') == app_state.get('currentUser.id')) { current_user_id = 'self'; }
+    if(for_user_id && current_user_id && for_user_id != current_user_id) {
+      if(for_user_id == 'self') {
+        this.set('model.user', app_state.get('currentUser'));
       } else {
-        var u = this.get('supervisees').find(function(u) { return u.id == this.get('for_user_id'); });
+        var u = app_state.get('currentUser.supervisees').find(function(u) { return u.id == for_user_id; });
         this.set('model.user', u);
       }
+      this.load_recordings(true);
     }
-  }.property('for_user_id'),
+  }.observes('for_user_id'),
   actions: {
     decide_on_recording: function(decision) {
       var sound = this.get('phrase.sound');
@@ -266,11 +285,7 @@ export default modal.ModalController.extend({
               }
             }
           }).then(function(data) {
-//             CoughDrop.store.push({
-//               id: data.board.id,
-//               type: 'board',
-//               attributes: data.board
-//             });
+            CoughDrop.store.findRecord('board', data.board.id).then(function(b) { b.reload(); }, function() { });
           }, function() {
             modal.error(i18n.t('error_updating_button', "There was an unexpected error adding the sound to the button"));
           });

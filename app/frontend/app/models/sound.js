@@ -6,9 +6,11 @@ import persistence from '../utils/persistence';
 
 CoughDrop.Sound = DS.Model.extend({
   didLoad: function() {
-   this.checkForDataURL().then(null, function() { });
+    this.checkForDataURL().then(null, function() { });
     this.clean_license();
+    this.check_transcription();
   },
+  user_id: DS.attr('string'),
   url: DS.attr('string'),
   created: DS.attr('date'),
   content_type: DS.attr('string'),
@@ -22,9 +24,44 @@ CoughDrop.Sound = DS.Model.extend({
   license: DS.attr('raw'),
   permissions: DS.attr('raw'),
   file: DS.attr('boolean'),
+  untranscribable: DS.attr('boolean'),
   search_string: function() {
     return this.get('name') + " " + this.get('transcription') + " " + this.get('created');
   }.property('name', 'transcription', 'created'),
+  check_transcription: function() {
+    if(this.get('transcription')) {
+      this.set('transcription_pending', false);
+      return true;
+    } else if(this.get('untranscribable')) {
+      this.set('transcription_pending', false);
+      return false;
+    } else {
+      var two_hours_ago = window.moment().add(-2, 'hours');
+      var created = window.moment(this.get('created'));
+      if(created > two_hours_ago) {
+        var _this = this;
+        this.set('transcription_pending', true);
+
+        Ember.run.later(function() {
+          if(persistence.get('online')) {
+            _this.reload().then(function(res) {
+              _this.check_transcription();
+            }, function(err) {
+              Ember.run.later(function() {
+                _this.check_transcription();
+              }, 2 * 60 * 1000);
+            });
+          } else {
+            Ember.run.later(function() {
+              _this.check_transcription();
+            }, 2 * 60 * 1000);
+          }
+        }, 60 * 1000);
+      } else {
+        this.set('transcription_pending', false);
+      }
+    }
+  },
   filename: function() {
     var url = this.get('url') || '';
     if(url.match(/^data/)) {
