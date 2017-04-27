@@ -123,6 +123,17 @@
         </form>
       {{/if}}
     {{/if}}
+    {{#unless session.isAuthenticated}}
+      {{#unless app_state.installed_app}}
+        {{#unless app_state.embedded}}
+          <div style='float: right; font-size: 18px; padding-right: 20px; margin-top: 22px;'>
+            {{#link-to 'register'}}<span style='color: #444;'>{{t "2-Month Trial" key='two_month_trial'}}</span>{{/link-to}}
+            <span style='color: #aaa; padding: 0 5px;'> | </span>
+            {{#link-to 'gift_purchase'}}<span style='color: #444;'>{{t "Gift Purchase" key='gift_purchase'}}</span>{{/link-to}}
+          </div>
+        {{/unless}}
+      {{/unless}}
+    {{/unless}}
     {{#if app_state.edit_mode}}
       {{#if dragMode}}
         <button class="btn btn-default drag_button" id="edit_clear_button" style="position: relative; width: 300px;">
