@@ -117,7 +117,7 @@ CoughDrop.User = DS.Model.extend({
       var voice = null;
       var voices = speecher.get('voices');
       var voiceURIs = this.get('preferences.device.voice.voice_uris') || [];
-      if(this.get('preferences.device.voice.voice_uri')) { voiceURIs.push(this.get('preferences.device.voice.voice_uri')); }
+      if(this.get('preferences.device.voice.voice_uri')) { voiceURIs.unshift(this.get('preferences.device.voice.voice_uri')); }
       var finder = function(v) { return v.voiceURI == voiceURI; };
       for(var idx = 0; idx < voiceURIs.length && !voice; idx++) {
         var voiceURI = voiceURIs[idx];
@@ -132,7 +132,7 @@ CoughDrop.User = DS.Model.extend({
       var voice = null;
       var voices = speecher.get('voices');
       var voiceURIs = this.get('preferences.device.alternate_voice.voice_uris') || [];
-      if(this.get('preferences.device.alternate_voice.voice_uri')) { voiceURIs.push(this.get('preferences.device.alternate_voice.voice_uri')); }
+      if(this.get('preferences.device.alternate_voice.voice_uri')) { voiceURIs.unshift(this.get('preferences.device.alternate_voice.voice_uri')); }
       var finder = function(v) { return v.voiceURI == voiceURI; };
       for(var idx = 0; idx < voiceURIs.length && !voice; idx++) {
         var voiceURI = voiceURIs[idx];
