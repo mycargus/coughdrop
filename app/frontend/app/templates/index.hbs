@@ -323,16 +323,16 @@
             <div>
               <a href="https://itunes.apple.com/us/app/coughdrop/id1021384570?ls=1&mt=8" target="_blank">
                 <img src={{path "images/ios_app_store.svg"}} alt="ios app store" style="height: 40px; margin-top: 5px;"/>
-              </a><br/>
+              </a>
               <a href="https://play.google.com/store/apps/details?id=com.mycoughdrop.coughdrop" target="_blank">
                 <img src={{path "images/google_play.png"}} alt="google play" style="height: 40px; margin-top: 5px;"/>
               </a><br/>
               <a href="http://www.amazon.com/CoughDrop-Inc-AAC/dp/B01BU8RUEY/ref=sr_1_1?s=mobile-apps&ie=UTF8&qid=1458589410&sr=1-1" target="_blank">
                 <img src={{path "images/amazon.png"}} alt="amazon" style="height: 40px; margin-top: 5px;"/>
               </a>
-              <div style='margin-top: 10px;'>
-                {{#link-to 'download'}}{{t "more download options" key='more_download_options'}}{{/link-to}}
-              </div>
+              {{#link-to 'download'}}
+                <img src={{path "images/windows.svg"}} alt="windows" style="height: 40px; margin-top: 5px;"/>
+              {{/link-to}}
             </div>
           </div>
         {{else if needs_sync}}
@@ -658,6 +658,9 @@
             <a href="http://www.amazon.com/CoughDrop-Inc-AAC/dp/B01BU8RUEY/ref=sr_1_1?s=mobile-apps&ie=UTF8&qid=1458589410&sr=1-1" target="_blank">
               <img src={{path "images/amazon.png"}} alt="amazon" style="height: 50px; margin-top: 5px;"/>
             </a>
+            {{#link-to 'download'}}
+              <img src={{path "images/windows.svg"}} alt="windows" style='height: 50px; margin-top: 5px;'/>
+            {{/link-to}}
             <div style='margin-top: 10px;'>
               {{#link-to 'download'}}{{t "more download options" key='more_download_options'}}{{/link-to}}
             </div>
