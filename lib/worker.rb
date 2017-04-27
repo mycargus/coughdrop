@@ -110,12 +110,15 @@ module Worker
       cutoff = 6.hours.ago.to_i
       return timestamps.select{|ts| ts > cutoff }.length > 0
     else
-      return true
-      [500, idx].min.times do |i|
-        schedule = Resque.peek(queue, i)
-        if schedule && schedule['class'] == queue_class && schedule['args'][0] == klass.to_s && schedule['args'][1] == method_name.to_s
-          if args.to_json == schedule['args'][2..-1].to_json
-            return true
+      start = 0
+      while start < idx
+        items = Resque.peek(queue, start, 1000)
+        start += items.length > 0 ? items.length : 1
+        items.each do |schedule|
+          if schedule && schedule['class'] == queue_class && schedule['args'][0] == klass.to_s && schedule['args'][1] == method_name.to_s
+            if args.to_json == schedule['args'][2..-1].to_json
+              return true
+            end
           end
         end
       end
