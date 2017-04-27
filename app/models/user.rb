@@ -586,7 +586,7 @@ class User < ActiveRecord::Base
         voice_uris = [device['voice']['voice_uri']] + voice_uris
         voice_uris = voice_uris[0, 10].uniq
         device['voice'].delete('voice_uri')
-        device['voice']['voice_uris'] = voice_uris
+        device['voice']['voice_uris'] = voice_uris.uniq
       end
       self.settings['preferences']['devices'][device_key] ||= {}
       device.each do |key, val|
