@@ -200,7 +200,9 @@
             </li>
           </ul>
         </span>
-        <button class="btn btn-default wide" {{action "suggestions"}}><span class="wide">{{t "Ideas" key="ideas"}}</span><span class="skinny glyphicon glyphicon-tasks"></span></button>
+        {{#if app_state.feature_flags.audio_recordings}}
+          <button class="btn btn-default wide" {{action "suggestions"}}><span class="wide">{{t "Ideas" key="ideas"}}</span><span class="skinny glyphicon glyphicon-tasks"></span></button>
+        {{/if}}
         <span class="dropdown" style="display: inline-block;">
           <button class="btn btn-default" data-toggle="dropdown"><span class="wide">{{t "More" key="more"}}</span><span class="skinny glyphicon glyphicon-wrench"></span> <span class='caret'></span></button>
           <ul class="dropdown-menu skinny_right" role="menu" aria-labelledby="dLabel">
