@@ -17,9 +17,21 @@ module Worker
   end
   
   def self.note_job(hash)
+    if RedisInit.default
+      timestamps = JSON.parse(RedisInit.default.hget('hashed_jobs', hash) || "[]")
+      cutoff = 6.hours.ago.to_i
+      timestamps = timestamps.select{|ts| ts > cutoff }
+      timestamps.push(Time.now.to_i)
+      RedisInit.default.hset('hashed_jobs', hash, timestamps.to_json)
+    end
   end
   
   def self.clear_job(hash)
+    if RedisInit.default
+      timestamps = JSON.parse(RedisInit.default.hget('hashed_jobs', hash) || "[]")
+      timestamps.shift
+      RedisInit.default.hset('hashed_jobs', hash, timestamps.to_json)
+    end
   end
   
   def self.schedule(klass, method_name, *args)
@@ -92,11 +104,18 @@ module Worker
   def self.scheduled_for?(queue, klass, method_name, *args)
     idx = Resque.size(queue)
     queue_class = (queue == :slow ? 'SlowWorker' : 'Worker')
-    [idx, 500].min.times do |i|
-      schedule = Resque.peek(queue, i)
-      if schedule && schedule['class'] == queue_class && schedule['args'][0] == klass.to_s && schedule['args'][1] == method_name.to_s
-        if args.to_json == schedule['args'][2..-1].to_json
-          return true
+    if false
+      job_hash = args.to_json
+      timestamps = JSON.parse(RedisInit.default.hget('hashed_jobs', job_hash) || "[]")
+      cutoff = 6.hours.ago.to_i
+      return timestamps.select{|ts| ts > cutoff }.length > 0
+    else
+      [500, idx].max.times do |i|
+        schedule = Resque.peek(queue, i)
+        if schedule && schedule['class'] == queue_class && schedule['args'][0] == klass.to_s && schedule['args'][1] == method_name.to_s
+          if args.to_json == schedule['args'][2..-1].to_json
+            return true
+          end
         end
       end
     end
@@ -154,5 +173,6 @@ module Worker
         Resque.redis.ltrim("queue:#{key}", 1, 0)
       end
     end
+    RedisInit.default.del('hashed_jobs')
   end
 end
