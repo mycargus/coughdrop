@@ -1593,17 +1593,18 @@ body.pretty_loader #loading_box {
 }
 .well.board_icon .names {
   display: inline-block;
-  height: 34px;
+  height: 30px;
   overflow-y: hidden;
   margin-bottom: -5px;
 }
 .well.board_icon .name {
-  font-size: 13px; 
+  font-size: 12px; 
   display: inline-block;  
   white-space: normal;
   overflow-y: hidden;
   max-height: 34px;
   margin-bottom: -5px;
+  line-height: 15px;
 }
 .well.board_icon .user_name {
   color: #444; 
@@ -1616,7 +1617,7 @@ body.pretty_loader #loading_box {
   white-space: normal;
   height: 15px;
   overflow: hidden;
-  margin: 0;
+  margin: -1px 0 0;
 }
 .comma_item_list {
   .comma_item:after {
