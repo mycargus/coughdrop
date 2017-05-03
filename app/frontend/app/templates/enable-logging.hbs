@@ -1,0 +1,23 @@
+{{#modal-dialog action="close" opening='opening' closing='closing'}}
+  <div class="modal-header">
+    <button type="button" class="close" {{action 'close'}}>&times;</button>
+    <h3>{{t "Logging is Enabled" key='enable_logging'}}</h3>
+  </div>
+  <div class="modal-body">
+    <p>{{t "To help support improvements through research in AAC, CoughDrop collaborates with research organizations by providing anonymized communication information from CoughDrop users who have enabled logging. User profiles and identifiable information is not shared, but if you're still not comfortable sharing this user's AAC communication with researchers, you can opt out here or on the user's preferences page." key='logging_2'}}</p>
+    <p>{{t "Additionally, if you'd like, CoughDrop can track GPS data to provide better insights into how user communication changes based on location." key='logging_3'}}</p>
+    <div style='margin-top: 20px;'>
+      <label>
+        {{input type='checkbox' checked=model.user.preferences.geo_logging}}
+        {{t "Include geolocation in logs" key='include_geolocation'}}
+      </label>
+      <label>
+        {{input type='checkbox' checked=no_research}}
+        {{t "Don't share anonymized usage data with researchers" key='no_research'}}
+      </label>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class='btn btn-default' {{action "close" }}>{{t "Close" key='close'}}</button>
+  </div>
+{{/modal-dialog}}

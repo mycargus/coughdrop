@@ -175,7 +175,7 @@ export default Ember.Controller.extend({
           if(!(_this.get('popularBoards') || {}).length) {
             _this.set('popularBoards', {loading: true});
           }
-          _this.store.query('board', {sort: 'popularity', per_page: 9}).then(function(data) {
+          _this.store.query('board', {sort: 'home_popularity', per_page: 12}).then(function(data) {
             _this.set('popularBoards', data);
             _this.checkForBlankSlate();
           }, function() {

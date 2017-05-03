@@ -241,6 +241,7 @@ export default Ember.Controller.extend({
         }
         _this.load_charts();
       }, function() { });
+      modal.open('enable-logging', {save: true, user: user});
     },
     enable_geo_logging: function() {
       var user = this.get('model');

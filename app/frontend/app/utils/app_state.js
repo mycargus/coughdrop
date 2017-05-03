@@ -187,6 +187,7 @@ var app_state = Ember.Object.extend({
 //     console.log("came from", app_state.get('from_route'));
     app_state.set('latest_board_id', null);
     app_state.set('login_modal', false);
+    app_state.set('to_target', transition.targetName);
 
     // On desktop, setting too soon causes a re-render, but on mobile
     // calling it too late does.
@@ -225,7 +226,10 @@ var app_state = Ember.Object.extend({
     // re-rendered yet.
     if(!this.get('currentBoardState')) {
       try {
-       this.controller.set('footer', true);
+        this.controller.set('footer', true);
+        if(this.get('to_target') && this.get('to_target') != 'setup') {
+          this.controller.set('setup_footer', false);
+        }
       } catch(e) { }
     }
     if(CoughDrop.embedded && !this.get('speak_mode')) {
@@ -879,6 +883,11 @@ var app_state = Ember.Object.extend({
     var current = this.get('currentBoardState');
     return this.get('speak_mode') && state && current && state.key == current.key;
   }.property('speak_mode', 'currentBoardState', 'stashes.root_board_state', 'stashes.temporary_root_board_state'),
+  root_board_is_home: function() {
+    var state = stashes.get('temporary_root_board_state') || stashes.get('root_board_state');
+    var user = this.get('currentUser');
+    return !!(state && user && user.get('preferences.home_board.id') == state.id);
+  }.property('stashes.root_board_state', 'stashes.temporary_root_board_state', 'currentUser.preferences.home_board.id'),
   current_board_not_home_or_supervising: function() {
     return !this.get('current_board_is_home') || (this.get('currentUser.supervisees') || []).length > 0;
   }.property('current_board_is_home', 'currentUser.supervisees'),

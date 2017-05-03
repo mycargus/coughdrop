@@ -1,0 +1,19 @@
+<div class='col-sm-10 col-sm-offset-1'>
+  <h4>{{t "Usage Logging and Reports" key='usage_logging_and_reports'}}</h4>
+</div>
+<div class='col-sm-5 col-sm-offset-1'>
+  <img src={{path 'walkthrough/reports.gif'}} style='width: 100%;' />
+</div>
+<div class='col-sm-5'>
+  <p>{{t "One of the most powerful feature of CoughDrop is the collection and reporting that is built-in. CoughDrop reports allow caregivers, therapists and supporters to review usage and see things like what time of day the device is being used, most common words and progress toward goals." key='reports_1'}}</p>
+
+  <p>{{t "In order for the communication team to have access to these usage reports, logging needs to be enabled." key='reports_2'}}</p>
+
+  <p style='margin-top: 20px;'><button class='btn btn-default btn-lg' {{action 'set_preference' 'logging' true}}>
+    {{#if app_state.currentUser.preferences.logging}}
+      {{t "Logging is Enabled" key='logging_is_enabled'}}
+    {{else}}
+      {{t "Enable Logging" key='enable_logging'}}
+    {{/if}}
+  </button></p>
+</div>

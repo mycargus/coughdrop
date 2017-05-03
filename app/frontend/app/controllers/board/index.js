@@ -138,6 +138,9 @@ export default Ember.Controller.extend({
         this.set('show_word_suggestion_images', true);
       }
     }
+    if(app_state.controller && app_state.controller.get('setup_footer')) {
+      height = height - 56;
+    }
     if((!this.get('model.public') || this.get('model.license.type') != 'private') && !app_state.get('edit_mode') && stashes.get('current_mode') != 'speak') {
       show_description = show_description || this.get('model.name');
       if(!this.get('model.public')) {

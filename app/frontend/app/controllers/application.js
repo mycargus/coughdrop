@@ -140,9 +140,12 @@ export default Ember.Controller.extend({
         });
       }
     },
-    setAsHome: function() {
+    setAsHome: function(option) {
       var board = this.get('board').get('model');
-      if(app_state.get('currentUser.supervisees')) {
+      if(option == 'starting') {
+        board = stashes.get('root_board_state') || this.get('board').get('model');
+      }
+      if(app_state.get('currentUser.supervisees') && !option) {
         modal.open('set-as-home', {board: board});
       } else {
         var user = app_state.get('currentUser');
@@ -437,8 +440,34 @@ export default Ember.Controller.extend({
     },
     suggestions: function() {
       modal.open('button-suggestions', {board: this.get('board.model'), user: app_state.get('currentUser')});
+    },
+    setup_go: function(direction) {
+      var order = this.get('setup_order');
+      var current = this.get('setup_page') || 'intro';
+      var current_index = order.indexOf(current) || 0;
+      if(direction == 'forward') {
+        current_index = Math.min(current_index + 1, order.length - 1);
+      } else if(direction == 'backward') {
+        current_index = Math.max(current_index - 1, 0);
+      }
+      this.transitionToRoute('setup', {queryParams: {page: order[current_index]}});
     }
   },
+  setup_next: function() {
+    if(this.get('setup_order')) {
+      return this.get('setup_page') != this.get('setup_order')[this.get('setup_order').length - 1];
+    }
+  }.property('setup_page', 'setup_order'),
+  setup_previous: function() {
+    if(this.get('setup_order')) {
+      return this.get('setup_page') != this.get('setup_order')[0];
+    }
+  }.property('setup_page', 'setup_order'),
+  setup_index: function() {
+    var order = this.get('setup_order');
+    var current = this.get('setup_page') || 'intro';
+    return (order.indexOf(current) || 0) + 1;
+  }.property('setup_order', 'setup_page'),
   activateButton: function(button, options) {
     options = options || {};
     var image = options.image;
@@ -493,56 +522,6 @@ export default Ember.Controller.extend({
   vocalize: function(volume) {
     utterance.vocalize_list(volume);
   },
-  voiceList: function() {
-    var res = [];
-    var current_locale = (window.navigator.language || "").replace(/-/g, '_').toLowerCase();
-    var current_lang = current_locale.split(/_/)[0];
-    speecher.get('voices').forEach(function(v, idx) {
-      var name = v.name;
-      if(v.lang) {
-        name = v.name + " (" + v.lang + ")";
-      }
-      var locale = (v.lang || "").replace(/-/g, '_').toLowerCase();
-      var lang = locale.split(/_/)[0];
-      res.push({
-        id: v.voiceURI || (v.name + " " + v.lang),
-        name: name,
-        locale: locale,
-        lang: lang,
-        index: idx
-      });
-    });
-    // show most-likely candidates at the top
-    return res.sort(function(a, b) {
-      var a_first = false;
-      var b_first = false;
-      if(a.locale == current_locale && b.locale != current_locale) {
-        a_first = true;
-      } else if(b.locale == current_locale && a.locale != current_locale) {
-        b_first = true;
-      } else if(a.lang == current_lang && b.lang != current_lang) {
-        a_first = true;
-      } else if(b.lang == current_lang && a.lang != current_lang) {
-        b_first = true;
-      }
-      if(a_first) {
-        return -1;
-      } else if(b_first) {
-        return 1;
-      } else {
-        return a.index - b.index;
-        // right now we're keeping the same order they came in, assuming there was
-        // some reasoning behind the browser's order of voices..
-//         if(a.name < b.name) {
-//           return -1;
-//         } else if(a.name > b.name) {
-//           return 1;
-//         } else {
-//           return 0;
-//         }
-      }
-    });
-  }.property('speecher.voices'),
   jumpToBoard: function(new_state, old_state) {
     app_state.jump_to_board(new_state, old_state);
   },

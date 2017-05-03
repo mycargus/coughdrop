@@ -1,0 +1,40 @@
+<div class='col-sm-5 col-sm-offset-1'>
+  <div class='setup_setting'>
+    <label>{{t "How will this communicator be selecting buttons?" key='access_selection'}}</label>
+    <div class="btn-group-vertical" style="width: 100%;">
+      <a href="#" class={{if access.touch 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'access' 'touch'}}>{{t "Touching or Clicking" key='touching_or_clicking'}}</a>
+      <a href="#" class={{if access.scanning 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'access' 'scanning'}}>{{t "Scanning Using a Switch" key='switch_access'}}</a>
+      <a href="#" class={{if access.dwell 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'access' 'dwell'}}>{{t "Eye or Dwell Tracking" key='dwell_tracking'}}</a>
+    </div>
+  </div>
+</div>
+<div class='col-sm-5'>
+  {{#if access.touch}}
+    <div style='text-align: center;'>
+      <img src={{path 'walkthrough/aac_intro.gif'}} alt='touch access to CoughDrop' style='width: 70%; margin: 10px auto;'/>
+    </div>
+    <p>
+      <span class='glyphicon glyphicon-hand-up' style='font-size: 40px; float: left; margin-right: 15px; margin-bottom: 5px;'></span>
+      {{t "Touching or clicking buttons is the most common access method for communication boards like those in CoughDrop. By tapping or clicking on buttons, communicators can navigate between boards and select words or phrases to have the system speak for them." key='touch_1'}}
+    </p>
+    <p>{{t "Some communicators need additional accommodations, like selecting based on where they lift their finger, bigger text, or larger gaps between buttons. These are all configurable from a user's \"Preferences\" view inside of CoughDrop." key='touch_2'}}</p>
+  {{else if access.scanning}}
+    <div style='text-align: center;'>
+      <img src={{path 'walkthrough/scanning.gif'}} alt='scanning access in CoughDrop' style='width: 70%; margin: 10px auto;'/>
+    </div>
+    <p>
+      <span class='glyphicon glyphicon-th' style='font-size: 40px; float: left; margin-right: 15px; margin-bottom: 5px;'></span>
+      {{t "Some communicators have motor control issues which make it hard for them to hit small buttons on a screen. If they can hit larger targets like a bluetooth or connected button called a \"Switch\", or even just hit the screen, then CoughDrop can break the board up into smaller and smaller chunks, \"scan\" through them one at a time, and wait for the user to select using their switch." key='scanning_1'}}
+    </p>
+    <p>{{t "CoughDrop can scan by row, column, or custom region, and can even use a different voice or volume for scanning to make things less confusing for the communicator. It works with external switches, or you can make the screen a giant button, or two independent buttons. All of these settings are available in a user's \"Preferences\" view." key='scanning_2'}}</p>
+  {{else}}
+    <div style='text-align: center;'>
+      <img src={{path 'walkthrough/eye_gaze.gif'}} alt='dwell access in CoughDrop' style='width: 70%; margin: 10px auto;'/>
+    </div>
+    <p>
+      <span class='glyphicon glyphicon-eye-open' style='font-size: 40px; float: left; margin-right: 15px; margin-bottom: 5px;'></span>
+      {{t "For communicators without consistent motor control, eye trackers can sometimes be an effective access method. An eye tracker is a special camera that tracks eye movements. When a communicator's gaze lingers on a button for a period of time, the system can select that button on behalf of the communicator. Alternatively, some systems can track hear or body movement using cameras or sensors to treat the mouse cursor like a joystick, and when the cursor \"dwells\" over a button, it is selected. Eye or dwell tracking can be faster than switch access, but is more difficult to calibrate correctly." key='dwell_1'}}
+    </p>
+    <p>{{t "CoughDrop can work with any eye tracker or system that supports cursor control. Just disable \"click\" events since CoughDrop handles these on its own. You can fine-tune the tracking settings on the user's \"Preferences\" view. Some systems, like EyeTribe and EyeX, will require additional configuration in \"Preferences\" as well." key='scanning_2'}}</p>
+  {{/if}}
+</div>

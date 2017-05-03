@@ -5,11 +5,12 @@ import utterance from '../../utils/utterance';
 import capabilities from '../../utils/capabilities';
 import buttonTracker from '../../utils/raw_events';
 import modal from '../../utils/modal';
+import speecher from '../../utils/speecher';
 import persistence from '../../utils/persistence';
 import Button from '../../utils/button';
 
 export default Ember.Controller.extend({
-  application: Ember.inject.controller(),
+  speecher: speecher,
   buttonSpacingList: [
     {name: i18n.t('minimal', "Minimal (1px)"), id: "minimal"},
     {name: i18n.t('extra_small', "Extra-Small (2px)"), id: "extra-small"},
@@ -195,7 +196,7 @@ export default Ember.Controller.extend({
     return capabilities.wakelock_capable();
   }.property(),
   user_voice_list: function() {
-    var list = this.get('application.voiceList');
+    var list = speecher.get('voiceList');
     var result = [];
     var premium_voice_ids = (this.get('model.premium_voices.claimed') || []).map(function(id) { return "extra:" + id; });
     list.forEach(function(voice) {
@@ -226,7 +227,7 @@ export default Ember.Controller.extend({
       _this.set('model.preferences.device.voice.voice_uri', val);
     });
     return result;
-  }.property('application.voiceList', 'model.premium_voices.claimed', 'model.preferences.device.voice.voice_uris'),
+  }.property('speecher.voiceList', 'model.premium_voices.claimed', 'model.preferences.device.voice.voice_uris'),
   active_sidebar_options: function() {
     var res = this.get('model.preferences.sidebar_boards');
     if(!res || res.length === 0) {
@@ -256,6 +257,14 @@ export default Ember.Controller.extend({
   disabled_sidebar_options_or_prior_sidebar_boards: function() {
     return (this.get('disabled_sidebar_options') || []).length > 0 || (this.get('model.preferences.prior_sidebar_boards') || []).length > 0;
   }.property('disabled_sidebar_options', 'model.preferences.prior_sidebar_boards'),
+  logging_changed: function() {
+    if(this.get('model.preferences.logging')) {
+      if(this.get('logging_set') === false) {
+        modal.open('enable-logging', {save: false, user: this.get('model')});
+      }
+    }
+    this.set('logging_set', this.get('model.preferences.logging'));
+  }.observes('model.preferences.logging'),
   needs: 'application',
   actions: {
     plus_minus: function(direction, attribute) {

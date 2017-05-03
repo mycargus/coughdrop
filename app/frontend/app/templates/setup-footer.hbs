@@ -1,0 +1,17 @@
+<div style='position: fixed; bottom: 0; left: 0; width: 100%; background: #eee; padding: 5px 10px; z-index: 3; border-top: 1px solid #aaa;'>
+  <span style='display: inline-block; font-size: 18px; margin-top: 10px;'>
+    {{#if footer_status.error}}
+      <span class='text-danger'>{{footer_status.error}}</span>
+    {{else if footer_status.message}}
+      {{footer_status.message}}
+    {{/if}}
+  </span>
+  <div style='float: right;'>
+    <span style='display: inline-block; font-size: 18px; margin-top: 10px; margin-right: 10px; color: #888;'>
+      {{t "step" key='step'}} {{setup_index}} {{t "of" key='of'}} {{setup_order.length}}
+    </span>
+    <button class='btn btn-lg btn-default' {{action 'setup_go' 'backward'}} style={{unless setup_previous 'visibility: hidden;'}} >Previous</button>
+    <button class='btn btn-lg btn-default' {{action 'setup_go' 'forward'}} style={{unless setup_next 'visibility: hidden;'}} >Next</button>
+  </div>
+  <div class='clear'></div>
+</div>

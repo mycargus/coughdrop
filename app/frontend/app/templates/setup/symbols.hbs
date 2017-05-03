@@ -1,0 +1,36 @@
+<div class='col-sm-10 col-sm-offset-1'>
+  <p>{{t "Here in a moment we'll show you some different styles of home boards you can pick from. Before we do, let's decide on a couple things. Keep in mind that you can always change these settings later under \"Preferences\"." key='start_deciding'}}</p>
+</div>
+<div class='col-sm-5 col-sm-offset-1'>
+  <div class='setup_setting'>
+    <label>{{t "How do you want buttons to appear?" key='text_placement'}}</label>
+    <div class="btn-group-vertical" style="width: 100%;">
+      <a href="#" class={{if text_position.text_on_top 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'device.button_text_position' 'top'}} >{{t "Pictures with text above" key='text_above_pictures'}}</a>
+      <a href="#" class={{if text_position.text_on_bottom 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'device.button_text_position' 'bottom'}} >{{t "Pictures with text below" key='text_below_pictures'}}</a>
+      <a href="#" class={{if text_position.text_only 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'device.button_text_position' 'text_only'}} >{{t "Text only (no pictures)" key='no_pictures'}}</a>
+    </div>
+  </div>
+
+  <p>{{t "If you're not sure what to do, \"pictures with text above\" is a good default, it will allow the communicator to recognize intents based on pictures, and help develop literacy by learning the corresponding words over time." key='text_above_suggestion'}}</p>
+</div>
+<div class='col-sm-5' style='padding-top: 50px;'>
+  <div style='width: 200px; height: 200px; border-radius: 10px; border: 3px solid #888; text-align: center; margin: 0 auto;'>
+    {{#if text_position.text_only}}
+      <div style='font-size: 25px; text-align: center; margin-top: 80px;'>
+        {{t "happy" key='happy'}}
+      </div>
+    {{else}}
+      {{#if text_position.text_on_top}}
+        <div style='font-size: 25px; text-align: center;'>
+          {{t "happy" key='happy'}}
+        </div>
+      {{/if}}
+      <img src='https://s3.amazonaws.com/opensymbols/libraries/arasaac/happy.png' style='width: 150px; height: 150px;'/>
+      {{#if text_position.text_on_bottom}}
+        <div style='font-size: 25px; text-align: center;'>
+          {{t "happy" key='happy'}}
+        </div>
+      {{/if}}
+    {{/if}}
+  </div>
+</div>
