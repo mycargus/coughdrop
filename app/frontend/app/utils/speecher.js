@@ -175,7 +175,10 @@ var speecher = Ember.Object.extend({
     } else if(this.speaking && opts.interrupt === false) {
       return;
     }
-    this.stop('text');
+    if(collection_id && this.speaking_from_collection == collection_id) {
+    } else {
+      this.stop('text');
+    }
     if(!text) { return; }
     text = text.toString();
     text = text.replace(/…/, '...');
@@ -273,22 +276,43 @@ var speecher = Ember.Object.extend({
       }
 
       var speak_utterance = function() {
+        speecher.last_utterance = utterance;
         if(opts.voiceURI != 'force_default') {
           utterance.voice = voice;
           if(voice) {
             utterance.lang = voice.lang;
           }
         }
+        var handle_callback = function() {
+          utterance.handled = true;
+          callback();
+        };
         if(utterance.addEventListener) {
           utterance.addEventListener('end', function() {
-            callback();
+            console.log("ended");
+            handle_callback();
+          });
+          utterance.addEventListener('error', function() {
+            console.log("errored");
+            handle_callback();
+          });
+          utterance.addEventListener('pause', function() {
+            console.log("paused");
+            handle_callback();
           });
         } else {
-          utterance.onend = function() {
-            callback();
-          };
+          utterance.onend = handle_callback;
+          utterance.onerror = handle_callback;
+          utterance.onpause = handle_callback;
         }
         speecher.scope.speechSynthesis.speak(utterance);
+        // assuming 15 characters per second, if the utterance hasn't completed after
+        // 4 times the estimated duration, go ahead and assume there was a problem and mark completion
+        Ember.run.later(function() {
+          if(!utterance.handled) {
+            handle_callback();
+          }
+        }, 1000 * Math.ceil(text.length / 15) * 4 / (utterance.rate || 1.0));
       };
 
       if(voice && voice.voiceURI && voice.voiceURI.match(/^extra:/)) {
@@ -339,8 +363,10 @@ var speecher = Ember.Object.extend({
   },
   speak_end_handler: function(speak_id) {
     if(speak_id == speecher.last_speak_id) {
-      speecher.speaking_from_collection = false;
-      speecher.speaking = false;
+      if(!speecher.speaks || speecher.speaks.length == 0) {
+        speecher.speaking_from_collection = false;
+        speecher.speaking = false;
+      }
       speecher.next_speak();
     } else {
       // console.log('unexpected speak_id');
@@ -383,7 +409,7 @@ var speecher = Ember.Object.extend({
     }
   },
   play_audio: function(elem) {
-    // the check for lastListener  is weird, but there was a lag where if you played
+    // the check for lastListener is weird, but there was a lag where if you played
     // the same audio multiple times in a row then it would trigger an 'ended' event
     // on the newly-attached listener. This approach tacks on a new audio element
     // if that's likely to happen. The "throwaway" class and the setTimeouts in here
@@ -403,21 +429,67 @@ var speecher = Ember.Object.extend({
     var _this = this;
     var speak_id = elem.speak_id;
     if(elem.lastListener) {
+      var ll = elem.lastListener;
       elem.removeEventListener('ended', elem.lastListener);
       elem.removeEventListener('pause', elem.lastListener);
+      elem.removeEventListener('abort', elem.lastListener);
+      elem.removeEventListener('error', elem.lastListener);
+      // see above for justification of the timeout
       setTimeout(function() {
-        elem.lastListener = null;
+        if(elem.lastListener == ll) {
+          elem.lastListener = null;
+        }
       }, 50);
     }
+    var audio_status = {init: (new Date()).getTime()};
     var handler = function() {
+      if(audio_status.handled) { return; }
+      audio_status.handled = true;
       _this.speak_end_handler(speak_id);
     };
     elem.lastListener = handler;
     elem.addEventListener('ended', handler);
     elem.addEventListener('pause', handler);
+    elem.addEventListener('abort', handler);
+    elem.addEventListener('error', handler);
     Ember.run.later(function() {
       elem.play();
     }, 10);
+    var check_status = function() {
+      if(handler == elem.lastListener && !audio_status.handled) {
+        if(audio_status.last_time && audio_status.last_time == elem.currentTime) {
+          audio_status.stucks = (audio_status.stucks || 0) + 1;
+          if(audio_status.stucks > 10) {
+            // if we've been stuck for a full second, go ahead and call it quits
+            handler();
+            return;
+          }
+        } else {
+          audio_status.last_time = null;
+        }
+        if(elem.currentTime > 0) {
+          audio_status.started = true;
+          audio_status.last_time = elem.currentTime;
+        }
+        if(elem.duration) {
+          var now = (new Date()).getTime();
+          // if we've waited 3 times as long as the duration of the audio file and it's still
+          // not done, go ahead and call it quits
+          if((now - audio_status.init) / 1000 > (elem.duration * 3)) {
+            handler();
+            return;
+          }
+        }
+        if(elem.ended || elem.error) {
+          // if the audio file is done, call the handler
+          handler();
+        } else {
+          // otherwise, keep polling during audio playback
+          Ember.run.later(check_status, 100);
+        }
+      }
+    };
+    Ember.run.later(check_status, 100);
     return elem;
   },
   beep: function() {
@@ -447,10 +519,14 @@ var speecher = Ember.Object.extend({
     }
     if(opts.interrupt !== false) {
       this.speaking = true;
+      this.speaking_from_collection = collection_id;
     }
     this.audio = this.audio || {};
     type = type || 'text';
-    this.stop(type);
+    if(collection_id && this.speaking_from_collection == collection_id) {
+    } else {
+      this.stop(type);
+    }
 
     var $audio = this.find_or_create_element(url);
     if($audio.length) {
