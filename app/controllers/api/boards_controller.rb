@@ -79,10 +79,16 @@ class Api::BoardsController < ApplicationController
         elsif params['sort'] == 'home_popularity'
           boards = boards.where(['home_popularity > ?', 0]).order(home_popularity: :desc, id: :desc)
         elsif params['sort'] == 'custom_order'
-          boards = boards[0, 12].sort_by{|b| b.settings['custom_order'] || b.id }
+          boards = boards[0, 100].sort_by{|b| b.settings['custom_order'] || b.id }
         end
       else
         boards = boards.order(popularity: :desc, any_upstream: :asc, id: :desc)
+      end
+    end
+    
+    self.class.trace_execution_scoped(['boards/category']) do
+      if params['category']
+        boards = boards[0, 100].select{|b| (b.settings['categories'] || []).include?(params['category']) }
       end
     end
     
