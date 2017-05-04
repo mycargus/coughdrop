@@ -74,7 +74,7 @@ export default Ember.Controller.extend({
     word_suggestions.lookup({
       last_finished_word: last_finished_word,
       word_in_progress: word_in_progress,
-      board_ids: [app_state.get('current_user.preferences.home_board.id'), stashes.get('temporary_root_board_state.id')]
+      board_ids: [app_state.get('currentUser.preferences.home_board.id'), stashes.get('temporary_root_board_state.id')]
     }).then(function(result) {
       _this.set('suggestions.list', result);
     }, function() {
@@ -136,6 +136,8 @@ export default Ember.Controller.extend({
       if(this.get('app_state.currentUser.preferences.word_suggestion_images') !== false && position != 'text_only') {
         topHeight = topHeight + 50;
         this.set('show_word_suggestion_images', true);
+      } else {
+        this.set('show_word_suggestion_images', false);
       }
     }
     if(app_state.controller && app_state.controller.get('setup_footer')) {
