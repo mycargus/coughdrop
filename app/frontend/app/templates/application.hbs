@@ -256,14 +256,16 @@
               <a class="btn btn-default" href="#" {{action "toggleSpeakMode" 'goHome'}} id="speak_mode" data-placement="bottom" data-trigger="manual">
                 <span class="wide">{{t "Try in Speak Mode" key="try_in_speak_mode"}}</span><span class="skinny real_skinny glyphicon glyphicon-volume-up"></span>
               </a>
-              {{#if app_state.root_board_is_home}}
-                <a class="btn btn-default" href="#" {{action "setAsHome" 'starting'}}>
-                  <span class="wide"><span class='glyphicon glyphicon-ok'></span> {{t "Set as Home Board" key="set_as_home"}}</span><span class="skinny real_skinny glyphicon glyphicon-home"></span>
-                </a>
-              {{else}}
-                <a class="btn btn-primary" href="#" {{action "setAsHome" 'starting'}}>
-                  <span class="wide">{{t "Select This Set as my Home Board" key="set_as_home"}}</span><span class="skinny real_skinny glyphicon glyphicon-home"></span>
-                </a>
+              {{#if app_state.currentUser}}
+                {{#if app_state.root_board_is_home}}
+                  <a class="btn btn-default" href="#" {{action "setAsHome" 'starting'}}>
+                    <span class="wide"><span class='glyphicon glyphicon-ok'></span> {{t "Set as Home Board" key="set_as_home"}}</span><span class="skinny real_skinny glyphicon glyphicon-home"></span>
+                  </a>
+                {{else}}
+                  <a class="btn btn-primary" href="#" {{action "setAsHome" 'starting'}}>
+                    <span class="wide">{{t "Select This Set as my Home Board" key="set_as_home"}}</span><span class="skinny real_skinny glyphicon glyphicon-home"></span>
+                  </a>
+                {{/if}}
               {{/if}}
             {{else}}
               {{#if app_state.speak_mode_possible}}

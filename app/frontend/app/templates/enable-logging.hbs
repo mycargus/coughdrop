@@ -7,13 +7,13 @@
     <p>{{t "To help support improvements through research in AAC, CoughDrop collaborates with research organizations by providing anonymized communication information from CoughDrop users who have enabled logging. User profiles and identifiable information is not shared, but if you're still not comfortable sharing this user's AAC communication with researchers, you can opt out here or on the user's preferences page." key='logging_2'}}</p>
     <p>{{t "Additionally, if you'd like, CoughDrop can track GPS data to provide better insights into how user communication changes based on location." key='logging_3'}}</p>
     <div style='margin-top: 20px;'>
-      <label>
+      <label style='padding: 10px 0; font-size: 16px;'>
         {{input type='checkbox' checked=model.user.preferences.geo_logging}}
-        {{t "Include geolocation in logs" key='include_geolocation'}}
+        <span style='padding-left: 5px;'>{{t "Include geolocation in logs" key='include_geolocation'}}</span>
       </label>
-      <label>
+      <label style='padding: 10px 0; font-size: 16px;'>
         {{input type='checkbox' checked=no_research}}
-        {{t "Don't share anonymized usage data with researchers" key='no_research'}}
+        <span style='padding-left: 5px;'>{{t "Don't share anonymized usage data with researchers" key='no_research'}}</span>
       </label>
     </div>
   </div>

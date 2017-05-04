@@ -33,59 +33,66 @@ export default Ember.Controller.extend({
   }.property('page'),
   text_position: function() {
     var res = {};
-    if(this.get('app_state.currentUser.preferences.device.button_text_position') == 'top') {
+    var user = app_state.get('currentUser') || this.get('fake_user');
+    if(user.get('preferences.device.button_text_position') == 'top') {
       res.text_on_top = true;
-    } else if(this.get('app_state.currentUser.preferences.device.button_text_position') == 'bottom') {
+    } else if(user.get('preferences.device.button_text_position') == 'bottom') {
       res.text_on_bottom = true;
-    } else if(this.get('app_state.currentUser.preferences.device.button_text_position') == 'text_only') {
+    } else if(user.get('preferences.device.button_text_position') == 'text_only') {
       res.text_only = true;
+    } else {
+      res.text_on_top = true;
     }
     return res;
-  }.property('app_state.currentUser.preferences.device.button_text_position'),
+  }.property('fake_user.preferences.device.button_text_position', 'app_state.currentUser.preferences.device.button_text_position'),
   access: function() {
     var res = {};
-    if(this.get('app_state.currentUser.preferences.device.dwell')) {
+    var user = app_state.get('currentUser') || this.get('fake_user');
+    if(user.get('preferences.device.dwell')) {
       res.dwell = true;
-    } else if(this.get('app_state.currentUser.preferences.device.scanning')) {
+    } else if(user.get('preferences.device.scanning')) {
       res.scanning = true;
     } else {
       res.touch = true;
     }
     return res;
-  }.property('app_state.currentUser.preferences.device.dwell', 'app_state.currentUser.preferences.device.scanning'),
+  }.property('fake_user.preferences.device.dwell', 'app_state.currentUser.preferences.device.dwell', 'fake_user.preferences.device.scanning', 'app_state.currentUser.preferences.device.scanning'),
   notification: function() {
     var res = {};
-    if(app_state.get('currentUser.preferences.notification_frequency') == '1_week') {
+    var user = app_state.get('currentUser') || this.get('fake_user');
+    if(user.get('preferences.notification_frequency') == '1_week') {
       res['1_week'] = true;
-    } else if(app_state.get('currentUser.preferences.notification_frequency') == '2_weeks') {
+    } else if(user.get('preferences.notification_frequency') == '2_weeks') {
       res['2_weeks'] = true;
-    } else if(app_state.get('currentUser.preferences.notification_frequency') == '1_month') {
+    } else if(user.get('preferences.notification_frequency') == '1_month') {
       res['1_month'] = true;
     } else {
       res['none'] = true;
     }
-    if(app_state.get('currentUser.preferences.share_notifications') == 'email') {
+    if(user.get('preferences.share_notifications') == 'email') {
       res.email = true;
-    } else if(app_state.get('currentUser.preferences.share_notifications') == 'text') {
+    } else if(user.get('preferences.share_notifications') == 'text') {
       res.text = true;
-    } else if(app_state.get('currentUser.preferences.share_notifications') == 'app') {
+    } else if(user.get('preferences.share_notifications') == 'app') {
       res.app = true;
     } else {
       res.email = true;
     }
     return res;
-  }.property('app_state.currentUser.preferences.notification_frequency', 'app_state.currentUser.preferences.share_notifications'),
+  }.property('fake_user.preferences.notification_frequency', 'app_state.currentUser.preferences.notification_frequency', 'fake_user.preferences.share_notifications', 'app_state.currentUser.preferences.share_notifications'),
   update_cell: function() {
-    if(!this.get('cell') && app_state.get('currentUser.cell_phone')) {
-      this.set('cell', app_state.get('currentUser.cell_phone'));
+    var user = app_state.get('currentUser') || this.get('fake_user');
+    if(!this.get('cell') && user.get('cell_phone')) {
+      this.set('cell', user.get('cell_phone'));
     } else {
-      app_state.currentUser.set('cell_phone', this.get('cell'));
+      user.set('cell_phone', this.get('cell'));
       this.send('set_preference', 'cell_phone', this.get('cell'));
     }
-  }.observes('cell', 'app_state.currentUser.cell_phone'),
+  }.observes('cell', 'fake_user.cell_phone', 'app_state.currentUser.cell_phone'),
   update_pin: function() {
-    if(!this.get('pin') && app_state.get('currentUser.preferences.speak_mode_pin') && app_state.get('currentUser.preferences.require_speak_mode_pin')) {
-      this.set('pin', app_state.get('currentUser.preferences.speak_mode_pin') || "");
+    var user = app_state.get('currentUser') || this.get('fake_user');
+    if(!this.get('pin') && user.get('preferences.speak_mode_pin') && user.get('preferences.require_speak_mode_pin')) {
+      this.set('pin', user.get('preferences.speak_mode_pin') || "");
     } else {
       var pin = (parseInt(this.get('pin'), 10) || "").toString().substring(0, 4);
       var _this = this;
@@ -94,35 +101,36 @@ export default Ember.Controller.extend({
           _this.set('pin', pin);
         }
       }, 10);
-      if(pin.length == 4 && (!app_state.get('currentUser.preferences.require_speak_mode_pin') || pin != app_state.get('currentUser.preferences.speak_mode_pin'))) {
-        app_state.set('currentUser.preferences.require_speak_mode_pin', true);
+      if(pin.length == 4 && (!user.get('preferences.require_speak_mode_pin') || pin != user.get('preferences.speak_mode_pin'))) {
+        user.set('preferences.require_speak_mode_pin', true);
         this.send('set_preference', 'speak_mode_pin', this.get('pin'));
-      } else if(pin.length != 4 && app_state.get('currentUser.preferences.require_speak_mode_pin')) {
+      } else if(pin.length != 4 && user.get('preferences.require_speak_mode_pin')) {
         this.send('set_preference', 'require_speak_mode_pin', false);
       }
     }
-  }.observes('pin', 'app_state.currentUser.preferences.require_speak_mode_pin', 'app_state.currentUser.preferences.speak_mode_pin'),
+  }.observes('pin', 'fake_user.preferences.require_speak_mode_pin', 'app_state.currentUser.preferences.require_speak_mode_pin', 'fake_user.preferences.speak_mode_pin', 'app_state.currentUser.preferences.speak_mode_pin'),
   update_checkbox_preferences: function() {
     var do_update = false;
     var _this = this;
+    var user = app_state.get('currentUser') || this.get('fake_user');
     ['vocalize_buttons', 'vocalize_linked_buttons', 'auto_home_return'].forEach(function(pref) {
-      if(_this.get(pref) == null && app_state.get('currentUser.preferences.' + pref)) {
-        _this.set(pref, app_state.get('currentUser.preferences.' + pref));
-      } else if(_this.get(pref) != null && _this.get(pref) != app_state.currentUser.get('preferences.' + pref)) {
-        console.log(pref, 'changed!', _this.get(pref));
-        app_state.set('currentUser.preferences.' + pref, _this.get(pref));
+      if(_this.get(pref) == null && user.get('preferences.' + pref)) {
+        _this.set(pref, user.get('preferences.' + pref));
+      } else if(_this.get(pref) != null && _this.get(pref) != user.get('preferences.' + pref)) {
+        user.set('preferences.' + pref, _this.get(pref));
         do_update = true;
       }
     });
     if(do_update) {
       this.send('set_preference', 'extra', true);
     }
-  }.observes('app_state.currentUser.preferences.vocalize_buttons', 'vocalize_buttons', 'app_state.currentUser.preferences.vocalize_linked_buttons', 'vocalize_linked_buttons', 'app_state.currentUser.preferences.auto_home_return', 'auto_home_return'),
+  }.observes('fake_user.preferences.vocalize_buttons', 'app_state.currentUser.preferences.vocalize_buttons', 'vocalize_buttons', 'fake_user.preferences.vocalize_linked_buttons', 'app_state.currentUser.preferences.vocalize_linked_buttons', 'vocalize_linked_buttons', 'fake_user.preferences.auto_home_return', 'app_state.currentUser.preferences.auto_home_return', 'auto_home_return'),
   user_voice_list: function() {
     var list = speecher.get('voiceList');
     var result = [];
-    var premium_voice_ids = (this.get('app_state.currentUser.premium_voices.claimed') || []).map(function(id) { return "extra:" + id; });
-    var voice_uri = this.get('app_state.currentUser.preferences.device.voice.voice_uri');
+    var user = app_state.get('currentUser') || this.get('fake_user');
+    var premium_voice_ids = (user.get('premium_voices.claimed') || []).map(function(id) { return "extra:" + id; });
+    var voice_uri = user.get('preferences.device.voice.voice_uri');
     var found = false;
     list.forEach(function(voice) {
       voice = Ember.$.extend({}, voice);
@@ -144,10 +152,18 @@ export default Ember.Controller.extend({
       });
     }
     return result;
-  }.property('speecher.voiceList', 'app_state.currentUser.premium_voices.claimed', 'app_state.currentUser.preferences.device.voice.voice_uris'),
+  }.property('speecher.voiceList', 'app_state.currentUser.premium_voices.claimed', 'fake_user.preferences.device.voice.voice_uri', 'app_state.currentUser.preferences.device.voice.voice_uris'),
   update_on_page_change: function() {
-    this.send('set_category', 'robust');
-    this.set('show_category_explainer', false);
+    if(!this.get('fake_user')) {
+      this.set('fake_user', Ember.Object.create({
+        preferences:
+        {
+          device: {voice: {}},
+          vocalize_buttons: true,
+          auto_home_return: true
+        }
+      }));
+    }
     this.set('cell', app_state.get('currentUser.cell_phone'));
     var _this = this;
     ['vocalize_buttons', 'vocalize_linked_buttons', 'auto_home_return'].forEach(function(pref) {
@@ -158,7 +174,7 @@ export default Ember.Controller.extend({
   }.observes('page'),
   actions: {
     set_preference: function(preference, value) {
-      var user = app_state.get('currentUser');
+      var user = app_state.get('currentUser') || this.get('fake_user');
       if(preference == 'access') {
         if(value == 'touch') {
           user.set('preferences.device.dwell', false);
@@ -174,15 +190,17 @@ export default Ember.Controller.extend({
         user.set('preferences.' + preference, value);
       }
       var _this = this;
-      if(preference == 'logging' && value === true) {
+      if(preference == 'logging' && value === true && app_state.get('currentUser')) {
         modal.open('enable-logging', {save: true, user: app_state.get('currentUser')});
       }
-      app_state.controller.set('footer_status', {message: i18n.t('updating_user', "Updating User...")});
-      user.save().then(function() {
-        app_state.controller.set('footer_status', null);
-      }, function(err) {
-        app_state.controller.set('footer_status', {error: i18n.t('error_updating_user', "Error Updating User")});
-      });
+      if(user.save) {
+        app_state.controller.set('footer_status', {message: i18n.t('updating_user', "Updating User...")});
+        user.save().then(function() {
+          app_state.controller.set('footer_status', null);
+        }, function(err) {
+          app_state.controller.set('footer_status', {error: i18n.t('error_updating_user', "Error Updating User")});
+        });
+      }
     },
     home: function(plus_video) {
       this.transitionToRoute('index');
@@ -191,37 +209,13 @@ export default Ember.Controller.extend({
       }
     },
     test_voice: function() {
-      utterance.test_voice(app_state.get('currentUser.preferences.device.voice.voice_uri'), app_state.get('currentUser.preferences.device.voice.rate'), app_state.get('currentUser.preferences.device.voice.pitch'), app_state.get('currentUser.preferences.device.voice.volume'));
+      var user = app_state.get('currentUser') || this.get('fake_user');
+      var voice_uri = user.get('preferences.device.voice.voice_uri');
+      utterance.test_voice(voice_uri, app_state.get('currentUser.preferences.device.voice.rate'), app_state.get('currentUser.preferences.device.voice.pitch'), app_state.get('currentUser.preferences.device.voice.volume'));
     },
     premium_voices: function() {
       var _this = this;
       modal.open('premium-voices', {user: app_state.get('currentUser')});
-    },
-    set_category: function(str) {
-      var res = {};
-      res[str] = true;
-      this.set('current_category', str);
-      this.set('category', res);
-      this.set('show_category_explainer', false);
-      this.set('category_boards', {loading: true});
-      var _this = this;
-      _this.store.query('board', {public: true, starred: true, user_id: 'example', sort: 'custom_order', per_page: 6, category: str}).then(function(data) {
-        _this.set('category_boards', data);
-      }, function(err) {
-        _this.set('category_boards', {error: true});
-      });
-    },
-    more_for_category: function() {
-      var _this = this;
-      _this.set('more_category_boards', {loading: true});
-      _this.store.query('board', {public: true, sort: 'home_popularity', per_page: 9, category: this.get('current_category')}).then(function(data) {
-        _this.set('more_category_boards', data);
-      }, function(err) {
-        _this.set('more_category_boards', {error: true});
-      });
-    },
-    show_explainer: function() {
-      this.set('show_category_explainer', true);
     },
     extra: function() {
       app_state.controller.set('setup_order', order.concat(extra_order));

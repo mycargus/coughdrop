@@ -9,11 +9,13 @@
 
   <p>{{t "In order for the communication team to have access to these usage reports, logging needs to be enabled." key='reports_2'}}</p>
 
-  <p style='margin-top: 20px;'><button class='btn btn-default btn-lg' {{action 'set_preference' 'logging' true}}>
-    {{#if app_state.currentUser.preferences.logging}}
-      {{t "Logging is Enabled" key='logging_is_enabled'}}
-    {{else}}
-      {{t "Enable Logging" key='enable_logging'}}
-    {{/if}}
-  </button></p>
+  {{#if app_state.currentUser}}
+    <p style='margin-top: 20px;'><button class='btn btn-default btn-lg' {{action 'set_preference' 'logging' true}}>
+      {{#if app_state.currentUser.preferences.logging}}
+        {{t "Logging is Enabled" key='logging_is_enabled'}}
+      {{else}}
+        {{t "Enable Logging" key='enable_logging'}}
+      {{/if}}
+    </button></p>
+  {{/if}}
 </div>

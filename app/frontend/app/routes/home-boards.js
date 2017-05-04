@@ -37,9 +37,9 @@ export default Ember.Route.extend({
         controller.set('disability_vocabulary', null);
       }
     }
-    loadBoards();
-    persistence.addObserver('online', function() {
-      loadBoards();
-    });
+//     loadBoards();
+//     persistence.addObserver('online', function() {
+//       loadBoards();
+//     });
   }
 });
