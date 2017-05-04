@@ -70,7 +70,6 @@ export default modal.ModalController.extend({
       if(!_this.get('core_promise')) { _this.set('core_promise', persistence.ajax('/api/v1/users/' + this.get('user.id') + '/core_lists', {type: 'GET'})); }
       _this.set('core_promise.user_id', _this.get('user.id'));
       _this.get('core_promise').then(function(res) {
-        _this.set('core_list', list);
         if(type == 'core') {
           var items = res.for_user.map(function(str) {
             var item = {text: str};

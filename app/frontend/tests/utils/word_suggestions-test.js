@@ -92,7 +92,17 @@ describe('word_suggestions', function() {
           return Ember.RSVP.reject();
         }
       };
-      word_suggestions.lookup({word_in_progress: 'f', button_set: bs}).then(function(r) { res = r; });
+      stub(CoughDrop.store, 'findRecord', function(type, id) {
+        expect(type).toEqual('board');
+        expect(id).toEqual('bacon');
+        return Ember.RSVP.resolve({
+          get: function() { return 'bacon'; },
+          load_button_set: function() {
+            return Ember.RSVP.resolve(bs);
+          }
+        });
+      });
+      word_suggestions.lookup({word_in_progress: 'f', button_set: bs, board_ids: ['bacon']}).then(function(r) { res = r; });
       waitsFor(function() { return res; });
       runs(function() {
         expect(res[0].word).toEqual('friend');

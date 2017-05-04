@@ -650,7 +650,7 @@ var app_state = Ember.Object.extend({
       app_state.set('currentUser', app_state.get('speakModeUser'));
     } else {
       var user = app_state.get('sessionUser');
-      if(user && !user.get('preferences.progress.app_added') && (navigator.standalone || (capabilities.installed_app && capabilities.mobile))) {
+      if(user && user.get && !user.get('preferences.progress.app_added') && (navigator.standalone || (capabilities.installed_app && capabilities.mobile))) {
         user.set('preferences.progress.app_added', true);
         user.save().then(null, function() { });
       }

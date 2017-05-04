@@ -498,6 +498,20 @@ describe('User', function() {
       user.set('preferences', {device: {voice: {voice_uris: ['sad', 'friend']}}});
       expect(user.get('preferences.device.voice.voice_uri')).toEqual('sad');
     });
+
+    it('should update alternate voice correctly', function() {
+      var user = CoughDrop.store.createRecord('user');
+      stub(speecher, 'get', function() {
+        return [{voiceURI: 'happy'}, {voiceURI: 'sad'}];
+      });
+      expect(user.get('preferences.device.alternate_voice.voice_uri')).toEqual(undefined);
+      user.set('preferences', {device: {alternate_voice: {voice_uris: ['sad', 'friend']}}});
+      expect(user.get('preferences.device.alternate_voice.voice_uri')).toEqual('sad');
+      user.set('preferences.device.alternate_voice.voice_uri', 'bacon');
+      expect(user.get('preferences.device.alternate_voice.voice_uri')).toEqual('sad');
+      user.set('preferences.device.alternate_voice.voice_uri', 'happy');
+      expect(user.get('preferences.device.alternate_voice.voice_uri')).toEqual('happy');
+    });
   });
 
   describe('load_all_connections', function() {

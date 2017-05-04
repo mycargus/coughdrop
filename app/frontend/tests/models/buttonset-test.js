@@ -10,13 +10,24 @@ import modal from '../../utils/modal';
 describe('Buttonset', function() {
   describe("find_button", function() {
     it("should return an empty list for no search string", function() {
-      var bs = CoughDrop.store.createRecord('buttonset', {});
-      expect(bs.find_buttons('')).toEqual([]);
+      var result = null;
+      var result2 = null;
 
-      bs.set('buttons', [
-        {'label': 'hat'}
-      ]);
-      expect(bs.find_buttons('')).toEqual([]);
+      var bs = CoughDrop.store.createRecord('buttonset', {});
+      bs.find_buttons('').then(function(res) { result = res; });
+      waitsFor(function() { return result; });
+      runs(function() {
+        expect(result).toEqual([]);
+        bs.set('buttons', [
+          {'label': 'hat'}
+        ]);
+
+        bs.find_buttons('').then(function(res) { result2 = res; });
+      });
+      waitsFor(function() { return result2; });
+      runs(function() {
+        expect(result2).toEqual([]);
+      });
     });
 
     it("should return matching buttons from the current board", function() {

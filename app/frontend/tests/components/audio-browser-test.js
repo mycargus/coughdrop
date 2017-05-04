@@ -6,6 +6,9 @@ import { queryLog } from 'frontend/tests/helpers/ember_helper';
 import CoughDrop from '../../app';
 import persistence from '../../utils/persistence';
 import modal from '../../utils/modal';
+import Utils from '../../utils/misc';
+import app_state from '../../utils/app_state';
+import contentGrabbers from '../../utils/content_grabbers';
 import audioBrowser from '../../components/audio-browser';
 import Button from '../../utils/button';
 
@@ -16,146 +19,143 @@ describe('audio-browser', function() {
     component = this.subject();
   });
 
-  it('should have specs', function() {
-    expect(component).not.toEqual(null);
-    expect('test').toEqual('todo');
+  it('should have a span tagName', function() {
+    expect(component.tagName).toEqual('span');
+  });
+
+  it('should lookup sounds on load', function() {
+    var callback = null;
+    var defer = null;
+    stub(Utils, 'all_pages', function(type, opts, cb) {
+      expect(type).toEqual('sound');
+      expect(opts).toEqual({user_id: 'asdf'});
+      callback = cb;
+      defer = Ember.RSVP.defer();
+      return defer.promise;
+    });
+    app_state.set('currentUser', {id: 'asdf'});
+    component.willInsertElement();
+    expect(component.get('browse_audio')).toEqual({loading: true});
+    var list = [{id: 'a'}, {id: 'b'}, {id: 'c'}, {id: 'd'}, {id: 'e'}, {id: 'f'}, {id: 'g'}, {id: 'h'}, {id: 'i'}, {id: 'j'}, {id: 'k'}, {id: 'l'}];
+    waitsFor(function() { return callback; });
+    runs(function() {
+      expect(component.get('browse_audio')).toEqual({loading: true});
+      callback(list);
+    });
+    waitsFor(function() { return component.get('browse_audio.results') !== undefined; });
+    runs(function() {
+      expect(component.get('browse_audio')).toEqual({
+        results: list.slice(0, 10),
+        full_results: list,
+        filtered_results: list
+      });
+      defer.reject();
+    });
+    waitsFor(function() { return component.get('browse_audio.error') === true; });
+    runs();
+  });
+
+  it('should return correct value for more_audio_results', function() {
+    expect(component.get('more_audio_results')).toEqual(false);
+    component.set('browse_audio', {results: [], filtered_results: [{}]});
+    expect(component.get('more_audio_results')).toEqual(true);
+    component.set('browse_audio', {results: [{}], filtered_results: [{}]});
+    expect(component.get('more_audio_results')).toEqual(false);
+  });
+
+  it('should trigger filtering of browsed audio', function() {
+    var called = false;
+    stub(component, 'send', function(message) {
+      expect(message).toEqual('filter_browsed_audio');
+      called = true;
+    });
+    component.set('browse_audio', {filter_string: 'asdf'});
+    waitsFor(function() { return called; });
+    runs();
+  });
+
+  describe("filter_browsed_audio", function() {
+    it('should return a filtered list', function() {
+      component.set('browse_audio', {
+        full_results: [
+          Ember.Object.create({search_string: 'hat is good'}),
+          Ember.Object.create({search_string: 'hat is bad'}),
+          Ember.Object.create({search_string: 'hat is swell'}),
+          Ember.Object.create({search_string: 'hat is neat'}),
+          Ember.Object.create({search_string: 'hat is something'}),
+          Ember.Object.create({search_string: 'hat is ok'}),
+          Ember.Object.create({search_string: 'hat is awesome'}),
+          Ember.Object.create({search_string: 'hat is cheese'}),
+          Ember.Object.create({search_string: 'splat is cool'}),
+          Ember.Object.create({search_string: 'hat is from'}),
+          Ember.Object.create({search_string: 'hat is windy'}),
+          Ember.Object.create({search_string: 'hat is above'}),
+          Ember.Object.create({search_string: 'hat is flat'}),
+        ]
+      });
+      component.send('filter_browsed_audio', 'hat');
+      expect(component.get('browse_audio.filtered_results.length')).toEqual(12);
+      expect(component.get('browse_audio.results.length')).toEqual(10);
+    });
+  });
+
+  describe("more_browsed_audio", function() {
+    it('should add to the list', function() {
+      var list = [];
+      for(var idx = 0; idx < 100; idx++) {
+        list.push(Ember.Object.create());
+      }
+
+      component.set('browse_audio', {
+        results: list.slice(0, 5),
+        filtered_results: list.slice(0, 30),
+        full_results: list
+      });
+      expect(component.get('browse_audio.results.length')).toEqual(10);
+      expect(component.get('browse_audio.filtered_results.length')).toEqual(100);
+      component.send('more_browsed_audio');
+      expect(component.get('browse_audio.results.length')).toEqual(20);
+      expect(component.get('browse_audio.filtered_results.length')).toEqual(100);
+      component.send('more_browsed_audio');
+      expect(component.get('browse_audio.results.length')).toEqual(30);
+      expect(component.get('browse_audio.filtered_results.length')).toEqual(100);
+      component.send('more_browsed_audio');
+      expect(component.get('browse_audio.results.length')).toEqual(40);
+      expect(component.get('browse_audio.filtered_results.length')).toEqual(100);
+    });
+
+    it('should do nothing if already fully loaded', function() {
+      var list = [];
+      for(var idx = 0; idx < 100; idx++) {
+        list.push(Ember.Object.create());
+      }
+
+      component.set('browse_audio', {
+        results: list,
+        filtered_results: list.slice(0, 30),
+        full_results: list
+      });
+      expect(component.get('browse_audio.results.length')).toEqual(10);
+      expect(component.get('browse_audio.filtered_results.length')).toEqual(100);
+      component.send('more_browsed_audio');
+      expect(component.get('browse_audio.results.length')).toEqual(20);
+      expect(component.get('browse_audio.filtered_results.length')).toEqual(100);
+    });
+  });
+
+  describe("select_audio", function() {
+    it('should update correctly', function() {
+      var called = false;
+      stub(component, 'sendAction', function(message, val) {
+        expect(message).toEqual('audio_selected');
+        expect(val).toEqual('asdf');
+        called = true;
+      });
+      component.set('browse_audio', {loading: true});
+      component.send('select_audio', 'asdf');
+      expect(component.get('browse_audio')).toEqual(null);
+      waitsFor(function() { return called; });
+      runs();
+    });
   });
 });
-//
-//
-//   describe("browse_audio", function() {
-//     it('should set status correctly', function() {
-//       soundGrabber.setup(button, controller);
-//       var called = false;
-//       app_state.set('currentUser', {id: 'bob'});
-//       stub(Utils, 'all_pages', function(type, params, progress) {
-//         called = true;
-//         expect(type).toEqual('sound');
-//         expect(params).toEqual({user_id: 'bob'});
-//         return Ember.RSVP.resolve([]);
-//       });
-//       soundGrabber.browse_audio();
-//       expect(controller.get('browse_audio')).toEqual({loading: true});
-//       waitsFor(function() { return controller.get('browse_audio.loading') == null; });
-//       runs(function() {
-//         expect(called).toEqual(true);
-//         expect(controller.get('browse_audio')).toEqual({results: [], full_results: [], filtered_results: []});
-//       });
-//     });
-//
-//     it('should lookup all results', function() {
-//       soundGrabber.setup(button, controller);
-//       app_state.set('currentUser', {id: 'bob'});
-//       var called = false;
-//       stub(Utils, 'all_pages', function(type, params, progress) {
-//         called = true;
-//         expect(type).toEqual('sound');
-//         expect(params).toEqual({user_id: 'bob'});
-//         return Ember.RSVP.resolve([]);
-//       });
-//       soundGrabber.browse_audio();
-//       expect(controller.get('browse_audio')).toEqual({loading: true});
-//       waitsFor(function() { return controller.get('browse_audio.loading') == null; });
-//       runs(function() {
-//         expect(called).toEqual(true);
-//         expect(controller.get('browse_audio')).toEqual({results: [], full_results: [], filtered_results: []});
-//       });
-//     });
-//
-//     it('should error correctly', function() {
-//       soundGrabber.setup(button, controller);
-//       app_state.set('currentUser', {id: 'bob'});
-//       var called = false;
-//       stub(Utils, 'all_pages', function(type, params, progress) {
-//         called = true;
-//         expect(type).toEqual('sound');
-//         expect(params).toEqual({user_id: 'bob'});
-//         return Ember.RSVP.reject([]);
-//       });
-//       soundGrabber.browse_audio();
-//       expect(controller.get('browse_audio')).toEqual({loading: true});
-//       waitsFor(function() { return controller.get('browse_audio.loading') == null; });
-//       runs(function() {
-//         expect(called).toEqual(true);
-//         expect(controller.get('browse_audio')).toEqual({error: true});
-//       });
-//     });
-//   });
-//
-//   describe("filter_browsed_audio", function() {
-//     it('should return a filtered list', function() {
-//       soundGrabber.setup(button, controller);
-//       controller.set('browse_audio', {
-//         full_results: [
-//           Ember.Object.create({search_string: 'hat is good'}),
-//           Ember.Object.create({search_string: 'hat is bad'}),
-//           Ember.Object.create({search_string: 'hat is swell'}),
-//           Ember.Object.create({search_string: 'hat is neat'}),
-//           Ember.Object.create({search_string: 'hat is something'}),
-//           Ember.Object.create({search_string: 'hat is ok'}),
-//           Ember.Object.create({search_string: 'hat is awesome'}),
-//           Ember.Object.create({search_string: 'hat is cheese'}),
-//           Ember.Object.create({search_string: 'splat is cool'}),
-//           Ember.Object.create({search_string: 'hat is from'}),
-//           Ember.Object.create({search_string: 'hat is windy'}),
-//           Ember.Object.create({search_string: 'hat is above'}),
-//           Ember.Object.create({search_string: 'hat is flat'}),
-//         ]
-//       });
-//       soundGrabber.filter_browsed_audio('hat');
-//       expect(controller.get('browse_audio.filtered_results.length')).toEqual(12);
-//       expect(controller.get('browse_audio.results.length')).toEqual(10);
-//     });
-//   });
-//
-//   describe("more_browsed_audio", function() {
-//     it('should add to the list', function() {
-//       soundGrabber.setup(button, controller);
-//       var list = [];
-//       for(var idx = 0; idx < 100; idx++) {
-//         list.push(Ember.Object.create());
-//       }
-//
-//       controller.set('browse_audio', {
-//         results: list.slice(0, 5),
-//         filtered_results: list.slice(0, 30),
-//         full_results: list
-//       });
-//       soundGrabber.more_browsed_audio();
-//       expect(controller.get('browse_audio.results.length')).toEqual(15);
-//       expect(controller.get('browse_audio.filtered_results.length')).toEqual(30);
-//       soundGrabber.more_browsed_audio();
-//       expect(controller.get('browse_audio.results.length')).toEqual(25);
-//       expect(controller.get('browse_audio.filtered_results.length')).toEqual(30);
-//       soundGrabber.more_browsed_audio();
-//       expect(controller.get('browse_audio.results.length')).toEqual(30);
-//       expect(controller.get('browse_audio.filtered_results.length')).toEqual(30);
-//     });
-//
-//     it('should do nothing if already fully loaded', function() {
-//       soundGrabber.setup(button, controller);
-//       var list = [];
-//       for(var idx = 0; idx < 100; idx++) {
-//         list.push(Ember.Object.create());
-//       }
-//
-//       controller.set('browse_audio', {
-//         results: list,
-//         filtered_results: list.slice(0, 30),
-//         full_results: list
-//       });
-//       soundGrabber.more_browsed_audio();
-//       expect(controller.get('browse_audio.results.length')).toEqual(30);
-//       expect(controller.get('browse_audio.filtered_results.length')).toEqual(30);
-//     });
-//   });
-//
-//   describe("select_browsed_audio", function() {
-//     it('should update correctly', function() {
-//       soundGrabber.setup(button, controller);
-//       controller.set('browse_audio', {loading: true});
-//       soundGrabber.select_browsed_audio('asdf');
-//       expect(controller.get('browse_audio')).toEqual(null);
-//       expect(controller.get('model.sound')).toEqual('asdf');
-//     });
-//   });

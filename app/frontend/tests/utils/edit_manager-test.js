@@ -1333,6 +1333,21 @@ describe('editManager', function() {
       expect(b).not.toEqual(null);
       expect(b.label).toEqual("ham");
     });
+
+    it("should find first empty button if specified", function() {
+      editManager.setup(board);
+      board.set('ordered_buttons', [
+        [{}, {}, {empty: true, id: 999}],
+        [
+          {},
+          {id: 1234, label: "chicken"},
+          {id: 2345, label: "ham"}
+        ]
+      ]);
+      var b = editManager.find_button('empty');
+      expect(b).not.toEqual(null);
+      expect(b.id).toEqual(999);
+    });
   });
 
   describe("lucky_symbol", function() {

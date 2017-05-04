@@ -3594,6 +3594,7 @@ describe("persistence-sync", function() {
       stub(CoughDrop.store, 'findRecord', function(type, id) {
         if(type == 'board' && id == '1_00') {
           rec.set('permissions', {});
+          rec.set('image_urls', ['http://www.example.com/pic.png']);
           return Ember.RSVP.resolve(rec);
         }
       });

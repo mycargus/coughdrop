@@ -138,7 +138,7 @@ describe('speecher', function() {
       waitsFor(function() { return cancelled && utterance; });
       runs(function() {
         expect(cancelled).toEqual(true);
-        expect(utterance.voiceURI).toEqual('french2');
+        expect(utterance.voiceURI).toEqual('french1');
         expect(utterance.volume).toEqual(0.5);
         expect(utterance.pitch).toEqual(2.0);
         expect(utterance.text).toEqual("hippo");
@@ -401,6 +401,39 @@ describe('speecher', function() {
       expect(speecher.text_direction()).toEqual('rtl');
       speecher.voiceURI = 'enus';
       expect(speecher.text_direction()).toEqual('ltr');
+    });
+  });
+
+  describe("voiceList", function() {
+    it('should update based on the list of voices', function() {
+      speecher.set('voices', []);
+      expect(speecher.get('voiceList')).toEqual([]);
+      speecher.set('voices', [
+        {lang: 'en_US', voiceURI: 'asdf', name: 'A'},
+        {lang: 'en-US', voiceURI: 'qwer', name: 'B'}
+      ]);
+      expect(speecher.get('voiceList')).toEqual([
+        {id: 'asdf', name: 'A (en_US)', locale: 'en_us', lang: 'en', index: 0},
+        {id: 'qwer', name: 'B (en-US)', locale: 'en_us', lang: 'en', index: 1}
+      ]);
+    });
+
+    it('should sort results by matching locale, then lange', function() {
+      speecher.set('voices', []);
+      expect(speecher.get('voiceList')).toEqual([]);
+      stub(window.navigator, 'language', 'en-US');
+      speecher.set('voices', [
+        {lang: 'en_UK', voiceURI: 'asdf', name: 'A'},
+        {lang: 'en-US', voiceURI: 'qwer', name: 'B'},
+        {lang: 'es-US', voiceURI: 'zxcv', name: 'C'},
+        {lang: 'en-AU', voiceURI: 'sdfg', name: 'D'}
+      ]);
+      expect(speecher.get('voiceList')).toEqual([
+        {id: 'qwer', name: 'B (en-US)', locale: 'en_us', lang: 'en', index: 1},
+        {id: 'asdf', name: 'A (en_UK)', locale: 'en_uk', lang: 'en', index: 0},
+        {id: 'sdfg', name: 'D (en-AU)', locale: 'en_au', lang: 'en', index: 3},
+        {id: 'zxcv', name: 'C (es-US)', locale: 'es_us', lang: 'es', index: 2},
+      ]);
     });
   });
 });

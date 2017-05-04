@@ -278,7 +278,9 @@ var speecher = Ember.Object.extend({
       var speak_utterance = function() {
         speecher.last_utterance = utterance;
         if(opts.voiceURI != 'force_default') {
-          utterance.voice = voice;
+          try {
+            utterance.voice = voice;
+          } catch(e) { }
           if(voice) {
             utterance.lang = voice.lang;
           }
@@ -363,7 +365,7 @@ var speecher = Ember.Object.extend({
   },
   speak_end_handler: function(speak_id) {
     if(speak_id == speecher.last_speak_id) {
-      if(!speecher.speaks || speecher.speaks.length == 0) {
+      if(!speecher.speaks || speecher.speaks.length === 0) {
         speecher.speaking_from_collection = false;
         speecher.speaking = false;
       }

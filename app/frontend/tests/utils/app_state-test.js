@@ -1201,6 +1201,14 @@ describe('app_state', function() {
     });
   });
 
+  it('should clear locales when exiting speak mode', function() {
+    app_state.set('label_locale', 'bacon');
+    app_state.set('vocalization_locale', 'cheddar');
+    app_state.toggle_speak_mode();
+    expect(app_state.get('lable_locale')).toEqual(null);
+    expect(app_state.get('vocalization_localte')).toEqual(null);
+  });
+
   describe('set_current_user', function() {
     it("should update user based on observed attributes", function() {
       var standalone = navigator.standalone;

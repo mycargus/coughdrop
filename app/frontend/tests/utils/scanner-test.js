@@ -1285,4 +1285,56 @@ describe('scanner', function() {
       });
     });
   });
+
+  describe("hide_input", function() {
+    it('should call hide if available', function() {
+      var hidden = false;
+      stub(window, 'Keyboard', {
+        hide: function() { hidden = true; }
+      });
+      scanner.hide_input();
+      expect(hidden).toEqual(false);
+      scanner.scanning = true;
+      scanner.hide_input();
+      expect(hidden).toEqual(false);
+      app_state.set('speak_mode', true);
+      scanner.hide_input();
+      expect(hidden).toEqual(false);
+      Ember.$("#hidden_input").detach();
+      var elem = document.createElement('input');
+      elem.type = 'text';
+      elem.id = 'hidden_input';
+      document.body.appendChild(elem);
+      Ember.$(elem).select().focus();
+      scanner.hide_input();
+      expect(hidden).toEqual(true);
+      Ember.$(elem).detach();
+    });
+  });
+
+  describe("listen_for_input", function() {
+    it('should call hide_input', function() {
+      Ember.$("#hidden_input").detach();
+      var called = false;
+      stub(scanner, 'hide_input', function() { called = true; });
+      scanner.listen_for_input();
+      expect(called).toEqual(true);
+    });
+
+    it('should focus on the keyboard at first', function() {
+      Ember.$("#hidden_input").detach();
+      scanner.keyboard_tried_to_show = false;
+      scanner.listen_for_input();
+      expect(Ember.$("#hidden_input").length).toEqual(1);
+      expect(Ember.$("#hidden_input:focus").length).toEqual(1);
+    });
+
+    it('should not try to show the keyboard via focus event more than once', function() {
+      Ember.$("#hidden_input").detach();
+      scanner.keyboard_tried_to_show = true;
+      scanner.listen_for_input();
+      expect(Ember.$("#hidden_input").length).toEqual(1);
+      expect(Ember.$("#hidden_input:focus").length).toEqual(0);
+    });
+  });
 });
