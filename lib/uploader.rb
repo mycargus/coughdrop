@@ -291,7 +291,7 @@ module Uploader
       return list
     elsif ['giphy_asl'].include?(library)
       str = "#asl #{keyword}"
-      key = ENV['GIPHY_KEY'] || 'dc6zaTOxFJmzC'
+      key = ENV['GIPHY_KEY']
       res = Typhoeus.get("http://api.giphy.com/v1/gifs/search?q=#{CGI.escape(str)}&api_key=#{key}")
       results = JSON.parse(res.body)
       list = []
