@@ -41,7 +41,7 @@ class Api::SearchController < ApplicationController
         'height' => item['height'],
         'external_id' => item['external_id'],
         'finding_user_name' => @api_user.user_name,
-        'protected' => true,
+        'protected' => !!item['protected'],
         'public' => false,
         'license' => item['license']['type'],
         'author' => item['license']['author_name'],
