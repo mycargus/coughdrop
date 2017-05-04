@@ -2,6 +2,13 @@
 
 ## Master
 
+### 2017-05-04
+- message banking tools (feature flag)
+- fixes for switch-based scanning
+- admin interface for managing gifts/bulk purchases
+- support for lessonpix symbols
+- eye-tracking status utility
+
 ### 2017-03-15
 - core word reports (feature flag)
 - faster board load times
