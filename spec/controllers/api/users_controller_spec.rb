@@ -888,6 +888,30 @@ describe Api::UsersController, :type => :controller do
       assert_unauthorized
     end
     
+    it "should cancel any active subscription when admins set to free supporter" do
+      token_user
+      @user.update_subscription({
+        'subscribe' => true,
+        'plan_id' => 'monthly_6',
+        'subscription_id' => 'asdf',
+        'token_summary' => 'good_one'
+      })
+      expect(@user.full_premium?).to eq(true)
+
+      o = Organization.create(:admin => true, :settings => {'total_licenses' => 1})
+      o.add_manager(@user.user_name, true)
+      
+      post :subscribe, params: {:user_id => @user.global_id, :type => 'manual_supporter'}
+      expect(response).to be_success
+      
+      json = JSON.parse(response.body)
+      expect(json['progress']).not_to eq(nil)
+      Worker.process_queues
+      expect(@user.reload.settings['subscription']['plan_id']).to eq('slp_monthly_free')
+      expect(@user.full_premium?).to eq(false)
+      expect(@user.free_premium?).to eq(true)
+    end
+   
     it "should let admins add a premium voice" do
       token_user
       u = User.create

@@ -195,13 +195,13 @@ describe JsonApi::Board do
       expect(hash['images'].length).to eq(5)
       images = hash['images'].sort_by{|i| i['id'] }
       expect(images[0]['id']).to eq(bbi1.global_id)
-      expect(images[0]['url']).to eq('http://www.example.com/bacon/cache/fallback')
+      expect(images[0]['url']).to eq('http://www.example.com/bacon/1')
       expect(images[1]['id']).to eq(bbi2.global_id)
-      expect(images[1]['url']).to eq('http://www.example.com/bacon/cache/fallback')
+      expect(images[1]['url']).to eq('http://www.example.com/bacon/1')
       expect(images[2]['id']).to eq(bbi3.global_id)
-      expect(images[2]['url']).to eq('http://www.example.com/bacon/cache/fallback')
+      expect(images[2]['url']).to eq('http://www.example.com/bacon/2')
       expect(images[3]['id']).to eq(bbi4.global_id)
-      expect(images[3]['url']).to eq('http://www.example.com/bacon/cache/fallback')
+      expect(images[3]['url']).to eq('http://www.example.com/bacon/3')
       expect(images[4]['id']).to eq(bbi5.global_id)
       expect(images[4]['url']).to eq('http://www.example.com/bacon/4')
     end

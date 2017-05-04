@@ -155,6 +155,22 @@ describe Api::BoardsController, :type => :controller do
       expect(json['board'][1]['id']).to eq(b.global_id)
     end
     
+    it "should allow filtering by board category" do  
+      u = User.create(:settings => {:public => true})
+      b = Board.create(:user => u, :public => true, :settings => {'categories' => ['friends', 'ice_cream', 'cheese']})
+      Board.where(:id => b.id).update_all({:home_popularity => 3, :popularity => 1})
+      b2 = Board.create(:user => u, :public => true, :settings => {'categories' => ['ice_cream']})
+      Board.where(:id => b2.id).update_all({:home_popularity => 1, :popularity => 3})
+      b3 = Board.create(:user => u, :public => true, :settings => {'categories' => ['cheese']})
+      Board.where(:id => b2.id).update_all({:home_popularity => 1, :popularity => 3})
+      get :index, params: {:category => "ice_cream"}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['board'].length).to eq(2)
+      expect(json['board'][0]['id']).to eq(b2.global_id)
+      expect(json['board'][1]['id']).to eq(b.global_id)
+    end
+    
     it "should allow sorting by custom_order" do
       u = User.create(:settings => {:public => true})
       b = Board.create(:user => u, :public => true, :settings => {'custom_order' => 2})

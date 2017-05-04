@@ -464,7 +464,8 @@ describe Uploader do
           'title' => 'good pic'
         }
       ].to_json))
-      expect(Worker).to receive(:schedule_for).with(:slow, ButtonImage, :perform_action, {'method' => 'assert_cached_copies', 'arguments' => [["http://localhost:3000/api/v1/users/#{u.global_id}/protected_image/lessonpix/2345"]]})
+      expect(JsonApi::Json).to receive(:current_host).and_return("http://test.host")
+      expect(Worker).to receive(:schedule_for).with(:slow, ButtonImage, :perform_action, {'method' => 'assert_cached_copies', 'arguments' => [["http://test.host/api/v1/users/#{u.global_id}/protected_image/lessonpix/2345"]]})
       expect(Uploader.find_images('cheddar', 'lessonpix', u)).to eq([
         {
           'url' => "http://test.host/api/v1/users/#{u.global_id}/protected_image/lessonpix/2345",
