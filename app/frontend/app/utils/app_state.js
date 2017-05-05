@@ -188,6 +188,9 @@ var app_state = Ember.Object.extend({
     app_state.set('latest_board_id', null);
     app_state.set('login_modal', false);
     app_state.set('to_target', transition.targetName);
+    if(transition.targetName == 'board.index' && (app_state.get('from_route') || [])[0] == 'setup') {
+      app_state.set('set_as_root_board_state', true);
+    }
 
     // On desktop, setting too soon causes a re-render, but on mobile
     // calling it too late does.
@@ -246,6 +249,12 @@ var app_state = Ember.Object.extend({
     CoughDrop.protected_user = protect_user;
     stashes.persist('protected_user', protect_user);
   }.observes('currentUser.preferences.protected_usage'),
+  set_root_board_state: function() {
+    if(this.get('set_as_root_board_state') && this.get('currentBoardState')) {
+      stashes.persist('root_board_state', this.get('currentBoardState'));
+      this.set('set_as_root_board_state', false);
+    }
+  }.observes('set_as_root_board_state', 'currentBoardState'),
   h1_class: function() {
     var res = "";
     if(this.get('currentBoardState.id')) {
@@ -414,6 +423,8 @@ var app_state = Ember.Object.extend({
 
     if(!current || decision == 'goHome') {
       this.home_in_speak_mode();
+    } else if(decision == 'goBrowsedHome') {
+      this.toggle_mode('speak', {override_state: stashes.get('root_board_state') || preferred});
     } else if(stashes.get('current_mode') == 'speak') {
       if(this.get('embedded')) {
         modal.open('about-coughdrop', {no_exit: true});

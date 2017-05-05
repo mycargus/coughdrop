@@ -7,6 +7,12 @@ export default Ember.Route.extend({
     app_state.controller.set('footer_status', null);
     app_state.controller.set('setup_order', controller.order);
     app_state.controller.set('setup_extra_order', controller.extra_order);
+    var user = app_state.get('currentUser');
+    app_state.set('show_intro', false);
+    if(user && !user.get('preferences.progress.intro_watched')) {
+      user.set('preferences.progress.intro_watched', true);
+      user.save().then(null, function() { });
+    }
     controller.update_on_page_change();
   }
 });

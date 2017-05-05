@@ -296,10 +296,16 @@ export default Ember.Controller.extend({
       this.set('selected', selected);
     },
     intro_video: function(url) {
+      if(window.ga) {
+        return window.ga('send', 'event', 'Intro', 'video', 'Intro video opened');
+      }
       modal.open('inline-video', {video: {url: url}, hide_overlay: true});
     },
     intro: function() {
-      modal.open('intro');
+      if(window.ga) {
+        return window.ga('send', 'event', 'Setup', 'start', 'Setup started');
+      }
+      this.transitionToRoute('setup');
     },
     opening_index: function() {
       app_state.set('index_view', true);
