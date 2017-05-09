@@ -61,6 +61,24 @@ export default modal.ModalController.extend({
     }
     return found;
   },
+  update_user: function() {
+    var _this = this;
+    _this.set('premium_ideas', false)
+    if(app_state.get('currentUser.premium')) {
+      _this.set('premium_ideas', true);
+    }
+    if(app_state.get('currentUser.supervisees')) {
+      app_state.get('currentUser.supervisees').forEach(function(sup) {
+        if(sup.id == _this.get('for_user_id')) {
+          _this.set('user', sup);
+        }
+        // TODO: A supervisor with any premium supervisees is good to use the extra, is that ok?
+//        if(sup.id == _this.get('for_user_id') || _this.get('for_user_id') == 'self' || _this.get('for_user_id') == app_state.get('currentUser.id')) {
+          if(sup.premium) { _this.set('premium_ideas', true); }
+ //       }
+      });
+    }
+  }.observes('for_user_id', 'user'),
   update_list: function() {
     var type = this.get('list_type');
     this.set('core', false);

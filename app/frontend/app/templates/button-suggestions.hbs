@@ -5,11 +5,22 @@
   </div>
   <div class="modal-body">
     <p>{{t "Sometimes it's hard to know what words or phrases to add. Below are some suggestions for things to add to the user's board set." key='button_suggestions_explainer'}}</p>
-    PICK USER<br/>
     {{#if full}}
-      <p class='text-danger'>{{t "There's nowhere on the board to add buttons. You can add rows/columns or find another board to add to." key='add_buttons'}}</p>
+      <p class='text-danger' style='margin-top: 10px;'>{{t "There's nowhere on the board to add buttons. You can still browse ideas, but to add ideas you'll need to add rows/columns or find another board." key='add_buttons'}}</p>
     {{else}}
-      <p>{{t "button" count=empty key='n_buttons'}} {{t "available" key='available'}}</p>
+      <p style='margin-top: 10px;'>{{t "button" count=empty key='n_buttons'}} {{t "available" key='available'}}</p>
+    {{/if}}
+    {{#if app_state.currentUser.supervisees}}
+      <div class='row'>
+        <div class='col-sm-3'>
+          <label for='for_user_id' style='margin-top: 5px;'>
+            {{t "Show Ideas For:" key='show_ideas_for'}}
+          </label>
+        </div>
+        <div class='col-sm-9'>
+          {{user-select select_id="for_user_id" selection=for_user_id action=(action (mut for_user_id)) }}
+        </div>
+      </div>
     {{/if}}
     <ul class="nav nav-pills" style='margin-bottom: 10px;'>
       <li role="presentation" class={{if core 'active'}}><a href="#" {{action 'select_list' 'core'}}>{{t "Core Words" key='core_words'}}</a></li>
@@ -19,13 +30,25 @@
       <li role="presentation" class={{if extras 'active'}}><a href="#" {{action 'select_list' 'extras'}}>{{t "Extras" key='extras'}}</a></li>
     </ul>
     {{#if extras}}
-      {{t "You can search for images and pictures from Tar Heel Reader, yo!" key='extras_explainer'}}
-      <div style='margin-top: 10px;'>
-        <span style='display: inline-block; width: 300px;'>
-          {{input type='text' value=extras_search class='form-control'}}
-        </span>
-        <button class='btn btn-default' {{action 'search_extras'}}>{{t "Go" key='go'}}</button>
-      </div>
+      {{#if premium_ideas}}
+        {{t "Now you can search for images and pictures from Tar Heel Reader books! Just search for the book you're using and add the pictures and text from any of the pages you want to use." key='extras_explainer'}}
+        <div style='margin-top: 10px;'>
+          <span style='display: inline-block; width: 300px;'>
+            {{input type='text' value=extras_search class='form-control'}}
+          </span>
+          <button class='btn btn-default' {{action 'search_extras'}}>{{t "Go" key='go'}}</button>
+        </div>
+      {{else}}
+        {{t "Extra Ideas is a CoughDrop feature that's only available to users who have a paid premium account. Please " key='purchase_subscription_1'}}
+        {{#if user}}
+          {{#link-to 'user.subscription' user.user_name}}{{t "purchase a premium account" key='purchase_subscription_2'}}{{/link-to}}
+        {{else if app_state.currentUser}}
+          {{#link-to 'user.subscription' app_state.currentUser.user_name}}{{t "purchase a premium account" key='purchase_subscription_2'}}{{/link-to}}
+        {{else}}
+          {{t "purchase a premium account" key='purchase_subscription_2'}}
+        {{/if}}
+        {{t "to support this good cause and to unlock this feature." key='purchase_subscription_3'}}
+      {{/if}}
     {{/if}}
 
     {{#if list.loading}}
