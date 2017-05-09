@@ -620,6 +620,9 @@ var editManager = Ember.Object.extend({
           if(currentButton.get('translations.length') > 0) {
             newButton.translations = currentButton.get('translations');
           }
+          if(currentButton.get('external_id')) {
+            newButton.external_id = currentButton.get('external_id');
+          }
           if(currentButton.part_of_speech) {
             newButton.part_of_speech = currentButton.part_of_speech;
             newButton.suggested_part_of_speech = currentButton.suggested_part_of_speech;

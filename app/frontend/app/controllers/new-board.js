@@ -30,6 +30,7 @@ export default modal.ModalController.extend({
         this.set('model.locale', locale);
       }
     }
+    this.set('status', null);
 
     this.set('has_supervisees', app_state.get('sessionUser.supervisees.length') > 0);
   },
@@ -239,13 +240,17 @@ export default modal.ModalController.extend({
     },
     saveBoard: function(event) {
       var _this = this;
+      this.set('status', {saving: true});
       if(this.get('model.license')) {
         this.set('model.license.copyright_notice_url', CoughDrop.licenseOptions.license_url(this.get('model.license.type')));
       }
       this.get('model').save().then(function(board) {
+        _this.set('status', null);
         modal.close(true);
         editManager.auto_edit(board.get('id'));
         _this.transitionToRoute('board', board.get('key'));
+      }, function() {
+        _this.set('status', {error: true});
       });
     },
     hoverGrid: function(row, col) {

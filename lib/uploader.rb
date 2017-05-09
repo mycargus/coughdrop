@@ -351,4 +351,41 @@ module Uploader
     end
     return false
   end
+  
+  def self.find_resources(query, source, user)
+    if source == 'tarheel'
+      url = "http://tarheelreader.org/find/?search=#{CGI.escape(query)}&category=&reviewed=R&audience=E&language=en&page=1&json=1"
+      res = Typhoeus.get(url)
+      results = JSON.parse(res.body)
+      list = []
+      results['books'].each do |book|
+        list << {
+          'url' => "http://tarheelreader.org#{book['link']}",
+          'image' => "http://tarheelreader.org#{book['cover']['url']}",
+          'title' => book['title'],
+          'author' => book['author'],
+          'id' => book['slug'],
+          'image_attribution' => "http://tarheelreader.org/photo-credits/?id=#{book['ID']}"
+        }
+      end
+      return list
+    elsif source == 'tarheel_book'
+      url = "http://tarheelreader.org/book-as-json/?slug=#{CGI.escape(query)}"
+      res = Typhoeus.get(url)
+      results = JSON.parse(res.body)
+      list = []
+      results['pages'].each_with_index do |page, idx|
+        list << {
+          'id' => "#{results['slug']}-#{idx}",
+          'title' => page['text'],
+          'image' => "http://tarheelreader.org#{page['url']}",
+          'url' => "http://tarheelreader.org#{results['link']}",
+          'image_attribution' => "http://tarheelreader.org/photo-credits/?id=#{results['ID']}",
+          'image_author' => 'Flickr User'
+        }
+      end
+      return list
+    end
+    []
+  end
 end

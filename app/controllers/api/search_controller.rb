@@ -52,6 +52,17 @@ class Api::SearchController < ApplicationController
     end
     render json: formatted.to_json
   end
+  
+  def external_resources
+    ref_user = @api_user
+    if params['user_name'] && params['user_name'] != ''
+      ref_user = User.find_by_path(params['user_name'])
+      return unless exists?(ref_user, params['user_name'])
+      return unless allowed?(ref_user, 'edit')
+    end
+    res = Uploader.find_resources(params['q'], params['source'], ref_user)
+    render json: res.to_json
+  end
     
   def parts_of_speech
     data = WordData.find_word(params['q'])

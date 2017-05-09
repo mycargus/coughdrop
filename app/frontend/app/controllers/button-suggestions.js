@@ -3,6 +3,7 @@ import modal from '../utils/modal';
 import persistence from '../utils/persistence';
 import app_state from '../utils/app_state';
 import editManager from '../utils/edit_manager';
+import contentGrabbers from '../utils/content_grabbers';
 import i18n from '../utils/i18n';
 import Utils from '../utils/misc';
 
@@ -30,6 +31,7 @@ export default modal.ModalController.extend({
   set_list: function(val, type) {
     if(this.get('list_type') == type) {
       this.set('list', val);
+      this.set('category', null);
     }
   },
   on_board: function(opts) {
@@ -40,14 +42,18 @@ export default modal.ModalController.extend({
           found = true;
         } else if(opts.sound_id && button.sound_id == opts.sound_id) {
           found = true;
+        } else if(opts.external_id && button.external_id == opts.external_id) {
+          found = true;
         }
       });
     });
-    if(!found && opts.label) {
+    if(!found && (opts.label || opts.external_id)) {
       var buttons = this.get('model.board.button_set.buttons');
       if(buttons) {
         buttons.forEach(function(btn) {
           if(btn.label && btn.label.toLowerCase() == opts.label.toLowerCase()) {
+            found = true;
+          } else if(btn.external_id && opts.external_id == btn.external_id) {
             found = true;
           }
         });
@@ -61,6 +67,7 @@ export default modal.ModalController.extend({
     this.set('fringe', false);
     this.set('recordings', false);
     this.set('requests', false);
+    this.set('extras', false);
     if(!this.get('user.id') || !this.get('list_type')) { return; }
     this.set(type, true);
     var _this = this;
@@ -187,6 +194,23 @@ export default modal.ModalController.extend({
     },
     select_category: function(category) {
       this.set('category', category);
+      if(category && category.pending_items) {
+        this.set('category.items', {loading: true});
+        var _this = this;
+        persistence.ajax("/api/v1/search/external_resources?source=" + encodeURIComponent(category.source) + "&q=" + encodeURIComponent(category.id), {type: 'GET'}).then(function(list) {
+          var res = [];
+          list.forEach(function(item) {
+            var tag = _this.get('list.id') + ":" + category.id + ":" + item.id;
+            var item = {text: item.title, image: item.image, external_id: tag, image_author: item.image_author, image_attribution: item.image_attribution};
+            if(_this.on_board({external_id: tag})) { item.used = true; }
+            res.push(item);
+          });
+          _this.set('category.items', res);
+          _this.set('category.pending_items', false);
+        }, function(err) {
+          _this.set('category.items', {error: true});
+        });
+      }
     },
     add_item: function(item) {
       if(this.get('full')) { return; }
@@ -196,12 +220,74 @@ export default modal.ModalController.extend({
         editManager.change_button(button.id, {
           label: item.text,
           sound: item.sound,
-          sound_id: (item.sound && item.sound.get('id'))
+          sound_id: (item.sound && item.sound.get('id')),
+          external_id: item.external_id
         });
-        editManager.lucky_symbol(button.id);
+        if(item.image) {
+          var proxy = persistence.ajax('/api/v1/search/proxy?url=' + encodeURIComponent(item.image), { type: 'GET'
+          }).then(function(data) {
+            return {
+              url: data.data,
+              content_type: data.content_type,
+              source_url: item.image
+            };
+          });
+
+          var save = proxy.then(function(data) {
+            return contentGrabbers.pictureGrabber.save_image_preview({
+              url: data.url,
+              content_type: data.content_type,
+              license: {
+                type: 'CC-Unspecified',
+                copyright_notice_url: item.image_attribution,
+                source_url: item.url,
+                author_name: item.image_author,
+                uneditable: true
+              },
+              protected: false
+            });
+          });
+
+          save.then(function(image) {
+            editManager.change_button(button.id, {
+              'image': image,
+              'image_id': image.id
+            });
+          }, function(err) {
+            debugger
+            modal.error(i18n.t('error_saving_image', "There was an unexpected error adding the image"));
+          });
+        } else {
+          editManager.lucky_symbol(button.id);
+        }
       }
       Ember.set(item, 'used', true);
       this.check_availability();
+    },
+    search_extras: function() {
+      var str = this.get('extras_search');
+      var _this = this;
+      if(str) {
+        this.set('category', null);
+        this.set_list({loading: true}, 'extras');
+        persistence.ajax("/api/v1/search/external_resources?source=tarheel&q=" + encodeURIComponent(str), {type: 'GET'}).then(function(list) {
+          var res = {id: 'tarheel_search', name: "Tarheel Reader Search Results", categories: []};
+          list.forEach(function(item) {
+            res.categories.push({
+              name: item.title,
+              sub_name: item.author,
+              id: item.id,
+              image: item.image,
+              pending_items: true,
+              source: 'tarheel_book',
+              items: []
+            });
+          });
+          _this.set_list(res, 'extras');
+        }, function(err) {
+          _this.set_list({error: true}, 'extras');
+        });
+      }
     }
   }
 });

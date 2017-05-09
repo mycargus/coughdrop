@@ -207,7 +207,15 @@
       </form>
     </div>
     <div class="modal-footer">
-      <button {{action "saveBoard"}} class="btn btn-primary">{{t "Create Board" key='create_board'}}</button>
+      <button {{action "saveBoard"}} class="btn btn-primary" disabled={{status.saving}}>
+        {{#if status.saving}}
+          {{t "Creating Board..." key='creating_board'}}
+        {{else if status.error}}
+          {{t "Error Creating Board" key='error_creating_board'}}
+        {{else}}
+          {{t "Create Board" key='create_board'}}
+        {{/if}}
+      </button>
       <button {{action "close"}} class="btn btn-default">{{t "Cancel" key='cancel'}}</button>
     </div>
   </div>

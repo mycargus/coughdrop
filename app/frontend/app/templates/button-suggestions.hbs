@@ -16,7 +16,18 @@
       <li role="presentation" class={{if fringe 'active'}}><a href="#" {{action 'select_list' 'fringe'}}>{{t "Fringe Words" key='fringe_words'}}</a></li>
       <li role="presentation" class={{if recordings 'active'}}><a href="#" {{action 'select_list' 'recordings'}}>{{t "Recordings" key='recordings'}}</a></li>
       <li role="presentation" class={{if requests 'active'}}><a href="#" {{action 'select_list' 'requests'}}>{{t "Requests" key='requests'}}</a></li>
+      <li role="presentation" class={{if extras 'active'}}><a href="#" {{action 'select_list' 'extras'}}>{{t "Extras" key='extras'}}</a></li>
     </ul>
+    {{#if extras}}
+      {{t "You can search for images and pictures from Tar Heel Reader, yo!" key='extras_explainer'}}
+      <div style='margin-top: 10px;'>
+        <span style='display: inline-block; width: 300px;'>
+          {{input type='text' value=extras_search class='form-control'}}
+        </span>
+        <button class='btn btn-default' {{action 'search_extras'}}>{{t "Go" key='go'}}</button>
+      </div>
+    {{/if}}
+
     {{#if list.loading}}
       <p>{{t "Loading data..." key='loading_data'}}</p>
     {{else if list.error}}
@@ -48,27 +59,49 @@
           </span>
         {{/if}}
         <div style='clear: both; margin-bottom: 10px;'></div>
-        <div class='btn-group-vertical' style='width: 100%; cursor: default;'>
-          {{#each category.items as |item|}}
-            <span class='btn btn-default' style='height: 50px; text-align: left;'>
-              <span style='float: right;'>
-                <button class='btn btn-default' disabled={{full}} {{action 'add_item' item}}>{{t "add" key='add'}}</button>
-              </span>
-              <span class={{if item.used 'text-muted'}} style='font-size: 20px;'>
-                {{#if item.used}}
-                  <span class='glyphicon glyphicon-ok'></span>&nbsp;&nbsp;
+        {{#if category.items.loading}}
+          <p>{{t "Loading data..." key='loading_data'}}</p>
+        {{else if category.items.error}}
+          <p>{{t "Error loading data" key='error_loading_data'}}</p>
+        {{else}}
+          <div class='btn-group-vertical' style='width: 100%; cursor: default;'>
+            {{#each category.items as |item|}}
+              <span class='btn btn-default' style={{if item.image 'height: 100px; text-align: left;' 'height: 50px; text-align: left;'}}>
+                <span style='float: right;'>
+                  <button class='btn btn-default' disabled={{full}} {{action 'add_item' item}}>{{t "add" key='add'}}</button>
+                </span>
+                {{#if item.image}}
+                  <div style='height: 80px; width: 80px; overflow: hidden; float: left; margin-right: 10px;'>
+                    <img src={{item.image}} style='width: 100%; max-height: 80px;' />
+                  </div>
                 {{/if}}
-                {{item.text}}
+                <span class={{if item.used 'text-muted'}} style='font-size: 20px; white-space: normal;'>
+                  {{#if item.used}}
+                    <span class='glyphicon glyphicon-ok'></span>&nbsp;&nbsp;
+                  {{/if}}
+                  {{item.text}}
+                </span>
+                <span style='clear: both;'></span>
               </span>
-              <span style='clear: right;'></span>
-            </span>
-          {{/each}}
-        </div>
+            {{/each}}
+          </div>
+        {{/if}}
       {{else if list.categories}}
         <div class='btn-group-vertical' style='width: 100%;'>
           {{#each list.categories as |category|}}
-            <button class='btn btn-default' style='height: 50px; text-align: left;' {{action 'select_category' category}}>
-              {{category.name}}
+            <button class='btn btn-default' style={{if category.image 'height: 100px; text-align: left;' 'height: 50px; text-align: left;'}} {{action 'select_category' category}}>
+              {{#if category.image}}
+                <span style='float: left; width: 80px; height: 80px; overflow: hidden; margin-right: 10px;'>
+                  <img src={{category.image}} style='width: 100%; max-height: 80px;' />
+                </span>
+              {{/if}}
+              {{#if category.sub_name}}
+                <strong>{{category.name}}</strong><br/>
+                {{category.sub_name}}
+              {{else}}
+                {{category.name}}
+              {{/if}}
+              <span style='clear: left;'></span>
             </button>
           {{/each}}
         </div>
@@ -77,18 +110,6 @@
       {{/if}}
     {{else}}
       <p>{{t "No data available" key='no_data_available'}}</p>
-      <p style='white-space: pre;'>
-        - pick a user, if supervisor
-          - if only in one user's board, default to them
-          - otherwise default to first matching user
-          - otherwise self
-        - missing core words
-        - suggestions for fringe words
-        - recorded phrases
-          - organize by categories if used, with fallback cluster
-        - show a check or something for items already used
-        - show an add button
-      </p>
     {{/if}}
   </div>
 {{/modal-dialog}}
