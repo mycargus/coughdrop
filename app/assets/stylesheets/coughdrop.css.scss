@@ -864,6 +864,11 @@ footer .wide_links {
   height: 100px;
   border: 1px solid #eee;
   margin-left: -1px;
+  margin-right: -1px;
+  padding-left: 13px;
+  font-size: 9px;
+  white-space: nowrap;
+  
   span {
     display: inline-block;
     margin-top: 40px;
