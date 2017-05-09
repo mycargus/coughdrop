@@ -328,4 +328,53 @@ describe Api::SearchController, :type => :controller do
       })
     end
   end
+  
+  describe "external_resources" do
+    it 'should require api token' do
+      get :external_resources
+      assert_missing_token
+    end
+    
+    it 'should require a valid user_name if specified' do
+      token_user
+      get :external_resources, params: {'user_name' => 'asdf'}
+      assert_not_found('asdf')
+    end
+    
+    it 'should require authorization if user_name specified' do
+      token_user
+      u = User.create
+      get :external_resources, params: {'user_name' => u.user_name}
+      assert_unauthorized
+    end
+    
+    it 'should not require authorization if user_name not specified' do
+      token_user
+      expect(Uploader).to receive(:find_resources).with('a', 'b', @user).and_return([])
+      get :external_resources, params: {'q' => 'a', 'source' => 'b'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json).to eq([])
+    end
+    
+    it 'should lookup for the specified user' do
+      token_user
+      u = User.create
+      User.link_supervisor_to_user(@user, u, nil, true)
+      expect(Uploader).to receive(:find_resources).with('a', 'b', u).and_return([])
+      get :external_resources, params: {'q' => 'a', 'source' => 'b', 'user_name' => u.user_name}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json).to eq([])
+    end
+    
+    it 'should call Uploader and return results' do
+      token_user
+      expect(Uploader).to receive(:find_resources).with('a', 'b', @user).and_return([{a: 1}, {b: 1}])
+      get :external_resources, params: {'q' => 'a', 'source' => 'b'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json).to eq([{'a' => 1}, {'b' => 1}])
+    end
+  end
 end
