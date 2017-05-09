@@ -227,6 +227,49 @@ describe UserIntegration, :type => :model do
       expect(ui.settings['user_settings']['b']['value_crypt']).to_not eq(nil)
       expect(ui.settings['user_settings']['b']['salt']).to_not eq(nil)
     end
+
+    it "should properly hash passwords" do
+      u = User.create
+      template = UserIntegration.create(template: true, integration_key: 'panda', settings: {
+        'user_parameters' => [
+          {
+            'name' => 'a',
+            'label' => 'A'
+          },
+          {
+            'name' => 'b',
+            'type' => 'password',
+            'hash' => 'md5'
+          },
+          {
+            'name' => 'c',
+            'type' => 'password',
+            'hash' => 'md5',
+            'downcase' => true
+          }
+        ]
+      })
+      ui = UserIntegration.process_new({
+        'integration_key' => 'panda',
+        'user_parameters' => [
+          {'name' => 'a', 'value' => 'aaa'},
+          {'name' => 'b', 'value' => 'bbb'},
+          {'name' => 'c', 'value' => 'ccc'}
+        ]
+      }, {'user' => u})
+      expect(ui.errored?).to eq(false)
+      expect(ui.template_integration).to eq(template)
+      expect(ui.settings['user_settings']).to_not eq(nil)
+      expect(ui.settings['user_settings']['a']).to eq({'label' => 'A', 'value' => 'aaa', 'type' => nil})
+      expect(ui.settings['user_settings']['b']['value']).to eq(nil)
+      expect(ui.settings['user_settings']['b']['value_crypt']).to_not eq(nil)
+      expect(ui.settings['user_settings']['b']['salt']).to_not eq(nil)
+      expect(Security.decrypt(ui.settings['user_settings']['b']['value_crypt'], ui.settings['user_settings']['b']['salt'], 'integration_password')).to eq('bbb')
+      expect(ui.settings['user_settings']['c']['value']).to eq(nil)
+      expect(ui.settings['user_settings']['c']['value_crypt']).to_not eq(nil)
+      expect(ui.settings['user_settings']['c']['salt']).to_not eq(nil)
+      expect(Security.decrypt(ui.settings['user_settings']['c']['value_crypt'], ui.settings['user_settings']['c']['salt'], 'integration_password')).to eq('ccc')
+    end    
     
     it "should confirm recognized integrations actually work" do
       u = User.create

@@ -126,6 +126,9 @@ class UserIntegration < ActiveRecord::Base
           }
           value = user_param['value']
           if template_param['type'] == 'password'
+            if template_param['downcase']
+              value = value.downcase
+            end
             if template_param['hash'] == 'md5'
               value = Digest::MD5.hexdigest(value)
             end

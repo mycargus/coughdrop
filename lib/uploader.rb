@@ -190,7 +190,7 @@ module Uploader
       password_md5 = Security.decrypt(opts.settings['user_settings']['password']['value_crypt'], opts.settings['user_settings']['password']['salt'], 'integration_password')
     elsif opts.is_a?(Hash)
       username = opts['username']
-      password_md5 = Digest::MD5.hexdigest(opts['password'] || '')
+      password_md5 = Digest::MD5.hexdigest((opts['password'] || '').downcase)
     else
       return nil
     end
