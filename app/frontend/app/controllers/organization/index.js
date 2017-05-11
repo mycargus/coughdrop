@@ -158,10 +158,19 @@ export default Ember.Controller.extend({
     },
     new_user: function(attr) {
       var _this = this;
-      modal.open('new-user', {default_org_management_action: attr, organization_id: this.get('model.id')}).then(function(res) {
+
+      modal.open('new-user', {default_org_management_action: attr, organization_id: this.get('model.id'), no_licenses: this.get('no_licenses')}).then(function(res) {
         if(res && res.created) {
           if(res.user && res.user.get('org_management_action')) {
+            // because of the way we hash all user/org settings, this doesn't always get
+            // updated reliably, so we repeat ourselves rather than risk losing the result.
             _this.send('management_action', res.user.get('org_management_action'), res.user.get('user_name'));
+            Ember.run.later(function() {
+              _this.send('management_action', res.user.get('org_management_action'), res.user.get('user_name'));
+            }, 1000);
+            Ember.run.later(function() {
+              _this.send('management_action', res.user.get('org_management_action'), res.user.get('user_name'));
+            }, 5000);
           }
         }
       });

@@ -20,15 +20,22 @@ export default modal.ModalController.extend({
     this.set('model.user.org_management_action', this.get('model.default_org_management_action'));
   },
   user_types: function() {
-    return [
-      {id: '', name: i18n.t('select_user_type', "[ Add This User As ]")},
-      {id: 'add_user', name: i18n.t('add_sponsored_used', "Add this User As a Sponsored Communicator")},
-      {id: 'add_unsponsored_user', name: i18n.t('add_unsponsored_used', "Add this User As an Unsponsored Communicator")},
-      {id: 'add_supervisor', name: i18n.t('add_supervisor', "Add this User As a Supervisor")},
-      {id: 'add_manager', name: i18n.t('add_manager', "Add this User As a Full Manager")},
-      {id: 'add_assistant', name: i18n.t('add_assistant', "Add this User As a Management Assistant")},
-    ];
-  }.property(),
+    var res = [];
+    res.push({id: '', name: i18n.t('select_user_type', "[ Add This User As ]")});
+    if(this.get('model.no_licenses')) {
+      res.push({id: 'add_user', disabled: true, name: i18n.t('add_sponsored_used', "Add this User As a Sponsored Communicator")});
+      if(this.get('model.user.org_management_action') == 'add_user') {
+        this.set('model.user.org_management_action', 'add_unsponsored_user');
+      }
+    } else {
+      res.push({id: 'add_user', name: i18n.t('add_sponsored_used', "Add this User As a Sponsored Communicator")});
+    }
+    res.push({id: 'add_unsponsored_user', name: i18n.t('add_unsponsored_used', "Add this User As an Unsponsored Communicator")});
+    res.push({id: 'add_supervisor', name: i18n.t('add_supervisor', "Add this User As a Supervisor")});
+    res.push({id: 'add_manager', name: i18n.t('add_manager', "Add this User As a Full Manager")});
+    res.push({id: 'add_assistant', name: i18n.t('add_assistant', "Add this User As a Management Assistant")});
+    return res;
+  }.property('model.no_licenses'),
   actions: {
     add: function() {
       var controller = this;

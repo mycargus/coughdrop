@@ -91,6 +91,10 @@ module Subscription
       if new_org
         new_org.attach_user(self, 'user', {'approved_user' => !pending, 'sponsored_user' => sponsored})
         self.settings['managed_by'] = {}
+        # if already there and not pending, don't re-set to pending
+        if self.settings['managed_by'][new_org.global_id] && !self.settings['managed_by'][new_org.global_id]['pending']
+          pending = false
+        end
         self.settings['managed_by'][new_org.global_id] = {
           'added' => Time.now.iso8601,
           'sponsored' => sponsored,

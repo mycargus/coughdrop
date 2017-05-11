@@ -462,6 +462,7 @@ class Organization < ActiveRecord::Base
     pending = user.settings['managed_by'] && user.settings['managed_by'][self.global_id] && user.settings['managed_by'][self.global_id]['pending']
     raise "already associated with a different organization" if for_different_org
     user.update_subscription_organization(nil)
+    self.detach_user(user, 'user')
     notify('org_removed', {
       'user_id' => user.global_id,
       'user_type' => 'user',
