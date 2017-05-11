@@ -1139,6 +1139,14 @@ footer .wide_links {
   background: #fff;
   border-color: #aaa;
 }
+.board.grid_hidden_buttons:not(.edit) .button.empty {
+  visibility: visible;
+  * {
+    visibility: hidden;
+  }
+  background: #fff;
+  border-color: #aaa;
+}
 .board.hint_hidden_buttons:not(.edit) .button.hidden_button {
   visibility: visible;
   opacity: 0.2;
