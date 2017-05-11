@@ -364,7 +364,6 @@ var stashes = Ember.Object.extend({
       var sixty_minutes_ago = (new Date()).getTime() - (60 * 60 * 1000);
       var six_hours_ago = (new Date()).getTime() - (6 * 60 * 60 * 1000);
       if(last_event && last_event.timestamp > pause && last_event < sixty_minutes_ago) {
-      // TEMP:
 //         modal.warning(i18n.t('logging_resumed', "Logging has resumed automatically after at least an hour of inactivity"));
         if(stashes.controller) {
           stashes.controller.set('logging_paused_at', null);

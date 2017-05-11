@@ -58,7 +58,11 @@ export default modal.ModalController.extend({
   }.property('model.progress.subscription_set'),
   actions: {
     intro: function() {
-      modal.open('intro');
+      if(window.ga) {
+        window.ga('send', 'event', 'Setup', 'start', 'Setup started');
+      }
+      modal.close();
+      this.transitionToRoute('setup');
     },
     app_install: function() {
       modal.open('add-app');

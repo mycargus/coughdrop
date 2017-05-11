@@ -264,7 +264,8 @@ export default Ember.Controller.extend({
       }
     },
     getting_started: function() {
-      modal.open('getting-started', {progress: app_state.get('currentUser.preferences.progress')});
+      this.transitionToRoute('setup');
+//       modal.open('getting-started', {progress: app_state.get('currentUser.preferences.progress')});
     },
     record_note: function(user) {
       Ember.set(user, 'avatar_url_with_fallback', Ember.get(user, 'avatar_url'));
@@ -303,7 +304,7 @@ export default Ember.Controller.extend({
     },
     intro: function() {
       if(window.ga) {
-        return window.ga('send', 'event', 'Setup', 'start', 'Setup started');
+        window.ga('send', 'event', 'Setup', 'start', 'Setup started');
       }
       this.transitionToRoute('setup');
     },
