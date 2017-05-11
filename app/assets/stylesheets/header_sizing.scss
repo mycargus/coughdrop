@@ -52,6 +52,9 @@ header {
         max-width: 60px;
       }
     }
+    &.text_only .history_button img{
+      margin-top: -24px;
+    }
   }
   #blank_status {
     text-align: left; 
@@ -111,6 +114,9 @@ header {
             height: 26px; 
             max-width: 30px;
           }
+        }
+        &.text_only .history_button img{
+          margin-top: -16px;
         }
       }
       #blank_status {
@@ -191,6 +197,9 @@ header {
             max-width: 90px;
           }
         }
+        &.text_only .history_button img{
+          margin-top: -31px;
+        }
       }
       #blank_status {
         font-size: 18px;
@@ -265,6 +274,9 @@ header {
             height: 100px; 
             max-width: 140px;
           }
+        }
+        &.text_only .history_button img{
+          margin-top: -53px;
         }
       }
       #blank_status {
@@ -347,6 +359,9 @@ header {
             height: 120px; 
             max-width: 140px;
           }
+        }
+        &.text_only .history_button img{
+          margin-top: -63px;
         }
       }
       #blank_status {

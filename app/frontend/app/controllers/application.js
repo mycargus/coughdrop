@@ -551,8 +551,13 @@ export default Ember.Controller.extend({
     if(speecher.text_direction() == 'rtl' || stashes.get('root_board_state.text_direction') == 'rtl') {
       res = res + "rtl ";
     }
+    var text_position = (app_state.get('currentUser.preferences.device.button_text_position') || window.user_preferences.device.button_text_position);
+    if(text_position == 'text_only') {
+      res = res + "text_only ";
+    }
+
     return res;
-  }.property('stashes.ghost_utterance', 'stashes.root_board_state.text_direction', 'extras.eye_gaze_state', 'app_state.empty_board_history'),
+  }.property('stashes.ghost_utterance', 'stashes.root_board_state.text_direction', 'extras.eye_gaze_state', 'app_state.empty_board_history', 'app_state.currentUser.preferences.device.button_text_position'),
   no_paint_mode_class: function() {
     var res = "btn ";
     if(this.get('board.paint_mode')) {

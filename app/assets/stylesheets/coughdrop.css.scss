@@ -454,6 +454,11 @@ footer .wide_links {
   display: inline-block; 
   overflow-x: auto;
   overflow-y: scroll;
+  &.text_only {
+    .history_button img {
+      visibility: hidden;
+    }
+  }
 }
 .button_list.with_back {
   width: -webkit-calc(100% - 202px);
