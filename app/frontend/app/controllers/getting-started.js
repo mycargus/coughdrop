@@ -61,8 +61,8 @@ export default modal.ModalController.extend({
       if(window.ga) {
         window.ga('send', 'event', 'Setup', 'start', 'Setup started');
       }
-      modal.close();
       this.transitionToRoute('setup');
+      modal.close();
     },
     app_install: function() {
       modal.open('add-app');
