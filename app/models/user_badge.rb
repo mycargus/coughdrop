@@ -350,6 +350,7 @@ class UserBadge < ActiveRecord::Base
           session.data['assessment']['totals']['correct'] = valid ? 1 : 0
           session.data['assessment']['totals']['incorrect'] = valid ? 0 : 1
           session.data['assessment']['automatic'] = true
+          session.instance_variable_set('@goal_clustering_scheduled', true)
           session.save
         end
         units = []
