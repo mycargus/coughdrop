@@ -694,14 +694,14 @@ footer .wide_links {
 }
 .board .button:hover {
   border-width: 2px;
-  &.hidden_button {
+  &.hidden_button, &.empty {
     border-width: 1px;
   }
 }
 .board .button.touched, .board .button:focus {
   padding-top: 0px;
   border-width: 5px;
-  &.hidden_button {
+  &.hidden_button, &.empty {
     border-width: 1px;
   }
 }
