@@ -20,7 +20,10 @@ Giver: <%= @gift.giver.user_name %><br/>
 <% elsif @gift.settings['giver_email'] %>
 Giver: <%= @gift.settings['giver_email'] %><br/>
 <% end %>
-Duration: <%= @gift.duration %><br/><br/>
+<% if @gift.settings['plan_id'] %>
+  Plan: <%= @gift.settings['plan_id'] %><br/>
+<% end %>
+Cloud Extras For: <%= @gift.duration %><br/><br/>
 <% end %>
 
 Thanks!<br/>
