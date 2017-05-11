@@ -117,6 +117,9 @@ var capabilities;
         }
         capabilities.credentials = capabilities.auth_credentials;
         capabilities.access_token = auth_settings.access_token;
+        if(window.Keyboard && window.Keyboard.shrinkView) {
+          window.Keyboard.shrinkView(false);
+        }
 
         return res;
       },
