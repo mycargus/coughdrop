@@ -573,6 +573,17 @@ export default Ember.Controller.extend({
   text_position: function() {
     return "text_position_" + (app_state.get('currentUser.preferences.device.button_text_position') || window.user_preferences.device.button_text_position);
   }.property('app_state.currentUser.preferences.device.button_text_position'),
+  symbol_background: function() {
+    var bg = app_state.get('currentUser.preferences.symbol_background');
+    if(!bg) {
+      if(app_state.get('currentUser')) {
+        bg = 'white';
+      } else {
+        bg = window.user_preferences.any_user.symbol_background;
+      }
+    }
+    return "symbol_background_" + bg;
+  }.property('app_state.currentUser.preferences.symbol_background'),
   border_style: function() {
     var spacing = app_state.get('currentUser.preferences.device.button_border') || window.user_preferences.device.button_border;
     return "border_" + spacing;
@@ -618,6 +629,9 @@ export default Ember.Controller.extend({
     }
     if(this.get('text_position')) {
       res = res + this.get('text_position') + " ";
+    }
+    if(this.get('symbol_background')) {
+      res = res + this.get('symbol_background') + " ";
     }
     if(this.get('button_style')) {
       var style = Button.style(this.get('button_style'));

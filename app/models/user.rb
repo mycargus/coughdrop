@@ -188,7 +188,8 @@ class User < ActiveRecord::Base
         'default_sidebar_boards' => default_sidebar_boards,
         'blank_status' => false,
         'word_suggestion_images' => true,
-        'hidden_buttons' => 'grid'
+        'hidden_buttons' => 'grid',
+        'symbol_background' => 'clear'
       },
       'authenticated_user' => {
         'long_press_edit' => true,
@@ -228,6 +229,9 @@ class User < ActiveRecord::Base
     end
     if !FeatureFlags.user_created_after?(self, 'hidden_buttons')
       self.settings['preferences']['hidden_buttons'] = 'hide' if self.settings['preferences']['hidden_buttons'] == nil
+    end
+    if !FeatureFlags.user_created_after?(self, 'symbol_background')
+      self.settings['preferences']['symbol_background'] = 'white' if self.settings['preferences']['symbol_background'] == nil
     end
     User.preference_defaults['any_user'].each do |attr, val|
       self.settings['preferences'][attr] = val if self.settings['preferences'][attr] == nil
@@ -439,7 +443,8 @@ class User < ActiveRecord::Base
       'canvas_render', 'blank_status', 'share_notifications', 'notification_frequency',
       'skip_supervisee_sync', 'sync_refresh_interval', 'multi_touch_modeling',
       'goal_notifications', 'word_suggestion_images', 'hidden_buttons',
-      'speak_on_speak_mode', 'ever_synced', 'folder_icons', 'allow_log_reports']
+      'speak_on_speak_mode', 'ever_synced', 'folder_icons', 'allow_log_reports',
+      'symbol_background']
 
   PROGRESS_PARAMS = ['setup_done', 'intro_watched', 'profile_edited', 'preferences_edited', 'home_board_set', 'app_added', 'skipped_subscribe_modal']
   def process_params(params, non_user_params)

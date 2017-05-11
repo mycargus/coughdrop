@@ -1118,9 +1118,7 @@ footer .wide_links {
   max-width: 100%;
   min-width: 100%;
 }
-.button img.symbol {
-  /* TODO: this is for consistency's sake, since some symbol sets have a white background
-     and others don't, but is it actually a good idea? */
+.symbol_background_white .button img.symbol {
   background: #fff; 
 }
 .button:hover {

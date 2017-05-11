@@ -197,6 +197,12 @@
     </div>
   </div>
   <div class="form-group">
+    <label for="symbol_background" class="col-sm-3 control-label">{{t "Image Background Color" key='symbol_background'}}</label>
+    <div class="col-sm-5">
+      {{bound-select select_class="form-control" select_id="symbol_background" content=symbolBackgroundList selection=model.preferences.symbol_background action=(action (mut model.preferences.symbol_background)) }}
+    </div>
+  </div>
+  <div class="form-group">
     <label for="board_background" class="col-sm-3 control-label">{{t "Board Background Color" key='board_background'}}</label>
     <div class="col-sm-5">
       {{bound-select select_class="form-control" select_id="board_background" content=buttonBackgroundList selection=model.preferences.board_background action=(action (mut model.preferences.board_background)) }}

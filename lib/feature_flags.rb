@@ -15,7 +15,8 @@ module FeatureFlags
     'word_suggestion_images' => 'Jan 21, 2017',
     'hidden_buttons' => 'Feb 2, 2017',
     'browser_no_autosync' => 'Feb 22, 2017',
-    'folder_icons' => 'Mar 7, 2017'
+    'folder_icons' => 'Mar 7, 2017',
+    'symbol_background' => 'May 10, 2017'
   }
   def self.frontend_flags_for(user)
     flags = {}
