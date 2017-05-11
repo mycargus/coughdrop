@@ -45,6 +45,18 @@ export default Ember.Controller.extend({
     }
     return res;
   }.property('fake_user.preferences.device.button_text_position', 'app_state.currentUser.preferences.device.button_text_position'),
+  background: function() {
+    var res = {};
+    var user = app_state.get('currentUser') || this.get('fake_user');
+    if(user.get('preferences.device.symbol_background') == 'clear') {
+      res.clear = true;
+    } else if(user.get('preferences.device.symbol_background') == 'white') {
+      res.white = true;
+    } else {
+      res.clear = true;
+    }
+    return res;
+  }.property('fake_user.preferences.device.symbol_background', 'app_state.currentUser.preferences.device.symbol_background'),
   access: function() {
     var res = {};
     var user = app_state.get('currentUser') || this.get('fake_user');

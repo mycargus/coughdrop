@@ -1,6 +1,7 @@
 <div class='col-sm-10 col-sm-offset-1'>
   <p>{{t "Here in a moment we'll show you some different styles of home boards you can pick from. Before we do, let's decide on a couple things. Keep in mind that you can always change these settings later under \"Preferences\"." key='start_deciding'}}</p>
 </div>
+<div class='row'>
 <div class='col-sm-5 col-sm-offset-1'>
   <div class='setup_setting'>
     <label>{{t "How do you want buttons to appear?" key='text_placement'}}</label>
@@ -14,7 +15,7 @@
   <p>{{t "If you're not sure what to do, \"pictures with text above\" is a good default, it will allow the communicator to recognize intents based on pictures, and help develop literacy by learning the corresponding words over time." key='text_above_suggestion'}}</p>
 </div>
 <div class='col-sm-5' style='padding-top: 50px;'>
-  <div style='width: 200px; height: 200px; border-radius: 10px; border: 3px solid #888; text-align: center; margin: 0 auto;'>
+  <div style='width: 200px; height: 200px; border-radius: 10px; border: 3px solid rgb(0, 98, 246); text-align: center; margin: 0 auto; background-color: rgb(144, 189, 255);'>
     {{#if text_position.text_only}}
       <div style='font-size: 25px; text-align: center; margin-top: 80px;'>
         {{t "happy" key='happy'}}
@@ -25,7 +26,11 @@
           {{t "happy" key='happy'}}
         </div>
       {{/if}}
-      <img src='https://s3.amazonaws.com/opensymbols/libraries/arasaac/happy.png' style='width: 150px; height: 150px;'/>
+      {{#if background.white}}
+        <img src='https://s3.amazonaws.com/opensymbols/libraries/arasaac/happy.png' style='width: 150px; height: 150px; background: #fff;'/>
+      {{else}}
+        <img src='https://s3.amazonaws.com/opensymbols/libraries/arasaac/happy.png' style='width: 150px; height: 150px;'/>
+      {{/if}}
       {{#if text_position.text_on_bottom}}
         <div style='font-size: 25px; text-align: center;'>
           {{t "happy" key='happy'}}
@@ -34,3 +39,44 @@
     {{/if}}
   </div>
 </div>
+</div>
+{{#unless text_position.text_only}}
+<div class='row'>
+<div class='col-sm-5 col-sm-offset-1'>
+  <div class='setup_setting'>
+    <label>{{t "How do you want pictures to display?" key='symbol_background'}}</label>
+    <div class="btn-group-vertical" style="width: 100%;">
+      <a href="#" class={{if background.clear 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'device.symbol_background' 'clear'}} >{{t "With a background matching the button" key='clear_background'}}</a>
+      <a href="#" class={{if background.white 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'device.symbol_background' 'white'}} >{{t "Always with a white background" key='white_background'}}</a>
+    </div>
+  </div>
+
+  <p>{{t "For most users, matching the button color will work well and looks cleaner, but for some communicators having a white background on all images will help with contrast and recognition." key='background_suggestion'}}</p>
+</div>
+<div class='col-sm-5' style='padding-top: 50px;'>
+  <div style='width: 200px; height: 200px; border-radius: 10px; border: 3px solid rgb(246, 98, 0); text-align: center; margin: 0 auto; background-color: rgb(255, 189, 144);'>
+    {{#if text_position.text_only}}
+      <div style='font-size: 25px; text-align: center; margin-top: 80px;'>
+        {{t "frog" key='frog'}}
+      </div>
+    {{else}}
+      {{#if text_position.text_on_top}}
+        <div style='font-size: 25px; text-align: center;'>
+          {{t "frog" key='frog'}}
+        </div>
+      {{/if}}
+      {{#if background.white}}
+        <img src='https://s3.amazonaws.com/opensymbols/libraries/arasaac/frog.png' style='width: 150px; height: 150px; background: #fff;'/>
+      {{else}}
+        <img src='https://s3.amazonaws.com/opensymbols/libraries/arasaac/frog.png' style='width: 150px; height: 150px;'/>
+      {{/if}}
+      {{#if text_position.text_on_bottom}}
+        <div style='font-size: 25px; text-align: center;'>
+          {{t "frog" key='frog'}}
+        </div>
+      {{/if}}
+    {{/if}}
+  </div>
+</div>
+</div>
+{{/unless}}
