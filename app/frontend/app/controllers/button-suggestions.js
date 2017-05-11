@@ -51,7 +51,7 @@ export default modal.ModalController.extend({
       var buttons = this.get('model.board.button_set.buttons');
       if(buttons) {
         buttons.forEach(function(btn) {
-          if(btn.label && btn.label.toLowerCase() == opts.label.toLowerCase()) {
+          if(btn.label && opts.label && btn.label.toLowerCase() == opts.label.toLowerCase()) {
             found = true;
           } else if(btn.external_id && opts.external_id == btn.external_id) {
             found = true;
