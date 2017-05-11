@@ -69,7 +69,6 @@ class UserBadge < ActiveRecord::Base
       res << self.user if self.user
       res += self.user.supervisors if self.user
       res.select{|user|
-        user.settings['preferences']['goal_notifications'] && 
         FeatureFlags.feature_enabled_for?('goals', user)
       }.map(&:record_code)
     else

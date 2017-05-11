@@ -254,7 +254,7 @@ describe UserIntegration, :type => :model do
         'user_parameters' => [
           {'name' => 'a', 'value' => 'aaa'},
           {'name' => 'b', 'value' => 'bbb'},
-          {'name' => 'c', 'value' => 'ccc'}
+          {'name' => 'c', 'value' => 'cCc'}
         ]
       }, {'user' => u})
       expect(ui.errored?).to eq(false)
@@ -264,11 +264,11 @@ describe UserIntegration, :type => :model do
       expect(ui.settings['user_settings']['b']['value']).to eq(nil)
       expect(ui.settings['user_settings']['b']['value_crypt']).to_not eq(nil)
       expect(ui.settings['user_settings']['b']['salt']).to_not eq(nil)
-      expect(Security.decrypt(ui.settings['user_settings']['b']['value_crypt'], ui.settings['user_settings']['b']['salt'], 'integration_password')).to eq('bbb')
+      expect(Security.decrypt(ui.settings['user_settings']['b']['value_crypt'], ui.settings['user_settings']['b']['salt'], 'integration_password')).to eq(Digest::MD5.hexdigest('bbb'))
       expect(ui.settings['user_settings']['c']['value']).to eq(nil)
       expect(ui.settings['user_settings']['c']['value_crypt']).to_not eq(nil)
       expect(ui.settings['user_settings']['c']['salt']).to_not eq(nil)
-      expect(Security.decrypt(ui.settings['user_settings']['c']['value_crypt'], ui.settings['user_settings']['c']['salt'], 'integration_password')).to eq('ccc')
+      expect(Security.decrypt(ui.settings['user_settings']['c']['value_crypt'], ui.settings['user_settings']['c']['salt'], 'integration_password')).to eq(Digest::MD5.hexdigest('ccc'))
     end    
     
     it "should confirm recognized integrations actually work" do
