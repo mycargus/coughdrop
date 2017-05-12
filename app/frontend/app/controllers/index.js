@@ -298,7 +298,7 @@ export default Ember.Controller.extend({
     },
     intro_video: function(url) {
       if(window.ga) {
-        return window.ga('send', 'event', 'Intro', 'video', 'Intro video opened');
+        window.ga('send', 'event', 'Intro', 'video', 'Intro video opened');
       }
       modal.open('inline-video', {video: {url: url}, hide_overlay: true});
     },

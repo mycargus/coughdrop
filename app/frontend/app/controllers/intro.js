@@ -12,7 +12,7 @@ export default modal.ModalController.extend({
     this.set('page', 1);
     this.set('total_pages', 14);
     if(window.ga) {
-      return window.ga('send', 'event', 'Intro', 'start', 'Intro Modal Opened');
+      window.ga('send', 'event', 'Intro', 'start', 'Intro Modal Opened');
     }
   },
   set_pages: function() {

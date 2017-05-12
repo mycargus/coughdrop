@@ -217,13 +217,13 @@ export default Ember.Controller.extend({
     home: function(plus_video) {
       this.transitionToRoute('index');
       if(plus_video) {
-        if(window.ga) {
-          return window.ga('send', 'event', 'Setup', 'video', 'Setup Video Launched');
-        }
         modal.open('inline-video', {video: {url: "https://www.youtube.com/embed/gsxfLVhUbus?rel=0"}, hide_overlay: true});
+        if(window.ga) {
+          window.ga('send', 'event', 'Setup', 'video', 'Setup Video Launched');
+        }
       } else {
         if(window.ga) {
-          return window.ga('send', 'event', 'Setup', 'exit', 'Setup Concluded');
+          window.ga('send', 'event', 'Setup', 'exit', 'Setup Concluded');
         }
       }
     },
@@ -239,7 +239,7 @@ export default Ember.Controller.extend({
     extra: function() {
       app_state.controller.set('setup_order', order.concat(extra_order));
       if(window.ga) {
-        return window.ga('send', 'event', 'Setup', 'extra', 'Extra Setup Pursued');
+        window.ga('send', 'event', 'Setup', 'extra', 'Extra Setup Pursued');
       }
       Ember.run.later(function() {
         app_state.controller.send('setup_go', 'forward');
