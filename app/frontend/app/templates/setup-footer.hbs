@@ -4,6 +4,10 @@
       <span class='text-danger'>{{footer_status.error}}</span>
     {{else if footer_status.message}}
       {{footer_status.message}}
+    {{else}}
+      <span style='font-size: 14px;'>
+        {{#link-to 'index'}}{{t "Back to the Dashboard" key='done'}}{{/link-to}}
+      </span>
     {{/if}}
   </span>
   <div style='float: right;'>
