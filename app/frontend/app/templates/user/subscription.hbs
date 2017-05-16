@@ -33,7 +33,7 @@
         {{t "You've purchased a CoughDrop license, <b>%{plan}</b>. You've had access to cloud extras like reporting and team communication, but those will be expiring soon unless you update your purchase. Your account will continue working for communication, but access to cloud extras like reporting and team communication will expire " key='long_term_expiring' plan=subscription.subscription_plan_description}}<span style='white-space: nowrap;'>{{date subscription.user.subscription.expires}}</span>
       {{else}}
         <span class='glyphicon glyphicon-calendar' style="float: left; font-size: 30px; margin-right: 10px;"></span>
-        {{t "You've purchased a CoughDrop license, <b>%{plan}</b>. We hope everything is going well for you and CoughDrop is making a difference! You can use CoughDrop as long as you like, but keep in mind that access to cloud extras like reporting and team communication are set to expire " key='long_term_explanation' plan=subscription.subscription_plan_description}} <span style='white-space: nowrap;'>{{date subscription.user.subscription.expires}}</span>
+        {{t "You've purchased a CoughDrop license, <b>%{plan}</b>. We hope everything is going well for you and CoughDrop is making a difference! You can use CoughDrop as long as you like, but access to cloud extras like reporting and team communication are set to expire " key='long_term_explanation' plan=subscription.subscription_plan_description}} <span style='white-space: nowrap;'>{{date subscription.user.subscription.expires}}</span>
       {{/if}}
     {{else}}
       <span class='glyphicon glyphicon-info-sign' style="float: left; font-size: 30px; margin-right: 10px;"></span>
