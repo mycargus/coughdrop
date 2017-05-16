@@ -264,8 +264,8 @@ export default Ember.Controller.extend({
       }
     },
     getting_started: function() {
-      this.transitionToRoute('setup');
-//       modal.open('getting-started', {progress: app_state.get('currentUser.preferences.progress')});
+//      this.transitionToRoute('setup');
+       modal.open('getting-started', {progress: app_state.get('currentUser.preferences.progress')});
     },
     record_note: function(user) {
       Ember.set(user, 'avatar_url_with_fallback', Ember.get(user, 'avatar_url'));
