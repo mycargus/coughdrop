@@ -1131,6 +1131,11 @@ footer .wide_links {
 .button.hidden_button, .button.empty {
   visibility: hidden;
 }
+.board:not(.edit) .button.hidden_button {
+  .action_container {
+    visibility: hidden;
+  }
+}
 .board.grid_hidden_buttons:not(.edit) .button.hidden_button {
   visibility: visible;
   * {
@@ -1150,6 +1155,9 @@ footer .wide_links {
 .board.hint_hidden_buttons:not(.edit) .button.hidden_button {
   visibility: visible;
   opacity: 0.2;
+  .action_container {
+    visibility: visible;
+  }
   .action_container .action {
     display: block;
   }
