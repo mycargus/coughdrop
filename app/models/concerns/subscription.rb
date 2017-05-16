@@ -206,7 +206,7 @@ module Subscription
           res = false
         else
           self.clear_existing_subscription
-          if args['customer_id']
+          if args['customer_id'] || args['customer_id'] == nil
             if self.settings['subscription']['customer_id'] && self.settings['subscription']['customer_id'] != args['customer_id']
               self.settings['subscription']['prior_customer_ids'] ||= []
               self.settings['subscription']['prior_customer_ids'] << self.settings['subscription']['customer_id']

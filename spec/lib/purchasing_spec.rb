@@ -1226,4 +1226,202 @@ describe Purchasing do
       expect(u.subscription_events.map{|e| e['log'] }).to eq(['purchase initiated', 'paid subscription', 'long-term - creating charge', 'persisting long-term purchase update', 'subscription canceling'])
     end
   end
+  
+  it "should not clear subscription on modified second attempt with same token" do
+    u = User.create
+    Purchasing.purchase(u, {'id' => 'free'}, 'slp_monthly_free')
+    expect(u.reload.subscription_events.length).to eq(2)
+    expect(u.subscription_events[0]['log']).to eq('purchase initiated')
+    expect(u.subscription_events[0]['token']).to eq('fre..ree')
+    expect(u.subscription_events[1]['log']).to eq('subscription canceling')
+    expect(u.subscription_events[1]['reason']).to eq('all')
+    expect(u.subscription_hash['active']).to eq(true)
+    expect(u.subscription_hash['expires']).to eq(nil)
+    expect(u.subscription_hash['free_premium']).to eq(true)
+    expect(u.subscription_hash['grace_period']).to eq(false)
+    expect(u.subscription_hash['plan_id']).to eq('slp_monthly_free')
+    expect(u.subscription_hash['started']).to_not eq(nil)
+
+    expect(Stripe::Charge).to receive(:create).with({
+      :amount => 20000,
+      :currency => 'usd',
+      :source => 'tokenasdfasdf',
+      :description => 'communicator long-term purchase $200',
+      :receipt_email => nil,
+      :metadata => {
+        'user_id' => u.global_id,
+        'plan_id' => 'long_term_200'
+      }
+    }).and_return({
+      'id' => 'asdf',
+      'customer' => nil
+    })
+    Purchasing.purchase(u, {'id' => 'tokenasdfasdf'}, 'long_term_200')
+    expect(u.reload.subscription_events.length).to eq(9)
+    expect(u.reload.subscription_events[2]['log']).to eq('purchase initiated')
+    expect(u.reload.subscription_events[2]['token']).to eq('tok..sdf')
+    expect(u.reload.subscription_events[3]['log']).to eq('paid subscription')
+    expect(u.reload.subscription_events[4]['log']).to eq('long-term - creating charge')
+    expect(u.reload.subscription_events[5]['log']).to eq('persisting long-term purchase update')
+    expect(u.reload.subscription_events[6]['log']).to eq('subscription event triggered remotely')
+    expect(u.reload.subscription_events[6]['args']).to eq({
+      'customer_id' => nil,
+      'plan_id' => 'long_term_200',
+      'purchase' => true,
+      'purchase_id' => 'asdf',
+      'seconds_to_add' => 157788000,
+      'source' => 'new purchase',
+      'token_summary' => 'Unknown Card',
+      'user_id' => u.global_id
+    })
+    expect(u.reload.subscription_events[7]['log']).to eq('purchase notification triggered')
+    expect(u.reload.subscription_events[8]['log']).to eq('subscription canceling')
+    expect(u.reload.subscription_events[8]['reason']).to eq('all')
+    expect(u.subscription_hash['grace_period']).to eq(false)
+    expect(u.subscription_hash['active']).to eq(true)
+    expect(u.subscription_hash['purchased']).to eq(true)
+    expect(u.subscription_hash['plan_id']).to eq('long_term_200')
+    expect(u.subscription_hash['expires']).to_not eq(nil)
+    
+    req = stripe_event_request 'charge.succeeded', {
+      'id' => 'asdf',
+      'customer' => nil,
+      'metadata' => {
+        'user_id' => u.global_id,
+        'plan_id' => 'long_term_200'
+      }
+    }
+    Purchasing.subscription_event(req)
+    expect(u.reload.subscription_events.length).to eq(10)
+    expect(u.reload.subscription_events[9]['log']).to eq('subscription event triggered remotely')
+    expect(u.reload.subscription_events[9]['args']).to eq({
+      'customer_id' => nil,
+      'plan_id' => 'long_term_200',
+      'purchase' => true,
+      'purchase_id' => 'asdf',
+      'seconds_to_add' => 157788000,
+      'source' => 'charge.succeeded',
+      'user_id' => u.global_id
+    })
+    expect(u.subscription_hash['grace_period']).to eq(false)
+    expect(u.subscription_hash['active']).to eq(true)
+    expect(u.subscription_hash['purchased']).to eq(true)
+    expect(u.subscription_hash['plan_id']).to eq('long_term_200')
+    expect(u.subscription_hash['expires']).to_not eq(nil)
+    
+    # TODO: trigger remote callback event charge.succeeded
+
+    customer = OpenStruct.new({
+      subscriptions: []
+    })
+    expect(Stripe::Customer).to receive(:create).with({
+      :metadata => {
+        'user_id' => u.global_id
+      },
+      :email => nil
+    }).and_return(customer)
+    expect(customer.subscriptions).to receive(:create).with({
+      :plan => 'monthly_6',
+      :source => 'tokenasdfasdf'
+    }).and_raise("You cannot use a Stripe token more than once")
+    Purchasing.purchase(u, {'id' => 'tokenasdfasdf'}, 'monthly_6')
+    expect(u.reload.subscription_events.length).to eq(16)
+    expect(u.reload.subscription_events[10]['log']).to eq('purchase initiated')
+    expect(u.reload.subscription_events[10]['token']).to eq('tok..sdf')
+    expect(u.reload.subscription_events[11]['log']).to eq('paid subscription')
+    expect(u.reload.subscription_events[12]['log']).to eq('monthly subscription')
+    expect(u.reload.subscription_events[13]['log']).to eq('creating new customer')
+    expect(u.reload.subscription_events[14]['log']).to eq('new subscription for existing customer')
+    expect(u.reload.subscription_events[15]['error']).to eq('other_exception')
+    expect(u.reload.subscription_events[15]['err']).to match('You cannot use a Stripe token more than once')
+    expect(u.subscription_hash['grace_period']).to eq(false)
+    expect(u.subscription_hash['active']).to eq(true)
+    expect(u.subscription_hash['purchased']).to eq(true)
+    expect(u.subscription_hash['plan_id']).to eq('long_term_200')
+    expect(u.subscription_hash['expires']).to_not eq(nil)
+  end
+
+  it "should not clear subscription on failed second attempt with same token" do
+    u = User.create
+    Purchasing.purchase(u, {'id' => 'free'}, 'slp_monthly_free')
+    expect(u.reload.subscription_events.length).to eq(2)
+    expect(u.subscription_events[0]['log']).to eq('purchase initiated')
+    expect(u.subscription_events[0]['token']).to eq('fre..ree')
+    expect(u.subscription_events[1]['log']).to eq('subscription canceling')
+    expect(u.subscription_events[1]['reason']).to eq('all')
+    expect(u.subscription_hash['active']).to eq(true)
+    expect(u.subscription_hash['expires']).to eq(nil)
+    expect(u.subscription_hash['free_premium']).to eq(true)
+    expect(u.subscription_hash['grace_period']).to eq(false)
+    expect(u.subscription_hash['plan_id']).to eq('slp_monthly_free')
+    expect(u.subscription_hash['started']).to_not eq(nil)
+
+    expect(Stripe::Charge).to receive(:create).with({
+      :amount => 20000,
+      :currency => 'usd',
+      :source => 'tokenasdfasdf',
+      :description => 'communicator long-term purchase $200',
+      :receipt_email => nil,
+      :metadata => {
+        'user_id' => u.global_id,
+        'plan_id' => 'long_term_200'
+      }
+    }).and_return({
+      'id' => 'asdf',
+      'customer' => 'asdf'
+    })
+    Purchasing.purchase(u, {'id' => 'tokenasdfasdf'}, 'long_term_200')
+    expect(u.reload.subscription_events.length).to eq(9)
+    expect(u.reload.subscription_events[2]['log']).to eq('purchase initiated')
+    expect(u.reload.subscription_events[2]['token']).to eq('tok..sdf')
+    expect(u.reload.subscription_events[3]['log']).to eq('paid subscription')
+    expect(u.reload.subscription_events[4]['log']).to eq('long-term - creating charge')
+    expect(u.reload.subscription_events[5]['log']).to eq('persisting long-term purchase update')
+    expect(u.reload.subscription_events[6]['log']).to eq('subscription event triggered remotely')
+    expect(u.reload.subscription_events[6]['args']).to eq({
+      'customer_id' => 'asdf',
+      'plan_id' => 'long_term_200',
+      'purchase' => true,
+      'purchase_id' => 'asdf',
+      'seconds_to_add' => 157788000,
+      'source' => 'new purchase',
+      'token_summary' => 'Unknown Card',
+      'user_id' => u.global_id
+    })
+    expect(u.reload.subscription_events[7]['log']).to eq('purchase notification triggered')
+    expect(u.reload.subscription_events[8]['log']).to eq('subscription canceling')
+    expect(u.reload.subscription_events[8]['reason']).to eq('all')
+    expect(u.subscription_hash['grace_period']).to eq(false)
+    expect(u.subscription_hash['active']).to eq(true)
+    expect(u.subscription_hash['purchased']).to eq(true)
+    expect(u.subscription_hash['plan_id']).to eq('long_term_200')
+    expect(u.subscription_hash['expires']).to_not eq(nil)
+    
+    # TODO: trigger remote callback event charge.succeeded
+
+    expect(Stripe::Charge).to receive(:create).with({
+      :amount => 20000,
+      :currency => 'usd',
+      :source => 'tokenasdfasdf',
+      :description => 'communicator long-term purchase $200',
+      :receipt_email => nil,
+      :metadata => {
+        'user_id' => u.global_id,
+        'plan_id' => 'long_term_200'
+      }
+    }).and_raise("You cannot use a Stripe token more than once")
+    Purchasing.purchase(u, {'id' => 'tokenasdfasdf'}, 'long_term_200')
+    expect(u.reload.subscription_events.length).to eq(13)
+    expect(u.reload.subscription_events[9]['log']).to eq('purchase initiated')
+    expect(u.reload.subscription_events[9]['token']).to eq('tok..sdf')
+    expect(u.reload.subscription_events[10]['log']).to eq('paid subscription')
+    expect(u.reload.subscription_events[11]['log']).to eq('long-term - creating charge')
+    expect(u.reload.subscription_events[12]['error']).to eq('other_exception')
+    expect(u.reload.subscription_events[12]['err']).to match('You cannot use a Stripe token more than once')
+    expect(u.subscription_hash['grace_period']).to eq(false)
+    expect(u.subscription_hash['active']).to eq(true)
+    expect(u.subscription_hash['purchased']).to eq(true)
+    expect(u.subscription_hash['plan_id']).to eq('long_term_200')
+    expect(u.subscription_hash['expires']).to_not eq(nil)
+  end
 end
