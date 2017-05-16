@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import modal from '../utils/modal';
 import CoughDrop from '../app';
+import stashes from '../utils/_stashes';
 import app_state from '../utils/app_state';
 import i18n from '../utils/i18n';
 import editManager from '../utils/edit_manager';
@@ -14,6 +15,9 @@ export default modal.ModalController.extend({
         speech.continuous = true;
         this.set('speech', {engine: speech});
       }
+    }
+    if(stashes.get('new_board_labels_order')) {
+      this.set('model.grid.labels_order', stashes.get('new_board_labels_order'))
     }
 
     var locale = window.navigator.language.replace(/-/g, '_');
@@ -69,6 +73,15 @@ export default modal.ModalController.extend({
     }
     return res;
   }.property('too_many_labels'),
+  labels_order_list: [
+    {name: i18n.t('columns_first', "Populate buttons in columns, left to right"), id: "columns"},
+    {name: i18n.t('rows_first', "Populate buttons in rows, top to bottom"), id: "rows"}
+  ],
+  remember_labels_order: function() {
+    if(this.get('model.grid.labels_order')) {
+      stashes.persist('new_board_labels_order', this.get('model.grid.labels_order'));
+    }
+  }.observes('model.grid.labels_order'),
   speech_enabled: function() {
     return !!this.get('speech');
   }.property('speech'),

@@ -230,7 +230,7 @@ class Board < ActiveRecord::Base
       self.settings['grid']['order'] = self.settings['grid']['order'].slice(0, self.settings['grid']['rows'])
     end
     if self.settings['grid']['labels'] && self.settings['buttons'].length == 0
-      self.populate_buttons_from_labels(self.settings['grid'].delete('labels'))
+      self.populate_buttons_from_labels(self.settings['grid'].delete('labels'), self.settings['grid'].delete('labels_order'))
     end
     update_immediately_downstream_board_ids
     
@@ -292,7 +292,8 @@ class Board < ActiveRecord::Base
     self.settings['full_set_revision'] || self.current_revision || self.global_id
   end
   
-  def populate_buttons_from_labels(labels)
+  def populate_buttons_from_labels(labels, labels_order)
+    labels_order ||= 'columns'
     max_id = self.settings['buttons'].map{|b| b['id'].to_i || 0 }.max || 0
     idx = 0
     labels.split(/\n|,\s*/).each do |label|
@@ -306,9 +307,14 @@ class Board < ActiveRecord::Base
       }
       self.settings['buttons'] << button
       @buttons_changed = 'populated_from_labels'
-      
+
       row = idx % self.settings['grid']['rows']
       col = (idx - row) / self.settings['grid']['rows']
+      if labels_order == 'rows'
+        col = idx % self.settings['grid']['columns']
+        row = (idx - col) / self.settings['grid']['columns']
+      end  
+
       if row < self.settings['grid']['rows'] && col < self.settings['grid']['columns']
         self.settings['grid']['order'][row][col] = button['id']
       end

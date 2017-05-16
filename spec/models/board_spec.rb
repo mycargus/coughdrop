@@ -490,7 +490,7 @@ describe Board, :type => :model do
       b = Board.new
       b.generate_defaults
       b.settings['buttons'] = [{'id' => 4}]
-      b.populate_buttons_from_labels("a,b,c,d,e\nf,g\nbacon and eggs,t,q")
+      b.populate_buttons_from_labels("a,b,c,d,e\nf,g\nbacon and eggs,t,q", 'columns')
       expect(b.settings['buttons'][1]).to eq({'id' => 5, 'label' => "a", 'suggest_symbol' => true})
       expect(b.settings['buttons'][2]).to eq({'id' => 6, 'label' => "b", 'suggest_symbol' => true})
       expect(b.settings['buttons'][3]).to eq({'id' => 7, 'label' => "c", 'suggest_symbol' => true})
@@ -501,13 +501,32 @@ describe Board, :type => :model do
       expect(b.settings['buttons'][8]).to eq({'id' => 12, 'label' => "bacon and eggs", 'suggest_symbol' => true})
       expect(b.settings['buttons'][9]).to eq({'id' => 13, 'label' => "t", 'suggest_symbol' => true})
       expect(b.settings['buttons'][10]).to eq({'id' => 14, 'label' => "q", 'suggest_symbol' => true})
+      expect(b.settings['grid']['order']).to eq([[5, 7, 9, 11], [6, 8, 10, 12]])
+    end
+
+    it "should add new buttons with the specified labels in row-first order" do
+      b = Board.new
+      b.generate_defaults
+      b.settings['buttons'] = [{'id' => 4}]
+      b.populate_buttons_from_labels("a,b,c,d,e\nf,g\nbacon and eggs,t,q", 'rows')
+      expect(b.settings['buttons'][1]).to eq({'id' => 5, 'label' => "a", 'suggest_symbol' => true})
+      expect(b.settings['buttons'][2]).to eq({'id' => 6, 'label' => "b", 'suggest_symbol' => true})
+      expect(b.settings['buttons'][3]).to eq({'id' => 7, 'label' => "c", 'suggest_symbol' => true})
+      expect(b.settings['buttons'][4]).to eq({'id' => 8, 'label' => "d", 'suggest_symbol' => true})
+      expect(b.settings['buttons'][5]).to eq({'id' => 9, 'label' => "e", 'suggest_symbol' => true})
+      expect(b.settings['buttons'][6]).to eq({'id' => 10, 'label' => "f", 'suggest_symbol' => true})
+      expect(b.settings['buttons'][7]).to eq({'id' => 11, 'label' => "g", 'suggest_symbol' => true})
+      expect(b.settings['buttons'][8]).to eq({'id' => 12, 'label' => "bacon and eggs", 'suggest_symbol' => true})
+      expect(b.settings['buttons'][9]).to eq({'id' => 13, 'label' => "t", 'suggest_symbol' => true})
+      expect(b.settings['buttons'][10]).to eq({'id' => 14, 'label' => "q", 'suggest_symbol' => true})
+      expect(b.settings['grid']['order']).to eq([[5, 6, 7, 8], [9, 10, 11, 12]])
     end
     
     it "should put the new button in its proper location on the grid if there is one" do
       b = Board.new
       b.generate_defaults
       b.settings['buttons'] = [{'id' => 4}]
-      b.populate_buttons_from_labels("a,b,c,d,e\nf,g\nbacon and eggs,t,q")
+      b.populate_buttons_from_labels("a,b,c,d,e\nf,g\nbacon and eggs,t,q", 'columns')
       expect(b.settings['grid']['order']).to eq([[5, 7, 9, 11],[6, 8, 10, 12]])
     end
   end
