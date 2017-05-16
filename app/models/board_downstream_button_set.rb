@@ -66,6 +66,8 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
             'label' => button['label'],
             'vocalization' => button['vocalization'],
             'link_disabled' => !!button['link_disabled'],
+            'border_color' => button['border_color'],
+            'background_color' => button['background_color'],
             'depth' => bv[:depth] || 0
           }
           # check for any linked buttons
