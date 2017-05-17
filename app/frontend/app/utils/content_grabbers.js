@@ -346,15 +346,15 @@ var contentGrabbers = Ember.Object.extend({
   },
   capture_types: function() {
     var res = {};
-    if(navigator.device && navigator.device.capture && navigator.device.capture.captureAudio)) {
+    if(navigator.device && navigator.device.capture && navigator.device.capture.captureAudio) {
       if(capabilities.subsystem != 'Kindle') {
         res.audio = true;
       }
     }
-    if(navigator.device && navigator.device.capture && navigator.device.capture.captureImage)) {
+    if(navigator.device && navigator.device.capture && navigator.device.capture.captureImage) {
       res.image = true;
     }
-    if(navigator.device && navigator.device.capture && navigator.device.capture.captureVideo)) {
+    if(navigator.device && navigator.device.capture && navigator.device.capture.captureVideo) {
       if(capabilities.subsystem != 'Kindle') {
         res.video = true;
       }
@@ -1254,7 +1254,7 @@ var videoGrabber = Ember.Object.extend({
     });
   },
   recorder_available: function() {
-    return !!(capabilities.subsystem != 'Kindle') && (navigator.getUserMedia || contentGrabbers.capture_types().video));
+    return !!(capabilities.subsystem != 'Kindle' && (navigator.getUserMedia || contentGrabbers.capture_types().video));
   },
   record_video: function() {
     var _this = this;
