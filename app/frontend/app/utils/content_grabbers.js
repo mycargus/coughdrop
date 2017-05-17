@@ -1855,7 +1855,11 @@ var soundGrabber = Ember.Object.extend({
         });
       };
       a.onerror = function() {
-        reject({error: "sound calculation failed"});
+        if(capabilities.installed_app) {
+          resolve({duration: 1});
+        } else {
+          reject({error: "sound calculation failed"});
+        }
       };
       a.src = preview.url;
     });
