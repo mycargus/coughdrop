@@ -6,6 +6,7 @@ import persistence from './persistence';
 import coughDropExtras from './extras';
 import modal from './modal';
 import stashes from './_stashes';
+import capabilities from './capabilities';
 import app_state from './app_state';
 import Utils from './misc';
 import progress_tracker from './progress_tracker';
@@ -342,6 +343,23 @@ var contentGrabbers = Ember.Object.extend({
       pictureGrabber.save_pending();
       return Ember.RSVP.resolve({ready: true});
     });
+  },
+  capture_types: function() {
+    var res = {};
+    if(navigator.device && navigator.device.capture && navigator.device.capture.captureAudio)) {
+      if(capabilities.subsystem != 'Kindle') {
+        res.audio = true;
+      }
+    }
+    if(navigator.device && navigator.device.capture && navigator.device.capture.captureImage)) {
+      res.image = true;
+    }
+    if(navigator.device && navigator.device.capture && navigator.device.capture.captureVideo)) {
+      if(capabilities.subsystem != 'Kindle') {
+        res.video = true;
+      }
+    }
+    return res;
   },
   file_type_extensions: {
     'image/png': '.png',
@@ -1014,7 +1032,7 @@ var pictureGrabber = Ember.Object.extend({
     }
   },
   webcam_available: function() {
-    return !!(navigator.getUserMedia || (navigator.device && navigator.device.capture && navigator.device.capture.captureImage));
+    return !!(navigator.getUserMedia || contentGrabbers.capture_types().image);
   },
   user_media_ready: function(stream, stream_id) {
     var video = document.querySelector('#webcam_video');
@@ -1068,7 +1086,7 @@ var pictureGrabber = Ember.Object.extend({
   start_webcam: function() {
     var _this = this;
     // TODO: cross-browser
-    if(navigator.device && navigator.device.capture && navigator.device.capture.captureImage) {
+    if(navigator.device && contentGrabbers.capture_types().image) {
       navigator.device.capture.captureImage(function(files) {
         var media_file = files[0];
         var file = new window.File(media_file.name, media_file.localURL, media_file.type, media_file.lastModifiedDate, media_file.size);
@@ -1236,7 +1254,7 @@ var videoGrabber = Ember.Object.extend({
     });
   },
   recorder_available: function() {
-    return !!(navigator.getUserMedia || (navigator.device && navigator.device.capture && navigator.device.capture.captureVideo));
+    return !!(capabilities.subsystem != 'Kindle') && (navigator.getUserMedia || contentGrabbers.capture_types().video));
   },
   record_video: function() {
     var _this = this;
@@ -1246,7 +1264,7 @@ var videoGrabber = Ember.Object.extend({
     });
     this.controller.set('video_preview', null);
 
-    if(navigator.device && navigator.device.capture && navigator.device.capture.captureVideo) {
+    if(contentGrabbers.capture_types().video) {
       navigator.device.capture.captureVideo(function(files) {
         var media_file = files[0];
         var file = new window.File(media_file.name, media_file.localURL, media_file.type, media_file.lastModifiedDate, media_file.size);
@@ -1663,7 +1681,7 @@ var soundGrabber = Ember.Object.extend({
     }
   },
   recorder_available: function() {
-    return !!(navigator.getUserMedia || (navigator.device && navigator.device.capture && navigator.device.capture.captureAudio));
+    return !!(capabilities.subsystem != 'Kindle' && (navigator.getUserMedia || contentGrabbers.capture_types.audio));
   },
   record_sound: function(auto_loading) {
     var _this = this;
@@ -1764,13 +1782,13 @@ var soundGrabber = Ember.Object.extend({
       }, function() {
         console.log("permission not granted");
       });
-    } else if(!auto_loading && navigator.device && navigator.device.capture && navigator.device.capture.captureAudio) {
+    } else if(!auto_loading && contentGrabbers.capture_types().audio) {
       this.native_record_sound();
     }
   },
   native_record_sound: function() {
     var _this = this;
-    if(navigator.device && navigator.device.capture && navigator.device.capture.captureAudio) {
+    if(contentGrabbers.capture_types().audio) {
       navigator.device.capture.captureAudio(function(files) {
         var media_file = files[0];
         var file = new window.File(media_file.name, media_file.localURL, media_file.type, media_file.lastModifiedDate, media_file.size);
@@ -1780,7 +1798,7 @@ var soundGrabber = Ember.Object.extend({
   },
   toggle_recording_sound: function(action) {
     var mr = this.controller.get('sound_recording.media_recorder');
-    if(action != 'stop' && !mr && navigator.device && navigator.device.capture && navigator.device.capture.captureAudio) {
+    if(action != 'stop' && !mr && contentGrabbers.capture_types().audio) {
       this.native_record_sound();
       return;
     }

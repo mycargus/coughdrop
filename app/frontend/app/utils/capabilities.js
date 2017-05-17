@@ -67,6 +67,9 @@ var capabilities;
       capabilities.system = "Android";
       if(capabilities.installed_app) {
         capabilities.browser = "App";
+        if(window.device && window.device.platform && window.device.platform.match(/fireos/i)) {
+          capabilities.subsystem = "Kindle";
+        }
       } else if(navigator.userAgent.match(/chrome/i)) {
         capabilities.browser = "Chrome";
       }

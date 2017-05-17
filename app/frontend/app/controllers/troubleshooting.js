@@ -102,7 +102,8 @@ export default Ember.Controller.extend({
   },
   run_media_recording_test: function(test) {
     // media recording
-    if(navigator.getUserMedia || (navigator.device && navigator.device.capture && navigator.device.capture.captureImage && navigator.device.capture.captureAudio)) {
+    var captures = contentGrabbers.capture_types();
+    if(navigator.getUserMedia || (captures.image && captures.audio)) {
       Ember.set(test, 'results', {passed: true});
     } else {
       Ember.set(test, 'results', {passed: false});
