@@ -328,7 +328,16 @@ export default Ember.Controller.extend({
       modal.open('badge-awarded', {badge: badge});
     },
     remove_board: function(action, board) {
-      modal.open('confirm-remove-board', {action: action, board: board, user: this.get('model')});
+      var _this = this;
+      if(action == 'delete') {
+        modal.open('confirm-delete-board', {board: board, redirect: false}).then(function() {
+          _this.update_selected();
+        });
+      } else {
+        modal.open('confirm-remove-board', {action: action, board: board, user: this.get('model')}).then(function() {
+          _this.update_selected();
+        });
+      }
     },
     resendConfirmation: function() {
       persistence.ajax('/api/v1/users/' + this.get('model.user_name') + '/confirm_registration', {

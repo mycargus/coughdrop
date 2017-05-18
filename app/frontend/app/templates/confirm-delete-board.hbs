@@ -1,4 +1,8 @@
 {{#modal-dialog action="close" opening='opening' closing='closing'}}
+  <div class="modal-header">
+    <button type="button" class="close" {{action 'close'}}>&times;</button>
+    <h3>{{t "Delete this Board" key='delete_this_board'}}</h3>
+  </div>
   <div class="modal-body">
     <p>
       {{t "Are you sure you want to delete this board?" key='confirm_delete_board'}}
@@ -6,6 +10,20 @@
     <img src="{{ model.board.icon_url_with_fallback }}" style="width: 40px; float: left; margin-right: 10px;"/>
     <strong>{{model.board.name}}</strong><br/>
     {{model.board.grid.rows}} x {{model.board.grid.columns}}
+    {{#if model.board.downstream_boards}}
+      <div style='margin: 30px 0 10px;'>
+        <label>
+          {{input type='checkbox' checked=delete_downstream}}
+          {{t "Also delete any of my boards that are linked from this board" key='delete_downstream_boards'}}
+        </label>
+        {{#if delete_downstream}}
+          <p class='text-danger'>
+            {{t "Please double-check that this is what you want to do, this action could delete up to" key='confirm_downstream_delete'}}
+            {{t "board" key='n_boards' count=model.board.downstream_boards}}{{t "." key='period'}}
+          </p>
+        {{/if}}
+      </div>
+    {{/if}}
     {{#if model.deleting}}
       <p>{{t "Deleting Board..." key='deleting_board'}}</p>
     {{else if model.error}}
@@ -13,7 +31,13 @@
     {{/if}}
   </div>
   <div class="modal-footer">
-    <button class='btn btn-primary' {{action 'deleteBoard' "delete"}}>{{t "Delete Board" key='delete_board'}}</button>
+    <button class='btn btn-primary' {{action 'deleteBoard' "delete"}}>
+      {{#if delete_downstream}}
+        {{t "Delete Board Set" key='delete_boards'}}
+      {{else}}
+        {{t "Delete Board" key='delete_board'}}
+      {{/if}}
+    </button>
     <button class='btn btn-default' {{action 'close'}}>{{t "Cancel" key='cancel'}}</button>
   </div>
 {{/modal-dialog}}

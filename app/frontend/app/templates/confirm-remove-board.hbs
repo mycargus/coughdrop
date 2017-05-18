@@ -1,4 +1,18 @@
 {{#modal-dialog action="close" opening='opening' closing='closing'}}
+  <div class="modal-header">
+    <button type="button" class="close" {{action 'close'}}>&times;</button>
+    <h3>
+      {{#if delete_action}}
+        {{t "Delete this Board" key='delete_this_board'}}
+      {{else if unstar_action}}
+        {{t "Unlike this Board" key='unstar_this_board'}}
+      {{else if unlink_action}}
+        {{t "Unlink this Board" key='unlink_this_board'}}
+      {{else}}
+        {{t "Remove this Board" key='remove_this_board'}}
+      {{/if}}
+    </h3>
+  </div>
   <div class="modal-body">
     {{#if loading}}
       <p>{{t "Removing board..." key='removing board'}}</p>

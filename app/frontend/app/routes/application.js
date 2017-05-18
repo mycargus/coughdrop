@@ -54,7 +54,7 @@ export default Ember.Route.extend({
       modal.open('which-home');
     },
     confirmDeleteBoard: function() {
-      modal.open('confirm-delete-board', {board: this.get('controller.board.model')});
+      modal.open('confirm-delete-board', {board: this.get('controller.board.model'), redirect: true});
     }
   }
 });

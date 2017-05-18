@@ -60,6 +60,9 @@ module JsonApi::Board
         json['shared_users'] = shared_users
       end
     end
+    if json['permissions'] && json['permissions']['delete']
+      json['downstream_board_ids'] = board.settings['downstream_board_ids']
+    end
     
     json
   end
