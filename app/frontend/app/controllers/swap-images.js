@@ -29,6 +29,7 @@ export default modal.ModalController.extend({
     res.push({id: 'mulberry', name: i18n.t('mulberry', 'Mulberry')});
     res.push({id: 'tawasol', name: i18n.t('tawasol', 'Tawasol (Arabic)')});
     res.push({id: 'noun-project', name: i18n.t('noun_project', 'Noun Project')});
+    res.push({id: 'twemoji', name: i18n.t('twemoji', 'Twitter Emoji')});
     res.push({id: 'pixabay_photos', name: i18n.t('pixabay_photos', 'Pixabay Photos')});
     res.push({id: 'pixabay_vectors', name: i18n.t('pixabay_vectors', 'Pixabay Vector Images')});
     if(this.get('lessonpix_enabled')) {

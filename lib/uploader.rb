@@ -316,7 +316,7 @@ module Uploader
         end
       end
       return list
-    elsif ['noun-project', 'sclera', 'arasaac', 'mulberry', 'tawasol'].include?(library)
+    elsif ['noun-project', 'sclera', 'arasaac', 'mulberry', 'tawasol', 'twemoji'].include?(library)
       str = "#{keyword} repo:#{library}"
       res = Typhoeus.get("https://www.opensymbols.org/api/v1/symbols/search?q=#{CGI.escape(str)}", :ssl_verifypeer => false)
       results = JSON.parse(res.body)
