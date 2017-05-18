@@ -56,6 +56,7 @@ export default Ember.Controller.extend({
         gift.set('licenses', parseInt(this.get('licenses'), 10));
         gift.set('organization', this.get('org'));
         gift.set('email', this.get('email'));
+        gift.set('memo', this.get('memo'));
       } else {
         var years = parseFloat(this.get('duration')) || 3;
         gift.set('seconds', years * 365.25 * 24 * 60 * 60);

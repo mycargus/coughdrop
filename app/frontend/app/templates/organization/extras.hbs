@@ -84,8 +84,13 @@
           {{input value=org placeholder="client name" class="form-control inline inline-masquerade input-sm"}}
           {{input value=email placeholder="client email" class="form-control inline inline-masquerade input-sm"}}
         </div>
-        {{input value=amount placeholder="dollars" class="form-control inline inline-masquerade input-sm"}}
-        {{input value=licenses placeholder="# of licenses" class="form-control inline inline-masquerade input-sm"}}
+        <div style='margin-bottom: 5px;'>
+          {{input value=amount placeholder="dollars" class="form-control inline inline-masquerade input-sm"}}
+          {{input value=licenses placeholder="# of licenses" class="form-control inline inline-masquerade input-sm"}}
+        </div>
+        <span style='display: inline-block; width: 304px;'>
+          {{input value=memo placeholder="memo" class="form-control inline input-sm"}}
+        </span>
         <button class="btn btn-default btn-sm" {{action "add_gift" 'purchase'}}>{{t "Create Purchase Page" key='create_purchase_page'}}</button>
       </div>
     {{else}}

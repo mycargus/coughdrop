@@ -612,7 +612,7 @@ describe Purchasing do
           :amount => 15000,
           :currency => 'usd',
           :source => 'token',
-          :description => 'communicator long-term purchase $150',
+          :description => 'CoughDrop communicator license purchase',
           :receipt_email => nil,
           :metadata => {
             'user_id' => u.global_id,
@@ -634,7 +634,7 @@ describe Purchasing do
           :amount => 15000,
           :currency => 'usd',
           :source => 'token',
-          :description => 'communicator long-term purchase $150',
+          :description => 'CoughDrop communicator license purchase',
           :receipt_email => 'testing@example.com',
           :metadata => {
             'user_id' => u.global_id,
@@ -657,7 +657,7 @@ describe Purchasing do
           :amount => 15000,
           :currency => 'usd',
           :source => 'token',
-          :description => 'communicator long-term purchase $150',
+          :description => 'CoughDrop communicator license purchase',
           :receipt_email => nil,
           :metadata => {
             'user_id' => u.global_id,
@@ -677,7 +677,7 @@ describe Purchasing do
           :amount => 15000,
           :currency => 'usd',
           :source => 'token',
-          :description => 'communicator long-term purchase $150',
+          :description => 'CoughDrop communicator license purchase',
           :receipt_email => nil,
           :metadata => {
             'user_id' => u.global_id,
@@ -706,7 +706,7 @@ describe Purchasing do
           :amount => 15000,
           :currency => 'usd',
           :source => 'token',
-          :description => 'communicator long-term purchase $150',
+          :description => 'CoughDrop communicator license purchase',
           :receipt_email => nil,
           :metadata => {
             'user_id' => u.global_id,
@@ -992,7 +992,7 @@ describe Purchasing do
         :amount => 15000,
         :currency => 'usd',
         :source => 'token',
-        :description => 'sponsored license purchase $150',
+        :description => 'sponsored CoughDrop license',
         :metadata => {
           'giver_id' => u.global_id,
           'giver_email' => 'bob@example.com',
@@ -1023,7 +1023,7 @@ describe Purchasing do
         :amount => 50000,
         :currency => 'usd',
         :source => 'token',
-        :description => 'sponsored license purchase $500',
+        :description => 'sponsored CoughDrop license',
         :metadata => {
           'giver_id' => u.global_id,
           'giver_email' => 'bob@example.com',
@@ -1066,7 +1066,7 @@ describe Purchasing do
         :amount => 15000,
         :currency => 'usd',
         :source => 'token',
-        :description => 'sponsored license purchase $150',
+        :description => 'sponsored CoughDrop license',
         :metadata => {
           'giver_id' => u.global_id,
           'giver_email' => 'bob@example.com',
@@ -1095,7 +1095,7 @@ describe Purchasing do
         :amount => 50000,
         :currency => 'usd',
         :source => 'token',
-        :description => 'sponsored license purchase $500',
+        :description => '4 sponsored CoughDrop license(s), PO #12345',
         :metadata => {
           'giver_id' => u.global_id,
           'giver_email' => 'bob@example.com',
@@ -1108,6 +1108,7 @@ describe Purchasing do
       gift = GiftPurchase.create(settings: {
         'licenses' => 4,
         'amount' => 500,
+        'memo' => 'PO #12345',
         'organization' => 'org name'
       })
       expect(gift.active).to eq(true)
@@ -1120,6 +1121,7 @@ describe Purchasing do
         'token_summary' => 'Unknown Card',
         'code_length' => 20,
         'amount' => 500,
+        'memo' => 'PO #12345',
         'licenses' => 4,
         'organization' => 'org name'
       })
@@ -1132,7 +1134,7 @@ describe Purchasing do
         :amount => 50000,
         :currency => 'usd',
         :source => 'token',
-        :description => 'sponsored license purchase $500',
+        :description => 'sponsored CoughDrop license',
         :metadata => {
           'giver_id' => u.global_id,
           'giver_email' => 'bob@example.com',
@@ -1209,7 +1211,7 @@ describe Purchasing do
         :currency => 'usd',
         :source => 'token',
         :receipt_email => nil,
-        :description => 'communicator long-term purchase $150',
+        :description => 'CoughDrop communicator license purchase',
         :metadata => {
           'user_id' => u.global_id,
           'plan_id' => 'long_term_150'
@@ -1246,7 +1248,7 @@ describe Purchasing do
       :amount => 20000,
       :currency => 'usd',
       :source => 'tokenasdfasdf',
-      :description => 'communicator long-term purchase $200',
+      :description => 'CoughDrop communicator license purchase',
       :receipt_email => nil,
       :metadata => {
         'user_id' => u.global_id,
@@ -1360,7 +1362,7 @@ describe Purchasing do
       :amount => 20000,
       :currency => 'usd',
       :source => 'tokenasdfasdf',
-      :description => 'communicator long-term purchase $200',
+      :description => 'CoughDrop communicator license purchase',
       :receipt_email => nil,
       :metadata => {
         'user_id' => u.global_id,
@@ -1403,7 +1405,7 @@ describe Purchasing do
       :amount => 20000,
       :currency => 'usd',
       :source => 'tokenasdfasdf',
-      :description => 'communicator long-term purchase $200',
+      :description => 'CoughDrop communicator license purchase',
       :receipt_email => nil,
       :metadata => {
         'user_id' => u.global_id,

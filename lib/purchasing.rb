@@ -170,16 +170,16 @@ module Purchasing
     description = type
     if type.match(/^slp_monthly/)
       valid_amount = false unless [3, 4, 5].include?(amount)
-      description = "supporter monthly subscription $#{amount}"
+      description = "CoughDrop supporter monthly subscription"
     elsif type.match(/^slp_long_term/)
       valid_amount = false unless [50, 100, 150].include?(amount)
-      description = "supporter long-term purchase $#{amount}"
+      description = "CoughDrop supporter license purchase"
     elsif type.match(/^monthly/)
       valid_amount = false unless [3, 4, 5, 6, 7, 8, 9, 10].include?(amount)
-      description = "communicator monthly subscription $#{amount}"
+      description = "CoughDrop communicator monthly subscription"
     elsif type.match(/^long_term/)
       valid_amount = false unless [100, 150, 200, 250, 300].include?(amount)
-      description = "communicator long-term purchase $#{amount}"
+      description = "CoughDrop communicator license purchase"
     else
       return {success: false, error: "unrecognized purchase type, #{type}"}
     end
@@ -295,12 +295,22 @@ module Purchasing
     valid_amount = true
     description = type
     seconds = 5.years.to_i
+
+    gift = GiftPurchase.find_by_code(opts['code']) if opts['code']
+
     if type.match(/^long_term_custom/)
-      valid_amount = false unless amount > 100 && (amount % 50) == 0
-      description = "sponsored license purchase $#{amount}"
+      if gift && gift.settings['amount']
+        description = "#{gift.settings['licenses'] || 1} sponsored CoughDrop license(s)"
+        if !gift.settings['memo'].blank?
+          description += ", #{gift.settings['memo']}"
+        end
+      else
+        valid_amount = false unless amount > 100 && (amount % 50) == 0
+        description = "sponsored CoughDrop license"
+      end
     elsif type.match(/^long_term/)
       valid_amount = false unless [150, 200, 250, 300].include?(amount)
-      description = "sponsored license purchase $#{amount}"
+      description = "sponsored CoughDrop license"
     else
       return {success: false, error: "unrecognized purchase type, #{type}"}
     end    
@@ -320,7 +330,6 @@ module Purchasing
           'plan_id' => type
         }
       })
-      gift = GiftPurchase.find_by_code(opts['code']) if opts['code']
       gift ||= GiftPurchase.process_new({}, {
         'giver' => user, 
         'email' => opts['email'],

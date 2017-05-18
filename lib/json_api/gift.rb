@@ -19,6 +19,7 @@ module JsonApi::Gift
     json['gift_name'] = gift.settings['gift_name']
     json['email'] = gift.settings['email'] if json['organization']
     json['amount'] = gift.settings['amount']
+    json['memo'] = gift.settings['memo']
     
     if args[:permissions]
       json['permissions'] = gift.permissions_for(args[:permissions])

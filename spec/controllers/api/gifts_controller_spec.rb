@@ -97,6 +97,8 @@ describe Api::GiftsController, :type => :controller do
         'licenses' => 4,
         'amount' => 250,
         'email' => 'org@example.com',
+        'memo' => 'cool stuff',
+        'bacon' => 'is good'
         'organization' => 'cool org'
       }}
       expect(response).to be_success
@@ -107,6 +109,8 @@ describe Api::GiftsController, :type => :controller do
       expect(json['gift']['email']).to eq('org@example.com')
       expect(json['gift']['licenses']).to eq('4')
       expect(json['gift']['amount']).to eq('250')
+      expect(json['gift']['memo']).to eq('cool stuff')
+      expect(json['gift']['bacon']).to eq(nil)
       expect(json['gift']['organization']).to eq('cool org')
     end
     

@@ -14,6 +14,7 @@ CoughDrop.Gift = DS.Model.extend({
   organization: DS.attr('string'),
   gift_name: DS.attr('string'),
   email: DS.attr('string'),
+  memo: DS.attr('string'),
   amount: DS.attr('number')
 });
 

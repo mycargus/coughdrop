@@ -416,7 +416,7 @@ Subscription.reopenClass({
       description: subscription.get('description'),
       amount: subscription.get('amount_in_cents'),
       panelLabel: subscription.get('purchase_description'),
-      email: subscription.get('user.email'),
+      email: subscription.get('email') || subscription.get('user.email'),
       zipCode: true
     });
     Subscription.handler.defer = defer;

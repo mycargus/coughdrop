@@ -20,6 +20,7 @@ class Api::GiftsController < ApplicationController
     gift = GiftPurchase.process_new({
       'licenses' => params['gift']['licenses'],
       'amount' => params['gift']['amount'],
+      'memo' => params['gift']['memo'],
       'email' => params['gift']['email'],
       'organization' => params['gift']['organization'],
       'gift_name' => params['gift']['gift_name']
