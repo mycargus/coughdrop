@@ -18,10 +18,11 @@ module Relinking
     return !self.public && self.for_user?(user) && !self.shared_by?(user)
   end
   
-  def copy_for(user, make_public=false)
+  def copy_for(user, make_public=false, copy_id=nil)
     return nil unless user
     board = Board.new(:user_id => user.id, :parent_board_id => self.id)
     board.key = board.generate_board_key(self.key.split(/\//)[1])
+    board.settings['copy_id'] = copy_id
     board.settings['name'] = self.settings['name']
     board.settings['description'] = self.settings['description']
     board.settings['image_url'] = self.settings['image_url']
@@ -66,7 +67,7 @@ module Relinking
       boards = Board.find_all_by_path(board_ids)
       pending_replacements = [[starting_old_board, starting_new_board]]
 
-      user_home_changed = relink_board_for(user, {:boards => boards, :pending_replacements => pending_replacements, :update_preference => (update_inline ? 'update_inline' : nil), :make_public => make_public, :authorized_user => auth_user})
+      user_home_changed = relink_board_for(user, {:boards => boards, :copy_id => starting_new_board.global_id, :pending_replacements => pending_replacements, :update_preference => (update_inline ? 'update_inline' : nil), :make_public => make_public, :authorized_user => auth_user})
       
       # if the user's home board was replaced, update their preferences
       if user_home_changed
@@ -105,7 +106,7 @@ module Relinking
       end
       boards = [starting_old_board] + boards
 
-      relink_board_for(user, {:boards => boards, :pending_replacements => pending_replacements, :update_preference => 'update_inline', :make_public => make_public, :authorized_user => auth_user})
+      relink_board_for(user, {:boards => boards, :copy_id => starting_new_board.global_id, :pending_replacements => pending_replacements, :update_preference => 'update_inline', :make_public => make_public, :authorized_user => auth_user})
       @replacement_map
     end
     
@@ -136,7 +137,7 @@ module Relinking
             elsif !board.just_for_user?(user)
               # if it's not already private for the user, make a private copy for the user 
               # and add to list of replacements to handle.
-              copy = board.copy_for(user, opts[:make_public])
+              copy = board.copy_for(user, opts[:make_public], opts[:copy_id])
               copy.replace_links!(old_board, new_board)
               replacement_map[board.global_id] = copy
               pending_replacements << [board, copy]
