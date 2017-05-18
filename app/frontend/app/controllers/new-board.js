@@ -36,6 +36,14 @@ export default modal.ModalController.extend({
     }
     this.set('status', null);
 
+    var res = [];
+    var _this = this;
+    CoughDrop.board_categories.forEach(function(c) {
+      var cat = Ember.$.extend({}, c);
+      res.push(cat);
+    });
+    this.set('board_categories', res);
+
     this.set('has_supervisees', app_state.get('sessionUser.supervisees.length') > 0);
   },
   locales: function() {
@@ -256,6 +264,15 @@ export default modal.ModalController.extend({
       this.set('status', {saving: true});
       if(this.get('model.license')) {
         this.set('model.license.copyright_notice_url', CoughDrop.licenseOptions.license_url(this.get('model.license.type')));
+      }
+      if(this.get('model.home_board')) {
+        var cats = [];
+        this.get('board_categories').forEach(function(cat) {
+          if(cat.selected) {
+            cats.push(cat.id);
+          }
+        });
+        this.set('model.categories', cats);
       }
       this.get('model').save().then(function(board) {
         _this.set('status', null);

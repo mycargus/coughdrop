@@ -10,7 +10,7 @@ module JsonApi::Board
     json = {} #board.settings
     json['id'] = board.global_id
     json['key'] = board.key
-    ['grid', 'name', 'description', 'image_url', 'buttons', 'stars', 'forks', 'word_suggestions', 'locale'].each do |key|
+    ['grid', 'name', 'description', 'image_url', 'buttons', 'stars', 'forks', 'word_suggestions', 'locale', 'home_board', 'categories'].each do |key|
       json[key] = board.settings[key]
     end
     self.trace_execution_scoped(['json/board/license']) do

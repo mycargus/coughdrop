@@ -9,6 +9,31 @@ export default modal.ModalController.extend({
     this.set('model', board);
     this.set('originally_public', board.get('public'));
   },
+  closing: function() {
+    if(this.get('model.home_board')) {
+      var cats = [];
+      (this.get('board_categories') || []).forEach(function(cat) {
+        if(cat.selected) {
+          cats.push(cat.id);
+        }
+      });
+      this.set('model.categories', cats);
+    } else {
+      this.set('model.categories', []);
+    }
+  },
+  board_categories: function() {
+    var res = [];
+    var _this = this;
+    var cats = {};
+    (this.get('model.categories') || []).forEach(function(str) { cats[str] = true; });
+    CoughDrop.board_categories.forEach(function(c) {
+      var cat = Ember.$.extend({}, c);
+      if(cats[c.id]) { cat.selected = true; }
+      res.push(cat);
+    });
+    return res;
+  }.property('model.home_board', 'model.id', 'model.categories'),
   licenseOptions: CoughDrop.licenseOptions,
   iconUrls: CoughDrop.iconUrls,
   attributable_license_type: function() {

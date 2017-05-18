@@ -514,6 +514,8 @@ class Board < ActiveRecord::Base
     @edit_notes << "changed the image" if params['image_url'] && params['image_url'] != self.settings['image_url']
     self.settings['image_url'] = params['image_url'] if params['image_url']
     self.settings['locale'] = params['locale'] if params['locale']
+    self.settings['home_board'] = params['home_board'] if params['home_board']
+    self.settings['categories'] = params['categories'] if params['categories']
     self.settings['never_edited'] = false
     process_buttons(params['buttons'], non_user_params[:user], non_user_params[:author]) if params['buttons']
     prior_license = self.settings['license'].to_json

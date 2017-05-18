@@ -29,6 +29,8 @@ CoughDrop.Board = DS.Model.extend({
   image_urls: DS.attr('raw'),
   sound_urls: DS.attr('raw'),
   translations: DS.attr('raw'),
+  categories: DS.attr('raw'),
+  home_board: DS.attr('boolean'),
   valid_id: function() {
     return !!(this.get('id') && this.get('id') != 'bad');
   }.property('id'),

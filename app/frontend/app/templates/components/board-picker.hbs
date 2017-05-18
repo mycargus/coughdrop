@@ -2,12 +2,9 @@
   <div class='setup_setting'>
     <label>{{t "Select a Category to Browse" key='browse_categories'}}</label>
     <div class="btn-group-vertical" style="width: 100%;">
-      <a href="#" class={{if category.robust 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_category' 'robust'}}>{{t "Robust Vocabularies" key='robust_vocabularies'}}</a>
-      <a href="#" class={{if category.cause_effect 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_category' 'cause_effect'}}>{{t "Cause and Effect" key='cause_and_effect'}}</a>
-      <a href="#" class={{if category.simple_starts 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_category' 'simple_starts'}}>{{t "Simple Starters" key='simple_starters'}}</a>
-      <a href="#" class={{if category.functional 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_category' 'functional'}}>{{t "Functional Communication" key='functional_communication'}}</a>
-      <a href="#" class={{if category.phrases 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_category' 'phrases'}}>{{t "Phrase-Based" key='phrase_based'}}</a>
-      <a href="#" class={{if category.keyboards 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_category' 'keyboards'}}>{{t "Keyboards" key='keyboards'}}</a>
+      {{#each categories as |category|}}
+        <a href="#" class={{if category.selected 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_category' category.id}}>{{category.name}}</a>
+      {{/each}}
     </div>
   </div>
 </div>

@@ -10,6 +10,18 @@ export default Ember.Component.extend({
     this.send('set_category', 'robust');
     this.set('show_category_explainer', false);
   },
+  categories: function() {
+    var res = [];
+    var _this = this;
+    CoughDrop.board_categories.forEach(function(c) {
+      var cat = Ember.$.extend({}, c);
+      if(_this.get('current_category') == c.id) {
+        cat.selected = true;
+      }
+      res.push(cat);
+    });
+    return res;
+  }.property('current_category'),
   actions: {
     set_category: function(str) {
       var res = {};
