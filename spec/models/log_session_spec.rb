@@ -506,6 +506,11 @@ describe LogSession, :type => :model do
       expect(day['modeled_button_counts']['1::1_1']).to eq({'button_id' => 1, 'board_id' => '1_1', 'text' => 'ok go ok', 'count' => 1})
       expect(day['modeled_word_counts']).to eq({'ok' => 2, 'go' => 1})
     end
+    
+    it "should persist modeling events back (as non-modeling events) to the modeler's account where possible" do
+      # write_this_test
+      # TODO: should we implement this??
+    end
   end
 
   describe "split_out_later_sessions" do

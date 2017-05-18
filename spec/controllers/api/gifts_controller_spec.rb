@@ -98,7 +98,7 @@ describe Api::GiftsController, :type => :controller do
         'amount' => 250,
         'email' => 'org@example.com',
         'memo' => 'cool stuff',
-        'bacon' => 'is good'
+        'bacon' => 'is good',
         'organization' => 'cool org'
       }}
       expect(response).to be_success

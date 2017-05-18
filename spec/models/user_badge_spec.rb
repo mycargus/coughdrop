@@ -832,6 +832,192 @@ describe UserBadge, type: :model do
       expect(UserBadge).to receive(:check_goal_badges).with(u, g, 5, nil, false)
       UserBadge.check_for(u.global_id)
     end
+    
+    it "should generate an automated log session for the badge assessment" do
+      u = User.create
+      d = Device.create(:user => u)
+      expect(Date).to receive(:today).and_return(Date.parse("June 9, 2016")).at_least(1).times
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'spoken' => true, 'board' => {'id' => '1_1'}}, 'timestamp' => 1465279200 - 1},
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'spoken' => true, 'board' => {'id' => '1_1'}}, 'timestamp' => 1465279200 - 2},
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'spoken' => true, 'board' => {'id' => '1_1'}}, 'timestamp' => 1465279200 - 3}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+    
+      WeeklyStatsSummary.update_for(s1.global_id)
+      
+      g = UserGoal.process_new({
+        summary: "Good Goal",
+        assessment_badge: {'instance_count' => 2, 'button_instances' => 2},
+        active: true
+      }, {user: u, author: u})
+      g.settings['started_at'] = Time.parse('June 1, 2016').utc.iso8601
+      g.save
+
+      expect(LogSession.where(:log_type => 'assessment').count).to eq(0)
+
+      UserBadge.check_for(u.global_id)     
+      badges = UserBadge.where(:user => u, :user_goal => g).order(:level)
+      expect(badges.count).to eq(0)
+
+      assessments = LogSession.where(:log_type => 'assessment').sort_by(&:id)
+      expect(assessments.all?{|a| a.data['assessment']['automatic'] }).to eq(true)
+      expect(assessments.map{|a| a.started_at.to_date.to_s }).to eq(["2016-06-05", "2016-06-06", "2016-06-07", "2016-06-08", "2016-06-09"])
+      expect(assessments.map{|a| a.data['assessment']['totals'] }).to eq([
+        {'correct' => 0, 'incorrect' => 1},
+        {'correct' => 0, 'incorrect' => 1},
+        {'correct' => 1, 'incorrect' => 0},
+        {'correct' => 0, 'incorrect' => 1},
+        {'correct' => 0, 'incorrect' => 1}
+      ])
+    end
+    
+    it "should update the existing log session for the badge assessment if it already exists" do
+      u = User.create
+      d = Device.create(:user => u)
+      expect(Date).to receive(:today).and_return(Date.parse("June 9, 2016")).at_least(1).times
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'spoken' => true, 'board' => {'id' => '1_1'}}, 'timestamp' => 1465279200 - 1},
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+    
+      WeeklyStatsSummary.update_for(s1.global_id)
+      
+      g = UserGoal.process_new({
+        summary: "Good Goal",
+        assessment_badge: {'instance_count' => 2, 'button_instances' => 2},
+        active: true
+      }, {user: u, author: u})
+      g.settings['started_at'] = Time.parse('June 1, 2016').utc.iso8601
+      g.save
+
+      expect(LogSession.where(:log_type => 'assessment').count).to eq(0)
+
+      UserBadge.check_for(u.global_id)     
+      badges = UserBadge.where(:user => u, :user_goal => g).order(:level)
+      expect(badges.count).to eq(0)
+
+      assessments = LogSession.where(:log_type => 'assessment').sort_by(&:id)
+      expect(assessments.all?{|a| a.data['assessment']['automatic'] }).to eq(true)
+      expect(assessments.map{|a| a.started_at.to_date.to_s }).to eq(["2016-06-05", "2016-06-06", "2016-06-07", "2016-06-08", "2016-06-09"])
+      expect(assessments.map{|a| a.data['assessment']['totals'] }).to eq([
+        {'correct' => 0, 'incorrect' => 1},
+        {'correct' => 0, 'incorrect' => 1},
+        {'correct' => 0, 'incorrect' => 1},
+        {'correct' => 0, 'incorrect' => 1},
+        {'correct' => 0, 'incorrect' => 1}
+      ])
+
+      s2 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'spoken' => true, 'board' => {'id' => '1_1'}}, 'timestamp' => 1465279200 - 2},
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'spoken' => true, 'board' => {'id' => '1_1'}}, 'timestamp' => 1465279200 - 3},
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'spoken' => true, 'board' => {'id' => '1_1'}}, 'timestamp' => 1465279200 - 4}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+    
+      WeeklyStatsSummary.update_for(s1.global_id)
+
+      UserBadge.check_for(u.global_id)     
+      badges = UserBadge.where(:user => u, :user_goal => g).order(:level)
+      expect(badges.count).to eq(0)
+
+      assessments = LogSession.where(:log_type => 'assessment').sort_by(&:id)
+      expect(assessments.all?{|a| a.data['assessment']['automatic'] }).to eq(true)
+      expect(assessments.map{|a| a.started_at.to_date.to_s }).to eq(["2016-06-05", "2016-06-06", "2016-06-07", "2016-06-08", "2016-06-09"])
+      expect(assessments.map{|a| a.data['assessment']['totals'] }).to eq([
+        {'correct' => 0, 'incorrect' => 1},
+        {'correct' => 0, 'incorrect' => 1},
+        {'correct' => 1, 'incorrect' => 0},
+        {'correct' => 0, 'incorrect' => 1},
+        {'correct' => 0, 'incorrect' => 1}
+      ])
+    end
+    
+    it "should update the goal stats related to the automated log session whenever it changes" do
+      u = User.create
+      d = Device.create(:user => u)
+      expect(Date).to receive(:today).and_return(Date.parse("June 9, 2016")).at_least(1).times
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'spoken' => true, 'board' => {'id' => '1_1'}}, 'timestamp' => 1465279200 - 1},
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+    
+      WeeklyStatsSummary.update_for(s1.global_id)
+      
+      g = UserGoal.process_new({
+        summary: "Good Goal",
+        assessment_badge: {'instance_count' => 2, 'button_instances' => 2},
+        active: true
+      }, {user: u, author: u})
+      g.settings['started_at'] = Time.parse('June 1, 2016').utc.iso8601
+      g.save
+
+      expect(LogSession.where(:log_type => 'assessment').count).to eq(0)
+
+      UserBadge.check_for(u.global_id)     
+      Worker.process_queues
+      badges = UserBadge.where(:user => u, :user_goal => g).order(:level)
+      expect(badges.count).to eq(0)
+
+      assessments = LogSession.where(:log_type => 'assessment').sort_by(&:id)
+      expect(assessments.all?{|a| a.data['assessment']['automatic'] }).to eq(true)
+      expect(assessments.map{|a| a.started_at.to_date.to_s }).to eq(["2016-06-05", "2016-06-06", "2016-06-07", "2016-06-08", "2016-06-09"])
+      expect(assessments.map{|a| a.data['assessment']['totals'] }).to eq([
+        {'correct' => 0, 'incorrect' => 1},
+        {'correct' => 0, 'incorrect' => 1},
+        {'correct' => 0, 'incorrect' => 1},
+        {'correct' => 0, 'incorrect' => 1},
+        {'correct' => 0, 'incorrect' => 1}
+      ])
+      expect(g.reload.settings['stats']['monthly']).to eq({
+        '2016-06' => {
+          'sessions' => 5,
+          'positives' => 0,
+          'negatives' => 5,
+          'statuses' => []
+        },
+        'totals' => {
+          'sessions' => 5,
+          'positives' => 0,
+          'negatives' => 5,
+          'statuses' => []
+        }
+      })
+
+      s2 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'spoken' => true, 'board' => {'id' => '1_1'}}, 'timestamp' => 1465279200 - 2},
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'spoken' => true, 'board' => {'id' => '1_1'}}, 'timestamp' => 1465279200 - 3},
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'spoken' => true, 'board' => {'id' => '1_1'}}, 'timestamp' => 1465279200 - 4}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+    
+      WeeklyStatsSummary.update_for(s1.global_id)
+
+      UserBadge.check_for(u.global_id)     
+      Worker.process_queues
+      badges = UserBadge.where(:user => u, :user_goal => g).order(:level)
+      expect(badges.count).to eq(0)
+
+      assessments = LogSession.where(:log_type => 'assessment').sort_by(&:id)
+      expect(assessments.all?{|a| a.data['assessment']['automatic'] }).to eq(true)
+      expect(assessments.map{|a| a.started_at.to_date.to_s }).to eq(["2016-06-05", "2016-06-06", "2016-06-07", "2016-06-08", "2016-06-09"])
+      expect(assessments.map{|a| a.data['assessment']['totals'] }).to eq([
+        {'correct' => 0, 'incorrect' => 1},
+        {'correct' => 0, 'incorrect' => 1},
+        {'correct' => 1, 'incorrect' => 0},
+        {'correct' => 0, 'incorrect' => 1},
+        {'correct' => 0, 'incorrect' => 1}
+      ])
+      expect(g.reload.settings['stats']['monthly']).to eq({
+        '2016-06' => {
+          'sessions' => 5,
+          'positives' => 1,
+          'negatives' => 4,
+          'statuses' => []
+        },
+        'totals' => {
+          'sessions' => 5,
+          'positives' => 1,
+          'negatives' => 4,
+          'statuses' => []
+        }
+      })
+    end
   end
   
   describe "generate_defaults" do
