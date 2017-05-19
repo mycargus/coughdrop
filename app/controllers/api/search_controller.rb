@@ -18,7 +18,7 @@ class Api::SearchController < ApplicationController
   def protected_symbols
     res = false
     ref_user = @api_user
-    if params['user_name'] && params['user_name'] != ''
+    if params['library'] != 'giphy_asl' && params['user_name'] && params['user_name'] != ''
       ref_user = User.find_by_path(params['user_name'])
       return unless exists?(ref_user, params['user_name'])
       return unless allowed?(ref_user, 'edit')
