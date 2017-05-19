@@ -305,7 +305,7 @@
               {{else if book_status}}
                 <strong>{{book_status.title}}</strong><br/>
                 {{#if book_status.image}}
-                  <img src={{book_status.image}} style='max-width: 200px;' />
+                  <img src={{book_status.image}} style='max-width: 200px; max-height: 160px;' />
                   {{#unless image_matches_book}}
                     <br/><a href="#" {{action 'set_as_button_image' book_status.image book_status.content_type}}>{{t "set as button image" key='set_as_button_image'}}</a>
                   {{/unless}}
