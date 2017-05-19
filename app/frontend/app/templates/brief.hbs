@@ -48,10 +48,10 @@
             {{#if board.model.image_url}}
               <img src={{board.model.image_url}} style="width: 16px; height: 16px;"/>
             {{/if}}
-          
+
           {{/if}}
-      
-          {{#link-to 'user' app_state.current_board_user_name}}{{app_state.current_board_user_name}}{{/link-to}} / 
+
+          {{#link-to 'user' app_state.current_board_user_name}}{{app_state.current_board_user_name}}{{/link-to}} /
           {{app_state.current_board_name}}
         </span>
       {{/unless}}
@@ -88,7 +88,7 @@
             {{#each swatches as |swatch|}}
               <li role="presentation">
                 <a role="menuitem" href="#" tabindex="-1" href="#" {{action "paint" swatch.fill swatch.border}}>
-                  <span class="swatch" style={{swatch.style}}></span> 
+                  <span class="swatch" style={{swatch.style}}></span>
                   <span style="width: 70px; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: top;">{{swatch.color}}</span>
                   {{#if swatch.hint}}
                     <span class="text-muted" style="display: inline-block; vertical-align: top;">({{swatch.hint}})</span>
@@ -187,11 +187,11 @@
                 {{/link-to}}
                 </span>
               {{/if}}
-              
+
               {{#if board.model.permissions.edit}}
                 <a class='btn btn-default' href="#" {{action "toggleEditMode"}}>
                   <span class="wide">{{t "Edit Board" key="edit_board"}}</span><span class="skinny real_skinny glyphicon glyphicon-pencil"></span>
-                </a> 
+                </a>
               {{else}}
                 <a class='btn btn-default' href="#" {{action "tweakBoard"}}>
                   <span class="wide">{{t "Make a Copy" key="make_copy"}}</span><span class="skinny real_skinny glyphicon glyphicon-file"></span>
@@ -422,7 +422,7 @@
     <div class="wide_links">
       <div class="row">
         <div class='col-sm-4'>
-          <span style="color: #888; padding-right: 10px;">{{t "CoughDrop" key='coughdrop'}}</span> 
+          <span style="color: #888; padding-right: 10px;">{{t "CoughDrop" key='coughdrop'}}</span>
           {{#if app_state.installed_app}}
             <a href="https://www.mycoughdrop.com" target="_blank">{{t "Web Site" key='web_site'}}</a> <span class='text-muted'>|</span>
           {{/if}}
@@ -434,7 +434,7 @@
           {{/unless}}
           <a href="https://coughdrop.zendesk.com" target="_blank">{{t "Support" key='support'}}</a>
           {{#unless app_state.installed_app}}
-            <span class='text-muted'>|</span>  
+            <span class='text-muted'>|</span>
             {{#link-to "contact"}}{{t "Contact Us" key='contact'}}{{/link-to}}
           {{/unless}}
         </div>
@@ -452,7 +452,7 @@
           <div class='col-sm-2'>
             <!-- icons found here: https://www.iconfinder.com/icons/104443/feed_rss_subscribe_icon#size=24 -->
             <span class="icons">
-              <a href="http://blog.mycoughdrop.com" target="_blank"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACXklEQVRIS7WVTUhWQRSGtTKoNloR0Q9oYRJBBWJKixZKJBhFi4xQsRDMEAURFTIpopBAXFhoYVCLggraVIukXIkVJUFkSm0qiKiwRRYZhdbzfsyVYZzvXq/gwMO9c+45887fOTc1ZZ5b6jyPnxIlsIAJ7ID9sAVWwRR8hedwF16FTTJMYBeBnZAbscqHfG9MJuQTWGgGro+xfZP4tsJ5N8YncAWnqhiD264n6LTbBlegwcx+juMnzueAOZvEGLbAOvpvYYk1egXvfZAJe+EwZEeof+R7DvxyBXow1DjB1fR7Ldsi3o+abVgRItTEtw5bQAf7GVZ6giawPYM7Ruw3z41wDzYnERnCnmcL5NN56nG+he0TFMI2eAdl8ARWg3JBW+u2fxiUM2PBGRykc9vjqDO4buy7eV6CtVAKSjJN7DEoId2m/HkRCByn0+1xuo/tEWgl2sLl8AC0NcrwUbgGlZ7YYmx9gcAhOjc9ToHpJy+6ADdgDYzAIJTAJnjjidUZDAUCO02A6/cDg26RtqIA9kA/tMEZyIL3MAyqVXbTGX0JBNLoqIClO06qMapHy+AbqLBpZsoF5YxWdRl0Nses2Je8b1ffTrSr9I84AjqXWtCevzbfMniOgxLpAjRDsKIg/CQv51yBDRh0aIsdEc1UV3GpsWsVf2ArfIcPoCu53nzXTmiFmsSM/8FpbKccgbjdcgJ0GRLNLXa6z7rfuh1zaRcJqrMDfeVa9eYstMRQ+Iuv6k8XKIunW9gfbR9eKlhR1VPlQmVeeTGjRf2TdeBFEPZPHnBnPdsVxNih5K7/AWkxbhmNkzfzAAAAAElFTkSuQmCC" alt="{{t "Blog" key='blog'}}"/></a>
+              <!--a href="http://blog.mycoughdrop.com" target="_blank"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACXklEQVRIS7WVTUhWQRSGtTKoNloR0Q9oYRJBBWJKixZKJBhFi4xQsRDMEAURFTIpopBAXFhoYVCLggraVIukXIkVJUFkSm0qiKiwRRYZhdbzfsyVYZzvXq/gwMO9c+45887fOTc1ZZ5b6jyPnxIlsIAJ7ID9sAVWwRR8hedwF16FTTJMYBeBnZAbscqHfG9MJuQTWGgGro+xfZP4tsJ5N8YncAWnqhiD264n6LTbBlegwcx+juMnzueAOZvEGLbAOvpvYYk1egXvfZAJe+EwZEeof+R7DvxyBXow1DjB1fR7Ldsi3o+abVgRItTEtw5bQAf7GVZ6giawPYM7Ruw3z41wDzYnERnCnmcL5NN56nG+he0TFMI2eAdl8ARWg3JBW+u2fxiUM2PBGRykc9vjqDO4buy7eV6CtVAKSjJN7DEoId2m/HkRCByn0+1xuo/tEWgl2sLl8AC0NcrwUbgGlZ7YYmx9gcAhOjc9ToHpJy+6ADdgDYzAIJTAJnjjidUZDAUCO02A6/cDg26RtqIA9kA/tMEZyIL3MAyqVXbTGX0JBNLoqIClO06qMapHy+AbqLBpZsoF5YxWdRl0Nses2Je8b1ffTrSr9I84AjqXWtCevzbfMniOgxLpAjRDsKIg/CQv51yBDRh0aIsdEc1UV3GpsWsVf2ArfIcPoCu53nzXTmiFmsSM/8FpbKccgbjdcgJ0GRLNLXa6z7rfuh1zaRcJqrMDfeVa9eYstMRQ+Iuv6k8XKIunW9gfbR9eKlhR1VPlQmVeeTGjRf2TdeBFEPZPHnBnPdsVxNih5K7/AWkxbhmNkzfzAAAAAElFTkSuQmCC" alt="{{t "Blog" key='blog'}}"/></a-->
               <a href="https://twitter.com/CoughDropAAC" target="_blank"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACPUlEQVRIS7WVTUhVURDH3+tbsGghEiElQrSohSAZuHBjkhBUmxApKDFIwYpEEylQorDEIip0I2mLQNoEuVEDNxIEStg3tAuCMhTNpIgw+/3lnjiNx/v0gQM/7pk5c2bumfOVTKyyJFc5fiJVgjX8QCEcgT2QDX/gK4zAE3gd95NxCYoZeAsKUszyKf118CbkF0qwNgp8bgXlm8P3EtywY0IJunCqWkFw37UJ5bpvsAkuRH+fZvyF9TkKfS6AnyAH4wfIWGb0WfwyA76fsO2GH+rzE3SiV3sDhmgXwSYTZAz9OLyDndAAn+EKaNdJ6uGmn0AL+wWyvGCHaP+CHtDsnOyl8dYkPYh+H7ZH9lG++/wE+1Gem0HaRXdhM5yBk5Ab6cY1MYih1DPO09aZmXAlOobyyIx6gF4LqrWTjTQ0Kysq0TZj1Pl54RLUoHQYh0b0tkAwa1JZx8HV3/WX0RhwCcpRes3IafQK6E+RpJJ+1d+K1mDUJdBueRZwuojtHvxcIskG7K9A29KKSjbuEqxH0QW21Xh9Qz+tqcL3QJDb2M4H7C+x5cvun4Nu9FPGeQpd02+FSa9P2/oaaJ1Ccjnq/y9BHsb3oGnryD8GHR6VwIlO+QFQAF3jIVEldsGMOu1d1IKt2Yz6iD4BW2AHaKvGyQk6HzoHm0BbTY+ITnE6og1x1h8Yuq7X4XAVlqpvKPFvjLqT7oBO8T+Je9EO49UOqmec6OnUNR/a5infZC14CcS9ycP2r5c7g3TWYNGYv08nYRkr0ZSYAAAAAElFTkSuQmCC" alt="{{t "Twitter" key='twitter'}}"/></a>
               <a href="https://www.facebook.com/CoughDropAAC" target="_blank"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAB5klEQVRIS7WVTShEURTHZ5CPspAkycdCspAVEWFjoxQWZGGjbNgIEUIsEIUFxUbZSbJiJWUjHyUkFrJCipHssJCP35ne05uZe+94NXPrV++ec+7533Pf/fB6oty8Uc7vCScQwwRKoQEKIR2+4RlOYAsuTZM0CVQzcB6Kw1S5i78XrlRxKoFYK3GXi+X7InYYZoLHqARWCGp3kdwZOkRn2mkIFuixZq/K/4lxFDbhFbLhIihQ/k8jbNt2p0AWxhtI0sx+yloG253Lx60i9gFbAbyLzymwTL/DsDQ1+PYgAdZAdlSlJr4P+5xTII6OD1INAhX4jiAH7gxx4joD/+6zKyjj+1gz6AN7FVzDG8RDEWSCnANV+7EqfLEFmjFsaIIlabLCV47t0FBJCb5TW6CTzpImWHaPHDjx30MKDEIeNBkEavHt2AItdNYNweJy8w8kPqACGXwQYYEM8vnsCuR6eII0g4ibCkJ2keRdhbYICYyQZ1JyOQ+anEzZiokakf9W8Mj4fJDdF/IejGMb0wjIjjkH2f/7hkpb8clJ97fgy04eGDk8dYYEJtcizoBrXnVdy7UxAQMuROSs9MMCyCn+a6YXrZ6oWZD1NDV5OrtBearDvcly78gtanqT5X8EzPq/FbhYIX3oL7fkWhnudl6LAAAAAElFTkSuQmCC" alt="{{t "Facebook" key='facebook'}}"/></a>
               <a href="https://plus.google.com/+myCoughDropAAC" rel="publisher" target="_blank"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACcElEQVRIS7WVTUhVQRTHfaZGZtAiokWiRBIZlRQVtBBBqKDQCCJIEMGNQUSJFVHQBxWJpVBWLiRxYYSgi1rYQ2hjfkBP6YuiEESSygyCwlxI2u8vd2Sad9+9z8CBH/eemTNzZs7HTCRlkVtkkddPCTOQygZ2QilsgtUwA9/gBTyGN0GbDDJQyMQG2BZyym7Gq+Gtn56fgSUo1sOJBbjvD7rnodad42egGaXKBSxuq55DuGF3uAZOebv/z/Xn4nMQnpgFbANr6fwIy5zVu5Cj8Nnqv8z/xgS7GKN/A/zWuG3gPnKVM+k0cifo6NdhxPPzmZAj1jB+yzagwH6FVdbET/znwBW4AP2wG47DHU+vj+9mWOEYjCHvsA3sQhhwlEaRc6EcWmEKMkG7N9miFG70DNvTZxFUM9+Niw4jtDsGJB4CBUxp+wOUYTqJ/PsTyuAsbAHFRBswbTs/Q8bAMYR7PgaU320gf74GBXwfHAC59D1kQxbchCJrDelFjYEjCI98DCjtnkETdICy4ynkerqJXKRhxSBmDCh4vY6BYWTl9HKQq7Tju5APLz3dPXzrYKvP5tbQN24MpCPoAltpKe7l/wOoNjK8/gd8VeUTYGecu/4rOgrUaddBC3KFpanAqWjegXajplgog76AUjtRU1pfcw2so0NBM7t9zv9RmAT5+heoNhT0ooDF5Yn1nn7ce3CJgYvWZGXRIOgkconqZWnA4hpS6j40Ou5lpwdGj8j+kEUSDavC/7nm/a7rNJSuggoo2TaNou6t26Aqnm9BL1oJWiqevBArejpPgu6luBb2JivgxRD0Jve4u072BMm6J1DvL7DNcxkrfpOIAAAAAElFTkSuQmCC" alt="{{t "Google+" key="google_plus"}}"/></a>
@@ -485,7 +485,7 @@
           <li>
             <!-- icons found here: https://www.iconfinder.com/icons/104443/feed_rss_subscribe_icon#size=24 -->
             <span class="icons" style="padding-left: 17px;">
-              <a href="http://blog.mycoughdrop.com" target="_blank"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACXklEQVRIS7WVTUhWQRSGtTKoNloR0Q9oYRJBBWJKixZKJBhFi4xQsRDMEAURFTIpopBAXFhoYVCLggraVIukXIkVJUFkSm0qiKiwRRYZhdbzfsyVYZzvXq/gwMO9c+45887fOTc1ZZ5b6jyPnxIlsIAJ7ID9sAVWwRR8hedwF16FTTJMYBeBnZAbscqHfG9MJuQTWGgGro+xfZP4tsJ5N8YncAWnqhiD264n6LTbBlegwcx+juMnzueAOZvEGLbAOvpvYYk1egXvfZAJe+EwZEeof+R7DvxyBXow1DjB1fR7Ldsi3o+abVgRItTEtw5bQAf7GVZ6giawPYM7Ruw3z41wDzYnERnCnmcL5NN56nG+he0TFMI2eAdl8ARWg3JBW+u2fxiUM2PBGRykc9vjqDO4buy7eV6CtVAKSjJN7DEoId2m/HkRCByn0+1xuo/tEWgl2sLl8AC0NcrwUbgGlZ7YYmx9gcAhOjc9ToHpJy+6ADdgDYzAIJTAJnjjidUZDAUCO02A6/cDg26RtqIA9kA/tMEZyIL3MAyqVXbTGX0JBNLoqIClO06qMapHy+AbqLBpZsoF5YxWdRl0Nses2Je8b1ffTrSr9I84AjqXWtCevzbfMniOgxLpAjRDsKIg/CQv51yBDRh0aIsdEc1UV3GpsWsVf2ArfIcPoCu53nzXTmiFmsSM/8FpbKccgbjdcgJ0GRLNLXa6z7rfuh1zaRcJqrMDfeVa9eYstMRQ+Iuv6k8XKIunW9gfbR9eKlhR1VPlQmVeeTGjRf2TdeBFEPZPHnBnPdsVxNih5K7/AWkxbhmNkzfzAAAAAElFTkSuQmCC" alt="{{t "Blog" key='blog'}}"/></a>
+              <!--a href="http://blog.mycoughdrop.com" target="_blank"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACXklEQVRIS7WVTUhWQRSGtTKoNloR0Q9oYRJBBWJKixZKJBhFi4xQsRDMEAURFTIpopBAXFhoYVCLggraVIukXIkVJUFkSm0qiKiwRRYZhdbzfsyVYZzvXq/gwMO9c+45887fOTc1ZZ5b6jyPnxIlsIAJ7ID9sAVWwRR8hedwF16FTTJMYBeBnZAbscqHfG9MJuQTWGgGro+xfZP4tsJ5N8YncAWnqhiD264n6LTbBlegwcx+juMnzueAOZvEGLbAOvpvYYk1egXvfZAJe+EwZEeof+R7DvxyBXow1DjB1fR7Ldsi3o+abVgRItTEtw5bQAf7GVZ6giawPYM7Ruw3z41wDzYnERnCnmcL5NN56nG+he0TFMI2eAdl8ARWg3JBW+u2fxiUM2PBGRykc9vjqDO4buy7eV6CtVAKSjJN7DEoId2m/HkRCByn0+1xuo/tEWgl2sLl8AC0NcrwUbgGlZ7YYmx9gcAhOjc9ToHpJy+6ADdgDYzAIJTAJnjjidUZDAUCO02A6/cDg26RtqIA9kA/tMEZyIL3MAyqVXbTGX0JBNLoqIClO06qMapHy+AbqLBpZsoF5YxWdRl0Nses2Je8b1ffTrSr9I84AjqXWtCevzbfMniOgxLpAjRDsKIg/CQv51yBDRh0aIsdEc1UV3GpsWsVf2ArfIcPoCu53nzXTmiFmsSM/8FpbKccgbjdcgJ0GRLNLXa6z7rfuh1zaRcJqrMDfeVa9eYstMRQ+Iuv6k8XKIunW9gfbR9eKlhR1VPlQmVeeTGjRf2TdeBFEPZPHnBnPdsVxNih5K7/AWkxbhmNkzfzAAAAAElFTkSuQmCC" alt="{{t "Blog" key='blog'}}"/></a-->
               <a href="https://twitter.com/CoughDropAAC" target="_blank"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACPUlEQVRIS7WVTUhVURDH3+tbsGghEiElQrSohSAZuHBjkhBUmxApKDFIwYpEEylQorDEIip0I2mLQNoEuVEDNxIEStg3tAuCMhTNpIgw+/3lnjiNx/v0gQM/7pk5c2bumfOVTKyyJFc5fiJVgjX8QCEcgT2QDX/gK4zAE3gd95NxCYoZeAsKUszyKf118CbkF0qwNgp8bgXlm8P3EtywY0IJunCqWkFw37UJ5bpvsAkuRH+fZvyF9TkKfS6AnyAH4wfIWGb0WfwyA76fsO2GH+rzE3SiV3sDhmgXwSYTZAz9OLyDndAAn+EKaNdJ6uGmn0AL+wWyvGCHaP+CHtDsnOyl8dYkPYh+H7ZH9lG++/wE+1Gem0HaRXdhM5yBk5Ab6cY1MYih1DPO09aZmXAlOobyyIx6gF4LqrWTjTQ0Kysq0TZj1Pl54RLUoHQYh0b0tkAwa1JZx8HV3/WX0RhwCcpRes3IafQK6E+RpJJ+1d+K1mDUJdBueRZwuojtHvxcIskG7K9A29KKSjbuEqxH0QW21Xh9Qz+tqcL3QJDb2M4H7C+x5cvun4Nu9FPGeQpd02+FSa9P2/oaaJ1Ccjnq/y9BHsb3oGnryD8GHR6VwIlO+QFQAF3jIVEldsGMOu1d1IKt2Yz6iD4BW2AHaKvGyQk6HzoHm0BbTY+ITnE6og1x1h8Yuq7X4XAVlqpvKPFvjLqT7oBO8T+Je9EO49UOqmec6OnUNR/a5infZC14CcS9ycP2r5c7g3TWYNGYv08nYRkr0ZSYAAAAAElFTkSuQmCC" alt="{{t "Twitter" key='twitter'}}"/></a>
               <a href="https://www.facebook.com/CoughDropAAC" target="_blank"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAB5klEQVRIS7WVTShEURTHZ5CPspAkycdCspAVEWFjoxQWZGGjbNgIEUIsEIUFxUbZSbJiJWUjHyUkFrJCipHssJCP35ne05uZe+94NXPrV++ec+7533Pf/fB6oty8Uc7vCScQwwRKoQEKIR2+4RlOYAsuTZM0CVQzcB6Kw1S5i78XrlRxKoFYK3GXi+X7InYYZoLHqARWCGp3kdwZOkRn2mkIFuixZq/K/4lxFDbhFbLhIihQ/k8jbNt2p0AWxhtI0sx+yloG253Lx60i9gFbAbyLzymwTL/DsDQ1+PYgAdZAdlSlJr4P+5xTII6OD1INAhX4jiAH7gxx4joD/+6zKyjj+1gz6AN7FVzDG8RDEWSCnANV+7EqfLEFmjFsaIIlabLCV47t0FBJCb5TW6CTzpImWHaPHDjx30MKDEIeNBkEavHt2AItdNYNweJy8w8kPqACGXwQYYEM8vnsCuR6eII0g4ibCkJ2keRdhbYICYyQZ1JyOQ+anEzZiokakf9W8Mj4fJDdF/IejGMb0wjIjjkH2f/7hkpb8clJ97fgy04eGDk8dYYEJtcizoBrXnVdy7UxAQMuROSs9MMCyCn+a6YXrZ6oWZD1NDV5OrtBearDvcly78gtanqT5X8EzPq/FbhYIX3oL7fkWhnudl6LAAAAAElFTkSuQmCC" alt="{{t "Facebook" key='facebook'}}"/></a>
               <a href="https://plus.google.com/+myCoughDropAAC" rel="publisher" target="_blank"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACcElEQVRIS7WVTUhVQRTHfaZGZtAiokWiRBIZlRQVtBBBqKDQCCJIEMGNQUSJFVHQBxWJpVBWLiRxYYSgi1rYQ2hjfkBP6YuiEESSygyCwlxI2u8vd2Sad9+9z8CBH/eemTNzZs7HTCRlkVtkkddPCTOQygZ2QilsgtUwA9/gBTyGN0GbDDJQyMQG2BZyym7Gq+Gtn56fgSUo1sOJBbjvD7rnodad42egGaXKBSxuq55DuGF3uAZOebv/z/Xn4nMQnpgFbANr6fwIy5zVu5Cj8Nnqv8z/xgS7GKN/A/zWuG3gPnKVM+k0cifo6NdhxPPzmZAj1jB+yzagwH6FVdbET/znwBW4AP2wG47DHU+vj+9mWOEYjCHvsA3sQhhwlEaRc6EcWmEKMkG7N9miFG70DNvTZxFUM9+Niw4jtDsGJB4CBUxp+wOUYTqJ/PsTyuAsbAHFRBswbTs/Q8bAMYR7PgaU320gf74GBXwfHAC59D1kQxbchCJrDelFjYEjCI98DCjtnkETdICy4ynkerqJXKRhxSBmDCh4vY6BYWTl9HKQq7Tju5APLz3dPXzrYKvP5tbQN24MpCPoAltpKe7l/wOoNjK8/gd8VeUTYGecu/4rOgrUaddBC3KFpanAqWjegXajplgog76AUjtRU1pfcw2so0NBM7t9zv9RmAT5+heoNhT0ooDF5Yn1nn7ce3CJgYvWZGXRIOgkconqZWnA4hpS6j40Ou5lpwdGj8j+kEUSDavC/7nm/a7rNJSuggoo2TaNou6t26Aqnm9BL1oJWiqevBArejpPgu6luBb2JivgxRD0Jve4u072BMm6J1DvL7DNcxkrfpOIAAAAAElFTkSuQmCC" alt="{{t "Google+" key="google_plus"}}"/></a>

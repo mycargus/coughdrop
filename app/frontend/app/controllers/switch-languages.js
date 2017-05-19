@@ -26,7 +26,6 @@ export default modal.ModalController.extend({
         res.push({name: list[key], id: key});
       }
     }
-    res.push({name: i18n.t('unspecified', "Unspecified"), id: ''});
     return res;
   }.property('model.board', 'model.board.locales'),
   actions: {

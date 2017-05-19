@@ -12,10 +12,17 @@
           {{board.unlinked_buttons}}
         </span>
       {{/if}}
-      <span style="color: #222; padding-left: 8px; display: block;">
-        <span class="glyphicon glyphicon-star"></span>
-        {{board.stars}}
-      </span>
+      {{#if board.stars}}
+        <span style="color: #222; padding-left: 8px; display: block;">
+          <span class="glyphicon glyphicon-star"></span>
+          {{board.stars}}
+        </span>
+      {{/if}}
+      {{#if board.different_locale}}
+        <span style='color: #888; padding-left: 8px; display: block;'>
+          {{board.shortened_locale}}
+        </span>
+      {{/if}}
     </span>
     <span style="display: block; clear: both;"></span>
 </span>

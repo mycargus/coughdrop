@@ -13,6 +13,9 @@ module JsonApi::Board
     ['grid', 'name', 'description', 'image_url', 'buttons', 'stars', 'forks', 'word_suggestions', 'locale', 'home_board', 'categories'].each do |key|
       json[key] = board.settings[key]
     end
+    list = [board.settings['locale'] || 'en']
+    (board.settings['translations'] || {}).each{|k, h| if h.is_a?(Hash); list += h.keys; end }
+    json['translated_locales'] = list.uniq
     self.trace_execution_scoped(['json/board/license']) do
       json['license'] = OBF::Utils.parse_license(board.settings['license'])
     end

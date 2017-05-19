@@ -23,6 +23,7 @@ CoughDrop.Board = DS.Model.extend({
   updated: DS.attr('date'),
   user_name: DS.attr('string'),
   locale: DS.attr('string'),
+  translated_locales: DS.attr('raw'),
   full_set_revision: DS.attr('string'),
   current_revision: DS.attr('string'),
   for_user_id: DS.attr('string'),
@@ -188,6 +189,15 @@ CoughDrop.Board = DS.Model.extend({
     });
     return res;
   },
+  different_locale: function() {
+    var current = (navigator.language || 'en').split(/[-_]/)[0];
+    return current != this.get('shortened_locale');
+  }.property('shortened_locale'),
+  shortened_locale: function() {
+    var res = (this.get('locale') || 'en').split(/[-_]/)[0];
+    if((this.get('translated_locales') || []).length > 1) { res = res + "+"; }
+    return res;
+  }.property('locale', 'translated_locales'),
   find_content_locally: function() {
     var _this = this;
     var fetch_promise = this.get('fetch_promise');

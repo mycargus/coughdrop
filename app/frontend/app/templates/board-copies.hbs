@@ -19,12 +19,13 @@
             <span class='text-muted'>
               {{t "by %{user_name}," key='by_user_plus_comma' user_name = copy.user_name}}
               {{date copy.created 'day'}}
+              {{copy.shortened_locale}}
             </span>
           </span>
         {{/each}}
       </div>
     {{/if}}
-  </div>    
+  </div>
   <div class="modal-footer">
     <button {{action "close"}} class="btn btn-default">{{t "Close" key='close'}}</button>
   </div>
