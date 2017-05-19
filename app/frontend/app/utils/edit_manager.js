@@ -640,6 +640,8 @@ var editManager = Ember.Object.extend({
             newButton.url = currentButton.get('fixed_url');
             if(currentButton.get('video')) {
               newButton.video = currentButton.get('video');
+            } else if(currentButton.get('book')) {
+              newButton.book = currentButton.get('book');
             }
           } else if(currentButton.get('buttonAction') == 'app') {
             delete newButton['load_board'];

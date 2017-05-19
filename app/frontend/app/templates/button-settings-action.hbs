@@ -280,6 +280,55 @@
             </div>
           </div>
         {{/if}}
+      {{else if model.book.type}}
+        <div class="form-group">
+          <div class="col-sm-10 col-sm-offset-2">
+            <div class="checkbox">
+              <label>
+                {{input type="checkbox" checked=model.book.popup}}
+                {{t "Show book in a popup" key='show_book_popup'}}
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-10 col-sm-offset-2">
+            <div class="book_box" style='max-height: 200px; overflow: hidden;'>
+              {{#if book_status.loading}}
+                {{t "Loading book details..." key='loading_book'}}
+              {{else if book_status.error}}
+                {{t "Error loading book details" key='error_loading_book'}}
+              {{else if book_status}}
+                <strong>{{book_status.title}}</strong><br/>
+                <img src={{book_status.image}} style='max-width: 200px;' />
+              {{else}}
+                {{t "No book data available" key='no_boo_data'}}
+              {{/if}}
+            </div>
+          </div>
+        </div>
+        {{#if model.book.popup}}
+          <div class="form-group">
+            <div class="col-sm-10 col-sm-offset-2">
+              <div class='checkbox'>
+                <label>
+                  {{input type='checkbox' checked=model.book.speech}}
+                  {{t "Read pages aloud" key='read_pages_aloud'}}
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-10 col-sm-offset-2">
+              {{bound-select select_class="form-control" select_id="book_links" content=book_link_options selection=model.book.links action=(action (mut model.book.links)) }}
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-10 col-sm-offset-2">
+              {{bound-select select_class="form-control" select_id="book_backgrounds" content=book_background_options selection=model.book.background action=(action (mut model.book.background)) }}
+            </div>
+          </div>
+        {{/if}}
       {{else}}
         {{#if model.url}}
           <div class="form-group">

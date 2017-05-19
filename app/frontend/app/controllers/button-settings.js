@@ -70,6 +70,35 @@ export default modal.ModalController.extend({
     }
     return res;
   }.property('app_state.feature_flags.app_connections'),
+  book_link_options: function() {
+    return [
+      {name: i18n.t('large_links', "Large navigation links"), id: 'large'},
+      {name: i18n.t('small_links', "Small navigation links"), id: 'small'}
+    ];
+  }.property(),
+  book_background_options: function() {
+    return [
+      {name: i18n.t('white_background', "White background"), id: 'white'},
+      {name: i18n.t('black_background', "Black background"), id: 'black'}
+    ];
+  }.property(),
+  load_book: function() {
+    var _this = this;
+    var id = _this.get('model.book.id');
+    if(id) {
+      _this.set('book_status', {loading: true});
+      persistence.ajax("/api/v1/search/external_resources?source=tarheel_book&q=" + encodeURIComponent(id), {type: 'GET'}).then(function(list) {
+        if(_this.get('model.book.id') == id) {
+          _this.set('book_status', {
+            image: list[1].image,
+            title: list[0].title
+          });
+        }
+      }, function(err) {
+        _this.set('book_status', {error: true});
+      });
+    }
+  }.observes('model.book.id'),
   tool_action_types: function() {
     return [
       {name: i18n.t('trigger_webhook', "Trigger an external action"), id: 'webhook'},

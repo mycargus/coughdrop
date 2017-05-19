@@ -1,7 +1,7 @@
 require 'obf'
 
 module Converters::CoughDrop
-  EXT_PARAMS = ['link_disabled', 'add_to_vocalization', 'hide_label', 'home_lock', 'blocking_speech', 'part_of_speech', 'external_id']
+  EXT_PARAMS = ['link_disabled', 'add_to_vocalization', 'hide_label', 'home_lock', 'blocking_speech', 'part_of_speech', 'external_id', 'video', 'book']
 
   def self.to_obf(board, dest_path, path_hash=nil)
     json = to_external(board, {})
@@ -22,7 +22,9 @@ module Converters::CoughDrop
       'private' => !board.public,
       'key' => board.key,
       'word_suggestions' => !!board.settings['word_suggestions'],
-      'protected' => board.protected_material?
+      'protected' => board.protected_material?,
+      'home_board' => board.settings['home_board'],
+      'categories' => board.settings['categories']
     }
     if board.protected_material? && board.user
       res['protected_content_user_identifier'] = board.user.settings['email']
@@ -224,6 +226,8 @@ module Converters::CoughDrop
     end
     params['grid'] = obj['grid']
     params['public'] = !(obj['ext_coughdrop_settings'] && obj['ext_coughdrop_settings']['private'])
+    params['home_board'] = obj['ext_coughdrop_settings']['home_board'] || false
+    params['categories'] = obj['ext_coughdrop_settings']['categories'] || []
     params['word_suggestions'] = obj['ext_coughdrop_settings'] && obj['ext_coughdrop_settings']['word_suggestions']
     non_user_params[:key] = (obj['ext_coughdrop_settings'] && obj['ext_coughdrop_settings']['key'] && obj['ext_coughdrop_settings']['key'].split(/\//)[-1])
     board = nil

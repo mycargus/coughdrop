@@ -22,6 +22,11 @@ export default Ember.Component.extend({
         modal_width = height * this.get('stretch_ratio') * 0.9;
       }
       Ember.$(this.get('element')).find(".modal-dialog").css('width', modal_width);
+    } else if(this.get('full_stretch')) {
+      var height = Ember.$(window).height() - 50;
+      var width = Ember.$(window).width();
+      var modal_width = (width * 0.9);
+      Ember.$(this.get('element')).find(".modal-dialog").css('width', modal_width);
     } else if(this.get('desired_width')) {
       var width = Ember.$(window).width();
       var modal_width = (width * 0.9);

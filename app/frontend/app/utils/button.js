@@ -38,7 +38,7 @@ var Button = Ember.Object.extend({
     } else {
       this.set('buttonAction', 'talk');
     }
-  }.observes('load_board', 'url', 'apps', 'integration', 'video', 'link_disabled'),
+  }.observes('load_board', 'url', 'apps', 'integration', 'video', 'book', 'link_disabled'),
   talkAction: function() {
     return this.get('buttonAction') == 'talk';
   }.property('buttonAction'),
@@ -75,6 +75,8 @@ var Button = Ember.Object.extend({
     } else if(action == 'link') {
       if(this.get('video.popup')) {
         return path('images/video.svg');
+      } else if(this.get('book.popup')) {
+        return path('images/book.svg');
       } else {
         return path('images/link.png');
       }
@@ -83,7 +85,7 @@ var Button = Ember.Object.extend({
     } else {
       return path('images/unknown_action.png');
     }
-  }.property('buttonAction', 'video.popup', 'home_lock', 'action_status', 'action_status.pending', 'action_status.errored', 'action_status.completed', 'integration.action_type'),
+  }.property('buttonAction', 'book.popup', 'video.popup', 'home_lock', 'action_status', 'action_status.pending', 'action_status.errored', 'action_status.completed', 'integration.action_type'),
   action_alt: function() {
     var path = Ember.templateHelpers.path;
     var action = this.get('buttonAction');
@@ -106,30 +108,64 @@ var Button = Ember.Object.extend({
     }
   }.property('buttonAction', 'video.popup'),
   youtube_regex: (/(?:https?:\/\/)?(?:www\.)?youtu(?:be\.com\/watch\?(?:.*?&(?:amp;)?)?v=|\.be\/)([\w \-]+)(?:&(?:amp;)?[\w\?=]*)?/),
-  video_from_url: function() {
+  tarheel_reader_regex: (/(?:https?:\/\/)?(?:www\.)?tarheelreader\.org\/\d+\/\d+\/\d+\/([\w-]+)\/?/),
+  resource_from_url: function() {
     var url = this.get('url');
-    var match = url && url.match(this.youtube_regex);
-    var id = match && match[1];
-    if(id) {
-      if(!this.get('video')) {
+    var youtube_match = url && url.match(this.youtube_regex);
+    var tarheel_match = url && url.match(this.tarheel_reader_regex);
+    var youtube_id = youtube_match && youtube_match[1];
+    var tarheel_id = tarheel_match && tarheel_match[1];
+    if(youtube_id) {
+      if(this.get('video.id') != youtube_id) {
         this.set('video', {
           type: 'youtube',
-          id: id,
+          id: youtube_id,
           popup: true,
-          start: "",
-          end: ""
-        });
-      } else {
-        this.setProperties({
-          id: id,
           start: "",
           end: ""
         });
       }
     } else {
+      if(tarheel_id) {
+        if(this.get('book.id') != tarheel_id) {
+          this.set('book', {
+            type: 'tarheel',
+            id: tarheel_id,
+            popup: true,
+            speech: true,
+            background: 'white',
+            base_url: url,
+            links: 'large'
+          });
+        }
+      } else {
+        this.set('book', null);
+      }
       this.set('video', null);
     }
   }.observes('url'),
+  set_book_url: function() {
+    if(this.get('book.type') == 'tarheel' && this.get('book.popup') && this.get('book.base_url')) {
+      var book = this.get('book');
+      var new_url = this.get('book.base_url').split(/\?/)[0] + "?";
+      if(book.speech) {
+        new_url = new_url + "voice=browser";
+      } else {
+        new_url = new_url + "voice=silent";
+      }
+      if(book.background == 'black') {
+        new_url = new_url + "&pageColor=000&textColor=fff";
+      } else {
+        new_url = new_url + "&pageColor=fff&textColor=000";
+      }
+      if(book.links == 'small') {
+        new_url = new_url + "&biglinks=0";
+      } else {
+        new_url = new_url + "&biglinks=1";
+      }
+      this.set('book.url', new_url);
+    }
+  }.observes('book.popup', 'book.type', 'book.base_url', 'book.id', 'book.speech', 'book.background', 'book.links'),
   set_video_url: function() {
     if(this.get('video.type') == 'youtube' && this.get('video.popup') && this.get('video.id')) {
       var video = this.get('video');
