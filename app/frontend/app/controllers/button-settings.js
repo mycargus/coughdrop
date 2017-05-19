@@ -7,6 +7,7 @@ import i18n from '../utils/i18n';
 import CoughDrop from '../app';
 import utterance from '../utils/utterance';
 import app_state from '../utils/app_state';
+import persistence from '../utils/persistence';
 import boundClasses from '../utils/bound_classes';
 import Button from '../utils/button';
 import Utils from '../utils/misc';

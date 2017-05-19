@@ -63,7 +63,7 @@ export default modal.ModalController.extend({
   },
   update_user: function() {
     var _this = this;
-    _this.set('premium_ideas', false)
+    _this.set('premium_ideas', false);
     if(app_state.get('currentUser.premium')) {
       _this.set('premium_ideas', true);
     }
@@ -272,7 +272,6 @@ export default modal.ModalController.extend({
               'image_id': image.id
             });
           }, function(err) {
-            debugger
             modal.error(i18n.t('error_saving_image', "There was an unexpected error adding the image"));
           });
         } else {
