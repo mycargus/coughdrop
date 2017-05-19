@@ -177,6 +177,8 @@ var Button = Ember.Object.extend({
         new_url = new_url + "&end=" + video.end;
       }
       this.set('video.url', new_url + "&autoplay=1&controls=0");
+      this.set('video.thumbnail_url', "https://img.youtube.com/vi/" + this.get('video.id') + "/hqdefault.jpg");
+      this.set('video.thumbnail_content_type', 'image/jpeg');
       this.set('video.test_url', new_url + "&autoplay=0");
     }
   }.observes('video.popup', 'video.type', 'video.id', 'video.start', 'video.end'),

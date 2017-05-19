@@ -298,8 +298,8 @@ module Uploader
       results['data'].each do |result|
         if result['slug'].match(/signwithrobert/) || result['slug'].match(/asl/)
           list << {
-            'url' => result['images']['original']['url'],
-            'thumbnail_url' => result['images']['downsized_still']['url'],
+            'url' => (result['images']['original']['url'] || '').sub(/^http:/, 'https:/'),
+            'thumbnail_url' => (result['images']['downsized_still']['url'] || '').sub(/^http:/, 'https:/'),
             'content_type' => 'image/gif',
             'width' => result['images']['original']['width'].to_i,
             'height' => result['images']['original']['height'].to_i,
@@ -361,7 +361,7 @@ module Uploader
       results['books'].each do |book|
         list << {
           'url' => "http://tarheelreader.org#{book['link']}",
-          'image' => "http://tarheelreader.org#{book['cover']['url']}",
+          'image' => "https://images.weserv.nl/?url=tarheelreader.org#{book['cover']['url']}",
           'title' => book['title'],
           'author' => book['author'],
           'id' => book['slug'],
@@ -378,7 +378,7 @@ module Uploader
         list << {
           'id' => "#{results['slug']}-#{idx}",
           'title' => page['text'],
-          'image' => "http://tarheelreader.org#{page['url']}",
+          'image' => "https://images.weserv.nl/?url=tarheelreader.org#{page['url']}",
           'url' => "http://tarheelreader.org#{results['link']}",
           'image_attribution' => "http://tarheelreader.org/photo-credits/?id=#{results['ID']}",
           'image_author' => 'Flickr User'

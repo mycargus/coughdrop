@@ -10,7 +10,7 @@ module JsonApi::Image
     json['id'] = image.global_id
     json['url'] = image.settings['cached_copy_url'] || image.url
 #    json['url'] = image.settings['cached_copy_url'] || image.settings['fallback_copy_url'] || image.url
-    ['pending', 'content_type', 'width', 'height'].each do |key|
+    ['pending', 'content_type', 'width', 'height', 'source_url'].each do |key|
       json[key] = image.settings[key]
     end
     json['protected'] = !!image.protected?

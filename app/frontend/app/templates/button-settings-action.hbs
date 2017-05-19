@@ -247,6 +247,10 @@
             <div class="video_box">
               <iframe src={{model.video.test_url}} id="link_video_preview" frameborder="0"></iframe>
             </div>
+            {{#unless image_matches_video_thumbnail}}
+              <a href="#" {{action 'set_as_button_image' model.video.thumbnail_url model.video.thumbnail_content_type}}>{{t "set as button image" key='set_as_button_image'}}</a>
+            {{/unless}}
+
             {{#if player}}
               <div style="margin-top: 5px;">
                 <button class="btn btn-default" {{action "set_time" "start"}}>{{t "Set Start" key='set_start'}}</button>
@@ -300,7 +304,12 @@
                 {{t "Error loading book details" key='error_loading_book'}}
               {{else if book_status}}
                 <strong>{{book_status.title}}</strong><br/>
-                <img src={{book_status.image}} style='max-width: 200px;' />
+                {{#if book_status.image}}
+                  <img src={{book_status.image}} style='max-width: 200px;' />
+                  {{#unless image_matches_book}}
+                    <br/><a href="#" {{action 'set_as_button_image' book_status.image book_status.content_type}}>{{t "set as button image" key='set_as_button_image'}}</a>
+                  {{/unless}}
+                {{/if}}
               {{else}}
                 {{t "No book data available" key='no_boo_data'}}
               {{/if}}
@@ -333,6 +342,11 @@
         {{#if model.url}}
           <div class="form-group">
             <div class="col-sm-10 col-sm-offset-2">
+              {{#if non_https}}
+                <p class='form-control-static text-danger'>
+                  {{t "Keep in mind, this URL is http, not https, so it will not load as a popup when using CoughDrop in a web browser" key='http_not_allowed_in_browser'}}
+                </p>
+              {{/if}}
               <p class="form-control-static">
                 <a target="_blank" href={{model.fixed_url}}>{{t "open in a browser tab" key='open_in_browser'}}</a>
               </p>

@@ -1214,7 +1214,7 @@ var app_state = Ember.Object.extend({
       } else {
         if(button.video && button.video.popup) {
           modal.open('inline-video', button);
-        } else if(button.book && button.book.popup) {
+        } else if(button.book && button.book.popup && false) {
           modal.open('inline-book', button);
         } else {
           if((!app_state.get('currentUser') && window.user_preferences.any_user.confirm_external_links) || app_state.get('currentUser.preferences.confirm_external_links')) {

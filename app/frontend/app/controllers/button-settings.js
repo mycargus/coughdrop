@@ -83,6 +83,15 @@ export default modal.ModalController.extend({
       {name: i18n.t('black_background', "Black background"), id: 'black'}
     ];
   }.property(),
+  image_matches_book: function() {
+    return this.get('book_status.image') && this.get('book_status.image') == this.get('model.image.source_url');
+  }.property('book_status.image', 'model.image.source_url'),
+  image_matches_video_thumbnail: function() {
+    return this.get('model.video.thumbnail_url') && this.get('model.video.thumbnail_url') == this.get('model.image.source_url');
+  }.property('model.video.thumbnail_url', 'model.image.source_url'),
+  non_https: function() {
+    return (this.get('model.url') || '').match(/^http:/);
+  }.property('model.url'),
   load_book: function() {
     var _this = this;
     var id = _this.get('model.book.id');
@@ -92,6 +101,7 @@ export default modal.ModalController.extend({
         if(_this.get('model.book.id') == id) {
           _this.set('book_status', {
             image: list[1].image,
+            content_type: 'image/jpeg',
             title: list[0].title
           });
         }
@@ -419,6 +429,28 @@ export default modal.ModalController.extend({
       }
       stashes.persist('last_image_library', this.get('image_library'));
       contentGrabbers.pictureGrabber.find_picture(text, this.get('board.user_name'));
+    },
+    set_as_button_image: function(url, content_type) {
+      var _this = this;
+      var preview = {
+        url: url,
+        content_type: content_type,
+        protected: false
+      };
+
+      var save = contentGrabbers.pictureGrabber.save_image_preview(preview);
+
+      var id = _this.get('model.id');
+      save.then(function(image) {
+        image.set('source_url', url);
+        var button = editManager.find_button(id);
+        if(_this.get('model.id') == id && button) {
+          Ember.set(button, 'image_id', image.id);
+          Ember.set(button, 'image', image);
+        }
+      }, function() {
+        alert('nope');
+      });
     },
     edit_image_preview: function() {
       contentGrabbers.pictureGrabber.edit_image_preview();
