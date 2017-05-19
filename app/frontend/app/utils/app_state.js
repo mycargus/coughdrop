@@ -1212,15 +1212,19 @@ var app_state = Ember.Object.extend({
       if(stashes.get('sticky_board') && app_state.get('speak_mode')) {
         modal.warning(i18n.t('sticky_board_notice', "Board lock is enabled, disable to leave this board."), true);
       } else {
+        var real_url = button.url;
+        if(button.book && button.book.popup && button.book.url) {
+          real_url = button.book.url;
+        }
         if(button.video && button.video.popup) {
           modal.open('inline-video', button);
         } else if(button.book && button.book.popup && false) {
           modal.open('inline-book', button);
         } else {
           if((!app_state.get('currentUser') && window.user_preferences.any_user.confirm_external_links) || app_state.get('currentUser.preferences.confirm_external_links')) {
-            modal.open('confirm-external-link', {url: button.url});
+            modal.open('confirm-external-link', {url: button.url, real_url: real_url});
           } else {
-            capabilities.window_open(button.url, '_blank');
+            capabilities.window_open(real_url, '_blank');
           }
         }
       }
