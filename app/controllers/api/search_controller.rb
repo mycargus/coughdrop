@@ -115,7 +115,7 @@ class Api::SearchController < ApplicationController
   end
   
   def audio
-    req = Typhoeus.get("http://translate.google.com/translate_tts?tl=en&q=#{URI.escape(params['text'] || "")}&client=t", headers: {'User-Agent' => "Mozilla/5.0 (X11; Linux x86_64; rv:39.0) Gecko/20100101 Firefox/39.0"})
+    req = Typhoeus.get("http://translate.google.com/translate_tts?id=UTF-8&tl=en&q=#{URI.escape(params['text'] || "")}&total=1&idx=0&textlen=#{(params['text'] || '').length}&client=tw-ob", headers: {'Referer' => "https://translate.google.com/", 'User-Agent' => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"})
     response.headers['Content-Type'] = req.headers['Content-Type']
     send_data req.body, :type => req.headers['Content-Type'], :disposition => 'inline'
   end
