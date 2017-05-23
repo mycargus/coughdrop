@@ -164,5 +164,6 @@ var session = Ember.Object.extend({
   }
 }).create({
 });
+window.session = session;
 
 export default session;

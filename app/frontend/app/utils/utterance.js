@@ -169,7 +169,7 @@ var utterance = Ember.Object.extend({
       this.clear(true);
     }
     var b = Ember.$.extend({}, button);
-    if(original_button) {
+    if(original_button && original_button.load_image) {
       original_button.load_image().then(function() {
         Ember.set(b, 'image_license', original_button.get('image.license'));
       });
