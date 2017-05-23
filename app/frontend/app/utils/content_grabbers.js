@@ -1681,7 +1681,7 @@ var soundGrabber = Ember.Object.extend({
     }
   },
   recorder_available: function() {
-    return !!(capabilities.subsystem != 'Kindle' && (navigator.getUserMedia || contentGrabbers.capture_types.audio));
+    return !!(capabilities.subsystem != 'Kindle' && (navigator.getUserMedia || contentGrabbers.capture_types().audio));
   },
   record_sound: function(auto_loading) {
     var _this = this;
