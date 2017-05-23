@@ -1213,13 +1213,26 @@ var app_state = Ember.Object.extend({
         modal.warning(i18n.t('sticky_board_notice', "Board lock is enabled, disable to leave this board."), true);
       } else {
         var real_url = button.url;
+        var book_integration = app_state.get('sessionUser.global_integrations.tarheel');
         if(button.book && button.book.popup && button.book.url) {
           real_url = button.book.url;
         }
         if(button.video && button.video.popup) {
           modal.open('inline-video', button);
-        } else if(button.book && button.book.popup && false) {
-          modal.open('inline-book', button);
+        } else if(button.book && button.book.popup && book_integration) {
+          var opts = Ember.$.extend({}, button.book || {});
+          delete opts['base_url'];
+          delete opts['url'];
+          delete opts['popup'];
+          delete opts['type'];
+          Ember.run.later(function() {
+            _this.jump_to_board({
+              id: "i_tarheel",
+              key: "integrations/tarheel:" + btoa(JSON.stringify(opts)),
+              home_lock: button.home_lock
+            }, obj.board);
+          }, 100);
+//           modal.open('inline-book', button);
         } else {
           if((!app_state.get('currentUser') && window.user_preferences.any_user.confirm_external_links) || app_state.get('currentUser.preferences.confirm_external_links')) {
             modal.open('confirm-external-link', {url: button.url, real_url: real_url});
@@ -1260,34 +1273,39 @@ var app_state = Ember.Object.extend({
       } else if(button.vocalization == ':backspace') {
         app_state.controller.send('backspace');
       }
-    } else {
-      if(button.integration && button.integration.action_type == 'webhook') {
-        Button.extra_actions(button);
-      } else if(button.integration && button.integration.action_type == 'render') {
-        Ember.run.later(function() {
-        _this.jump_to_board({
-          id: "i" + button.integration.user_integration_id,
-          key: "integrations/" + button.integration.user_integration_id + ":" + button.integration.action,
-          home_lock: button.home_lock
-        }, obj.board);
-        }, 100);
-      } else if(app_state.get('speak_mode') && ((!app_state.get('currentUser') && window.user_preferences.any_user.auto_home_return) || app_state.get('currentUser.preferences.auto_home_return'))) {
-        if(stashes.get('sticky_board') && app_state.get('speak_mode')) {
-          var state = stashes.get('temporary_root_board_state') || stashes.get('root_board_state');
-          var current = app_state.get('currentBoardState');
-          if(state && current && state.key == current.key) {
-          } else {
-            modal.warning(i18n.t('sticky_board_notice', "Board lock is enabled, disable to leave this board."), true);
-          }
-        } else if(obj && obj.vocalization && obj.vocalization.match(/^\+/)) {
-          // don't home-return when spelling out words
+    } else if(button.integration && button.integration.action_type == 'webhook') {
+      Button.extra_actions(button);
+    } else if(button.integration && button.integration.action_type == 'render') {
+      Ember.run.later(function() {
+      _this.jump_to_board({
+        id: "i" + button.integration.user_integration_id,
+        key: "integrations/" + button.integration.user_integration_id + ":" + button.integration.action,
+        home_lock: button.home_lock
+      }, obj.board);
+      }, 100);
+    } else if(obj.prevent_return) {
+      // integrations and configured buttons can explicitly prevent navigating away when activated
+    } else if(app_state.get('speak_mode') && ((!app_state.get('currentUser') && window.user_preferences.any_user.auto_home_return) || app_state.get('currentUser.preferences.auto_home_return'))) {
+      if(stashes.get('sticky_board') && app_state.get('speak_mode')) {
+        var state = stashes.get('temporary_root_board_state') || stashes.get('root_board_state');
+        var current = app_state.get('currentBoardState');
+        if(state && current && state.key == current.key) {
         } else {
-          app_state.jump_to_root_board({auto_home: true});
+          modal.warning(i18n.t('sticky_board_notice', "Board lock is enabled, disable to leave this board."), true);
         }
+      } else if(obj && obj.vocalization && obj.vocalization.match(/^\+/)) {
+        // don't home-return when spelling out words
+      } else {
+        app_state.jump_to_root_board({auto_home: true});
       }
     }
     return true;
   },
+  remember_global_integrations: function() {
+    if(this.get('sessionUser.global_integrations')) {
+      stashes.persist('global_integrations', this.get('sessionUser.global_integrations'));
+    }
+  }.observes('sessionUser.global_integrations'),
   board_virtual_dom: function() {
     var _this = this;
     var dom = {

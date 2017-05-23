@@ -20,20 +20,34 @@ export default Ember.Route.extend({
       var id = parts[1];
       parts = id.split(/:/);
       var integration_id = parts.shift();
+      if(app_state.get('sessionUser.global_integrations.' + integration_id)) {
+        integration_id = app_state.get('sessionUser.global_integrations.' + integration_id);
+      } else if(stashes.get('global_integrations.' + integration_id)) {
+        integration_id = stashes.get('global_integrations.' + integration_id);
+      }
       var action = parts.join(':');
       var obj = CoughDrop.store.createRecord('board');
       obj.set('integration', true);
       obj.set('key', params.key);
       obj.set('id', 'i' + integration_id);
       return CoughDrop.store.findRecord('integration', integration_id).then(function(tool) {
-        var user_token = tool.get('user_token');
-        if(user_token && app_state.get('currentUser.id') != app_state.get('sessionUser.id')) {
-          user_token = user_token + ":as_user_id=" + app_state.get('currentUser.id');
+        var reload = Ember.RSVP.resolve(tool);
+        if(!tool.get('render_url')) {
+          reload = tool.reload();
         }
-        obj.set('embed_url', tool.get('render_url') || 'http://cs.byu.edu');
-        obj.set('integration_name', tool.get('name') || i18n.t('external_integration', "External Integration"));
-        obj.set('user_token', user_token);
-        return Ember.RSVP.resolve(obj);
+        return reload.then(function(tool) {
+          var user_token = tool.get('user_token');
+          if(user_token && app_state.get('currentUser.id') != app_state.get('sessionUser.id')) {
+            user_token = user_token + ":as_user_id=" + app_state.get('currentUser.id');
+          }
+          obj.set('embed_url', tool.get('render_url'));
+          obj.set('integration_name', tool.get('name') || i18n.t('external_integration', "External Integration"));
+          obj.set('user_token', user_token);
+          obj.set('action', action);
+          return Ember.RSVP.resolve(obj);
+        }, function(err) {
+          return Ember.RSVP.resolve(obj);
+        });
       }, function(err) {
         return Ember.RSVP.resolve(obj);
       });

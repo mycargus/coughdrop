@@ -47,6 +47,7 @@ CoughDrop.User = DS.Model.extend({
   referrer: DS.attr('string'),
   ad_referrer: DS.attr('string'),
   preferences: DS.attr('raw'),
+  global_integrations: DS.attr('raw'),
   devices: DS.attr('raw'),
   requested_phrase_changes: DS.attr('raw'),
   premium_voices: DS.attr('raw'),

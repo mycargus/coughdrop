@@ -188,4 +188,20 @@ class UserIntegration < ActiveRecord::Base
     args << self.settings['static_token']
     Security.sha512(args.join(","), 'user integration placement code')
   end
+  
+  def self.global_integrations
+    expires ||= 30.minutes.to_i
+
+    cache_key = "global_integrations"
+    cached_val = RedisInit.permissions.get(cache_key)
+    return JSON.parse(cached_val) if cached_val
+    
+    res = {}
+    UserIntegration.where('integration_key IS NOT NULL').each do |ui|
+      res[ui.integration_key] = ui.global_id if ui.settings['global']
+    end
+    
+    RedisInit.permissions.setex(cache_key, expires, res.to_json)
+    res
+  end
 end
