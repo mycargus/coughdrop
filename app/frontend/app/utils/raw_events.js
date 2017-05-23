@@ -53,6 +53,11 @@ Ember.$(document).on('mousedown touchstart', function(event) {
       Ember.$(this).trigger('buttonselect');
     }
   }
+}).on('keypress', '.integration_target', function(event) {
+  // basic keyboard navigation
+  if(event.keyCode == 13 || event.keyCode == 32) {
+    frame_listener.trigger_target(Ember.$(event.target).closest(".integration_target")[0]);
+  }
 }).on('keydown', function(event) {
   if(event.keyCode == 9) {
     $board_canvas = Ember.$("#board_canvas");

@@ -14,6 +14,8 @@ var frame_listener = Ember.Object.extend({
       this.status(data);
     } else if(data.action == 'add_text') {
       this.add_text(data);
+    } else if(data.action == 'speak_text') {
+      this.speak_text(data);
     } else if(data.action == 'update_manifest') {
       this.update_manifest(data);
     } else if(data.action == 'retrieve_object') {
@@ -81,9 +83,11 @@ var frame_listener = Ember.Object.extend({
   status: function(data) {
     var session_id = data.session_id;
     var $elem = Ember.$("#integration_frame");
+    Ember.$("#integration_overlay").removeClass('pending');
     data.respond({
       status: 'ready',
       session_id: session_id,
+      code: $elem.attr('data-code'),
       user_token: $elem.attr('data-user_token')
     });
   },
@@ -92,6 +96,7 @@ var frame_listener = Ember.Object.extend({
       label: data.text,
       vocalization: data.text,
       image: data.image_url,
+      prevent_return: true,
       button_id: null,
       board: {id: app_state.get('currentBoardState.id'),key:  app_state.get('currentBoardState.key')},
       type: 'speak'
@@ -100,6 +105,10 @@ var frame_listener = Ember.Object.extend({
     app_state.activate_button({}, obj);
 
     data.respond({added: true});
+  },
+  speak_text: function(data) {
+    speecher.speak_text((data.text || ""), false, {alternate_voice: data.voice == 'secondary', interrupt: true});
+    data.respond({spoken: true});
   },
   update_manifest: function(data) {
     // { html_url: '', script_url: '', state: {key: 'values', only: 'folks'}, objects: [{url: '', type: 'image'}] }
@@ -118,14 +127,18 @@ var frame_listener = Ember.Object.extend({
     }
   },
   add_target: function(data) {
+    // really add-or-update, since it should update in place if a target with the id already exists
     if(!data.target) {
       return data.respond({error: 'target attribute missing'});
     }
     var targets = this.get('targets') || [];
     this.clear_target({session_id: data.session_id, id: data.target.id});
-    var div = document.createElement('div');
-    div.id = "target_" + data.session_id + "_" + data.target.id;
+    var dom_id = "target_" + data.session_id + "_" + data.target.id
+    var div = document.getElementById(dom_id);
+    div = div || document.createElement('div');
+    div.id = dom_id;
     div.classList.add('integration_target');
+    div.tabIndex = 0;
     var overlay = document.getElementById('integration_overlay');
     if(overlay) {
       var rect = overlay.getBoundingClientRect();
@@ -134,7 +147,9 @@ var frame_listener = Ember.Object.extend({
       div.style.left = (data.target.left_percent * rect.width) + "px";
       div.style.top = (data.target.top_percent * rect.height) + "px";
       overlay.appendChild(div);
-      targets.push({id: data.target.id, session_id: data.session_id, target: data.target, dom: div, respond: data.respond});
+      if(!targets.find(function(t) { return t.id == data.target.id; })) {
+        targets.push({id: data.target.id, session_id: data.session_id, target: data.target, dom: div, respond: data.respond});
+      }
       this.set('targets', targets);
       data.respond({id: data.target.id});
       if(scanner.scanning) {

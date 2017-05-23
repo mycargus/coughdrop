@@ -353,6 +353,7 @@ module Uploader
   end
   
   def self.find_resources(query, source, user)
+    tarheel_prefix = ENV['TARHEEL_PROXY'] || "https://images.weserv.nl/?url=tarheelreader.org"
     if source == 'tarheel'
       url = "http://tarheelreader.org/find/?search=#{CGI.escape(query)}&category=&reviewed=R&audience=E&language=en&page=1&json=1"
       res = Typhoeus.get(url)
@@ -361,7 +362,7 @@ module Uploader
       results['books'].each do |book|
         list << {
           'url' => "http://tarheelreader.org#{book['link']}",
-          'image' => "https://images.weserv.nl/?url=tarheelreader.org#{book['cover']['url']}",
+          'image' => tarheel_prefix + book['cover']['url'],
           'title' => book['title'],
           'author' => book['author'],
           'id' => book['slug'],
@@ -378,7 +379,7 @@ module Uploader
         list << {
           'id' => "#{results['slug']}-#{idx}",
           'title' => page['text'],
-          'image' => "https://images.weserv.nl/?url=tarheelreader.org#{page['url']}",
+          'image' => tarheel_prefix + page['url'],
           'url' => "http://tarheelreader.org#{results['link']}",
           'image_attribution' => "http://tarheelreader.org/photo-credits/?id=#{results['ID']}",
           'image_author' => 'Flickr User'

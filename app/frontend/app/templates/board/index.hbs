@@ -6,7 +6,7 @@
     </div>
   {{/if}}
   {{#if model.embed_url}}
-    {{embed-frame board_style=board_style embed_url=model.embed_url user_token=model.user_token}}
+    {{embed-frame board_style=board_style code=model.action embed_url=model.embed_url user_token=model.user_token}}
   {{else}}
     <p class='text-danger'>{{t "There was an error loading the tool's page, it appears to not be configured properly" key='misconfigured_integration'}}</p>
   {{/if}}

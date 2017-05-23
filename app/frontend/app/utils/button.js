@@ -161,7 +161,7 @@ var Button = Ember.Object.extend({
       if(book.links == 'small') {
         new_url = new_url + "&biglinks=0";
       } else {
-        new_url = new_url + "&biglinks=1";
+        new_url = new_url + "&biglinks=2";
       }
       this.set('book.url', new_url);
     }
