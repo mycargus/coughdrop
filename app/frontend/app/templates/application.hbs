@@ -107,8 +107,12 @@
             <span class="glyphicon glyphicon-list" title={{t "in a supervisee's board set" key='in_supervisee_board_set'}}></span>
           {{/if}}
 
-          {{#link-to 'user' app_state.current_board_user_name}}{{app_state.current_board_user_name}}{{/link-to}} /
-          {{app_state.current_board_name}}
+          {{#if app_state.currentBoardState.integration_name}}
+            {{app_state.currentBoardState.integration_name}}
+          {{else}}
+            {{#link-to 'user' app_state.current_board_user_name}}{{app_state.current_board_user_name}}{{/link-to}} /
+            {{app_state.current_board_name}}
+          {{/if}}
         </span>
       {{/unless}}
     {{/if}}
