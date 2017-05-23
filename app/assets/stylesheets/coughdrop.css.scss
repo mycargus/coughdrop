@@ -673,15 +673,42 @@ footer .wide_links {
     position: absolute;
     top: 0;
     overflow: hidden;
+    &.pending {
+      background: #fff;
+      .status {
+        font-size: 20px;
+        text-align: center;
+        margin-top: 20px;
+      }
+    }
     .integration_target {
       position: absolute;
-      border: 2px dashed #f00;
+      cursor: pointer;
+      border-radius: 5px;
+      &:hover, &:focus {
+        border: 3px solid #444;
+        outline: none;
+      }
     }
   }
 }
 .board .board_status {
   margin: 20px 20px;
-  font-size: 18px;
+  font-size: 20px;
+  text-align: center;
+  opacity: 0;
+  animation: appear-after-delay 1s forwards;
+}
+@keyframes appear-after-delay {
+  0% {
+    opacity: 0;
+  }
+  99% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 .board {
   margin: -10px -20px;
