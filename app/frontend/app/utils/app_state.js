@@ -1203,12 +1203,11 @@ var app_state = Ember.Object.extend({
 //     }
 
         Ember.run.later(function() {
-        CoughDrop.log.track('jumping to new board');
-        _this.jump_to_board({
-          id: button.load_board.id,
-          key: button.load_board.key,
-          home_lock: button.home_lock
-        }, obj.board);
+          _this.jump_to_board({
+            id: button.load_board.id,
+            key: button.load_board.key,
+            home_lock: button.home_lock
+          }, obj.board);
         }, 50);
       }
     } else if(button.url) {
