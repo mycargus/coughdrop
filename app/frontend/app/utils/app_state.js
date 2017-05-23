@@ -126,11 +126,14 @@ var app_state = Ember.Object.extend({
           console.log("will log out: " + (do_logout || last_try));
           console.error("user initialization failed");
           if(do_logout || last_try) {
+            if(session.get('user_name') && session.get('user_name').match(/wahl/)) {
+              alert("Hi! You found the logout error! Please take a screenshot! " + err.status + " " + JSON.stringify(err));
+            }
             session.invalidate(true);
           } else {
             Ember.run.later(function() {
               find_user(true);
-            }, 250);
+            }, 1000);
           }
         });
       };
