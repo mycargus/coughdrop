@@ -106,6 +106,7 @@ Ember.$(document).on('mousedown touchstart', function(event) {
     Ember.$(this).trigger('select');
   }
 }).on('drop', '.button,.board_drop', function(event) {
+  event.preventDefault();
   Ember.$('.button.drop_target,.board_drop.drop_target').removeClass('drop_target');
 }).on('dragover', '.button', function(event) {
   event.preventDefault();
@@ -118,7 +119,7 @@ Ember.$(document).on('mousedown touchstart', function(event) {
 }).on('dragleave', '.button,.board_drop', function(event) {
   event.preventDefault();
   Ember.$(this).removeClass('drop_target');
-}).on('mousedown touchstart', '.select_on_click', function(event) {
+}).on('mousedown touchstart focus', '.select_on_click', function(event) {
   Ember.$(this).focus().select();
   event.preventDefault();
 });
@@ -186,6 +187,7 @@ var buttonTracker = Ember.Object.extend({
   // used for handling dragging, scanning selection
   touch_continue: function(event) {
     if(buttonTracker.transitioning) {
+      console.log('prevented because transitioning');
       event.preventDefault();
       return;
     }
@@ -258,6 +260,7 @@ var buttonTracker = Ember.Object.extend({
 
     if(buttonTracker.buttonDown && buttonTracker.any_select && buttonTracker.scanning_enabled) {
       if(event.type != 'mousedown' && event.type != 'touchstart') {
+        console.log('prevented because scanning');
         event.preventDefault();
         buttonTracker.ignoreUp = true;
         return false;
@@ -461,6 +464,7 @@ var buttonTracker = Ember.Object.extend({
     if(buttonTracker.ignored_region(event)) {
       if(editManager.finding_target()) {
         buttonTracker.ignoreUp = true;
+        console.log('prevented because ignored region');
         event.preventDefault();
       } else {
         return;
@@ -481,6 +485,7 @@ var buttonTracker = Ember.Object.extend({
     } else if(!app_state.get('edit_mode')) {
       // when not editing, use user's preferred selection logic for identifying and
       // selecting a button
+      console.log('prevented because on element');
       event.preventDefault();
       var frame_event = event;
       var ts = (new Date()).getTime();
@@ -516,6 +521,7 @@ var buttonTracker = Ember.Object.extend({
       // logic to prevent quick double-tap, seems like this was a fix for iOS problems
       // but it may no longer be necessary
       if(elem_wrap && elem_wrap.dom && buttonTracker.lastSelect != elem_wrap.dom) {
+        console.log('prevented because of double-tap');
         event.preventDefault();
         if(elem_wrap.dom.id != 'clear_button') {
           buttonTracker.lastSelect = elem_wrap.dom;
@@ -539,6 +545,7 @@ var buttonTracker = Ember.Object.extend({
         // different elements have different selection styles
         // TODO: standardize this more
         if(elem_wrap.dom.id == 'identity') {
+          console.log('prevented because on identity');
           event.preventDefault();
           // click events are eaten by our listener above, unless you
           // explicitly tell it to pass them through
@@ -548,6 +555,7 @@ var buttonTracker = Ember.Object.extend({
           e.pass_through = true;
           Ember.$(elem_wrap.dom).trigger(e);
         } else if(elem_wrap.dom.id == 'button_list') {
+          console.log('prevented because on button_list');
           event.preventDefault();
           var $elem = Ember.$(elem_wrap.dom);
           $elem.addClass('focus');
@@ -556,6 +564,7 @@ var buttonTracker = Ember.Object.extend({
           }, 500);
           $elem.trigger('select');
         } else if(elem_wrap.dom.tagName == 'A' && Ember.$(elem_wrap.dom).closest('#pin').length > 0) {
+          console.log('prevented because on pin');
           event.preventDefault();
           Ember.$(elem_wrap.dom).trigger('select');
         } else if((elem_wrap.dom.className || "").match(/button/) || elem_wrap.virtual_button) {
@@ -563,6 +572,7 @@ var buttonTracker = Ember.Object.extend({
         } else if(elem_wrap.dom.classList.contains('integration_target')) {
           frame_listener.trigger_target(elem_wrap.dom);
         } else {
+          console.log('prevented because on catchall');
           event.preventDefault();
           // click events are eaten by our listener above, unless you
           // explicitly tell it to pass them through
@@ -611,6 +621,7 @@ var buttonTracker = Ember.Object.extend({
     } else if(!app_state.get('edit_mode')) {
       elem_wrap.trigger_special('buttonselect', {clientX: event.clientX, clientY: event.clientY});
     } else if(app_state.get('edit_mode') && !editManager.paint_mode) {
+      console.log('prevented because on button');
       event.preventDefault();
       if($target.closest('.action').length > 0) {
         elem_wrap.trigger('actionselect');
@@ -1228,5 +1239,6 @@ var buttonTracker = Ember.Object.extend({
   drag_distance: 20,
   buttons: []
 }).create();
+window.buttons = buttonTracker;
 
 export default buttonTracker;
