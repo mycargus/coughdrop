@@ -58,8 +58,12 @@
         {{t "weighted" key='weighted'}}
         <br/>
         <span class='text-muted'>
-          {{model.stats.weighted_average_status}}
-          {{t "weighted status" key='weighted_status'}}
+          {{#if model.stats.weighted_average_status}}
+            <span class='face_label' style='vertical-align: middle; opacity: 0.7;'><span class={{weighted_average_status_face_class}}></span></span>
+            {{t "weighted status" key='weighted_status'}}
+          {{else}}
+            {{t "no statuses recorded" key='no_statuses'}}
+          {{/if}}
         </span>
       </div>
     </div>

@@ -47,6 +47,21 @@ export default Ember.Controller.extend({
       return this.get('model.badges');
     }
   }.property('model.badges', 'user_badges'),
+  weighted_average_status_face_class: function() {
+    var status = this.get('model.status.weighted_average_status') || 0;
+    var res = "face";
+    if(status >= 3.5) {
+    } else if(status >= 2.5) {
+      res = res + " happy";
+    } else if(status >= 1.5) {
+      res = res + " neutral";
+    } else if(status >= 0.5) {
+      res = res + " sad";
+    } else {
+      res = res + " sad";
+    }
+    return Ember.String.htmlSafe(res);
+  }.property('model.stats.weighted_average_status'),
   actions: {
     more_results: function() {
       var _this = this;
