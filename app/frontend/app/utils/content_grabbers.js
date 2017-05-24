@@ -175,6 +175,10 @@ var contentGrabbers = Ember.Object.extend({
 
     var state = type == 'image' ? 'picture' : 'sound';
     this.board_controller.send('buttonSelect', id, state);
+    var _this = this;
+    Ember.run.later(function() {
+      _this.check_for_dropped_file();
+    }, 100);
   },
   check_for_dropped_file: function() {
     var drop = this.droppedFile;
@@ -2219,6 +2223,11 @@ var linkGrabber = Ember.Object.extend({
   }
 }).create();
 
+document.addEventListener('dragover', function(event) {
+  if(document.getElementById('find_picture')) {
+    event.preventDefault();
+  }
+});
 Ember.$(document).on('change', '#image_upload,#sound_upload,#board_upload,#avatar_upload,#video_upload,#badge_upload,#recording_upload', function(event) {
   var type = 'image';
   if(event.target.id == 'sound_upload') { type = 'sound'; }
@@ -2229,32 +2238,39 @@ Ember.$(document).on('change', '#image_upload,#sound_upload,#board_upload,#avata
   if(event.target.id == 'recording_upload') { type = 'recording'; }
   var files = event.target.files;
   contentGrabbers.file_selected(type, files);
-}).on('paste', '#find_picture', function(event) {
-  event = event.originalEvent || event;
-  var data = event && event.clipboardData && event.clipboardData.items;
-  var found_file = false;
-  if(data) {
-    for(var idx = 0; idx < data.length; idx++) {
-      if(data[idx] && data[idx].kind == 'file') {
-        found_file = true;
+}).on('paste', function(event) {
+  if(document.getElementById('find_picture')) {
+    event = event.originalEvent || event;
+    var data = event && event.clipboardData && event.clipboardData.items;
+    var found_file = false;
+    if(data) {
+      for(var idx = 0; idx < data.length; idx++) {
+        if(data[idx] && data[idx].kind == 'file') {
+          found_file = true;
+        }
       }
     }
+    if(found_file) {
+      contentGrabbers.file_pasted('image', data);
+      event.preventDefault();
+      event.stopPropagation();
+    }
   }
-  if(found_file) {
-    contentGrabbers.file_pasted('image', data);
-    event.preventDefault();
-    event.stopPropagation();
-  }
-}).on('drop', '.button', function(event) {
+}).on('drop', function(event) {
   event.preventDefault();
   event.stopPropagation();
-  Ember.$('.button.drop_target').removeClass('drop_target');
-  var id = Ember.$(this).attr('data-id');
-  contentGrabbers.content_dropped(id, event.dataTransfer);
-}).on('drop', '.board_drop', function(event) {
-  event.preventDefault();
+  if(Ember.$(event.target).closest('.button').length > 0) {
+    Ember.$('.button.drop_target').removeClass('drop_target');
+    var id = Ember.$(this).attr('data-id');
+    contentGrabbers.content_dropped(id, event.dataTransfer);
+  } else if(document.getElementById('find_picture')) {
+    if(pictureGrabber.controller.get('model.id')) {
+      contentGrabbers.content_dropped(pictureGrabber.controller.get('model.id'), event.dataTransfer);
+    }
+  } else if(Ember.$(event.target).closest('.board_drop').length > 0) {
+    boardGrabber.files_dropped(event.dataTransfer.files);
+  }
   event.stopPropagation();
-  boardGrabber.files_dropped(event.dataTransfer.files);
 }).on('keydown', '.form-horizontal', function(event) {
   if(event.keyCode == 32 && event.target.tagName == 'BUTTON') {
     if(Ember.$(event.target).closest("#button_settings").length > 0) {
