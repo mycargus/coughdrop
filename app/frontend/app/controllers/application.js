@@ -60,7 +60,13 @@ export default Ember.Controller.extend({
       session.invalidate(true);
     },
     authenticateSession: function() {
-      this.transitionToRoute('login');
+      if(location.hostname == '127.0.0.1') {
+        location.href = "//localhost:" + location.port + "/login";
+      } else if(location.hostname == 'www.mycoughdrop.com') {
+        location.href = "//app.mycoughdrop.com/login";
+      } else {
+        this.transitionToRoute('login');
+      }
     },
     index: function() {
       this.transitionToRoute('index');
