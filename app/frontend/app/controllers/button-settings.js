@@ -25,11 +25,16 @@ export default modal.ModalController.extend({
 
     contentGrabbers.check_for_dropped_file();
     var state = button.state || 'general';
+    if(!app_state.get('currentUser.preferences.disable_button_help')) {
+      state = 'help';
+      this.set('auto_help', true);
+    }
     this.set('state', state);
     this.set('original_image_license', Ember.$.extend({}, button.get('image.license')));
     this.set('original_sound_license', Ember.$.extend({}, button.get('sound.license')));
     this.set('board_search_type', stashes.get('last_board_search_type') || "personal");
     this.set('image_library', stashes.get('last_image_library'));
+    this.set('model.image_field', this.get('model.label'));
 
     var supervisees = [];
     this.set('has_supervisees', app_state.get('sessionUser.supervisees.length') > 0);
@@ -222,8 +227,9 @@ export default modal.ModalController.extend({
     boundClasses.add_classes(this.get('model'));
   }.observes('model.background_color', 'model.border_color'),
   focus_on_state_change: function() {
+    var _this = this;
     Ember.run.later(function() {
-      var $elem = Ember.$(".modal-body:visible .content :input:visible:first");
+      var $elem = Ember.$(".modal-body:visible .content :input:visible:not(button):not(.skip_select):first");
       $elem.focus().select();
     });
   }.observes('state'),
@@ -233,6 +239,9 @@ export default modal.ModalController.extend({
     }
   }.observes('board_search_type'),
   state: 'general',
+  helpState: function() {
+    return this.get('state') == 'help';
+  }.property('state'),
   generalState: function() {
     return this.get('state') == 'general';
   }.property('state'),
@@ -332,8 +341,9 @@ export default modal.ModalController.extend({
     return res;
   }.property('webcam.snapshot'),
   show_libraries: function() {
-    var previews = this.get('image_search.previews');
-    return (previews && previews.length > 0) || this.get('image_search.previews_loaded') || this.get('image_search.error');
+    return true;
+//     var previews = this.get('image_search.previews');
+//     return (previews && previews.length > 0) || this.get('image_search.previews_loaded') || this.get('image_search.error');
   }.property('image_search.previews', 'image_search.previews_loaded', 'image_search.error'),
   actions: {
     nothing: function() {
@@ -544,6 +554,36 @@ export default modal.ModalController.extend({
     audio_selected: function(sound) {
       this.set('model.sound', sound);
       contentGrabbers.soundGrabber.clear_sound_work();
+    },
+    quick_action: function(action) {
+      var _this = this;
+      if(action == 'picture') {
+        _this.set('state', 'picture');
+        Ember.run.later(function() {
+          _this.send('find_picture');
+        }, 200);
+      } else if(action == 'label') {
+        _this.set('state', 'general');
+      } else if(action == 'sound') {
+        _this.set('state', 'sound');
+      } else if(action == 'folder') {
+        _this.set('model.buttonAction', 'folder');
+        _this.set('state', 'action');
+      } else if(action == 'url') {
+        _this.set('model.buttonAction', 'link');
+        _this.set('state', 'action');
+      } else if(action == 'hide') {
+        _this.set('model.hidden', !(this.get('model.hidden')));
+        _this.set('paint_hide_reminder', true);
+      }
+    },
+    disable_auto_help: function() {
+      var user = app_state.get('currentUser');
+      if(user) {
+        this.set('auto_help', false);
+        user.set('preferences.disable_button_help', true);
+        user.save();
+      }
     }
   }
 });

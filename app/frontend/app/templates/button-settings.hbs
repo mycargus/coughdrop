@@ -7,6 +7,7 @@
     <div class="row">
       <div class="col-sm-3">
         <ul class="nav nav-pills nav-stacked">
+          <li class={{if helpState 'active' 'inactive'}} {{action 'setState' "help"}}><a href="#">{{t "Help" key='help'}}</a></li>
           <li class={{if generalState 'active' 'inactive'}} {{action 'setState' "general"}}><a href="#">{{t "General" key='general'}}</a></li>
           <li class={{if pictureState 'active' 'inactive'}} {{action 'setState' "picture"}}><a href="#">{{t "Picture" key='picture'}}</a></li>
           <li class={{if actionState 'active' 'inactive'}} {{action 'setState' "action"}}><a href="#">{{t "Action" key='action'}}</a></li>
@@ -17,6 +18,7 @@
         </ul>
       </div>
       <div class="col-sm-9 content">
+        {{partial "button-settings-help"}}
         {{partial "button-settings-general"}}
         {{partial "button-settings-picture"}}
         {{partial "button-settings-action"}}

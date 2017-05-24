@@ -1,8 +1,22 @@
 <form class="form-horizontal" {{action 'nothing' on='submit'}}>
 <div class={{if pictureState 'active' 'hidden'}}>
+  {{#if show_libraries}}
+    {{#if image_libraries}}
+      <div style='float: left; width: 55px; font-size: 12px;'>{{t "Library: " key='library'}}</div>
+      <div style='margin-top: -5px; width: 200px; float: left;'>
+        {{bound-select select_class="form-control skip_select" select_id="image_library" short=true content=image_libraries selection=image_library action=(action (mut image_library)) }}
+      </div>
+      <div style="clear: left;"></div>
+    {{else}}
+      <div style='float: left; width: 255px; font-size: 12px;'>{{t "Library: opensymbols.org" key='library_open_symbols'}}</div>
+    {{/if}}
+    <div style='font-size: 12px; margin-top: 5px;' class='text-muted'>
+      <em>{{t "Enter a search term, or paste a URL or file" key='search_or_paste'}}</em>
+    </div>
+  {{/if}}
   <div style="margin-bottom: 10px;" class="options">
     <span class="picture_search_field">
-      {{input id='find_picture' value=model.image_field enter="find_picture" placeholder=search_prompt class="form-control inline"}}
+      {{input id='find_picture' value=model.image_field enter="find_picture" placeholder=search_prompt class="form-control inline select_on_click"}}
     </span>
     <button type="button" class='btn btn-default' {{action "find_picture"}}>{{t "Search" key='search'}}</button>
     <button type="button" {{action "webcamPicture" on="click"}} disabled={{webcam_unavailable}} class="btn btn-default" style='width: 42px; height: 34px; overflow: hidden;'>
@@ -15,17 +29,6 @@
       <input type="file" name="image_upload" id="image_upload" accept="image/*"/>
     </span>
   </div>
-  {{#if show_libraries}}
-    {{#if image_libraries}}
-      <div style='float: left; width: 55px; font-size: 12px;'>{{t "Library: " key='library'}}</div>
-      <div style='margin-top: -5px; width: 200px; float: left;'>
-        {{bound-select select_class="form-control" select_id="image_library" short=true content=image_libraries selection=image_library action=(action (mut image_library)) }}
-      </div>
-      <div style="clear: left;"></div>
-    {{else}}
-      <div style='float: left; width: 255px; font-size: 12px;'>{{t "Library: opensymbols.org" key='library_open_symbols'}}</div>
-    {{/if}}
-  {{/if}}
 
   <div style="text-align: center;" class={{if webcam 'shown' 'hidden'}}>
     <video autoplay id="webcam_video" {{action "webcamToggle" true}} class={{webcam_class}}></video>
@@ -112,7 +115,7 @@
         {{else}}
           {{#unless webcam}}
             {{#if model.image.url}}
-              <div style="text-align: center; margin-bottom: 10px;">
+              <div style="text-align: center; margin-bottom: 10px; margin-top: 10px;">
                 <img src={{model.image.best_url}} class="button_image"/>
               </div>
               {{pick-license license=model.image.license}}
