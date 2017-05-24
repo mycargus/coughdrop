@@ -188,10 +188,10 @@ export default modal.ModalController.extend({
     var current_user_id = this.get('model.user.id');
     if(this.get('model.user.id') == app_state.get('currentUser.id')) { current_user_id = 'self'; }
     if(for_user_id && current_user_id && for_user_id != current_user_id) {
-      if(for_user_id == 'self') {
+      if(for_user_id == 'self' || for_user_id == app_state.get('currentUser.id')) {
         this.set('model.user', app_state.get('currentUser'));
       } else {
-        var u = app_state.get('currentUser.supervisees').find(function(u) { return u.id == for_user_id; });
+        var u = (app_state.get('currentUser.supervisees') || []).find(function(u) { return u.id == for_user_id; });
         this.set('model.user', u);
       }
       this.load_recordings(true);
