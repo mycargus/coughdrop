@@ -1516,6 +1516,16 @@ body.pretty_loader #loading_box {
   left: calc(10% + 5px); 
   padding: 3px;
 }
+.button .label_dropdown {
+  width: calc(20% + 1px);
+  height: 20px;
+  padding: 0;
+  margin-left: -5px;
+  border-right-width: 0;
+  border-bottom-width: 0;
+  border-radius: 0;
+  margin-top: -3px;
+}
 .board.edit .button.touched input.button-label, .board.edit .button:hover input.button-label {
   border: 1px solid #888;
 }
