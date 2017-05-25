@@ -18,12 +18,14 @@ export default modal.ModalController.extend({
   actions: {
     subscription_skip: function() {
       modal.close();
+      this.transitionToRoute('setup');
     },
     subscription_error: function(err) {
       this.set('error', err);
     },
     subscription_success: function(msg) {
       modal.close();
+      this.transitionToRoute('setup');
       modal.success(msg);
     }
   }
