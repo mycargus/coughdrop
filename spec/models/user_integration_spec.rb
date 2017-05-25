@@ -390,4 +390,33 @@ describe UserIntegration, :type => :model do
       expect(Webhook.find_by(:id => wh3.id)).to eq(wh3)
     end
   end
+  
+  describe "global_integrations" do
+    it "should return a list of found integrations" do
+      expect(RedisInit.permissions).to receive(:get).with('global_integrations').and_return(nil).at_least(2).times
+      expect(RedisInit.permissions).to receive(:setex).exactly(2).times
+      expect(UserIntegration.global_integrations).to eq({})
+      ui1 = UserIntegration.create(:integration_key => 'asdf', :settings => {'global' => true})
+      ui2 = UserIntegration.create(:integration_key => 'qwer')
+      ui3 = UserIntegration.create(:settings => {'global' => true})
+      expect(UserIntegration.global_integrations).to eq({'asdf' => ui1.global_id})
+    end
+    
+    it "should return a cached result if found" do
+      expect(RedisInit.permissions).to receive(:get).with('global_integrations').and_return({a: 1, b: 2}.to_json)
+      expect(RedisInit.permissions).to_not receive(:setex)
+      expect(UserIntegration.global_integrations).to eq({'a' => 1, 'b' => 2})
+    end
+    
+    it "should cached the result if computed" do
+      expect(RedisInit.permissions).to receive(:get).with('global_integrations').and_return(nil).at_least(2).times
+      expect(RedisInit.permissions).to receive(:setex).with('global_integrations', 30.minutes.to_i, '{}')
+      expect(UserIntegration.global_integrations).to eq({})
+      ui1 = UserIntegration.create(:integration_key => 'asdf', :settings => {'global' => true})
+      ui2 = UserIntegration.create(:integration_key => 'qwer')
+      ui3 = UserIntegration.create(:settings => {'global' => true})
+      expect(RedisInit.permissions).to receive(:setex).with('global_integrations', 30.minutes.to_i, {'asdf' => ui1.global_id}.to_json)
+      expect(UserIntegration.global_integrations).to eq({'asdf' => ui1.global_id})
+    end
+  end
 end
