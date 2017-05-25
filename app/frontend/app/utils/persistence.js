@@ -588,16 +588,21 @@ var persistence = Ember.Object.extend({
         list.forEach(function(item) {
           if(item.data && item.data.raw && item.data.raw.url && item.data.raw.type && item.data.raw.local_filename) {
             _this.url_cache[item.data.raw.url] = null;
+            _this.url_uncache[item.data.raw.url] = null;
+            // if the image is found in the local directory listing, it's good
             if(item.data.raw.type == 'image' && item.data.raw.local_url && _this.image_filename_cache && _this.image_filename_cache[item.data.raw.local_filename]) {
               _this.url_cache[item.data.raw.url] = capabilities.storage.fix_url(item.data.raw.local_url);
+            // if the sound is found in the local directory listing, it's good
             } else if(item.data.raw.type == 'sound' && item.data.raw.local_url && _this.sound_filename_cache && _this.sound_filename_cache[item.data.raw.local_filename]) {
               _this.url_cache[item.data.raw.url] = capabilities.storage.fix_url(item.data.raw.local_url);
             } else {
-              // apparently file system calls are really slow on ios (and android)
+              // apparently file system calls are really slow on ios (and android), so we skip for the first go-round
+              // (fix_url compensates for directory structures changing on ios with updates)
               if(!check_file_system) {
                 _this.url_cache[item.data.raw.url] = capabilities.storage.fix_url(item.data.raw.local_url);
               } else {
                 promises.push(new Ember.RSVP.Promise(function(res, rej) {
+                  // see if it's available as a file_url since it wasn't in the directory listing
                   capabilities.storage.get_file_url(item.data.raw.type, item.data.raw.local_filename).then(function(local_url) {
                     local_url = capabilities.storage.fix_url(local_url);
                     _this.url_cache[item.data.raw.url] = local_url;
@@ -609,6 +614,7 @@ var persistence = Ember.Object.extend({
                 }));
               }
             }
+          // if no local_filename defined, then it's known to not be cached
           } else if(item.data && item.data.raw && item.data.raw.url) {
             _this.url_uncache[item.data.raw.url] = true;
           }
@@ -671,6 +677,7 @@ var persistence = Ember.Object.extend({
       });
     }
     var url_id = persistence.normalize_url(url);
+    var _this = persistence;
     return new Ember.RSVP.Promise(function(resolve, reject) {
       var lookup = Ember.RSVP.reject();
 
@@ -689,7 +696,12 @@ var persistence = Ember.Object.extend({
         // know won't ever modify static assets
         lookup = lookup.then(null, function() {
           return persistence.find('dataCache', url_id).then(function(data) {
-            return Ember.RSVP.resolve(data);
+            // if we think it's stored locally but not in the cache, don't trust it
+            if(!_this.url_uncache || !_this.url_unache[url]) {
+              return Ember.RSVP.resolve(data);
+            } else {
+              return Ember.RSVP.reject();
+            }
           });
         });
       }
@@ -836,6 +848,7 @@ var persistence = Ember.Object.extend({
         persistence.url_uncache = persistence.url_uncache || {};
         if(object.local_url) {
           persistence.url_cache[url_id] = capabilities.storage.fix_url(object.local_url);
+          persistence.url_uncache[url_id] = false;
         } else {
           persistence.url_uncache[url_id] = true;
         }
@@ -1433,7 +1446,7 @@ var persistence = Ember.Object.extend({
               // possibly-changing URLs
               if(board.get('icon_url_with_fallback').match(/^http/)) {
                   // store_url already has a queue, we don't need to fill the sync queue with these
-               visited_board_promises.push(//persistence.queue_sync_action('store_icon', function() {
+                visited_board_promises.push(//persistence.queue_sync_action('store_icon', function() {
                   /*return*/ persistence.store_url(board.get('icon_url_with_fallback'), 'image', false, force).then(null, function() {
                     console.log("icon url failed to sync, " + board.get('icon_url_with_fallback'));
                     return Ember.RSVP.resolve();
@@ -1443,7 +1456,7 @@ var persistence = Ember.Object.extend({
               }
 
               if(next.image) {
-               visited_board_promises.push(//persistence.queue_sync_action('store_sidebar_image', function() {
+                visited_board_promises.push(//persistence.queue_sync_action('store_sidebar_image', function() {
                   /*return*/ persistence.store_url(next.image, 'image', false, force).then(null, function() {
                     return Ember.RSVP.reject({error: "sidebar icon url failed to sync, " + next.image});
                   })
@@ -1453,7 +1466,6 @@ var persistence = Ember.Object.extend({
 
               board.get('local_images_with_license').forEach(function(image) {
                 importantIds.push("image_" + image.get('id'));
-                // TODO: don't re-request URLs that are already in the cache and most likely haven't changed
                 var keep_big = !!(board.get('grid.rows') < 3 || board.get('grid.columns') < 6);
                 if(image.get('url') && image.get('url').match(/^http/)) {
                  visited_board_promises.push(//persistence.queue_sync_action('store_button_image', function() {
@@ -1485,7 +1497,7 @@ var persistence = Ember.Object.extend({
                 var already_going_to_visit = to_visit_boards.find(function(b) { return (b.id == board.id || b.key == board.key) && (!board.link_disabled || board.link_disabled == b.link_disabled); });
 
                 if(safely_cached_boards[board.id]) {// || checked_linked_boards[board.id]) {
-                  return;
+//                  return;
                 }
 
                 if(!already_visited && !already_going_to_visit) {
@@ -1497,6 +1509,8 @@ var persistence = Ember.Object.extend({
                   var find = persistence.queue_sync_action('find_board', function() {
                     return persistence.find('board', board.id);
                   });
+                  // for every linked board, check all the board's buttons. If all the images
+                  // and sounds are already in the cache then mark the board as safely cached.
                   visited_board_promises.push(
                     find.then(function(b) {
                       var necessary_finds = [];
@@ -1507,7 +1521,7 @@ var persistence = Ember.Object.extend({
                         if(button.image_id) {
                           var valid = false;
                           if(all_image_urls[button.image_id]) {
-                            if(!persistence.url_uncache || !persistence.url_uncache[all_image_urls[button.image_id]]) {
+                            if((persistence.url_cache && persistence.url_cache[all_image_urls[button.image_id]]) && (!persistence.url_uncache || !persistence.url_uncache[all_image_urls[button.image_id]])) {
                               valid = true;
                             }
                           }
@@ -1518,7 +1532,7 @@ var persistence = Ember.Object.extend({
                         if(button.sound_id) {
                           var valid = false;
                           if(all_sound_urls[button.sound_id]) {
-                            if(!persistence.url_uncache || !persistence.url_uncache[all_sound_urls[button.sound_id]]) {
+                            if((persistence.url_cache && persistence.url_cache[all_sound_urls[button.image_id]]) && (!persistence.url_uncache || !persistence.url_uncache[all_sound_urls[button.sound_id]])) {
                               valid = true;
                             }
                           }
@@ -1545,7 +1559,6 @@ var persistence = Ember.Object.extend({
                       }, function(error) {
                         if(safely_cached) {
                           console.log(error);
-  //                         debugger
                           console.error("should have been safely cached, but board content wasn't in db:" + board.id);
                         }
                         checked_linked_boards[board.id] = true;
@@ -1554,7 +1567,6 @@ var persistence = Ember.Object.extend({
                     }, function(error) {
                       if(safely_cached) {
                         console.log(error);
-  //                       debugger
                         console.error("should have been safely cached, but board wasn't in db:" + board.id);
                       }
                       checked_linked_boards[board.id] = true;
