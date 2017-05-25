@@ -154,7 +154,7 @@ CoughDrop.User = DS.Model.extend({
     return url;
   }.property('avatar_url', 'avatar_data_uri'),
   using_for_a_while: function() {
-    var a_while_ago = window.moment().add(-3, 'weeks');
+    var a_while_ago = window.moment().add(-2, 'weeks');
     var joined = window.moment(this.get('joined'));
     return (joined < a_while_ago);
   }.property('joined', 'app_state.refresh_stamp'),

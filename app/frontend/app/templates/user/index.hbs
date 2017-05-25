@@ -185,6 +185,13 @@
       </div>
     </div>
   {{/if}}
+  {{#if model.permissions.delete}}
+    <div class='row'>
+      <div class='col-xs-12' style='margin-top: -17px; margin-bottom: 15px;'>
+        {{#link-to 'setup'}}{{t "Launch the Getting Started Wizard Again" key='launch_setup'}}{{/link-to}}
+      </div>
+    </div>
+  {{/if}}
   <div class="row">
     <div class="col-sm-3 col-xs-6">
       {{#if model.permissions.edit}}

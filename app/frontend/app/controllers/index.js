@@ -38,10 +38,12 @@ export default Ember.Controller.extend({
     // TODO: eventually this should go away, maybe after a few weeks of active use or something
     if(progress && progress.setup_done) {
       return null;
+    } else if(this.get('app_state.currentUser.using_for_a_while')) {
+    } return null;
     } else {
       return progress;
     }
-  }.property('app_state.currentUser.preferences.progress'),
+  }.property('app_state.currentUser.preferences.progress', 'app_state.currentUser.using_for_a_while'),
   no_intro: function() {
     return this.get('blank_slate') && !this.get('app_state.currentUser.preferences.progress.intro_watched');
   }.property('blank_slate', 'app_state.currentUser.preferences.progress.intro_watched'),
