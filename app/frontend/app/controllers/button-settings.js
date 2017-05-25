@@ -577,6 +577,14 @@ export default modal.ModalController.extend({
         _this.set('paint_hide_reminder', true);
       }
     },
+    enable_auto_help: function() {
+      var user = app_state.get('currentUser');
+      if(user) {
+        this.set('auto_help', true);
+        user.set('preferences.disable_button_help', false);
+        user.save();
+      }
+    },
     disable_auto_help: function() {
       var user = app_state.get('currentUser');
       if(user) {

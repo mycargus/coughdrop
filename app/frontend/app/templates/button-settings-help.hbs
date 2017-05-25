@@ -6,6 +6,8 @@
         <h4>{{t "Button Settings" key='button_settings'}}</h4>
         {{#if auto_help}}
           <button {{action 'disable_auto_help'}} class='btn btn-default btn-sm' style='position: absolute; top: -10px; right: 0;'>{{t "Skip this help in the future" key='skip_help'}}</button>
+        {{else if app_state.currentUser.preferences.disable_button_help}}
+          <button {{action 'enable_auto_help'}} class='btn btn-default btn-sm' style='position: absolute; top: -10px; right: 0;'>{{t "Start here in the future" key='re_enable_help'}}</button>
         {{/if}}
       </div>
       <p>{{t "Buttons configurations are very flexible, and you can explore settings using the tabs to the left, or the quick actions below." key='button_settings_explainer'}}</p>
