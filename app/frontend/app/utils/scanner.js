@@ -15,6 +15,9 @@ var scanner = Ember.Object.extend({
   find_elem: function(search) {
     return Ember.$(search);
   },
+  make_elem: function(tag, opts) {
+    return Ember.$(tag, opts);
+  },
   start: function(options) {
     if(scanner.find_elem("header #speak").length === 0) {
       console.debug("scanning currently only works in speak mode...");
@@ -374,7 +377,7 @@ var scanner = Ember.Object.extend({
   },
   hide_input: function() {
     if(window.Keyboard && window.Keyboard.hide && app_state.get('speak_mode') && scanner.scanning) {
-      if(Ember.$("#hidden_input:focus").length > 0) {
+      if(this.find_elem("#hidden_input:focus").length > 0) {
         window.Keyboard.hide();
       }
     }
@@ -384,14 +387,14 @@ var scanner = Ember.Object.extend({
     // focused on a form element like a text box, which is actually lame and makes
     // things really complicated.
 
-    var $elem = Ember.$("#hidden_input");
+    var $elem = this.find_elem("#hidden_input");
     if($elem.length === 0) {
       var type = capabilities.system == 'iOS' ? 'text' : 'checkbox';
-      $elem = Ember.$("<input/>", {type: type, id: 'hidden_input', autocomplete: 'off', autocorrect: 'off', autocapitalize: 'off', spellcheck: 'off'});
+      $elem = this.make_elem("<input/>", {type: type, id: 'hidden_input', autocomplete: 'off', autocorrect: 'off', autocapitalize: 'off', spellcheck: 'off'});
       $elem.css({position: 'absolute', left: '-1000px'});
       document.body.appendChild($elem[0]);
     }
-    if(Ember.$("#hidden_input:focus").length === 0 && !this.keyboard_tried_to_show) {
+    if(this.find_elem("#hidden_input:focus").length === 0 && !this.keyboard_tried_to_show) {
       $elem.select().focus();
     }
     scanner.hide_input();

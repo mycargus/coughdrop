@@ -1137,7 +1137,7 @@ describe("persistence-sync", function() {
             expect(r.length).toEqual(3);
             stored = true;
           }, function(err) {
-            debugger
+            debugger;
           });
         }, 50);
       }, function() {

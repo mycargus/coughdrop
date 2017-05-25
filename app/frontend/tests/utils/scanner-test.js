@@ -1300,21 +1300,21 @@ describe('scanner', function() {
       app_state.set('speak_mode', true);
       scanner.hide_input();
       expect(hidden).toEqual(false);
-      Ember.$("#hidden_input").detach();
-      var elem = document.createElement('input');
-      elem.type = 'text';
-      elem.id = 'hidden_input';
-      document.body.appendChild(elem);
-      Ember.$(elem).select().focus();
+
+      var obj = {};
+      stub(scanner, 'find_elem', function(str) {
+        return [obj];
+      });
       scanner.hide_input();
       expect(hidden).toEqual(true);
-      Ember.$(elem).detach();
     });
   });
 
   describe("listen_for_input", function() {
     it('should call hide_input', function() {
-      Ember.$("#hidden_input").detach();
+      stub(scanner, 'find_elem', function(str) {
+        return [];
+      });
       var called = false;
       stub(scanner, 'hide_input', function() { called = true; });
       scanner.listen_for_input();
@@ -1322,19 +1322,76 @@ describe('scanner', function() {
     });
 
     it('should focus on the keyboard at first', function() {
-      Ember.$("#hidden_input").detach();
+      var obj = null;
+      var selected = false;
+      var focused = false;
+      stub(scanner, 'find_elem', function(str) {
+        if(obj) {
+          return [obj];
+        } else {
+          return [];
+        }
+      });
+
+      stub(scanner, 'make_elem', function(tag, opts) {
+        expect(tag).toEqual('<input/>');
+        expect(opts).toEqual({
+          autocapitalize: 'off',
+          autocomplete: 'off',
+          autocorrect: 'off',
+          id: 'hidden_input',
+          spellcheck: 'off',
+          type: 'checkbox'
+        });
+        obj = {
+          select: function() { selected = true; return obj; },
+          focus: function() { focused = true; return obj; },
+          css: function() { }
+        };
+        return obj;
+      });
       scanner.keyboard_tried_to_show = false;
       scanner.listen_for_input();
-      expect(Ember.$("#hidden_input").length).toEqual(1);
-      expect(Ember.$("#hidden_input:focus").length).toEqual(1);
+      expect(obj).toNotEqual(null);
+      expect(selected).toEqual(true);
+      expect(focused).toEqual(true);
     });
 
     it('should not try to show the keyboard via focus event more than once', function() {
-      Ember.$("#hidden_input").detach();
+      var obj = null;
+      var selected = false;
+      var focused = false;
+      stub(scanner, 'find_elem', function(str) {
+        if(obj) {
+          return [obj];
+        } else {
+          return [];
+        }
+      });
+
+      stub(scanner, 'make_elem', function(tag, opts) {
+        expect(tag).toEqual('<input/>');
+        expect(opts).toEqual({
+          autocapitalize: 'off',
+          autocomplete: 'off',
+          autocorrect: 'off',
+          id: 'hidden_input',
+          spellcheck: 'off',
+          type: 'checkbox'
+        });
+        obj = {
+          select: function() { selected = true; return obj; },
+          focus: function() { focused = true; return obj; },
+          css: function() { }
+        };
+        return obj;
+      });
+
       scanner.keyboard_tried_to_show = true;
       scanner.listen_for_input();
-      expect(Ember.$("#hidden_input").length).toEqual(1);
-      expect(Ember.$("#hidden_input:focus").length).toEqual(0);
+      expect(obj).toNotEqual(null);
+      expect(selected).toEqual(false);
+      expect(focused).toEqual(false);
     });
   });
 });
