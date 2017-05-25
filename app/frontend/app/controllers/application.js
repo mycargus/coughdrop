@@ -162,7 +162,7 @@ export default Ember.Controller.extend({
           });
           var _this = this;
           user.save().then(function() {
-            if(persistence.get('online')) {
+            if(persistence.get('online') && persistence.get('auto_sync')) {
               Ember.run.later(function() {
               console.debug('syncing because home board changes');
                 persistence.sync('self').then(null, function() { });
