@@ -21,8 +21,7 @@
             </div>
             {{t "Select here to finish setting up your account" key='on_your_way'}}
           </a>
-        {{/if}}
-        {{#if app_state.feature_flags.subscriptions}}
+        {{else if app_state.feature_flags.subscriptions}}
           {{#if app_state.currentUser.expired_or_grace_period}}
             {{#link-to 'user.subscription' app_state.currentUser.user_name class="list-group-item"}}
               <span class={{if app_state.currentUser.expired "glyphicon glyphicon-info-sign expired" "glyphicon glyphicon-info-sign"}}></span>
