@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import app_state from './app_state';
 import scanner from './scanner';
+import speecher from './speecher';
 
 var raw_listeners = {};
 var frame_listener = Ember.Object.extend({
@@ -133,7 +134,7 @@ var frame_listener = Ember.Object.extend({
     }
     var targets = this.get('targets') || [];
     this.clear_target({session_id: data.session_id, id: data.target.id});
-    var dom_id = "target_" + data.session_id + "_" + data.target.id
+    var dom_id = "target_" + data.session_id + "_" + data.target.id;
     var div = document.getElementById(dom_id);
     div = div || document.createElement('div');
     div.id = dom_id;

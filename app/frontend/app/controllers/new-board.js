@@ -17,7 +17,7 @@ export default modal.ModalController.extend({
       }
     }
     if(stashes.get('new_board_labels_order')) {
-      this.set('model.grid.labels_order', stashes.get('new_board_labels_order'))
+      this.set('model.grid.labels_order', stashes.get('new_board_labels_order'));
     }
 
     var locale = window.navigator.language.replace(/-/g, '_');
