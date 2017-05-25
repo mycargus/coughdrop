@@ -36,6 +36,7 @@ var app_state = Ember.Object.extend({
     this.set('no_linky', capabilities.installed_app && capabilities.system == 'iOS');
     this.set('licenseOptions', CoughDrop.licenseOptions);
     this.set('device_name', capabilities.readable_device_name);
+    this.set('currentBoardState', null);
     var _this = this;
     this.set('version', window.app_version || 'unknown');
     var _this = this;
