@@ -46,6 +46,8 @@ describe BoardDownstreamButtonSet, :type => :model do
         'image' => nil,
         'link_disabled' => false,
         'vocalization' => nil,
+        'background_color' => nil,
+        'border_color' => nil,
         'locale' => 'en'
       })
       expect(bs.data['buttons'][1]).to eq({
@@ -59,6 +61,8 @@ describe BoardDownstreamButtonSet, :type => :model do
         'image' => nil,
         'link_disabled' => false,
         'vocalization' => nil,
+        'background_color' => nil,
+        'border_color' => nil,
         'locale' => 'en'
       })
     end
@@ -68,8 +72,8 @@ describe BoardDownstreamButtonSet, :type => :model do
       b = Board.create(:user => u)
       s = ButtonSound.create(:user => u)
       b.process({'buttons' => [
-        {'id' => 1, 'label' => 'hat', 'sound_id' => s.global_id},
-        {'id' => 2, 'label' => 'car', 'hidden' => true}
+        {'id' => 1, 'label' => 'hat', 'sound_id' => s.global_id, 'background_color' => 'asdf'},
+        {'id' => 2, 'label' => 'car', 'hidden' => true, 'border_color' => 'asdf'}
       ]})
       bs = BoardDownstreamButtonSet.update_for(b.global_id)
       expect(bs).not_to eq(nil)
@@ -85,6 +89,8 @@ describe BoardDownstreamButtonSet, :type => :model do
         'image' => nil,
         'link_disabled' => false,
         'vocalization' => nil,
+        'background_color' => 'asdf',
+        'border_color' => nil,
         'locale' => 'en'
       })
       expect(bs.data['buttons'][1]).to eq({
@@ -98,6 +104,8 @@ describe BoardDownstreamButtonSet, :type => :model do
         'image' => nil,
         'link_disabled' => false,
         'vocalization' => nil,
+        'background_color' => nil,
+        'border_color' => 'asdf',
         'locale' => 'en'
       })
     end
@@ -127,6 +135,8 @@ describe BoardDownstreamButtonSet, :type => :model do
         'image' => nil,
         'link_disabled' => false,
         'vocalization' => nil,
+        'background_color' => nil,
+        'border_color' => nil,
         'locale' => 'en'
       })
     end
@@ -159,6 +169,8 @@ describe BoardDownstreamButtonSet, :type => :model do
         'preferred_link' => true,
         'linked_board_id' => b2.global_id,
         'linked_board_key' => b2.key,
+        'background_color' => nil,
+        'border_color' => nil,
         'locale' => 'en'
       })
     end
@@ -185,6 +197,8 @@ describe BoardDownstreamButtonSet, :type => :model do
         'image' => nil,
         'link_disabled' => false,
         'vocalization' => nil,
+        'background_color' => nil,
+        'border_color' => nil,
         'locale' => 'en'
       })
     end

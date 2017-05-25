@@ -267,7 +267,7 @@ function db_wait(callback) {
       ready = true;
     });
   });
-  waitsFor(function() { return ready; });
+  waitsFor(function() { return ready && coughDropExtras.ready; });
   runs(function() {
     Ember.run(_this, callback);
   });

@@ -186,6 +186,7 @@ describe('app_state', function() {
       expect(checks).toEqual(0);
 
       stashes.set('current_mode', 'speak');
+      expect(app_state.get('speak_mode')).toEqual(false);
       app_state.set('currentBoardState', {key: 'trade', id: '1_1'});
       expect(app_state.get('speak_mode')).toEqual(true);
 

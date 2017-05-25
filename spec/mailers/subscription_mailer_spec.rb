@@ -322,7 +322,7 @@ describe SubscriptionMailer, :type => :mailer do
       expect(html).to match(/Giver: #{giver.user_name}/)
       expect(html).to_not match(/Recipient:/)
       expect(html).to match(/<b>#{gift.code}<\/b>/)
-      expect(html).to match(/Duration: 3 years/)
+      expect(html).to match(/Cloud Extras For: 3 years/)
     end
     
     it "should generate the redeemed message when specified" do
@@ -349,7 +349,7 @@ describe SubscriptionMailer, :type => :mailer do
       expect(html).to match(/Giver: bob@example.com/)
       expect(html).to match(/Recipient: #{recipient.user_name}/)
       expect(html).to match(/<b>#{gift.code}<\/b>/)
-      expect(html).to match(/Duration: 3 years/)
+      expect(html).to match(/Cloud Extras For: 3 years/)
     end
     
     it "should generate the bulk purchase message if specified" do

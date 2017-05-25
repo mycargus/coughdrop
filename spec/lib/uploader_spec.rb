@@ -394,8 +394,8 @@ describe Uploader do
       }))
       expect(Uploader.find_images('bacon', 'giphy_asl', nil)).to eq([
         {
-          'url' => 'http://www.example.com/pic1.gif',
-          'thumbnail_url' => 'http://www.example.com/pic1-small.gif',
+          'url' => 'https://www.example.com/pic1.gif',
+          'thumbnail_url' => 'https://www.example.com/pic1-small.gif',
           'content_type' => 'image/gif',
           'width' => 100,
           'height' => 100,
@@ -410,8 +410,8 @@ describe Uploader do
           }
         },
         {
-          'url' => 'http://www.example.com/pic2.gif',
-          'thumbnail_url' => 'http://www.example.com/pic2-small.gif',
+          'url' => 'https://www.example.com/pic2.gif',
+          'thumbnail_url' => 'https://www.example.com/pic2-small.gif',
           'content_type' => 'image/gif',
           'width' => 100,
           'height' => 100,
@@ -426,8 +426,8 @@ describe Uploader do
           }
         },
         {
-          'url' => 'http://www.example.com/pic4.gif',
-          'thumbnail_url' => 'http://www.example.com/pic4-small.gif',
+          'url' => 'https://www.example.com/pic4.gif',
+          'thumbnail_url' => 'https://www.example.com/pic4-small.gif',
           'content_type' => 'image/gif',
           'width' => 100,
           'height' => 100,
@@ -644,7 +644,7 @@ describe Uploader do
       expect(Uploader.find_resources('bacon', 'tarheel', nil)).to eq([
         {
           'url' => 'http://tarheelreader.org/bacon1',
-          'image' => 'http://tarheelreader.org/bacon.png',
+          'image' => 'https://d1afj2lqudmea0.cloudfront.net/bacon.png',
           'title' => 'Bacon One',
           'author' => 'Amir',
           'id' => 'bacon-1',
@@ -652,7 +652,7 @@ describe Uploader do
         },
         {
           'url' => 'http://tarheelreader.org/bacon2',
-          'image' => 'http://tarheelreader.org/bacon.png',
+          'image' => 'https://d1afj2lqudmea0.cloudfront.net/bacon.png',
           'title' => 'Bacon Two',
           'author' => 'Radish',
           'id' => 'bacon-2',
@@ -685,7 +685,7 @@ describe Uploader do
         {
           'id' => 'bacon-1-0',
           'title' => 'Bacon is Yummy',
-          'image' => 'http://tarheelreader.org/bacon-yum.png',
+          'image' => 'https://d1afj2lqudmea0.cloudfront.net/bacon-yum.png',
           'url' => 'http://tarheelreader.org/bacon',
           'image_attribution' => 'http://tarheelreader.org/photo-credits/?id=12345',
           'image_author' => 'Flickr User'
@@ -693,7 +693,7 @@ describe Uploader do
         {
           'id' => 'bacon-1-1',
           'title' => 'I Love Bacon',
-          'image' => 'http://tarheelreader.org/heart.png',
+          'image' => 'https://d1afj2lqudmea0.cloudfront.net/heart.png',
           'url' => 'http://tarheelreader.org/bacon',
           'image_attribution' => 'http://tarheelreader.org/photo-credits/?id=12345',
           'image_author' => 'Flickr User'
@@ -701,7 +701,7 @@ describe Uploader do
         {
           'id' => 'bacon-1-2',
           'title' => 'We Should Get Some Bacon',
-          'image' => 'http://tarheelreader.org/shopping.png',
+          'image' => 'https://d1afj2lqudmea0.cloudfront.net/shopping.png',
           'url' => 'http://tarheelreader.org/bacon',
           'image_attribution' => 'http://tarheelreader.org/photo-credits/?id=12345',
           'image_author' => 'Flickr User'

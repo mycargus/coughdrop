@@ -1055,6 +1055,7 @@ describe("persistence-sync", function() {
         console.log(url);
         return Ember.RSVP.resolve({url: url});
       });
+      var now = (new Date()).getTime();
       var b1 = {
         id: '145',
         image_url: 'http://example.com/board.png',
@@ -1063,6 +1064,7 @@ describe("persistence-sync", function() {
         buttons: [
           {id: '1', image_id: '1', sound_id: '3', load_board: {id: '167'}}
         ],
+        image_urls: [],
         grid: {
           rows: 1,
           columns: 1,
@@ -1078,6 +1080,7 @@ describe("persistence-sync", function() {
           {id: '1', image_id: '2', load_board: {id: '168'}},
           {id: '2', image_id: '2'}
         ],
+        image_urls: [],
         grid: {
           rows: 1,
           columns: 1,
@@ -1092,6 +1095,7 @@ describe("persistence-sync", function() {
         buttons: [
           {id: '1', image_id: '1'}
         ],
+        image_urls: [],
         grid: {
           rows: 1,
           columns: 1,
@@ -1129,8 +1133,13 @@ describe("persistence-sync", function() {
       var stored = false;
       Ember.RSVP.all_wait(store_promises).then(function() {
         Ember.run.later(function() {
-          stored = true;
-        }, 100);
+          coughDropExtras.storage.find_all('board').then(function(r) {
+            expect(r.length).toEqual(3);
+            stored = true;
+          }, function(err) {
+            debugger
+          });
+        }, 50);
       }, function() {
         dbg();
       });
@@ -1173,6 +1182,7 @@ describe("persistence-sync", function() {
           return Ember.RSVP.reject({});
         });
         Ember.run.later(function() {
+          persistence.known_missing = null;
           persistence.sync(1340).then(function() {
             done = true;
           }, function() {
@@ -1182,7 +1192,7 @@ describe("persistence-sync", function() {
       });
       waitsFor(function() { return done && remote_checked_b1; });
       runs(function() {
-        expect(remote_checked_b2).toEqual(false);
+        expect(remote_checked_b2).toEqual(true);
         expect(remote_checked_b3).toEqual(false);
       });
     });
@@ -1196,6 +1206,7 @@ describe("persistence-sync", function() {
         console.log(url);
         return Ember.RSVP.resolve({url: url});
       });
+      var now = (new Date()).getTime();
       var b1 = {
         id: '145',
         image_url: 'http://example.com/board.png',
@@ -1204,6 +1215,7 @@ describe("persistence-sync", function() {
         buttons: [
           {id: '1', image_id: '1', sound_id: '3', load_board: {id: '167'}}
         ],
+        image_urls: [],
         grid: {
           rows: 1,
           columns: 1,
@@ -1215,6 +1227,7 @@ describe("persistence-sync", function() {
         permissions: {},
         full_set_revision: 'current',
         image_url: 'http://example.com/board.png',
+        image_urls: [],
         buttons: [
           {id: '1', image_id: '2', load_board: {id: '168'}},
           {id: '2', image_id: '2'}
@@ -1230,6 +1243,7 @@ describe("persistence-sync", function() {
         permissions: {},
         full_set_revision: 'current',
         image_url: 'http://example.com/board.png',
+        image_urls: [],
         buttons: [
           {id: '1', image_id: '1'}
         ],
@@ -1321,9 +1335,9 @@ describe("persistence-sync", function() {
           });
         }, 50);
       });
-      waitsFor(function() { return done && remote_checked_b2; });
+      waitsFor(function() { return done && remote_checked_b1; });
       runs(function() {
-        expect(remote_checked_b1).toEqual(true);
+        expect(remote_checked_b2).toEqual(true);
         expect(remote_checked_b3).toEqual(false);
       });
     });
@@ -1337,6 +1351,7 @@ describe("persistence-sync", function() {
         console.log(url);
         return Ember.RSVP.resolve({url: url});
       });
+      var now = (new Date()).getTime();
       var b1 = {
         id: '145',
         image_url: 'http://example.com/board.png',
@@ -1345,6 +1360,7 @@ describe("persistence-sync", function() {
         buttons: [
           {id: '1', image_id: '1', sound_id: '3', load_board: {id: '167'}}
         ],
+        image_urls: [],
         grid: {
           rows: 1,
           columns: 1,
@@ -1360,6 +1376,7 @@ describe("persistence-sync", function() {
           {id: '1', image_id: '2', load_board: {id: '168'}},
           {id: '2', image_id: '2'}
         ],
+        image_urls: [],
         grid: {
           rows: 1,
           columns: 1,
@@ -1374,6 +1391,7 @@ describe("persistence-sync", function() {
         buttons: [
           {id: '1', image_id: '1'}
         ],
+        image_urls: [],
         grid: {
           rows: 1,
           columns: 1,

@@ -23,6 +23,7 @@ describe JsonApi::Gift do
         'active' => true,
         'amount' => nil,
         'created' => g.created_at.iso8601,
+        'memo' => nil,
         'gift_name' => nil,
         'licenses' => nil,
         'organization' => nil,

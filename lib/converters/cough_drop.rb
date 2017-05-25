@@ -226,8 +226,8 @@ module Converters::CoughDrop
     end
     params['grid'] = obj['grid']
     params['public'] = !(obj['ext_coughdrop_settings'] && obj['ext_coughdrop_settings']['private'])
-    params['home_board'] = obj['ext_coughdrop_settings']['home_board'] || false
-    params['categories'] = obj['ext_coughdrop_settings']['categories'] || []
+    params['home_board'] = (obj['ext_coughdrop_settings'] || {})['home_board'] || false
+    params['categories'] = (obj['ext_coughdrop_settings'] || {})['categories'] || []
     params['word_suggestions'] = obj['ext_coughdrop_settings'] && obj['ext_coughdrop_settings']['word_suggestions']
     non_user_params[:key] = (obj['ext_coughdrop_settings'] && obj['ext_coughdrop_settings']['key'] && obj['ext_coughdrop_settings']['key'].split(/\//)[-1])
     board = nil

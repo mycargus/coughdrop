@@ -298,8 +298,8 @@ module Uploader
       results['data'].each do |result|
         if result['slug'].match(/signwithrobert/) || result['slug'].match(/asl/)
           list << {
-            'url' => (result['images']['original']['url'] || '').sub(/^http:/, 'https:/'),
-            'thumbnail_url' => (result['images']['downsized_still']['url'] || '').sub(/^http:/, 'https:/'),
+            'url' => (result['images']['original']['url'] || '').sub(/^http:/, 'https:'),
+            'thumbnail_url' => (result['images']['downsized_still']['url'] || '').sub(/^http:/, 'https:'),
             'content_type' => 'image/gif',
             'width' => result['images']['original']['width'].to_i,
             'height' => result['images']['original']['height'].to_i,

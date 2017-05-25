@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { fakeRecorder, fakeMediaRecorder, fakeCanvas, queryLog, easyPromise, queue_promise } from 'frontend/tests/helpers/ember_helper';
+import CoughDrop from 'frontend/app';
 import app_state from '../../utils/app_state';
 import word_suggestions from '../../utils/word_suggestions';
 import persistence from '../../utils/persistence';

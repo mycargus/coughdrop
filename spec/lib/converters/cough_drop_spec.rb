@@ -23,7 +23,9 @@ describe Converters::CoughDrop do
         'key' => b.key,
         'private' => true,
         'protected' => false,
-        'word_suggestions' => false
+        'word_suggestions' => false,
+        'categories' => nil,
+        'home_board' => nil
       })
     end
     
@@ -317,7 +319,9 @@ describe Converters::CoughDrop do
         'key' => b.key,
         'private' => true,
         'protected' => true,
-        'word_suggestions' => false
+        'word_suggestions' => false,
+        'categories' => nil,
+        'home_board' => nil
       })
       expect(json['protected_content_user_identifier']).to eq('bob@example.com')
       expect(json['id']).to eq(b.global_id)
