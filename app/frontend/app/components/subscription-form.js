@@ -15,6 +15,7 @@ export default Ember.Component.extend({
       this.$().addClass('skinny_subscription');
     }
     this.set('session', session);
+    this.set('see_pricing', false);
     session.check_token();
 
     if((this.get('session.invalid_token') || !capabilities.access_token) && !this.get('pricing_only')) {
@@ -23,6 +24,9 @@ export default Ember.Component.extend({
     }
     this.update_classes();
   },
+  trial_choice: function() {
+    return this.get('trial_option') && !this.get('see_pricing') && !this.get('subscription.user.really_expired');
+  }.property('trial_option', 'see_pricing', 'subscription.user.really_expired'),
   update_not_authenticated: function() {
     if(!this.get('pricing_only') && this.get('session.invalid_token')) {
       this.set('not_authenticated', true);
@@ -77,6 +81,9 @@ export default Ember.Component.extend({
     show_options: function() {
       this.set('subscription.show_options', true);
       this.set('subscription.show_cancel', false);
+    },
+    check_pricing: function() {
+      this.set('see_pricing', true);
     },
     purchase: function() {
       var subscription = this.get('subscription');
