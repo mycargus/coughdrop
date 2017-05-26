@@ -1,9 +1,13 @@
 <form {{action "purchase" on="submit"}} class="row">
   <div class="form-group"><div class="col-sm-12">
   {{#if trial_option}}
-    <div style='margin-bottom: 10px;'>
-      <button class='btn btn-default' {{action 'skip_subscription'}}>{{t "Start with a full-featured 2-month trial, no credit card required" key='two_month_trial'}}</button>
-    </div>
+    {{#if subscription.user.really_expired}}
+    {{else if subscription.user.really_really_expired}}
+    {{else}}
+      <div style='margin-bottom: 10px;'>
+        <button class='btn btn-default' {{action 'skip_subscription'}}>{{t "Start with a full-featured 2-month trial, no credit card required" key='two_month_trial'}}</button>
+      </div>
+    {{/if}}
   {{/if}}
   <table class='subscription_table'>
     <tbody>
