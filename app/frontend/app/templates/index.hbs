@@ -111,6 +111,10 @@
                   {{else}}
                     {{t "Sync Done!" key='sync_done'}}
                   {{/if}}
+                {{else if persistence.sync_finished}}
+                  {{t "Done with " key='done_with'}}
+                  {{t "error" key='n_errors' count=persistence.sync_errors}}
+                  {{t "(see log)" key='see_log'}}
                 {{else}}
                   {{#if persistence.sync_failed}}
                     {{t "Sync Failed, see details below" key='sync_failed'}}
@@ -277,7 +281,7 @@
         </a>
       {{/if}}
       {{#if persistence.sync_log}}
-        <br/><a href="#" {{action 'sync_details'}}>{{t "recent sync details" key='sync_details'}}</a>
+        <br/><a href="#" {{action 'sync_details'}}>{{t "recent sync details log" key='sync_details'}}</a>
       {{/if}}
       <div style="clear: right;"></div>
       </div>

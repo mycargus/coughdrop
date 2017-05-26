@@ -823,6 +823,45 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
+        response: Ember.RSVP.reject({user: {
+          id: '1340',
+          user_name: 'fred',
+          avatar_url: 'http://example.com/pic.png',
+          preferences: {home_board: {id: '145'}}
+        }}),
+        id: "1340"
+      });
+
+      var error = null;
+      persistence.sync(1340).then(function() { debugger; }, function(err) {
+        error = err;
+      });
+      waitsFor(function() { return error; });
+      runs(function() {
+        var logs = queryLog;
+        expect(logs.findBy('id', '1340')).toNotEqual(undefined);
+
+        var log = persistence.get('sync_log');
+        expect(log.length).toEqual(1);
+        expect(log[0].user_id).toEqual(1340);
+      });
+    });
+  });
+
+  it("should append to the sync log on board failure", function() {
+    db_wait(function() {
+      persistence.set('sync_log', null);
+      var stores = [];
+      stub(persistence, 'store_url', function(url, type) {
+        stores.push(url);
+        console.log(url);
+        return Ember.RSVP.resolve({url: url});
+      });
+      stub(modal, 'error', function() { });
+      stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
+      queryLog.defineFixture({
+        method: 'GET',
+        type: 'user',
         response: Ember.RSVP.resolve({user: {
           id: '1340',
           user_name: 'fred',
@@ -888,14 +927,13 @@ describe("persistence-sync", function() {
         }),
         id: '178'
       });
-      var error = null;
-      persistence.sync(1340).then(null, function(err) {
-        error = err;
+      var result = null;
+      persistence.sync(1340).then(function(res) {
+        result = res;
       });
-      waitsFor(function() { return error; });
+      waitsFor(function() { return result; });
       runs(function() {
         var logs = queryLog;
-        expect(error.board_unauthorized).toEqual(true);
         expect(logs.findBy('id', '1340')).toNotEqual(undefined);
         expect(logs.findBy('id', '145')).toNotEqual(undefined);
         expect(logs.findBy('id', '167')).toNotEqual(undefined);
@@ -903,11 +941,16 @@ describe("persistence-sync", function() {
         var log = persistence.get('sync_log');
         expect(log.length).toEqual(1);
         expect(log[0].user_id).toEqual('fred');
+        expect(log[0].issues).toEqual(true);
+        expect(log[0].statuses.length).toEqual(2);
+        expect(log[0].statuses[0].id).toEqual('145');
+        expect(log[0].statuses[1].id).toEqual('167');
+        expect(log[0].statuses[1].error).toEqual('board 167 failed retrieval for syncing, linked from 145');
       });
     });
   });
 
- it("should skip board lookups that are already cached locally", function() {
+  it("should skip board lookups that are already cached locally", function() {
     db_wait(function() {
       var stores = [];
       stub(persistence, 'store_url', function(url, type) {
@@ -1504,7 +1547,7 @@ describe("persistence-sync", function() {
           id: '1340',
           user_name: 'fred',
           avatar_url: 'http://example.com/pic.png',
-          preferences: {home_board: {id: '145'}}
+          preferences: {home_board: {id: '145', key: 'aa/bb'}}
         }}),
         id: "1340"
       });
@@ -1513,10 +1556,11 @@ describe("persistence-sync", function() {
         type: 'board',
         response: Ember.RSVP.resolve({board: {
           id: '145',
+          key: 'aa/bb',
           image_url: 'http://example.com/board.png',
           permissions: {},
           buttons: [
-            {id: '1', image_id: '2', sound_id: '3', load_board: {id: '167'}}
+            {id: '1', image_id: '2', sound_id: '3', load_board: {id: '167', key: 'aa/cc'}}
           ],
           grid: {
             rows: 1,
@@ -1567,17 +1611,25 @@ describe("persistence-sync", function() {
         }),
         id: '178'
       });
-      var error = null;
-      persistence.sync(1340).then(null, function(err) {
-        error = err;
+      var result = null;
+      persistence.sync(1340).then(function(res) {
+        result = res;
       });
-      waitsFor(function() { return error; });
+      waitsFor(function() { return result; });
       runs(function() {
         var logs = queryLog;
-        expect(error.board_unauthorized).toEqual(true);
         expect(logs.findBy('id', '1340')).toNotEqual(undefined);
         expect(logs.findBy('id', '145')).toNotEqual(undefined);
         expect(logs.findBy('id', '167')).toNotEqual(undefined);
+        expect(logs.findBy('id', '178')).toEqual(undefined);
+
+        logs = persistence.get('sync_log');
+        expect(logs.length).toEqual(1);
+        expect(logs[0].issues).toEqual(true);
+        expect(logs[0].user_id).toEqual('fred');
+        expect(logs[0].statuses[0].key).toEqual('aa/bb');
+        expect(logs[0].statuses[1].error).toEqual('board aa/cc failed retrieval for syncing, linked from aa/bb');
+
       });
     });
   });
@@ -2924,7 +2976,7 @@ describe("persistence-sync", function() {
         id: "fred/bacon"
       });
       var done = false;
-      persistence.sync(1340).then(null, function() {
+      persistence.sync(1340).then(function() {
         done = true;
       });
       waitsFor(function() { return done; });

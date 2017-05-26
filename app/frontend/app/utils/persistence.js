@@ -881,18 +881,25 @@ var persistence = Ember.Object.extend({
   sync_succeeded: function() {
     return this.get('sync_status') == 'succeeded';
   }.property('sync_status'),
+  sync_finished: function() {
+    return this.get('sync_status') == 'finished';
+  }.property('sync_status'),
   update_sync_progress: function() {
     var progresses = (persistence.get('sync_progress') || {}).progress_for || {};
     var visited = 0;
     var to_visit = 0;
+    var errors = [];
     for(var idx in progresses) {
       visited = visited + progresses[idx].visited;
       to_visit = to_visit + progresses[idx].to_visit;
+      errors = errors.concat(progresses[idx].board_errors || []);
     }
     if(persistence.get('sync_progress')) {
       persistence.set('sync_progress.visited', visited);
       persistence.set('sync_progress.to_visit', to_visit);
       persistence.set('sync_progress.total', to_visit + visited);
+      persistence.set('sync_progress.errored', errors.length);
+      persistence.set('sync_progress.errors', errors);
     }
   },
   sync: function(user_id, force, ignore_supervisees) {
@@ -917,6 +924,14 @@ var persistence = Ember.Object.extend({
     // even if the app itself isn't running. whaaaat?! yeah.
 
     var sync_promise = new Ember.RSVP.Promise(function(sync_resolve, sync_reject) {
+      if(!persistence.get('sync_progress.root_user')) {
+        persistence.set('sync_progress', {
+          root_user: user_id,
+          progress_for: {
+          }
+        });
+      }
+
       if(!user_id) {
         sync_reject({error: "failed to retrieve user, missing id"});
       }
@@ -966,8 +981,9 @@ var persistence = Ember.Object.extend({
 
       confirm_quota_for_user.then(function(user) {
         if(user) {
+          var old_user_id = user_id;
           user_id = user.get('id');
-          if(!persistence.get('sync_progress.root_user')) {
+          if(!persistence.get('sync_progress.root_user') || persistence.get('sync_progress.root_user') == old_user_id) {
             persistence.set('sync_progress', {
               root_user: user.get('id'),
               progress_for: {
@@ -1064,8 +1080,31 @@ var persistence = Ember.Object.extend({
           if(persistence.get('sync_progress.last_sync_stamp')) {
             persistence.set('last_sync_stamp', persistence.get('sync_progress.last_sync_stamp'));
           }
+          var errors = persistence.get('sync_progress.errors') || [];
+          errors.forEach(function(error) {
+            if(error.board_key || error.board_id) {
+              var status = statuses.find(function(s) { return (s.key && s.key == error.board_key); });
+              if(status) {
+                status.error = error.error;
+              } else {
+                statuses.push({
+                  id: error.board_id || error.board_key,
+                  key: error.board_key || error.board_id,
+                  error: error.error
+                });
+              }
+            }
+          });
           persistence.set('sync_progress', null);
-          persistence.set('sync_status', 'succeeded');
+          var sync_message = null;
+          if(errors.length > 0) {
+            persistence.set('sync_status', 'finished');
+            persistence.set('sync_errors', errors.length);
+            sync_message = i18n.t('finished_with_errors', "Finished syncing %{user_id} with %{n} error(s)", {user_id: user_name, n: errors.length});
+          } else {
+            persistence.set('sync_status', 'succeeded');
+            sync_message = i18n.t('finised_without_errors', "Finished syncing %{user_id} without errors", {user_id: user_name});
+          }
           console.log('synced!');
           persistence.store('settings', {last_sync: last_sync}, 'lastSync').then(function(res) {
             persistence.set('last_sync_at', res.last_sync);
@@ -1077,9 +1116,10 @@ var persistence = Ember.Object.extend({
           log.push({
             user_id: user_name,
             manual: force,
+            issues: errors.length > 0,
             finished: new Date(),
             statuses: statuses,
-            summary: i18n.t('finised_without_errors', "Finished syncing %{user_id} without errors", {user_id: user_name})
+            summary: sync_message
           });
           persistence.set('sync_log', log);
         }
@@ -1328,6 +1368,7 @@ var persistence = Ember.Object.extend({
   sync_boards: function(user, importantIds, synced_boards, force) {
     var full_set_revisions = {};
     var fresh_revisions = {};
+    var board_errors = [];
     var get_local_revisions = persistence.find('settings', 'synced_full_set_revisions').then(function(res) {
       full_set_revisions = res;
       return res;
@@ -1395,7 +1436,8 @@ var persistence = Ember.Object.extend({
           persistence.set('sync_progress.progress_for', {});
           persistence.get('sync_progress.progress_for')[user.get('id')] = {
             visited: visited_boards.length,
-            to_visit: to_visit_boards.length
+            to_visit: to_visit_boards.length,
+            board_errors: board_errors
           };
           persistence.update_sync_progress();
         }
@@ -1407,7 +1449,8 @@ var persistence = Ember.Object.extend({
           if(p_for) {
             p_for[user.get('id')] = {
               visited: visited_boards.length,
-              to_visit: to_visit_boards.length
+              to_visit: to_visit_boards.length,
+              board_errors: board_errors
             };
           }
           persistence.update_sync_progress();
@@ -1591,7 +1634,10 @@ var persistence = Ember.Object.extend({
                 if(source) {
                    msg = msg + ", linked from " + source;
                 }
-                defer.reject({error: msg});
+                board_errors.push({error: msg, board_id: id, board_key: key});
+                Ember.run.later(function() {
+                  nextBoard(defer);
+                }, 150);
               });
             }, function(err) {
               var board_unauthorized = (err && err.error == "Not authorized");
@@ -1602,7 +1648,10 @@ var persistence = Ember.Object.extend({
                   nextBoard(defer);
                 }, 150);
               } else {
-                defer.reject({error: "board " + (key || id) + " failed retrieval for syncing, linked from " + source, board_unauthorized: board_unauthorized});
+                board_errors.push({error: "board " + (key || id) + " failed retrieval for syncing, linked from " + source, board_unauthorized: board_unauthorized, board_id: id, board_key: key});
+                Ember.run.later(function() {
+                  nextBoard(defer);
+                }, 150);
               }
             });
           } else if(!next) {

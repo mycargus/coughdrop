@@ -196,6 +196,7 @@ import capabilities from './capabilities';
       var error = options.error;
       options.success = null;
       options.error = null;
+      options.timeout = options.timeout || 20000;
       var res = Ember.$.realAjax(options).then(function(data, message, xhr) {
         if(typeof(data) == 'string') {
           data = {text: data};
