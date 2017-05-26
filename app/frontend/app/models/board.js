@@ -149,8 +149,10 @@ CoughDrop.Board = DS.Model.extend({
     var button_ids = (this.get('translations') || {});
     var all_langs = [];
     for(var button_id in button_ids) {
-      var keys = Object.keys(button_ids[button_id] || {});
-      all_langs = all_langs.concat(keys);
+      if(typeof button_ids[button_id] !== 'string') {
+        var keys = Object.keys(button_ids[button_id] || {});
+        all_langs = all_langs.concat(keys);
+      }
     }
     all_langs.forEach(function(lang) {
       if(res.indexOf(lang) == -1) {
@@ -399,7 +401,9 @@ CoughDrop.Board = DS.Model.extend({
       public: (make_public || false),
       buttons: this.get('buttons'),
       grid: this.get('grid'),
-      for_user_id: (user && user.get('id'))
+      locale: this.get('locale'),
+      for_user_id: (user && user.get('id')),
+      translations: this.get('translations')
     });
     var _this = this;
     var res = board.save();

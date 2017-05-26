@@ -77,6 +77,19 @@ export default modal.ModalController.extend({
   }.property('model.locale'),
   sorted_buttons: function() {
     var words = this.get('model.button_set.buttons') || [];
+    if(this.get('model.board.buttons')) {
+      var _this = this;
+      var board_id = this.get('model.board.id');
+      this.get('model.board.buttons').forEach(function(button) {
+        if(!words.find(function(b) { return b.board_id == board_id && b.id == button.id; })) {
+          words.push(Ember.$.extend({}, button, {
+            board_id: board_id,
+            board_key: _this.get('model.board.key'),
+            depth: 0
+          }));
+        }
+      });
+    }
     var res = [];
     var locale = this.get('model.locale');
     var board_ids = this.get('model.old_board_ids_to_translate');
@@ -89,7 +102,7 @@ export default modal.ModalController.extend({
         if(board_ids && board_ids.indexOf(b.board_id) == -1) { return; }
         if(!board_ids && b.board_id != original_board_id) { return; }
       }
-      b.label = b.vocalization || b.label;
+      Ember.set(b, 'label', b.vocalization || b.label);
       words.forEach(function(b2, idx2) {
         b2.label = b2.vocalization || b2.label;
         if(b.label.toLowerCase() == b2.label.toLowerCase() && idx != idx2) {
@@ -168,6 +181,7 @@ export default modal.ModalController.extend({
         data: {
           source_lang: _this.get('model.board.locale'),
           destination_lang: _this.get('model.locale'),
+          set_as_default: _this.get('model.default_language'),
           translations: translations,
           board_ids_to_translate: _this.get('model.new_board_ids_to_translate')
         }

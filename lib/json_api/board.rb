@@ -63,8 +63,18 @@ module JsonApi::Board
         json['shared_users'] = shared_users
       end
     end
-    if json['permissions'] && json['permissions']['delete']
+    if (json['permissions'] && json['permissions']['delete']) || (args[:permissions] && args[:permissions].allows?(args[:permissions], 'admin_support_actions'))
       json['downstream_board_ids'] = board.settings['downstream_board_ids']
+      if args[:permissions] && args[:permissions].respond_to?(:settings)
+        # TODO: sharding
+        user_ids = UserBoardConnection.where(:board_id => board.id).map(&:user_id)
+        user_names = User.where(:id => user_ids).select('id, user_name').map(&:user_name)
+        valid_names = [args[:permissions].user_name] + (args[:permissions].settings['supervisees'] || []).map{|s| s['user_name'] }
+        if args[:permissions].allows?(args[:permissions], 'admin_support_actions')
+          valid_names = user_names
+        end
+        json['using_user_names'] = (user_names & valid_names).sort
+      end
     end
     
     json

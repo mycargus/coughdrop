@@ -26,6 +26,8 @@ module Relinking
     board.settings['name'] = self.settings['name']
     board.settings['description'] = self.settings['description']
     board.settings['image_url'] = self.settings['image_url']
+    board.settings['locale'] = self.settings['locale']
+    board.settings['translations'] = self.settings['translations']
     board.settings['buttons'] = self.settings['buttons']
     board.settings['license'] = self.settings['license']
     board.settings['grid'] = self.settings['grid']

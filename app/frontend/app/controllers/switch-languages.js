@@ -19,7 +19,7 @@ export default modal.ModalController.extend({
   }.observes('label_locale', 'vocalization_locale'),
   locales: function() {
     var locales = this.get('model.board.locales') || [];
-    var list = i18n.get('translatable_locales');
+    var list = i18n.get('locales');
     var res = [{name: i18n.t('choose_locale', '[Choose a Language]'), id: ''}];
     for(var key in list) {
       if(locales.indexOf(key) != -1) {

@@ -25,6 +25,12 @@ export default modal.ModalController.extend({
   language: function() {
     return i18n.readable_language(this.get('model.locale'));
   }.property('model.locale'),
+  multiple_locales: function() {
+    return (this.get('model.locales') || []).length > 1;
+  }.property('model.locales'),
+  languages: function() {
+    return (this.get('model.locales') || []).map(function(l) { return i18n.readable_language(l); }).join(', ');
+  }.property('model.locales'),
   actions: {
     close: function() {
       modal.close();

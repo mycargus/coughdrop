@@ -18,6 +18,10 @@
         <dt>{{t "Language" key='language'}}</dt>
           <dd>{{language}}</dd>
       {{/if}}
+      {{#if multiple_locales}}
+        <dt>{{t "Translations" key='translations'}}</dt>
+          <dd>{{languages}}</dd>
+      {{/if}}
       {{#if model.parent_board_key}}
         <dt>{{t "Copied From" key='copied_from'}}</dt>
         <dd>

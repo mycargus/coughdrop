@@ -1646,7 +1646,7 @@ describe Board, :type => :model do
     it "should return done if user_id doesn't match" do
       u = User.create
       b = Board.create(:user => u)
-      res = b.translate_set({}, 'en', 'es', [b.global_id], 1234)
+      res = b.translate_set({}, 'en', 'es', [b.global_id], true, 1234)
       expect(res).to eq({done: true, translated: false, reason: 'mismatched user'})
     end
     
@@ -1674,6 +1674,91 @@ describe Board, :type => :model do
       res = b.translate_set({'hat' => 'sat', 'cat' => 'rat'}, 'en', 'es', [b.global_id])
       expect(res[:done]).to eq(true)
       expect(b.settings['buttons'][0]['label']).to eq('sat')
+      expect(b.settings['translations']).to eq({
+        'default' => 'en',
+        'current_label' => 'es',
+        'current_vocalization' => 'es',
+        '1' => {
+          'en' => {'label' => 'hat'},
+          'es' => {'label' => 'sat'}
+        },
+        '2' => {
+          'en' => {'label' => 'cat'},
+          'es' => {'label' => 'rat'}
+        }
+      })
+    end
+    
+    it "should keep translations after multiple iterations" do
+      u = User.create
+      b = Board.create(:user => u)
+      b.settings['buttons'] = [
+        {'id' => 1, 'label' => 'hat'},
+        {'id' => 2, 'label' => 'cat'}
+      ]
+      b.save
+      res = b.translate_set({'hat' => 'sat', 'cat' => 'rat'}, 'en', 'es', [b.global_id])
+      expect(res[:done]).to eq(true)
+      expect(b.settings['buttons'][0]['label']).to eq('sat')
+      expect(b.settings['translations']).to eq({
+        'default' => 'en',
+        'current_label' => 'es',
+        'current_vocalization' => 'es',
+        '1' => {
+          'en' => {'label' => 'hat'},
+          'es' => {'label' => 'sat'}
+        },
+        '2' => {
+          'en' => {'label' => 'cat'},
+          'es' => {'label' => 'rat'}
+        }
+      })
+      
+      b.reload
+      res = b.translate_set({'sat' => 'yat', 'rat' => 'eat'}, 'es', 'fr', [b.global_id])
+      expect(res[:done]).to eq(true)
+      expect(b.settings['buttons'][0]['label']).to eq('yat')
+      expect(b.settings['translations']).to eq({
+        'default' => 'en',
+        'current_label' => 'fr',
+        'current_vocalization' => 'fr',
+        '1' => {
+          'en' => {'label' => 'hat'},
+          'es' => {'label' => 'sat'},
+          'fr' => {'label' => 'yat'}
+        },
+        '2' => {
+          'en' => {'label' => 'cat'},
+          'es' => {'label' => 'rat'},
+          'fr' => {'label' => 'eat'}
+        }
+      })
+    end
+
+    it "should translate but not switch if specified" do
+      u = User.create
+      b = Board.create(:user => u)
+      b.settings['buttons'] = [
+        {'id' => 1, 'label' => 'hat'},
+        {'id' => 2, 'label' => 'cat'}
+      ]
+      b.save
+      res = b.translate_set({'hat' => 'sat', 'cat' => 'rat'}, 'en', 'es', [b.global_id], false)
+      expect(res[:done]).to eq(true)
+      expect(b.settings['buttons'][0]['label']).to eq('hat')
+      expect(b.settings['translations']).to eq({
+        'default' => 'en',
+        'current_label' => 'en',
+        'current_vocalization' => 'en',
+        '1' => {
+          'en' => {'label' => 'hat'},
+          'es' => {'label' => 'sat'}
+        },
+        '2' => {
+          'en' => {'label' => 'cat'},
+          'es' => {'label' => 'rat'}
+        }
+      })
     end
     
     it "should recursively update only the correct boards" do

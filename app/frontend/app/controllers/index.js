@@ -39,7 +39,7 @@ export default Ember.Controller.extend({
     if(progress && progress.setup_done) {
       return null;
     } else if(this.get('app_state.currentUser.using_for_a_while')) {
-    } return null;
+      return null;
     } else {
       return progress;
     }

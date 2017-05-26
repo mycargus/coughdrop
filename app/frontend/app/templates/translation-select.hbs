@@ -28,6 +28,14 @@
           {{bound-select select_class="form-control" select_id="translate_locale" content=locales selection=translate_locale action=(action (mut translate_locale)) }}
         </div>
       </div>
+      <div class="form-group">
+        <div class="col-sm-9 col-sm-offset-3">
+          <label>
+            {{input type='checkbox' checked=default_language}}
+            {{t "Switch to this as the Default Language" key='set_as_default_language'}}
+          </label>
+        </div>
+      </div>
     </form>
   </div>
   <div class="modal-footer">

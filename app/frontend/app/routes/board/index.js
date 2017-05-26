@@ -33,7 +33,7 @@ export default Ember.Route.extend({
       integration_name: model.get('integration') && model.get('integration_name'),
       parent_key: model.get('parent_board_key'),
       text_direction: i18n.text_direction(model.get('locale')),
-      translatable: model.get('locales').length > 1
+      translatable: (model.get('locales') || []).length > 1
     });
     if(!app_state.get('label_locale')) {
       app_state.set('label_locale', stashes.get('label_locale'));

@@ -113,6 +113,15 @@ export default Ember.Controller.extend({
     // before, but with all the local caching it's more likely to
     // happen more often.
   },
+  update_current_board_state: function() {
+    if(this.get('model.id') && app_state.get('currentBoardState.id') == this.get('model.id')) {
+      app_state.setProperties({
+        'currentBoardState.integration_name': this.get('model.integration') && this.get('model.integration_name'),
+        'currentBoardState.text_direction': i18n.text_direction(this.get('model.locale')),
+        'currentBoardState.translatable': (this.get('model.locales') || []).length > 1
+      })
+    }
+  }.observes('model.id', 'model.integration', 'model.integration_name', 'model.locale', 'model.locales'),
   height: 400,
   computeHeight: function() {
     var height = window.innerHeight;

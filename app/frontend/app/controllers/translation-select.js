@@ -7,6 +7,7 @@ import app_state from '../utils/app_state';
 export default modal.ModalController.extend({
   opening: function() {
     var _this = this;
+    _this.set('default_language', true);
     _this.set('hierarchy', {loading: true});
     BoardHierarchy.load_with_button_set(this.get('model.board'), {deselect_on_different: true, prevent_different: true}).then(function(hierarchy) {
       _this.set('hierarchy', hierarchy);
@@ -37,6 +38,7 @@ export default modal.ModalController.extend({
         copy: _this.get('model.board'),
         button_set: _this.get('model.board.button_set'),
         locale: _this.get('translate_locale'),
+        default_language: _this.get('default_language'),
         old_board_ids_to_translate: board_ids_to_include,
         new_board_ids_to_translate: board_ids_to_include
       };

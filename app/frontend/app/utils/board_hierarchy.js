@@ -129,11 +129,11 @@ BoardHierarchy.load_with_button_set = function(board, opts) {
   });
 
   var downstream = reload_board.then(function() {
-    if(board.get('downstream_boards') > 0) {
+//     if(board.get('downstream_boards') > 0) {
       return board.load_button_set(true);
-    } else {
-      return Ember.RSVP.resolve();
-    }
+//     } else {
+//       return Ember.RSVP.resolve();
+//     }
   });
 
   var load_hierarchy = downstream.then(function(button_set) {
