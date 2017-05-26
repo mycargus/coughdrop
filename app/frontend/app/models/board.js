@@ -346,6 +346,7 @@ CoughDrop.Board = DS.Model.extend({
   protected: DS.attr('boolean'),
   protected_settings: DS.attr('raw'),
   non_author_uses: DS.attr('number'),
+  using_user_names: DS.attr('raw'),
   downstream_boards: DS.attr('number'),
   downstream_board_ids: DS.attr('raw'),
   immediately_upstream_boards: DS.attr('number'),

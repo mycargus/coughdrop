@@ -10,6 +10,17 @@
     <img src="{{ model.board.icon_url_with_fallback }}" style="width: 40px; float: left; margin-right: 10px;"/>
     <strong>{{model.board.name}}</strong><br/>
     {{model.board.grid.rows}} x {{model.board.grid.columns}}
+    {{#if model.board.non_author_uses}}
+      <div style='margin: 20px 0;'>
+        {{t "Keep in mind that this board is currently being used by" key='board_used_by_1'}}
+        {{t "user" count=model.board.non_author_uses key='n_users'}}{{#if model.board.using_user_names}}{{t ", including:" key='comma_including'}}{{else}}{{t "." key='period'}}{{/if}}
+        {{#if model.board.using_user_names}}
+          <div style='margin: 10px 20px; max-height: 50px; overflow: auto;'>
+            {{using_user_names}}
+          </div>
+        {{/if}}
+      </div>
+    {{/if}}
     {{#if model.board.downstream_boards}}
       <div style='margin: 30px 0 10px;'>
         <label>
@@ -19,7 +30,7 @@
         {{#if delete_downstream}}
           <p class='text-danger'>
             {{t "Please double-check that this is what you want to do, this action could delete up to" key='confirm_downstream_delete'}}
-            {{t "board" key='n_boards' count=model.board.downstream_boards}}{{t "." key='period'}}
+            {{t "additional board" key='n_boards' count=model.board.downstream_boards}}{{t "." key='period'}}
           </p>
         {{/if}}
       </div>
