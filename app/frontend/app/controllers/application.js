@@ -466,7 +466,7 @@ export default Ember.Controller.extend({
   }.property('setup_page', 'setup_order'),
   setup_previous: function() {
     if(this.get('setup_order')) {
-      return this.get('setup_page') != this.get('setup_order')[0];
+      return !!(this.get('setup_page') && this.get('setup_page') != this.get('setup_order')[0]);
     }
   }.property('setup_page', 'setup_order'),
   setup_index: function() {
