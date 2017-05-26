@@ -112,7 +112,7 @@
               <div class='details'>
                 {{t "sequence of" key='sequence_of'}}
                 {{t "goal" key='n_goals' count=goal.template_stats.goals}}
-                {{#if goal.template_stats.badges}}{{t "with" key='with'}}{{t "badge" count=goal.template_stats.badges key='n_badges'}}{{/if}}
+                {{#if goal.template_stats.badges}}{{t "with" key='with'}} {{t "badge" count=goal.template_stats.badges key='n_badges'}}{{/if}}
                 {{#if goal.template_stats.loop}}{{t "(repeating sequence)" key='repeating_sequence'}}{{/if}}
               </div>
             {{else if goal.stats.badges}}
