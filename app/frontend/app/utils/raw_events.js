@@ -119,7 +119,7 @@ Ember.$(document).on('mousedown touchstart', function(event) {
 }).on('dragleave', '.button,.board_drop', function(event) {
   event.preventDefault();
   Ember.$(this).removeClass('drop_target');
-}).on('mousedown touchstart focus', '.select_on_click', function(event) {
+}).on('mousedown touchstart', '.select_on_click', function(event) {
   Ember.$(this).focus().select();
   event.preventDefault();
 });
