@@ -535,8 +535,33 @@ export default Ember.Controller.extend({
     utterance.set_and_say_buttons(buttons);
   },
   few_supervisees: function() {
-    return (app_state.get('currentUser.supervisees') || []).length <= 2;
-  }.property('app_state.currentUser.supervisees'),
+    var max_to_show = 2;
+    var sups = app_state.get('currentUser.supervisees') || [];
+    var list = sups;
+    var more = [];
+    var current_board_user_name = (app_state.get('currentBoardState.key') || '').split(/\//)[0];
+    if(current_board_user_name) {
+      var new_list = [];
+      var new_more = [];
+      sups.forEach(function(sup) {
+        if(sup.user_name == current_board_user_name) {
+          new_list.push(sup);
+        } else {
+          new_more.push(sup);
+        }
+      });
+      // don't rearrange if all will be shown anyway, since that would be confusing
+      if(new_list.length > 0 && (new_list.length + new_more.length <= max_to_show)) {
+        list = new_list;
+        more = new_more;
+      }
+    }
+    if(list.length > max_to_show) { return null; }
+    return {
+      list: list,
+      more: more.length > 0
+    };
+  }.property('app_state.currentUser.supervisees', 'app_state.currentBoardState.key'),
   sayLouder: function() {
     this.vocalize(3.0);
   },
