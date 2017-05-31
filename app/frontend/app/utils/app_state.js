@@ -338,16 +338,30 @@ var app_state = Ember.Object.extend({
   },
   toggle_modeling: function(enable) {
     if(enable === undefined || enable === null) {
-      enable = !app_state.get('modeling');
+      enable = !app_state.get('manual_modeling');
     }
-    stashes.set('modeling', !!enable);
-    app_state.set('modeling', !!enable);
+    app_state.set('manual_modeling', !!enable);
     if(enable) {
-      app_state.get('modeling_started', (new Date()).getTime());
+      app_state.set('modeling_started', (new Date()).getTime());
     }
   },
-  auto_clear_modeling: function() {
+  update_modeling: function() {
     if(this.get('modeling')) {
+      stashes.set('modeling', !!this.get('modeling'));
+    }
+  }.observes('modeling'),
+  modeling: function() {
+    var res = !!(this.get('manual_modeling') || this.get('modeling_for_user'));
+    return res;
+  }.property('manual_modeling', 'modeling_for_user', 'modeling_ts'),
+  modeling_for_user: function() {
+    var res = this.get('speak_mode') && this.get('currentUser') && this.get('referenced_speak_mode_user') && app_state.get('currentUser.id') != this.get('referenced_speak_mode_user.id');
+    // this is weird and hacky, but for some reason modeling wasn't reliably updating when modeling_for_user changed
+    this.set('modeling_ts', (new Date()).getTime() + "_" + Math.random());
+    return !!res;
+  }.property('speak_mode', 'currentUser', 'referenced_speak_mode_user'),
+  auto_clear_modeling: function() {
+    if(this.get('manual_modeling')) {
       var now = (new Date()).getTime();
       if(!app_state.get('last_activation')) {
         app_state.set('last_activation', now);
@@ -609,8 +623,8 @@ var app_state = Ember.Object.extend({
       app_state.set('speakModeUser', null);
       app_state.set('referenced_speak_mode_user', null);
       stashes.persist('speak_mode_user_id', null);
-      stashes.persist('references_speak_mode_user_id', null);
-      if(!app_state.get('speak_mode')) {
+      stashes.persist('referenced_speak_mode_user_id', null);
+      if(!app_state.get('speak_mode') && jump_home !== true) {
         this.toggle_speak_mode();
       } else {
         this.home_in_speak_mode();
@@ -643,6 +657,15 @@ var app_state = Ember.Object.extend({
           } else {
             if(!app_state.get('speak_mode')) {
               _this.toggle_speak_mode();
+            }
+            var current = app_state.get('currentBoardState');
+            var user_state = u.get('preferences.home_board');
+            if(user_state && user_state.id != current.id) {
+              stashes.persist('temporary_root_board_state', current);
+              stashes.persist('root_board_state', user_state);
+            } else {
+              stashes.persist('temporary_root_board_state', null);
+              stashes.persist('root_board_state', current);
             }
           }
         }, function() {
@@ -853,6 +876,8 @@ var app_state = Ember.Object.extend({
         stashes.persist('label_locale', null);
         app_state.set('vocalization_locale', null);
         stashes.persist('vocalization_locale', null);
+        app_state.set('referenced_speak_mode_user', null);
+        stashes.persist('referenced_speak_mode_user_id', null);
       }
     }
     this.set('last_speak_mode', !!this.get('speak_mode'));
@@ -1103,7 +1128,7 @@ var app_state = Ember.Object.extend({
   }.observes('short_refresh_stamp', 'sessionUser'),
   activate_button: function(button, obj) {
     CoughDrop.log.start();
-    if(button.hidden && !this.get('edit_mode') && this.get('currentUser.preferences.hidden_buttons') == 'grid') {
+    if((button.hidden || button.empty) && !this.get('edit_mode') && this.get('currentUser.preferences.hidden_buttons') == 'grid') {
       return false;
     }
     var now = (new Date()).getTime();
@@ -1202,7 +1227,6 @@ var app_state = Ember.Object.extend({
 //         $button.data('later', later);
 //       });
 //     }
-
         Ember.run.later(function() {
           _this.jump_to_board({
             id: button.load_board.id,

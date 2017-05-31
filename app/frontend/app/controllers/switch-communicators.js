@@ -4,8 +4,8 @@ import app_state from '../utils/app_state';
 
 export default modal.ModalController.extend({
   opening: function() {
-    this.set('model.jump_home', true);
-    this.set('model.keep_as_self', false);
+    this.set('model.jump_home', this.get('model.stay') !== true);
+    this.set('model.keep_as_self', this.get('model.modeling') || app_state.get('referenced_speak_mode_user') != null);
     this.set('has_supervisees', app_state.get('sessionUser.supervisees.length') > 0);
     this.set('currently_selected_id', null);
   },

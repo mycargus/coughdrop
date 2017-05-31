@@ -210,8 +210,16 @@ export default Ember.Controller.extend({
       utterance.alert();
       this.send('hide_temporary_sidebar');
     },
-    setSpeakModeUser: function(id) {
-      app_state.set_speak_mode_user(id);
+    setSpeakModeUser: function(id, type) {
+      app_state.set_speak_mode_user(id, false, type == 'modeling');
+    },
+    pickSpeakModeUser: function(type) {
+      var prompt = i18n.t('speak_as_which_user', "Select User to Speak As");
+      if(type == 'modeling') {
+        prompt = i18n.t('model_for_which_user', "Select User to Model For");
+      }
+      app_state.set('referenced_speak_mode_user', null);
+      this.send('switch_communicators', {modeling: (type == 'modeling'), stay: true, header: prompt});
     },
     toggleSpeakMode: function(decision) {
       app_state.toggle_speak_mode(decision);
@@ -241,14 +249,14 @@ export default Ember.Controller.extend({
       }
       stashes.persist('logging_paused_at', ts);
     },
-    switch_communicators: function() {
+    switch_communicators: function(opts) {
       var ready = Ember.RSVP.resolve({correct_pin: true});
       if(app_state.get('currentUser.preferences.require_speak_mode_pin') && app_state.get('currentUser.preferences.speak_mode_pin')) {
         ready = modal.open('speak-mode-pin', {actual_pin: app_state.get('currentUser.preferences.speak_mode_pin'), action: 'none'});
       }
       ready.then(function(res) {
         if(res && res.correct_pin) {
-          modal.open('switch-communicators');
+          modal.open('switch-communicators', opts || {});
         }
       }, function() { });
     },
@@ -428,7 +436,11 @@ export default Ember.Controller.extend({
       modal.open('confirm-update-app');
     },
     toggle_modeling: function() {
-      app_state.toggle_modeling(true);
+      if(app_state.get('modeling_for_user')) {
+        modal.warning(i18n.t('cant_clear_session_modeling', "You are in a modeling session. To leave modeling mode, Exit Speak Mode and then Speak As the communicator"), true);
+      } else {
+        app_state.toggle_modeling(true);
+      }
     },
     switch_languages: function() {
       modal.open('switch-languages', {board: this.get('board.model')}).then(function(res) {
@@ -522,6 +534,9 @@ export default Ember.Controller.extend({
   set_and_say_buttons: function(buttons) {
     utterance.set_and_say_buttons(buttons);
   },
+  few_supervisees: function() {
+    return (app_state.get('currentUser.supervisees') || []).length <= 2;
+  }.property('app_state.currentUser.supervisees'),
   sayLouder: function() {
     this.vocalize(3.0);
   },

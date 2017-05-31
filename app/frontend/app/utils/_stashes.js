@@ -284,7 +284,7 @@ var stashes = Ember.Object.extend({
       if(stashes.get('referenced_user_id')) {
         log_event.referenced_user_id = stashes.get('referenced_user_id');
       }
-      if(stashes.get('modeling')) {
+      if(stashes.get('modeling') || (log_event.button && log_event.button.modeling)) {
         log_event.modeling = true;
       } else if(stashes.last_selection && stashes.last_selection.modeling && stashes.last_selection.ts > ((new Date()).getTime() - 500)) {
         log_event.modeling = true;
@@ -293,7 +293,6 @@ var stashes = Ember.Object.extend({
       log_event.window_height= window.outerHeight;
 
       if(log_event) {
-//        console.log(log_event);
         stashes.persist('last_event', log_event);
         usage_log.push(log_event);
       }
@@ -379,7 +378,11 @@ var stashes = Ember.Object.extend({
         return null;
       }
     }
-    return stashes.log_event(obj, stashes.get('speaking_user_id'));
+    var user_id = stashes.get('speaking_user_id');
+    if(stashes.get('referenced_speak_mode_user_id')) {
+      user_id = stashes.get('referenced_speak_mode_user_id');
+    }
+    return stashes.log_event(obj, user_id);
   },
   push_log: function(only_if_convenient) {
     var usage_log = stashes.get('usage_log');

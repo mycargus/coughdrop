@@ -281,9 +281,15 @@
                     </a>
                     <ul class="dropdown-menu" role="menu">
                       <li><a href="#" {{action "setSpeakModeUser" 'self'}}>{{t "speak as me" key='speak_as_me'}}</a></li>
-                      {{#each app_state.currentUser.supervisees as |supervisee|}}
-                        <li><a href="#" {{action "setSpeakModeUser" supervisee.id}}>{{t "speak as" key='speak_as'}} {{supervisee.user_name}}</a></li>
-                      {{/each}}
+                      {{#if few_supervisees}}
+                        {{#each app_state.currentUser.supervisees as |supervisee|}}
+                          <li><a href="#" {{action "setSpeakModeUser" supervisee.id 'modeling'}}>{{t "model for" key='model_for'}} {{supervisee.user_name}}</a></li>
+                          <li><a href="#" {{action "setSpeakModeUser" supervisee.id}}>{{t "speak as" key='speak_as'}} {{supervisee.user_name}}</a></li>
+                        {{/each}}
+                      {{else}}
+                        <li><a href="#" {{action "pickSpeakModeUser" 'modeling'}}>{{t "model for..." key='model_for_ellipsis'}}</a></li>
+                        <li><a href="#" {{action "pickSpeakModeUser" 'speak'}}>{{t "speak as..." key='speak_as_ellipsis'}}</a></li>
+                      {{/if}}
                     </ul>
                   </div>
                 {{else}}
@@ -412,7 +418,12 @@
       <span class="dropdown" style="display: inline-block;">
         <a class='btn btn-default' id='identity_button' href="#" data-toggle="dropdown">
           {{#if app_state.currentUser}}
-            <img src={{app_state.currentUser.avatar_url_with_fallback}} />
+            <span class='user_holder'>
+              <img src={{app_state.currentUser.avatar_url_with_fallback}} class='user' />
+            </span>
+            {{#if app_state.modeling_for_user}}
+              <img src={{app_state.referenced_speak_mode_user.avatar_url_with_fallback}} class='modeling_user'/>
+            {{/if}}
             {{#if session.invalid_token}}
               <span class="label label-danger unread">{{t "!" key='exclaim'}}</span>
             {{else if persistence.syncing}}

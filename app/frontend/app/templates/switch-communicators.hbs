@@ -2,22 +2,28 @@
   <div class="modal-header">
       <button type="button" class="close" {{action 'close'}}>&times;</button>
     <h3>
-      {{t "Switch Communicators" key='complete_registration'}}
+      {{#if model.header}}
+        {{model.header}}
+      {{else}}
+        {{t "Switch Communicators" key='switch_communicators'}}
+      {{/if}}
     </h3>
   </div>
   <div class="modal-body">
-    <p>
-      <label>
-        {{input type="checkbox" checked=model.jump_home}}
-        Jump to the selected communicator's home board
-      </label>
-    </p>
-    <p>
-      <label>
-        {{input type="checkbox" checked=model.keep_as_self}}
-        Speak as me, not the selected communicator
-      </label>
-    </p>
+    {{#unless model.stay}}
+      <p>
+        <label>
+          {{input type="checkbox" checked=model.jump_home}}
+          Jump to the selected communicator's home board
+        </label>
+      </p>
+      <p>
+        <label>
+          {{input type="checkbox" checked=model.keep_as_self}}
+          Model as me, don't speak as the selected communicator
+        </label>
+      </p>
+    {{/unless}}
     {{user-select select_id="currently_selected_id" buttons=true selection=currently_selected_id action=(action (mut currently_selected_id)) }}
   </div>
   <div class="modal-footer">

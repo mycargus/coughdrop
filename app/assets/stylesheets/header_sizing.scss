@@ -83,9 +83,23 @@ header {
   &.speaking {
     #identity .btn {
       width: 58px;
-      img {
-        height: 40px; 
+      .user_holder {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
         margin: -12px 0 -10px -30px;
+      }
+      img.user {
+        width: 40px;
+      }
+      img.modeling_user {
+        height: 25px;
+        width: 25px;
+        border: 1px solid rgba(0, 0, 0, 0.4);
+        border-radius: 50px;
+        position: absolute;
+        margin: 13px 0 0 -41px;
+        background: #fff;
       }
     }
     &.tiny {
@@ -140,9 +154,19 @@ header {
         .caret {
           margin-top: -15px;
         }
-        img {
+        .user_holder {
           height: 30px; 
+          width: 30px;
           margin: -30px -3px -10px -30px;
+        }
+        img.user {
+          width: 30px;
+          margin-top: -20px;
+        }
+        img.modeling_user {
+          height: 20px;
+          width: 20px;
+          margin: 0 0 0 -29px;
         }
       }
       #speak {
@@ -217,9 +241,18 @@ header {
           left: 10px; 
           top: 70px; 
         }
-        img {
+        .user_holder {
           height: 60px; 
+          width: 60px;
           margin: -3px 0 -10px -30px;
+        }
+        img.user {
+          width: 60px;
+        }
+        img.modeling_user {
+          height: 30px;
+          width: 30px;
+          margin: 32px 0 0 -60px;
         }
       }
       #speak {
@@ -300,9 +333,18 @@ header {
           left: 10px; 
           top: 105px; 
         }
-        img {
+        .user_holder {
           height: 80px; 
+          width: 80px;
           margin: 15px 0 -10px -30px;
+        }
+        img.user {
+          width: 80px;
+        }
+        img.modeling_user {
+          height: 40px;
+          width: 40px;
+          margin: 62px 0 0 -80px;
         }
       }
       #speak {
@@ -385,9 +427,18 @@ header {
           left: 10px; 
           top: 125px; 
         }
-        img {
+        .user_holder {
           height: 80px; 
+          width: 80px;
           margin: 35px 0 -10px -30px;
+        }
+        img.user {
+          width: 80px;
+        }
+        img.modeling_user {
+          height: 40px;
+          width: 40px;
+          margin: 80px 0 0 -80px;
         }
       }
       #speak {

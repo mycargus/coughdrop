@@ -46,7 +46,7 @@ describe('app_state', function() {
       }
     });
     controller = Ember.Object.extend({
-      transitionToRoute: function() { },
+      transitionToRoute: function(a, b) { app_state.routed_to = [a, b]; },
       updateTitle: function() { },
       send: function(message) {
         last_sent_message = message;
@@ -611,20 +611,20 @@ describe('app_state', function() {
 
   describe('toggle_modeling', function() {
     it("should toggle correctly", function() {
-      app_state.set('modeling', undefined);
-      expect(app_state.get('modeling')).toEqual(undefined);
+      app_state.set('manual_modeling', undefined);
+      expect(app_state.get('manual_modeling')).toEqual(undefined);
       app_state.toggle_modeling();
-      expect(app_state.get('modeling')).toEqual(true);
+      expect(app_state.get('manual_modeling')).toEqual(true);
       app_state.toggle_modeling();
-      expect(app_state.get('modeling')).toEqual(false);
+      expect(app_state.get('manual_modeling')).toEqual(false);
       app_state.toggle_modeling();
-      expect(app_state.get('modeling')).toEqual(true);
+      expect(app_state.get('manual_modeling')).toEqual(true);
       app_state.toggle_modeling(true);
-      expect(app_state.get('modeling')).toEqual(true);
+      expect(app_state.get('manual_modeling')).toEqual(true);
       app_state.toggle_modeling();
-      expect(app_state.get('modeling')).toEqual(false);
+      expect(app_state.get('manual_modeling')).toEqual(false);
       app_state.toggle_modeling(false);
-      expect(app_state.get('modeling')).toEqual(false);
+      expect(app_state.get('manual_modeling')).toEqual(false);
     });
   });
 
@@ -982,6 +982,19 @@ describe('app_state', function() {
   });
 
   describe('set_speak_mode_user', function() {
+    beforeEach(function() {
+      editManager.board = null;
+      app_state.set('speakModeUser', null);
+      stashes.persist('speak_mode_user_id', null);
+      stashes.persist('referenced_speak_mode_user_id', null);
+      stashes.persist('current_mode', 'default');
+      stashes.persist('modeling', false);
+      stashes.persist('root_board_state', null);
+      stashes.persist('temporary_root_board_state', null);
+
+      app_state.set('currentBoardState', {key: 'trains'});
+    });
+
     it("should clear SpeakModeUser if set to self", function() {
       stashes.set('current_mode', 'speak');
       app_state.set('sessionUser', null);
@@ -1009,9 +1022,6 @@ describe('app_state', function() {
         response: promise,
         id: "1234"
       });
-      editManager.board = null;
-      app_state.set('speakModeUser', null);
-      stashes.set('current_mode', 'default');
       var speak_mode_toggled = false;
       stub(app_state, 'toggle_speak_mode', function() { speak_mode_toggled = true; });
       app_state.set('currentBoardState', {key: 'trains'});
@@ -1036,9 +1046,6 @@ describe('app_state', function() {
       stub(modal, 'error', function(msg) {
         danger = msg;
       });
-      app_state.set('speakModeUser', null);
-      stashes.set('current_mode', 'default');
-      app_state.set('currentBoardState', {key: 'trains'});
       stub(app_state, 'toggle_speak_mode', function() { });
       app_state.set_speak_mode_user('1234');
       waitsFor(function() { return danger; });
@@ -1065,12 +1072,8 @@ describe('app_state', function() {
         response: promise,
         id: "1234"
       });
-      editManager.board = null;
-      app_state.set('speakModeUser', null);
-      stashes.set('current_mode', 'default');
       var home_args = null;
       stub(app_state, 'home_in_speak_mode', function(args) { home_args = args; });
-      app_state.set('currentBoardState', {key: 'trains'});
       app_state.set_speak_mode_user('1234', true);
       waitsFor(function() { return app_state.get('speakModeUser') && home_args; });
       runs(function() {
@@ -1095,12 +1098,8 @@ describe('app_state', function() {
         response: promise,
         id: "1234"
       });
-      editManager.board = null;
-      app_state.set('speakModeUser', null);
-      stashes.set('current_mode', 'default');
       var home_args = null;
       stub(app_state, 'home_in_speak_mode', function(args) { home_args = args; });
-      app_state.set('currentBoardState', {key: 'trains'});
       app_state.set_speak_mode_user('1234', false);
       waitsFor(function() { return app_state.get('speakModeUser'); });
       runs(function() {
@@ -1125,14 +1124,11 @@ describe('app_state', function() {
         response: promise,
         id: "1234"
       });
-      editManager.board = null;
-      app_state.set('speakModeUser', null);
       app_state.set('sessionUser', Ember.Object.create({id: '234', preferences: {home_board: {key: 'c/d'}}}));
 
       stashes.set('current_mode', 'default');
       var home_args = null;
       stub(app_state, 'home_in_speak_mode', function(args) { home_args = args; });
-      app_state.set('currentBoardState', {key: 'trains'});
       app_state.set_speak_mode_user('1234', true);
       waitsFor(function() { return app_state.get('speakModeUser') && home_args; });
       runs(function() {
@@ -1158,12 +1154,8 @@ describe('app_state', function() {
         response: promise,
         id: "1234"
       });
-      editManager.board = null;
-      app_state.set('speakModeUser', null);
-      stashes.set('current_mode', 'default');
       var home_args = null;
       stub(app_state, 'home_in_speak_mode', function(args) { home_args = args; });
-      app_state.set('currentBoardState', {key: 'trains'});
       app_state.set_speak_mode_user('1234', true, true);
       waitsFor(function() { return home_args; });
       runs(function() {
@@ -1183,13 +1175,9 @@ describe('app_state', function() {
         response: promise,
         id: "1234"
       });
-      editManager.board = null;
-      app_state.set('speakModeUser', null);
-      stashes.set('current_mode', 'default');
       stashes.set('speak_mode_user_id', null);
       var speak_mode_toggled = false;
       stub(app_state, 'toggle_speak_mode', function() { speak_mode_toggled = true; });
-      app_state.set('currentBoardState', {key: 'trains'});
       expect(stashes.get('speak_mode_user_id')).toEqual(null);
       app_state.set_speak_mode_user('1234');
       waitsFor(function() { return app_state.get('speakModeUser'); });
@@ -1198,6 +1186,379 @@ describe('app_state', function() {
         expect(app_state.get('speakModeUser.id')).toEqual('1234');
         expect(speak_mode_toggled).toEqual(true);
         expect(stashes.get('speak_mode_user_id')).toEqual('1234');
+      });
+    });
+
+//  set_speak_mode_user: function(board_user_id, jump_home, keep_as_self) {
+
+    it('should set the current board to temporary home and remember the real home if not jumping', function() {
+      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      app_state.set('sessionUser', session_user);
+      app_state.set_speak_mode_user('self', false, true);
+      expect(stashes.get('root_board_state')).toEqual({id: '111', key: 'home/one'});
+      expect(stashes.get('temporary_root_board_state')).toEqual({key: 'trains'});
+      expect(app_state.get('currentUser.id')).toEqual('234');
+      expect(app_state.get('currentBoardState')).toEqual({key: 'trains'});
+      expect(!!app_state.get('modeling')).toEqual(false);
+    });
+
+    it('should set the current board to temporary home and remember the real home if not jumping and user it matches session user', function() {
+      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      app_state.set('sessionUser', session_user);
+      app_state.set_speak_mode_user('234', false, true);
+      expect(stashes.get('root_board_state')).toEqual({id: '111', key: 'home/one'});
+      expect(stashes.get('temporary_root_board_state')).toEqual({key: 'trains'});
+      expect(app_state.get('currentUser.id')).toEqual('234');
+      expect(app_state.get('currentBoardState')).toEqual({key: 'trains'});
+      expect(app_state.get('referenced_speak_mode_user.id')).toEqual(undefined);
+      expect(!!app_state.get('modeling')).toEqual(false);
+    });
+
+    it('should mark as the modeled user if entering in modeling mode', function() {
+      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      queryLog.defineFixture({
+        method: 'GET',
+        type: 'user',
+        response: Ember.RSVP.resolve({user: {
+          id: '2345',
+          user_name: 'modeling_user',
+          preferences: {
+            home_board: {id: '222', key: 'home/two'}
+          }
+        }}),
+        id: '2345'
+      });
+      app_state.set('sessionUser', session_user);
+      app_state.set_speak_mode_user('2345', false, true);
+      waitsFor(function() { return app_state.get('modeling'); });
+      runs(function() {
+        expect(stashes.get('root_board_state')).toEqual({id: '222', key: 'home/two'});
+        expect(stashes.get('temporary_root_board_state')).toEqual({key: 'trains'});
+        expect(app_state.get('currentBoardState')).toEqual({key: 'trains'});
+        expect(app_state.get('currentUser.id')).toEqual('234');
+        expect(app_state.get('referenced_speak_mode_user.id')).toEqual('2345');
+        expect(app_state.get('modeling_for_user')).toEqual(true);
+        expect(!!app_state.get('manual_modeling')).toEqual(false);
+      });
+    });
+
+    it('should mark the current board as temporary home if already in speak mode and switching without jumping', function() {
+      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      stashes.set('current_mode', 'speak');
+      queryLog.defineFixture({
+        method: 'GET',
+        type: 'user',
+        response: Ember.RSVP.resolve({user: {
+          id: '2345',
+          user_name: 'modeling_user',
+          preferences: {
+            home_board: {id: '222', key: 'home/two'}
+          }
+        }}),
+        id: '2345'
+      });
+      expect(app_state.get('speak_mode')).toEqual(true);
+      app_state.set('sessionUser', session_user);
+      app_state.set_speak_mode_user('2345', false, true);
+      waitsFor(function() { return app_state.get('modeling_for_user'); });
+      runs(function() {
+        expect(stashes.get('root_board_state')).toEqual({id: '222', key: 'home/two'});
+        expect(stashes.get('temporary_root_board_state')).toEqual({key: 'trains'});
+        expect(app_state.get('currentUser.id')).toEqual('234');
+        expect(app_state.get('referenced_speak_mode_user.id')).toEqual('2345');
+        expect(app_state.get('currentBoardState')).toEqual({key: 'trains'});
+        expect(app_state.get('modeling_for_user')).toEqual(true);
+        expect(!!app_state.get('manual_modeling')).toEqual(false);
+      });
+    });
+
+    it('should remember the session user real home if not modeling and not jumping', function() {
+      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      stashes.persist('root_board_state', null);
+      app_state.set('sessionUser', session_user);
+      app_state.set_speak_mode_user('self', false, true);
+      waitsFor(function() { return stashes.get('root_board_state'); });
+      runs(function() {
+        expect(stashes.get('root_board_state')).toEqual({id: '111', key: 'home/one'});
+        expect(stashes.get('temporary_root_board_state')).toEqual({key: 'trains'});
+        expect(app_state.get('currentUser.id')).toEqual('234');
+        expect(app_state.get('referenced_speak_mode_user.id')).toEqual(undefined);
+        expect(app_state.get('currentBoardState')).toEqual({key: 'trains'});
+        expect(app_state.get('modeling_for_user')).toEqual(false);
+        expect(!!app_state.get('manual_modeling')).toEqual(false);
+      });
+    });
+
+    it('should remember the specified user real home if modeling and not jumping', function() {
+      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      stashes.set('current_mode', 'speak');
+      queryLog.defineFixture({
+        method: 'GET',
+        type: 'user',
+        response: Ember.RSVP.resolve({user: {
+          id: '2345',
+          user_name: 'modeling_user',
+          preferences: {
+            home_board: {id: '222', key: 'home/two'}
+          }
+        }}),
+        id: '2345'
+      });
+      expect(app_state.get('speak_mode')).toEqual(true);
+      app_state.set('sessionUser', session_user);
+      app_state.set_speak_mode_user('2345', false, true);
+      waitsFor(function() { return app_state.get('modeling_for_user'); });
+      runs(function() {
+        expect(stashes.get('root_board_state')).toEqual({id: '222', key: 'home/two'});
+        expect(stashes.get('temporary_root_board_state')).toEqual({key: 'trains'});
+        expect(app_state.get('referenced_speak_mode_user.id')).toEqual('2345');
+        expect(app_state.get('currentBoardState')).toEqual({key: 'trains'});
+        expect(app_state.get('modeling_for_user')).toEqual(true);
+        expect(!!app_state.get('manual_modeling')).toEqual(false);
+      });
+    });
+
+    it('should remember the specified user real home if entering as the user and not jumping', function() {
+      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      queryLog.defineFixture({
+        method: 'GET',
+        type: 'user',
+        response: Ember.RSVP.resolve({user: {
+          id: '2345',
+          user_name: 'modeling_user',
+          preferences: {
+            home_board: {id: '222', key: 'home/two'}
+          }
+        }}),
+        id: '2345'
+      });
+      expect(app_state.get('speak_mode')).toEqual(false);
+      app_state.set('sessionUser', session_user);
+      app_state.set_speak_mode_user('2345', false, false);
+      waitsFor(function() { return app_state.get('speakModeUser'); });
+      runs(function() {
+        expect(stashes.get('root_board_state')).toEqual({id: '222', key: 'home/two'});
+        expect(stashes.get('temporary_root_board_state')).toEqual({key: 'trains'});
+        expect(app_state.get('currentUser.id')).toEqual('2345');
+        expect(app_state.get('referenced_speak_mode_user.id')).toEqual('2345');
+        expect(app_state.get('currentBoardState')).toEqual({key: 'trains'});
+        expect(app_state.get('speakModeUser.id')).toEqual('2345');
+        expect(app_state.get('modeling_for_user')).toEqual(false);
+        expect(!!app_state.get('manual_modeling')).toEqual(false);
+      });
+    });
+
+    it('should not mark as temporary home if jumping to the actual home', function() {
+      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      queryLog.defineFixture({
+        method: 'GET',
+        type: 'user',
+        response: Ember.RSVP.resolve({user: {
+          id: '2345',
+          user_name: 'modeling_user',
+          preferences: {
+            home_board: {id: '222', key: 'home/two'}
+          }
+        }}),
+        id: '2345'
+      });
+      stub(modal, 'open', function(type) {
+        if(type == 'premium-required') { return Ember.RSVP.resolve(); }
+        return Ember.RSVP.reject();
+      });
+      expect(app_state.get('speak_mode')).toEqual(false);
+      app_state.set('sessionUser', session_user);
+      app_state.set_speak_mode_user('2345', true, false);
+      waitsFor(function() { return app_state.get('speakModeUser'); });
+      runs(function() {
+        expect(stashes.get('root_board_state')).toEqual({id: '222', key: 'home/two'});
+        expect(stashes.get('temporary_root_board_state')).toEqual(null);
+        expect(app_state.get('referenced_speak_mode_user.id')).toEqual('2345');
+        expect(app_state.get('currentUser.id')).toEqual('2345');
+        expect(app_state.routed_to).toEqual(['board', 'home/two']);
+        expect(app_state.get('speakModeUser.id')).toEqual('2345');
+        expect(app_state.get('modeling_for_user')).toEqual(false);
+        expect(!!app_state.get('manual_modeling')).toEqual(false);
+      });
+    });
+
+    it('should jump to the session user home if not modeling and not entering as the user', function() {
+      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      expect(app_state.get('speak_mode')).toEqual(false);
+      app_state.set('sessionUser', session_user);
+      app_state.set_speak_mode_user('234', true, true);
+      waitsFor(function() { return stashes.get('root_board_state.id') == '111'; });
+      runs(function() {
+        expect(stashes.get('root_board_state')).toEqual({id: '111', key: 'home/one'});
+        expect(stashes.get('temporary_root_board_state')).toEqual(null);
+        expect(app_state.get('referenced_speak_mode_user.id')).toEqual(undefined);
+        expect(app_state.get('currentUser.id')).toEqual('234');
+        expect(app_state.routed_to).toEqual(['board', 'home/one']);
+        expect(app_state.get('speakModeUser.id')).toEqual(undefined);
+        expect(app_state.get('modeling_for_user')).toEqual(false);
+        expect(!!app_state.get('manual_modeling')).toEqual(false);
+      });
+    });
+
+    it('should jump to the modeled user home if modeling', function() {
+      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      queryLog.defineFixture({
+        method: 'GET',
+        type: 'user',
+        response: Ember.RSVP.resolve({user: {
+          id: '2345',
+          user_name: 'modeling_user',
+          preferences: {
+            home_board: {id: '222', key: 'home/two'}
+          }
+        }}),
+        id: '2345'
+      });
+      stub(modal, 'open', function(type) {
+        if(type == 'premium-required') { return Ember.RSVP.resolve(); }
+        return Ember.RSVP.reject();
+      });
+      expect(app_state.get('speak_mode')).toEqual(false);
+      app_state.set('sessionUser', session_user);
+      app_state.set_speak_mode_user('2345', true, true);
+      waitsFor(function() { return stashes.get('root_board_state.id') == '222'; });
+      runs(function() {
+        expect(stashes.get('root_board_state')).toEqual({id: '222', key: 'home/two'});
+        expect(stashes.get('temporary_root_board_state')).toEqual(null);
+        expect(app_state.get('referenced_speak_mode_user.id')).toEqual('2345');
+        expect(app_state.get('currentUser.id')).toEqual('234');
+        expect(app_state.routed_to).toEqual(['board', 'home/two']);
+        expect(app_state.get('speakModeUser.id')).toEqual(undefined);
+        expect(app_state.get('modeling_for_user')).toEqual(true);
+        expect(!!app_state.get('manual_modeling')).toEqual(false);
+      });
+    });
+
+    it('should jump to the modeling user home if entering as the user', function() {
+      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      queryLog.defineFixture({
+        method: 'GET',
+        type: 'user',
+        response: Ember.RSVP.resolve({user: {
+          id: '2345',
+          user_name: 'modeling_user',
+          preferences: {
+            home_board: {id: '222', key: 'home/two'}
+          }
+        }}),
+        id: '2345'
+      });
+      stub(modal, 'open', function(type) {
+        if(type == 'premium-required') { return Ember.RSVP.resolve(); }
+        return Ember.RSVP.reject();
+      });
+      expect(app_state.get('speak_mode')).toEqual(false);
+      app_state.set('sessionUser', session_user);
+      app_state.set_speak_mode_user('2345', true, false);
+      waitsFor(function() { return app_state.get('speakModeUser'); });
+      runs(function() {
+        expect(stashes.get('root_board_state')).toEqual({id: '222', key: 'home/two'});
+        expect(stashes.get('temporary_root_board_state')).toEqual(null);
+        expect(app_state.get('referenced_speak_mode_user.id')).toEqual('2345');
+        expect(app_state.get('currentUser.id')).toEqual('2345');
+        expect(app_state.routed_to).toEqual(['board', 'home/two']);
+        expect(app_state.get('speakModeUser.id')).toEqual('2345');
+        expect(app_state.get('modeling_for_user')).toEqual(false);
+        expect(!!app_state.get('manual_modeling')).toEqual(false);
+      });
+    });
+
+    it('should mark as modeling mode if keeping as self for different user', function() {
+      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      queryLog.defineFixture({
+        method: 'GET',
+        type: 'user',
+        response: Ember.RSVP.resolve({user: {
+          id: '2345',
+          user_name: 'modeling_user',
+          preferences: {
+            home_board: {id: '222', key: 'home/two'}
+          }
+        }}),
+        id: '2345'
+      });
+      expect(app_state.get('speak_mode')).toEqual(false);
+      app_state.set('sessionUser', session_user);
+      app_state.set_speak_mode_user('2345', false, true);
+      waitsFor(function() { return stashes.get('root_board_state'); });
+      runs(function() {
+        expect(stashes.get('root_board_state')).toEqual({id: '222', key: 'home/two'});
+        expect(stashes.get('temporary_root_board_state')).toEqual({key: 'trains'});
+        expect(app_state.get('referenced_speak_mode_user.id')).toEqual('2345');
+        expect(app_state.get('currentUser.id')).toEqual('234');
+        expect(app_state.get('currentBoardState')).toEqual({key: 'trains'});
+        expect(app_state.get('speakModeUser.id')).toEqual(undefined);
+        expect(app_state.get('modeling_for_user')).toEqual(true);
+        expect(!!app_state.get('manual_modeling')).toEqual(false);
+      });
+    });
+
+    it('should not mark as modeling mode if entering as self', function() {
+      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      queryLog.defineFixture({
+        method: 'GET',
+        type: 'user',
+        response: Ember.RSVP.resolve({user: {
+          id: '2345',
+          user_name: 'modeling_user',
+          preferences: {
+            home_board: {id: '222', key: 'home/two'}
+          }
+        }}),
+        id: '2345'
+      });
+      expect(app_state.get('speak_mode')).toEqual(false);
+      app_state.set('sessionUser', session_user);
+      app_state.set_speak_mode_user('self', true, true);
+      waitsFor(function() { return stashes.get('root_board_state'); });
+      runs(function() {
+        expect(stashes.get('root_board_state')).toEqual({id: '111', key: 'home/one'});
+        expect(stashes.get('temporary_root_board_state')).toEqual(null);
+        expect(app_state.get('referenced_speak_mode_user.id')).toEqual(undefined);
+        expect(app_state.get('currentUser.id')).toEqual('234');
+        expect(app_state.routed_to).toEqual(['board', 'home/one']);
+        expect(app_state.get('speakModeUser.id')).toEqual(undefined);
+        expect(app_state.get('modeling_for_user')).toEqual(false);
+        expect(!!app_state.get('manual_modeling')).toEqual(false);
+      });
+    });
+
+    it('should not mark as modeling mode if entering as another user', function() {
+      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      queryLog.defineFixture({
+        method: 'GET',
+        type: 'user',
+        response: Ember.RSVP.resolve({user: {
+          id: '2345',
+          user_name: 'modeling_user',
+          preferences: {
+            home_board: {id: '222', key: 'home/two'}
+          }
+        }}),
+        id: '2345'
+      });
+      stub(modal, 'open', function(type) {
+        if(type == 'premium-required') { return Ember.RSVP.resolve(); }
+        return Ember.RSVP.reject();
+      });
+      expect(app_state.get('speak_mode')).toEqual(false);
+      app_state.set('sessionUser', session_user);
+      app_state.set_speak_mode_user('2345', true, false);
+      waitsFor(function() { return app_state.routed_to && app_state.routed_to[1] == 'home/two'; });
+      runs(function() {
+        expect(stashes.get('root_board_state')).toEqual({id: '222', key: 'home/two'});
+        expect(stashes.get('temporary_root_board_state')).toEqual(null);
+        expect(app_state.get('referenced_speak_mode_user.id')).toEqual('2345');
+        expect(app_state.get('currentUser.id')).toEqual('2345');
+        expect(app_state.routed_to).toEqual(['board', 'home/two']);
+        expect(app_state.get('speakModeUser.id')).toEqual('2345');
+        expect(app_state.get('modeling_for_user')).toEqual(false);
+        expect(!!app_state.get('manual_modeling')).toEqual(false);
       });
     });
   });

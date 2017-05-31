@@ -35,6 +35,7 @@ describe("persistence-sync", function() {
     stashes.set('current_mode', 'default');
     app_state.set('currentBoardState', null);
     app_state.set('sessionUser', null);
+    persistence.set('sync_log', null);
     stub(speecher, 'load_beep', function() { return Ember.RSVP.resolve({}); });
     var pajax = persistence.ajax;
     stub(persistence, 'ajax', function(url, opts) {

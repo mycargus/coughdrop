@@ -280,6 +280,15 @@ header .btn {
       font-size: 20px;
     }
   }
+  .user_holder {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    margin: -12px 0 -10px -30px;
+  }
+  img.user {
+    width: 40px;
+  }
 }
 header.speaking #identity {
   width: auto;
@@ -290,10 +299,6 @@ header.speaking #identity {
   overflow: hidden;
   width: 58px;
   padding-left: 30px;
-  img {
-    height: 40px; 
-    margin: -12px 0 -10px -30px;
-  }
 }
 header.speaking #identity .btn {
   width: 58px;
