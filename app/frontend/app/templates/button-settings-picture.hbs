@@ -62,7 +62,13 @@
           {{pick-license license=image_preview.license}}
         </div>
         <div style="margin-top: 10px;">
-          <button type="button" class='btn btn-primary' {{action "select_image_preview"}}>{{t "Use This" key='use_this'}}</button>
+          <button type="button" class='btn btn-primary' {{action "select_image_preview"}}>
+            {{#if button.pending}}
+              {{t "Saving..." key='saving'}}
+            {{else}}
+              {{t "Use This" key='use_this'}}
+            {{/if}}
+          </button>
           {{#unless image_preview.editor}}
             <button type="button" class='btn btn-default' {{action "edit_image_preview"}}>{{t "Edit" key='edit'}}</button>
           {{/unless}}
