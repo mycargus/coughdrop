@@ -40,6 +40,17 @@ class WordData < ActiveRecord::Base
     true
   end
   
+# word types:
+#  'noun', 'plural noun', 'noun phrase',
+#  'verb', 'usu participle verb', 'transitive verb', 'intransitive verb',
+#  'adjective',
+#  'adverb',
+#  'conjunction',
+#  'preposition',
+#  'interjection',
+#  'pronoun',
+#  'article', 'definite article', 'indefinite article',
+#  'nominative'
   def self.update_word_type(text, locale, type)
     wd = find_word_record(text, locale)
     locales = []

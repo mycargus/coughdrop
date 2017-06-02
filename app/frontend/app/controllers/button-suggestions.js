@@ -30,6 +30,23 @@ export default modal.ModalController.extend({
   },
   set_list: function(val, type) {
     if(this.get('list_type') == type) {
+      if(val && val.items) {
+        Ember.set(val, 'total', val.items.length);
+        Ember.set(val, 'used', val.items.filter(function(i) { return i.used; }).length);
+      } else if(val && val.categories) {
+        var total = 0;
+        var used = 0;
+        val.categories.forEach(function(cat) {
+          if(cat.items) {
+            Ember.set(cat, 'total', cat.items.length);
+            Ember.set(cat, 'used', cat.items.filter(function(i) { return i.used; }).length);
+            total = total + cat.total;
+            used = used + cat.used;
+          }
+        });
+        Ember.set(val, 'total', total);
+        Ember.set(val, 'used', used);
+      }
       this.set('list', val);
       this.set('category', null);
     }
@@ -124,7 +141,7 @@ export default modal.ModalController.extend({
               else if(_this.on_board({label: str})) { item.used = true; }
               items.push(item);
             });
-            list.categories[idx].items = items;
+            list.categories[idx] = Ember.$.extend({}, list.categories[idx], {items: items});
           });
           _this.set_list(list, type);
         }

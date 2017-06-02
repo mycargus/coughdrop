@@ -87,6 +87,9 @@
         {{else if category.items.error}}
           <p>{{t "Error loading data" key='error_loading_data'}}</p>
         {{else}}
+          {{#if category.total}}
+            {{t "%{used} out of %{total} already used" key='n_out_of_m_already_used' used=category.used total=category.total}}
+          {{/if}}
           <div class='btn-group-vertical' style='width: 100%; cursor: default;'>
             {{#each category.items as |item|}}
               <span class='btn btn-default' style={{if item.image 'height: 100px; text-align: left;' 'height: 50px; text-align: left;'}}>
@@ -110,6 +113,9 @@
           </div>
         {{/if}}
       {{else if list.categories}}
+        {{#if list.total}}
+          {{t "%{used} out of %{total} already used" key='n_out_of_m_already_used' used=list.used total=list.total}}
+        {{/if}}
         <div class='btn-group-vertical' style='width: 100%;'>
           {{#each list.categories as |category|}}
             <button class='btn btn-default' style={{if category.image 'height: 100px; text-align: left;' 'height: 50px; text-align: left;'}} {{action 'select_category' category}}>
@@ -123,6 +129,11 @@
                 {{category.sub_name}}
               {{else}}
                 {{category.name}}
+              {{/if}}
+              {{#if category.total}}
+                {{t "(" key='open_paren'}}{{#if category.used}}{{category.used}}{{else}}{{t "0" key='zero'}}{{/if}}
+                {{t "/" key='out_of'}}
+                {{category.total}}{{t ")" key='close_paren'}}
               {{/if}}
               <span style='clear: left;'></span>
             </button>
