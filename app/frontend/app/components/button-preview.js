@@ -68,8 +68,7 @@ export default Ember.Component.extend({
         var img = new Image();
         img.src = button.image_url;
         img.onload = function() {
-          if(_this.get('button.image_url') == img.src) {
-            console.log("drawing image!");
+          if(_this.get('button.id') == button.id) {
             context.drawImage(img, 75, 125, 350, 350);
           }
         };
