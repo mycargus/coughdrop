@@ -132,8 +132,8 @@ var frame_listener = Ember.Object.extend({
     if(!data.target) {
       return data.respond({error: 'target attribute missing'});
     }
+//    this.clear_target({session_id: data.session_id, id: data.target.id});
     var targets = this.get('targets') || [];
-    this.clear_target({session_id: data.session_id, id: data.target.id});
     var dom_id = "target_" + data.session_id + "_" + data.target.id;
     var div = document.getElementById(dom_id);
     div = div || document.createElement('div');
@@ -148,8 +148,13 @@ var frame_listener = Ember.Object.extend({
       div.style.left = (data.target.left_percent * rect.width) + "px";
       div.style.top = (data.target.top_percent * rect.height) + "px";
       overlay.appendChild(div);
-      if(!targets.find(function(t) { return t.id == data.target.id; })) {
+      var found = targets.find(function(t) { return t.id == data.target.id; });
+      if(!found) {
         targets.push({id: data.target.id, session_id: data.session_id, target: data.target, dom: div, respond: data.respond});
+      } else {
+        found.target = data.target;
+        found.dom = div;
+        found.respond = data.respond;
       }
       this.set('targets', targets);
       data.respond({id: data.target.id});
