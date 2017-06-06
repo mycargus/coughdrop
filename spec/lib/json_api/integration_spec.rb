@@ -28,7 +28,7 @@ describe JsonApi::Integration do
       expect(d).to_not eq(nil)
       expect(d.user).to eq(u)
       i.settings['custom_integration'] = true
-      hash = JsonApi::Integration.build_json(i)
+      hash = JsonApi::Integration.build_json(i, permissions: u)
       expect(hash['access_token']).to_not eq(nil)
       expect(hash['access_token']).to eq(d.token)
       expect(hash['token']).to_not eq(nil)
@@ -40,13 +40,26 @@ describe JsonApi::Integration do
       i = UserIntegration.create(:user => u)
       i.created_at = 6.days.ago
       i.settings['custom_integration'] = true
-      hash = JsonApi::Integration.build_json(i)
+      hash = JsonApi::Integration.build_json(i, permissions: u)
       expect(hash['access_token']).to eq(nil)
       expect(hash['token']).to eq(nil)
       expect(hash['truncated_access_token']).to_not eq(nil)
       expect(hash['truncated_token']).to_not eq(nil)
     end
     
+    it "should not include keys without edit permissions" do
+      u = User.create
+      u2 = User.create
+      i = UserIntegration.create(:user => u2)
+      i.created_at = 6.days.ago
+      i.settings['custom_integration'] = true
+      hash = JsonApi::Integration.build_json(i, permissions: u)
+      expect(hash['access_token']).to eq(nil)
+      expect(hash['token']).to eq(nil)
+      expect(hash['truncated_access_token']).to eq(nil)
+      expect(hash['truncated_token']).to eq(nil)
+    end
+        
     it "should include user settings" do
       u = User.create
       ui = UserIntegration.create(user: u)
@@ -61,7 +74,7 @@ describe JsonApi::Integration do
           'type' => 'password'
         }
       }
-      hash = JsonApi::Integration.build_json(ui)
+      hash = JsonApi::Integration.build_json(ui, permissions: u)
       expect(hash['user_settings']).to_not eq(nil)
       expect(hash['user_settings'][0]['name']).to eq('a')
       expect(hash['user_settings'][0]['label']).to eq('A')
@@ -73,7 +86,8 @@ describe JsonApi::Integration do
     end
     
     it "should include user parameters for templates" do
-      ui = UserIntegration.create(template: true, integration_key: 'keyed')
+      u = User.create
+      ui = UserIntegration.create(user: u, template: true, integration_key: 'keyed')
       ui.settings['user_parameters'] = [
         {
           'name' => 'a',
@@ -88,7 +102,7 @@ describe JsonApi::Integration do
           'something' => 'nunya'
         }
       ]
-      hash = JsonApi::Integration.build_json(ui)
+      hash = JsonApi::Integration.build_json(ui, permissions: u)
       expect(hash['template']).to eq(true)
       expect(hash['user_parameters']).to eq([
         {

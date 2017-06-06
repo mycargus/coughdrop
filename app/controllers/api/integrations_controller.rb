@@ -19,7 +19,7 @@ class Api::IntegrationsController < ApplicationController
   def show
     integration = UserIntegration.find_by_path(params['id'])
     return unless exists?(integration, params['id'])
-    return unless allowed?(integration, 'edit')
+    return unless allowed?(integration, 'view')
     render json: JsonApi::Integration.as_json(integration, {wrapper: true, permissions: @api_user})
   end
   

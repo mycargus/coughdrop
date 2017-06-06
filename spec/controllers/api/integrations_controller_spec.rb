@@ -206,4 +206,75 @@ describe Api::IntegrationsController, :type => :controller do
       expect(json['integration']['id']).to eq(ui.global_id)
     end
   end
+  
+  describe "get 'show'" do
+    it 'should require an api token' do
+      get 'show', params: {'id' => 'asdf'}
+      assert_missing_token
+    end
+    
+    it "should error if record doesn't exist" do
+      token_user
+      get 'show', params: {'id' => 'asdf'}
+      assert_not_found('asdf')
+    end
+    
+    it "should require authorization" do
+      token_user
+      ui = UserIntegration.create
+      get 'show', params: {'id' => ui.global_id}
+      assert_unauthorized
+    end
+    
+    it "should return the record" do
+      token_user
+      ui = UserIntegration.create(:user => @user, :settings => {
+        'name' => 'good integration',
+        'button_webhook_url' => 'asdf',
+        'board_render_url' => 'qwer',
+        'template_key' => 'ahem',
+        'user_settings' => {
+          'a' => {'type' => 'text', 'value' => 'aaa'}
+        }
+      }, integration_key: 'asdf')
+      get 'show', params: {'id' => ui.global_id}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['integration']['id']).to eq(ui.global_id)
+      expect(json['integration']['name']).to eq('good integration')
+      expect(json['integration']['webhook']).to eq(true)
+      expect(json['integration']['render']).to eq(true)
+      expect(json['integration']['template_key']).to eq('ahem')
+      expect(json['integration']['integration_key']).to eq('asdf')
+      expect(json['integration']['user_settings']).to eq([
+        {'name' => 'a', 'label' => nil, 'value' => 'aaa'}
+      ])
+      expect(json['integration']['render_url']).to eq('qwer')
+    end
+    
+    it "should return limited information if not fully authorized" do
+      token_user
+      ui = UserIntegration.create(:user => nil, :settings => {
+        'global' => true,
+        'name' => 'good integration',
+        'button_webhook_url' => 'asdf',
+        'board_render_url' => 'qwer',
+        'template_key' => 'ahem',
+        'user_settings' => {
+          'a' => {'type' => 'text', 'value' => 'aaa'}
+        }
+      }, integration_key: 'asdf')
+      get 'show', params: {'id' => ui.global_id}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['integration']['id']).to eq(ui.global_id)
+      expect(json['integration']['name']).to eq('good integration')
+      expect(json['integration']['webhook']).to eq(true)
+      expect(json['integration']['render']).to eq(true)
+      expect(json['integration']['template_key']).to eq(nil)
+      expect(json['integration']['integration_key']).to eq('asdf')
+      expect(json['integration']['user_settings']).to eq(nil)
+      expect(json['integration']['render_url']).to eq('qwer')
+    end
+  end
 end

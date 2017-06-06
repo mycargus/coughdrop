@@ -3,6 +3,9 @@ import modal from '../utils/modal';
 import CoughDrop from '../app';
 
 export default modal.ModalController.extend({
+  opening: function() {
+    this.get('model.integration').reload();
+  },
   actions: {
     delete_integration: function() {
       var _this = this;
