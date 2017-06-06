@@ -817,8 +817,8 @@ var pictureGrabber = Ember.Object.extend({
         }
         if(mime && cse.src) {
           res.push({
-            image_url: "https://images.weserv.nl/?url=" + (cse.src || item.link),
-            thumbnail_url: "https://images.weserv.nl/?url=" + (cse.src || item.link),
+            image_url: "https://images.weserv.nl/?url=" + (cse.src || item.link).replace(/^https?:\/\//, ''),
+            thumbnail_url: "https://images.weserv.nl/?url=" + (cse.src || item.link).replace(/^https?:\/\//, ''),
             license: 'public domain',
             content_type: mime,
             width: img.width,
