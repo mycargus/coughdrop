@@ -47,6 +47,15 @@ header {
       height: 60px; 
       margin: 0px 10px 1px;
       padding-top: 3px;
+      .modeling {
+        position: absolute;
+        top: 10px;
+        left: 0;
+        background: #fff;
+        width: 20px;
+        height: 20px;
+        border-radius: 10px;
+      }
       img {
         height: 42px; 
         max-width: 60px;
@@ -102,6 +111,16 @@ header {
         background: #fff;
       }
     }
+    &.small {
+      #button_list {
+        .history_button {
+          .modeling {
+            top: 4px;
+            left: -3px;
+          }
+        }
+      }
+    }
     &.tiny {
       height: 50px;
       + #content {
@@ -127,6 +146,12 @@ header {
           img {
             height: 26px; 
             max-width: 30px;
+          }
+          .modeling {
+            top: 3px;
+            width: 13px;
+            height: 13px;
+            font-size: 10px;
           }
         }
         &.text_only .history_button img{

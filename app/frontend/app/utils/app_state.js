@@ -876,6 +876,7 @@ var app_state = Ember.Object.extend({
         stashes.persist('label_locale', null);
         app_state.set('vocalization_locale', null);
         stashes.persist('vocalization_locale', null);
+        app_state.set('manual_modeling', false);
         app_state.set('referenced_speak_mode_user', null);
         stashes.persist('referenced_speak_mode_user_id', null);
       }
