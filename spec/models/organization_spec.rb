@@ -621,6 +621,16 @@ describe Organization, :type => :model do
       expect(o.permissions_for(nil)).to eq({'user_id' => nil, 'view' => true})
     end
     
+    it "should allow supervisors to see the organization" do
+      o = Organization.create
+      s = User.create
+      expect(o.permissions_for(s)).to eq({'user_id' => s.global_id})
+      o.add_supervisor(s.user_name, false)
+      Worker.process_queues
+      expect(o.reload.supervisor?(s.reload)).to eq(true)
+      expect(o.permissions_for(s)).to eq({'user_id' => s.global_id, 'view' => true})
+    end
+    
   end
   
   describe "manager_for?" do

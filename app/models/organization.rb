@@ -14,6 +14,7 @@ class Organization < ActiveRecord::Base
   add_permissions('view', 'edit') {|user| self.assistant?(user) }
   add_permissions('view', 'edit', 'manage') {|user| self.manager?(user) }
   add_permissions('view', 'edit', 'manage', 'update_licenses', 'manage_subscription') {|user| Organization.admin && Organization.admin.manager?(user) }
+  add_permissions('view') {|user| self.supervisor?(user) }
   add_permissions('delete') {|user| Organization.admin && !self.admin && Organization.admin.manager?(user) }
   cache_permissions
 

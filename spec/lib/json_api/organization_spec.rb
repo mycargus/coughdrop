@@ -129,6 +129,19 @@ describe JsonApi::Organization do
       res = JsonApi::Organization.build_json(o.reload, :permissions => u.reload)
       expect(res['org_subscriptions']).to eq(nil)
     end
+
+    it "should not include detailed information if not allowed" do
+      u = User.create
+      o = Organization.create
+      o.add_supervisor(u.user_name, false)
+      Worker.process_queues
+      expect(o.supervisor?(u.reload)).to eq(true)
+      
+      res = JsonApi::Organization.build_json(o.reload, :permissions => u.reload)
+      expect(res['name']).to eq('Unnamed Organization')
+      expect(res['org_subscriptions']).to eq(nil)
+      expect(res['allotted_licenses']).to eq(nil)
+    end
     
   end
 end
