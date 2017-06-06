@@ -59,7 +59,7 @@ export default modal.ModalController.extend({
   actions: {
     intro: function() {
       if(window.ga) {
-        window.ga('send', 'event', 'Setup', 'start', 'Setup started');
+        window.ga('send', 'event', 'Setup', 'launch', 'Setup started');
       }
       this.transitionToRoute('setup');
       modal.close();
