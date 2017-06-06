@@ -539,29 +539,39 @@ footer .wide_links {
   cursor: pointer;
   left: -100px; 
   z-index: 3; 
-  width: 120px; 
-  height: 45px;
-  font-size: 12px;
-  padding: 5px;
-  margin-top: -47px;
-  margin-left: 10px;
+  width: 162px; 
+  height: 41px;
+  font-size: 11px;
+  padding: 0px;
+  margin-top: -41px;
+  margin-left: 0px;
   background: #fff;
   visibility: hidden;
   border: 1px solid #ccc;
   border-radius: 3px;
-  opacity: 0.0;
+  opacity: 0.0; 
+  overflow: hidden;
   transition: visibility 0s 0.9s linear, opacity 0.15s ease-in 0.9s;
   -webkit-transition: visibility 0s 0.9s linear, opacity 0.15s ease-in 0.9s;
-  &:hover {
-    background: #fafafa;
-  }
   &.on_button {
     visibility: visible;
     opacity: 1.0;
   }
+  .option {
+    float: left;
+    width: 80px;
+    padding: 5px;
+    &:hover {
+      background: #eee;
+    }
+    &:last-child {
+      border-left: 1px solid #ccc;
+      padding-left: 10px;
+    }
+  }
   .glyphicon {
     float: left;
-    font-size: 30px;
+    font-size: 27px;
     margin-right: 5px;
   }
 }

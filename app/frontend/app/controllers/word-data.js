@@ -10,9 +10,9 @@ export default modal.ModalController.extend({
     var _this = this;
     _this.set('sentence_state', {});
     _this.load_part_of_speech();
-    if(!this.get('model.core_lists') && this.get('model.user.id')) {
+    if(!this.get('model.user.core_lists') && this.get('model.user.id')) {
       persistence.ajax('/api/v1/users/' + this.get('model.user.id') + '/core_lists', {type: 'GET'}).then(function(res) {
-        _this.set('model.core_lists', res);
+        _this.set('model.user.core_lists', res);
       }, function(err) { });
     }
   },
@@ -25,7 +25,11 @@ export default modal.ModalController.extend({
       _this.set('parts_of_speech', res);
       _this.set('suggestions', res.sentences);
     }, function(err) {
-      _this.set('parts_of_speech', {error: true});
+      if(err.error == 'word not found') {
+        _this.set('parts_of_speech', null);
+      } else {
+        _this.set('parts_of_speech', {error: true});
+      }
     });
   },
   reachability: function() {
@@ -49,11 +53,13 @@ export default modal.ModalController.extend({
     return res;
   }.property('model.word', 'model.user.core_lists'),
   part_of_speech: function() {
-    if(this.get('parts_of_speech.types')) {
+    if(this.get('model.button.part_of_speech')) {
+      return this.get('model.button.part_of_speech');
+    } else if(this.get('parts_of_speech.types')) {
       return this.get('parts_of_speech.types')[0];
     }
     return null;
-  }.property('parts_of_speech'),
+  }.property('model.button.part_of_speech', 'parts_of_speech'),
   part_of_speech_class: function() {
     var pos = this.get('part_of_speech');
     if(pos) {

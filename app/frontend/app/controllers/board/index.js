@@ -766,6 +766,14 @@ export default Ember.Controller.extend({
       var $stash_hover = Ember.$("#stash_hover");
       $stash_hover.removeClass('on_button').data('button_id', null);
     },
+    word_data: function(id) {
+      var button = editManager.find_button(id || editManager.stashed_button_id);
+      if(button && (button.label || button.vocalization)) {
+        modal.open('word-data', {word: (button.label || button.vocalization), button: button, usage_stats: null, user: app_state.get('currentUser')});
+      }
+      var $stash_hover = Ember.$("#stash_hover");
+      $stash_hover.removeClass('on_button').data('button_id', null);
+    },
     toggleEditMode: function() {
       app_state.toggle_edit_mode();
     },

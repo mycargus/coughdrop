@@ -19,15 +19,21 @@
     -->
 
     <dl class="dl-horizontal">
+      {{#if model.button}}
+        <dt>{{t "Button" key='button'}}</dt>
+        <dd>
+          {{button-preview button=model.button}}
+        </dd>
+      {{/if}}
       <dt>{{t "Part of speech:" key='common_part_of_speech'}}</dt>
       <dd>
-        {{#if parts_of_speech.loading}}
+        {{#if part_of_speech}}
+          <span class={{part_of_speech_class}}></span>
+          {{part_of_speech}}
+        {{else if parts_of_speech.loading}}
           {{t "Loading..." key='loading'}}
         {{else if parts_of_speech.error}}
           {{t "Error loading word data" key='error_loading_word_data'}}
-        {{else if part_of_speech}}
-          <span class={{part_of_speech_class}}></span>
-          {{part_of_speech}}
         {{else}}
           {{t "Data not available" key='no_data_available'}}
         {{/if}}
@@ -47,12 +53,12 @@
         <dd>
           {{#if reachability.core}}
             {{#if reachability.reachable}}
-              {{t "This word is in the board set for %{user_name}" user_name=model.user.user_name key='in_user_board_set'}}
+              {{t "This word is in the board set for <em>%{user_name}</em>" user_name=model.user.user_name key='in_user_board_set'}}
             {{else if reachability.unreachable}}
-              <span class='text-danger'>{{t "This word is NOT in the board set for %{user_name}" user_name=model.user.user_name key='not_in_user_board_set'}}</span>
+              <span class='text-danger'>{{t "This word is NOT in the board set for <em>%{user_name}</em>" user_name=model.user.user_name key='not_in_user_board_set'}}</span>
             {{/if}}
           {{else if reachability.not_core}}
-            {{t "This word is not a core word for %{user_name}" user_name=model.user.user_name key='not_in_core'}}
+            {{t "This word is not a core word for <em>%{user_name}</e>" user_name=model.user.user_name key='not_in_core'}}
           {{else}}
             <span class='text-muted'>{{t "Information not currently available" key='information_not_currently_available'}}</span>
           {{/if}}
@@ -63,8 +69,8 @@
         <dd>
           {{#if suggestions}}
             <br/>
-            <div style="margin: 50px 50px 0 -50px;">
-              <p>{{t "Language learning works better when you can find multiple ways to use the same word. Here are some examples using \"%{word}\" that might be helpful." word=model.work_key key='word_usage_examples'}}</p>
+            <div style="margin: 20px 50px 0 -50px;">
+              <p>{{t "Language learning works better when you can find multiple ways to use the same word. Here are some examples using \"%{word}\" that might be helpful." word=model.word key='word_usage_examples'}}</p>
               <div class='list-group'>
                 {{#each suggestions as |suggestion|}}
                   <span class='list-group-item'>"{{suggestion.sentence}}"</span>

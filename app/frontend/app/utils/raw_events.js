@@ -232,13 +232,22 @@ var buttonTracker = Ember.Object.extend({
           var $stash_hover = Ember.$("#stash_hover");
           if($stash_hover.data('button_id') != button_wrap.id) {
             var offset = Ember.$(button_wrap.dom).offset();
+            var window_width = Ember.$(window).width();
             if(offset && offset.left) {
               $stash_hover.removeClass('on_button');
+              $stash_hover.removeClass('right_side');
               $stash_hover.detach();
-              $stash_hover.css({
-                top: offset.top,
-                left: offset.left
-              });
+              if(offset.left > window_width - 165) {
+                $stash_hover.css({
+                  top: offset.top,
+                  left: window_width - 165
+                });
+              } else {
+                $stash_hover.css({
+                  top: offset.top,
+                  left: offset.left
+                });
+              }
               Ember.$(".board").before($stash_hover);
               Ember.run.later(function() {
                 $stash_hover.addClass('on_button');

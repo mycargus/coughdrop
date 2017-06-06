@@ -30,10 +30,17 @@
       </span>
     </div>
   {{/if}}
-  <div id="stash_hover" style="position: absolute;" {{action 'stash_button'}}>
-    <span class="glyphicon glyphicon-copy"></span>
-    {{t "Copy to Button Stash" key='copy_to_button_stash'}}
-    <span style="clear: left;"></span>
+  <div id="stash_hover" style="position: absolute;">
+    <div {{action 'stash_button'}} class='option'>
+      <span class="glyphicon glyphicon-copy"></span>
+      {{t "Button<br/>Stash" key='copy_to_button_stash'}}
+      <span style="clear: left;"></span>
+    </div>
+    <div {{action 'word_data'}} class='option'>
+      <span class="glyphicon glyphicon-book"></span>
+      {{t "Word<br/>Data" key='view_word_data'}}
+      <span style="clear: left;"></span>
+    </div>
   </div>
   {{#if show_word_suggestions}}
     <div id="word_suggestions" class={{suggestion_class}}>
