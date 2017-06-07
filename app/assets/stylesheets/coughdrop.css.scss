@@ -679,9 +679,13 @@ footer .wide_links {
     position: absolute;
     top: 0;
     overflow: hidden;
+    .status {
+      visibility: hidden;
+    }
     &.pending {
       background: #fff;
       .status {
+        visibility: visible;
         font-size: 20px;
         text-align: center;
         margin-top: 20px;

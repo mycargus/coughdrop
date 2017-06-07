@@ -2,6 +2,7 @@ import Ember from 'ember';
 import app_state from './app_state';
 import scanner from './scanner';
 import speecher from './speecher';
+import utterance from './utterance';
 
 var raw_listeners = {};
 var frame_listener = Ember.Object.extend({
@@ -108,8 +109,17 @@ var frame_listener = Ember.Object.extend({
     data.respond({added: true});
   },
   speak_text: function(data) {
-    speecher.speak_text((data.text || ""), false, {alternate_voice: data.voice == 'secondary', interrupt: true});
-    data.respond({spoken: true});
+    var vocalized = false;
+    if(app_state.get('speak_mode')) {
+      vocalized = true;
+      speecher.speak_text((data.text || ""), false, {alternate_voice: data.voice == 'secondary', interrupt: true});
+    } else {
+      utterance.silent_speak_button({
+        label: (data.text || '')
+      });
+    }
+
+    data.respond({spoken: true, vocalized: vocalized});
   },
   update_manifest: function(data) {
     // { html_url: '', script_url: '', state: {key: 'values', only: 'folks'}, objects: [{url: '', type: 'image'}] }

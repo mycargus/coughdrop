@@ -132,7 +132,8 @@ var Button = Ember.Object.extend({
             type: 'tarheel',
             id: tarheel_id,
             popup: true,
-            speech: true,
+            speech: false,
+            utterance: false,
             background: 'white',
             base_url: url,
             links: 'large'
