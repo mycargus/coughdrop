@@ -532,6 +532,8 @@ var app_state = Ember.Object.extend({
     }
     stashes.persist('temporary_root_board_state', temporary_root_state);
     stashes.persist('sticky_board', false);
+    var $stash_hover = Ember.$("#stash_hover");
+    $stash_hover.removeClass('on_button').data('button_id', null);
     editManager.clear_paint_mode();
   },
   home_in_speak_mode: function(opts) {
