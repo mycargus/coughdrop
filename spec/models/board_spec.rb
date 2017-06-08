@@ -2132,6 +2132,24 @@ describe Board, :type => :model do
       ])
       expect(Worker.scheduled?(Board, :perform_action, {:id => b.id, :method => 'update_button_sets', :arguments => []})).to eq(true)
     end
+    
+    it "should align the button to the sound record" do
+      u = User.create
+      s = ButtonSound.create(:user => u)
+      b = Board.create(:user => u, :settings => {
+        'buttons' => [
+          {'id' => '123'}, {'id' => '234'}
+        ]
+      })
+      b.process_button({
+        'id' => '234',
+        'sound_id' => s.global_id
+      })
+      expect(b.reload.settings['buttons']).to eq([
+        {'id' => '123'}, {'id' => '234', 'sound_id' => s.global_id}
+      ])
+      expect(b.button_sounds).to eq([s])
+    end
   end
   
   describe "update_button_sets" do

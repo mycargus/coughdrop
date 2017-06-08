@@ -591,6 +591,7 @@ class Board < ActiveRecord::Base
     found_button = (self.settings['buttons'] || []).detect{|b| b['id'].to_s == button['id'].to_s }
     if button['sound_id']
       found_button['sound_id'] = button['sound_id']
+      @buttons_changed = 'button updated in-place'
     end
     self.schedule_once(:update_button_sets)
     self.save!
