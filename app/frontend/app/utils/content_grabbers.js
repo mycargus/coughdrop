@@ -417,6 +417,7 @@ var pictureGrabber = Ember.Object.extend({
     var _this = this;
     return new Ember.RSVP.Promise(function(resolve, reject) {
       if(data_url.match(/^http/)) { return resolve({url: data_url}); }
+      else if(data_url.match(/image\/gif/)) { return resolve({url: data_url}); }
       if(!window.scratch_canvas) {
         window.scratch_canvas = document.createElement('canvas');
       }
