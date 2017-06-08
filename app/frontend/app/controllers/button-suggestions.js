@@ -180,7 +180,7 @@ export default modal.ModalController.extend({
                 var tag = list.id + ":" + category.id + ":" + phrase.id;
                 if(sounds_hash[tag]) {
                   used_sounds[sounds_hash[tag].get('id')] = true;
-                  var item = {text: phrase.text};
+                  var item = {text: phrase.text, sound: sounds_hash[tag]};
                   if(sound_ids[sounds_hash[tag].get('id')]) { item.used = true; }
                   else if(_this.on_board({sound_id: sounds_hash[tag].get('id')})) { item.used = true; }
                   items.push(item);
