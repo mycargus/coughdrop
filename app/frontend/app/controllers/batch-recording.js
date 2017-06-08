@@ -197,6 +197,27 @@ export default modal.ModalController.extend({
       this.load_recordings(true);
     }
   }.observes('for_user_id'),
+  save_to_button: function(sound) {
+    var _this = this;
+    if(sound.get('id') && _this.get('phrase.saved_sound_id') == sound.get('id')) { return; }
+    if(_this.get('phrase.button_id') && _this.get('phrase.board_id')) {
+      persistence.ajax('/api/v1/boards/' + _this.get('phrase.board_id'), {
+        type: 'POST',
+        data: {
+          '_method': 'PUT',
+          'button': {
+            id: _this.get('phrase.button_id'),
+            sound_id: sound.get('id')
+          }
+        }
+      }).then(function(data) {
+        _this.set('phrase.saved_sound_id', sound.get('id'));
+        CoughDrop.store.findRecord('board', data.board.id).then(function(b) { b.reload(); }, function() { });
+      }, function() {
+        modal.error(i18n.t('error_updating_button', "There was an unexpected error adding the sound to the button"));
+      });
+    }
+  },
   actions: {
     decide_on_recording: function(decision) {
       var sound = this.get('phrase.sound');
@@ -214,6 +235,8 @@ export default modal.ModalController.extend({
           _this.set('phrase.pending_sound', false);
           if(decision == 'reject') {
             _this.set('phrase.sound', null);
+          } else {
+            _this.save_to_button(sound);
           }
           _this.count_totals();
         }, function(err) {
@@ -274,22 +297,7 @@ export default modal.ModalController.extend({
         modal.close('batch-recording');
       } else if(this.get('phrase')) {
         this.set('phrase.sound', sound);
-        if(this.get('phrase.button_id') && this.get('phrase.board_id')) {
-          persistence.ajax('/api/v1/boards/' + this.get('phrase.board_id'), {
-            type: 'POST',
-            data: {
-              '_method': 'PUT',
-              'button': {
-                id: this.get('phrase.button_id'),
-                sound_id: sound.get('id')
-              }
-            }
-          }).then(function(data) {
-            CoughDrop.store.findRecord('board', data.board.id).then(function(b) { b.reload(); }, function() { });
-          }, function() {
-            modal.error(i18n.t('error_updating_button', "There was an unexpected error adding the sound to the button"));
-          });
-        }
+        this.save_to_button(sound);
         this.set('phrase.sound_unloaded', false);
         this.send('decide_on_recording', 'accept');
       }

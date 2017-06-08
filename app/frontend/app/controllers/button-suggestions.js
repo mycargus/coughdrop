@@ -258,6 +258,7 @@ export default modal.ModalController.extend({
           sound_id: (item.sound && item.sound.get('id')),
           external_id: item.external_id
         });
+        this.update_list();
         if(item.image) {
           var proxy = persistence.ajax('/api/v1/search/proxy?url=' + encodeURIComponent(item.image), { type: 'GET'
           }).then(function(data) {
