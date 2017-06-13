@@ -42,6 +42,16 @@ CoughDrop.Sound = DS.Model.extend({
         var _this = this;
         this.set('transcription_pending', true);
 
+        var timeout = 5 * 1000;
+        var attempts = (this.get('transcription_checks') || 0);
+        if(attempts == 1) {
+          timeout = 10 * 1000;
+        } else if(attempts < 4) {
+          timeout = 15 * 1000;
+        } else {
+          timeout = 60 * 1000;
+        }
+        this.set('transcription_checks', attempts + 1);
         Ember.run.later(function() {
           if(persistence.get('online')) {
             _this.reload().then(function(res) {
@@ -56,7 +66,7 @@ CoughDrop.Sound = DS.Model.extend({
               _this.check_transcription();
             }, 2 * 60 * 1000);
           }
-        }, 60 * 1000);
+        }, timeout);
       } else {
         this.set('transcription_pending', false);
       }
