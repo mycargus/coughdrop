@@ -109,12 +109,15 @@ var Button = Ember.Object.extend({
   }.property('buttonAction', 'video.popup'),
   youtube_regex: (/(?:https?:\/\/)?(?:www\.)?youtu(?:be\.com\/watch\?(?:.*?&(?:amp;)?)?v=|\.be\/)([\w \-]+)(?:&(?:amp;)?[\w\?=]*)?/),
   tarheel_reader_regex: (/(?:https?:\/\/)?(?:www\.)?tarheelreader\.org\/\d+\/\d+\/\d+\/([\w-]+)\/?/),
+  book_regex: (/^book:(https?:\/\/.+)$/),
   resource_from_url: function() {
     var url = this.get('url');
     var youtube_match = url && url.match(this.youtube_regex);
     var tarheel_match = url && url.match(this.tarheel_reader_regex);
+    var book_match = url && url.match(this.book_regex);
     var youtube_id = youtube_match && youtube_match[1];
     var tarheel_id = tarheel_match && tarheel_match[1];
+    var book_id = book_match && book_match[1];
     if(youtube_id) {
       if(this.get('video.id') != youtube_id) {
         this.set('video', {
@@ -126,14 +129,15 @@ var Button = Ember.Object.extend({
         });
       }
     } else {
-      if(tarheel_id) {
-        if(this.get('book.id') != tarheel_id) {
+      var book_or_tarheel_id = tarheel_id || book_id;
+      if(book_or_tarheel_id) {
+        if(this.get('book.id') != book_or_tarheel_id) {
           this.set('book', {
             type: 'tarheel',
-            id: tarheel_id,
+            id: book_or_tarheel_id,
             popup: true,
             speech: false,
-            utterance: false,
+            utterance: true,
             background: 'white',
             base_url: url,
             links: 'large'

@@ -106,7 +106,7 @@ export default modal.ModalController.extend({
         if(_this.get('model.book.id') == id) {
           _this.set('book_status', {
             image: list[1].image,
-            content_type: 'image/jpeg',
+            content_type: list[1].image_content_type || 'image/jpeg',
             title: list[0].title
           });
         }

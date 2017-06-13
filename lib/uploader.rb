@@ -372,17 +372,21 @@ module Uploader
       return list
     elsif source == 'tarheel_book'
       url = "http://tarheelreader.org/book-as-json/?slug=#{CGI.escape(query)}"
+      if query.match(/^http/)
+        url = query
+      end
       res = Typhoeus.get(url)
       results = JSON.parse(res.body)
       list = []
       results['pages'].each_with_index do |page, idx|
         list << {
-          'id' => "#{results['slug']}-#{idx}",
+          'id' => page['id'] || "#{results['slug']}-#{idx}",
           'title' => page['text'],
-          'image' => tarheel_prefix + page['url'],
-          'url' => "http://tarheelreader.org#{results['link']}",
-          'image_attribution' => "http://tarheelreader.org/photo-credits/?id=#{results['ID']}",
-          'image_author' => 'Flickr User'
+          'image' => page['image_url'] || (tarheel_prefix + page['url']),
+          'image_content_type' => page['image_content_type'],
+          'url' => results['book_url'] || "http://tarheelreader.org#{results['link']}",
+          'image_attribution' => page['image_attribution_url'] || "http://tarheelreader.org/photo-credits/?id=#{results['ID']}",
+          'image_author' => page['image_attribution_author'] || 'Flickr User'
         }
       end
       return list

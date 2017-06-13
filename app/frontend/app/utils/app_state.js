@@ -820,7 +820,7 @@ var app_state = Ember.Object.extend({
           }, 200);
         }
         if(this.get('currentUser.preferences.device.wakelock') !== false) {
-          capabilities.wakelock('speak', true);
+          capabilities.wakelock('speak!', true);
         }
         this.set_history([]);
         var noticed = false;
@@ -867,7 +867,7 @@ var app_state = Ember.Object.extend({
       this.set('embedded', !!(CoughDrop.embedded));
       this.set('full_screen_capable', capabilities.fullscreen_capable());
     } else if(!this.get('speak_mode') && this.get('last_speak_mode') !== undefined) {
-      capabilities.wakelock('speak', false);
+      capabilities.wakelock('speak!', false);
       capabilities.fullscreen(false);
       if(this.get('last_speak_mode') !== false) {
         stashes.persist('temporary_root_board_state', null);
