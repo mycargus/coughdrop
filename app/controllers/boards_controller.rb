@@ -69,6 +69,7 @@ class BoardsController < ApplicationController
   end
   
   def cache
+    response.headers.except! 'X-Frame-Options'
     render :layout => false
   end
   
