@@ -681,23 +681,22 @@ var persistence = Ember.Object.extend({
     return new Ember.RSVP.Promise(function(resolve, reject) {
       var lookup = Ember.RSVP.reject();
 
-      var match = url.match(/opensymbols\.s3\.amazonaws\.com/) || url.match(/s3\.amazonaws\.com\/opensymbols/) ||
+      var trusted_not_to_change = url.match(/opensymbols\.s3\.amazonaws\.com/) || url.match(/s3\.amazonaws\.com\/opensymbols/) ||
                   url.match(/coughdrop-usercontent\.s3\.amazonaws\.com/) || url.match(/s3\.amazonaws\.com\/coughdrop-usercontent/);
-      var cors_match = match || url.match(/api\/v\d+\/users\/.+\/protected_image/);
+      var cors_match = trusted_not_to_change || url.match(/api\/v\d+\/users\/.+\/protected_image/);
+      var check_for_local = !!trusted_not_to_change;
 
-      if(capabilities.installed_app) { match = true; }
-      // TODO: need a clean way to not be quite so eager about downloading
-      // images that we're pretty sure haven't changed, even when force=true.
-      // Really this was just added in case of corruption issues, or in
-      // case images/sounds get saved with bad filenames and need to
-      // be repaired.
-      if(match && !force_reload) {
+      if(capabilities.installed_app) { check_for_local = true; }
+      if(check_for_local) {
         // skip the remote request if it's stored locally from a location we
         // know won't ever modify static assets
         lookup = lookup.then(null, function() {
           return persistence.find('dataCache', url_id).then(function(data) {
-            // if we think it's stored locally but not in the cache, don't trust it
-            if(!_this.url_uncache || !_this.url_unache[url]) {
+            // if it's a manual sync, always re-download untrusted resources
+            if(force_reload && !trusted_not_to_change) {
+              return Ember.RSVP.reject();
+            // if we think it's stored locally but it's not in the cache, it needs to be repaired
+            } else if(!_this.url_uncache || !_this.url_uncache[url]) {
               return Ember.RSVP.resolve(data);
             } else {
               return Ember.RSVP.reject();
@@ -776,7 +775,8 @@ var persistence = Ember.Object.extend({
       });
 
       var size_image = fallback.then(function(object) {
-        if(type != 'image' || capabilities.system != "Android" || keep_big) {
+        // don't resize already-saved images, non-images, or required-to-be-big images
+        if(object.persisted || type != 'image' || capabilities.system != "Android" || keep_big) {
           return object;
         } else {
           return contentGrabbers.pictureGrabber.size_image(object.url, 50).then(function(res) {
@@ -792,6 +792,7 @@ var persistence = Ember.Object.extend({
       });
 
       size_image.then(function(object) {
+        // remember: persisted objects will not have a data_uri attribute, so this will be skipped for them
         if(persistence.get('local_system.available') && persistence.get('local_system.allowed') && stashes.get('auth_settings')) {
           if(object.data_uri) {
             var local_system_filename = object.local_filename;
@@ -1485,8 +1486,6 @@ var persistence = Ember.Object.extend({
               synced_boards.push(board);
               visited_boards.push(id);
 
-              // TODO: if not set to force=true, don't re-download already-stored icons from
-              // possibly-changing URLs
               if(board.get('icon_url_with_fallback').match(/^http/)) {
                   // store_url already has a queue, we don't need to fill the sync queue with these
                 visited_board_promises.push(//persistence.queue_sync_action('store_icon', function() {
@@ -1507,6 +1506,10 @@ var persistence = Ember.Object.extend({
                 importantIds.push("dataCache_" + next.image);
               }
 
+              // This will only return images that have been added to the in-memory datastore and can
+              // be "peeked", which is fine since then only time they wouldn't be "peekable" is if
+              // the board was loaded from the local storage without being reloaded, i.e. it's
+              // safely cached.
               board.get('local_images_with_license').forEach(function(image) {
                 importantIds.push("image_" + image.get('id'));
                 var keep_big = !!(board.get('grid.rows') < 3 || board.get('grid.columns') < 6);
@@ -1575,7 +1578,7 @@ var persistence = Ember.Object.extend({
                         if(button.sound_id) {
                           var valid = false;
                           if(all_sound_urls[button.sound_id]) {
-                            if((persistence.url_cache && persistence.url_cache[all_sound_urls[button.image_id]]) && (!persistence.url_uncache || !persistence.url_uncache[all_sound_urls[button.sound_id]])) {
+                            if((persistence.url_cache && persistence.url_cache[all_sound_urls[button.sound_id]]) && (!persistence.url_uncache || !persistence.url_uncache[all_sound_urls[button.sound_id]])) {
                               valid = true;
                             }
                           }

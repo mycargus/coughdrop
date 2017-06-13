@@ -567,22 +567,23 @@ var capabilities;
           var promise = capabilities.mini_promise();
           capabilities.storage.assert_directory(dirname, filename).then(function(dir) {
             dir.getFile(filename, {create: true}, function(file) {
+              var url = file.toURL();
               file.createWriter(function(writer) {
                 writer.onwriteend = function() {
-                  if(filename.match(/svg/)) {
-                    file.getMetadata(function(metadata) {
-                      if(file.size > blob.size) {
-                        console.error('file writing resulted in double-content');
-                      }
-                    }, function() { });
-
-                  }
-                  promise.resolve(file.toURL());
+                  promise.resolve(url);
                 };
                 writer.onerror = function(err) {
                   promise.reject(err);
                 };
-                writer.write(blob);
+                if(capabilities.system == 'Android') {
+                  var reader = new FileReader();
+                  reader.onload = function() {
+                    writer.write(this.result);
+                  };
+                  reader.readAsArrayBuffer(blob);
+                } else {
+                  writer.write(blob);
+                }
               }, function(err) {
                 promise.reject(err);
               });
@@ -771,24 +772,41 @@ var capabilities;
         }
       },
       wakelock_capable: function() {
-        return !!(window.chrome && window.chrome.power && window.chrome.power.requestKeepAwake);
+        return !!((window.chrome && window.chrome.power && window.chrome.power.requestKeepAwake) || (window.powerManagement && window.powerManagement.acquire));
       },
       wakelock: function(type, enable) {
         capabilities.wakelocks = capabilities.wakelocks || {};
         capabilities.wakelocks[type] = !!enable;
         var any_wakes = false;
+        var display_wakes = false;
         for(var idx in capabilities.wakelocks) {
           if(capabilities.wakelocks[idx]) {
             any_wakes = true;
+            if(idx.toString().match(/!/)) {
+              display_wakes = true;
+            }
           }
         }
         if(window.chrome && window.chrome.power && window.chrome.power.requestKeepAwake) {
           if(any_wakes) {
-            window.chrome.power.requestKeepAwake('display');
+            window.chrome.power.requestKeepAwake(display_wakes ? 'display' : 'system');
           } else {
             window.chrome.power.releaseKeepAwake();
           }
           return true;
+        } else if(window.powerManagement && window.powerManagement.acquire) {
+          if(capabilities.wakelock.pm_held) {
+            window.powerManagement.release(function() { capabilities.wakelock.pm_held = false; }, function() { });
+          }
+          if(any_wakes) {
+            if(display_wakes) {
+              window.powerManagement.acquire(function() { capabilities.wakelock.pm_held = true; }, function() { });
+            } else {
+              window.powerManagement.dim(function() { capabilities.wakelock.pm_held = true; }, function() { });
+            }
+          } else {
+            window.powerManagement.release(function() { }, function() { });
+          }
         } else {
           return false;
         }
