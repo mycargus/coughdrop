@@ -29,7 +29,7 @@ export default modal.ModalController.extend({
     translate: function() {
       var _this = this;
       var board_ids_to_include = null;
-      if(this.get('hierarchy')) {
+      if(this.get('hierarchy') && this.get('hierarchy').selected_board_ids) {
         board_ids_to_include = this.get('hierarchy').selected_board_ids();
       }
 
