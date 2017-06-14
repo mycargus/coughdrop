@@ -197,6 +197,7 @@ describe ButtonSound, :type => :model do
         params = Uploader.remote_upload_params('something.mp3', 'audio/mp3')
         expect(filename).to eq("sounds-#{u.user_name}.zip")
         expect(opts.length).to eq(5)
+        opts = opts.sort_by{|o| o['url'] || 'zzzz' }
         expect(opts[0]['url']).to eq('http://www.example.com/sound1.mp3')
         n1 = opts[0]['name']
         expect(opts[1]['url']).to eq('http://www.example.com/sound2.mp3')
@@ -208,6 +209,7 @@ describe ButtonSound, :type => :model do
         expect(opts[4]['name']).to eq("MessageBank.json")
         json = JSON.parse(opts[4]['data'])
         expect(json['RecordedMessages'].length).to eq(4)
+        json['RecordedMessages'] = json['RecordedMessages'].sort_by{|m| m['Id'] }
         expect(json['RecordedMessages'][0]).to eq({
           'Id' => bs1.global_id,
           'FileName' => n1,
