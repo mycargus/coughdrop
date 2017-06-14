@@ -13,6 +13,7 @@ import session from './session';
 import speecher from './speecher';
 import geolocation from './geo';
 import i18n from './i18n';
+import frame_listener from './frame_listener';
 import Button from './button';
 
 // tracks:
@@ -1330,6 +1331,7 @@ var app_state = Ember.Object.extend({
         app_state.jump_to_root_board({auto_home: true});
       }
     }
+    frame_listener.notify_of_button(button, obj);
     return true;
   },
   remember_global_integrations: function() {

@@ -248,6 +248,10 @@ var frame_listener = Ember.Object.extend({
     var session_id = document.getElementById('integration_frame').getAttribute('data-session_id');
     return (this.get('targets') || []).filter(function(t) { return t.session_id == session_id; });
   },
+  notify_of_button(button, obj) {
+    // TODO: check for a parent window, embed mode, and notification authorization,
+    // and postMessage if it's allowed
+  },
   respond: function(source, message) {
     if(source && message) {
       source.postMessage(message, '*');
