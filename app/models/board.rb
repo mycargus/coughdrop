@@ -256,8 +256,12 @@ class Board < ActiveRecord::Base
           
     # TODO: encrypted search, lol
     self.settings['search_string'] = "#{self.settings['name']} #{self.settings['description'] || ""} #{self.key} #{self.labels} locale:#{self.settings['locale'] || ''}".downcase
-    self.search_string = self.public ? self.settings['search_string'] : nil
+    self.search_string = self.fully_listed? ? self.settings['search_string'] : nil
     true
+  end
+  
+  def fully_listed?
+    self.public && (!self.settings || !self.settings['unlisted'])
   end
   
   def protected_material?
