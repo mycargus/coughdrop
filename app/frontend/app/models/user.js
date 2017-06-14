@@ -392,14 +392,18 @@ CoughDrop.User = DS.Model.extend({
       list.forEach(function(bs, idx) {
         promises.push(bs.find_buttons(label).then(function(res) {
           res.forEach(function(btn) {
-            if(btn.label == label && idx < closest) {
+            if(btn.label && label && btn.label.toLowerCase() == label.toLowerCase() && idx < closest) {
               best = btn;
             }
           });
         }));
       });
       return Ember.RSVP.all_wait(promises).then(function() {
-        return best;
+        if(best) {
+          return best;
+        } else {
+          return Ember.RSVP.reject({error: 'no exact matches found'});
+        }
       });
     });
   },

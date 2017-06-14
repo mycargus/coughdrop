@@ -798,4 +798,137 @@ describe('User', function() {
       expect(u.get('auto_sync')).toEqual(true);
     });
   });
+
+  describe('load_button_sets', function() {
+    it('should return a promise', function() {
+      var u = CoughDrop.store.createRecord('user');
+      var res = u.load_button_sets();
+      expect(res.then).toNotEqual(undefined);
+      res.then(null, function() { });
+    });
+
+    it('should return all button sets on success', function() {
+      var u = CoughDrop.store.createRecord('user');
+      u.set('preferences', {home_board: {id: 'asdf'}, sidebar_boards: [{key: 'asdf/qwer'}, {key: 'asdf/zxcv'}]});
+      stub(CoughDrop.store, 'findRecord', function(type, id) {
+        if(type == 'buttonset' && id == 'asdf') {
+          return Ember.RSVP.resolve('one');
+        } else if(type == 'buttonset' && id == 'asdf/qwer') {
+          return Ember.RSVP.resolve('two');
+        } else if(type == 'buttonset' && id == 'asdf/zxcv') {
+          return Ember.RSVP.resolve('three');
+        } else {
+          return Ember.RSVP.reject();
+        }
+      });
+      var list = null;
+      u.load_button_sets().then(function(l) { list = l; });
+      waitsFor(function() { return list; })
+      runs(function() {
+        expect(list).toEqual(['one', 'two', 'three']);
+      });
+    });
+
+    it('should error on failing to retrieve any button set', function() {
+      var u = CoughDrop.store.createRecord('user');
+      u.set('preferences', {home_board: {id: 'asdf'}, sidebar_boards: [{key: 'asdf/qwer'}, {key: 'asdf/zxcv'}]});
+      stub(CoughDrop.store, 'findRecord', function(type, id) {
+        if(type == 'buttonset' && id == 'asdf') {
+          return Ember.RSVP.resolve('one');
+        } else if(type == 'buttonset' && id == 'asdf/zxcv') {
+          return Ember.RSVP.resolve('three');
+        } else {
+          return Ember.RSVP.reject();
+        }
+      });
+      var error = null;
+      u.load_button_sets().then(null, function(e) { error = true; });
+      waitsFor(function() { return error; })
+      runs();
+    });
+  });
+
+  describe('find_button', function() {
+    it('should return a promise', function() {
+      var u = CoughDrop.store.createRecord('user');
+      stub(u, 'load_button_sets', function() { return Ember.RSVP.reject(); });
+      var res = u.find_button('bacon');
+      expect(res.then).toNotEqual(undefined);
+      res.then(null, function() { });
+    });
+
+    it('should error if load_button_sets fails', function() {
+      var u = CoughDrop.store.createRecord('user');
+      stub(u, 'load_button_sets', function() { return Ember.RSVP.reject(); });
+      var res = u.find_button('bacon');
+      var error = null;
+      res.then(null, function() { error = true; });
+      waitsFor(function() { return error; });
+      runs();
+    });
+
+    it('should return the earliest exact match', function() {
+      var u = CoughDrop.store.createRecord('user');
+      var list1 = {};
+      stub(list1, 'find_buttons', function(label) {
+        expect(label).toEqual('bacon');
+        return Ember.RSVP.resolve([{label: 'bacons', id: 1}])
+      });
+      var list2 = {};
+      stub(list2, 'find_buttons', function(label) {
+        expect(label).toEqual('bacon');
+        return new Ember.RSVP.Promise(function(res, rej) {
+          Ember.run.later(function() {
+            res([{label: 'baking', id: 2.1}, {label: 'Bacon', id: 2}]);
+          }, 100);
+        });
+      });
+      var list3 = {};
+      stub(list3, 'find_buttons', function(label) {
+        expect(label).toEqual('bacon');
+        return Ember.RSVP.resolve([{label: 'bacon', id: 3}])
+      });
+      stub(u, 'load_button_sets', function() {
+        return Ember.RSVP.resolve([list1, list2, list3]);
+      });
+      var button = null;
+      u.find_button('bacon').then(function(res) { button = res; });
+      waitsFor(function() { return button; })
+      runs(function() {
+        expect(button.id).toEqual(2);
+      });
+    });
+
+    it('should error if no matches found', function() {
+      var u = CoughDrop.store.createRecord('user');
+      var list1 = {};
+      stub(list1, 'find_buttons', function(label) {
+        expect(label).toEqual('bacon');
+        return Ember.RSVP.resolve([{label: 'bacons', id: 1}])
+      });
+      var list2 = {};
+      stub(list2, 'find_buttons', function(label) {
+        expect(label).toEqual('bacon');
+        return new Ember.RSVP.Promise(function(res, rej) {
+          Ember.run.later(function() {
+            res([{label: 'baking', id: 2.1}, {label: 'Bacon!', id: 2}]);
+          }, 100);
+        });
+      });
+      var list3 = {};
+      stub(list3, 'find_buttons', function(label) {
+        expect(label).toEqual('bacon');
+        return Ember.RSVP.resolve([{label: 'bracon', id: 3}])
+      });
+      stub(u, 'load_button_sets', function() {
+        return Ember.RSVP.resolve([list1, list2, list3]);
+      });
+      var error = null;
+      u.find_button('bacon').then(null, function(e) { error = e; });
+      waitsFor(function() { return error; })
+      runs(function() {
+        expect(error).toEqual({error: 'no exact matches found'});
+      });
+    });
+  });
 });
