@@ -37,6 +37,20 @@ describe('stats', function() {
       expect(res[0].text).toEqual('a');
       expect(res[2].text).toEqual('c');
     });
+
+    it('should return modeling data if specified', function() {
+      var stats = CoughDrop.Stats.create();
+      stats.set('words_by_frequency', [{text: "a", count: 20}, {text: "b", count: 19}]);
+      stats.set('modeled_words_by_frequency', [{text: "a", count: 20}, {text: "b", count: 19}, {text: "c", count: 18}, {text: "d", count: 17}, {text: "e", count: 16}, {text: "f", count: 15}, {text: "g", count: 14}, {text: "h", count: 13}, {text: "i", count: 12}, {text: "j", count: 11}, {text: "k", count: 10}]);
+      var res = stats.get('popular_words');
+      expect(res.length).toEqual(2);
+      expect(res[0].text).toEqual('a');
+      stats.set('modeling', true);
+      var res = stats.get('popular_words');
+      expect(res.length).toEqual(11);
+      expect(res[0].text).toEqual('a');
+      expect(res[9].text).toEqual('j');
+    });
   });
 
   describe("weighted_words", function() {
@@ -58,6 +72,25 @@ describe('stats', function() {
     it("should return the list of words in alphabetical order", function() {
       var stats = CoughDrop.Stats.create();
       stats.set('words_by_frequency', [{text: "b", count: 19}, {text: "f", count: 15}, {text: "C", count: 18}, {text: "e", count: 16}, {text: "d", count: 17}, {text: "g", count: 14}, {text: "h", count: 13}, {text: "i", count: 12}, {text: "j", count: 11}, {text: "k", count: 10}, {text: "a", count: 20}]);
+      var res = stats.get('weighted_words');
+      expect(res.length).toEqual(11);
+      expect(res[0].text).toEqual('a');
+      expect(res[1].text).toEqual('b');
+      expect(res[2].text).toEqual('C');
+      expect(res[3].text).toEqual('d');
+      expect(res[4].text).toEqual('e');
+      expect(res[5].text).toEqual('f');
+    });
+
+    it('should return modeling data if specified', function() {
+      var stats = CoughDrop.Stats.create();
+      stats.set('words_by_frequency', [{text: "b", count: 19}, {text: "f", count: 15}]);
+      stats.set('modeled_words_by_frequency', [{text: "b", count: 19}, {text: "f", count: 15}, {text: "C", count: 18}, {text: "e", count: 16}, {text: "d", count: 17}, {text: "g", count: 14}, {text: "h", count: 13}, {text: "i", count: 12}, {text: "j", count: 11}, {text: "k", count: 10}, {text: "a", count: 20}]);
+      var res = stats.get('weighted_words');
+      expect(res.length).toEqual(2);
+      expect(res[0].text).toEqual('b');
+      expect(res[1].text).toEqual('f');
+      stats.set('modeling', true);
       var res = stats.get('weighted_words');
       expect(res.length).toEqual(11);
       expect(res[0].text).toEqual('a');
@@ -119,6 +152,24 @@ describe('stats', function() {
       stub(stats, 'tz_offset', function() { return 300; });
       stats.set('time_offset_blocks', {161: 24, 184: 18, 366: 1, 368: 1, 369: 1, 502: 2});
       stats.set('max_time_block', 24);
+      var blocks = stats.get('local_time_blocks');
+      expect(blocks.length).toEqual(7);
+      expect(blocks[0].day).toEqual('Su');
+      expect(blocks[0].blocks.length).toEqual(24*2);
+      expect(blocks[0].blocks[0]).toEqual({val: 0, tooltip: "", style_class: "time_block"});
+      expect(blocks[1].blocks[22]).toEqual({val: 24, tooltip: "M 11:00, 24 events", style_class: "time_block level_5"});
+      expect(blocks[1].blocks[34]).toEqual({val: 18, tooltip: "M 17:00, 18 events", style_class: "time_block level_4"});
+      expect(blocks[3].blocks[29]).toEqual({val: 1, tooltip: "W 14:30, 1 event", style_class: "time_block level_1"});
+      expect(blocks[3].blocks[30]).toEqual({val: 2, tooltip: "W 15:00, 2 events", style_class: "time_block level_1"});
+      expect(blocks[5].blocks[1]).toEqual({val: 2, tooltip: "F 0:30, 2 events", style_class: "time_block level_1"});
+    });
+
+    it('should use modeling data if specified', function() {
+      var stats = CoughDrop.Stats.create();
+      stub(stats, 'tz_offset', function() { return 300; });
+      stats.set('modeled_time_offset_blocks', {161: 24, 184: 18, 366: 1, 368: 1, 369: 1, 502: 2});
+      stats.set('max_modeled_time_block', 24);
+      stats.set('modeling', true);
       var blocks = stats.get('local_time_blocks');
       expect(blocks.length).toEqual(7);
       expect(blocks[0].day).toEqual('Su');
