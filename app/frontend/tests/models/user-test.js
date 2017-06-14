@@ -823,7 +823,7 @@ describe('User', function() {
       });
       var list = null;
       u.load_button_sets().then(function(l) { list = l; });
-      waitsFor(function() { return list; })
+      waitsFor(function() { return list; });
       runs(function() {
         expect(list).toEqual(['one', 'two', 'three']);
       });
@@ -843,7 +843,7 @@ describe('User', function() {
       });
       var error = null;
       u.load_button_sets().then(null, function(e) { error = true; });
-      waitsFor(function() { return error; })
+      waitsFor(function() { return error; });
       runs();
     });
   });
@@ -872,7 +872,7 @@ describe('User', function() {
       var list1 = {};
       stub(list1, 'find_buttons', function(label) {
         expect(label).toEqual('bacon');
-        return Ember.RSVP.resolve([{label: 'bacons', id: 1}])
+        return Ember.RSVP.resolve([{label: 'bacons', id: 1}]);
       });
       var list2 = {};
       stub(list2, 'find_buttons', function(label) {
@@ -886,14 +886,14 @@ describe('User', function() {
       var list3 = {};
       stub(list3, 'find_buttons', function(label) {
         expect(label).toEqual('bacon');
-        return Ember.RSVP.resolve([{label: 'bacon', id: 3}])
+        return Ember.RSVP.resolve([{label: 'bacon', id: 3}]);
       });
       stub(u, 'load_button_sets', function() {
         return Ember.RSVP.resolve([list1, list2, list3]);
       });
       var button = null;
       u.find_button('bacon').then(function(res) { button = res; });
-      waitsFor(function() { return button; })
+      waitsFor(function() { return button; });
       runs(function() {
         expect(button.id).toEqual(2);
       });
@@ -904,7 +904,7 @@ describe('User', function() {
       var list1 = {};
       stub(list1, 'find_buttons', function(label) {
         expect(label).toEqual('bacon');
-        return Ember.RSVP.resolve([{label: 'bacons', id: 1}])
+        return Ember.RSVP.resolve([{label: 'bacons', id: 1}]);
       });
       var list2 = {};
       stub(list2, 'find_buttons', function(label) {
@@ -918,14 +918,14 @@ describe('User', function() {
       var list3 = {};
       stub(list3, 'find_buttons', function(label) {
         expect(label).toEqual('bacon');
-        return Ember.RSVP.resolve([{label: 'bracon', id: 3}])
+        return Ember.RSVP.resolve([{label: 'bracon', id: 3}]);
       });
       stub(u, 'load_button_sets', function() {
         return Ember.RSVP.resolve([list1, list2, list3]);
       });
       var error = null;
       u.find_button('bacon').then(null, function(e) { error = e; });
-      waitsFor(function() { return error; })
+      waitsFor(function() { return error; });
       runs(function() {
         expect(error).toEqual({error: 'no exact matches found'});
       });
