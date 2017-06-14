@@ -268,7 +268,7 @@ class LogSession < ActiveRecord::Base
               if !event['modeling']
                 self.data['stats']['all_button_counts'][ref] ||= button
                 self.data['stats']['all_button_counts'][ref]['count'] += 1
-                if button['text'] && button['text'].length > 0 && event['button']['spoken']
+                if button['text'] && button['text'].length > 0 && (event['button']['spoken'] || event['button']['for_speaking'])
                   button['text'].split(/\s+/).each do |word|
                     self.data['stats']['all_word_counts'][word] ||= 0
                     self.data['stats']['all_word_counts'][word] += 1
@@ -283,7 +283,7 @@ class LogSession < ActiveRecord::Base
               else
                 self.data['stats']['modeled_button_counts'][ref] ||= button
                 self.data['stats']['modeled_button_counts'][ref]['count'] += 1
-                if button['text'] && button['text'].length > 0 && event['button']['spoken']
+                if button['text'] && button['text'].length > 0 && (event['button']['spoken'] || event['button']['for_speaking'])
                   button['text'].split(/\s+/).each do |word|
                     self.data['stats']['modeled_word_counts'][word] ||= 0
                     self.data['stats']['modeled_word_counts'][word] += 1
@@ -301,7 +301,7 @@ class LogSession < ActiveRecord::Base
       
         pos_key = event['modeling'] ? 'modeled_parts_of_speech' : 'parts_of_speech'
         core_key = event['modeling'] ? 'modeled_core_words' : 'core_words'
-        if event['parts_of_speech'] && event['parts_of_speech']['types'] && event['button'] && event['button']['spoken']
+        if event['parts_of_speech'] && event['parts_of_speech']['types'] && event['button'] && (event['button']['spoken'] || event['button']['for_speaking'])
           part = event['parts_of_speech']['types'][0]
           if part
             self.data['stats'][pos_key][part] ||= 0

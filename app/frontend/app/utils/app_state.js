@@ -1175,6 +1175,9 @@ var app_state = Ember.Object.extend({
 
     if(obj.label) {
       if(app_state.get('speak_mode')) {
+        if(!skip_speaking_by_default) {
+          obj.for_speaking = true;
+        }
         if(app_state.get('currentUser.preferences.vocalize_buttons') || (!app_state.get('currentUser') && window.user_preferences.any_user.vocalize_buttons)) {
           if(skip_speaking_by_default && !app_state.get('currentUser.preferences.vocalize_linked_buttons') && !button.add_to_vocalization) {
             // don't say it...
@@ -1182,6 +1185,7 @@ var app_state = Ember.Object.extend({
             // don't say it...
           } else {
             obj.spoken = true;
+            obj.for_speaking = true;
             utterance.speak_button(button_to_speak);
           }
         }

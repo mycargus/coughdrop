@@ -11,6 +11,8 @@ describe WeeklyStatsSummary, :type => :model do
     expect(ClusterLocation).to receive(:clusterize_cutoff).and_return(Date.parse('2015-01-01')).at_least(1).times
     s1 = LogSession.process_new({'events' => [
       {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => 1431029747 - 1},
+      {'type' => 'button', 'modeling' => true, 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => 1431029747 - 1},
+      {'type' => 'button', 'modeling' => true, 'button' => {'spoken' => true, 'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => 1431029747 - 1},
       {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => 1431029747}
     ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
     s2 = LogSession.process_new({'events' => [
@@ -50,5 +52,7 @@ describe WeeklyStatsSummary, :type => :model do
     expect(data['days']["2015-05-07"]['group_counts'][0]['device_id']).to eq(d.global_id)
     expect(data['days']["2015-05-07"]['group_counts'][0]['geo_cluster_id']).to eq(nil)
     expect(data['days']["2015-05-07"]['group_counts'][0]['ip_cluster_id']).to eq(ip_cluster.global_id)
+    expect(data['modeled_word_counts']).to eq({'ok' => 2, 'go' => 1})
+    expect(data['modeled_button_counts']).to eq({'1::1_1' => {'button_id' => 1, 'board_id' => '1_1', 'text' => 'ok go ok', 'count' => 2}})
   end
 end

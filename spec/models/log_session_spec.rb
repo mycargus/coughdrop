@@ -486,6 +486,8 @@ describe LogSession, :type => :model do
       expect(day['all_word_counts']).to eq({'ok' => 4, 'go' => 2})
       expect(day['modeled_button_counts']['1::1_1']).to eq({'button_id' => 1, 'board_id' => '1_1', 'text' => 'ok go ok', 'count' => 1})
       expect(day['modeled_word_counts']).to eq({'ok' => 2, 'go' => 1})
+      expect(day['modeled_core_words']).to eq({'not_core' => 1})
+      expect(day['modeled_parts_of_speech']).to eq({'other' => 1})
     end
     
     it "should not include modeling events in regular stats" do
