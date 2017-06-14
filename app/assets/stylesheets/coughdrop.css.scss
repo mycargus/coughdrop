@@ -185,6 +185,22 @@ p.explanation {
   flex-direction: column; 
   justify-content: center;
 }
+.modeling_toggle {
+  float: right; 
+  margin-top: 5px;
+  a {
+    &:focus, {
+      text-decoration: none;
+    }
+    margin-left: 3px;
+    padding: 5px 10px;
+    &.active {
+      background: #337ab7;
+      color: #fff;
+      border-radius: 3px;
+    }
+  }
+}
 
 header .btn .skinny {
   display: inline;

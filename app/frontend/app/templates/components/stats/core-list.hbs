@@ -1,5 +1,8 @@
 <div class={{elem_class}} style={{elem_style}}>
-  <h3>{{t "Core/Parts of Speech" key='core_parts_of_speech'}}</h3>
+  <h3>
+    {{#if usage_stats.modeling}}<span class='glyphicon glyphicon-hand-up'></span>{{/if}}
+    {{t "Core/Parts of Speech" key='core_parts_of_speech'}}
+  </h3>
   {{#if edit_permission}}
     <a href="#" style='float: right;' {{action 'modify_core'}}>{{t "modify list" key='modify_list'}}</a>
   {{/if}}

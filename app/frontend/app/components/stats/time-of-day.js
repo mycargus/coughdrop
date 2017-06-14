@@ -25,6 +25,8 @@ export default Ember.Component.extend({
     if(this.get('ref_stats') && this.get('usage_stats')) {
       this.set('usage_stats.ref_max_time_block', this.get('ref_stats.max_time_block'));
       this.set('usage_stats.ref_max_combined_time_block', this.get('ref_stats.max_combined_time_block'));
+      this.set('usage_stats.ref_max_modeled_time_block', this.get('ref_stats.max_modeled_time_block'));
+      this.set('usage_stats.ref_max_combined_modeled_time_block', this.get('ref_stats.max_combined_modeled_time_block'));
     }
     $elem.find(".time_block").tooltip({container: 'body'});
   }.observes('usage_stats.draw_id', 'ref_stats.draw_id')

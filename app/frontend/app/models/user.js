@@ -384,6 +384,48 @@ CoughDrop.User = DS.Model.extend({
       }));
     }, function() { });
   },
+  find_button: function(label) {
+    return this.load_button_sets().then(function(list) {
+      var promises = [];
+      var closest = list.length + 1;
+      var best = null;
+      list.forEach(function(bs, idx) {
+        promises.push(bs.find_buttons(label).then(function(res) {
+          res.forEach(function(btn) {
+            if(btn.label == label && idx < closest) {
+              best = btn;
+            }
+          });
+        }));
+      });
+      return Ember.RSVP.all_wait(promises).then(function() {
+        return best;
+      });
+    });
+  },
+  load_button_sets: function() {
+    var ids = [];
+    if(this.get('preferences.home_board.id')) {
+      ids.push(this.get('preferences.home_board.id'));
+    }
+    (this.get('preferences.sidebar_boards') || []).forEach(function(b) {
+      if(b.key) {
+        ids.push(b.key);
+      }
+    });
+    var promises = [];
+    var list = [];
+    ids.forEach(function(id, idx) {
+      promises.push(CoughDrop.store.findRecord('buttonset', id).then(function(bs) {
+        list[idx] = bs;
+      }));
+    });
+    return Ember.RSVP.all_wait(promises).then(function() {
+      var res = [];
+      list.forEach(function(i) { if(i) { res.push(i); } });
+      return res;
+    });
+  },
   check_integrations: function(reload) {
     var res = null;
     var _this = this;

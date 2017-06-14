@@ -29,7 +29,7 @@ export default Ember.Component.extend({
         var table = [
           ['Type', 'Instances']
         ];
-        var parts = stats.get('core_words');
+        var parts = stats.get('modeling') ? stats.get('modeled_core_words') : stats.get('core_words');
         var slice_idx = 0;
         var slices = {};
         ['core', 'not_core'].forEach(function(key) {
@@ -67,5 +67,5 @@ export default Ember.Component.extend({
         chart.draw(data, options);
       }
     });
-  }.observes('usage_stats.draw_id')
+  }.observes('usage_stats.draw_id', 'usage_stats.modeling')
 });

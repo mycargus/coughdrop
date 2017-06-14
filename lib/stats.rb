@@ -269,6 +269,8 @@ module Stats
       :modeled_words => 0,
       :words_by_frequency => [],
       :buttons_by_frequency => [],
+      :modeled_words_by_frequency => [],
+      :modeled_buttons_by_frequency => [],
 #      :word_sequences => [],
       :words_per_minute => 0.0,
       :buttons_per_minute => 0.0,
@@ -285,6 +287,8 @@ module Stats
     all_button_counts = {}
 #    all_word_sequences = []
     all_word_counts = {}
+    modeled_button_counts = {}
+    modeled_word_counts = {}
     all_devices = nil
     all_locations = nil
     goals = {}
@@ -322,13 +326,24 @@ module Stats
         all_word_counts[word] ||= 0
         all_word_counts[word] += cnt
       end
+      stats[:modeled_button_counts].each do |ref, button|
+        if modeled_button_counts[ref]
+          modeled_button_counts[ref]['count'] += button['count']
+        else
+          modeled_button_counts[ref] = button.merge({})
+        end
+      end
+      stats[:modeled_word_counts].each do |word, cnt|
+        modeled_word_counts[word] ||= 0
+        modeled_word_counts[word] += cnt
+      end
       if stats[:all_word_sequence]
 #        all_word_sequences << stats[:all_word_sequence].join(' ')
       end
       
       merge_sensor_stats!(res, stats)
 
-      [:touch_locations, :parts_of_speech, :core_words, :parts_of_speech_combinations].each do |metric|
+      [:touch_locations, :parts_of_speech, :core_words, :modeled_parts_of_speech, :modeled_core_words, :parts_of_speech_combinations].each do |metric|
         if stats[metric]
           res[metric] ||= {}
           stats[metric].each do |key, cnt|
@@ -344,6 +359,14 @@ module Stats
         offset_blocks.each do |block, cnt|
           res[:time_offset_blocks][block] ||= 0
           res[:time_offset_blocks][block] += cnt
+        end
+      end
+      if stats[:modeled_timed_blocks]
+        offset_blocks = time_offset_blocks(stats[:modeled_timed_blocks])
+        res[:modeled_time_offset_blocks] ||= {}
+        offset_blocks.each do |block, cnt|
+          res[:modeled_time_offset_blocks][block] ||= 0
+          res[:modeled_time_offset_blocks][block] += cnt
         end
       end
 
@@ -409,6 +432,17 @@ module Stats
       res[:max_time_block] = max
       res[:max_combined_time_block] = combined_max
     end
+    if res[:modeled_time_offset_blocks]
+      max = 0
+      combined_max = 0
+      res[:modeled_time_offset_blocks].each do |idx, val|
+        sum = val + [res[:modeled_time_offset_blocks][idx - 1] || 0, res[:modeled_time_offset_blocks][idx + 1] || 0].max
+        max = val if val > max
+        combined_max = sum if sum > combined_max
+      end
+      res[:max_modeled_time_block] = max
+      res[:max_combined_modeled_time_block] = combined_max
+    end
     res[:words_per_utterance] += total_utterances > 0 ? (total_utterance_words / total_utterances) : 0.0
     res[:buttons_per_utterance] += total_utterances > 0 ? (total_utterance_buttons / total_utterances) : 0.0
     res[:words_per_minute] += total_session_seconds > 0 ? (total_words / total_session_seconds * 60) : 0.0
@@ -416,6 +450,8 @@ module Stats
     res[:utterances_per_minute] +=  total_session_seconds > 0 ? (total_utterances / total_session_seconds * 60) : 0.0
     res[:buttons_by_frequency] = all_button_counts.to_a.sort_by{|ref, button| [button['count'], button['text']] }.reverse.map(&:last)[0, 50]
     res[:words_by_frequency] = all_word_counts.to_a.sort_by{|word, cnt| [cnt, word] }.reverse.map{|word, cnt| {'text' => word, 'count' => cnt} }[0, 100]
+    res[:modeled_buttons_by_frequency] = modeled_button_counts.to_a.sort_by{|ref, button| [button['count'], button['text']] }.reverse.map(&:last)[0, 50]
+    res[:modeled_words_by_frequency] = modeled_word_counts.to_a.sort_by{|word, cnt| [cnt, word] }.reverse.map{|word, cnt| {'text' => word, 'count' => cnt} }[0, 100]
     # res[:word_sequences] = all_word_sequences
     res
   end
@@ -627,17 +663,23 @@ module Stats
   end
   
   def self.parts_of_speech_stats(sessions)
+    res = {
+      :parts_of_speech => {},
+      :modeled_parts_of_speech => {},
+      :core_words => {},
+      :modeled_core_words => {}
+    }
     parts = {}
+    modeled_parts = {}
     core_words = {}
+    modeled_core_words = {}
     sequences = {}
     sessions.each do |session|
-      (session.data['stats']['parts_of_speech'] || {}).each do |part, cnt|
-        parts[part] ||= 0
-        parts[part] += cnt
-      end
-      (session.data['stats']['core_words'] || {}).each do |type, cnt|
-        core_words[type] ||= 0
-        core_words[type] += cnt
+      ['parts_of_speech', 'core_words', 'modeled_parts_of_speech', 'modeled_core_words'].each do |key|
+        (session.data['stats'][key] || {}).each do |part, cnt|
+          res[key.to_sym][part] ||= 0
+          res[key.to_sym][part] += cnt
+        end
       end
       
       prior_parts = []
@@ -671,7 +713,8 @@ module Stats
         end
       end
     end
-    {:parts_of_speech => parts, :core_words => core_words, :parts_of_speech_combinations => sequences}
+    res[:parts_of_speech_combinations] = sequences
+    res
   end
   
   TIMEBLOCK_MOD = 7 * 24 * 4
@@ -693,15 +736,21 @@ module Stats
   
   def self.time_block_use_for_sessions(sessions)
     timed_blocks = {}
+    modeled_timed_blocks = {}
     sessions.each do |session|
       (session.data['events'] || []).each do |event|
         next unless event['timestamp']
         timed_block = event['timestamp'].to_i / 15
-        timed_blocks[timed_block] ||= 0
-        timed_blocks[timed_block] += 1
+        if event['modeling']
+          modeled_timed_blocks[timed_block] ||= 0
+          modeled_timed_blocks[timed_block] += 1
+        else
+          timed_blocks[timed_block] ||= 0
+          timed_blocks[timed_block] += 1
+        end
       end
     end
-    {:timed_blocks => timed_blocks, :max_time_block => timed_blocks.map(&:last).max }
+    {:timed_blocks => timed_blocks, :max_time_block => timed_blocks.map(&:last).max, :modeled_timed_blocks => modeled_timed_blocks, :max_modeled_timed_block => modeled_timed_blocks.map(&:last).max }
   end
 
   # TODO: someday start figuring out word complexity and word type for buttons and utterances

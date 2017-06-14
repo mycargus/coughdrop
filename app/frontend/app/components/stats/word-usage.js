@@ -75,5 +75,13 @@ export default Ember.Component.extend({
         chart.draw(data, options);
       }
     });
-  }.observes('usage_stats.draw_id', 'ref_stats.draw_id')
+  }.observes('usage_stats.draw_id', 'ref_stats.draw_id'),
+  actions: {
+    set_modeling: function(modeling) {
+      this.set('usage_stats.modeling', !!modeling);
+      if(this.get('ref_stats')) {
+        this.set('ref_stats.modeling', !!modeling);
+      }
+    }
+  }
 });

@@ -2,7 +2,7 @@ import Ember from 'ember';
 import CoughDrop from '../../app';
 import i18n from '../../utils/i18n';
 
-export default Ember.Component.extend({ 
+export default Ember.Component.extend({
   didInsertElement: function() {
     this.draw();
   },
@@ -12,14 +12,16 @@ export default Ember.Component.extend({
       var list = [];
       var max = 1;
       var _this = this;
-      (this.get('stats.words_by_frequency') || []).forEach(function(obj) {
+      var list1 = (this.get('stats.modeling') ? this.get('stats.modeled_words_by_frequency') : this.get('stats.words_by_frequency')) || [];
+      list1.forEach(function(obj) {
         if(!obj.text.match(/^[\+:]/)) {
           max = Math.max(max, obj.count);
           list.push([obj.text, obj.count]);
         }
       });
       if(this.get('ref_stats')) {
-        (this.get('ref_stats.words_by_frequency') || []).forEach(function(obj) {
+        var list2 = (this.get('ref_stats.modeling') ? this.get('ref_stats.modeled_words_by_frequency') : this.get('ref_stats.words_by_frequency')) || [];
+        list2.forEach(function(obj) {
           if(!obj.text.match(/^[\+:]/)) {
             max = Math.max(max, obj.count);
           }

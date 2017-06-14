@@ -241,7 +241,9 @@ class LogSession < ActiveRecord::Base
     self.data['stats']['modeled_word_counts'] = {}
     self.data['stats']['all_board_counts'] = {}
     self.data['stats']['parts_of_speech'] = {}
+    self.data['stats']['modeled_parts_of_speech'] = {}
     self.data['stats']['core_words'] = {}
+    self.data['stats']['modeled_core_words'] = {}
     self.data['stats']['all_volumes'] = []
     self.data['stats']['all_ambient_light_levels'] = []
     self.data['stats']['all_screen_brightness_levels'] = []
@@ -297,18 +299,18 @@ class LogSession < ActiveRecord::Base
         self.data['stats']['all_screen_brightness_levels'] << event['screen_brightness'].to_f if event['screen_brightness']
         self.data['stats']['all_orientations'] << event['orientation'] if event['orientation']
       
-        if !event['modeling']
-          if event['parts_of_speech'] && event['parts_of_speech']['types'] && event['button'] && event['button']['spoken']
-            part = event['parts_of_speech']['types'][0]
-            if part
-              self.data['stats']['parts_of_speech'][part] ||= 0
-              self.data['stats']['parts_of_speech'][part] += 1
-            end
+        pos_key = event['modeling'] ? 'modeled_parts_of_speech' : 'parts_of_speech'
+        core_key = event['modeling'] ? 'modeled_core_words' : 'core_words'
+        if event['parts_of_speech'] && event['parts_of_speech']['types'] && event['button'] && event['button']['spoken']
+          part = event['parts_of_speech']['types'][0]
+          if part
+            self.data['stats'][pos_key][part] ||= 0
+            self.data['stats'][pos_key][part] += 1
           end
-          if event['core_word'] != nil
-            self.data['stats']['core_words'][event['core_word'] ? 'core' : 'not_core'] ||= 0
-            self.data['stats']['core_words'][event['core_word'] ? 'core' : 'not_core'] += 1
-          end
+        end
+        if event['core_word'] != nil
+          self.data['stats'][core_key][event['core_word'] ? 'core' : 'not_core'] ||= 0
+          self.data['stats'][core_key][event['core_word'] ? 'core' : 'not_core'] += 1
         end
       end
       self.generate_sensor_stats

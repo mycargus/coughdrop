@@ -15,6 +15,11 @@ export default modal.ModalController.extend({
         _this.set('model.user.core_lists', res);
       }, function(err) { });
     }
+    if(this.get('model.user').find_button && !this.get('model.button')) {
+      this.get('model.user').find_button(this.get('model.word')).then(function(btn) {
+        _this.set('model.button', btn);
+      });
+    }
   },
   load_part_of_speech: function() {
     var _this = this;

@@ -93,12 +93,14 @@ CoughDrop.Stats = Ember.Object.extend({
     }
   },
   popular_words: function() {
-    return (this.get('words_by_frequency') || []).filter(function(word, idx) { return idx < 100 && word['count'] > 1; });
-  }.property('words_by_frequency'),
+    var list = (this.get('modeling') ? this.get('modeled_words_by_frequency') : this.get('words_by_frequency')) || [];
+    return list.filter(function(word, idx) { return idx < 100 && word['count'] > 1; });
+  }.property('words_by_frequency', 'modeled_words_by_frequency', 'modeling'),
   weighted_words: function() {
     // TODO: weight correctly for side_by_side view
-    var max = ((this.get('words_by_frequency') || [])[0] || {}).count || 0;
-    var res = (this.get('words_by_frequency') || []).filter(function(word) { return !word.text.match(/^[\+:]/); }).map(function(word) {
+    var list = (this.get('modeling') ? this.get('modeled_words_by_frequency') : this.get('words_by_frequency')) || [];
+    var max = (list[0] || {}).count || 0;
+    var res = list.filter(function(word) { return !word.text.match(/^[\+:]/); }).map(function(word) {
       var weight = "weight_" + Math.ceil(word.count / max * 10);
       return {text: word.text, weight_class: "weighted_word " + weight};
     });
@@ -107,7 +109,7 @@ CoughDrop.Stats = Ember.Object.extend({
       var b_text = (b.text || "").toLowerCase();
       if(a_text < b_text) { return -1; } else if(a_text > b_text) { return 1; } else { return 0; }
     });
-  }.property('words_by_frequency'),
+  }.property('words_by_frequency', 'modeled_words_by_frequency', 'modeling'),
   label: function() {
     return Ember.templateHelpers.date(this.get('started_at'), 'day') + " " + i18n.t('to', "to") + " " + Ember.templateHelpers.date(this.get('ended_at'), 'day');
   }.property('started_at', 'ended_at'),
@@ -128,6 +130,13 @@ CoughDrop.Stats = Ember.Object.extend({
       max = Math.max(max, this.get('ref_max_combined_time_block') || (this.get('ref_max_time_block') * 2));
     }
     var blocks = this.get('time_offset_blocks');
+    if(this.get('modeling')) {
+      max = this.get('max_combined_modeled_time_block') || (this.get('max_modeled_time_block') * 2);
+      if(this.get('ref_max_modeled_time_block')) {
+        max = Math.max(max, this.get('ref_max_combined_modeled_time_block') || (this.get('ref_max_modeled_time_block') * 2));
+      }
+      blocks = this.get('modeled_time_offset_blocks');
+    }
     var mod = (7 * 24 * 4);
     for(var idx in blocks) {
       var new_block = (idx - offset + mod) % mod;
@@ -168,7 +177,7 @@ CoughDrop.Stats = Ember.Object.extend({
       res.push(day);
     }
     return res;
-  }.property('time_offset_blocks', 'max_time_block', 'ref_max_time_block'),
+  }.property('time_offset_blocks', 'max_time_block', 'max_combined_time_block', 'ref_max_time_block', 'ref_max_combined_time_block', 'modeled_time_offset_blocks', 'max_modeled_time_block', 'max_combined_modeled_time_block', 'ref_max_modeled_time_block', 'ref_max_combined_modeled_time_block'),
   start_date_field: function() {
     return (this.get('start_at') || "").substring(0, 10);
   }.property('start_at'),

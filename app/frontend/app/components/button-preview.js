@@ -64,9 +64,9 @@ export default Ember.Component.extend({
       context.save();
       context.rect(pad + pad, pad + pad, width - pad - pad, height - pad - pad);
       context.clip();
-      if(Ember.get(button, 'local_image_url') || Ember.get(button, 'image_url')) {
+      if(Ember.get(button, 'local_image_url') || Ember.get(button, 'image_url') || Ember.get(button, 'image.url') || Ember.get(button, 'image')) {
         var img = new Image();
-        img.src = Ember.get(button, 'local_image_url') || Ember.get(button, 'image_url');
+        img.src = Ember.get(button, 'local_image_url') || Ember.get(button, 'image_url') || Ember.get(button, 'image.url') || Ember.get(button, 'image');
         img.onload = function() {
           if(_this.get('button.id') == button.id) {
             context.drawImage(img, 75, 125, 350, 350);

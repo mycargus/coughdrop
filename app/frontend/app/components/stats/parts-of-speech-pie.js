@@ -25,11 +25,11 @@ export default Ember.Component.extend({
     var elem = this.get('element').getElementsByClassName('parts_of_speech')[0];
 
     CoughDrop.Visualizations.wait('pie-chart', function() {
-      if(elem && stats && stats.get('parts_of_speech')) {
+      var parts = stats && (stats.get('modeling') ? stats.get('modeled_parts_of_speech') : stats.get('parts_of_speech'));
+      if(elem && stats && parts) {
         var table = [
           ['Task', 'Instances']
         ];
-        var parts = stats.get('parts_of_speech');
         var slice_idx = 0;
         var slices = {};
         var color_check = function(c) { return c.types.indexOf(idx) >= 0; };
@@ -61,5 +61,5 @@ export default Ember.Component.extend({
         chart.draw(data, options);
       }
     });
-  }.observes('usage_stats.draw_id')
+  }.observes('usage_stats.draw_id', 'usage_stats.modeling')
 });

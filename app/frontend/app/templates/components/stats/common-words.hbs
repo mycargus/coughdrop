@@ -3,6 +3,7 @@
     <thead>
       <tr>
         <th colspan="2">
+          {{#if usage_stats.modeling}}<span class='glyphicon glyphicon-hand-up'></span>{{/if}}
           {{t "Most common words" key='most_common_words'}}
           <a href="#" {{action 'word_cloud'}}>{{t "word cloud" key='word_cloud'}}</a>
         </th>

@@ -1,6 +1,9 @@
 <div class={{elem_class}} style={{elem_style}}>
   <div style={{inner_elem_style}}>
-    <strong>{{t "Weighted Words" key='weighted_words'}}</strong>
+    <strong>
+      {{#if usage_stats.modeling}}<span class='glyphicon glyphicon-hand-up'></span>{{/if}}
+      {{t "Weighted Words" key='weighted_words'}}
+    </strong>
     <a href="#" {{action 'word_cloud'}}>{{t "word cloud" key='word_cloud'}}</a>
     <br/>
     {{#each usage_stats.weighted_words as |word|}}

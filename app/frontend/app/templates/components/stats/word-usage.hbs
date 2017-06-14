@@ -1,4 +1,8 @@
 <div class={{elem_class}} style={{elem_style}}>
+  <div class='modeling_toggle'>
+    <a href='#' {{action 'set_modeling' false}} class={{if usage_stats.modeling '' 'active'}}>{{t "speech" key='speech'}}</a>
+    <a href='#' {{action 'set_modeling' true}} class={{if usage_stats.modeling 'active'}}>{{t "modeling" key='modeling'}}</a>
+  </div>
   <h3 style="margin-top: 0;">{{t "Word Usage" key='word_usage'}}</h3>
   <div class="daily_stats" style="width: 100%; overflow: hidden; height: 320px;"></div>
 </div>
