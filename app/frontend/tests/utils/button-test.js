@@ -754,4 +754,121 @@ context('Button', function() {
       expect(b.get('vocalization')).toEqual('freddy');
     });
   });
+
+  context('resource_from_url', function() {
+    it('should recognize tarheel books by url', function() {
+      var b = Button.create();
+      b.set('url', 'http://tarheelreader.org/2015/06/03/first-the-by-shayd/');
+      expect(b.get('book')).toEqual({
+        "background": "white",
+        "base_url": "http://tarheelreader.org/2015/06/03/first-the-by-shayd/",
+        "id": "first-the-by-shayd",
+        "links": "large",
+        "popup": true,
+        "speech": false,
+        "type": "tarheel",
+        "url": "http://tarheelreader.org/2015/06/03/first-the-by-shayd/?voice=silent&pageColor=fff&textColor=000&biglinks=2",
+        "utterance": true
+      });
+    });
+
+    it('should recognize YouTube videos by url', function() {
+      var b = Button.create();
+      b.set('url', 'https://www.youtube.com/watch?v=fPDYj3IMkRI');
+      expect(b.get('video')).toEqual({
+        "end": "",
+        "id": "fPDYj3IMkRI",
+        "popup": true,
+        "start": "",
+        "test_url": "https://www.youtube.com/embed/fPDYj3IMkRI?rel=0&showinfo=0&enablejsapi=1&origin=http%3A%2F%2Flocalhost%3A3400&autoplay=0",
+        "thumbnail_content_type": "image/jpeg",
+        "thumbnail_url": "https://img.youtube.com/vi/fPDYj3IMkRI/hqdefault.jpg",
+        "type": "youtube",
+        "url": "https://www.youtube.com/embed/fPDYj3IMkRI?rel=0&showinfo=0&enablejsapi=1&origin=http%3A%2F%2Flocalhost%3A3400&autoplay=1&controls=0"
+       });
+    });
+
+    it('should recognize custom books by url', function() {
+      var b = Button.create();
+      b.set('url', 'book:http://www.example.com/book.json');
+      expect(b.get('book')).toEqual({
+        "background": "white",
+        "base_url": "book:http://www.example.com/book.json",
+        "id": "http://www.example.com/book.json",
+        "links": "large",
+        "popup": true,
+        "speech": false,
+        "type": "tarheel",
+        "url": "book:http://www.example.com/book.json?voice=silent&pageColor=fff&textColor=000&biglinks=2",
+        "utterance": true
+        });
+    });
+
+    it('should update between types correctly', function() {
+      var b = Button.create();
+      b.set('url', 'https://www.youtube.com/watch?v=fPDYj3IMkRI');
+      expect(b.get('video')).toEqual({
+        "end": "",
+        "id": "fPDYj3IMkRI",
+        "popup": true,
+        "start": "",
+        "test_url": "https://www.youtube.com/embed/fPDYj3IMkRI?rel=0&showinfo=0&enablejsapi=1&origin=http%3A%2F%2Flocalhost%3A3400&autoplay=0",
+        "thumbnail_content_type": "image/jpeg",
+        "thumbnail_url": "https://img.youtube.com/vi/fPDYj3IMkRI/hqdefault.jpg",
+        "type": "youtube",
+        "url": "https://www.youtube.com/embed/fPDYj3IMkRI?rel=0&showinfo=0&enablejsapi=1&origin=http%3A%2F%2Flocalhost%3A3400&autoplay=1&controls=0"
+      });
+      expect(b.get('book')).toEqual(null);
+      b.set('video.start', '123');
+      b.set('video.popup', false);
+
+      b.set('url', 'https://www.youtube.com/watch?v=fPDYj3IMkRW');
+      expect(b.get('video')).toEqual({
+        "end": "",
+        "id": "fPDYj3IMkRW",
+        "popup": true,
+        "start": "",
+        "test_url": "https://www.youtube.com/embed/fPDYj3IMkRW?rel=0&showinfo=0&enablejsapi=1&origin=http%3A%2F%2Flocalhost%3A3400&autoplay=0",
+        "thumbnail_content_type": "image/jpeg",
+        "thumbnail_url": "https://img.youtube.com/vi/fPDYj3IMkRW/hqdefault.jpg",
+        "type": "youtube",
+        "url": "https://www.youtube.com/embed/fPDYj3IMkRW?rel=0&showinfo=0&enablejsapi=1&origin=http%3A%2F%2Flocalhost%3A3400&autoplay=1&controls=0"
+      });
+      expect(b.get('book')).toEqual(null);
+
+      b.set('url', null);
+      expect(b.get('video')).toEqual(null);
+      expect(b.get('book')).toEqual(null);
+
+      b.set('url', 'http://tarheelreader.org/2015/06/03/first-the-by-shayd/');
+      expect(b.get('book')).toEqual({
+        "background": "white",
+        "base_url": "http://tarheelreader.org/2015/06/03/first-the-by-shayd/",
+        "id": "first-the-by-shayd",
+        "links": "large",
+        "popup": true,
+        "speech": false,
+        "type": "tarheel",
+        "url": "http://tarheelreader.org/2015/06/03/first-the-by-shayd/?voice=silent&pageColor=fff&textColor=000&biglinks=2",
+        "utterance": true
+      });
+      expect(b.get('video')).toEqual(null);
+      b.set('book.speech', true);
+      b.set('book.utterance', false);
+
+      b.set('url', 'book:http://www.example.com/book.json');
+      expect(b.get('book')).toEqual({
+        "background": "white",
+        "base_url": "book:http://www.example.com/book.json",
+        "id": "http://www.example.com/book.json",
+        "links": "large",
+        "popup": true,
+        "speech": false,
+        "type": "tarheel",
+        "url": "book:http://www.example.com/book.json?voice=silent&pageColor=fff&textColor=000&biglinks=2",
+        "utterance": true
+      });
+      expect(b.get('video')).toEqual(null);
+    });
+  });
 });

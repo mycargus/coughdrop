@@ -383,7 +383,7 @@ module Uploader
           'id' => page['id'] || "#{results['slug']}-#{idx}",
           'title' => page['text'],
           'image' => page['image_url'] || (tarheel_prefix + page['url']),
-          'image_content_type' => page['image_content_type'],
+          'image_content_type' => page['image_content_type'] || 'image/jpeg',
           'url' => results['book_url'] || "http://tarheelreader.org#{results['link']}",
           'image_attribution' => page['image_attribution_url'] || "http://tarheelreader.org/photo-credits/?id=#{results['ID']}",
           'image_author' => page['image_attribution_author'] || 'Flickr User'

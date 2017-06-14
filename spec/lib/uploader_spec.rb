@@ -686,6 +686,7 @@ describe Uploader do
           'id' => 'bacon-1-0',
           'title' => 'Bacon is Yummy',
           'image' => 'https://d1afj2lqudmea0.cloudfront.net/bacon-yum.png',
+          'image_content_type' => 'image/jpeg',
           'url' => 'http://tarheelreader.org/bacon',
           'image_attribution' => 'http://tarheelreader.org/photo-credits/?id=12345',
           'image_author' => 'Flickr User'
@@ -694,6 +695,7 @@ describe Uploader do
           'id' => 'bacon-1-1',
           'title' => 'I Love Bacon',
           'image' => 'https://d1afj2lqudmea0.cloudfront.net/heart.png',
+          'image_content_type' => 'image/jpeg',
           'url' => 'http://tarheelreader.org/bacon',
           'image_attribution' => 'http://tarheelreader.org/photo-credits/?id=12345',
           'image_author' => 'Flickr User'
@@ -702,9 +704,73 @@ describe Uploader do
           'id' => 'bacon-1-2',
           'title' => 'We Should Get Some Bacon',
           'image' => 'https://d1afj2lqudmea0.cloudfront.net/shopping.png',
+          'image_content_type' => 'image/jpeg',
           'url' => 'http://tarheelreader.org/bacon',
           'image_attribution' => 'http://tarheelreader.org/photo-credits/?id=12345',
           'image_author' => 'Flickr User'
+        }
+      ])
+    end
+
+    it "should return custom book pages" do
+      expect(Typhoeus).to receive(:get).with("http://www.example.com/book.json").and_return(OpenStruct.new(body: {
+        "book_url": "http://github.com/whitmer",
+        "author": "Brian",
+        "attribution_url": "http://github.com/whitmer",
+        "pages": [
+          {
+            "id": "title_page",
+            "text": "Test Book",
+            "image_url": "https://s3.amazonaws.com/opensymbols/libraries/noun-project/Test-Tube_89_g.svg",
+            "image_content_type": "image/svg",
+            "image_attribution_url": "http://creativecommons.org/licenses/by/3.0/us/",
+            "image_attribution_author": "Hopkins"
+          },
+          {
+            "id": "page_1",
+            "text": "I like cats",
+            "image_url": "https://s3.amazonaws.com/opensymbols/libraries/mulberry/cat.svg",
+            "image_content_type": "image/svg",
+            "image_attribution_url": "http://creativecommons.org/licenses/by-sa/2.0/uk",
+            "image_attribution_author": "Paxtoncrafts Charitable Trust"
+          },
+          {
+            "id": "page_2",
+            "text": "Actually I really prefer dogs",
+            "image_url": "https://s3.amazonaws.com/opensymbols/libraries/arasaac/dog.png",
+            "image_content_type": "image/png",
+            "image_attribution_url": "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+            "image_attribution_author": "ARASAAC"
+          }
+        ]
+      }.to_json))
+      expect(Uploader.find_resources('http://www.example.com/book.json', 'tarheel_book', nil)).to eq([
+        {
+          'id' => 'title_page',
+          'title' => 'Test Book',
+          'image' => 'https://s3.amazonaws.com/opensymbols/libraries/noun-project/Test-Tube_89_g.svg',
+          'image_content_type' => 'image/svg',
+          'url' => 'http://github.com/whitmer',
+          'image_attribution' => 'http://creativecommons.org/licenses/by/3.0/us/',
+          'image_author' => 'Hopkins'
+        },
+        {
+          'id' => 'page_1',
+          'title' => 'I like cats',
+          'image' => 'https://s3.amazonaws.com/opensymbols/libraries/mulberry/cat.svg',
+          'image_content_type' => 'image/svg',
+          'url' => 'http://github.com/whitmer',
+          'image_attribution' => 'http://creativecommons.org/licenses/by-sa/2.0/uk',
+          'image_author' => 'Paxtoncrafts Charitable Trust'
+        },
+        {
+          'id' => 'page_2',
+          'title' => 'Actually I really prefer dogs',
+          'image' => 'https://s3.amazonaws.com/opensymbols/libraries/arasaac/dog.png',
+          'image_content_type' => 'image/png',
+          'url' => 'http://github.com/whitmer',
+          'image_attribution' => 'http://creativecommons.org/licenses/by-nc-sa/3.0/',
+          'image_author' => 'ARASAAC'
         }
       ])
     end
