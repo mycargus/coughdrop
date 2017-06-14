@@ -187,7 +187,7 @@ var stashes = Ember.Object.extend({
   },
   geo: {
     poll: function() {
-      if(stashes.geolocation) {
+      if(stashes.geolocation && !CoughDrop.embedded) {
         if(stashes.geo.watching) {
           stashes.geolocation.clearWatch(stashes.geo.watching);
         }
