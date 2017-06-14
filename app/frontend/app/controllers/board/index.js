@@ -682,7 +682,8 @@ export default Ember.Controller.extend({
     if(this.get('app_state.currentUser.hide_symbols')) {
       res = res + "no_image ";
     }
-    if(this.get('app_state.currentUser.preferences.device.button_text_position') == 'top') {
+    var position = this.get('app_state.currentUser.preferences.device.button_text_position') || window.user_preferences.device.button_text_position;
+    if(position == 'top') {
       res = res + "top ";
     }
     app_state.set('button_symbol_class', res);

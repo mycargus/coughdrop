@@ -645,6 +645,14 @@ footer .wide_links {
     }
   }
 }
+.signup_links {
+  display: inline-block; 
+  font-size: 18px; 
+  padding-right: 20px; 
+  margin-top: 22px; 
+  width: calc(100% - 435px); 
+  text-align: right;
+}
 
 .button.link_disabled .action_container {
   .action {
@@ -3126,6 +3134,9 @@ body:-ms-fullscreen {
   .skinny-right {
     left: auto;
     right: 0;
+  }
+  .signup_links {
+    visibility: hidden;
   }
 }
 @media (max-width: 767px) {
