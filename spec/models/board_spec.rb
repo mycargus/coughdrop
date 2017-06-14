@@ -357,6 +357,22 @@ describe Board, :type => :model do
       expect(b.settings['revision_hashes'].length).to eq(3)
       expect(b.current_revision).to eq(b.settings['revision_hashes'][-1][0])
     end
+    
+    it "should clear the search_string for unlisted boards" do
+      b = Board.new
+      b.settings = {}
+      b.settings['name'] = 'Friends and Romans'
+      b.settings['description'] = "A good little board"
+      b.settings['grid'] = {}
+      b.settings['grid']['rows'] = 3
+      b.settings['grid']['columns'] = 5
+      b.settings['locale'] = 'es'
+      b.generate_defaults
+      expect(b.search_string).to eq("friends and romans a good little board   locale:es")
+      b.settings['unlisted'] = true
+      b.generate_defaults
+      expect(b.search_string).to eq(nil)
+    end
   end
   
   describe "full_set_revision" do
