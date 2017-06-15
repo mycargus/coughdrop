@@ -310,7 +310,8 @@ import capabilities from './capabilities';
     var list = [];
     for(var idx in (e.statuses || {})) {
       var name = idx;
-      var code = e.statuses[idx];
+      var code = e.statuses[idx].code;
+      var dormant = e.statuses[idx].dormant;
       var val = code;
       var active = false;
       var disabled = true;
@@ -339,6 +340,7 @@ import capabilities from './capabilities';
           status: val,
           code: code,
           active: active,
+          dormant: dormant,
           disabled: disabled
         });
       }
