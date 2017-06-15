@@ -144,6 +144,14 @@ task "extras:desktop" => :environment do
   full_version = (match && match[1]) || Date.today.strftime('%Y.%m.%d')
   full_version = full_version[2..-1].gsub(/[a-z]+/, '')
 
+  str = File.read('./app/assets/javascripts/application-preload.js')
+  match = str.match(/window\.app_version\s+=\s+\"([0-9\.]+\w*)\";/)
+  str = File.read("../#{folder}/www/init.js")
+  full_version = (match && match[1]) || Date.today.strftime('%Y.%m.%d')
+  str = str.sub(/window\.app_version\s*=\s*\"[^\"]+\"/, "window.app_version = \"#{full_version}\"");
+  File.write("../#{folder}/www/init.js", str)
+  puts "updating mobile version"
+
   str = str.sub(/\"version\"\s*:\s*\"[^\"]+\"/, "\"version\": \"#{full_version}\"");
   File.write("../#{folder}/package.json", str)
 end
