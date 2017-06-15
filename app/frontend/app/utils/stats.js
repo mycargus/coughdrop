@@ -177,7 +177,7 @@ CoughDrop.Stats = Ember.Object.extend({
       res.push(day);
     }
     return res;
-  }.property('time_offset_blocks', 'max_time_block', 'max_combined_time_block', 'ref_max_time_block', 'ref_max_combined_time_block', 'modeled_time_offset_blocks', 'max_modeled_time_block', 'max_combined_modeled_time_block', 'ref_max_modeled_time_block', 'ref_max_combined_modeled_time_block'),
+  }.property('time_offset_blocks', 'max_time_block', 'max_combined_time_block', 'ref_max_time_block', 'ref_max_combined_time_block', 'modeling', 'modeled_time_offset_blocks', 'max_modeled_time_block', 'max_combined_modeled_time_block', 'ref_max_modeled_time_block', 'ref_max_combined_modeled_time_block'),
   start_date_field: function() {
     return (this.get('start_at') || "").substring(0, 10);
   }.property('start_at'),
