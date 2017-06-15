@@ -35,7 +35,7 @@ export default Ember.Component.extend({
       });
     });
     return res;
-  }.property('core', 'usage_stats', 'usage_stats.draw_id'),
+  }.property('core', 'usage_stats', 'usage_stats.weighted_words', 'usage_stats.draw_id'),
   actions: {
     word_cloud: function() {
       this.sendAction('word_cloud');
