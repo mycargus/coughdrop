@@ -101,6 +101,29 @@ CoughDrop.Board = DS.Model.extend({
     });
     return !found_visible;
   }.property('buttons', 'grid'),
+  map_image_urls: function(map) {
+    map = map || {};
+    var res = [];
+    var locals = this.get('local_images_with_license');
+    var local_map = this.get('image_urls') || {};
+    this.get('used_buttons').forEach(function(button) {
+      if(button && button.image_id) {
+        if(local_map[button.image_id]) {
+          res.push({id: button.image_id, url: local_map[button.image_id]});
+        } else if(map[button.image_id]) {
+          res.push({id: button.image_id, url: map[button.image_id]});
+        } else {
+          var img = locals.find(function(l) { return l.get('id') == button.image_id; });
+          if(img) {
+            res.push({id: button.image_id, url: img.get('url')});
+          } else {
+            res.some_missing = true;
+          }
+        }
+      }
+    });
+    return res;
+  },
   local_images_with_license: function() {
     var images = CoughDrop.store.peekAll('image');
     var result = [];
@@ -120,6 +143,29 @@ CoughDrop.Board = DS.Model.extend({
     result.some_missing = missing;
     return result;
   }.property('grid', 'buttons'),
+  map_sound_urls: function(map) {
+    map = map || {};
+    var res = [];
+    var locals = this.get('local_sounds_with_license');
+    var local_map = this.get('sound_urls') || {};
+    this.get('used_buttons').forEach(function(button) {
+      if(button && button.sound_id) {
+        if(local_map[button.sound_id]) {
+          res.push({id: button.sound_id, url: local_map[button.sound_id]});
+        } else if(map[button.sound_id]) {
+          res.push({id: button.sound_id, url: map[button.sound_id]});
+        } else {
+          var snd = locals.find(function(l) { return l.get('id') == button.sound_id; });
+          if(snd) {
+            res.push({id: button.sound_id, url: snd.get('url')});
+          } else {
+            res.some_missing = true;
+          }
+        }
+      }
+    });
+    return res;
+  },
   local_sounds_with_license: function() {
     var sounds = CoughDrop.store.peekAll('sound');
     var result = [];

@@ -486,6 +486,14 @@ var persistence = Ember.Object.extend({
     }
   },
   find_url: function(url, type) {
+    if(!this.primed) {
+      var _this = this;
+      return new Ember.RSVP.Promise(function(res, rej) {
+        Ember.run.later(function() {
+          _this.find_url(url, type).then(function(r) { res(r); }, function(e) { rej(e); });
+        }, 500);
+      });
+    }
     url = this.normalize_url(url);
     // url_cache is a cache of all images that already have a data-uri loaded
     // url_uncache is all images that are known to not have a data-uri loaded
@@ -582,7 +590,7 @@ var persistence = Ember.Object.extend({
         res(sounds);
       }, function(err) { rej(err); });
     }));
-    return Ember.RSVP.all_wait(prime_promises).then(function() {
+    var res = Ember.RSVP.all_wait(prime_promises).then(function() {
       return coughDropExtras.storage.find_all('dataCache').then(function(list) {
         var promises = [];
         list.forEach(function(item) {
@@ -624,6 +632,8 @@ var persistence = Ember.Object.extend({
         });
       });
     });
+    res.then(function() { _this.primed = true; }, function() { _this.primed = true; });
+    return res;
   },
   url_cache: {},
   store_url: function store_url(url, type, keep_big, force_reload) {
@@ -676,6 +686,7 @@ var persistence = Ember.Object.extend({
         type: type
       });
     }
+
     var url_id = persistence.normalize_url(url);
     var _this = persistence;
     return new Ember.RSVP.Promise(function(resolve, reject) {
@@ -696,7 +707,7 @@ var persistence = Ember.Object.extend({
             if(force_reload && !trusted_not_to_change) {
               return Ember.RSVP.reject();
             // if we think it's stored locally but it's not in the cache, it needs to be repaired
-            } else if(!_this.url_uncache || !_this.url_uncache[url]) {
+            } else if(_this.url_cache && _this.url_cache[url] && (!_this.url_uncache || !_this.url_uncache[url])) {
               return Ember.RSVP.resolve(data);
             } else {
               return Ember.RSVP.reject();
@@ -1506,31 +1517,32 @@ var persistence = Ember.Object.extend({
                 importantIds.push("dataCache_" + next.image);
               }
 
-              // This will only return images that have been added to the in-memory datastore and can
-              // be "peeked", which is fine since then only time they wouldn't be "peekable" is if
-              // the board was loaded from the local storage without being reloaded, i.e. it's
-              // safely cached.
-              board.get('local_images_with_license').forEach(function(image) {
-                importantIds.push("image_" + image.get('id'));
+              board.map_image_urls(all_image_urls).forEach(function(image) {
+//               board.get('local_images_with_license').forEach(function(image) {
+                importantIds.push("image_" + image.id);
                 var keep_big = !!(board.get('grid.rows') < 3 || board.get('grid.columns') < 6);
-                if(image.get('url') && image.get('url').match(/^http/)) {
-                 visited_board_promises.push(//persistence.queue_sync_action('store_button_image', function() {
-                    /*return*/ persistence.store_url(image.get('personalized_url'), 'image', keep_big, force).then(null, function() {
-                      return Ember.RSVP.reject({error: "button image failed to sync, " + image.get('url')});
+                if(image.url && image.url.match(/^http/)) {
+                  // TODO: should this be app_state.currentUser instead of the currently-syncing user?
+                  var personalized = CoughDrop.Image.personalize_url(image.url, user.get('user_token'));
+
+                  visited_board_promises.push(//persistence.queue_sync_action('store_button_image', function() {
+                    /*return*/ persistence.store_url(personalized, 'image', keep_big, force).then(null, function() {
+                      return Ember.RSVP.reject({error: "button image failed to sync, " + image.url});
                     })
                  /*})*/);
-                  importantIds.push("dataCache_" + image.get('url'));
+                  importantIds.push("dataCache_" + image.url);
                 }
               });
-              board.get('local_sounds_with_license').forEach(function(sound) {
-                importantIds.push("sound_" + sound.get('id'));
-                if(sound.get('url') && sound.get('url').match(/^http/)) {
+              board.map_sound_urls(all_sound_urls).forEach(function(sound) {
+//               board.get('local_sounds_with_license').forEach(function(sound) {
+                importantIds.push("sound_" + sound.id);
+                if(sound.url && sound.url.match(/^http/)) {
                   visited_board_promises.push(//persistence.queue_sync_action('store_button_sound', function() {
-                     /*return*/ persistence.store_url(sound.get('url'), 'sound', false, force).then(null, function() {
-                      return Ember.RSVP.reject({error: "button sound failed to sync, " + sound.get('url')});
+                     /*return*/ persistence.store_url(sound.url, 'sound', false, force).then(null, function() {
+                      return Ember.RSVP.reject({error: "button sound failed to sync, " + sound.url});
                      })
                   /*})*/);
-                  importantIds.push("dataCache_" + sound.get('url'));
+                  importantIds.push("dataCache_" + sound.url);
                 }
               });
               var prior_board = board;
