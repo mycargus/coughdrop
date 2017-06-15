@@ -25,11 +25,11 @@ export default Ember.Component.extend({
     var elem = this.get('element').getElementsByClassName('core_words')[0];
 
     CoughDrop.Visualizations.wait('pie-chart', function() {
-      if(elem && stats && stats.get('core_words')) {
+      var parts = stats && (stats.get('modeling') ? stats.get('modeled_core_words') : stats.get('core_words'));
+      if(elem && stats && parts) {
         var table = [
           ['Type', 'Instances']
         ];
-        var parts = stats.get('modeling') ? stats.get('modeled_core_words') : stats.get('core_words');
         var slice_idx = 0;
         var slices = {};
         ['core', 'not_core'].forEach(function(key) {
