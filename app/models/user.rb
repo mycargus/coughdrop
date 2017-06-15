@@ -593,6 +593,12 @@ class User < ActiveRecord::Base
         device['voice'].delete('voice_uri')
         device['voice']['voice_uris'] = voice_uris.uniq
       end
+
+      # For eye gaze users we will auto-enable the status so they can see eye status
+      if device['dwell'] && device['dwell_type'] == 'eyegaze'
+        self.settings['preferences']['blank_status'] = true
+      end
+
       self.settings['preferences']['devices'][device_key] ||= {}
       device.each do |key, val|
 #         if self.settings['preferences']['devices']['default'][key] == device[key]
