@@ -65,6 +65,8 @@ export default Ember.Component.extend({
         var chart = new window.google.visualization.PieChart(elem);
 
         chart.draw(data, options);
+      } else {
+        elem.innerHTML = '';
       }
     });
   }.observes('usage_stats.draw_id', 'usage_stats.modeling')
