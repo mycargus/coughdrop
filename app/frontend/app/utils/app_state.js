@@ -701,6 +701,39 @@ var app_state = Ember.Object.extend({
       app_state.set('currentUser.load_all_connections', true);
     }
   }.observes('sessionUser', 'speak_mode', 'speakModeUser'),
+  eye_gaze_state: function() {
+    if(!this.get('currentUser.preferences.device.dwell') || this.get('currentUser.preferences.device.dwell_type') != 'eyegaze') {
+      return null;
+    }
+    var state = {};
+    var statuses = Ember.get(capabilities.eye_gaze, 'statuses') || {};
+    var active = null, pending = null, dormant = null;
+    for(var idx in statuses) {
+      if(statuses[idx]) {
+        if(statuses[idx].active) {
+          if(!statuses[idx].dormant) {
+            if(!active || actve.dormant) {
+              active = statuses[idx];
+            }
+          } else {
+            dormant = dormant || statuses[idx];
+          }
+        } else if(!statuses[idx].disabled) {
+          pending = pending || statuses[idx];
+        }
+      }
+    }
+
+    if(!active && !pending && !dormant) {
+      return null;
+    }
+    return {
+      active: !!active,
+      dormant: !!(!active && dormant),
+      disabled: !!(!active && !dormant),
+      status: (active && active.status) || (dormant && dormant.status) || (pending && pending.status)
+    };
+  }.property('currentUser.preferences.device.dwell', 'currentUser.preferences.device.dwell_type', 'eye_gaze.statuses'),
   dom_changes_on_board_state_change: function() {
     if(!this.get('currentBoardState')) {
       Ember.$('#speak_mode').popover('destroy');
@@ -865,6 +898,7 @@ var app_state = Ember.Object.extend({
           }, 100);
         }
       }
+      this.set('eye_gaze', capabilities.eye_gaze);
       this.set('embedded', !!(CoughDrop.embedded));
       this.set('full_screen_capable', capabilities.fullscreen_capable());
     } else if(!this.get('speak_mode') && this.get('last_speak_mode') !== undefined) {

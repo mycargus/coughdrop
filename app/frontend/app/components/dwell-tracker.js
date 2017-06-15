@@ -134,37 +134,12 @@ export default Ember.Component.extend({
     this.set('ts', (new Date()).getTime());
     Ember.$(document).on('mousemove', mouse_listener);
 
-    var status_listener = function(e) {
-      var list = [];
-      for(var idx in (e.statuses || {})) {
-        var name = idx;
-        var val = e.statuses[idx];
-        if(name == 'eyex') {
-          if(val == 2)          { val = "connected";
-          } else if(val == -1)  { val = "stream init failed";
-          } else if(val == 3)   { val = "waiting for data";
-          } else if(val == 5)   { val = "disconnected";
-          } else if(val == 1)   { val = "trying to connect";
-          } else if(val == -2)  { val = "version too low";
-          } else if(val == -3)  { val = "version too high";
-          } else if(val == 4)   { val = "data received";
-          } else if(val == 10)  { val = "initialized";
-          } else if(val == -10) { val = "init failed";
-          }
-        }
-        if(e.statuses[idx]) {
-          list.push({
-            name: name,
-            status: val
-          });
-        }
-      }
-      _this.set('with_status', list);
-    };
-    this.set('status_listener', status_listener);
-    Ember.$(document).on('eye-gaze-status', status_listener);
+    this.set('eye_gaze', capabilities.eye_gaze);
     _this.check_timeout();
   },
+  with_status: function() {
+    return Ember.get(capabilities.eye_gaze, 'statuses');
+  }.property('eye_gaze.statuses'),
   check_timeout: function() {
     var _this = this;
     if(this.get('mouse_listener')) {
@@ -179,10 +154,8 @@ export default Ember.Component.extend({
     capabilities.eye_gaze.stop_listening();
     Ember.$(document).off('mousemove', this.get('mouse_listener'));
     Ember.$(document).off('gazelinger', this.get('eye_listener'));
-    Ember.$(document).off('eye-gaze-status', this.get('status_listener'));
     this.set('mouse_listener', null);
     this.set('eye_listener', null);
-    this.set('status_listener', null);
   },
   actions: {
     advanced: function() {

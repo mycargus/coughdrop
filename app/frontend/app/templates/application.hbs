@@ -39,12 +39,14 @@
                   {{/if}}
                 </div>
               {{/if}}
-              {{#if app_state.eye_tracking}}
-                <div class="eye_status">
-                  {{#if app_state}}
-                    <span class="glyphicon glyphicon-eye-close"></span>
-                  {{else}}
+              {{#if app_state.eye_gaze_state}}
+                <div class="eye_status" title={{app_state.eye_gaze_state.status}}>
+                  {{#if app_state.active}}
                     <span class="glyphicon glyphicon-eye-open"></span>
+                  {{else if app_state.dormant}}
+                    <span class="glyphicon glyphicon-eye-open text-muted"></span>
+                  {{else}}
+                    <span class="glyphicon glyphicon-eye-close text-muted"></span>
                   {{/if}}
                 </div>
               {{/if}}

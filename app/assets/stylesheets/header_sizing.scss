@@ -71,15 +71,19 @@ header {
     padding-left: 10px; 
     font-size: 16px; 
     opacity: 1.0;
+    height: 55px;
+    overflow: hidden;
     .progress {
       width: 50px;
       text-align: center;
       margin: 0;
     }
     .eye_status {
-      display: none;
+      display: block;
       color: #aaa;
-      margin-top: 3px;
+      margin-top: -40px;
+      margin-left: 70px;
+      font-size: 40px;
     }
   }
   #speak {
@@ -160,6 +164,7 @@ header {
       }
       #blank_status {
         font-size: 12px;
+        height: 40px;
         .progress {
           width: 40px;
           height: 15px;
@@ -167,6 +172,11 @@ header {
           .progress-bar {
             font-size: 10px;
           }
+        }
+        .eye_status {
+          font-size: 30px;
+          margin-top: -33px;
+          margin-left: 55px;
         }
       }
       #identity .btn {
@@ -257,7 +267,7 @@ header {
           font-size: 16px;
         }
         .eye_status {
-          display: block;
+          margin-left: 80px;
         }
       }
       #identity .btn {
@@ -349,7 +359,7 @@ header {
           
         }
         .eye_status {
-          display: block;
+          margin-left: 90px;
         }
       }
       #identity .btn {
@@ -433,6 +443,7 @@ header {
       }
       #blank_status {
         font-size: 26px;
+        height: 70px;
         .progress {
           width: 85px;
           height: 25px;
@@ -443,7 +454,7 @@ header {
           }
         }
         .eye_status {
-          display: block;
+          margin-left: 100px;
         }
       }
       #identity .btn {

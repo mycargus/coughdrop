@@ -305,6 +305,48 @@ import capabilities from './capabilities';
       extras.enable();
     });
   });
+
+  var status_listener = function(e) {
+    var list = [];
+    for(var idx in (e.statuses || {})) {
+      var name = idx;
+      var code = e.statuses[idx];
+      var val = code;
+      var active = false;
+      var disabled = true;
+      if(name == 'eyex') {
+        if(code == 2)          { val = "connected";                         disabled = false;
+        } else if(code == -1)  { val = "stream init failed";
+        } else if(code == 3)   { val = "waiting for data";   active = true; disabled = false;
+        } else if(code == 5)   { val = "disconnected";
+        } else if(code == 1)   { val = "trying to connect";                 disabled = false;
+        } else if(code == -2)  { val = "version too low";
+        } else if(code == -3)  { val = "version too high";
+        } else if(code == 4)   { val = "data received";      active = true; disabled = false;
+        } else if(code == 10)  { val = "initialized";                       disabled = false;
+        } else if(code == -10) { val = "init failed";
+        }
+      } else if(name == 'eyetribe') {
+        if(code == 'not_initialized') {
+        } else if(code == 'not_tracking') {       active = true; disabled = false;
+        } else if(code == 'fully_tracking') {     active = true; disabled = false;
+        } else if(code == 'partial_tracking') {   active = true; disabled = false;
+        }
+      }
+      if(e.statuses[idx]) {
+        list.push({
+          name: name,
+          status: val,
+          code: code,
+          active: active,
+          disabled: disabled
+        });
+      }
+    }
+    Ember.set(capabilities.eye_gaze, 'statuses', list);
+  };
+  extras.set('status_listener', status_listener);
+  Ember.$(document).on('eye-gaze-status', status_listener);
 })();
 
 window.time_log = function(str) {
