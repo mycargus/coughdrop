@@ -326,6 +326,9 @@ import capabilities from './capabilities';
         } else if(code == 4)   { val = "data received";      active = true; disabled = false;
         } else if(code == 10)  { val = "initialized";                       disabled = false;
         } else if(code == -10) { val = "init failed";
+        } else if(code == -4) { val = "device disconnected";
+        } else if(code == -5) { val = "tracking paused";     active = true; disabled = false; dormant = true;
+        } else if(code == -6) { val = "user not detected";   active = true; disabled = false; dormant = true;
         }
       } else if(name == 'eyetribe') {
         if(code == 'not_initialized') {

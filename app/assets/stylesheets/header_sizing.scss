@@ -80,9 +80,13 @@ header {
     }
     .eye_status {
       display: block;
+      color: #444;
       margin-top: -40px;
       margin-left: 70px;
       font-size: 40px;
+      &.text-muted {
+        color: #aaa;
+      }
     }
   }
   #speak {
