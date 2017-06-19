@@ -735,6 +735,7 @@ export default Ember.Controller.extend({
       button.label = ":complete";
       button.completion = text;
       button.image = word.original_image;
+      button.empty = false;
 
       var controller = this;
       var board = this.get('model');
