@@ -15,10 +15,12 @@ export default Ember.Controller.extend({
       var settings = modal.settings_for['flash'];
 
       this.set('message', settings.text);
+      this.set('sticky', settings.sticky);
       var class_name = 'alert-info';
       if(settings.type == 'warning') { class_name = 'alert-warning'; }
       if(settings.type == 'error') { class_name = 'alert-danger'; }
       if(settings.type == 'success') { class_name = 'alert-success'; }
+      if(settings.below_header) { class_name = class_name + ' below_header'; }
       var top = app_state.get('header_height');
       this.set('extra_styles', new Ember.String.htmlSafe(settings.below_header ? 'top: ' + top + 'px;' : ''));
       this.set('alert_type', class_name);

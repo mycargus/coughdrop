@@ -1,7 +1,12 @@
 {{#opening-observer opening='opening'}}
 <div class="flash" style={{extra_styles}}>
   <div class={{display_class}}>
-    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+    <div class='shadow'></div>
+    {{#if sticky}}
+      <button type='button' class='btn btn-default' data-dismiss='alert' aria-hidden='true' style='float: right; margin-top: -8px; margin-right: -20px;'>{{t "Got It" key='got_it'}}</button>
+    {{else}}
+      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+    {{/if}}
     {{message}}
   </div>
 </div>

@@ -1904,6 +1904,25 @@ video.button_image {
 .flash .alert {
   border-top-right-radius: 0;
   border-top-left-radius: 0;
+  border-width: 2px;
+  border-top-width: 0;
+  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.5);
+  position: relative;
+  &.alert-info {
+    border-color: #9cc8d1;
+  }
+  &.alert-success {
+    border-color: #96a986;
+  }
+  &.alert-warning {
+    border-color: #baab8c;
+  }
+  &.alert-danger {
+    border-color: #ab8c91;
+  }
+  &.below_header {
+    border-top-width: 2px;
+  }
 }
 .flash.fade {
   opacity: 0.0;

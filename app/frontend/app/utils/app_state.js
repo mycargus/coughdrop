@@ -844,6 +844,7 @@ var app_state = Ember.Object.extend({
       if(geo_enabled) {
         stashes.geo.poll();
       }
+      this.set('speak_mode_started', (new Date()).getTime());
 
       // this method is getting called again on every board load, even if already in speak mode. This check
       // limits the following block to once per speak-mode-activation.
@@ -937,6 +938,32 @@ var app_state = Ember.Object.extend({
   superProtectedSpeakMode: function() {
     return this.get('speak_mode') && this.get('embedded');
   }.property('speak_mode', 'embedded'),
+  auto_exit_speak_mode: function() {
+    var now = (new Date()).getTime();
+    // if we're speaking as the current user and they're a limited supervisor, or if
+    // we're speaking/modeling related to a supervisee and they're expired, limit
+    // the session to 15 minutes and notify them of the time limit.
+    if(this.get('speak_mode') && this.get('speak_mode_started')) {
+      var started = this.get('speak_mode_started');
+      var done = false;
+      if(this.get('currentUser.id') == this.get('sessionUser.id') && this.get('currentUser.limited_supervisor')) {
+        if(started < now - (15 * 60 * 1000)) {
+          done = i18n.t('limited_supervisor_timeout', "Speak mode sessions are limited to 15 minutes for supervisors not working with paid communicators");
+        }
+      } else if(this.get('sessionUser.id') != this.get('referenced_speak_mode_user.id') && this.get('referenced_speak_mode_user.expired')) {
+        if(started < now - (15 * 60 * 1000)) {
+          done = i18n.t('expired_supervisee_timeout', "Speak mode sessions are limited to 15 minutes when working with communicators that don't have an active account");
+        }
+      }
+
+      if(done) {
+        this.toggle_speak_mode();
+        modal.notice(done, true, true);
+      }
+    } else {
+      this.set('speak_mode_timeout', null);
+    }
+  }.observes('speak_mode_started', 'medium_refresh_stamp'),
   current_board_name: function() {
     var state = this.get('currentBoardState');
     if(state && state.key) {
