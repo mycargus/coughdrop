@@ -712,7 +712,7 @@ var app_state = Ember.Object.extend({
       if(statuses[idx]) {
         if(statuses[idx].active) {
           if(!statuses[idx].dormant) {
-            if(!active || actve.dormant) {
+            if(!active || active.dormant) {
               active = statuses[idx];
             }
           } else {
