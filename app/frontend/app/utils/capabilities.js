@@ -505,20 +505,44 @@ var capabilities;
               if(dir) {
                 var reader = dir.createReader();
                 reader.readEntries(function(list) {
-                  list.forEach(function(e) {
+                  var idx = 0;
+                  var next_file = function() {
+                    var e = list[idx];
+                    if(!e) {
+                      return next_dir(false);
+                    }
+                    idx++;
                     if(e.isFile) {
                       if(include_size) {
-                        // TODO: this is a race condition, it's bad that I'm ignoring it
-                        e.getMetadata(function(metadata) {
-                          res.size = res.size + metadata.size;
-                        }, function() { });
+                        if(e.size && e.size > 0) {
+                          res.push(e.name);
+                          res.size = res.size + e.size;
+                          next_file();
+                        } else if(e.getMetadata) {
+                          e.getMetadata(function(metadata) {
+                            if(metadata.size > 0) {
+                              res.push(e.name);
+                              res.size = res.size + metadata.size;
+                            }
+                            next_file();
+                          }, function() {
+                            next_file();
+                          });
+                        } else {
+                          next_file();
+                        }
+                      } else {
+                        res.push(e.name);
+                        next_file();
                       }
-                      res.push(e.name);
                     } else if(e.isDirectory && go_deeper) {
                       dirs.push(e);
+                      next_file();
+                    } else {
+                      next_file();
                     }
-                  });
-                  next_dir(false);
+                  };
+                  next_file();
                 }, function(err) {
                   promise.reject(err);
                 });

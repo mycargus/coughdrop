@@ -821,8 +821,12 @@ var persistence = Ember.Object.extend({
               if(!extension && url_extension) {
                 extension = "." + url_extension;
               }
+              var url_piece = pieces.pop();
+              if(url_piece.length > 20) {
+                url_piece = url_piece.substring(0, 20);
+              }
               extension = extension || ".png";
-              local_system_filename = (file_code % 10000).toString() + "0000." + pieces.pop() + "." + file_code.toString() + extension;
+              local_system_filename = (file_code % 10000).toString() + "0000." + url_piece + "." + file_code.toString() + extension;
             }
             var svg = null;
             if(object.data_uri.match(/svg/)) {
