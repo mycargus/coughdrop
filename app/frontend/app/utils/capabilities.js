@@ -390,7 +390,7 @@ var capabilities;
                   promise.resolve(list.length);
                 }
               }, function(err) {
-                cleared++;
+                if(cleared > 0) { capabilities.cached_dirs = {}; }
                 promise.reject(err);
               });
             });
@@ -624,8 +624,9 @@ var capabilities;
           var promise = capabilities.mini_promise();
           capabilities.storage.assert_directory(dirname, filename).then(function(dir) {
             dir.getFile(filename, {}, function(file) {
+              var url = file.toURL();
               file.remove(function() {
-                promise.resolve(file.toURL());
+                promise.resolve(url);
               }, function(err) {
                 promise.reject(err);
               });
@@ -693,6 +694,7 @@ var capabilities;
               } else if(capabilities.root_dir_entry) {
                 return promise.resolve(capabilities.root_dir_entry);
               } else {
+                req_size = full_size;
                 get_file_system();
               }
             }, function(err) {
