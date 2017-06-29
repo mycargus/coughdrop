@@ -353,25 +353,25 @@ module Uploader
   end
   
   def self.find_resources(query, source, user)
-    tarheel_prefix = ENV['TARHEEL_PROXY'] || "https://images.weserv.nl/?url=tarheelreader.org"
+    tarheel_prefix = "https://tarheelreader.org" #ENV['TARHEEL_PROXY'] || "https://images.weserv.nl/?url=tarheelreader.org"
     if source == 'tarheel'
-      url = "http://tarheelreader.org/find/?search=#{CGI.escape(query)}&category=&reviewed=R&audience=E&language=en&page=1&json=1"
+      url = "https://tarheelreader.org/find/?search=#{CGI.escape(query)}&category=&reviewed=R&audience=E&language=en&page=1&json=1"
       res = Typhoeus.get(url)
       results = JSON.parse(res.body)
       list = []
       results['books'].each do |book|
         list << {
-          'url' => "http://tarheelreader.org#{book['link']}",
+          'url' => "https://tarheelreader.org#{book['link']}",
           'image' => tarheel_prefix + book['cover']['url'],
           'title' => book['title'],
           'author' => book['author'],
           'id' => book['slug'],
-          'image_attribution' => "http://tarheelreader.org/photo-credits/?id=#{book['ID']}"
+          'image_attribution' => "https://tarheelreader.org/photo-credits/?id=#{book['ID']}"
         }
       end
       return list
     elsif source == 'tarheel_book'
-      url = "http://tarheelreader.org/book-as-json/?slug=#{CGI.escape(query)}"
+      url = "https://tarheelreader.org/book-as-json/?slug=#{CGI.escape(query)}"
       if query.match(/^http/)
         url = query
       end
@@ -384,8 +384,8 @@ module Uploader
           'title' => page['text'],
           'image' => page['image_url'] || (tarheel_prefix + page['url']),
           'image_content_type' => page['image_content_type'] || 'image/jpeg',
-          'url' => results['book_url'] || "http://tarheelreader.org#{results['link']}",
-          'image_attribution' => page['image_attribution_url'] || "http://tarheelreader.org/photo-credits/?id=#{results['ID']}",
+          'url' => results['book_url'] || "https://tarheelreader.org#{results['link']}",
+          'image_attribution' => page['image_attribution_url'] || "https://tarheelreader.org/photo-credits/?id=#{results['ID']}",
           'image_author' => page['image_attribution_author'] || 'Flickr User'
         }
       end

@@ -617,7 +617,7 @@ describe Uploader do
     end
     
     it 'should search for tarheel results' do
-      expect(Typhoeus).to receive(:get).with("http://tarheelreader.org/find/?search=bacon&category=&reviewed=R&audience=E&language=en&page=1&json=1").and_return(OpenStruct.new(body: {
+      expect(Typhoeus).to receive(:get).with("https://tarheelreader.org/find/?search=bacon&category=&reviewed=R&audience=E&language=en&page=1&json=1").and_return(OpenStruct.new(body: {
         books: [
           {
             'link' => '/bacon1',
@@ -643,26 +643,26 @@ describe Uploader do
       }.to_json))
       expect(Uploader.find_resources('bacon', 'tarheel', nil)).to eq([
         {
-          'url' => 'http://tarheelreader.org/bacon1',
+          'url' => 'https://tarheelreader.org/bacon1',
           'image' => 'https://d1afj2lqudmea0.cloudfront.net/bacon.png',
           'title' => 'Bacon One',
           'author' => 'Amir',
           'id' => 'bacon-1',
-          'image_attribution' => 'http://tarheelreader.org/photo-credits/?id=12345'
+          'image_attribution' => 'https://tarheelreader.org/photo-credits/?id=12345'
         },
         {
-          'url' => 'http://tarheelreader.org/bacon2',
+          'url' => 'https://tarheelreader.org/bacon2',
           'image' => 'https://d1afj2lqudmea0.cloudfront.net/bacon.png',
           'title' => 'Bacon Two',
           'author' => 'Radish',
           'id' => 'bacon-2',
-          'image_attribution' => 'http://tarheelreader.org/photo-credits/?id=123456'
+          'image_attribution' => 'https://tarheelreader.org/photo-credits/?id=123456'
         }
       ])
     end
     
     it 'should return tarheel book pages' do
-      expect(Typhoeus).to receive(:get).with("http://tarheelreader.org/book-as-json/?slug=bacon-1").and_return(OpenStruct.new(body: {
+      expect(Typhoeus).to receive(:get).with("https://tarheelreader.org/book-as-json/?slug=bacon-1").and_return(OpenStruct.new(body: {
         'slug' => 'bacon-1',
         'ID' => '12345',
         'link' => '/bacon',
@@ -687,8 +687,8 @@ describe Uploader do
           'title' => 'Bacon is Yummy',
           'image' => 'https://d1afj2lqudmea0.cloudfront.net/bacon-yum.png',
           'image_content_type' => 'image/jpeg',
-          'url' => 'http://tarheelreader.org/bacon',
-          'image_attribution' => 'http://tarheelreader.org/photo-credits/?id=12345',
+          'url' => 'https://tarheelreader.org/bacon',
+          'image_attribution' => 'https://tarheelreader.org/photo-credits/?id=12345',
           'image_author' => 'Flickr User'
         },
         {
@@ -696,8 +696,8 @@ describe Uploader do
           'title' => 'I Love Bacon',
           'image' => 'https://d1afj2lqudmea0.cloudfront.net/heart.png',
           'image_content_type' => 'image/jpeg',
-          'url' => 'http://tarheelreader.org/bacon',
-          'image_attribution' => 'http://tarheelreader.org/photo-credits/?id=12345',
+          'url' => 'https://tarheelreader.org/bacon',
+          'image_attribution' => 'https://tarheelreader.org/photo-credits/?id=12345',
           'image_author' => 'Flickr User'
         },
         {
@@ -705,8 +705,8 @@ describe Uploader do
           'title' => 'We Should Get Some Bacon',
           'image' => 'https://d1afj2lqudmea0.cloudfront.net/shopping.png',
           'image_content_type' => 'image/jpeg',
-          'url' => 'http://tarheelreader.org/bacon',
-          'image_attribution' => 'http://tarheelreader.org/photo-credits/?id=12345',
+          'url' => 'https://tarheelreader.org/bacon',
+          'image_attribution' => 'https://tarheelreader.org/photo-credits/?id=12345',
           'image_author' => 'Flickr User'
         }
       ])
