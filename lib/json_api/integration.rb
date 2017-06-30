@@ -32,6 +32,8 @@ module JsonApi::Integration
 
     if json['permissions'] && json['permissions']['view']
       if obj.template
+        # TODO: sharding
+        json['uses'] = UserIntegration.where(:template_integration_id => obj.id).count
         if obj.settings['user_parameters']
           params = []
           obj.settings['user_parameters'].each do |param|

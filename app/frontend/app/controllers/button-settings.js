@@ -44,7 +44,9 @@ export default modal.ModalController.extend({
     if(this.get('board.user_name') == app_state.get('currentUser.user_name')) {
       find_integration = app_state.get('currentUser').find_integration('lessonpix');
     } else {
-      find_integration = CoughDrop.User.find_integration(this.get('board.user_name'), 'lessonpix');
+      find_integration = CoughDrop.User.find_integration(this.get('board.user_name'), 'lessonpix').then(null, function() {
+        return app_state.get('currentUser').find_integration('lessonpix');
+      });
     }
     find_integration.then(function(res) {
       _this.set('lessonpix_enabled', true);
