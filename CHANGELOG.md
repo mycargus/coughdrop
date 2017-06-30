@@ -2,6 +2,17 @@
 
 ## Master
 
+### 2017-06-30
+- Tarheel Reader integration
+- option for clear background on button symbols
+- additional eye tracking support and troubleshooting
+- option to delete linked boards when deleting a board
+- cache optimizations for syncing
+- change speak mode options to include modeling mode
+- modeling filter for stats
+- timeout on speak mode sessions for non-premium-affiliated supervisors
+- more robust file handling for local storage sync
+
 ### 2017-05-04
 - message banking tools (feature flag)
 - fixes for switch-based scanning
