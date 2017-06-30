@@ -1325,7 +1325,7 @@ var app_state = Ember.Object.extend({
           Ember.run.later(function() {
             _this.jump_to_board({
               id: "i_tarheel",
-              key: "integrations/tarheel:" + btoa(JSON.stringify(opts)),
+              key: "integrations/tarheel:" + encodeURIComponent(btoa(JSON.stringify(opts))),
               home_lock: button.home_lock
             }, obj.board);
           }, 100);
