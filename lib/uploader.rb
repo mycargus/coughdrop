@@ -376,6 +376,9 @@ module Uploader
         url = query
       end
       res = Typhoeus.get(url)
+      if res.headers['Location']
+        res = Typhoeus.get(res.headers['Location'])
+      end
       results = JSON.parse(res.body)
       list = []
       results['pages'].each_with_index do |page, idx|
