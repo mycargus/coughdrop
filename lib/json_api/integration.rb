@@ -23,18 +23,20 @@ module JsonApi::Integration
     if obj.integration_key
       json['integration_key'] = obj.integration_key
     end
+    if obj.template
+      json['integration_key'] = obj.integration_key
+      json['template'] = true
+      if obj.settings['user_parameters']
+        params = []
+        obj.settings['user_parameters'].each do |param|
+          param['type'] ||= 'text'
+          params << param.slice('name', 'label', 'default_value', 'type', 'hint')
+        end
+        json['user_parameters'] = params
+      end
+    end
     if json['permissions'] && json['permissions']['edit']
       if obj.template
-        json['integration_key'] = obj.integration_key
-        json['template'] = true
-        if obj.settings['user_parameters']
-          params = []
-          obj.settings['user_parameters'].each do |param|
-            param['type'] ||= 'text'
-            params << param.slice('name', 'label', 'default_value', 'type', 'hint')
-          end
-          json['user_parameters'] = params
-        end
       else
         json['added'] = obj.created_at.iso8601
         json['template_key'] = obj.settings['template_key']
