@@ -23,21 +23,19 @@ module JsonApi::Integration
     if obj.integration_key
       json['integration_key'] = obj.integration_key
     end
-    if obj.template
-      json['integration_key'] = obj.integration_key
-      json['template'] = true
-      if obj.settings['user_parameters']
-        params = []
-        obj.settings['user_parameters'].each do |param|
-          param['type'] ||= 'text'
-          params << param.slice('name', 'label', 'default_value', 'type', 'hint')
-        end
-        json['user_parameters'] = params
-      end
-    end
-    if json['permissions'] && json['permissions']['edit']
+    if json['permissions'] && json['permissions']['view']
       if obj.template
-      else
+        json['integration_key'] = obj.integration_key
+        json['template'] = true
+        if obj.settings['user_parameters']
+          params = []
+          obj.settings['user_parameters'].each do |param|
+            param['type'] ||= 'text'
+            params << param.slice('name', 'label', 'default_value', 'type', 'hint')
+          end
+          json['user_parameters'] = params
+        end
+      elsif json['permissions'] && json['permissions']['edit'] 
         json['added'] = obj.created_at.iso8601
         json['template_key'] = obj.settings['template_key']
         if obj.settings['user_settings']
@@ -55,7 +53,7 @@ module JsonApi::Integration
         end
       end
 
-      if obj.settings['custom_integration']
+      if obj.settings['custom_integration'] && json['permissions'] && json['permissions']['edit']
         device_token = obj.device.token
         if obj.created_at > 24.hours.ago && obj.device
           json['access_token'] = device_token

@@ -15,10 +15,13 @@ export default modal.ModalController.extend({
       _this.set('tools', list);
       if(_this.get('model.tool')) {
         var tool = res.find(function(t) { return t.get('integration_key') == _this.get('model.tool'); });
-        tool.set('installing', null);
-        tool.set('error', null);
-        _this.set('selected_tool', tool);
-        _this.set('hide_list', true);
+        if(tool) {
+          tool.reload();
+          tool.set('installing', null);
+          tool.set('error', null);
+          _this.set('selected_tool', tool);
+          _this.set('hide_list', true);
+        }
       }
     }, function(err) {
       _this.set('tools', {error: true});
