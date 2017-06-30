@@ -162,7 +162,7 @@
                 <span class='sr-only'>{{t "modeled event" key='modeled_event'}}</span>
               {{/if}}
               <span class={{if event.button_type '' 'text-muted'}}>
-                {{event.summary}}
+                {{event.processed_summary}}
               </span>
             </td>
             <td>
@@ -170,7 +170,7 @@
                 {{seconds_ago event.delay}}
               </span>
             </td>
-            <td>
+            <td style='max-width: 100px; overflow: hidden;'>
               {{#if event.new_board}}
                 {{#link-to 'board' event.new_board.key}}
                   {{event.new_board.key}}

@@ -89,6 +89,10 @@ export default DS.Model.extend({
         Ember.set(event, 'part_of_speech', ((event.parts_of_speech || {}).types || [])[0] || 'unknown');
       }
       Ember.set(event, 'show_notes', event.id && shown_ids.indexOf(event.id) >= 0);
+      Ember.set(event, 'processed_summary', event.summary);
+      if(event.type == 'utterance' && event.utterance_text) {
+        Ember.set(event, 'processed_summary', event.summary + " \"" + event.utterance_text + "\"");
+      }
 
       Ember.set(event, 'note_count', (event.notes || []).length);
       last_ts = event.timestamp;

@@ -119,6 +119,7 @@ module JsonApi::Log
       elsif event['utterance']
         entry['type'] = 'utterance'
         entry['summary'] = "[vocalize]"
+        entry['utterance_text'] = event['utterance']['text']
       else
         entry['type'] = 'other'
         entry['summary'] = "unrecognized event"
