@@ -17,7 +17,7 @@ class UserIntegration < ActiveRecord::Base
 #  has_paper_trail :only => [:settings]
   secure_serialize :settings
   
-  add_permissions('view') { self.settings['global'] }
+  add_permissions('view') { self.settings['global'] || self.template }
   add_permissions('view', ['read_profile']) {|user| self.user_id == user.id }
   add_permissions('view', 'edit', 'delete') {|user| self.user_id == user.id }
   add_permissions('view', ['read_profile']) {|user| self.user && self.user.allows?(user, 'edit') }
