@@ -39,7 +39,7 @@ export default modal.ModalController.extend({
       }));
     });
     this.set('user_parameters', res);
-  }.observes('selected_tool.parameters'),
+  }.observes('selected_tool.user_parameters'),
   actions: {
     install: function() {
       var _this = this;
