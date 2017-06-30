@@ -11,6 +11,7 @@ CoughDrop.Integration = DS.Model.extend({
   render: DS.attr('boolean'),
   render_url: DS.attr('string'),
   icon_url: DS.attr('string'),
+  uses: DS.attr('number'),
   template: DS.attr('boolean'),
   template_key: DS.attr('string'),
   user_parameters: DS.attr('raw'),

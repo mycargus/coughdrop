@@ -15,6 +15,11 @@
         <img src={{selected_tool.icon_url}} style='height: 50px; max-width: 70px; padding-right: 10px;'/>
         {{selected_tool.name}}
       </h3>
+      {{#if selected_tool.integration_key}}
+        {{#if selected_tool.uses}}
+          <div class='text-muted' style='margin-top: -10px; margin-bottom: 10px;'>{{t "installed by" key='installed_by'}} {{t "user" key='n_users' count=selected_tool.uses}}</div>
+        {{/if}}
+      {{/if}}
       <span style='white-space: pre-line'>{{safe selected_tool.description}}</span>
       {{#if user_parameters}}
         <form class="form-horizontal" {{action "nothing" on="submit"}}>
