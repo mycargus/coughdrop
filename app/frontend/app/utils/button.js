@@ -118,6 +118,9 @@ var Button = Ember.Object.extend({
     var youtube_id = youtube_match && youtube_match[1];
     var tarheel_id = tarheel_match && tarheel_match[1];
     var book_id = book_match && book_match[1];
+    if(book_id && book_id.match(/www\.dropbox\.com/) && book_id.match(/\?dl=0$/)) {
+      book_id = book_id.replace(/\?dl=0$/, 'dl=1');
+    }
     if(youtube_id) {
       if(this.get('video.id') != youtube_id) {
         this.set('video', {
@@ -217,7 +220,7 @@ var Button = Ember.Object.extend({
   }.property('load_board.key'),
   fixed_url: function() {
     var url = this.get('url');
-    if(url && !url.match(/^http/)) {
+    if(url && !url.match(/^http/) && !url.match(/^book:/)) {
       url = "http://" + url;
     }
     return url;
