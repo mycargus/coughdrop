@@ -240,9 +240,13 @@ var word_suggestions = Ember.Object.extend({
                 result.forEach(function(word) {
                   button_set.find_buttons(word.word, board.get('id'), app_state.get('currentUser'), true).then(function(buttons) {
                     var button = buttons[0];
-                    if(!Ember.get(word, 'original_image') && button && button.label == word.word && button.image && (button.image.match(/^data/) || !button.image.match(/^http/))) {
+                    if(!Ember.get(word, 'original_image') && button && button.label == word.word && button.image) {
                       Ember.set(word, 'original_image', button.original_image);
+                      Ember.set(word, 'safe_image', Ember.get(word, 'image'));
                       Ember.set(word, 'image', button.image);
+                      if(button.image.match(/^data/) || !button.image.match(/^http/)) {
+                        Ember.set(word, 'safe_image', button.image);
+                      }
                     }
                   });
                 });

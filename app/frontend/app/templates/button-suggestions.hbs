@@ -98,7 +98,7 @@
                 </span>
                 {{#if item.image}}
                   <div style='height: 80px; width: 80px; overflow: hidden; float: left; margin-right: 10px;'>
-                    <img src={{item.image}} style='width: 100%; max-height: 80px;' />
+                    <img src={{item.safe_image}} rel={{item.image}} onerror="this.src = this.getAttribute('rel');" style='width: 100%; max-height: 80px;' />
                   </div>
                 {{/if}}
                 <span class={{if item.used 'text-muted'}} style='font-size: 20px; white-space: normal;'>
