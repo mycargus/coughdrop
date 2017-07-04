@@ -1,5 +1,5 @@
 class Api::IntegrationsController < ApplicationController
-  before_action :require_api_token
+  before_action :require_api_token, :except => [:show]
   
   def index
     integrations = UserIntegration.where(:template => true).order('id ASC')
@@ -17,6 +17,9 @@ class Api::IntegrationsController < ApplicationController
   end
   
   def show
+    if UserIntegration.global_integrations[params['id']]
+      params['id'] = UserIntegration.global_integrations[params['id']]
+    end
     integration = UserIntegration.find_by_path(params['id'])
     return unless exists?(integration, params['id'])
     return unless allowed?(integration, 'view')

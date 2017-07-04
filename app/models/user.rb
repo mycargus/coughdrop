@@ -199,10 +199,11 @@ class User < ActiveRecord::Base
         'role' => 'communicator',
         'auto_open_speak_mode' => true,
         'share_notifications' => 'email'
-      }
+      },
+      'global_integrations' => UserIntegration.global_integrations.keys
     }
   end
-  
+
   def generate_defaults
     self.settings ||= {}
     self.settings['name'] ||= "No name"

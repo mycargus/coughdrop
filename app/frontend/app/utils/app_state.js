@@ -1311,6 +1311,7 @@ var app_state = Ember.Object.extend({
       } else {
         var real_url = button.url;
         var book_integration = app_state.get('sessionUser.global_integrations.tarheel');
+        book_integration = book_integration || ((window.user_preferences || {}).global_integrations || []).indexOf('tarheel') != -1;
         if(button.book && button.book.popup && button.book.url) {
           real_url = button.book.url;
         }

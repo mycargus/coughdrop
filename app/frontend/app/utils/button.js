@@ -119,7 +119,7 @@ var Button = Ember.Object.extend({
     var tarheel_id = tarheel_match && tarheel_match[1];
     var book_id = book_match && book_match[1];
     if(book_id && book_id.match(/www\.dropbox\.com/) && book_id.match(/\?dl=0$/)) {
-      book_id = book_id.replace(/\?dl=0$/, 'dl=1');
+      book_id = book_id.replace(/\?dl=0$/, '?dl=1');
     }
     if(youtube_id) {
       if(this.get('video.id') != youtube_id) {
