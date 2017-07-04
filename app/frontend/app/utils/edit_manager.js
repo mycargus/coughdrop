@@ -226,6 +226,9 @@ var editManager = Ember.Object.extend({
     }
     opts.label = '';
     opts.image = null;
+    opts.local_image_url = null;
+    opts.local_sound_url = null;
+    opts.image_style = null;
     this.change_button(id, opts);
   },
   change_button: function(id, options) {
