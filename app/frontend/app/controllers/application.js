@@ -374,6 +374,7 @@ export default Ember.Controller.extend({
     },
     openButtonStash: function() {
       if(!app_state.get('edit_mode')) { return; }
+      editManager.clear_paint_mode();
       modal.open('button-stash');
     },
     list_copies: function() {
