@@ -52,18 +52,25 @@
       </div>
       {{#if advanced}}
         {{#if model.preferences.vocalize_buttons}}
-        <div class="checkbox">
-          <label>
-            {{input type="checkbox" checked=model.preferences.vocalize_linked_buttons id="vocalize_linked_buttons"}}
-            {{t "Vocalize when hitting linked buttons" key='vocalize_linked_buttons'}}
-          </label>
-        </div>
-        <div class="checkbox">
-          <label>
-            {{input type="checkbox" checked=model.preferences.silence_spelling_buttons id="silence_spelling_buttons"}}
-            {{t "Don't vocalize when spelling until the word is completed" key='silence_spelling_buttons'}}
-          </label>
-        </div>
+          <div class="checkbox">
+            <label>
+              {{input type="checkbox" checked=model.preferences.vocalize_linked_buttons id="vocalize_linked_buttons"}}
+              {{t "Vocalize when hitting linked buttons" key='vocalize_linked_buttons'}}
+            </label>
+          </div>
+          <div class="checkbox">
+            <label>
+              {{input type="checkbox" checked=model.preferences.silence_spelling_buttons id="silence_spelling_buttons"}}
+              {{t "Don't vocalize when spelling until the word is completed" key='silence_spelling_buttons'}}
+            </label>
+          </div>
+        {{else}}
+          <div class="checkbox">
+            <label>
+              {{input type="checkbox" checked=model.preferences.click_buttons id="click_buttons"}}
+              {{t "Make a clicking sound when hitting unspoken buttons" key='click_buttons'}}
+            </label>
+          </div>
         {{/if}}
         <div class="checkbox">
           <label>
@@ -1024,7 +1031,15 @@
   {{/unless}}
   <div class="form-group">
     <div class="col-sm-offset-3 col-sm-5">
-      <button type="submit" class="btn btn-primary">{{t "Save Preferences" key='save_preferences'}}</button>
+      <button type="submit" class="btn btn-primary">
+        {{#if status.saving}}
+          {{t "Saving Preferences..." key='saving_preferences'}}
+        {{else if status.error}}
+          {{t "Error Saving Preferences" key='error_saving_preferences'}}
+        {{else}}
+          {{t "Save Preferences" key='save_preferences'}}
+        {{/if}}
+      </button>
       <button type="button" class="btn btn-default" {{action "cancelSave"}}>{{t "Cancel" key='cancel'}}</button>
     </div>
   </div>

@@ -1242,13 +1242,21 @@ var app_state = Ember.Object.extend({
         if(app_state.get('currentUser.preferences.vocalize_buttons') || (!app_state.get('currentUser') && window.user_preferences.any_user.vocalize_buttons)) {
           if(skip_speaking_by_default && !app_state.get('currentUser.preferences.vocalize_linked_buttons') && !button.add_to_vocalization) {
             // don't say it...
+            if(app_state.get('currentUser.preferences.click_buttons')) {
+              speecher.click();
+            }
           } else if(button_to_speak.in_progress && app_state.get('currentUser.preferences.silence_spelling_buttons')) {
             // don't say it...
+            if(app_state.get('currentUser.preferences.click_buttons')) {
+              speecher.click();
+            }
           } else {
             obj.spoken = true;
             obj.for_speaking = true;
             utterance.speak_button(button_to_speak);
           }
+        } else if(app_state.get('currentUser.preferences.click_buttons')) {
+          speecher.click();
         }
       } else {
         utterance.silent_speak_button(button_to_speak);

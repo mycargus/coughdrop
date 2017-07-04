@@ -8,6 +8,7 @@ import i18n from './i18n';
 var speecher = Ember.Object.extend({
   beep_url: "https://opensymbols.s3.amazonaws.com/beep.mp3",
   chimes_url: "https://opensymbols.s3.amazonaws.com/chimes.mp3",
+  click_url: "https://opensymbols.s3.amazonaws.com/click.mp3",
   voices: [],
   text_direction: function() {
     var voice = speecher.get('voices').find(function(v) { return v.voiceURI == speecher.voiceURI; });
@@ -380,7 +381,8 @@ var speecher = Ember.Object.extend({
   load_beep: function() {
     var p1 = this.load_sound('beep_url');
     var p2 = this.load_sound('chimes_url');
-    return Ember.RSVP.all_wait([p1, p2]);
+    var p3 = this.load_sound('click_url');
+    return Ember.RSVP.all_wait([p1, p2, p3]);
   },
   load_sound: function(attr) {
     if(speecher[attr]) {
@@ -509,6 +511,23 @@ var speecher = Ember.Object.extend({
       this.play_audio(beep);
     } else {
       console.log("beep sound not found");
+    }
+  },
+  click: function() {
+    var click = Ember.$("#click")[0];
+    if(!click) {
+      var audio = document.createElement('audio');
+      audio.style.display = "none";
+      audio.src = speecher.click_url;
+      audio.id = 'click';
+      document.body.appendChild(audio);
+      audio.load();
+      click = audio;
+    }
+    if(click) {
+      this.play_audio(click);
+    } else {
+      console.log("click sound not found");
     }
   },
   speak_audio: function(url, type, collection_id, opts) {

@@ -12,5 +12,6 @@ export default Ember.Route.extend({
     controller.check_core_words();
     controller.check_voices_available();
     controller.set_auto_sync();
+    controller.set('status', null);
   }
 });

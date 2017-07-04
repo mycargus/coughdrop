@@ -345,13 +345,17 @@ export default Ember.Controller.extend({
       var user = this.get('model');
       user.set('preferences.progress.preferences_edited', true);
       var _this = this;
+      _this.set('status', {saving: true});
       user.save().then(function(user) {
         _this.check_core_words();
+        _this.set('status', null);
         if(user.get('id') == app_state.get('currentUser.id')) {
           app_state.set('currentUser', user);
         }
         _this.transitionToRoute('user', user.get('user_name'));
-      }, function() { });
+      }, function() {
+        _this.set('status', {error: true});
+      });
     },
     cancelSave: function() {
       this.set('advanced', false);
