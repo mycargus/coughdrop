@@ -41,6 +41,9 @@ var modal = Ember.Object.extend({
       return !!this.last_template;
     }
   },
+  is_closeable: function() {
+    return Ember.$(".modal").attr('data-uncloseable') != 'true';
+  },
   queue: function(template) {
     if(this.is_open()) {
       this.queued_template = template;

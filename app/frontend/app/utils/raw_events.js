@@ -80,6 +80,10 @@ Ember.$(document).on('mousedown touchstart', function(event) {
     if(event.target.tagName == 'CANVAS') {
       buttonTracker.select_tab();
     }
+  } else if(event.keyCode == 27) {
+    if(modal.is_open() && modal.is_closeable()) {// && (event.target.tagName == 'INPUT' || event.target.tagName == 'BUTTON' || event.target.tagName == 'TEXTAREA' || event.target.tagName == 'A')) {
+      modal.close();
+    }
   }
 }).on('keydown', function(event) {
   if(!buttonTracker.scanning_enabled) { return; }

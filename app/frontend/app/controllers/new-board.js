@@ -7,6 +7,7 @@ import i18n from '../utils/i18n';
 import editManager from '../utils/edit_manager';
 
 export default modal.ModalController.extend({
+  uncloseable: true,
   opening: function() {
     this.set('model', CoughDrop.store.createRecord('board', {public: false, license: {type: 'private'}, grid: {rows: 2, columns: 4}}));
     if(window.webkitSpeechRecognition) {
