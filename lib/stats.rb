@@ -326,14 +326,14 @@ module Stats
         all_word_counts[word] ||= 0
         all_word_counts[word] += cnt
       end
-      stats[:modeled_button_counts].each do |ref, button|
+      (stats[:modeled_button_counts] || {}).each do |ref, button|
         if modeled_button_counts[ref]
           modeled_button_counts[ref]['count'] += button['count']
         else
           modeled_button_counts[ref] = button.merge({})
         end
       end
-      stats[:modeled_word_counts].each do |word, cnt|
+      (stats[:modeled_word_counts] || {}).each do |word, cnt|
         modeled_word_counts[word] ||= 0
         modeled_word_counts[word] += cnt
       end
