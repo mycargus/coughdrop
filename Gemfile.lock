@@ -121,7 +121,7 @@ GEM
       guard (~> 2.1)
       guard-compat (~> 1.1)
       rspec (>= 2.99.0, < 4.0)
-    heroku-deflater (0.6.2)
+    heroku-deflater (0.6.3)
       rack (>= 1.4.5)
     http-cookie (1.0.3)
       domain_name (~> 0.5)
@@ -191,7 +191,7 @@ GEM
       method_source (~> 0.8.1)
       slop (~> 3.4)
     puma (3.6.2)
-    rack (2.0.1)
+    rack (2.0.3)
     rack-attack (5.0.1)
       rack
     rack-offline (0.6.4)
