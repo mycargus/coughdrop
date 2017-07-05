@@ -407,7 +407,7 @@ describe("capabilities", function() {
         capabilities.storage.list_files('bacon').then(null, function(err) {
           error = true;
         });
-        waitsFor(function() { return error; })
+        waitsFor(function() { return error; });
         runs();
       });
 
@@ -620,7 +620,7 @@ describe("capabilities", function() {
         stub(window, 'cordova', {file: {dataDirectory: true}});
         var result = null;
         capabilities.storage.status().then(function(r) { result = r; });
-        waitsFor(function() { return result; })
+        waitsFor(function() { return result; });
         runs(function() {
           expect(result).toEqual({available: true, requires_confirmation: false});
         });
@@ -630,7 +630,7 @@ describe("capabilities", function() {
         stub(window, 'file_storage', {});
         var result = null;
         capabilities.storage.status().then(function(r) { result = r; });
-        waitsFor(function() { return result; })
+        waitsFor(function() { return result; });
         runs(function() {
           expect(result).toEqual({available: true, requires_confirmation: false});
         });
@@ -651,7 +651,7 @@ describe("capabilities", function() {
         });
         var result = null;
         capabilities.storage.status().then(function(r) { result = r; });
-        waitsFor(function() { return result; })
+        waitsFor(function() { return result; });
         runs(function() {
           expect(result).toEqual({available: true, requires_confirmation: false});
         });
@@ -672,7 +672,7 @@ describe("capabilities", function() {
         });
         var result = null;
         capabilities.storage.status().then(function(r) { result = r; });
-        waitsFor(function() { return result; })
+        waitsFor(function() { return result; });
         runs(function() {
           expect(result).toEqual({available: true, requires_confirmation: true});
         });
@@ -692,7 +692,7 @@ describe("capabilities", function() {
         });
         var result = null;
         capabilities.storage.status().then(function(r) { result = r; });
-        waitsFor(function() { return result; })
+        waitsFor(function() { return result; });
         runs(function() {
           expect(result).toEqual({available: false});
         });
@@ -702,7 +702,7 @@ describe("capabilities", function() {
         stub(window, 'cd_request_file_system', null);
         var result = null;
         capabilities.storage.status().then(function(r) { result = r; });
-        waitsFor(function() { return result; })
+        waitsFor(function() { return result; });
         runs(function() {
           expect(result).toEqual({available: false});
         });
@@ -813,7 +813,7 @@ describe("capabilities", function() {
             createReader: function() {
               return {
                 readEntries: function(success, err) { err(); }
-              }
+              };
             }
           });
         });
@@ -835,7 +835,7 @@ describe("capabilities", function() {
                     {isDirectory: true, name: 'sound'}
                   ]);
                 }
-              }
+              };
             }
           });
         });
@@ -861,7 +861,7 @@ describe("capabilities", function() {
                     {isDirectory: true, name: 'sound'}
                   ]);
                 }
-              }
+              };
             }
           });
         });
@@ -907,7 +907,7 @@ describe("capabilities", function() {
         capabilities.cached_dirs['image/1234'] = {};
         var result = null;
         capabilities.storage.assert_directory('image', '123456.pic.png').then(function(res) { result = res; });
-        waitsFor(function() { return result; })
+        waitsFor(function() { return result; });
         runs(function() {
           expect(result).toEqual({});
         });
@@ -926,7 +926,7 @@ describe("capabilities", function() {
         };
         var error = null;
         capabilities.storage.assert_directory('image', '123456.pic.png').then(null, function(res) { error = true; });
-        waitsFor(function() { return error; })
+        waitsFor(function() { return error; });
         runs(function() {
           expect(called).toEqual(true);
         });
@@ -947,7 +947,7 @@ describe("capabilities", function() {
         var called = false;
         var error = null;
         capabilities.storage.assert_directory('image', '123456.pic.png').then(null, function(res) { error = true; });
-        waitsFor(function() { return error; })
+        waitsFor(function() { return error; });
         runs(function() {
           expect(called).toEqual(true);
         });
@@ -974,7 +974,7 @@ describe("capabilities", function() {
         var called = false;
         var error = null;
         capabilities.storage.assert_directory('image', '123456.pic.png').then(null, function(res) { error = true; });
-        waitsFor(function() { return error; })
+        waitsFor(function() { return error; });
         runs(function() {
           expect(called).toEqual(true);
         });
@@ -993,7 +993,7 @@ describe("capabilities", function() {
         });
         var result = null;
         capabilities.storage.assert_directory('image').then(function(res) { result = res; });
-        waitsFor(function() { return result; })
+        waitsFor(function() { return result; });
         runs(function() {
           expect(result).toEqual({a: 1});
         });
@@ -1005,7 +1005,7 @@ describe("capabilities", function() {
         });
         var error = null;
         capabilities.storage.assert_directory('image', '123456.pic.png').then(null, function(res) { error = true; });
-        waitsFor(function() { return error; })
+        waitsFor(function() { return error; });
         runs();
       });
     });
@@ -1111,7 +1111,7 @@ describe("capabilities", function() {
         stub(capabilities.storage, 'assert_directory', function() { return Ember.RSVP.reject(); });
         var error = null;
         capabilities.storage.write_file('image', '12345.png', {a: 1}).then(null, function() { error = true; });
-        waitsFor(function() { return error; })
+        waitsFor(function() { return error; });
         runs();
       });
 
@@ -1129,7 +1129,7 @@ describe("capabilities", function() {
         });
         var error = null;
         capabilities.storage.write_file('image', '12345.png', {a: 1}).then(null, function() { error = true; });
-        waitsFor(function() { return error; })
+        waitsFor(function() { return error; });
         runs(function() {
           expect(called).toEqual(true);
         });
@@ -1154,7 +1154,7 @@ describe("capabilities", function() {
         });
         var error = null;
         capabilities.storage.write_file('image', '12345.png', {a: 1}).then(null, function() { error = true; });
-        waitsFor(function() { return error; })
+        waitsFor(function() { return error; });
         runs(function() {
           expect(called).toEqual(true);
         });
@@ -1173,7 +1173,7 @@ describe("capabilities", function() {
                   var writer = {
                     write: function(blob) {
                       called = true;
-                      expect(blob).toEqual({a: 1})
+                      expect(blob).toEqual({a: 1});
                       writer.onerror();
                     }
                   };
@@ -1185,7 +1185,7 @@ describe("capabilities", function() {
         });
         var error = null;
         capabilities.storage.write_file('image', '12345.png', {a: 1}).then(null, function() { error = true; });
-        waitsFor(function() { return error; })
+        waitsFor(function() { return error; });
         runs(function() {
           expect(called).toEqual(true);
         });
@@ -1204,7 +1204,7 @@ describe("capabilities", function() {
                   var writer = {
                     write: function(blob) {
                       called = true;
-                      expect(blob).toEqual({a: 1})
+                      expect(blob).toEqual({a: 1});
                       writer.onwriteend();
                     }
                   };
@@ -1216,7 +1216,7 @@ describe("capabilities", function() {
         });
         var result = null;
         capabilities.storage.write_file('image', '12345.png', {a: 1}).then(function(res) { result = res; });
-        waitsFor(function() { return result; })
+        waitsFor(function() { return result; });
         runs(function() {
           expect(called).toEqual(true);
           expect(result).toEqual('file:///file.png');
@@ -1225,7 +1225,7 @@ describe("capabilities", function() {
 
       it('should convert to an array buffer on android', function() {
         var called = false;
-        var blob = new Blob([1, 2, 3], {type: 'image/png'});
+        var blob = new window.Blob([1, 2, 3], {type: 'image/png'});
         stub(capabilities, 'system', 'Android');
         stub(capabilities.storage, 'assert_directory', function() {
           return Ember.RSVP.resolve({
@@ -1238,7 +1238,7 @@ describe("capabilities", function() {
                   var writer = {
                     write: function(b) {
                       called = true;
-                      expect(b instanceof ArrayBuffer).toEqual(true)
+                      expect(b instanceof ArrayBuffer).toEqual(true);
                       writer.onwriteend();
                     }
                   };
@@ -1250,7 +1250,7 @@ describe("capabilities", function() {
         });
         var result = null;
         capabilities.storage.write_file('image', '12345.png', blob).then(function(res) { result = res; });
-        waitsFor(function() { return result; })
+        waitsFor(function() { return result; });
         runs(function() {
           expect(called).toEqual(true);
           expect(result).toEqual('file:///file.png');
