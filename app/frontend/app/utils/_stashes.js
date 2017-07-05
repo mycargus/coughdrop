@@ -91,6 +91,10 @@ var stashes = Ember.Object.extend({
     }
     if(stashes.get('global_integrations')) {
       window.user_preferences.global_integrations = stashes.get('global_integrations');
+    } else if(CoughDrop.session) {
+      Ember.run.later(function() {
+        CoughDrop.session.check_token();
+      }, 500);
     }
   },
   flush: function(prefix, ignore_prefix) {

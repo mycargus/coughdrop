@@ -81,6 +81,7 @@ export default modal.ModalController.extend({
   book_link_options: function() {
     return [
       {name: i18n.t('large_links', "Large navigation links"), id: 'large'},
+      {name: i18n.t('huge_links', "Huge navigation links"), id: 'huge'},
       {name: i18n.t('small_links', "Small navigation links"), id: 'small'}
     ];
   }.property(),
@@ -88,6 +89,12 @@ export default modal.ModalController.extend({
     return [
       {name: i18n.t('white_background', "White background"), id: 'white'},
       {name: i18n.t('black_background', "Black background"), id: 'black'}
+    ];
+  }.property(),
+  book_text_positioning_options: function() {
+    return [
+      {name: i18n.t('text_below', "Show text below images"), id: 'text_below'},
+      {name: i18n.t('text_above', "Show text above images"), id: 'text_above'}
     ];
   }.property(),
   image_matches_book: function() {

@@ -143,6 +143,7 @@ var Button = Ember.Object.extend({
             utterance: true,
             background: 'white',
             base_url: url,
+            position: 'text_below',
             links: 'large'
           });
         }
