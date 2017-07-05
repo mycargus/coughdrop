@@ -74,7 +74,8 @@ var stashes = Ember.Object.extend({
       'last_stream_id': null,
       'protected_user': false,
       'label_locale': null,
-      'vocalization_locale': null
+      'vocalization_locale': null,
+      'global_integrations': null
     };
     // TODO: some of these will want to be retrieved from server stash, not just localstorage
     for(var idx in defaults) {
@@ -87,6 +88,9 @@ var stashes = Ember.Object.extend({
       }
       stashes.set(idx, val);
       memory_stash[idx] = val;
+    }
+    if(stashes.get('global_integrations')) {
+      window.user_preferences.global_integrations = stashes.get('global_integrations');
     }
   },
   flush: function(prefix, ignore_prefix) {
