@@ -89,11 +89,13 @@ var stashes = Ember.Object.extend({
       stashes.set(idx, val);
       memory_stash[idx] = val;
     }
-    if(stashes.get('global_integrations')) {
+    if(stashes.get('global_integrations') && window.user_preferences) {
       window.user_preferences.global_integrations = stashes.get('global_integrations');
-    } else if(CoughDrop.session) {
+    } else {
       Ember.run.later(function() {
-        CoughDrop.session.check_token();
+        if(CoughDrop && CoughDrop.session) {
+          CoughDrop.session.check_token();
+        }
       }, 500);
     }
   },

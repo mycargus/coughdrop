@@ -82,7 +82,9 @@ var session = Ember.Object.extend({
       }
       if(data.global_integrations) {
         stashes.persist('global_integrations', data.global_integrations);
-        window.user_preferences.global_integrations = data.global_integrations;
+        if(window.user_preferences) {
+          window.user_preferences.global_integrations = data.global_integrations;
+        }
       }
       if(data.meta && data.meta.fakeXHR && data.meta.fakeXHR.browserToken) {
         persistence.set('browserToken', data.meta.fakeXHR.browserToken);
