@@ -60,9 +60,9 @@ class ClusterLocation < ActiveRecord::Base
     self.data ||= {}
     self.cluster_type ||= 'ip_address'
     if self.user_id && self.ip_address? && self.data['ip_address']
-      self.cluster_hash = Security.sha512(self.user_id.to_s + "::" + self.data['ip_address'], self.cluster_type)
+      self.cluster_hash = GoSecure.sha512(self.user_id.to_s + "::" + self.data['ip_address'], self.cluster_type)
     elsif self.user_id && self.geo? && self.data['geo']
-      self.cluster_hash = Security.sha512(self.user_id.to_s + self.data['geo'].to_json, self.cluster_type)
+      self.cluster_hash = GoSecure.sha512(self.user_id.to_s + self.data['geo'].to_json, self.cluster_type)
     end
     
     sessions = []

@@ -24,7 +24,7 @@ class SessionController < ApplicationController
         'app_name' => @app_name,
         'app_icon' => @app_icon
       }
-      @code = Security.nonce('oauth_code')
+      @code = GoSecure.nonce('oauth_code')
       RedisInit.default.setex("oauth_#{@code}", 1.hour.from_now.to_i, config.to_json)
       # render login page
       render
@@ -113,7 +113,7 @@ class SessionController < ApplicationController
     if params['grant_type'] == 'password'
       pending_u = User.find_for_login(params['username'])
       u = nil
-#      if params['client_id'] == 'browser' && Security.valid_browser_token?(params['client_secret'])
+#      if params['client_id'] == 'browser' && GoSecure.valid_browser_token?(params['client_secret'])
         u = pending_u
 #      else
 #        return api_erorr 400, { error: "Invalid client secret" }

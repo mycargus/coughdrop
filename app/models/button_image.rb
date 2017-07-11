@@ -67,7 +67,7 @@ class ButtonImage < ActiveRecord::Base
       # TODO: add a timeout for this, or it can hang for a very long time...
       Typhoeus.post("https://opensymbols.herokuapp.com/api/v1/symbols/#{id}/use", body: {
         access_token: ENV['OPENSYMBOLS_TOKEN'],
-        user_id: Security.sha512(options[:user_id], 'global_user_id')[0, 10],
+        user_id: GoSecure.sha512(options[:user_id], 'global_user_id')[0, 10],
         keyword: label
       })
     end

@@ -136,6 +136,6 @@ class ApplicationController < ActionController::Base
   end
 
   def set_browser_token_header
-    response.headers['BROWSER_TOKEN'] = Security.browser_token
+    response.headers['BROWSER_TOKEN'] = GoSecure.browser_token
   end
 end

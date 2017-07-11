@@ -94,7 +94,7 @@ class Board < ActiveRecord::Base
       id = bs && bs.global_id
     end
     return nil unless id
-    full_id = id + "_" + Security.sha512(id, 'button_set_id')[0, 10]
+    full_id = id + "_" + GoSecure.sha512(id, 'button_set_id')[0, 10]
   end
   
   def board_downstream_button_set

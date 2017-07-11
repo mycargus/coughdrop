@@ -3,7 +3,7 @@ module Supervising
   
   def generate_link_code
     return nil unless self.premium?
-    code = Security.nonce('link_code')[0, 5]
+    code = GoSecure.nonce('link_code')[0, 5]
     self.settings['link_codes'] ||= []
     self.settings['link_codes'].select!{|c| id, nonce, ts = c.split(/-/, 3); Time.at(ts.to_i) > 6.hours.ago }
     code = "#{self.global_id}-#{code}-#{Time.now.to_i}"

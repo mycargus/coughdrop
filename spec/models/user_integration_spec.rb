@@ -264,11 +264,11 @@ describe UserIntegration, :type => :model do
       expect(ui.settings['user_settings']['b']['value']).to eq(nil)
       expect(ui.settings['user_settings']['b']['value_crypt']).to_not eq(nil)
       expect(ui.settings['user_settings']['b']['salt']).to_not eq(nil)
-      expect(Security.decrypt(ui.settings['user_settings']['b']['value_crypt'], ui.settings['user_settings']['b']['salt'], 'integration_password')).to eq(Digest::MD5.hexdigest('bbb'))
+      expect(GoSecure.decrypt(ui.settings['user_settings']['b']['value_crypt'], ui.settings['user_settings']['b']['salt'], 'integration_password')).to eq(Digest::MD5.hexdigest('bbb'))
       expect(ui.settings['user_settings']['c']['value']).to eq(nil)
       expect(ui.settings['user_settings']['c']['value_crypt']).to_not eq(nil)
       expect(ui.settings['user_settings']['c']['salt']).to_not eq(nil)
-      expect(Security.decrypt(ui.settings['user_settings']['c']['value_crypt'], ui.settings['user_settings']['c']['salt'], 'integration_password')).to eq(Digest::MD5.hexdigest('ccc'))
+      expect(GoSecure.decrypt(ui.settings['user_settings']['c']['value_crypt'], ui.settings['user_settings']['c']['salt'], 'integration_password')).to eq(Digest::MD5.hexdigest('ccc'))
     end    
     
     it "should confirm recognized integrations actually work" do
@@ -370,9 +370,9 @@ describe UserIntegration, :type => :model do
       expect { ui.placement_code() }.to raise_error("needs at least one arg")
       expect { ui.placement_code("asdf", 5) }.to raise_error("strings only")
       expect(ui.settings['static_token']).to_not eq(nil)
-      expect(ui.placement_code("asdf")).to eq(Security.sha512("asdf,#{ui.settings['static_token']}", 'user integration placement code'))
-      expect(ui.placement_code("asdf", 'jkl')).to eq(Security.sha512("asdf,jkl,#{ui.settings['static_token']}", 'user integration placement code'))
-      expect(ui.placement_code("asdf", 'bob', 'fred', 'ok')).to eq(Security.sha512("asdf,bob,fred,ok,#{ui.settings['static_token']}", 'user integration placement code'))
+      expect(ui.placement_code("asdf")).to eq(GoSecure.sha512("asdf,#{ui.settings['static_token']}", 'user integration placement code'))
+      expect(ui.placement_code("asdf", 'jkl')).to eq(GoSecure.sha512("asdf,jkl,#{ui.settings['static_token']}", 'user integration placement code'))
+      expect(ui.placement_code("asdf", 'bob', 'fred', 'ok')).to eq(GoSecure.sha512("asdf,bob,fred,ok,#{ui.settings['static_token']}", 'user integration placement code'))
     end
   end
   

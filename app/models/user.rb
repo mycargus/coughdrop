@@ -160,7 +160,7 @@ class User < ActiveRecord::Base
   def registration_code
     self.settings ||= {}
     if !self.settings['registration_code']
-      self.settings['registration_code'] = Security.nonce('reg_code')
+      self.settings['registration_code'] = GoSecure.nonce('reg_code')
       self.save
     end
     self.settings['registration_code']
@@ -991,7 +991,7 @@ class User < ActiveRecord::Base
   
   def user_token
     token = "#{self.global_id}-"
-    token = token + Security.sha512(token, 'user_token verifier')[0, 30]
+    token = token + GoSecure.sha512(token, 'user_token verifier')[0, 30]
     token
   end
   
@@ -999,7 +999,7 @@ class User < ActiveRecord::Base
     return nil unless token
     user_id, hash = token.split(/-/)
     return nil unless user_id && hash
-    verifier = Security.sha512("#{user_id}-", 'user_token verifier')[0, 30]
+    verifier = GoSecure.sha512("#{user_id}-", 'user_token verifier')[0, 30]
     return nil unless hash == verifier
     User.find_by_global_id(user_id)
   end

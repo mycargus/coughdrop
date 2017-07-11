@@ -123,7 +123,7 @@ describe ButtonSound, :type => :model do
     b = ButtonSound.new(:settings => {:a => 1})
     expect(b.settings).to eq({:a => 1})
     b.generate_defaults
-    expect(SecureJson).to receive(:dump).with(b.settings).exactly(1).times
+    expect(GoSecure::SecureJson).to receive(:dump).with(b.settings).exactly(1).times
     b.save
   end
   

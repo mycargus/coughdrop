@@ -186,7 +186,7 @@ describe ButtonImage, :type => :model do
   end
    
   it "should securely serialize settings" do
-    expect(SecureJson).to receive(:dump).with({:a=>1, "pending"=>true, "license"=>{"type"=>"private"}})
+    expect(GoSecure::SecureJson).to receive(:dump).with({:a=>1, "pending"=>true, "license"=>{"type"=>"private"}})
     ButtonImage.create(:settings => {:a => 1})
   end
   

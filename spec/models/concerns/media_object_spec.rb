@@ -59,7 +59,7 @@ describe MediaObject, :type => :model do
     end
     
     it "should schedule transcoding only the first save after a filename is created" do
-      expect(Security).to receive(:nonce).and_return('chicken').at_least(1).times
+      expect(GoSecure).to receive(:nonce).and_return('chicken').at_least(1).times
       bs = ButtonSound.create(:settings => {'full_filename' => 'a/b/c'})
       prefix = bs.file_path + bs.file_prefix + "v" + Time.now.to_i.to_s
       expect(Worker.scheduled?(Transcoder, :convert_audio, bs.global_id, prefix, 'chicken')).to eq(true)

@@ -1,5 +1,5 @@
 PaperTrail.config.track_associations = false
-PaperTrail.serializer = SecureJson
+PaperTrail.serializer = GoSecure::SecureJson
 
 module PaperTrail::VersionConcern
   def reify

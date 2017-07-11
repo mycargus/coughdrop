@@ -225,7 +225,7 @@ describe SessionController, :type => :controller do
 
   describe "token" do
     it "should not require api token" do
-      token = Security.browser_token
+      token = GoSecure.browser_token
       u = User.new(:user_name => "fred")
       u.generate_password("seashell")
       u.save
@@ -239,7 +239,7 @@ describe SessionController, :type => :controller do
     end
     
     it "should allow logging in with username and password only when browser_token is provided" do
-      token = Security.browser_token
+      token = GoSecure.browser_token
       u = User.new(:user_name => "fred")
       u.generate_password("seashell")
       u.save
@@ -257,9 +257,9 @@ describe SessionController, :type => :controller do
     
 #     it "should not respect expired browser token" do
 #       token = 15.days.ago.strftime('%Y%j')
-#       token += '-' + Security.sha512(token, 'browser_token')
-#       expect(Security.valid_browser_token_signature?(token)).to eq(true)
-#       expect(Security.valid_browser_token?(token)).to eq(false)
+#       token += '-' + GoSecure.sha512(token, 'browser_token')
+#       expect(GoSecure.valid_browser_token_signature?(token)).to eq(true)
+#       expect(GoSecure.valid_browser_token?(token)).to eq(false)
 #       u = User.new(:user_name => "fred")
 #       u.generate_password("seashell")
 #       u.save
@@ -270,7 +270,7 @@ describe SessionController, :type => :controller do
 #     end
     
     it "should error on invalid login attempt" do
-      token = Security.browser_token
+      token = GoSecure.browser_token
       u = User.new(:user_name => "fred")
       u.generate_password("seashell")
       u.save
@@ -286,7 +286,7 @@ describe SessionController, :type => :controller do
     end
     
     it "should return a json response" do
-      token = Security.browser_token
+      token = GoSecure.browser_token
       u = User.new(:user_name => "fred")
       u.generate_password("seashell")
       u.save
@@ -297,7 +297,7 @@ describe SessionController, :type => :controller do
     end
     
     it "should match on accidental capitalization" do
-      token = Security.browser_token
+      token = GoSecure.browser_token
       u = User.new(:user_name => "fred")
       u.generate_password("seashell")
       u.save
@@ -308,7 +308,7 @@ describe SessionController, :type => :controller do
     end
     
     it "should match on email address" do
-      token = Security.browser_token
+      token = GoSecure.browser_token
       u = User.new(:user_name => "fred", :settings => {'email' => 'fred@example.com'})
       u.generate_password("seashell")
       u.save
@@ -319,7 +319,7 @@ describe SessionController, :type => :controller do
     end
     
     it "should not match on email address if more than one user has the same email" do
-      token = Security.browser_token
+      token = GoSecure.browser_token
       u = User.new(:user_name => "fred", :settings => {'email' => "fred@example.com"})
       u.generate_password("seashell")
       u.save
@@ -331,7 +331,7 @@ describe SessionController, :type => :controller do
     end
     
     it "should create a browser device for the user if not already defined" do
-      token = Security.browser_token
+      token = GoSecure.browser_token
       u = User.new(:user_name => "fred")
       u.generate_password("seashell")
       u.save
@@ -349,7 +349,7 @@ describe SessionController, :type => :controller do
     end
     
     it "should use provided ip address and mobile flag" do
-      token = Security.browser_token
+      token = GoSecure.browser_token
       u = User.new(:user_name => "fred")
       u.generate_password("seashell")
       u.save
@@ -369,7 +369,7 @@ describe SessionController, :type => :controller do
     end
     
     it "should create a new browser device for the user if specified" do
-      token = Security.browser_token
+      token = GoSecure.browser_token
       u = User.new(:user_name => "fred")
       u.generate_password("seashell")
       u.save
@@ -389,7 +389,7 @@ describe SessionController, :type => :controller do
     end
     
     it "should use the existing browser device for the user if already defined" do
-      token = Security.browser_token
+      token = GoSecure.browser_token
       u = User.new(:user_name => "fred")
       u.generate_password("seashell")
       u.save
@@ -406,7 +406,7 @@ describe SessionController, :type => :controller do
     end
     
     it "should throttle to prevent brute force attacks" do
-      token = Security.browser_token
+      token = GoSecure.browser_token
       u = User.new(:user_name => "fred")
       u.generate_password("seashell")
       u.save

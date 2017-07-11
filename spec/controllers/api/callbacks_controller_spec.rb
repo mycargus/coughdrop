@@ -88,8 +88,8 @@ describe Api::CallbacksController, :type => :controller do
     end
     
     it "should handle transcoding" do
-      expect(Security).to receive(:nonce).with("security_nonce").and_return("abcdefg")
-      expect(Security).to receive(:nonce).with("transcoding_key").and_return("abcdefg")
+      expect(GoSecure).to receive(:nonce).with("security_nonce").and_return("abcdefg")
+      expect(GoSecure).to receive(:nonce).with("transcoding_key").and_return("abcdefg")
       bs = ButtonSound.create(:settings => {
         'full_filename' => 'sounds/4/3/0-something.wav'
       })

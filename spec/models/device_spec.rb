@@ -284,7 +284,7 @@ describe Device, :type => :model do
     d = Device.new
     d.generate_defaults
     settings = d.settings
-    expect(SecureJson).to receive(:dump).with(d.settings)
+    expect(GoSecure::SecureJson).to receive(:dump).with(d.settings)
     d.save
   end
   

@@ -19,7 +19,7 @@ module GlobalId
   
   def generate_nonce_if_protected
     if self.class.protected_global_id
-      self.nonce ||= Security.nonce('security_nonce')
+      self.nonce ||= GoSecure.nonce('security_nonce')
     end
     true
   end

@@ -1028,7 +1028,7 @@ describe Board, :type => :model do
     b = Board.new(:user => u)
     b.generate_defaults
     settings = b.settings
-    expect(SecureJson).to receive(:dump).with(b.settings)
+    expect(GoSecure::SecureJson).to receive(:dump).with(b.settings)
     b.save
   end
   

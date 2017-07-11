@@ -3,8 +3,8 @@ class DeveloperKey < ActiveRecord::Base
   replicated_model  
   
   def generate_defaults
-    self.key ||= Security.nonce('developer_client_id')[0, 10]
-    self.secret ||= Security.sha512(Time.now.to_i.to_s, 'developer_client_secret') 
+    self.key ||= GoSecure.nonce('developer_client_id')[0, 10]
+    self.secret ||= GoSecure.sha512(Time.now.to_i.to_s, 'developer_client_secret') 
     true
   end
   

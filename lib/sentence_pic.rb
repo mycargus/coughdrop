@@ -44,7 +44,7 @@ module SentencePic
     else
       `convert #{montage} -gravity center -extent 500x240 #{preview}`
     end
-    key = Security.sha512(utterance.id.to_s, 'utterance_id')[0, 25]
+    key = GoSecure.sha512(utterance.id.to_s, 'utterance_id')[0, 25]
     remote_path = "sentences/#{utterance.id}/#{key}/preview.png"
     url = Uploader.remote_upload(remote_path, preview, 'image/png')
     url

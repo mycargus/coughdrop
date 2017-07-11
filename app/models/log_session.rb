@@ -204,7 +204,7 @@ class LogSession < ActiveRecord::Base
       end
     end
     self.data['event_summary'] = str
-    self.data['nonce'] ||= Security.nonce('log_nonce')
+    self.data['nonce'] ||= GoSecure.nonce('log_nonce')
     
     if (!self.geo_cluster_id || !self.ip_cluster_id) && (!self.last_cluster_attempt_at || self.last_cluster_attempt_at < 12.hours.ago)
       self.last_cluster_attempt_at = Time.now
@@ -219,7 +219,7 @@ class LogSession < ActiveRecord::Base
   
   def require_nonce
     if !self.data['nonce']
-      self.data['nonce'] = Security.nonce('log_nonce')
+      self.data['nonce'] = GoSecure.nonce('log_nonce')
       self.save
     end
     self.data['nonce']

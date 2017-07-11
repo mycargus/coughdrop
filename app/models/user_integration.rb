@@ -40,17 +40,17 @@ class UserIntegration < ActiveRecord::Base
   end
   
   def self.security_token
-    Security.sha512('user integration security token', Security.nonce('integration_nonce'))
+    GoSecure.sha512('user integration security token', GoSecure.nonce('integration_nonce'))
   end
   
   def user_token(user)
-    salt = Security.nonce('user_integration_confirmation_token_nonce')[0, 20]
+    salt = GoSecure.nonce('user_integration_confirmation_token_nonce')[0, 20]
     sig = self.class.user_token(user.global_id, self.global_id, salt)
     "#{user.global_id}:#{self.global_id}:#{salt}:#{sig}"
   end
   
   def self.user_token(user_id, integration_id, salt)
-    sig = Security.sha512("user_integration_confirmation_token_#{user_id}_#{integration_id}", salt)
+    sig = GoSecure.sha512("user_integration_confirmation_token_#{user_id}_#{integration_id}", salt)
   end
   
   def assert_device
@@ -133,7 +133,7 @@ class UserIntegration < ActiveRecord::Base
             if template_param['hash'] == 'md5'
               value = Digest::MD5.hexdigest(value)
             end
-            secret, salt = Security.encrypt(value, 'integration_password')
+            secret, salt = GoSecure.encrypt(value, 'integration_password')
             user_params[template_param['name']]['salt'] = salt
             user_params[template_param['name']]['value_crypt'] = secret
           else
@@ -144,7 +144,7 @@ class UserIntegration < ActiveRecord::Base
       self.settings['user_settings'] = user_params
       if params['integration_key'] == 'lessonpix' && user_params['username']
         identifiers = ['username']
-        self.unique_key = Security.sha512(user_params['username']['value'], "#{params['integration_key']}-#{identifiers.join('-')}")
+        self.unique_key = GoSecure.sha512(user_params['username']['value'], "#{params['integration_key']}-#{identifiers.join('-')}")
         match = UserIntegration.find_by(unique_key: self.unique_key)
         if match && match.id != self.id
           add_processing_error('account credentials already in use')
@@ -187,7 +187,7 @@ class UserIntegration < ActiveRecord::Base
     raise "needs at least one arg" unless args.length > 0
     raise "strings only" if args.any?{|a| !a.is_a?(String) }
     args << self.settings['static_token']
-    Security.sha512(args.join(","), 'user integration placement code')
+    GoSecure.sha512(args.join(","), 'user integration placement code')
   end
   
   def self.global_integrations

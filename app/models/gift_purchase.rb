@@ -23,7 +23,7 @@ class GiftPurchase < ActiveRecord::Base
       code = nil
       length = self.settings['code_length'] || 8
       while !code || GiftPurchase.where(:active => true, :code => code).count > 0
-        code = Security.nonce('gift_code')[0, length.floor]
+        code = GoSecure.nonce('gift_code')[0, length.floor]
         length += 0.3
       end
       self.code = code

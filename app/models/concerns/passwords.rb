@@ -9,7 +9,7 @@ module Passwords
     end
     self.settings['password_resets'] << {
       'timestamp' => Time.now.to_i,
-      'code' => Security.nonce('password_reset_code')
+      'code' => GoSecure.nonce('password_reset_code')
     }
     self.save
   end
@@ -25,7 +25,7 @@ module Passwords
     reset = self.settings['password_resets'].detect{|r| r['code'] == code }
     return nil unless reset
     
-    reset['token'] = Security.nonce('password_reset_token')
+    reset['token'] = GoSecure.nonce('password_reset_token')
     self.save
     reset['token']
   end
@@ -50,8 +50,8 @@ module Passwords
 
   def valid_password?(guess)
     self.settings ||= {}
-    res = Security.matches_password?(guess, self.settings['password'])
-    if res && Security.outdated_password?(self.settings['password'])
+    res = GoSecure.matches_password?(guess, self.settings['password'])
+    if res && GoSecure.outdated_password?(self.settings['password'])
       self.generate_password(guess)
       self.save
     end
@@ -60,6 +60,6 @@ module Passwords
   
   def generate_password(password)
     self.settings ||= {}
-    self.settings['password'] = Security.generate_password(password)
+    self.settings['password'] = GoSecure.generate_password(password)
   end
 end

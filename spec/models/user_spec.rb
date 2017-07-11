@@ -1430,7 +1430,7 @@ describe User, :type => :model do
   it "should securely serialize settings" do
     u = User.new(:settings => {:a => 2})
     u.generate_defaults
-    expect(SecureJson).to receive(:dump).with(u.settings)
+    expect(GoSecure::SecureJson).to receive(:dump).with(u.settings)
     u.save
   end
   
@@ -1638,7 +1638,7 @@ describe User, :type => :model do
         expect(parts[0]).to be < 5.seconds.from_now.to_i.to_s
         expect(parts[1]).to eq(u.global_id)
         expect(parts[2].to_i.to_s).to eq(parts[2])
-        expect(parts[3]).to eq(Security.sha512(parts[0] + "_" + parts[1], parts[2])[0, 20])
+        expect(parts[3]).to eq(GoSecure.sha512(parts[0] + "_" + parts[1], parts[2])[0, 20])
       end
     end
     
@@ -1788,7 +1788,7 @@ describe User, :type => :model do
     it 'should return the correct value' do
       u = User.create
       token = "#{u.global_id}-"
-      token = token + Security.sha512(token, 'user_token verifier')[0, 30]
+      token = token + GoSecure.sha512(token, 'user_token verifier')[0, 30]
       expect(u.user_token).to eq(token)
     end
   end
@@ -1797,7 +1797,7 @@ describe User, :type => :model do
     it 'should find the correct user' do
       u = User.create
       token = "#{u.global_id}-"
-      token = token + Security.sha512(token, 'user_token verifier')[0, 30]
+      token = token + GoSecure.sha512(token, 'user_token verifier')[0, 30]
       expect(User.find_by_token(token)).to eq(u)
       expect(User.find_by_token('asdf')).to eq(nil)
       expect(User.find_by_token("#{u.global_id}-whatever")).to eq(nil)

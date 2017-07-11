@@ -1323,7 +1323,7 @@ describe LogSession, :type => :model do
   it "should securely serialize settings" do
     l = LogSession.new(:user => User.create, :device => Device.create, :author => User.create)
     l.generate_defaults rescue nil
-    expect(SecureJson).to receive(:dump).with(l.data)
+    expect(GoSecure::SecureJson).to receive(:dump).with(l.data)
     l.save
   end
   

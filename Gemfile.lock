@@ -96,6 +96,7 @@ GEM
     geokit (1.10.0)
     globalid (0.3.7)
       activesupport (>= 4.1.0)
+    go_secure (0.1)
     google_play_search (0.0.22)
       httpclient (~> 2.7)
       nokogiri (~> 1.5)
@@ -344,6 +345,7 @@ DEPENDENCIES
   coffee-rails
   dotenv
   geokit
+  go_secure
   google_play_search
   guard
   guard-jasmine

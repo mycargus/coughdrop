@@ -297,7 +297,7 @@ class Api::BoardsController < ApplicationController
       render json: JsonApi::Progress.as_json(progress, :wrapper => true).to_json
     else
       type = (params['type'] == 'obz' ? 'obz' : 'obf')
-      remote_path = "imports/boards/#{@api_user.global_id}/upload-#{Security.nonce('filename')}.#{type}"
+      remote_path = "imports/boards/#{@api_user.global_id}/upload-#{GoSecure.nonce('filename')}.#{type}"
       content_type = "application/#{type}"
       params = Uploader.remote_upload_params(remote_path, content_type)
       url = params[:upload_url] + remote_path

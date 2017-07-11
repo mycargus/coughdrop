@@ -114,7 +114,7 @@ describe SecureSerialize, :type => :model do
     it "should load the stored object if loading from an existing record" do
       r = FakeRecord.new
       r.id = 1
-      r.instance_variable_set('@settings', SecureJson.dump({a: 1}))
+      r.instance_variable_set('@settings', GoSecure::SecureJson.dump({a: 1}))
       r.send(r.after)
       expect(r.settings).to eq({"a" => 1})
     end
@@ -139,7 +139,7 @@ describe SecureSerialize, :type => :model do
     it "should reload the object when .reload is called" do
       r = FakeRecord.new
       r.id = 1
-      r.instance_variable_set('@settings', SecureJson.dump({a: 1}))
+      r.instance_variable_set('@settings', GoSecure::SecureJson.dump({a: 1}))
       r.send(r.after)
       expect(r.settings).to eq({"a" => 1})
       r.settings['b'] = 2
@@ -158,7 +158,7 @@ describe SecureSerialize, :type => :model do
       r.settings = {"a" => 1, "b" => 2}
       r.settings["c"] = 3
       r.mark_changed_secure_object_hash
-      expect(SecureJson).to receive(:dump).with({'a' => 1, 'b' => 2, 'c' => 3})
+      expect(GoSecure::SecureJson).to receive(:dump).with({'a' => 1, 'b' => 2, 'c' => 3})
       r.persist_secure_object
     end
   end
@@ -201,7 +201,7 @@ describe SecureSerialize, :type => :model do
       FakeRecord.paper_trail_options = {:only => ['hat', 'settings']}
       r = FakeRecord.new
       r.id = 1
-      r.instance_variable_set('@settings', SecureJson.dump({:a => 1}))
+      r.instance_variable_set('@settings', GoSecure::SecureJson.dump({:a => 1}))
       expect(r.paper_trail_for_secure_column?).to eq(true)
       r.load_secure_object
       expect(r.instance_variable_get('@secure_object')).to eq({'a' => 1})

@@ -17,7 +17,7 @@ module SecureSerialize
       if attr && attr.match(/\s*^{/)
         @secure_object = JSON.parse(attr)
       else
-        @secure_object = SecureJson.load(attr)
+        @secure_object = GoSecure::SecureJson.load(attr)
       end
       @secure_object_json = @secure_object.to_json
     end
@@ -55,8 +55,8 @@ module SecureSerialize
     end
     mark_changed_secure_object_hash
     if send("#{self.class.secure_column}_changed?")
-      secure = SecureJson.dump(@secure_object)
-      @secure_object = SecureJson.load(secure)
+      secure = GoSecure::SecureJson.dump(@secure_object)
+      @secure_object = GoSecure::SecureJson.load(secure)
       write_attribute(self.class.secure_column, secure)
     end
     true
@@ -65,7 +65,7 @@ module SecureSerialize
   module ClassMethods
     def secure_serialize(column)
       raise "only one secure column per record! (yes I'm lazy)" if self.respond_to?(:secure_column) && self.secure_column
-#       serialize column, SecureJson
+#       serialize column, GoSecure::SecureJson
       cattr_accessor :secure_column
       cattr_accessor :more_before_saves
       self.secure_column = column

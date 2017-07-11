@@ -330,7 +330,7 @@ describe ApplicationController, :type => :controller do
     it "should set a valid token header" do
       get :index
       expect(response.headers['BROWSER_TOKEN']).not_to eq(nil)
-      expect(Security.valid_browser_token?(response.headers['BROWSER_TOKEN'])).to eq(true)
+      expect(GoSecure.valid_browser_token?(response.headers['BROWSER_TOKEN'])).to eq(true)
     end
   end
 end

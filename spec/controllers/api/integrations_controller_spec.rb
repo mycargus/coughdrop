@@ -108,7 +108,7 @@ describe Api::IntegrationsController, :type => :controller do
         {'name' => 'password', 'type' => 'password'}
       ]})
       expect(Uploader).to_not receive(:find_images)
-      ui = UserIntegration.create(user: u, template_integration: template, unique_key: Security.sha512('bacon', 'lessonpix-username'))
+      ui = UserIntegration.create(user: u, template_integration: template, unique_key: GoSecure.sha512('bacon', 'lessonpix-username'))
       expect(UserIntegration.count).to eq(2)
       post 'create', params:{'integration' => {'user_id' => @user.global_id, 'integration_key' => 'lessonpix', 'user_parameters' => [
         {'name' => 'username', 'type' => 'text', 'value' => 'bacon'},

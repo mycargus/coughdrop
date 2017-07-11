@@ -16,7 +16,7 @@ module Uploadable
   end
   
   def confirmation_key
-    Security.sha512(self.global_id + self.class.to_s, 'uploadable_file')
+    GoSecure.sha512(self.global_id + self.class.to_s, 'uploadable_file')
   end
   
   def full_filename
@@ -38,7 +38,7 @@ module Uploadable
   end
   
   def file_prefix
-    sha = Security.sha512(self.global_id, self.created_at.iso8601)
+    sha = GoSecure.sha512(self.global_id, self.created_at.iso8601)
     self.global_id + "-" + sha
   end
   

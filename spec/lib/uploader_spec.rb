@@ -513,7 +513,7 @@ describe Uploader do
       template = UserIntegration.create(template: true, integration_key: 'lessonpix')
       u = User.create
       ui = UserIntegration.create(user: u, template_integration: template)
-      secret, salt = Security.encrypt('secretss', 'integration_password')
+      secret, salt = GoSecure.encrypt('secretss', 'integration_password')
 
       ui.settings['user_settings'] = {
         'username' => {'value' => 'susan'},
@@ -580,7 +580,7 @@ describe Uploader do
     
     it "should return the known url if known" do
       hash = Digest::MD5.hexdigest([].to_json)
-      key = Security.sha512(hash, 'url_list')
+      key = GoSecure.sha512(hash, 'url_list')
       expect(Uploader).to receive(:check_existing_upload).with("downloads/#{key}/zippy.zip").and_return('http://www.example.com/zip.zip')
       res = Uploader.generate_zip([], 'zippy.zip')
       expect(res).to eq('http://www.example.com/zip.zip')

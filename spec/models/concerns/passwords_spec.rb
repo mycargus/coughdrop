@@ -97,7 +97,7 @@ describe Passwords, :type => :model do
       expect(u.settings['password']['hashed_password']).not_to eq(nil)
       expect(u.settings['password']['salt']).not_to eq(nil)
       
-      expect(Security).to receive(:generate_password).with("bacon")
+      expect(GoSecure).to receive(:generate_password).with("bacon")
       User.new.generate_password("bacon")
     end
   end
@@ -113,7 +113,7 @@ describe Passwords, :type => :model do
       expect(u.valid_password?("I love to eat apples and bananas ")).to eq(false)
       expect(u.valid_password?("I love to eat apples and bananas!")).to eq(false)
       expect(u.valid_password?("I love to eat apples and banana")).to eq(false)
-      expect(Security).to receive(:matches_password?).with("hippopotamus", pw)
+      expect(GoSecure).to receive(:matches_password?).with("hippopotamus", pw)
       u.valid_password?("hippopotamus")
     end
     
@@ -121,13 +121,13 @@ describe Passwords, :type => :model do
       u = User.new
       u.settings = {}
       salt = Digest::MD5.hexdigest("pw" + Time.now.to_i.to_s)
-      hash = Digest::SHA512.hexdigest(Security.encryption_key + salt + "bacon")
+      hash = Digest::SHA512.hexdigest(GoSecure.encryption_key + salt + "bacon")
       u.settings['password'] = {
         'hash_type' => 'sha512',
         'hashed_password' => hash,
         'salt' => salt
       }
-      expect(Security.outdated_password?(u.settings['password'])).to eq(true)
+      expect(GoSecure.outdated_password?(u.settings['password'])).to eq(true)
       expect(u.valid_password?('bracken')).to eq(false)
       expect(u.valid_password?('bacon')).to eq(true)
     end
@@ -136,13 +136,13 @@ describe Passwords, :type => :model do
       u = User.new
       u.settings = {}
       salt = Digest::MD5.hexdigest("pw" + (Time.now.to_i - 10).to_s)
-      hash = Digest::SHA512.hexdigest(Security.encryption_key + salt + "bacon")
+      hash = Digest::SHA512.hexdigest(GoSecure.encryption_key + salt + "bacon")
       u.settings['password'] = {
         'hash_type' => 'sha512',
         'hashed_password' => hash,
         'salt' => salt
       }
-      expect(Security.outdated_password?(u.settings['password'])).to eq(true)
+      expect(GoSecure.outdated_password?(u.settings['password'])).to eq(true)
       expect(u.valid_password?('bacon')).to eq(true)
       expect(u.settings['password']['hash_type']).to eq('pbkdf2-sha256')
       expect(u.settings['password']['hashed_password']).not_to eq(hash)
@@ -153,13 +153,13 @@ describe Passwords, :type => :model do
       u = User.new
       u.settings = {}
       salt = Digest::MD5.hexdigest("pw" + Time.now.to_i.to_s)
-      hash = Digest::SHA512.hexdigest(Security.encryption_key + salt + "bacon")
+      hash = Digest::SHA512.hexdigest(GoSecure.encryption_key + salt + "bacon")
       u.settings['password'] = {
         'hash_type' => 'sha512',
         'hashed_password' => hash,
         'salt' => salt
       }
-      expect(Security.outdated_password?(u.settings['password'])).to eq(true)
+      expect(GoSecure.outdated_password?(u.settings['password'])).to eq(true)
       expect(u.valid_password?('baconator')).to eq(false)
       expect(u.settings['password']['hash_type']).to eq('sha512')
       expect(u.settings['password']['hashed_password']).to eq(hash)

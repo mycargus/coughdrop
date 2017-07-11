@@ -98,7 +98,7 @@ describe "throttling URLs" do
   describe "POST /token" do
     it "should throttle aggressively" do
       expect(Time).to receive(:now).and_return(Time.at(1455925189)).at_least(10).times
-      token = Security.browser_token
+      token = GoSecure.browser_token
       u = User.new(:user_name => "fred")
       u.generate_password("seashell")
       u.save

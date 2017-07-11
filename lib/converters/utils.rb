@@ -31,7 +31,7 @@ module Converters::Utils
     else
       raise "Unrecognized conversion type: #{file_type}"
     end
-    key = Security.sha512(board.id.to_s, 'board_id')
+    key = GoSecure.sha512(board.id.to_s, 'board_id')
     
     filename = "board_" + board.current_revision + (include == 'all' ? '1' : '0') + (headerless ? '1' : '0') + (text_on_top ? '1' : '0') + "." + file_type.to_s
     remote_path = "downloads/#{key}/#{filename}"

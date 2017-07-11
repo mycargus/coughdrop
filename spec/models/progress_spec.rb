@@ -263,7 +263,7 @@ describe Progress, :type => :model do
   it "should securely serialize settings" do
     p = Progress.new(:settings => {:a => 1})
     p.generate_defaults
-    expect(SecureJson).to receive(:dump).with(p.settings)
+    expect(GoSecure::SecureJson).to receive(:dump).with(p.settings)
     p.save
   end
 end
