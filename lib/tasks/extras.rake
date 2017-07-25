@@ -12,6 +12,8 @@ task "extras:assert_js" do
   `mkdir -p ./app/frontend/dist/assets`
   `cp -n ./app/frontend/frontend-placeholder.js ./app/frontend/dist/assets/frontend.js`
   `touch ./app/frontend/dist/assets/vendor.js`
+  `cd app/assets/javascripts/ && ln -sf ../../frontend/dist/assets/frontend.js frontend.js`
+  `cd app/assets/javascripts/ && ln -sf ../../frontend/dist/assets/vendor.js vendor.js`
 end
 
 task "extras:jobs_list" do
