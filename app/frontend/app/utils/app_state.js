@@ -46,11 +46,11 @@ var app_state = Ember.Object.extend({
       if(battery.level != _this.get('battery.level') || battery.charging !== _this.get('battery.charging')) {
         _this.set('battery', battery);
         _this.set('battery.progress_style', new Ember.String.htmlSafe("width: " + parseInt(battery.level) + "%;"));
-        _this.set('battery.low', battery.level < 15);
-        _this.set('battery.really_low', battery.level < 10);
-        if(battery.level <= 10 && !battery.charging) {
+        _this.set('battery.low', battery.level < 30);
+        _this.set('battery.really_low', battery.level < 20);
+        if(battery.level <= 20 && !battery.charging) {
           _this.set('battery.progress_class', "progress-bar progress-bar-danger");
-        } else if(battery.level <= 20 && !battery.charging) {
+        } else if(battery.level <= 30 && !battery.charging) {
           _this.set('battery.progress_class', "progress-bar progress-bar-warning");
         } else {
           _this.set('battery.progress_class', "progress-bar progress-bar-success");
