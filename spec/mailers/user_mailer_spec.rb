@@ -466,8 +466,8 @@ describe UserMailer, :type => :mailer do
       expect(html).to_not match(/All Communicators/)
       expect(html).to match(/ever, again, never/)
       expect(html).to match(/ok, go/)
-      expect(html).to match(/\+200%/)
-      expect(html).to match(/\+300%/)
+      expect(html).to match(/\+100\.0%/)
+      expect(html).to match(/\+200\.0%/)
     end
     
     it "should include supervisees" do
@@ -483,6 +483,7 @@ describe UserMailer, :type => :mailer do
 
       s1 = LogSession.process_new({'events' => [
         {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 1},
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 2},
         {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i}
       ]}, {:user => u2, :author => u, :device => d, :ip_address => '1.2.3.4'})
       s2 = LogSession.process_new({'events' => [
@@ -513,7 +514,7 @@ describe UserMailer, :type => :mailer do
       expect(html).to match(/#{u3.user_name}/)
       expect(html).to match(/ever, again, never/)
       expect(html).to match(/ok, go/)
-      expect(html).to match(/\+100%/)
+      expect(html).to match(/\+100\.0%/)
       expect(html).to match(/so no reports are generated/)
     end
     

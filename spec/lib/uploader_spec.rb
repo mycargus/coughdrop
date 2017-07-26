@@ -644,7 +644,7 @@ describe Uploader do
       expect(Uploader.find_resources('bacon', 'tarheel', nil)).to eq([
         {
           'url' => 'https://tarheelreader.org/bacon1',
-          'image' => 'https://d1afj2lqudmea0.cloudfront.net/bacon.png',
+          'image' => 'https://tarheelreader.org/bacon.png',
           'title' => 'Bacon One',
           'author' => 'Amir',
           'id' => 'bacon-1',
@@ -652,7 +652,7 @@ describe Uploader do
         },
         {
           'url' => 'https://tarheelreader.org/bacon2',
-          'image' => 'https://d1afj2lqudmea0.cloudfront.net/bacon.png',
+          'image' => 'https://tarheelreader.org/bacon.png',
           'title' => 'Bacon Two',
           'author' => 'Radish',
           'id' => 'bacon-2',
@@ -662,7 +662,7 @@ describe Uploader do
     end
     
     it 'should return tarheel book pages' do
-      expect(Typhoeus).to receive(:get).with("https://tarheelreader.org/book-as-json/?slug=bacon-1").and_return(OpenStruct.new(body: {
+      expect(Typhoeus).to receive(:get).with("https://tarheelreader.org/book-as-json/?slug=bacon-1").and_return(OpenStruct.new(headers: {}, body: {
         'slug' => 'bacon-1',
         'ID' => '12345',
         'link' => '/bacon',
@@ -713,7 +713,7 @@ describe Uploader do
     end
 
     it "should return custom book pages" do
-      expect(Typhoeus).to receive(:get).with("http://www.example.com/book.json").and_return(OpenStruct.new(body: {
+      expect(Typhoeus).to receive(:get).with("http://www.example.com/book.json").and_return(OpenStruct.new(headers: {}, body: {
         "book_url": "http://github.com/whitmer",
         "author": "Brian",
         "attribution_url": "http://github.com/whitmer",

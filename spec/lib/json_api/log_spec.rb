@@ -121,7 +121,8 @@ describe JsonApi::Log do
         'id' => 5,
         'summary' => '[vocalize]',
         'timestamp' => 12349,
-        'type' => 'utterance'
+        'type' => 'utterance',
+        'utterance_text' => nil
       })
       expect(json['log']['events'][5]).to eql({
         'id' => 6,
