@@ -138,7 +138,7 @@ module Converters::CoughDrop
         next unless hashes["#{list}_ids"].include?(item['id'])
         record = Converters::Utils.find_by_data_url(item['data_url'])
         if record
-          obj[list][item['id']] = record.global_id
+          obj[list][item['id']]['id'] = record.global_id
           hashes[item['id']] = record.global_id
         elsif item['data']
           record = klass.create(:user => opts['user'])
@@ -147,7 +147,7 @@ module Converters::CoughDrop
           record = klass.create(:user => opts['user'])
           item['ref_url'] = item['url']
         end
-        if record && (!obj[list] || !obj[list][item['id']])
+        if record && !hashes[item['id']]
           item.delete('data')
           item.delete('url')
 
@@ -161,9 +161,8 @@ module Converters::CoughDrop
           if item['ref_url']
             record.upload_to_remote(item['ref_url']) if item['ref_url']
           end
-          obj[list] ||= {}
-          obj[list][item['id']] = record.global_id
           hashes[item['id']] = record.global_id
+          obj[list][item['id']]['id'] = record.global_id
         end
       end
     end
