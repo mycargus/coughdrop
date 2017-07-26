@@ -2,6 +2,7 @@ import Ember from 'ember';
 import modal from '../utils/modal';
 import persistence from '../utils/persistence';
 import i18n from '../utils/i18n';
+import app_state from '../utils/app_state';
 import progress_tracker from '../utils/progress_tracker';
 
 export default modal.ModalController.extend({
@@ -14,6 +15,22 @@ export default modal.ModalController.extend({
   opening: function() {
     this.set('progress', null);
     this.set('track_id', null);
+
+    if(app_state.get('currentUser.preferences.preferences.device.button_text_position')) {
+      if(app_state.get('currentUser.preferences.preferences.device.button_text_position') == 'bottom') {
+        this.set('text_below', true);
+      } else {
+        this.set('text_below', false);
+      }
+    }
+
+    if(app_state.get('currentUser.preferences.preferences.symbol_background')) {
+      if(app_state.get('currentUser.preferences.preferences.symbol_background') == 'white') {
+        this.set('white_background', true);
+      } else {
+        this.set('white_background', false);
+      }
+    }
     if(persistence.get('online')) {
       this.send('startDownload');
     }
@@ -29,6 +46,9 @@ export default modal.ModalController.extend({
         }
         if(!this.get('text_below') && !this.get('download_type')) {
           url = url + "&text_on_top=1";
+        }
+        if(!this.get('white_background') && !this.get('download_type')) {
+          url = url + "&transparent_background=1";
         }
         var download = persistence.ajax(url, {type: 'POST'});
         var _this = this;

@@ -59,6 +59,12 @@
                   {{t "Print with text below the images" key='text_below'}}
                 </label>
               </p>
+              <p>
+                <label>
+                  {{input type='checkbox' checked=white_background}}
+                  {{t "Print all images with a white background" key='white_background'}}
+                </label>
+              </p>
               {{#if model.has_links}}
                 <button {{action "startDownload" "all"}} class="btn btn-primary">{{t "Print full board set" key='download_all_boards'}}</button>
                 <button {{action "startDownload" "this"}} class="btn btn-default">{{t "Print just this board" key='download_this_board'}}</button>

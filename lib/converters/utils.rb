@@ -15,7 +15,7 @@ module Converters::Utils
     nil
   end
   
-  def self.board_to_remote(board, user, file_type, include, headerless=false, text_on_top=false)
+  def self.board_to_remote(board, user, file_type, include, headerless=false, text_on_top=false, transparent_background=false)
     Progress.update_current_progress(0.2, :converting_file)
     # TODO: key off just the last change id for the board(s) when building the
     # filename, return existing filename if it exists and isn't about to expire
@@ -33,7 +33,7 @@ module Converters::Utils
     end
     key = GoSecure.sha512(board.id.to_s, 'board_id')
     
-    filename = "board_" + board.current_revision + (include == 'all' ? '1' : '0') + (headerless ? '1' : '0') + (text_on_top ? '1' : '0') + "." + file_type.to_s
+    filename = "board_" + board.current_revision + (include == 'all' ? '1' : '0') + (headerless ? '1' : '0') + (text_on_top ? '1' : '0') + (transparent_background ? '1' : '0') + "." + file_type.to_s
     remote_path = "downloads/#{key}/#{filename}"
     url = Uploader.check_existing_upload(remote_path)
     return url if url
@@ -44,12 +44,12 @@ module Converters::Utils
         if include == 'all'
           Converters::CoughDrop.to_obz(board, path, {'user' => user})
         else
-          Converters::CoughDrop.to_obz(board, path, {'user' => user, 'headerless' => !!headerless, 'text_on_top' => !!text_on_top})
+          Converters::CoughDrop.to_obz(board, path, {'user' => user, 'headerless' => !!headerless, 'text_on_top' => !!text_on_top, 'transparent_background' => !!transparent_background})
         end
       elsif file_type == 'obf'
         Converters::CoughDrop.to_obf(board, path)
       elsif file_type == 'pdf'
-        Converters::CoughDrop.to_pdf(board, path, {'user' => user, 'packet' => (include == 'all'), 'headerless' => !!headerless, 'text_on_top' => !!text_on_top})
+        Converters::CoughDrop.to_pdf(board, path, {'user' => user, 'packet' => (include == 'all'), 'headerless' => !!headerless, 'text_on_top' => !!text_on_top, 'transparent_background' => !!transparent_background})
       end
     end
     Progress.update_current_progress(0.9, :uploading_file)
