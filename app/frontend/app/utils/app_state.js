@@ -834,7 +834,7 @@ var app_state = Ember.Object.extend({
     }
   },
   on_user_change: function() {
-    if(this.get('currentUser')) {
+    if(this.get('currentUser') && CoughDrop.Board) {
       CoughDrop.Board.clear_fast_html();
     }
   }.observes('currentUser'),
@@ -923,7 +923,9 @@ var app_state = Ember.Object.extend({
         app_state.set('referenced_speak_mode_user', null);
         stashes.persist('referenced_speak_mode_user_id', null);
       }
-      CoughDrop.Board.clear_fast_html();
+      if(CoughDrop.Board) {
+        CoughDrop.Board.clear_fast_html();
+      }
     }
     this.set('last_speak_mode', !!this.get('speak_mode'));
   }.observes('speak_mode', 'currentUser.id', 'currentUser.preferences.logging'),
