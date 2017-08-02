@@ -128,11 +128,12 @@ CoughDrop.Buttonset = DS.Model.extend({
           if(button_set) {
             button_set.set('home_lock_set', home_lock);
             button_sets.push(button_set);
-          } else {
+          } else if(key) {
             root_button_set_lookups.push(CoughDrop.store.findRecord('buttonset', key).then(function(button_set) {
               button_set.set('home_lock_set', home_lock);
               button_sets.push(button_set);
             }, function() { return Ember.RSVP.resolve(); }));
+          } else {
           }
         };
         if(user.get('preferences.home_board.id')) {
