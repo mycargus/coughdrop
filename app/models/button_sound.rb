@@ -225,9 +225,17 @@ class ButtonSound < ActiveRecord::Base
     self.user ||= non_user_params[:user] if non_user_params[:user]
     @download_url = false if non_user_params[:download] == false
     self.settings ||= {}
-    process_url(params['url'], non_user_params) if params['url']
-    self.settings['content_type'] = params['content_type'] if params['content_type']
-    self.settings['duration'] = params['duration'].to_i if params['duration']
+    if !self.url
+      process_url(params['url'], non_user_params) if params['url'] && params['url'].match(/^http/)
+      self.settings['content_type'] = params['content_type'] if params['content_type']
+      self.settings['duration'] = params['duration'].to_i if params['duration']
+      # TODO: raise a stink if content_type or duration are not provided
+      process_license(params['license']) if params['license']
+      self.settings['protected'] = params['protected'] if params['protected'] != nil
+      self.settings['protected'] = params['ext_coughdrop_protected'] if params['ext_coughdrop_protected'] != nil
+      self.settings['suggestion'] = params['suggestion'] if params['suggestion']
+      self.public = params['public'] if params['public'] != nil
+    end
     self.settings['name'] = params['name'] if params['name']
     if !params['transcription'].blank?
       if params['transcription'] != self.settings['transcription']
@@ -244,12 +252,6 @@ class ButtonSound < ActiveRecord::Base
         self.settings['tags'] -= [params['tag'].sub(/^not:/, '')]
       end
     end
-    # TODO: raise a stink if content_type or duration are not provided
-    process_license(params['license']) if params['license']
-    self.settings['protected'] = params['protected'] if params['protected'] != nil
-    self.settings['protected'] = params['ext_coughdrop_protected'] if params['ext_coughdrop_protected'] != nil
-    self.settings['suggestion'] = params['suggestion'] if params['suggestion']
-    self.public = params['public'] if params['public'] != nil
     true
   end
 end

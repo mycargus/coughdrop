@@ -83,22 +83,26 @@ class ButtonImage < ActiveRecord::Base
     raise "user required as image author" unless self.user_id || non_user_params[:user]
     self.user ||= non_user_params[:user] if non_user_params[:user]
     self.settings ||= {}
-    process_url(params['url'], non_user_params) if params['url']
-    self.settings['content_type'] = params['content_type'] if params['content_type']
-    self.settings['width'] = params['width'].to_i if params['width']
-    self.settings['height'] = params['height'].to_i if params['height']
-    # TODO: when cleaning up orphan images, don't delete avatar images
-    self.settings['avatar'] = !!params['avatar'] if params['avatar'] != nil
-    self.settings['badge'] = !!params['badge'] if params['badge'] != nil
-    # TODO: raise a stink if content_type, width or height are not provided
-    process_license(params['license']) if params['license']
-    self.settings['protected'] = params['protected'] if params['protected'] != nil
-    self.settings['protected'] = params['ext_coughdrop_protected'] if params['ext_coughdrop_protected'] != nil
-    self.settings['finding_user_name'] = params['finding_user_name'] if params['finding_user_name']
-    self.settings['suggestion'] = params['suggestion'] if params['suggestion']
-    self.settings['search_term'] = params['search_term'] if params['search_term']
-    self.settings['external_id'] = params['external_id'] if params['external_id']
-    self.public = params['public'] if params['public'] != nil
+    if !self.url
+      process_url(params['url'], non_user_params) if params['url'] && params['url'].match(/^http/)
+      self.settings['content_type'] = params['content_type'] if params['content_type']
+      self.settings['width'] = params['width'].to_i if params['width']
+      self.settings['height'] = params['height'].to_i if params['height']
+      
+      # TODO: when cleaning up orphan images, don't delete avatar images
+      self.settings['avatar'] = !!params['avatar'] if params['avatar'] != nil
+      self.settings['badge'] = !!params['badge'] if params['badge'] != nil
+      
+      # TODO: raise a stink if content_type, width or height are not provided
+      process_license(params['license']) if params['license']
+      self.settings['protected'] = params['protected'] if params['protected'] != nil
+      self.settings['protected'] = params['ext_coughdrop_protected'] if params['ext_coughdrop_protected'] != nil
+      self.settings['finding_user_name'] = params['finding_user_name'] if params['finding_user_name']
+      self.settings['suggestion'] = params['suggestion'] if params['suggestion']
+      self.settings['search_term'] = params['search_term'] if params['search_term']
+      self.settings['external_id'] = params['external_id'] if params['external_id']
+      self.public = params['public'] if params['public'] != nil
+    end
     true
   end
 end
