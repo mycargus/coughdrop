@@ -427,10 +427,10 @@
         <a class='btn btn-default' id='identity_button' href="#" data-toggle="dropdown">
           {{#if app_state.currentUser}}
             <span class='user_holder'>
-              <img src={{app_state.currentUser.avatar_url_with_fallback}} class='user' />
+              <img src={{app_state.currentUser.avatar_url_with_fallback}} class='user' onerror='button_broken_image(this);' />
             </span>
             {{#if app_state.modeling_for_user}}
-              <img src={{app_state.referenced_speak_mode_user.avatar_url_with_fallback}} class='modeling_user'/>
+              <img src={{app_state.referenced_speak_mode_user.avatar_url_with_fallback}} class='modeling_user' onerror='button_broken_image(this);' />
             {{/if}}
             {{#if session.invalid_token}}
               <span class="label label-danger unread">{{t "!" key='exclaim'}}</span>
