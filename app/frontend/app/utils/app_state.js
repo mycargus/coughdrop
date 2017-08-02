@@ -517,7 +517,7 @@ var app_state = Ember.Object.extend({
         }
       } else if(mode == 'speak') {
         var already_speaking_as_someone_else = app_state.get('speakModeUser.id') && app_state.get('speakModeUser.id') != app_state.get('sessionUser.id');
-        if(app_state.get('currentUser') && !opts.reminded && app_state.get('currentUser.expired_or_limited_supervisor') && !already_speaking_as_someone_else) {
+        if(app_state.get('currentUser') && !opts.reminded && app_state.get('currentUser.expired') && !already_speaking_as_someone_else) {
           return modal.open('premium-required', {user_name: app_state.get('currentUser.user_name'), limited_supervisor: app_state.get('currentUser.subscription.limited_supervisor'), remind_to_upgrade: true, action: 'app_speak_mode'}).then(function() {
             opts.reminded = true;
             app_state.toggle_mode(mode, opts);
