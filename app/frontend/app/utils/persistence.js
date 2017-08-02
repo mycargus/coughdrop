@@ -632,6 +632,20 @@ var persistence = Ember.Object.extend({
         });
       });
     });
+//     if(!_this.primed && capabilities.mobile && false) {
+//       // css preload of all images on mobile
+//       var style = document.createElement('style');
+//       style.type = 'text/css';
+//       var head = document.getElementsByTagName('head')[0];
+//       var rules = [];
+//       for(var idx in _this.url_cache) {
+//         rules.push("url(\"" + _this.url_cache[idx] + "\")");
+//       }
+//       style.innerHTML = 'body::after { content: ' + (rules.join(' ')) + '; height: 0; position: absolute; left: -1000;}';
+//       if(head) {
+//         head.appendChild(style);
+//       }
+//     }
     res.then(function() { _this.primed = true; }, function() { _this.primed = true; });
     return res;
   },
