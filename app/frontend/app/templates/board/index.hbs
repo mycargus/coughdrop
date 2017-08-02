@@ -77,7 +77,9 @@
       </div>
     {{else}}
       {{#if board.grid}}
-        {{#if ordered_buttons}}
+        {{#if board.fast_html.html}}
+          {{board.fast_html.html}}
+        {{else if ordered_buttons}}
           {{#if app_state.edit_mode}}
             {{#each ordered_buttons as |row|}}
               <div class="button_row">
@@ -97,6 +99,7 @@
                   {{/each}}
                 </div>
               {{/each}}
+              {{fast-html-grabber}}
             {{/if}}
           {{/if}}
         {{else}}

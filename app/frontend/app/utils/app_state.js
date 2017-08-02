@@ -833,6 +833,11 @@ var app_state = Ember.Object.extend({
       return Ember.RSVP.resolve({dialog: false});
     }
   },
+  on_user_change: function() {
+    if(this.get('currentUser')) {
+      CoughDrop.Board.clear_fast_html();
+    }
+  }.observes('currentUser'),
   speak_mode_handlers: function() {
     if(this.get('speak_mode')) {
 
@@ -918,6 +923,7 @@ var app_state = Ember.Object.extend({
         app_state.set('referenced_speak_mode_user', null);
         stashes.persist('referenced_speak_mode_user_id', null);
       }
+      CoughDrop.Board.clear_fast_html();
     }
     this.set('last_speak_mode', !!this.get('speak_mode'));
   }.observes('speak_mode', 'currentUser.id', 'currentUser.preferences.logging'),

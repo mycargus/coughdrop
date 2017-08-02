@@ -29,16 +29,6 @@ export default Ember.Controller.extend({
     this.update_button_symbol_class();
     boundClasses.add_rules(this.get('model.buttons'));
     this.computeHeight();
-    if(this.get('model.word_suggestions')) {
-      var _this = this;
-      _this.set('suggestions', {loading: true});
-      word_suggestions.load().then(function() {
-        _this.set('suggestions', {ready: true});
-        _this.updateSuggestions();
-      }, function() {
-        _this.set('suggestions', {error: true});
-      });
-    }
     editManager.process_for_displaying();
   }.observes('app_state.board_reload_key'),
   check_for_share_approval: function() {
@@ -173,6 +163,10 @@ export default Ember.Controller.extend({
       'width': width,
       'teaser_description': show_description
     });
+    if(this.get('model.fast_html') && (this.get('model.fast_html.width') != this.get('width') || this.get('model.fast_html.height') != this.get('height') || this.get('model.fast_html.revision') != this.get('model.current_revision'))) {
+      this.set('model.fast_html', null);
+      editManager.process_for_displaying();
+    }
   }.observes('app_state.speak_mode', 'app_state.edit_mode', 'model.word_suggestions', 'model.description', 'app_state.sidebar_pinned', 'app_state.currentUser.preferences.word_suggestion_images', 'text_position'),
   board_style: function() {
     return new Ember.String.htmlSafe("position: relative; height: " + (this.get('height') + 5) + "px");

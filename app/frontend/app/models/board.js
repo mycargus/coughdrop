@@ -4,7 +4,10 @@ import CoughDrop from '../app';
 import i18n from '../utils/i18n';
 import persistence from '../utils/persistence';
 import modal from '../utils/modal';
-import app_state from '../utils/modal';
+import app_state from '../utils/app_state';
+import Button from '../utils/button';
+import editManager from '../utils/edit_manager';
+import boundClasses from '../utils/bound_classes';
 import Utils from '../utils/misc';
 
 CoughDrop.Board = DS.Model.extend({
@@ -615,10 +618,169 @@ CoughDrop.Board = DS.Model.extend({
       res.then(null, function() { });
       return res;
     }
+  },
+  add_classes: function() {
+    if(this.get('classes_added')) { return; }
+    (this.get('buttons') || []).forEach(function(button) {
+      boundClasses.add_rule(button);
+      boundClasses.add_classes(button);
+    });
+    this.set('classes_added', true);
+  },
+  render_fast_html: function(size) {
+    CoughDrop.log.track('redrawing');
+
+    var buttons = this.translated_buttons(app_state.get('label_locale'), app_state.get('vocalization_locale'));
+    var grid = this.get('grid');
+    var ob = [];
+    for(var idx = 0; idx < grid.rows; idx++) {
+      var row = [];
+      for(var jdx = 0; jdx < grid.columns; jdx++) {
+        var found = false;
+        for(var kdx = 0; kdx < buttons.length; kdx++) {
+          if(buttons[kdx] && buttons[kdx].id && buttons[kdx].id == (grid.order[idx] || [])[jdx]) {
+            found = true;
+            var btn = Ember.$.extend({}, buttons[kdx]);
+            row.push(btn);
+          }
+        }
+        if(!found) {
+          row.push({
+            empty: true,
+            label: '',
+            id: -1
+          });
+        }
+      }
+      ob.push(row);
+    }
+
+    var starting_height = Math.floor((size.height / (grid.rows || 2)) * 100) / 100;
+    var starting_width = Math.floor((size.width / (grid.columns || 2)) * 100) / 100;
+    var extra_pad = size.extra_pad;
+    var inner_pad = size.inner_pad;
+    var double_pad = inner_pad * 2;
+    var radius = 4;
+    var context = null;
+
+    var currentLabelHeight = size.base_text_height - 3;
+    this.set('text_size', 'normal');
+    if(starting_height < 35) {
+      this.set('text_size', 'really_small_text');
+    } else if(starting_height < 75) {
+      this.set('text_size', 'small_text');
+    }
+
+    var _this = this;
+
+    var button_html = function(button, pos) {
+      var res = "";
+      // TODO: sanitize all these for safety?
+      var local_image_url = persistence.url_cache[_this.get('image_urls')[button.image_id] || 'none'] || _this.get('image_urls')[button.image_id] || 'none';
+      var local_sound_url = persistence.url_cache[_this.get('sound_urls')[button.sound_id] || 'none'];
+      var opts = Button.button_styling(button, _this, pos);
+
+      res = res + "<div style='" + opts.button_style + "' class='" + opts.button_class + "' data-id='" + button.id + "' tabindex='0'>";
+      res = res + "<div class='" + opts.action_class + "'>";
+      res = res + "<span class='action'>";
+      res = res + "<img src='" + opts.action_image + "' alt='" + opts.action_alt + "' />";
+      res = res + "</span>";
+      res = res + "</div>";
+
+      res = res + "<span style='" + opts.image_holder_style + "'>";
+      if(!app_state.get('currentUser.hide_symbols') && local_image_url) {
+        res = res + "<img src=\"" + Button.clean_url(local_image_url) + "\" onerror='button_broken_image(this);' style='" + opts.image_style + "' class='symbol' />";
+      }
+      res = res + "</span>";
+      if(button.sound) {
+        var url = Button.clean_url(local_sound_url);
+        res = res + "<audio style='display: none;' preload='auto' src=\"" + url + "\" rel=\"" + url + "\"></audio>";
+      }
+      res = res + "<div class='" + size.button_symbol_class + "'>";
+      res = res + "<span class='button-label " + (button.hide_label ? "hide-label" : "") + "'>" + opts.label + "</span>";
+      res = res + "</div>";
+
+      res = res + "</div>";
+      return res;
+    };
+    var html = "";
+
+    var text_position = "text_position_" + (app_state.get('currentUser.preferences.device.button_text_position') || window.user_preferences.device.button_text_position);
+
+    CoughDrop.log.track('computing dimensions');
+    ob.forEach(function(row, i) {
+      html = html + "\n<div class='button_row fast'>";
+      row.forEach(function(button, j) {
+        boundClasses.add_rule(button);
+        boundClasses.add_classes(button);
+        var button_height = starting_height - (extra_pad * 2);
+        if(button_height > 30) {
+          button_height = button_height;
+        }
+        var button_width = starting_width - (extra_pad * 2);
+        if(button_width > 30) {
+          button_width = button_width;
+        }
+        var top = extra_pad + (i * starting_height) + inner_pad;
+        var left = extra_pad + (j * starting_width) + inner_pad;
+
+        var image_height = button_height - currentLabelHeight - CoughDrop.boxPad - (inner_pad * 2) + 8;
+        var image_width = button_width - CoughDrop.boxPad - (inner_pad * 2) + 8;
+
+        var top_margin = currentLabelHeight + CoughDrop.labelHeight - 8;
+        if(_this.get('text_size') == 'really_small_text') {
+          if(currentLabelHeight > 0) {
+            image_height = image_height + currentLabelHeight - CoughDrop.labelHeight + 25;
+            top_margin = 0;
+          }
+        } else if(_this.get('text_size') == 'small_text') {
+          if(currentLabelHeight > 0) {
+            image_height = image_height + currentLabelHeight - CoughDrop.labelHeight + 10;
+            top_margin = top_margin - 10;
+          }
+        }
+        if(button_height < 50) {
+          image_height = image_height + (inner_pad * 2);
+        }
+        if(button_width < 50) {
+          image_width = image_width + (inner_pad * 2) + (extra_pad * 2);
+        }
+        if(currentLabelHeight === 0 || text_position != 'text_position_top') {
+          top_margin = 0;
+        }
+
+        html = html + button_html(button, {
+          top: top,
+          left: left - inner_pad - inner_pad - inner_pad,
+          width: button_width,
+          height: button_height,
+          image_height: image_height,
+          image_width: image_width,
+          image_square: Math.min(image_height, image_width),
+          image_top_margin: top_margin,
+          border: inner_pad
+        });
+      });
+      html = html + "\n</div>";
+    });
+    return {
+      width: size.width,
+      height: size.height,
+      revision: _this.get('current_revision'),
+      html: Ember.String.htmlSafe(html)
+    };
   }
 });
 
 CoughDrop.Board.reopenClass({
+  clear_fast_html: function() {
+    CoughDrop.store.peekAll('board').content.mapBy('record').forEach(function(b) {
+      b.set('fast_html', null);
+    });
+    if(app_state.get('currentBoardState.id') && editManager.controller && !editManager.controller.get('ordered_buttons')) {
+      editManager.process_for_displaying();
+    }
+  },
   refresh_data_urls: function() {
     // when you call sync, you're potentially prefetching a bunch of images and
     // sounds that don't have a locally-stored copy yet, so their data-uris will

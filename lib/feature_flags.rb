@@ -3,7 +3,7 @@ module FeatureFlags
               'canvas_render', 'snapshots', 'enable_all_buttons', 'chrome_filesystem',
               'video_recording', 'goals', 'app_connections', 'translation', 'geo_sidebar',
               'modeling', 'edit_before_copying', 'core_reports', 'lessonpix',
-              'audio_recordings']
+              'audio_recordings', 'fast_render']
   # NOTE: chrome filesystem has a different expiration policy than the datastore, and
   # it appears to be more aggressive, so it is probably not a good solution. At least,
   # that's how it seems after having it enabled on the windows app.

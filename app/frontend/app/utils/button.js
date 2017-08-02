@@ -48,65 +48,18 @@ var Button = Ember.Object.extend({
   integrationAction: function() {
     return this.get('buttonAction') == 'integration';
   }.property('buttonAction'),
+  action_styling: function() {
+    return Button.action_styling(this.get('buttonAction'), this);
+  }.property('buttonAction', 'home_lock', 'book.popup', 'video.popup', 'action_status', 'action_status.pending', 'action_status.errored', 'action_status.completed', 'integration.action_type'),
+  action_class: function() {
+    return Ember.String.htmlSafe(this.get('action_styling.action_class'));
+  }.property('action_styling'),
   action_image: function() {
-    var path = Ember.templateHelpers.path;
-    var action = this.get('buttonAction');
-    if(action == 'folder') {
-      if(this.get('home_lock')) {
-        return path('images/folder_home.png');
-      } else {
-        return path('images/folder.png');
-      }
-    } else if(action == 'integration') {
-      var state = this.get('action_status') || {};
-      if(this.get('integration.action_type') == 'render') {
-        return path('images/folder_integration.png');
-      } else if(state.pending) {
-        return path('images/clock.png');
-      } else if(state.errored) {
-        return path('images/error.png');
-      } else if(state.completed) {
-        return path('images/check.png');
-      } else {
-        return path('images/action.png');
-      }
-    } else if(action == 'talk') {
-      return path('images/talk.png');
-    } else if(action == 'link') {
-      if(this.get('video.popup')) {
-        return path('images/video.svg');
-      } else if(this.get('book.popup')) {
-        return path('images/book.svg');
-      } else {
-        return path('images/link.png');
-      }
-    } else if(action == 'app') {
-      return path('images/app.png');
-    } else {
-      return path('images/unknown_action.png');
-    }
-  }.property('buttonAction', 'book.popup', 'video.popup', 'home_lock', 'action_status', 'action_status.pending', 'action_status.errored', 'action_status.completed', 'integration.action_type'),
+    return this.get('action_styling.action_image');
+  }.property('action_styling'),
   action_alt: function() {
-    var path = Ember.templateHelpers.path;
-    var action = this.get('buttonAction');
-    if(action == 'folder') {
-      return i18n.t('folder', "folder");
-    } else if(action == 'talk') {
-      return i18n.t('talk', "talk");
-    } else if(action == 'link') {
-      if(this.get('video.popup')) {
-        return i18n.t('video', "video");
-      } else {
-        return i18n.t('link', "link");
-      }
-    } else if(action == 'app') {
-      return i18n.t('app', "app");
-    } else if(action == 'integration') {
-      return i18n.t('integration', "integration");
-    } else {
-      return i18n.t('unknown_action', "unknown action");
-    }
-  }.property('buttonAction', 'video.popup'),
+    return this.get('action_styling.action_alt');
+  }.property('action_styling'),
   youtube_regex: (/(?:https?:\/\/)?(?:www\.)?youtu(?:be\.com\/watch\?(?:.*?&(?:amp;)?)?v=|\.be\/)([\w \-]+)(?:&(?:amp;)?[\w\?=]*)?/),
   tarheel_reader_regex: (/(?:https?:\/\/)?(?:www\.)?tarheelreader\.org\/\d+\/\d+\/\d+\/([\w-]+)\/?/),
   book_regex: (/^book:(https?:\/\/.+)$/),
@@ -262,30 +215,16 @@ var Button = Ember.Object.extend({
   }.property('refresh_token', 'positioning', 'computed_style', 'computed_class', 'label', 'action_class', 'action_image', 'action_alt', 'image_holder_style', 'local_image_url', 'image_style', 'local_sound_url', 'sound.url', 'hide_label'),
   image_holder_style: function() {
     var pos = this.get('positioning');
-    if(!pos || !pos.image_height) { return ""; }
-    return new Ember.String.htmlSafe("margin-top: " + pos.image_top_margin + "px; vertical-align: top; display: inline-block; width: " + pos.image_square + "px; height: " + pos.image_height + "px; line-height: " + pos.image_height + "px;");
+    return new Ember.String.htmlSafe(Button.image_holder_style(pos));
   }.property('positioning', 'positioning.image_height', 'positioning.image_top_margin', 'positioning.image_square'),
   image_style: function() {
     var pos = this.get('positioning');
-    if(!pos || !pos.image_height) { return ""; }
-    return new Ember.String.htmlSafe("width: 100%; vertical-align: middle; max-height: " + pos.image_square + "px;");
+    return new Ember.String.htmlSafe(Button.image_style(pos));
   }.property('positioning', 'positioning.image_height', 'positioning.image_square'),
   computed_style: function() {
     var pos = this.get('positioning');
     if(!pos) { return new Ember.String.htmlSafe(""); }
-    var str = "";
-    if(pos && pos.top !== undefined && pos.left !== undefined) {
-      str = str + "position: absolute;";
-      str = str + "left: " + pos.left + "px;";
-      str = str + "top: " + pos.top + "px;";
-    }
-    if(pos.width) {
-      str = str + "width: " + Math.max(pos.width, 20) + "px;";
-    }
-    if(pos.height) {
-      str = str + "height: " + Math.max(pos.height, 20) + "px;";
-    }
-    return new Ember.String.htmlSafe(str);
+    return Button.computed_style(pos);
   }.property('positioning', 'positioning.height', 'positioning.width', 'positioning.left', 'positioning.top'),
   computed_class: function() {
     var res = this.get('display_class') + " ";
@@ -297,16 +236,6 @@ var Button = Ember.Object.extend({
     }
     return res;
   }.property('display_class', 'board.text_size', 'for_swap'),
-  action_class: function() {
-    var res = "action_container ";
-    if(this.get('buttonAction')) {
-      res = res + this.get('buttonAction') + " ";
-    }
-    if(this.get('home_lock')) {
-      res = res + "home ";
-    }
-    return res;
-  }.property('buttonAction'),
   pending: function() {
     return this.get('pending_image') || this.get('pending_sound');
   }.property('pending_image', 'pending_sound'),
@@ -539,16 +468,159 @@ Button.style = function(style) {
   return res;
 };
 
+Button.computed_style = function(pos) {
+    var str = "";
+    if(pos && pos.top !== undefined && pos.left !== undefined) {
+      str = str + "position: absolute;";
+      str = str + "left: " + pos.left + "px;";
+      str = str + "top: " + pos.top + "px;";
+    }
+    if(pos.width) {
+      str = str + "width: " + Math.max(pos.width, 20) + "px;";
+    }
+    if(pos.height) {
+      str = str + "height: " + Math.max(pos.height, 20) + "px;";
+    }
+    return new Ember.String.htmlSafe(str);
+};
+Button.action_styling = function(action, button) {
+  if(!action) {
+    if(button.load_board) {
+      action = 'folder';
+    } else if(button.url != null) {
+      action = 'link';
+    } else if(button.apps != null) {
+      action = 'app';
+    } else if(button.integration != null) {
+      action = 'integration';
+    } else {
+      action = 'talk';
+    }
+  }
+  var res = {};
+  res.action_class = 'action_container ';
+  if(action) { res.action_class = res.action_class + action + " "; }
+  if(button.home_lock) { res.action_class = res.action_class + "home "; }
+
+  var path = Ember.templateHelpers.path;
+  if(action == 'folder') {
+    if(button.home_lock) {
+      res.action_image = path('images/folder_home.png');
+    } else {
+      res.action_image = path('images/folder.png');
+    }
+  } else if(action == 'integration') {
+    var state = button.action_status || {};
+    if(button.integration && button.integration.action_type == 'render') {
+      res.action_image = path('images/folder_integration.png');
+    } else if(state.pending) {
+      res.action_image = path('images/clock.png');
+    } else if(state.errored) {
+      res.action_image = path('images/error.png');
+    } else if(state.completed) {
+      res.action_image = path('images/check.png');
+    } else {
+      res.action_image = path('images/action.png');
+    }
+  } else if(action == 'talk') {
+    res.action_image = path('images/talk.png');
+  } else if(action == 'link') {
+    if(button.video && button.video.popup) {
+      res.action_image = path('images/video.svg');
+    } else if(button.book && button.book.popup) {
+      res.action_image = path('images/book.svg');
+    } else {
+      res.action_image = path('images/link.png');
+    }
+  } else if(action == 'app') {
+    res.action_image = path('images/app.png');
+  } else {
+    res.action_image = path('images/unknown_action.png');
+  }
+
+  if(action == 'folder') {
+    res.action_alt = i18n.t('folder', "folder");
+  } else if(action == 'talk') {
+    res.action_alt = i18n.t('talk', "talk");
+  } else if(action == 'link') {
+    if(button.video && button.video.popup) {
+      res.action_alt = i18n.t('video', "video");
+    } else if(button.book && button.book.popup) {
+      res.action_alt = i18n.t('book', "book");
+    } else {
+      res.action_alt = i18n.t('link', "link");
+    }
+  } else if(action == 'app') {
+    res.action_alt = i18n.t('app', "app");
+  } else if(action == 'integration') {
+    res.action_alt = i18n.t('integration', "integration");
+  } else {
+    res.action_alt = i18n.t('unknown_action', "unknown action");
+  }
+
+  return res;
+};
+Button.image_holder_style = function(pos) {
+  if(!pos || !pos.image_height) { return ""; }
+  return "margin-top: " + pos.image_top_margin + "px; vertical-align: top; display: inline-block; width: " + pos.image_square + "px; height: " + pos.image_height + "px; line-height: " + pos.image_height + "px;";
+};
+Button.image_style = function(pos) {
+  if(!pos || !pos.image_height) { return ""; }
+  return "width: 100%; vertical-align: middle; max-height: " + pos.image_square + "px;";
+};
+Button.clean_url = function(str) { return clean_url(str); }
+
+Button.button_styling = function(button, board, pos) {
+  var res = {};
+  res.button_class = Ember.get(button, 'display_class');
+  if(board.get('text_size')) {
+    res.button_class = res.button_class + " " + board.get('text_size') + " ";
+  }
+  // TODO: sanitize all these for safety?
+  res.button_style = Button.computed_style(pos);
+  var action = Button.action_styling(null, button);
+  res.action_class = action.action_class; //"action_container talk"; // TODO
+  res.action_image = action.action_image; //Ember.templateHelpers.path('images/folder.png'); // TODO
+  res.action_alt = action.action_alt; //"alt"; // TODO
+  res.image_holder_style = Button.image_holder_style(pos);
+  res.image_style = Button.image_style(pos);
+  res.label = clean_text(button.label); // TODO: clean
+
+  return res;
+};
+
 Button.broken_image = function(image) {
   var fallback = Ember.templateHelpers.path('images/square.svg');
   if(image.src && image.src != fallback && !image.src.match(/^data/)) {
     console.log("bad image url: " + image.src);
     image.setAttribute('rel', image.src);
     image.setAttribute('onerror', '');
+    var bad_src = image.src;
     image.src = fallback;
-    persistence.find_url(image.src).then(function(data_uri) {
-      image.src = data_uri;
+    persistence.find_url(fallback).then(function(data_uri) {
+      if(image.src == fallback) {
+        image.src = data_uri;
+      }
     }, function() { });
+    // try to recover from files disappearing from local storage
+    var store_key = function(key) {
+      persistence.url_cache[key] = false;
+      persistence.store_url(key, 'image', false, true).then(function(data) {
+        image.src = data.local_url || data.data_uri;
+      }, function() { });
+    };
+    if(bad_src.match(/^file/)) {
+      for(var key in persistence.url_cache) {
+        if(bad_src == persistence.url_cache[key] && persistence.get('online')) {
+          image.src = key;
+          store_key(key);
+        }
+      }
+    } else {
+      persistence.find_url(bad_src).then(function(data_uri) {
+        image.src = data_uri;
+      }, function() { });
+    }
   }
 };
 

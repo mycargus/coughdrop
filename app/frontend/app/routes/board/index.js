@@ -77,7 +77,7 @@ export default Ember.Route.extend({
     // better reload. if ordered_buttons isn't set then that just means we need some
     // additional lookups
     if(model.get('integration')) { return; }
-    var insufficient_data = model.get('id') && (!controller.get('ordered_buttons') || (!model.get('pseudo_board') && model.get('permissions') === undefined));
+    var insufficient_data = model.get('id') && !model.get('fast_html') && (!controller.get('ordered_buttons') || (!model.get('pseudo_board') && model.get('permissions') === undefined));
     if(!model.get('valid_id')) {
     } else if(persistence.get('online') || insufficient_data) {
       CoughDrop.log.track('considering reload');

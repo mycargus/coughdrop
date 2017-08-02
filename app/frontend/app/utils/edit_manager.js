@@ -7,6 +7,7 @@ import contentGrabbers from './content_grabbers';
 import modal from './modal';
 import persistence from './persistence';
 import progress_tracker from './progress_tracker';
+import word_suggestions from './word_suggestions';
 import i18n from './i18n';
 
 var editManager = Ember.Object.extend({
@@ -217,7 +218,16 @@ var editManager = Ember.Object.extend({
         }
       }
     }
-    return null;
+    var res = null;
+    var board = this.controller.get('model');
+    if(board.get('fast_html')) {
+      board.get('buttons').forEach(function(b) {
+        if(id && id == b.id) {
+          res = editManager.Button.create(b, {board: board});
+        }
+      });
+    }
+    return res;
   },
   clear_button: function(id) {
     var opts = {};
@@ -473,6 +483,17 @@ var editManager = Ember.Object.extend({
     var pending_buttons = [];
     var used_button_ids = {};
 
+    CoughDrop.log.track('process word suggestions');
+    if(controller.get('model.word_suggestions')) {
+      controller.set('suggestions', {loading: true});
+      word_suggestions.load().then(function() {
+        controller.set('suggestions', {ready: true});
+        controller.updateSuggestions();
+      }, function() {
+        controller.set('suggestions', {error: true});
+      });
+    }
+
     // new workflow:
     // - get all the associated image and sound ids
     // - if the board was loaded remotely, they should all be peekable
@@ -482,12 +503,51 @@ var editManager = Ember.Object.extend({
     // - if any *still* aren't reachable, mark them as broken
     // - do NOT make remote requests for the individual records???
 
+
+    var resume_scanning = function() {
+      Ember.run.later(function() {
+        if(app_state.controller) {
+          app_state.controller.send('highlight_button');
+        }
+      });
+      if(app_state.controller) {
+        app_state.controller.send('check_scanning');
+      }
+    };
+
+    if(app_state.get('speak_mode') && app_state.get('feature_flags.fast_render')) {
+      controller.update_button_symbol_class();
+      if(board.get('fast_html') && board.get('fast_html.width') == controller.get('width') && board.get('fast_html.height') == controller.get('height') && board.get('current_revision') == board.get('fast_html.revision')) {
+        CoughDrop.log.track('already have fast render');
+        return;
+      } else {
+        board.set('fast_html', null);
+        board.add_classes();
+        CoughDrop.log.track('trying fast render');
+        var fast = board.render_fast_html({
+          height: controller.get('height'),
+          width: controller.get('width'),
+          extra_pad: controller.get('extra_pad'),
+          inner_pad: controller.get('inner_pad'),
+          base_text_height: controller.get('base_text_height'),
+          button_symbol_class: controller.get('button_symbol_class')
+        });
+
+        if(fast && fast.html) {
+          board.set('fast_html', fast);
+          resume_scanning();
+          return;
+        }
+      }
+    }
+
     // build the ordered grid
     // TODO: work without ordered grid (i.e. scene displays)
     CoughDrop.log.track('finding content locally');
     var prefetch = board.find_content_locally().then(null, function(err) {
       return Ember.RSVP.resolve();
     });
+
 
     var image_urls = board.get('image_urls');
     var sound_urls = board.get('sound_urls');
@@ -537,14 +597,7 @@ var editManager = Ember.Object.extend({
             CoughDrop.log.track('redrawing if needed');
             controller.redraw_if_needed();
             CoughDrop.log.track('done redrawing if needed');
-            Ember.run.later(function() {
-              if(app_state.controller) {
-                app_state.controller.send('highlight_button');
-              }
-            });
-            if(app_state.controller) {
-              app_state.controller.send('check_scanning');
-            }
+            resume_scanning();
           }
         });
         controller.set('ordered_buttons', null);
@@ -561,14 +614,6 @@ var editManager = Ember.Object.extend({
               _this.lucky_symbol(button.id);
             }
           }
-        }
-        Ember.run.later(function() {
-          if(app_state.controller) {
-            app_state.controller.send('highlight_button');
-          }
-        });
-        if(app_state.controller) {
-          app_state.controller.send('check_scanning');
         }
       }
     }, function(err) {
@@ -929,5 +974,5 @@ Ember.$(window).bind('message', function(event) {
     }
   }
 });
-
+window.editManager = editManager;
 export default editManager;
