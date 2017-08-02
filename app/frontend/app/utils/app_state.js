@@ -922,9 +922,9 @@ var app_state = Ember.Object.extend({
         app_state.set('manual_modeling', false);
         app_state.set('referenced_speak_mode_user', null);
         stashes.persist('referenced_speak_mode_user_id', null);
-      }
-      if(CoughDrop.Board) {
-        CoughDrop.Board.clear_fast_html();
+        if(CoughDrop.Board) {
+          CoughDrop.Board.clear_fast_html();
+        }
       }
     }
     this.set('last_speak_mode', !!this.get('speak_mode'));
