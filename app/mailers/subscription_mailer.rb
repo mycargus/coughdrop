@@ -37,22 +37,22 @@ class SubscriptionMailer < ActionMailer::Base
   
   def purchase_confirmed(user_id)
     @user = User.find_by_global_id(user_id)
-    mail_message(@user, "Subscription Confirmed")
+    mail_message(@user, "Purchase Confirmed")
   end
   
   def expiration_approaching(user_id)
     @user = User.find_by_global_id(user_id)
-    mail_message(@user, "Subscription Notice")
+    mail_message(@user, "Billing Notice")
   end
   
   def one_day_until_expiration(user_id)
     @user = User.find_by_global_id(user_id)
-    mail_message(@user, "Subscription Notice")
+    mail_message(@user, "Billing Notice")
   end
   
   def one_week_until_expiration(user_id)
     @user = User.find_by_global_id(user_id)
-    mail_message(@user, "Subscription Notice")
+    mail_message(@user, "Billing Notice")
   end
   
   def subscription_expired(user_id)

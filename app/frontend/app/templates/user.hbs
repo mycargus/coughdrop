@@ -65,7 +65,7 @@
           {{#link-to 'user.edit' model.user_name class="btn btn-default"}}{{t "profile" key='profile'}}{{/link-to}}
           {{#link-to 'user.preferences' model.user_name class="btn btn-default"}}{{t "preferences" key='preferences'}}{{/link-to}}
           {{#if app_state.feature_flags.subscriptions}}
-            {{#link-to 'user.subscription' model.user_name class="btn btn-default"}}{{t "subscription" key='subscription'}}{{/link-to}}
+            {{#link-to 'user.subscription' model.user_name class="btn btn-default"}}{{t "billing" key='billing'}}{{/link-to}}
           {{/if}}
         {{/if}}
         {{#link-to 'user.logs' model.user_name (query-params type=null) class="btn btn-default"}}

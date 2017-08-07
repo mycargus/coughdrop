@@ -1,6 +1,6 @@
 The user account "<%= @user.display_user_name %>" was just removed from the supported list by an organization. <% if @org %>The organization "<%= @org.settings['name'] %>" removed you from their list of supported users.<% end %> Organization managers will no longer have access to your usage reports and logs.
 
-<% if @user.expires_at %>If the organization was sponsoring your account, then please keep in mind that they are no longer funding your premium subscription. That means you'll need to find another sponsoring organization or set up payments yourself in order to not lose premium account access. <% if @user.expires_at > Time.now %>You have <%= time_ago_in_words(@user.expires_at) %> to figure things out.<% end %><% end %>
+<% if @user.expires_at %>If the organization was sponsoring your account, then please keep in mind that they are no longer funding your premium account. That means you'll need to find another sponsoring organization or set up payments yourself in order to not lose premium account access. <% if @user.expires_at > Time.now %>You have <%= time_ago_in_words(@user.expires_at) %> to figure things out.<% end %><% end %>
 
 If you need help, please don't be afraid to reach out to us, we're willing to work with individuals to find a good solution. Just use our support tool (https://coughdrop.zendesk.com) to make a request.
 Thanks!<br/>

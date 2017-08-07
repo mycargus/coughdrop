@@ -1,5 +1,5 @@
 {{#if model.permissions.manage}}
-  <h2>{{t "Subscription Details" key='subscription_details'}}</h2>
+  <h2>{{t "Billing Details" key='subscription_details'}}</h2>
   {{#if model.permissions.manage_subscription}}
     <form class="form-horizontal" {{action "update_org" on="submit"}}>
       <div class="form-group">
@@ -32,12 +32,12 @@
     <p>{{t "Thank you for supporting CoughDrop, and the many communicators who use it!" key='thanks_for_supporting_coughdrop'}}</p>
   {{/if}}
   {{#if model.org_subscriptions}}
-    <h3>{{t "Associated Subscriptions" key='associated_subscriptions'}}</h3>
+    <h3>{{t "Associated Purchases" key='associated_subscriptions'}}</h3>
     <table class='table table-striped table-hover'>
       <thead>
         <tr>
           <th>{{t "User" key='user'}}</th>
-          <th>{{t "Subscription" key='subscription'}}</th>
+          <th>{{t "Purchase" key='subscription'}}</th>
           <th>{{t "Expires" key='expires'}}</th>
         </tr>
       </thead>
@@ -74,12 +74,12 @@
           </li>
         {{else if event.add_subscription}}
           <li class="list-group-item">
-            {{t "Subscription user \"%{user_name}\" was added - " key='subscription_user_added' user_name=event.user_name}}
+            {{t "Purchase user \"%{user_name}\" was added - " key='subscription_user_added' user_name=event.user_name}}
             <span class='text-muted'>{{date_ago event.logged_at}}</span>
           </li>
         {{else if event.remove_subscription}}
           <li class="list-group-item">
-            {{t "Subscription user \"%{user_name}\" was removed - " key='subscription_user_removed' user_name=event.user_name}}
+            {{t "Purchase user \"%{user_name}\" was removed - " key='subscription_user_removed' user_name=event.user_name}}
             <span class='text-muted'>{{date_ago event.logged_at}}</span>
           </li>
         {{/if}}

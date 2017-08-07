@@ -1,4 +1,4 @@
-<%= @user.settings['name'] %> just updated their CoughDrop subscription!<br/><br/>
+<%= @user.settings['name'] %> just updated their CoughDrop billing information!<br/><br/>
 User name: <b><a href="<%= JsonApi::Json.current_host %>/<%= @user.user_name %>"><%= @user.user_name %></a></b><br/>
 Email: <b><%= @user.settings['email'] %></b><br/>
 <%if @user.settings['referrer']%>Source: <%= @user.settings['referrer'] %><br/><% end %>

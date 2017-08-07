@@ -1,7 +1,7 @@
 {{#modal-dialog opening='opening' closing='closing' desired_width=625 uncloseable='true'}}
   <div class="modal-header">
     {{#if model.user.really_expired}}
-      <h3>{{t "Subscription Update" key='subscription_update'}}</h3>
+      <h3>{{t "Purchase Update" key='subscription_update'}}</h3>
     {{else}}
       <h3>{{t "Welcome to CoughDrop!" key='welcome_to_coughdrop'}}</h3>
     {{/if}}
@@ -9,7 +9,7 @@
   <div class="modal-body" id="button_settings">
     {{#if model.user.really_expired}}
       <p>
-        {{t "Your CoughDrop trial period has expired. Please update your subscription settings to continue using CoughDrop." key='welcome_fill_out_subscription'}}
+        {{t "Your CoughDrop trial period has expired. Please update your billing settings to continue using CoughDrop." key='welcome_fill_out_subscription'}}
       </p>
     {{else}}
       <img src={{path 'images/logo-big.png'}} style='float: left; height: 50px; margin: 0 10px 5px 0;'/>

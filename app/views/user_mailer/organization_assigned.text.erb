@@ -1,6 +1,6 @@
 The user account "<%= @user.display_user_name %>" was just <%= @org.sponsored_user?(@user) ? 'sponsored' : 'added' %> by an organization. <% if @org %>The organization "<%= @org.settings['name'] %>" added you to their list of <%= @org.sponsored_user?(@user) ? 'sponsored' : 'supported' %> users.<% end %>
 
-Organization managers will be able to access your usage reports and logs to help support your communication efforts.  You will be free to remove the connection at any time in your account profile. <% if @org.sponsored_user?(@user) %>As long as you're sponsored by an organization your account will remain a premium account, and the subscription fee will be covered by  the organization (in other words, it's free for you).
+Organization managers will be able to access your usage reports and logs to help support your communication efforts.  You will be free to remove the connection at any time in your account profile. <% if @org.sponsored_user?(@user) %>As long as you're sponsored by an organization your account will remain a premium account, and the billing fee will be covered by  the organization (in other words, it's free for you).
 
 If this organization ever removes sponsorship, we'll immediately let you know and there will be a grace period that you can use to find a different sponsoring organization or set up a different payment plan.<% end %>
 

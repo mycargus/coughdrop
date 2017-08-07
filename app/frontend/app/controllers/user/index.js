@@ -372,12 +372,12 @@ export default Ember.Controller.extend({
                 _this.get('subscription').reset();
               });
               _this.set('subscription_settings', null);
-              modal.success(i18n.t('subscription_updated', "User subscription updated!"));
+              modal.success(i18n.t('subscription_updated', "User purchase information updated!"));
             }
           });
         }, function() {
           _this.set('subscription_settings.loading', false);
-          _this.set('subscription_settings.error', i18n.t('subscription_error', "There was an error updating the users's subscription"));
+          _this.set('subscription_settings.error', i18n.t('subscription_error', "There was an error updating the users's account information"));
         });
       } else if(action == 'eval') {
         this.set('subscription_settings', {action: action, type: i18n.t('eval_device', "Evaluation Device")});

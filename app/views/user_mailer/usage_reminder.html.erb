@@ -52,10 +52,11 @@ your experience. This is a one-time email that you'll hopefully find helpful.<br
 <% end %>
 
 <% if @no_subscription %>
-  <h3>Subscription</h3>
+  <h3>Purchasing</h3>
   If you like what you're seeing with CoughDrop, feel free to 
-  <a href="<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription">update your account settings</a> 
-  to keep using all of CoughDrop's features for the long-term!<br/><br/>
+  <a href="<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription">update your billing settings</a> 
+  to keep using all of CoughDrop's features for the long-term! Remember, you can buy CoughDrop
+  as a one-time purchase, or as a monthly subscription, whatever works better for you.<br/><br/>
 <% end %>
 Also, we'd love it if you'd rate the app on the
 <a href="https://itunes.apple.com/us/app/coughdrop/id1021384570?mt=8">iOS App Store</a>,

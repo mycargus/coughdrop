@@ -4,7 +4,7 @@
   <div class='col-sm-9'>
     {{#if subscription.user.subscription.never_expires}}
       <span class='glyphicon glyphicon-heart' style="float: left; font-size: 30px; margin-right: 10px;"></span>
-      {{t "You are lucky! Somehow you get set up with a subscription plan that never expires! Like, never, ever! If you for some reason you want to change that you're welcome to." key='never_expires_explanation'}}
+      {{t "You are lucky! Somehow you get set up with a plan that never expires! Like, never, ever! If you for some reason you want to change that you're welcome to." key='never_expires_explanation'}}
     {{else if subscription.user.is_sponsored}}
       {{#if subscription.user.pending_org}}
         <span class='glyphicon glyphicon-user' style="float: left; font-size: 30px; margin-right: 10px;"></span>
@@ -45,7 +45,7 @@
     </p>
     {{#if show_expiration_notes}}
       <p class="explanation" style="margin-top: 10px;">
-        {{t "We don't want to shut off anyone's voice, even if funding unexpectedly becomes an issue down the line. When a user's subscription expires CoughDrop will still work as a communication system but premium features like reporting and video notes will be disabled. If you need help with funding please <a href='https://coughdrop.zendesk.com'>contact our support team</a> for more information." key='expiration_notes'}}
+        {{t "We don't want to shut off anyone's voice, even if funding unexpectedly becomes an issue down the line. If a user's subscription expires CoughDrop will still work as a communication system but premium features like reporting and video notes will be disabled. If you need help with funding please <a href='https://coughdrop.zendesk.com'>contact our support team</a> for more information." key='expiration_notes'}}
       </p>
     {{/if}}
   </div>
@@ -144,12 +144,12 @@
     {{/unless}}
   {{/if}}
 {{else if subscription.loading}}
-  <p>{{t "Loading subscription details..." key='loading_subscription_details'}}</p>
+  <p>{{t "Loading billing details..." key='loading_subscription_details'}}</p>
 {{else if session.isAuthenticated}}
   <p>{{t "It looks like you don't have permission to access this information" key='not_authorized'}}</p>
 {{else}}
   {{#if subscription.error}}
-    <p>{{t "There was an error loading subscription details" key='error_loading_subscription_details'}}</p>
+    <p>{{t "There was an error loading billing details" key='error_loading_subscription_details'}}</p>
   {{/if}}
   {{login-form left=true prompt=true return=true}}
 {{/if}}

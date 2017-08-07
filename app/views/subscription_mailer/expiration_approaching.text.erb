@@ -1,8 +1,8 @@
-Hello! We wanted to reach out and make sure you know that your subscription for the CoughDrop user account "<%= @user.user_name %>" is going to need to be updated soon. Hopefully CoughDrop has been a useful tool and you're excited to  keep using it. We're constantly working with experts to make CoughDrop easier and more informative, and it'd be great to have you along for the ride.
+Hello! We wanted to reach out and make sure you know that your billing information for the CoughDrop user account "<%= @user.user_name %>" is going to need to be updated soon. Hopefully CoughDrop has been a useful tool and you're excited to  keep using it. We're constantly working with experts to make CoughDrop easier and more informative, and it'd be great to have you along for the ride.
 
-Remember, your subscription doesn't just help you or the communicators you work with, it also goes to help fund communicators in need, and to help push technology forward for the thousands communicators in need around the world!
+Remember, your purchase doesn't just help you or the communicators you work with, it also goes to help fund communicators in need, and to help push technology forward for the thousands communicators in need around the world!
 
-Your account is set to expire *<%= @user.expires_at.to_s(:long_ordinal) %>*. Please update your subscription settings (<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription?confirmation=<%= @user.registration_code %>) so that you don't miss out on the great resource CoughDrop can be to help struggling communicators.
+Your account is set to expire *<%= @user.expires_at.to_s(:long_ordinal) %>*. Please update your billing settings (<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription?confirmation=<%= @user.registration_code %>) so that you don't miss out on the great resource CoughDrop can be to help struggling communicators.
 
 If you need help finding a funding solution, please don't be afraid to reach out to us, we're willing to work with individuals to find a good solution. Just access our support site (https://coughdrop.zendesk.com) to make a request, and we'll be happy to work with you.
 
