@@ -25,24 +25,26 @@ export default Ember.Component.extend({
     return $button.attr('data-id');
   },
   buttonSelect: function(event) {
-//     var board_id = app_state.get('currentBoardState.id');
-//     var content = document.getElementsByClassName('board')[0];
-//     if(Object.keys(board_ids).length > 1 && content) {
-//       var keys = Object.keys(board_ids);
-//       if(board_ids.current_id == keys[0]) {
-//         content.innerHTML = board_ids[keys[1]];
-//         board_ids.current_id = keys[1];
-//       } else {
-//         content.innerHTML = board_ids[keys[0]];
-//         board_ids.current_id = keys[0];
-//       }
-//       return;
-//     }
-//     if(!board_ids[board_id]) {
-//       if(content) {
-//         board_ids[board_id] = content.innerHTML;
-//       }
-//     }
+    if(app_state.get('feature_flags.super_fast_html')) {
+      var board_id = app_state.get('currentBoardState.id');
+      var content = document.getElementsByClassName('board')[0];
+      if(Object.keys(board_ids).length > 1 && content) {
+        var keys = Object.keys(board_ids);
+        if(board_ids.current_id == keys[0]) {
+          content.innerHTML = board_ids[keys[1]];
+          board_ids.current_id = keys[1];
+        } else {
+          content.innerHTML = board_ids[keys[0]];
+          board_ids.current_id = keys[0];
+        }
+        return;
+      }
+      if(!board_ids[board_id]) {
+        if(content) {
+          board_ids[board_id] = content.innerHTML;
+        }
+      }
+    }
     var button_id = this.buttonId(event);
     if(app_state.get('edit_mode') && editManager.paint_mode) {
       this.buttonPaint(event);
