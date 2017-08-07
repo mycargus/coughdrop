@@ -688,11 +688,11 @@ CoughDrop.Board = DS.Model.extend({
       res = res + "</div>";
 
       res = res + "<span style='" + opts.image_holder_style + "'>";
-      if(!app_state.get('currentUser.hide_symbols') && local_image_url) {
+      if(!app_state.get('currentUser.hide_symbols') && local_image_url && local_image_url != 'none') {
         res = res + "<img src=\"" + Button.clean_url(local_image_url) + "\" onerror='button_broken_image(this);' style='" + opts.image_style + "' class='symbol' />";
       }
       res = res + "</span>";
-      if(button.sound) {
+      if(button.sound && local_sound_url && local_sound_url != 'none') {
         var url = Button.clean_url(local_sound_url);
         res = res + "<audio style='display: none;' preload='auto' src=\"" + url + "\" rel=\"" + url + "\"></audio>";
       }
