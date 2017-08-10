@@ -176,8 +176,10 @@ var speecher = Ember.Object.extend({
     } else if(this.speaking && opts.interrupt === false) {
       return;
     }
+    var interrupted = false;
     if(collection_id && this.speaking_from_collection == collection_id) {
     } else {
+      interrupted = this.speaking;
       this.stop('text');
     }
     if(!text) { return; }
@@ -194,6 +196,7 @@ var speecher = Ember.Object.extend({
       var piece_text = pieces.shift();
       if(!piece_text) {
         if(_this.last_speak_id == speak_id) {
+          console.log("done with last speak");
           _this.speak_end_handler(speak_id);
         }
       } else if(piece_text.length === 0 || piece_text.match(/^\s+$/)) {
@@ -218,7 +221,11 @@ var speecher = Ember.Object.extend({
         });
       }
     };
-    next_piece();
+    var delay = 0;
+    if(capabilities.system == 'Windows' && interrupted) { console.log("waiting for last speak to wrap up..."); delay = 300; }
+    Ember.run.later(function() {
+      next_piece();
+    }, delay);
   },
   speak_raw_text: function(text, collection_id, opts, callback) {
     var _this = this;
