@@ -36,6 +36,8 @@ class Device < ActiveRecord::Base
       []
     elsif self.user_integration_id
       (self.settings && self.settings['permission_scopes']) || []
+    elsif self.developer_key_id && self.developer_key_id != 0
+      (self.settings && self.settings['permission_scopes']) || []
     else
       ['full']
     end

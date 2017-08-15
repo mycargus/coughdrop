@@ -509,3 +509,19 @@ header {
     }
   }
 }
+#small_header header {
+  height: 50px;
+  h1 {
+    img {
+      padding-top: 0;
+      height: 40px;
+      width: 40px;
+      margin-right: 5px;
+      position: absolute;
+    }
+    span {
+      line-height: 40px;
+      margin-left: 50px;
+    }
+  }
+}

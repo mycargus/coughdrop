@@ -3,6 +3,7 @@ class SessionController < ApplicationController
   
   def oauth
     error = nil
+    response.headers.except! 'X-Frame-Options'
     key = DeveloperKey.find_by(:key => params['client_id'])
     if !key
       error = 'invalid_key'
@@ -14,7 +15,7 @@ class SessionController < ApplicationController
     @app_icon = (key && key.icon_url) || "https://s3.amazonaws.com/opensymbols/libraries/arasaac/friends_3.png"
     if error
       @error = error
-      render :status => 400
+      render #:status => 400
     else
       config = {
         'scope' => params['scope'],
@@ -34,6 +35,7 @@ class SessionController < ApplicationController
   def oauth_login
     error = nil
     user = nil
+    response.headers.except! 'X-Frame-Options'
     config = JSON.parse(RedisInit.default.get("oauth_#{params['code']}")) rescue nil
     if !config
       error = 'code_not_found'
@@ -48,7 +50,13 @@ class SessionController < ApplicationController
         return
       end
       user = User.find_for_login(params['username'])
-      if !user || !user.valid_password?(params['password'])
+      if user && params['approve_token']
+        id = params['approve_token'].split(/~/)[0]
+        device = Device.find_by_global_id(id)
+        if !device || !device.valid_token?(params['approve_token'])
+          error = 'invalid_token'
+        end
+      elsif !user || !user.valid_password?(params['password'])
         error = 'invalid_login'
       end
     end
@@ -95,6 +103,9 @@ class SessionController < ApplicationController
       device.settings['name'] = config['device_name']
       device.settings['name'] += device.id.to_s if device.settings['name'] == 'browser'
       device.settings['name'] ||= (key.name || "Token") + " account"
+      if ['read_profile'].include?(config['scope'])
+        device.settings['permission_scopes'] = [config['scope']]
+      end
       device.generate_token!
       render json: JsonApi::Token.as_json(device.user, device).to_json
     end
@@ -106,6 +117,7 @@ class SessionController < ApplicationController
   end
   
   def oauth_local
+    response.headers.except! 'X-Frame-Options'
   end
   
   def token
@@ -148,6 +160,8 @@ class SessionController < ApplicationController
       render json: {
         authenticated: valid, 
         user_name: @api_user.user_name, 
+        avatar_image_url: (valid ? @api_user.generated_avatar_url : nil),
+        scopes: @api_device && @api_device.permission_scopes,
         sale: ENV['CURRENT_SALE'],
         global_integrations: UserIntegration.global_integrations.keys
       }.to_json

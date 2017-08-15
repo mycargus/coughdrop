@@ -33,7 +33,9 @@ export default modal.ModalController.extend({
     this.set('original_image_license', Ember.$.extend({}, button.get('image.license')));
     this.set('original_sound_license', Ember.$.extend({}, button.get('sound.license')));
     this.set('board_search_type', stashes.get('last_board_search_type') || "personal");
-    this.set('image_library', stashes.get('last_image_library'));
+    if(!(stashes.get('last_image_library') || "").match(/required/)) {
+      this.set('image_library', stashes.get('last_image_library'));
+    }
     this.set('model.image_field', this.get('model.label'));
 
     var supervisees = [];
@@ -50,9 +52,15 @@ export default modal.ModalController.extend({
     }
     find_integration.then(function(res) {
       _this.set('lessonpix_enabled', true);
-      if(stashes.get('last_image_library') == 'lessonpix') { _this.set('image_library', 'lessonpix'); }
+      if(stashes.get('last_image_library') == 'lessonpix') {
+        Ember.run.later(function() {
+          _this.set('image_library', 'lessonpix');
+        });
+      }
     }, function(err) {
-      if(stashes.get('last_image_library') == 'lessonpix') { _this.set('image_library', null); }
+      if(stashes.get('last_image_library') == 'lessonpix') {
+        _this.set('image_library', null);
+      }
     });
   },
   closing: function() {

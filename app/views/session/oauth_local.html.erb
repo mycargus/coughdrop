@@ -1,6 +1,5 @@
-<div id="content">
-  <div class='row'>
-    <div class='col-sm-offset-4 col-sm-4'>
+<div id='small_header'><%= render 'shared/static_header' %></div>
+<div id="content" style="width: 400px; margin: 50px auto 0 auto;">
       <div style="margin: 20px;">
         <% if params['error'] %>
           <h2>Authorization Failed</h2>
@@ -16,10 +15,8 @@
           </p>
         <% end %>
       </div>
-    </div>
-  </div>
 </div>
 <script>
   <% hash = {:type => "oauth_status", :code => params['code'], :error => params['error']} %>
-  window.parent.postMessage(<%= hash.to_json %>, '*');
+  window.parent.postMessage(<%= hash.to_json.html_safe %>, '*');
 </script>

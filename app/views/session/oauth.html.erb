@@ -1,6 +1,5 @@
-<div id="content">
-  <div class='row'>
-    <div class='col-sm-offset-4 col-sm-4'>
+<div id='small_header'><%= render 'shared/static_header' %></div>
+<div id="content" style="width: 400px; margin: 50px auto 0 auto;">
       <div style="margin: 20px;">
         <% if @error && @error != 'invalid_login' %>
           <!-- TODO: i18n -->
@@ -17,7 +16,7 @@
             <% end %>
           </div>
         <% else %>
-          <form action="/oauth2/token/login" method='POST' autocomplete="off">
+          <form action="/oauth2/token/login" id='oauth_login' method='POST' autocomplete="off">
             <input type="hidden" name='code' value='<%= @code %>'/>
             <div class='form-group'>
               <img src="<%= @app_icon %>" style="width: 72px; height: 72px; float: left; padding-right: 5px;"/>
@@ -34,9 +33,15 @@
               <input class='form-control input-lg' type='password' name='password' placeholder="password"/>
             </div>
             <% if @error == 'invalid_login' %>
-              <div class='form-group'>
+              <div class='form-group' id='invalid_attempt'>
                 <div class='alert alert-danger'>
                   invalid username or password
+                </div>
+              </div>
+            <% elsif @error == 'invalid_token' %>
+              <div class='form-group' id='invalid_attempt'>
+                <div class='alert alert-danger'>
+                  approval failed, please try logging in
                 </div>
               </div>
             <% end %>
@@ -49,8 +54,66 @@
               <a href="/register" target="_blank">register</a><br/>
             </div>
           </form>
+          <form action="/oauth2/token/login" id='oauth_approve' method='POST' autocomplete="off" style='display: none;'>
+            <input type="hidden" name='code' value='<%= @code %>'/>
+            <input type='hidden' name='username' value='' id='approve_username'/>
+            <input type='hidden' name='approve_token' value='' id='approve_token'/>
+            <div class='form-group'>
+              <img src="<%= @app_icon %>" style="width: 72px; height: 72px; float: left; padding-right: 5px;"/>
+              <p>
+                <!-- TODO: icon_url -->
+                <b><%= @app_name %></b> is requesting permission 
+                to access your CoughDrop account. Please approve the app to continue
+              </p>
+            </div>
+            <div class='form-group'>
+              You are currently signed in as:
+              <div style='font-size: 20px; margin-bottom: 20px;'>
+                <img src='/images/settings.png' id='avatar' style='height: 40px; max-width: 50px;'/>
+                 <strong><span id='user_name'></span></strong>
+               </div>
+            </div>
+            <div class='form-group'>
+              <button class='btn btn-primary btn-lg ' type='submit'>Approve</button>
+              <button class='btn btn-lg btn-default' type='submit' name='reject' value='1'>Cancel</button>
+            </div>
+            <div class='form-group'>
+              <a href="#" id='login_instead'>login as a different user</a>
+            </div>
+          </form>
         <% end %>
       </div>
-    </div>
-  </div>
 </div>
+<script>
+(function() {
+  document.getElementById('login_instead').addEventListener('click', function(event) {
+    event.preventDefault();
+    document.getElementById('oauth_login').style.display = 'block';
+    document.getElementById('oauth_approve').style.display = 'none';
+  });
+  
+  var auth = null;
+  try {
+    auth = JSON.parse(localStorage['cdStash-auth_settings']);
+  } catch(e) { }
+  if(auth && auth.user_name && auth.access_token && document.getElementById('oauth_login') && !document.getElementById('invalid_attempt')) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+      if(this.readyState == 4 && this.status == 200) {
+        res = JSON.parse(this.responseText);
+        if(res && res.authenticated && res.scopes && res.scopes.indexOf('full') >= 0 && document.getElementById('oauth_approve')) {
+          if(res.avatar_image_url) { document.getElementById('avatar').src = res.avatar_image_url; }
+          document.getElementById('user_name').innerText = res.user_name;
+          document.getElementById('approve_username').value = res.user_name;
+          document.getElementById('approve_token').value = auth.access_token;
+          document.getElementById('oauth_login').style.display = 'none';
+          document.getElementById('oauth_approve').style.display = 'block';
+        }
+      }
+    };
+    var path = "/api/v1/token_check?access_token=" + auth.access_token;
+    xhr.open('GET', path, true);
+    xhr.send();
+  }
+})();
+</script>

@@ -39,6 +39,13 @@ Coughdrop::Application.routes.draw do
   get '/jobs' => 'boards#jobs'
   get '/about' => 'boards#about'
   
+  get 'oauth2/token' => 'session#oauth'
+  post 'oauth2/token/login' => 'session#oauth_login'
+  post 'oauth2/token' => 'session#oauth_token'
+  delete 'oauth2/token' => 'session#oauth_logout'
+  get 'oauth2/token/status' => 'session#oauth_local', :as => 'oauth_local'
+  post 'token' => 'session#token'
+  
   # if Rails.env.production?
   # TODO: need to catch the update event to post a note encouraging the user to reload
     offline = Rack::Offline.configure :cache_interval => 120 do
@@ -88,6 +95,7 @@ Coughdrop::Application.routes.draw do
       # cache other assets
 
       fallback({"/" => "/offline"})
+      fallback({"/oauth2/" => "/404"})
       fallback({"/api/" => "/offline.json"})
 
       network "*"  
@@ -100,13 +108,6 @@ Coughdrop::Application.routes.draw do
   get ':id/logs/:log_id' => ember_handler, :constraints => {:id => user_id_regex}
   get ':id/goals/:goal_id' => ember_handler, :constraints => {:id => user_id_regex}
   
-  get 'oauth2/token' => 'session#oauth'
-  post 'oauth2/token/login' => 'session#oauth_login'
-  post 'oauth2/token' => 'session#oauth_token'
-  delete 'oauth2/token' => 'session#oauth_logout'
-  get 'oauth2/token/status' => 'session#oauth_local', :as => 'oauth_local'
-  post 'token' => 'session#token'
-
   get 'utterances/:id' => 'boards#utterance'  
   get ':id' => 'boards#user', :constraints => {:id => user_id_regex}
   get ':id' => 'boards#board', :constraints => {:id => board_id_regex}

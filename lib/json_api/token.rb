@@ -5,6 +5,7 @@ module JsonApi::Token
     json['access_token'] = device.token
     json['token_type'] = 'bearer'
     json['user_name'] = user.user_name
+    json['scopes'] = device.permission_scopes
     
     json
   end
