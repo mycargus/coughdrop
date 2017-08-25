@@ -32,6 +32,7 @@ module JsonApi::Board
     end
     json['link'] = "#{JsonApi::Json.current_host}/#{board.key}"
     json['public'] = !!board.public
+    json['visibility'] = board.public ? (board.fully_listed? ? 'public' : 'unlisted') : 'private'
     json['full_set_revision'] = board.full_set_revision
     json['current_revision'] = board.current_revision
     json['protected'] = !!board.protected_material?
