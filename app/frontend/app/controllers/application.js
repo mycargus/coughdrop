@@ -98,14 +98,14 @@ export default Ember.Controller.extend({
     },
     backspace: function() {
       utterance.backspace();
-      if(app_state.get('currentUser.preferences.click_buttons')) {
+      if(app_state.get('currentUser.preferences.click_buttons') && app_state.get('speak_mode')) {
         speecher.click();
       }
     },
     clear: function() {
       app_state.toggle_modeling(false);
       utterance.clear();
-      if(app_state.get('currentUser.preferences.click_buttons')) {
+      if(app_state.get('currentUser.preferences.click_buttons') && app_state.get('speak_mode')) {
         speecher.click();
       }
     },
@@ -140,7 +140,7 @@ export default Ember.Controller.extend({
           modal.warning(i18n.t('sticky_board_notice', "Board lock is enabled, disable to leave this board."), true);
         } else {
           this.rootBoard({index_as_fallback: true});
-          if(app_state.get('currentUser.preferences.click_buttons')) {
+          if(app_state.get('currentUser.preferences.click_buttons') && app_state.get('speak_mode')) {
             speecher.click();
           }
         }
@@ -211,7 +211,7 @@ export default Ember.Controller.extend({
         modal.warning(i18n.t('sticky_board_notice', "Board lock is enabled, disable to leave this board."), true);
       } else {
         this.backOneBoard();
-        if(app_state.get('currentUser.preferences.click_buttons')) {
+        if(app_state.get('currentUser.preferences.click_buttons') && app_state.get('speak_mode')) {
           speecher.click();
         }
       }

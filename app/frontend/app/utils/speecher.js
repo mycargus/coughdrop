@@ -577,6 +577,10 @@ var speecher = Ember.Object.extend({
     if($res.length === 0) {
       $res = Ember.$("audio[rel='" + url + "']");
     }
+    if($res.length == 0 && url) {
+      var new_url = persistence.url_cache[url] || url
+      $res = Ember.$("<audio>", {url: new_url, rel: url}).appendTo(Ember.$(".board"));
+    }
     return $res;
   },
   speak_collection: function(list, collection_id, opts) {
