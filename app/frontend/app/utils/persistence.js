@@ -1572,16 +1572,19 @@ var persistence = Ember.Object.extend({
                 // two entries match for the link_disabled flag)
                 var already_going_to_visit = to_visit_boards.find(function(b) { return (b.id == board.id || b.key == board.key) && (!board.link_disabled || board.link_disabled == b.link_disabled); });
 
+                // if we've already confirmed the sub-board from a different board, you can
+                // skip the check this time
                 if(safely_cached_boards[board.id]) {// || checked_linked_boards[board.id]) {
-//                  return;
+                  return;
                 }
 
                 if(!already_visited && !already_going_to_visit) {
                   to_visit_boards.push({id: board.id, key: board.key, depth: next.depth + 1, link_disabled: board.link_disabled, visit_source: (Ember.get(prior_board, 'key') || Ember.get(prior_board, 'id'))});
                 }
                 if(safely_cached || true) {
-                  // (this check is hypothesizing it's possible to lose some data via leakage
-                  // in the local db, and really should never get an error result)
+                  // (this check is here because it's possible to lose some data via leakage,
+                  // since if a board is safely cached it's sub-boards should be as well,
+                  // but unfortunately sometimes they're not)
                   var find = persistence.queue_sync_action('find_board', function() {
                     return persistence.find('board', board.id);
                   });
@@ -1590,14 +1593,19 @@ var persistence = Ember.Object.extend({
                   visited_board_promises.push(
                     find.then(function(b) {
                       var necessary_finds = [];
+                      // this is probably a protective thing, but I have no idea why anymore,
+                      // it may not even be necessary anymore
                       var tmp_board = CoughDrop.store.createRecord('board', Ember.$.extend({}, b, {id: null}));
                       var missing_image_ids = [];
                       var missing_sound_ids = [];
+                      var local_image_map = tmp_board.get('image_urls') || {};
+                      var local_sound_map = tmp_board.get('sound_urls') || {};
                       tmp_board.get('used_buttons').forEach(function(button) {
                         if(button.image_id) {
                           var valid = false;
-                          if(all_image_urls[button.image_id]) {
-                            if((persistence.url_cache && persistence.url_cache[all_image_urls[button.image_id]]) && (!persistence.url_uncache || !persistence.url_uncache[all_image_urls[button.image_id]])) {
+                          var mapped_url = all_image_urls[button.image_id] || local_image_map[button.image_id];
+                          if(mapped_url) {
+                            if((persistence.url_cache && persistence.url_cache[mapped_url]) && (!persistence.url_uncache || !persistence.url_uncache[mapped_url])) {
                               valid = true;
                             }
                           }
@@ -1607,8 +1615,9 @@ var persistence = Ember.Object.extend({
                         }
                         if(button.sound_id) {
                           var valid = false;
-                          if(all_sound_urls[button.sound_id]) {
-                            if((persistence.url_cache && persistence.url_cache[all_sound_urls[button.sound_id]]) && (!persistence.url_uncache || !persistence.url_uncache[all_sound_urls[button.sound_id]])) {
+                          var mapped_url = all_sound_urls[button.sound_id] || local_sound_map[button.sound_id];
+                          if(mapped_url) {
+                            if((persistence.url_cache && persistence.url_cache[mapped_url]) && (!persistence.url_uncache || !persistence.url_uncache[mapped_url])) {
                               valid = true;
                             }
                           }
