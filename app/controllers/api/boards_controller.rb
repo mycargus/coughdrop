@@ -120,7 +120,7 @@ class Api::BoardsController < ApplicationController
       user = deleted_board && deleted_board.user
       res = {error: "Record not found"}
       res[:id] = params['id']
-      if user && user.allows?(@api_user, 'view_deleted_boards')
+      if deleted_board && user && user.allows?(@api_user, 'view_deleted_boards')
         res[:deleted] = true
         res[:key] = deleted_board.key
         return api_error 404, res
