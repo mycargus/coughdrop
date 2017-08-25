@@ -156,6 +156,11 @@ CoughDrop.licenseOptions = [
   {name: i18n.t('cc_by_sa_license', "CC By-SA (attribution + share-alike)"), id: 'CC By-SA', url: 'http://creativecommons.org/licenses/by-sa/4.0/'},
   {name: i18n.t('public_domain_license', "Public Domain"), id: 'public domain', url: 'http://creativecommons.org/publicdomain/zero/1.0/'}
 ];
+CoughDrop.publicOptions = [
+  {name: i18n.t('private', "Private"), id: 'private'},
+  {name: i18n.t('public', "Public"), id: 'public'},
+  {name: i18n.t('unlisted', "Unlisted"), id: 'unlisted'}
+];
 CoughDrop.board_categories = [
   {name: i18n.t('robust_vocabularies', "Robust Vocabularies"), id: 'robust'},
   {name: i18n.t('cause_and_effect', "Cause and Effect"), id: 'cause_effect'},

@@ -60,6 +60,7 @@ export default modal.ModalController.extend({
     console.log(this.get('model.for_user_id'));
   }.observes('model.for_user_id'),
   license_options: CoughDrop.licenseOptions,
+  public_options: CoughDrop.publicOptions,
   attributable_license_type: function() {
     if(this.get('model.license') && this.get('model.license.type') != 'private') {
       this.set('model.license.author_name', app_state.get('currentUser.name'));

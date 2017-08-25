@@ -61,7 +61,7 @@
         </div>
       </div>
       <div class="form-group">
-        <label for="public" class="col-sm-3 control-label">{{t "Home Board" key='home_board'}}</label>
+        <label for="home_board" class="col-sm-3 control-label">{{t "Home Board" key='home_board'}}</label>
         <div class="col-sm-9">
           <div class="checkbox">
             <label>
@@ -85,21 +85,14 @@
       </div>
       {{/if}}
       <div class="form-group">
-        <fieldset>
-        <label for="public" class="col-sm-3 control-label">{{t "Public" key='public'}}</label>
+        <label for="public" class="col-sm-3 control-label">{{t "Visibility" key='visibility'}}</label>
         <div class="col-sm-9">
-          <div class="checkbox">
-            {{#if model.protected_material}}
-              <em>{{t "Boards with protected content can't be made public" key='protected_boards_no_public'}}</em>
-            {{else}}
-              <label>
-                {{input type="checkbox" checked=model.public id="public"}}
-                {{t "Anyone can see this board" key='anyone_can_see_board'}}
-              </label>
-            {{/if}}
-          </div>
+          {{#if model.protected_material}}
+            <em class='form-control-static'>{{t "Boards with protected content can't be made public" key='protected_boards_no_public'}}</em>
+          {{else}}
+            {{bound-select select_class="form-control" select_id="license" content=public_options selection=model.visibility action=(action (mut model.visibility)) }}
+          {{/if}}
         </div>
-        </fieldset>
       </div>
     </form>
   </div>

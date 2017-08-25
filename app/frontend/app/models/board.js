@@ -391,6 +391,7 @@ CoughDrop.Board = DS.Model.extend({
   original: DS.attr('raw'),
   word_suggestions: DS.attr('boolean'),
   public: DS.attr('boolean'),
+  visibility: DS.attr('string'),
   brand_new: DS.attr('boolean'),
   protected: DS.attr('boolean'),
   protected_settings: DS.attr('raw'),
