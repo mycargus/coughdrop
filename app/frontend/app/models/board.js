@@ -95,6 +95,14 @@ CoughDrop.Board = DS.Model.extend({
     });
     return list.join(', ');
   }.property('buttons', 'grid'),
+  copy_version: function() {
+    var key = this.get('key');
+    if(key.match(/_\d+$/)) {
+      return key.split(/_/).pop();
+    } else {
+      return null;
+    }
+  }.property('key'),
   nothing_visible: function() {
     var found_visible = false;
     this.get('used_buttons').forEach(function(button) {
@@ -444,7 +452,7 @@ CoughDrop.Board = DS.Model.extend({
     var board = CoughDrop.store.createRecord('board', {
       parent_board_id: this.get('id'),
       key: this.get('key').split(/\//)[1],
-      name: this.get('name'),
+      name: this.get('copy_name') || this.get('name'),
       description: this.get('description'),
       image_url: this.get('image_url'),
       license: this.get('license'),
@@ -456,6 +464,7 @@ CoughDrop.Board = DS.Model.extend({
       for_user_id: (user && user.get('id')),
       translations: this.get('translations')
     });
+    this.set('copy_name', null);
     var _this = this;
     var res = board.save();
     res.then(function() {

@@ -30,6 +30,7 @@ export default Ember.Route.extend({
       id: model.get('id'),
       key: model.get('key'),
       name: model.get('name'),
+      copy_version: model.get('copy_version'),
       integration_name: model.get('integration') && model.get('integration_name'),
       parent_key: model.get('parent_board_key'),
       text_direction: i18n.text_direction(model.get('locale')),

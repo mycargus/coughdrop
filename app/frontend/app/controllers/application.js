@@ -53,6 +53,7 @@ export default Ember.Controller.extend({
     decision = decision || {};
     decision.user = decision.user || app_state.get('currentUser');
     decision.action = decision.action || "nothing";
+    oldBoard.set('copy_name', decision.board_name);
     return modal.open('copying-board', {board: oldBoard, action: decision.action, user: decision.user, shares: decision.shares, make_public: decision.make_public, translate_locale: decision.translate_locale});
   },
   actions: {

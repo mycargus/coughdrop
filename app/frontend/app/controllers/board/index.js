@@ -459,6 +459,9 @@ export default Ember.Controller.extend({
     var desc = "";
     if(this.get('model.name') && this.get('model.name') != 'Unnamed Board') {
       desc = this.get('model.name');
+      if(this.get('model.copy_version')) {
+        desc = desc + " (" + this.get('model.copy_version') + ")";
+      }
       if(this.get('model.description')) {
         desc = desc + " - ";
       }

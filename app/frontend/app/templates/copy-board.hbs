@@ -8,7 +8,13 @@
     {{/if}}
   </div>
   <div class="modal-body">
-    <h4>{{t "Copy of " key='copy_of'}} {{ model.board.key }}</h4>
+    <h4>{{t "Copy of " key='copy_of'}} {{ model.board.name }}</h4>
+    <div>
+      <label class='form-control-static' style='display: inline-block;' for='board_name'>{{t "Name:" key='name'}}</label>
+      <span style='width: 200px; display: inline-block;'>
+        {{input type='text' class='form-control' id='board_name' value=board_name placeholder="Name for board copy"}}
+      </span>
+    </div>
     {{#if model.supervisees}}
       <p>{{t "For which user would you like to make a copy of this board? If you are planning to use this board for multiple communicators, you should probably copy it for yourself and manually add it for each communicator." key='which-user'}}</p>
       {{user-select select_id="currently_selected_id" buttons=true selection=currently_selected_id action=(action (mut currently_selected_id)) }}

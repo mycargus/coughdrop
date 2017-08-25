@@ -102,7 +102,7 @@ export default modal.ModalController.extend({
       if(this.get('translate') && this.get('translate_locale')) {
         translate_locale = this.get('translate_locale');
       }
-      modal.close({action: decision, user: this.get('current_user'), shares: shares, make_public: this.get('public'), translate_locale: translate_locale});
+      modal.close({action: decision, user: this.get('current_user'), shares: shares, board_name: this.get('board_name'), make_public: this.get('public'), translate_locale: translate_locale});
     },
     close: function() {
       modal.close(false);
