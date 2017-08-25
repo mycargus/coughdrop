@@ -260,6 +260,13 @@ var app_state = Ember.Object.extend({
       this.set('set_as_root_board_state', false);
     }
   }.observes('set_as_root_board_state', 'currentBoardState'),
+  board_url: function() {
+    if(this.get('currentBoardState.key')) {
+      return Ember.String.htmlSafe((capabilities.api_host || (location.protocol + "//" + location.host)) + "/" + this.get('currentBoardState.key'));
+    } else {
+      return null;
+    }
+  }.property('currentBoardState.key'),
   h1_class: function() {
     var res = "";
     if(this.get('currentBoardState.id')) {

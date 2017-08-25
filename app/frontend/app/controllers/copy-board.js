@@ -8,6 +8,7 @@ export default modal.ModalController.extend({
   opening: function() {
     this.set('model.jump_home', true);
     this.set('model.keep_as_self', false);
+    this.set('board_name', this.get('model.board.name'));
     var user_name = this.get('model.selected_user_name');
     var supervisees = [];
     if(app_state.get('sessionUser.supervisees')) {

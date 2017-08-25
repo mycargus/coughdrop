@@ -465,6 +465,9 @@
             </li>
             {{#if app_state.embedded}}
               <li class="divider"></li>
+              <li role="presentation">
+                <a href="#" {{action 'launch_board'}}>{{t "Open in CoughDrop" key="open_in_coughdrop"}}</a>
+              </li>
               {{#if app_state.full_screen_capable}}
                 <li role="presentation">
                   <a href="#" {{action "full_screen"}}>{{t "Full Screen" key="full_screen"}}</a>
@@ -482,12 +485,14 @@
             {{/unless}}
           {{/if}}
           {{#if session.invalid_token}}
-            <li role="presentation">
-              <a href="#" {{action "invalidateSession"}}>
-                <span class='label label-danger'>{{t "!" key='exclaim'}}</span>
-                {{t "Please Re-Login" key="please_relogin"}}
-              </a>
-            </li>
+            {{#if session.isAuthenticated}}
+              <li role="presentation">
+                <a href="#" {{action "invalidateSession"}}>
+                  <span class='label label-danger'>{{t "!" key='exclaim'}}</span>
+                  {{t "Please Re-Login" key="please_relogin"}}
+                </a>
+              </li>
+            {{/if}}
           {{else if persistence.app_needs_update}}
             <li role="presentation">
               <a href="#" {{action "confirm_update"}}>

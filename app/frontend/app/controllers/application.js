@@ -446,6 +446,11 @@ export default Ember.Controller.extend({
         modal.warning(i18n.t('fullscreen_failed', "Full Screen Mode failed to load"), true);
       });
     },
+    launch_board: function() {
+      if(app_state.get('board_url')) {
+        capabilities.window_open(app_state.get('board_url'), '_blank');
+      }
+    },
     confirm_update: function() {
       modal.open('confirm-update-app');
     },
