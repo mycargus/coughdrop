@@ -2051,6 +2051,7 @@ var boardGrabber = Ember.Object.extend({
       if(original_board) {
         board.set('license', original_board.get('license'));
         board.set('public', original_board.get('public'));
+        board.set('visibility', original_board.get('visibility'));
       }
     }
     var _this = this;
