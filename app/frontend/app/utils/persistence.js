@@ -567,8 +567,12 @@ var persistence = Ember.Object.extend({
     var prime_promises = [];
     if(_this.get('local_system.available') && _this.get('local_system.allowed') && stashes.get('auth_settings')) {
     } else {
+      _this.primed = true;
       return Ember.RSVP.reject({error: 'not enabled or no user set'});
     }
+    Ember.run.later(function() {
+      if(!_this.primed) { _this.primed = true; }
+    }, 2000);
 
     prime_promises.push(new Ember.RSVP.Promise(function(res, rej) {
       // apparently file system calls are really slow on ios
