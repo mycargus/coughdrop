@@ -35,7 +35,7 @@ export default modal.ModalController.extend({
     return res;
   }.property('model.home_board', 'model.id', 'model.categories'),
   licenseOptions: CoughDrop.licenseOptions,
-  publicOptions: CoughDrop.publicOptions,
+  public_options: CoughDrop.publicOptions,
   iconUrls: CoughDrop.iconUrls,
   attributable_license_type: function() {
     if(!this.get('model.license')) { return; }
