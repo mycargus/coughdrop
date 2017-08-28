@@ -41,7 +41,7 @@ module GlobalId
     
     def local_ids(ids)
       raise "not allowed for protected record types" if self.protected_global_id
-      ids.map{|id| id.split(/_/)[1] }
+      ids.select{|id| id.match(/^\d+_/) }.map{|id| id.split(/_/)[1] }
     end
     
     def id_pieces(id)
