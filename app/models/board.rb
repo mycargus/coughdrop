@@ -528,7 +528,30 @@ class Board < ActiveRecord::Base
     self.star(non_user_params[:starrer], params['starred']) if params['starred'] != nil
     
     self.settings['grid'] = params['grid'] if params['grid']
-    if params['public'] != nil
+    if params['visibility'] != nil
+      if params['visibility'] == 'public'
+        if !self.public || self.settings['unlisted']
+          @edit_notes << "set to public"
+          self.schedule_update_available_boards('all') if self.id
+        end
+        self.public = true
+        self.settings['unlisted'] = false
+      elsif params['visibility'] == 'unlisted'
+        if !self.public || !self.settings['unlisted']
+          @edit_notes << "set to unlisted"
+          self.schedule_update_available_boards('all') if self.id
+        end
+        self.public = true
+        self.settings['unlisted'] = true
+      elsif params['visibility'] == 'private'
+        if self.public
+          @edit_notes << "set to private"
+          self.schedule_update_available_boards('all') if self.id
+        end
+        self.public = false
+        self.settings['unlisted'] = false
+      end
+    elsif params['public'] != nil
 #       if self.public != false && params['public'] == false && (!self.user || !self.user.premium?)
 #         add_processing_error("only premium users can make boards private")
 #         return false
