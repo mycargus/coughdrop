@@ -572,7 +572,7 @@ var persistence = Ember.Object.extend({
     }
     Ember.run.later(function() {
       if(!_this.primed) { _this.primed = true; }
-    }, 2000);
+    }, 10000);
 
     prime_promises.push(new Ember.RSVP.Promise(function(res, rej) {
       // apparently file system calls are really slow on ios
