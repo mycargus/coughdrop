@@ -141,6 +141,16 @@ can install that require secure keys, they are listed in `.env.example` with exp
 of where they are required. Note that if you're trying to run a production environment, 
 not all functionality will degrade gracefully without these environment variables.
 
+There are also some rake tasks you'll want to schedule to run periodically. I use 
+Heroku Scheduler to run them at the specified frequency:
+
+```
+rake check_for_expiring_subscriptions (run daily)
+rake generate_log_summaries (run hourly)
+rake push_remote_logs (run hourly)
+rake transcode_errored_records (run daily)
+```
+
 ### License
 
 Copyright (C) 2014-2017 CoughDrop, Inc.
