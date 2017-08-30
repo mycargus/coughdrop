@@ -750,7 +750,7 @@ class LogSession < ActiveRecord::Base
       end
       if params['goal_id'] || self.goal_id
         log_goal = self.goal || UserGoal.find_by_global_id(params['goal_id'])
-        if log_goal.user_id == self.user_id
+        if log_goal && log_goal.user_id == self.user_id
           self.goal = log_goal
           self.data['goal'] = {
             'id' => log_goal.global_id,
