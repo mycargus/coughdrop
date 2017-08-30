@@ -24,3 +24,9 @@ task :clean_old_deleted_boards => :environment do
   count = DeletedBoard.flush_old_records
   puts "done, #{count} deleted."
 end
+
+task :transcode_errored_records => :environment do
+  puts "Transcoding records that didn't get properly transcoded"
+  count = ButtonSound.schedule_missing_transcodings
+  puts "done, #{count} scheduled"
+end

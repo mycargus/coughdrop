@@ -97,6 +97,19 @@ class ButtonSound < ActiveRecord::Base
     params[:upload_url] + self.settings['secondary_output']['filename']
   end
   
+  def self.schedule_missing_transcodings
+    ButtonSound.where("url NOT LIKE '%.mp3'").where(['created_at > ?', 2.weeks.ago]).each do |bs|
+      if bs.settings['extra_transcoding_attempts'] && bs.settings['extra_transcoding_attempts'] > 1
+      elsif bs.settings['transcoding_in_progress'] && bs.updated_at > 48.hours.ago
+      else
+        bs.settings['extra_transcoding_attempts'] ||= 0
+        bs.settings['extra_transcoding_attempts'] += 1
+        bs.schedule_transcoding(true)
+      end
+    end
+  end
+  
+  
   def self.generate_zip_for(user)
     download_filename = "sounds-#{user.user_name}.zip"
     urls = []
