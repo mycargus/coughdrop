@@ -90,7 +90,7 @@
     {{else}}
       {{#if model.sound.url}}
         <div style="margin-bottom: 10px; text-align: center;">
-          {{t "Played sound:" key='played_sound_colon'}} {{model.sound.name}}<br/>
+          {{t "Played sound:" key='played_sound_colon'}} ({{model.sound.extension}})<div style='width: 100%; overflow: hidden;'>{{model.sound.name}}</div><br/>
           <audio controls src={{model.sound.url}}></audio>
         </div>
         {{pick-license license=model.sound.license}}

@@ -3,6 +3,7 @@ import DS from 'ember-data';
 import CoughDrop from '../app';
 import i18n from '../utils/i18n';
 import persistence from '../utils/persistence';
+import contentGrabbers from '../utils/content_grabbers';
 
 CoughDrop.Sound = DS.Model.extend({
   didLoad: function() {
@@ -85,6 +86,21 @@ CoughDrop.Sound = DS.Model.extend({
       return decodeURIComponent(name || 'sound');
     }
   }.property('url'),
+  extension: function() {
+    var type = this.get('content_type');
+    var url = this.get('url') || '';
+    if(contentGrabbers.file_type_extensions[type]) {
+      return contentGrabbers.file_type_extensions[type].replace(/\./, '');
+    } else {
+      var last = url.split(/\//).pop;
+      var pre = last.split(/\?/)[0];
+      var ext = pre.split(/\./).pop;
+      if(ext && ext.length > 0) {
+        return ext;
+      }
+    }
+    return 'unknown type';
+  }.property('url', 'content_type'),
   check_for_editable_license: function() {
     if(this.get('license') && this.get('id') && !this.get('permissions.edit')) {
       this.set('license.uneditable', true);
