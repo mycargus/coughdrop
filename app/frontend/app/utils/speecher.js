@@ -461,24 +461,40 @@ var speecher = Ember.Object.extend({
       audio_status.handled = true;
       elem.pause();
       elem.currentTime = 0;
+      if(elem.media) {
+        elem.media.pause();
+      }
       _this.speak_end_handler(speak_id);
     };
     elem.lastListener = handler;
-    elem.addEventListener('ended', handler);
-    elem.addEventListener('pause', handler);
-    elem.addEventListener('abort', handler);
-    elem.addEventListener('error', handler);
-    Ember.run.later(function() {
-      var promise = elem.play();
-      if(promise && promise.then) {
-        promise.then(function(res) {
-          return true;
-        }, function(err) {
+    if(capabilities.mobile && capabilities.installed_app && window.Media) {
+      console.log("using native media playback!");
+      var media = new window.Media(elem.src, function() { }, function(err) {
+        handler();
+      }, function(status_code) {
+        if(status_code == window.Media.MEDIA_PAUSED || status_code == window.Media.MEDIA_STOPPED) {
           handler();
-          return true;
-        });
-      }
-    }, 10);
+        }
+      });
+      elem.media = media;
+      media.play();
+    } else {
+      elem.addEventListener('ended', handler);
+      elem.addEventListener('pause', handler);
+      elem.addEventListener('abort', handler);
+      elem.addEventListener('error', handler);
+      Ember.run.later(function() {
+        var promise = elem.play();
+        if(promise && promise.then) {
+          promise.then(function(res) {
+            return true;
+          }, function(err) {
+            handler();
+            return true;
+          });
+        }
+      }, 10);
+    }
     var check_status = function() {
       if(handler == elem.lastListener && !audio_status.handled) {
         if(audio_status.last_time && audio_status.last_time == elem.currentTime) {
@@ -491,25 +507,45 @@ var speecher = Ember.Object.extend({
         } else {
           audio_status.last_time = null;
         }
-        if(elem.currentTime > 0) {
-          audio_status.started = true;
-          audio_status.last_time = elem.currentTime;
-        }
-        if(elem.duration) {
-          var now = (new Date()).getTime();
-          // if we've waited 3 times as long as the duration of the audio file and it's still
-          // not done, go ahead and call it quits
-          if((now - audio_status.init) / 1000 > (elem.duration * 3)) {
-            handler();
-            return;
+        var handle_audio_status = function(opts) {
+          if(opts.pos > 0) {
+            audio_status.started = true;
+            audio_status.last_time = opts.pos;
           }
-        }
-        if(elem.ended || elem.error) {
-          // if the audio file is done, call the handler
-          handler();
+          if(opts.duration > 0) {
+            var now = (new Date()).getTime();
+            // if we've waited 3 times as long as the duration of the audio file and it's still
+            // not done, go ahead and call it quits
+            if((now - audio_status.init) / 1000 > (elem.duration * 3)) {
+              handler();
+              return;
+            }
+          }
+          if(opts.ended || opts.error) {
+            // if the audio file is done, call the handler
+            handler();
+          } else {
+            // otherwise, keep polling during audio playback
+            Ember.run.later(check_status, 100);
+          }
+        };
+        if(elem.media) {
+          elem.media.duration = elem.media.getDuration();
+          elem.media.getCurrentPosition(function(pos) {
+            handle_audio_status({
+              duration: elem.media.duration,
+              pos: pos
+            });
+          }, function(err) {
+            handler();
+          });
         } else {
-          // otherwise, keep polling during audio playback
-          Ember.run.later(check_status, 100);
+          handle_audio_status({
+            ended: elem.ended,
+            error: elem.error,
+            duration: elem.duration,
+            pos: elem.currentTime
+          });
         }
       }
     };
