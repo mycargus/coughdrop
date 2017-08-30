@@ -687,7 +687,7 @@ CoughDrop.Board = DS.Model.extend({
       var res = "";
       // TODO: sanitize all these for safety?
       var local_image_url = persistence.url_cache[_this.get('image_urls')[button.image_id] || 'none'] || _this.get('image_urls')[button.image_id] || 'none';
-      var local_sound_url = persistence.url_cache[_this.get('sound_urls')[button.sound_id] || 'none'];
+      var local_sound_url = persistence.url_cache[_this.get('sound_urls')[button.sound_id] || 'none'] || _this.get('sound_urls')[button.sound_id] || 'none';
       var opts = Button.button_styling(button, _this, pos);
 
       res = res + "<div style='" + opts.button_style + "' class='" + opts.button_class + "' data-id='" + button.id + "' tabindex='0'>";
@@ -702,9 +702,10 @@ CoughDrop.Board = DS.Model.extend({
         res = res + "<img src=\"" + Button.clean_url(local_image_url) + "\" onerror='button_broken_image(this);' style='" + opts.image_style + "' class='symbol' />";
       }
       res = res + "</span>";
-      if(button.sound && local_sound_url && local_sound_url != 'none') {
+      if(button.sound_id && local_sound_url && local_sound_url != 'none') {
+        var rel_url = Button.clean_url(_this.get('sound_urls')[button.sound_id]);
         var url = Button.clean_url(local_sound_url);
-        res = res + "<audio style='display: none;' preload='auto' src=\"" + url + "\" rel=\"" + url + "\"></audio>";
+        res = res + "<audio style='display: none;' preload='auto' src=\"" + url + "\" rel=\"" + rel_url + "\"></audio>";
       }
       res = res + "<div class='" + size.button_symbol_class + "'>";
       res = res + "<span class='button-label " + (button.hide_label ? "hide-label" : "") + "'>" + opts.label + "</span>";

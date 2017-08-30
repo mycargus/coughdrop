@@ -426,15 +426,18 @@ var speecher = Ember.Object.extend({
     // if that's likely to happen. The "throwaway" class and the setTimeouts in here
     // are all to help with that purpose.
     if(elem.lastListener || (capabilities.mobile && capabilities.browser == "Safari")) {
-      var audio = document.createElement('audio');
+      var audio = elem.cloneNode();
+//      var audio = document.createElement('audio');
       audio.style.display = "none";
-      audio.src = elem.src;
+//      audio.src = elem.src;
+//      audio.preload = 'auto';
       document.body.appendChild(audio);
-      audio.load();
+//      audio.load();
       audio.speak_id = elem.speak_id;
       audio.className = 'throwaway';
       elem = audio;
     }
+
     elem.pause();
     elem.currentTime = 0;
     var _this = this;
@@ -453,9 +456,11 @@ var speecher = Ember.Object.extend({
       }, 50);
     }
     var audio_status = {init: (new Date()).getTime()};
-    var handler = function() {
+    var handler = function(event) {
       if(audio_status.handled) { return; }
       audio_status.handled = true;
+      elem.pause();
+      elem.currentTime = 0;
       _this.speak_end_handler(speak_id);
     };
     elem.lastListener = handler;
@@ -464,7 +469,15 @@ var speecher = Ember.Object.extend({
     elem.addEventListener('abort', handler);
     elem.addEventListener('error', handler);
     Ember.run.later(function() {
-      elem.play();
+      var promise = elem.play();
+      if(promise && promise.then) {
+        promise.then(function(res) {
+          return true;
+        }, function(err) {
+          handler();
+          return true;
+        });
+      }
     }, 10);
     var check_status = function() {
       if(handler == elem.lastListener && !audio_status.handled) {
@@ -579,7 +592,7 @@ var speecher = Ember.Object.extend({
     }
     if($res.length == 0 && url) {
       var new_url = persistence.url_cache[url] || url
-      $res = Ember.$("<audio>", {url: new_url, rel: url}).appendTo(Ember.$(".board"));
+      $res = Ember.$("<audio>", {preload: 'auto', src: new_url, rel: url}).appendTo(Ember.$(".board"));
     }
     return $res;
   },
