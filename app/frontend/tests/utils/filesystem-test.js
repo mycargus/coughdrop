@@ -833,6 +833,9 @@ describe("filesystem", function() {
       });
       stub(coughDropExtras, 'ready', true);
       stashes.set('auth_settings', {});
+      persistence.url_cache = {
+        'http://opensymbols.s3.amazonaws.com/remote/picture.png': 'http://opensymbols.s3.amazonaws.com/remote/picture.png'
+      };
       stub(persistence, 'find', function(key, id) {
         if(key == 'dataCache' && id == 'http://opensymbols.s3.amazonaws.com/remote/picture.png') {
           return Ember.RSVP.resolve({
@@ -875,6 +878,9 @@ describe("filesystem", function() {
       });
       stub(coughDropExtras, 'ready', true);
       stashes.set('auth_settings', {});
+      persistence.url_cache = {
+        'http://opensymbols.s3.amazonaws.com/remote/picture.png': 'http://opensymbols.s3.amazonaws.com/remote/picture.png'
+      };
       stub(persistence, 'find', function(key, id) {
         if(key == 'dataCache' && id == 'http://opensymbols.s3.amazonaws.com/remote/picture.png') {
           return Ember.RSVP.resolve({
@@ -918,6 +924,9 @@ describe("filesystem", function() {
       });
       stub(coughDropExtras, 'ready', true);
       stashes.set('auth_settings', {});
+      persistence.url_cache = {
+        'http://opensymbols.s3.amazonaws.com/remote/picture.png': 'http://opensymbols.s3.amazonaws.com/remote/picture.png'
+      };
       stub(persistence, 'find', function(key, id) {
         if(key == 'dataCache' && id == 'http://opensymbols.s3.amazonaws.com/remote/picture.png') {
           return Ember.RSVP.resolve({
@@ -950,6 +959,9 @@ describe("filesystem", function() {
       });
       stub(coughDropExtras, 'ready', true);
       stashes.set('auth_settings', {});
+      persistence.url_cache = {
+        'http://opensymbols.s3.amazonaws.com/remote/picture.png': 'http://opensymbols.s3.amazonaws.com/remote/picture.png'
+      };
       stub(persistence, 'find', function(key, id) {
         if(key == 'dataCache' && id == 'http://opensymbols.s3.amazonaws.com/remote/picture.png') {
           return Ember.RSVP.resolve({

@@ -92,9 +92,9 @@ CoughDrop.Sound = DS.Model.extend({
     if(contentGrabbers.file_type_extensions[type]) {
       return contentGrabbers.file_type_extensions[type].replace(/\./, '');
     } else {
-      var last = url.split(/\//).pop;
-      var pre = last.split(/\?/)[0];
-      var ext = pre.split(/\./).pop;
+      var last = url.split(/\//).pop();
+      var pre = last && last.split(/\?/)[0];
+      var ext = pre && pre.split(/\./).length > 1 && pre.split(/\./).pop();
       if(ext && ext.length > 0) {
         return ext;
       }

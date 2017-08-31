@@ -1919,7 +1919,7 @@ describe('editManager', function() {
       expect(board.get('ordered_buttons')).toEqual(undefined);
       editManager.setup(board);
       editManager.process_for_displaying();
-      waitsFor(function() { return board.sent_messages.length == 2; });
+      waitsFor(function() { return board.get('ordered_buttons'); });
       runs(function() {
         expect(board.get('ordered_buttons')).not.toEqual(undefined);
         expect(board.get('ordered_buttons')[0][0].get('label')).toEqual('crow');
@@ -1965,7 +1965,14 @@ describe('editManager', function() {
         columns: 1,
         order: [[1]]
       });
+      board.set('model.image_urls', {
+        123: 'http://www.example.com/pic.png'
+      });
+      board.set('model.sound_urls', {
+        123: 'http://www.example.com/pic.png'
+      });
       editManager.setup(board);
+      persistence.primed = true;
       editManager.process_for_displaying();
       var button = null;
       waitsFor(function() { return board.get('ordered_buttons'); });
@@ -1983,6 +1990,7 @@ describe('editManager', function() {
         columns: 1,
         order: [[1]]
       });
+      persistence.primed = true;
       editManager.setup(board);
       var defer1 = Ember.RSVP.defer();
       var defer2 = Ember.RSVP.defer();
@@ -2021,6 +2029,7 @@ describe('editManager', function() {
         columns: 1,
         order: [[1]]
       });
+      persistence.primed = true;
       editManager.setup(board);
       var defer1 = Ember.RSVP.defer();
       var defer2 = Ember.RSVP.defer();

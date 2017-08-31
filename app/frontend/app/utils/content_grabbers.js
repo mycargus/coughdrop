@@ -377,6 +377,7 @@ var contentGrabbers = Ember.Object.extend({
     'image/x-tiff': '.tif',
     'audio/mpeg2': '.mp2',
     'audio/mpeg': '.mp3',
+    'audio/mp3': '.mp3',
     'audio/midi': '.mid',
     'audio/x-mid': '.mid',
     'audio/x-midi': '.mid',

@@ -91,7 +91,7 @@ var stashes = Ember.Object.extend({
     }
     if(stashes.get('global_integrations') && window.user_preferences) {
       window.user_preferences.global_integrations = stashes.get('global_integrations');
-    } else {
+    } else if(!Ember.testing) {
       Ember.run.later(function() {
         if(CoughDrop && CoughDrop.session) {
           CoughDrop.session.check_token();

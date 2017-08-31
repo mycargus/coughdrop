@@ -31,8 +31,19 @@ describe('Sound', function() {
   });
 
   describe("extension", function() {
-    it('should have specs', function() {
-      expect('test').toEqual('todo');
+    it('should return the correct value', function() {
+      var sound = CoughDrop.store.createRecord('sound', {});
+      expect(sound.get('extension')).toEqual('unknown type');
+      sound.set('content_type', 'audio/mp3');
+      expect(sound.get('extension')).toEqual('mp3');
+      sound.set('content_type', 'audio/ogg');
+      expect(sound.get('extension')).toEqual('oga');
+      sound.set('content_type', 'audio/bacon');
+      expect(sound.get('extension')).toEqual('unknown type');
+      sound.set('url', 'http://www.example.com/sound.mp3?a=b&c=2');
+      expect(sound.get('extension')).toEqual('mp3');
+      sound.set('url', 'http://www.example.com/sound?a=b&c=2');
+      expect(sound.get('extension')).toEqual('unknown type');
     });
   });
 });

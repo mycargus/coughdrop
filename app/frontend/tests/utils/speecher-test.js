@@ -438,12 +438,321 @@ describe('speecher', function() {
   });
 
   describe("play_audio", function() {
-    it('should have specs', function() {
-      expect('test').toEqual('todo');
+    var audio_elem = null;
+    var make_elem = function() {
+      var res = document.createElement('div');
+      res.src = 'http://www.example.com/sound.mp3';
+      res.cloneNode = function() {
+        res.cloned = true;
+        return make_elem();
+      };
+      res.pause = function() {
+        res.paused = true;
+      };
+      res.play = function() {
+        res.played = true;
+      };
+      res.duration = 10;
+      res.currentTime = 0;
+      return res;
+    };
+    beforeEach(function() {
+      audio_elem = make_elem();
+    });
+    it('should clone the element if currently playing', function() {
+      audio_elem.lastListener = true;
+      speecher.play_audio(audio_elem);
+      expect(audio_elem.cloned).toEqual(true);
+    });
+
+    it('should progress on end event', function() {
+      speecher.play_audio(audio_elem);
+      var ended = false;
+      stub(speecher, 'speak_end_handler', function() {
+        ended = true;
+      });
+      waitsFor(function() { return audio_elem.played; });
+      runs(function() {
+        audio_elem.dispatchEvent(new window.Event('ended'));
+      });
+      waitsFor(function() { return ended; });
+      runs();
+    });
+
+    it('should progress on pause event', function() {
+      speecher.play_audio(audio_elem);
+      var ended = false;
+      stub(speecher, 'speak_end_handler', function() {
+        ended = true;
+      });
+      waitsFor(function() { return audio_elem.played; });
+      runs(function() {
+        audio_elem.dispatchEvent(new window.Event('pause'));
+      });
+      waitsFor(function() { return ended; });
+      runs();
+    });
+
+    it('should progress on abort event', function() {
+      speecher.play_audio(audio_elem);
+      var ended = false;
+      stub(speecher, 'speak_end_handler', function() {
+        ended = true;
+      });
+      waitsFor(function() { return audio_elem.played; });
+      runs(function() {
+        audio_elem.dispatchEvent(new window.Event('abort'));
+      });
+      waitsFor(function() { return ended; });
+      runs();
+    });
+
+    it('should progress on error event', function() {
+      speecher.play_audio(audio_elem);
+      var ended = false;
+      stub(speecher, 'speak_end_handler', function() {
+        ended = true;
+      });
+      waitsFor(function() { return audio_elem.played; });
+      runs(function() {
+        audio_elem.dispatchEvent(new window.Event('error'));
+      });
+      waitsFor(function() { return ended; });
+      runs();
+    });
+
+    it('should progress on failed promise from .play()', function() {
+      audio_elem.play = function() {
+        audio_elem.played = true;
+        return Ember.RSVP.reject({});
+      };
+      speecher.play_audio(audio_elem);
+      var ended = false;
+      stub(speecher, 'speak_end_handler', function() {
+        ended = true;
+      });
+      waitsFor(function() { return audio_elem.played; });
+      runs();
+      waitsFor(function() { return ended; });
+      runs();
+    });
+
+    it('should progress on no events, if playback does started but then got stuck', function() {
+      speecher.play_audio(audio_elem);
+      var ended = false;
+      stub(speecher, 'speak_end_handler', function() {
+        ended = true;
+      });
+      waitsFor(function() { return audio_elem.played; });
+      runs(function() {
+        audio_elem.currentTime = 1;
+      });
+      waitsFor(function() { return ended; });
+      runs();
+    });
+
+    it('should progress on no events if playback takes longer than three times the length of the file', function() {
+      audio_elem.duration = 0.1;
+      speecher.play_audio(audio_elem);
+      var ended = false;
+      stub(speecher, 'speak_end_handler', function() {
+        ended = true;
+      });
+      stub(window, 'keep_going', true);
+      waitsFor(function() { return audio_elem.played; });
+      runs(function() {
+        var go_again = function() {
+          if(window.keep_going) {
+            audio_elem.currentTime++;
+            Ember.run.later(function() {
+              go_again();
+            }, 25);
+          }
+        };
+        audio_elem.currentTime = 1;
+        go_again();
+      });
+      waitsFor(function() { return ended; });
+      runs();
+    });
+
+    it('should only progress once, even with repeated events', function() {
+      audio_elem.play = function() {
+        audio_elem.played = true;
+        return Ember.RSVP.reject();
+      };
+      speecher.play_audio(audio_elem);
+      var ended = false;
+      stub(speecher, 'speak_end_handler', function() {
+        expect(ended).toEqual(false);
+        ended = true;
+      });
+      waitsFor(function() { return audio_elem.played; });
+      runs(function() {
+        audio_elem.dispatchEvent(new window.Event('abort'));
+      });
+      waitsFor(function() { return ended; });
+      runs();
     });
 
     it('should work with mobile plugin playback mechanism', function() {
-      expect('test').toEqual('todo');
+      var media = null;
+      stub(capabilities, 'installed_app', true);
+      stub(capabilities, 'mobile', true);
+      stub(window, 'Media', function(url, success, error, status) {
+        var _this = this;
+        media = _this;
+        this.play = function() {
+          _this.played = true;
+        };
+        this.pause = function() {
+          _this.paused = true;
+        };
+        if(!window.Media.MEDIA_PAUSED) { window.Media.MEDIA_PAUSED = 'pause'; }
+        if(!window.Media.MEDIA_STOPPED) { window.Media.MEDIA_STOPPED = 'stop'; }
+        this.success = success;
+        this.error = error;
+        this.status = status;
+        this.getDuration = function() {
+          return 10;
+        };
+        this.getCurrentPosition = function(success, error) {
+          success(1);
+        };
+      });
+      speecher.play_audio(audio_elem);
+      expect(media).toNotEqual(null);
+      var ended = false;
+      stub(speecher, 'speak_end_handler', function() {
+        ended = true;
+      });
+      waitsFor(function() { return media && media.played; });
+      runs(function() {
+        media.status(window.Media.MEDIA_STOPPED);
+      });
+      waitsFor(function() { return ended; });
+      runs();
+    });
+
+    it('should progress on success event from mobile plugin', function() {
+      var media = null;
+      stub(capabilities, 'installed_app', true);
+      stub(capabilities, 'mobile', true);
+      stub(window, 'Media', function(url, success, error, status) {
+        var _this = this;
+        media = _this;
+        this.play = function() {
+          _this.played = true;
+        };
+        this.pause = function() {
+          _this.paused = true;
+        };
+        if(!window.Media.MEDIA_PAUSED) { window.Media.MEDIA_PAUSED = 'pause'; }
+        if(!window.Media.MEDIA_STOPPED) { window.Media.MEDIA_STOPPED = 'stop'; }
+        this.success = success;
+        this.error = error;
+        this.status = status;
+        this.getDuration = function() {
+          return 10;
+        };
+        this.getCurrentPosition = function(success, error) {
+          success(1);
+        };
+      });
+      speecher.play_audio(audio_elem);
+      expect(media).toNotEqual(null);
+      var ended = false;
+      stub(speecher, 'speak_end_handler', function() {
+        ended = true;
+      });
+      waitsFor(function() { return media && media.played; });
+      runs(function() {
+        media.status(window.Media.MEDIA_STOPPED);
+      });
+      waitsFor(function() { return ended; });
+      runs();
+    });
+
+    it('should progress on error event from mobile plugin', function() {
+      var media = null;
+      stub(capabilities, 'installed_app', true);
+      stub(capabilities, 'mobile', true);
+      stub(window, 'Media', function(url, success, error, status) {
+        var _this = this;
+        media = _this;
+        this.play = function() {
+          _this.played = true;
+        };
+        this.pause = function() {
+          _this.paused = true;
+        };
+        if(!window.Media.MEDIA_PAUSED) { window.Media.MEDIA_PAUSED = 'pause'; }
+        if(!window.Media.MEDIA_STOPPED) { window.Media.MEDIA_STOPPED = 'stop'; }
+        this.success = success;
+        this.error = error;
+        this.status = status;
+        this.getDuration = function() {
+          return 10;
+        };
+        this.getCurrentPosition = function(success, error) {
+          success(1);
+        };
+      });
+      speecher.play_audio(audio_elem);
+      expect(media).toNotEqual(null);
+      var ended = false;
+      stub(speecher, 'speak_end_handler', function() {
+        ended = true;
+      });
+      waitsFor(function() { return media && media.played; });
+      runs(function() {
+        media.error();
+      });
+      waitsFor(function() { return ended; });
+      runs();
+    });
+
+    it('should not progress from audio even when started via mobile plugin', function() {
+      var media = null;
+      stub(capabilities, 'installed_app', true);
+      stub(capabilities, 'mobile', true);
+      stub(window, 'Media', function(url, success, error, status) {
+        var _this = this;
+        media = _this;
+        this.play = function() {
+          _this.played = true;
+        };
+        this.pause = function() {
+          _this.paused = true;
+        };
+        if(!window.Media.MEDIA_PAUSED) { window.Media.MEDIA_PAUSED = 'pause'; }
+        if(!window.Media.MEDIA_STOPPED) { window.Media.MEDIA_STOPPED = 'stop'; }
+        this.success = success;
+        this.error = error;
+        this.status = status;
+        this.getDuration = function() {
+          return 10;
+        };
+        this.getCurrentPosition = function(success, error) {
+          success(1);
+        };
+      });
+      speecher.play_audio(audio_elem);
+      expect(media).toNotEqual(null);
+      var ended = false;
+      stub(speecher, 'speak_end_handler', function() {
+        ended = true;
+      });
+      waitsFor(function() { return media && media.played; });
+      runs(function() {
+        audio_elem.dispatchEvent(new window.Event('abort'));
+      });
+      var not_ended = false;
+      Ember.run.later(function() {
+        if(!ended) { not_ended = true; }
+      }, 500);
+      waitsFor(function() { return not_ended; });
+      runs();
     });
   });
 });

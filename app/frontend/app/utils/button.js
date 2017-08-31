@@ -568,7 +568,7 @@ Button.image_style = function(pos) {
   if(!pos || !pos.image_height) { return ""; }
   return "width: 100%; vertical-align: middle; max-height: " + pos.image_square + "px;";
 };
-Button.clean_url = function(str) { return clean_url(str); }
+Button.clean_url = function(str) { return clean_url(str); };
 
 Button.button_styling = function(button, board, pos) {
   var res = {};

@@ -72,7 +72,29 @@ describe('Board', function() {
     });
 
     it("should use the updated name if provided", function() {
-      expect('test').toEqual('todo');
+      var board = CoughDrop.store.createRecord('board', {
+        id: 'asdf',
+        key: 'bob/asdf',
+        name: 'cool stuff'
+      });
+      board.set('copy_name', 'Better Stuff!');
+      var record = null;
+      queryLog.defineFixture({
+        method: 'POST',
+        type: 'board',
+        response: Ember.RSVP.resolve({board: {id: '134', key: 'cookie'}}),
+        compare: function(object) {
+          record = object;
+          return object.get('parent_board_id') == 'asdf';
+        }
+      });
+      var copy = board.create_copy();
+      expect(copy.then).toNotEqual(undefined);
+      waitsFor(function() { return record; });
+      runs(function() {
+        expect(record.get('key')).toEqual('cookie');
+        expect(record.get('name')).toEqual('Better Stuff!');
+      });
     });
   });
 

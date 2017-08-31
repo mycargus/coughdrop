@@ -371,9 +371,7 @@ describe("capabilities", function() {
   });
 
   describe("ssid", function() {
-    it('should have specs', function() {
-      expect('test').toEqual('todo');
-    });
+    it('should have specs');
   });
 
   describe("capabilities.storage", function() {

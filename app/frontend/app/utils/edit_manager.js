@@ -607,6 +607,7 @@ var editManager = Ember.Object.extend({
         CoughDrop.log.track('redrawing if needed');
         controller.redraw_if_needed();
         CoughDrop.log.track('done redrawing if needed');
+        resume_scanning();
         for(var idx = 0; idx < result.length; idx++) {
           for(var jdx = 0; jdx < result[idx].length; jdx++) {
             var button = result[idx][jdx];

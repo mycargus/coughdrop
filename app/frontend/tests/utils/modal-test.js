@@ -17,7 +17,7 @@ describe('modal', function() {
       }
     }).create();
   });
-  
+
   describe("setup", function() {
     it('should initialize the route', function() {
       expect(function() { modal.setup(route); }).not.toThrow();
@@ -32,7 +32,7 @@ describe('modal', function() {
       runs();
     });
   });
-  
+
   describe("open", function() {
     it('should reject last_promise if one is set', function() {
       var promise = easyPromise();
@@ -62,7 +62,7 @@ describe('modal', function() {
       expect(res.then).not.toEqual(null);
     });
   });
-  
+
   describe("is_open", function() {
     it('should return false if the modal is not set', function() {
       modal.setup(route);
@@ -78,7 +78,7 @@ describe('modal', function() {
       expect(modal.is_open('hippo')).toEqual(false);
     });
   });
-  
+
   describe("close", function() {
     describe("success and failure", function() {
       it('should reject the returned promise if called with false', function() {
@@ -123,7 +123,7 @@ describe('modal', function() {
       });
     });
   });
-  
+
   describe("flash", function() {
     it('should error expectedly if called without setup', function() {
       modal.route = null;
@@ -139,7 +139,7 @@ describe('modal', function() {
       waitsFor(function() { return route.lastRender && extra; });
       runs(function() {
         expect(route.lastRender).toEqual({'0': 'flash-message', '1': {into: 'application', outlet: 'flash-message'}});
-        expect(modal.settings_for['flash']).toEqual({type: 'notice', text: 'hello'});
+        expect(modal.settings_for['flash']).toEqual({type: 'notice', text: 'hello', sticky: undefined});
       });
     });
     it('should properly render warning flash', function() {
@@ -148,7 +148,7 @@ describe('modal', function() {
       waitsFor(function() { return route.lastRender; });
       runs(function() {
         expect(route.lastRender).toEqual({'0': 'flash-message', '1': {into: 'application', outlet: 'flash-message'}});
-        expect(modal.settings_for['flash']).toEqual({type: 'warning', text: 'hello'});
+        expect(modal.settings_for['flash']).toEqual({type: 'warning', text: 'hello', sticky: undefined});
       });
     });
     it('should properly render error flash', function() {
@@ -157,7 +157,7 @@ describe('modal', function() {
       waitsFor(function() { return route.lastRender; });
       runs(function() {
         expect(route.lastRender).toEqual({'0': 'flash-message', '1': {into: 'application', outlet: 'flash-message'}});
-        expect(modal.settings_for['flash']).toEqual({type: 'error', text: 'hello'});
+        expect(modal.settings_for['flash']).toEqual({type: 'error', text: 'hello', sticky: undefined});
       });
     });
     it('should properly render notice flash', function() {
@@ -166,7 +166,7 @@ describe('modal', function() {
       waitsFor(function() { return route.lastRender; });
       runs(function() {
         expect(route.lastRender).toEqual({'0': 'flash-message', '1': {into: 'application', outlet: 'flash-message'}});
-        expect(modal.settings_for['flash']).toEqual({type: 'notice', text: 'hello'});
+        expect(modal.settings_for['flash']).toEqual({type: 'notice', text: 'hello', sticky: undefined});
       });
     });
     it('should properly render success flash', function() {
@@ -175,33 +175,33 @@ describe('modal', function() {
       waitsFor(function() { return route.lastRender; });
       runs(function() {
         expect(route.lastRender).toEqual({'0': 'flash-message', '1': {into: 'application', outlet: 'flash-message'}});
-        expect(modal.settings_for['flash']).toEqual({type: 'success', text: 'hello'});
+        expect(modal.settings_for['flash']).toEqual({type: 'success', text: 'hello', sticky: undefined});
       });
     });
   });
-  
+
   describe('scanning', function() {
     it('should stop scanning when a new modal is opened', function() {
       modal.setup(route);
       scanner.scanning = true;
-      
+
       modal.open('hat');
       expect(scanner.scanning).toEqual(false);
       expect(modal.resume_scanning).toEqual(true);
     });
-    
+
     it('should resume scanning when a modal is closed', function() {
       modal.setup(route);
       scanner.scanning = true;
-      
+
       modal.open('hat');
       expect(scanner.scanning).toEqual(false);
       expect(modal.resume_scanning).toEqual(true);
-      
+
       stub(scanner, 'start', function() {
         scanner.scanning = true;
       });
-      
+
       Ember.run.later(function() {
         modal.close();
       }, 100);
@@ -210,15 +210,15 @@ describe('modal', function() {
         expect(modal.resume_scanning).toEqual(false);
       });
     });
-    
+
     it('should not resume scanning when a different modal is opened', function() {
       modal.setup(route);
       scanner.scanning = true;
-      
+
       modal.open('hat');
       expect(scanner.scanning).toEqual(false);
       expect(modal.resume_scanning).toEqual(true);
-      
+
       stub(scanner, 'start', function() {
         scanner.scanning = true;
       });
@@ -228,17 +228,17 @@ describe('modal', function() {
         open_checks++;
         return is_open;
       });
-      
+
       modal.open('cheese');
       waitsFor(function() { return open_checks >= 1; });
       runs(function() {
         expect(scanner.scanning).toEqual(false);
         expect(modal.resume_scanning).toEqual(true);
-      
+
         is_open = false;
         modal.close();
       });
-      
+
       waitsFor(function() { return scanner.scanning; });
       runs(function() {
         expect(modal.resume_scanning).toEqual(false);

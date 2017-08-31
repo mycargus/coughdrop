@@ -439,6 +439,7 @@ var speecher = Ember.Object.extend({
     }
 
     elem.pause();
+    if(elem.media) { elem.media.pause(); }
     elem.currentTime = 0;
     var _this = this;
     var speak_id = elem.speak_id;
@@ -636,8 +637,8 @@ var speecher = Ember.Object.extend({
     if($res.length === 0) {
       $res = Ember.$("audio[rel='" + url + "']");
     }
-    if($res.length == 0 && url) {
-      var new_url = persistence.url_cache[url] || url
+    if($res.length === 0 && url) {
+      var new_url = persistence.url_cache[url] || url;
       $res = Ember.$("<audio>", {preload: 'auto', src: new_url, rel: url}).appendTo(Ember.$(".board"));
     }
     return $res;

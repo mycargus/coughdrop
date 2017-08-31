@@ -2509,7 +2509,10 @@ describe('app_state', function() {
 
   describe('board_url', function() {
     it('should return the correct values', function() {
-      expect('test').toEqual('todo');
+      expect(app_state.get('board_url')).toEqual(null);
+      stub(capabilities, 'api_host', 'http://www.stuff.com');
+      app_state.set('currentBoardState', {key: 'a/b'});
+      expect(app_state.get('board_url').string).toEqual('http://www.stuff.com/a/b');
     });
   });
 });
