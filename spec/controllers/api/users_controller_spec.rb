@@ -53,6 +53,65 @@ describe Api::UsersController, :type => :controller do
       expect(json['user']['permissions']['edit']).to eq(true)
       expect(json['user']['user_token']).to_not eq(nil)
     end
+    
+    it "should return self information with a limited api scope" do
+      token_user
+      @device.developer_key_id = 1
+      @device.settings['permission_scopes'] = ['read_profile']
+      @device.save
+      expect(@device.permission_scopes).to eq(['read_profile'])
+      get :show, params: {:id => 'self'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['user']['id']).to eq(@user.global_id)
+      expect(json['user']['preferences']).to eq(nil)
+      expect(json['user']['permissions']['edit']).to eq(false)
+    end
+    
+    it "should not return supervisee information with a limited api scope" do
+      token_user
+      @device.developer_key_id = 1
+      @device.settings['permission_scopes'] = ['read_profile']
+      @device.save
+      u = User.create
+      User.link_supervisor_to_user(@user, u)
+      get :show, params: {:id => 'self'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['user']['id']).to eq(@user.global_id)
+      expect(json['user']['supervisees']).to eq(nil)
+    end
+    
+    it "should not allow looking up supervisees with a limited api scope" do
+      token_user
+      @device.developer_key_id = 1
+      @device.settings['permission_scopes'] = ['read_profile']
+      @device.save
+      u = User.create
+      User.link_supervisor_to_user(@user, u)
+      get :show, params: {:id => u.global_id}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      puts json['user']['permissions'].to_json
+      expect(json['user']['id']).to eq(u.global_id)
+      expect(json['user']['supervisees']).to eq(nil)
+      expect(json['user']['preferences']).to eq(nil)
+    end
+
+    it "should allow looking up supervisees with a full api scope" do
+      token_user
+      @device.developer_key_id = 1
+      @device.settings['permission_scopes'] = ['full']
+      @device.save
+      u = User.create
+      User.link_supervisor_to_user(@user, u)
+      get :show, params: {:id => u.global_id}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      puts json['user']['permissions'].to_json
+      expect(json['user']['id']).to eq(u.global_id)
+      expect(json['user']['preferences']).to_not eq(nil)
+    end
   end
   
   describe "index" do

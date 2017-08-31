@@ -313,6 +313,15 @@ describe Api::BoardsController, :type => :controller do
       json = JSON.parse(response.body)
       expect(json['deleted']).to eq(true)
     end
+    
+    it "should not return deleted status for non-existent boards" do
+      token_user
+      Worker.process_queues
+      get :show, params: {:id => "#{@user.user_name}/not-a-board"}
+      assert_not_found("#{@user.user_name}/not-a-board")
+      json = JSON.parse(response.body)
+      expect(json['deleted']).to eq(nil)
+    end
 
     it "should return deleted status if the information is allowed when searching by id" do
       token_user

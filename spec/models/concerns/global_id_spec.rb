@@ -128,4 +128,19 @@ describe GlobalId, :type => :model do
       expect(User.find_all_by_path([u1.user_name, u2.user_name, u1.global_id, "32", u2.global_id]).sort_by(&:id)).to eq([u1, u2])
     end
   end
+  
+  describe "local_ids" do
+    it "should return the correct values" do
+      expect(User.local_ids(['1_123112', '2_151412124'])).to eq(['123112', '151412124'])
+    end
+    
+    it "should raise for protected_global_id record types" do
+      expect{ButtonSound.local_ids([])}.to raise_error("not allowed for protected record types")
+      expect(User.local_ids([])).to eq([])
+    end
+    
+    it "should not map ids that start with non-numbers" do
+      expect(User.local_ids(['a1_1', '1_1'])).to eq(['1'])
+    end
+  end
 end

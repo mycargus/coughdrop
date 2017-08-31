@@ -102,6 +102,7 @@ describe JsonApi::Integration do
           'something' => 'nunya'
         }
       ]
+      ui.template = true
       hash = JsonApi::Integration.build_json(ui, permissions: u)
       expect(hash['template']).to eq(true)
       expect(hash['user_parameters']).to eq([

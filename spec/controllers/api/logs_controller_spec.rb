@@ -252,6 +252,44 @@ describe Api::LogsController, :type => :controller do
       json = JSON.parse(response.body)
       expect(json['log']['pending']).to eql(true)
     end
+    
+    it "should attach a note to a goal" do
+      token_user
+      g = UserGoal.create(:user => @user)
+      post :create, params: {:log => {
+        'note' => {
+          'text' => 'ahem',
+          'timestamp' => 1431461182
+        },
+        'goal_id' => g.global_id
+      }}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      Worker.process_queues
+      log = LogSession.last
+      expect(log.data['event_summary']).to eq('Note by no-name: ahem')
+      expect(log.goal).to eq(g)
+      expect(log.log_type).to eq('note')
+    end
+    
+    it "should ignore the goal_id when attaching a note to a goal if invalid" do
+      token_user
+      g = UserGoal.create(:user => @user)
+      post :create, params: {:log => {
+        'note' => {
+          'text' => 'ahem',
+          'timestamp' => 1431461182
+        },
+        'goal_id' => '12345'
+      }}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      Worker.process_queues
+      log = LogSession.last
+      expect(log.data['event_summary']).to eq('Note by no-name: ahem')
+      expect(log.goal).to eq(nil)
+      expect(log.log_type).to eq('note')
+    end
   end
   
   describe "update" do

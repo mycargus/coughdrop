@@ -6,7 +6,7 @@ describe SubscriptionMailer, :type => :mailer do
       u = User.create(:settings => {'name' => 'fred', 'email' => 'fred@example.com'})
       m = SubscriptionMailer.one_day_until_expiration(u.global_id)
       expect(m.to).to eq([u.settings['email']])
-      expect(m.subject).to eq("CoughDrop - Subscription Notice")
+      expect(m.subject).to eq("CoughDrop - Billing Notice")
       
       html = message_body(m, :html)
       expect(html).to match(/set to expire/)
@@ -25,7 +25,7 @@ describe SubscriptionMailer, :type => :mailer do
       u = User.create(:expires_at => Date.parse('June 1, 2015'), :settings => {'email' => 'fred@example.com'})
       m = SubscriptionMailer.expiration_approaching(u.global_id)
       expect(m.to).to eq([u.settings['email']])
-      expect(m.subject).to eq("CoughDrop - Subscription Notice")
+      expect(m.subject).to eq("CoughDrop - Billing Notice")
       
       html = message_body(m, :html)
       expect(html).to match(/#{u.user_name}/)
@@ -44,7 +44,7 @@ describe SubscriptionMailer, :type => :mailer do
       u = User.create(:settings => {'name' => 'fred', 'email' => 'fred@example.com'})
       m = SubscriptionMailer.one_week_until_expiration(u.global_id)
       expect(m.to).to eq([u.settings['email']])
-      expect(m.subject).to eq("CoughDrop - Subscription Notice")
+      expect(m.subject).to eq("CoughDrop - Billing Notice")
       
       html = message_body(m, :html)
       expect(html).to match(/about to expire/)
@@ -79,14 +79,14 @@ describe SubscriptionMailer, :type => :mailer do
       u = User.create(:settings => {'name' => 'fred', 'email' => 'fred@example.com'})
       m = SubscriptionMailer.purchase_confirmed(u.global_id)
       expect(m.to).to eq([u.settings['email']])
-      expect(m.subject).to eq("CoughDrop - Subscription Confirmed")
+      expect(m.subject).to eq("CoughDrop - Purchase Confirmed")
       
       html = message_body(m, :html)
-      expect(html).to match(/Thank you for subscribing to CoughDrop/)
+      expect(html).to match(/Thank you for purchasing CoughDrop/)
       expect(html).to match(/<b>#{u.settings['name']}<\/b>/)
       
       text = message_body(m, :text)
-      expect(text).to match(/Thank you for subscribing to CoughDrop/)
+      expect(text).to match(/Thank you for purchasing CoughDrop/)
       expect(text).to match(/"#{u.settings['name']}"/)
     end  end
   
@@ -116,7 +116,7 @@ describe SubscriptionMailer, :type => :mailer do
       expect(m.subject).to eq("CoughDrop - New Subscription")
       
       html = m.body.to_s
-      expect(html).to match(/just updated their CoughDrop subscription/)
+      expect(html).to match(/just updated their CoughDrop billing information/)
       expect(html).to match(/#{u.user_name}<\/a>/)
     end  
   end
@@ -182,11 +182,11 @@ describe SubscriptionMailer, :type => :mailer do
       expect(m.subject).to eq("CoughDrop - Subscription Needs Attention")
       
       html = message_body(m, :html)
-      expect(html).to match(/an error handling the current subscription/)
+      expect(html).to match(/an error handling the current billing information/)
       expect(html).to match(/<b>#{u.settings['name']}<\/b>/)
       
       text = message_body(m, :text)
-      expect(text).to match(/an error handling the current subscription/)
+      expect(text).to match(/an error handling the current billing information/)
       expect(text).to match(/"#{u.settings['name']}"/)
     end
   end

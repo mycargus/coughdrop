@@ -19,19 +19,19 @@ describe SessionController, :type => :controller do
     it "should error if the redirect_uri isn't valid" do
       k = DeveloperKey.create(:redirect_uri => DeveloperKey.oob_uri)
       post :oauth, params: {:client_id => k.key, :redirect_uri => "http://www.example.com"}
-      expect(response).not_to be_success
+      expect(response).to be_success
       expect(assigns[:error]).to eq("bad_redirect_uri")
     end
     
     it "should error if the developer key is invalid" do
       post :oauth, params: {:client_id => "abcdef"}
-      expect(response).not_to be_success
+      expect(response).to be_success
       expect(assigns[:error]).to eq("invalid_key")
     end
     
     it "should stash to redis and render the login page if correct" do
       k = DeveloperKey.create(:redirect_uri => DeveloperKey.oob_uri)
-      post :oauth, params: {:client_id => k.key, :redirect_uri => DeveloperKey.oob_uri}
+      post :oauth, params: {:client_id => k.key, :redirect_uri => DeveloperKey.oob_uri, :scope => 'bacon'}
       expect(assigns[:app_name]).to eq("the application")
       expect(assigns[:app_icon]).not_to eq(nil)
       expect(assigns[:code]).not_to eq(nil)
@@ -40,6 +40,22 @@ describe SessionController, :type => :controller do
       expect(str).not_to eq(nil)
       json = JSON.parse(str)
       expect(json['app_name']).to eq('the application')
+      expect(json['scope']).to eq('bacon')
+      expect(json['user_id']).to eq(nil)
+    end
+
+    it "should not allow setting the scope to full" do
+      k = DeveloperKey.create(:redirect_uri => DeveloperKey.oob_uri)
+      post :oauth, params: {:client_id => k.key, :redirect_uri => DeveloperKey.oob_uri, :scope => 'full'}
+      expect(assigns[:app_name]).to eq("the application")
+      expect(assigns[:app_icon]).not_to eq(nil)
+      expect(assigns[:code]).not_to eq(nil)
+      expect(response).to be_success
+      str = RedisInit.default.get("oauth_#{assigns[:code]}")
+      expect(str).not_to eq(nil)
+      json = JSON.parse(str)
+      expect(json['app_name']).to eq('the application')
+      expect(json['scope']).to eq('')
       expect(json['user_id']).to eq(nil)
     end
   end
@@ -56,6 +72,7 @@ describe SessionController, :type => :controller do
     @code = "abcdefg"
     RedisInit.default.set("oauth_#{@code}", @config.to_json)
   end
+  
   describe "oauth_login" do
     
     it "should not require api token" do
@@ -128,6 +145,38 @@ describe SessionController, :type => :controller do
       expect(response).to be_redirect
       expect(response.location).to match(/http:\/\/www\.example\.com\/oauth\?a=bcde&code=\w+/)
     end
+    
+    it "should update the device scopes" do
+      u = User.new
+      u.generate_password("bacon")
+      u.save
+
+      key_with_stash
+      post :oauth_login, params: {:code => @code, :username => u.user_name, :password => "bacon"}
+      expect(response).to be_redirect
+      expect(response.location).to match(/\/oauth2\/token\/status\?code=\w+/)
+
+      str = RedisInit.default.get("oauth_#{@code}")
+      expect(str).not_to eq(nil)
+      json = JSON.parse(str)
+      expect(json['scope']).to eq('something')
+      expect(json['user_id']).to eq(u.id.to_s)
+    end
+
+    it "should allow authorizing with an approve token from an existing user session" do
+      u = User.new
+      u.generate_password("bacon")
+      u.save
+
+      key_with_stash
+
+      d = Device.create(:user => u, :developer_key_id => 0, :device_key => 'asdf')
+      token = d.token
+
+      post :oauth_login, params: {:code => @code, :username => u.user_name, :approve_token => token}
+      expect(response).to be_redirect
+      expect(response.location).to match(/\/oauth2\/token\/status\?code=\w+/)
+    end
   end
   
   describe "oauth_token" do
@@ -199,6 +248,34 @@ describe SessionController, :type => :controller do
       post :oauth_token, params: {:code => @code, :client_id => @key.key, :client_secret => @key.secret}
       expect(response).to be_success
       expect(RedisInit.default.get("oauth_#{@code}")).to eq(nil)
+    end
+    
+    it "should set specified scopes for the device" do
+      u = User.create
+      key_with_stash(u)
+      @config['scope'] = 'read_profile'
+      RedisInit.default.set("oauth_#{@code}", @config.to_json)
+
+      expect(Device.count).to eq(0)
+      post :oauth_token, params: {:code => @code, :client_id => @key.key, :client_secret => @key.secret}
+      expect(response).to be_success
+      expect(RedisInit.default.get("oauth_#{@code}")).to eq(nil)
+      expect(Device.count).to eq(1)
+      d = Device.last
+      expect(d.permission_scopes).to eq(['read_profile'])
+    end
+
+    it "should not set non-whitelisted scopes for the device" do
+      u = User.create
+      key_with_stash(u)
+
+      expect(Device.count).to eq(0)
+      post :oauth_token, params: {:code => @code, :client_id => @key.key, :client_secret => @key.secret}
+      expect(response).to be_success
+      expect(RedisInit.default.get("oauth_#{@code}")).to eq(nil)
+      expect(Device.count).to eq(1)
+      d = Device.last
+      expect(d.permission_scopes).to eq([])
     end
   end
 
@@ -416,6 +493,17 @@ describe SessionController, :type => :controller do
         json = JSON.parse(response.body)
         expect(json['user_name']).to eq('fred')
       end
+    end
+    
+    it "should include permissions scopes in the response" do
+      token = GoSecure.browser_token
+      u = User.new(:user_name => "fred", :settings => {'email' => 'fred@example.com'})
+      u.generate_password("seashell")
+      u.save
+      post :token, params: {:grant_type => 'password', :client_id => 'browser', :client_secret => token, :username => 'fred@example.com', :password => 'seashell'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['scopes']).to eq(['full'])
     end
   end
 

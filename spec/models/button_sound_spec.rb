@@ -493,4 +493,108 @@ describe ButtonSound, :type => :model do
       expect(Typhoeus).to_not receive(:get)
     end
   end
+  
+  describe "schedule_missing_transcodings" do
+    it "should schedule missing sound transcodings" do
+      bs = ButtonSound.create(:url => 'asdf', :settings => {'full_filename' => 'asdf'})
+      bs.settings['transcoding_in_progress'] = nil
+      bs.save
+      expect(bs.settings['transcoding_in_progress']).to eq(nil)
+      expect(Worker).to receive(:schedule){|k, m, id, path, key|
+        expect(k).to eq(Transcoder)
+        expect(m).to eq(:convert_audio)
+        expect(id).to eq(bs.global_id)
+      }
+      ButtonSound.schedule_missing_transcodings
+      bs.reload
+      expect(bs.settings['transcoding_in_progress']).to eq(true)
+      expect(bs.settings['extra_transcoding_attempts']).to eq(1)
+    end
+    
+    it "should not schedule for old sounds" do
+      bs = ButtonSound.create(:url => 'asdf', :settings => {'full_filename' => 'asdf'})
+      bs.settings['transcoding_in_progress'] = nil
+      bs.save
+      ButtonSound.where(:id => bs.id).update_all(:created_at => 3.weeks.ago)
+      expect(bs.settings['transcoding_in_progress']).to eq(nil)
+      expect(Worker).to_not receive(:schedule)
+      ButtonSound.schedule_missing_transcodings
+      bs.reload
+      expect(bs.settings['transcoding_in_progress']).to eq(nil)
+      expect(bs.settings['extra_transcoding_attempts']).to eq(nil)
+    end
+    
+    it "should not schedule for sounds with too many prior attempts" do
+      bs = ButtonSound.create(:url => 'asdf', :settings => {'full_filename' => 'asdf', 'extra_transcoding_attempts' => 5})
+      bs.settings['transcoding_in_progress'] = nil
+      bs.save
+      expect(bs.settings['transcoding_in_progress']).to eq(nil)
+      expect(Worker).to_not receive(:schedule)
+      ButtonSound.schedule_missing_transcodings
+      bs.reload
+      expect(bs.settings['transcoding_in_progress']).to eq(nil)
+      expect(bs.settings['extra_transcoding_attempts']).to eq(5)
+    end
+    
+    it "should not schedule for sounds marked as in progress" do
+      bs = ButtonSound.create(:url => 'asdf', :settings => {'full_filename' => 'asdf'})
+      expect(bs.settings['transcoding_in_progress']).to eq(true)
+      expect(Worker).to_not receive(:schedule)
+      ButtonSound.schedule_missing_transcodings
+      bs.reload
+      expect(bs.settings['transcoding_in_progress']).to eq(true)
+      expect(bs.settings['extra_transcoding_attempts']).to eq(nil)
+    end
+    
+    it "should schedule missing video transcodings" do
+      bs = UserVideo.create(:url => 'asdf', :settings => {'full_filename' => 'asdf'})
+      bs.settings['transcoding_in_progress'] = nil
+      bs.save
+      expect(bs.settings['transcoding_in_progress']).to eq(nil)
+      expect(Worker).to receive(:schedule){|k, m, id, path, key|
+        expect(k).to eq(Transcoder)
+        expect(m).to eq(:convert_video)
+        expect(id).to eq(bs.global_id)
+      }
+      ButtonSound.schedule_missing_transcodings
+      bs.reload
+      expect(bs.settings['transcoding_in_progress']).to eq(true)
+      expect(bs.settings['extra_transcoding_attempts']).to eq(1)
+    end
+    
+    it "should not schedule for old videos" do
+      bs = UserVideo.create(:url => 'asdf', :settings => {'full_filename' => 'asdf'})
+      bs.settings['transcoding_in_progress'] = nil
+      bs.save
+      UserVideo.where(:id => bs.id).update_all(:created_at => 3.weeks.ago)
+      expect(bs.settings['transcoding_in_progress']).to eq(nil)
+      expect(Worker).to_not receive(:schedule)
+      ButtonSound.schedule_missing_transcodings
+      bs.reload
+      expect(bs.settings['transcoding_in_progress']).to eq(nil)
+      expect(bs.settings['extra_transcoding_attempts']).to eq(nil)
+    end
+    
+    it "should not schedule for videos with too many prior attempts" do
+      bs = UserVideo.create(:url => 'asdf', :settings => {'full_filename' => 'asdf', 'extra_transcoding_attempts' => 5})
+      bs.settings['transcoding_in_progress'] = nil
+      bs.save
+      expect(bs.settings['transcoding_in_progress']).to eq(nil)
+      expect(Worker).to_not receive(:schedule)
+      ButtonSound.schedule_missing_transcodings
+      bs.reload
+      expect(bs.settings['transcoding_in_progress']).to eq(nil)
+      expect(bs.settings['extra_transcoding_attempts']).to eq(5)
+    end
+    
+    it "should not schedule for videos marked as in progress" do
+      bs = UserVideo.create(:url => 'asdf', :settings => {'full_filename' => 'asdf'})
+      expect(bs.settings['transcoding_in_progress']).to eq(true)
+      expect(Worker).to_not receive(:schedule)
+      ButtonSound.schedule_missing_transcodings
+      bs.reload
+      expect(bs.settings['transcoding_in_progress']).to eq(true)
+      expect(bs.settings['extra_transcoding_attempts']).to eq(nil)
+    end
+  end
 end

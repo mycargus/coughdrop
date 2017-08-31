@@ -70,5 +70,16 @@ describe MediaObject, :type => :model do
       bs.schedule_transcoding
       bs.schedule_transcoding
     end
+    
+    it "should re-transcode if already attempted but force=true" do
+      expect(GoSecure).to receive(:nonce).and_return('chicken').at_least(1).times
+      bs = ButtonSound.create(:settings => {'full_filename' => 'a/b/c'})
+      prefix = bs.file_path + bs.file_prefix + "v" + Time.now.to_i.to_s
+      expect(Worker.scheduled?(Transcoder, :convert_audio, bs.global_id, prefix, 'chicken')).to eq(true)
+
+      Worker.flush_queues
+      bs.schedule_transcoding(true)
+      expect(Worker.scheduled?(Transcoder, :convert_audio, bs.global_id, prefix, 'chicken')).to eq(true)
+    end
   end
 end

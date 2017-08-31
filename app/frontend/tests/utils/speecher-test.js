@@ -436,4 +436,14 @@ describe('speecher', function() {
       ]);
     });
   });
+
+  describe("play_audio", function() {
+    it('should have specs', function() {
+      expect('test').toEqual('todo');
+    });
+
+    it('should work with mobile plugin playback mechanism', function() {
+      expect('test').toEqual('todo');
+    });
+  });
 });

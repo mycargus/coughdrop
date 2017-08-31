@@ -70,6 +70,7 @@ module Permissions
   end
   
   def permissions_for(user, relevant_scopes=nil)
+    relevant_scopes ||= user && user.permission_scopes_device && user.permission_scopes_device.permission_scopes
     relevant_scopes ||= self.class.default_permission_scopes
     relevant_scopes += ['*']
     if self.class.allow_cached_permissions

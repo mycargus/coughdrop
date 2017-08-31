@@ -93,7 +93,7 @@ end
 
 def token_user
   @user = User.create
-  @device = Device.create(:user => @user, :developer_key_id => 1, :device_key => 'hippo')
+  @device = Device.create(:user => @user, :developer_key_id => 0, :device_key => 'hippo')
   request.headers['Authorization'] = "Bearer #{@device.token}"
   request.headers['Check-Token'] = "true"
 end

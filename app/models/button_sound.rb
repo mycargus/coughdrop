@@ -107,6 +107,16 @@ class ButtonSound < ActiveRecord::Base
         bs.schedule_transcoding(true)
       end
     end
+
+    UserVideo.where("url NOT LIKE '%.mp4'").where(['created_at > ?', 2.weeks.ago]).each do |bs|
+      if bs.settings['extra_transcoding_attempts'] && bs.settings['extra_transcoding_attempts'] > 1
+      elsif bs.settings['transcoding_in_progress'] && bs.updated_at > 48.hours.ago
+      else
+        bs.settings['extra_transcoding_attempts'] ||= 0
+        bs.settings['extra_transcoding_attempts'] += 1
+        bs.schedule_transcoding(true)
+      end
+    end
   end
   
   

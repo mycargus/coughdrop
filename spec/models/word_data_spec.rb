@@ -231,7 +231,7 @@ RSpec.describe WordData, :type => :model do
       u.save
       Worker.process_queues
       Worker.process_queues
-      expect(WordData.reachable_core_list_for(u)).to eq(["i", "you", "he", "think", "like", "favorite", "pretend"])
+      expect(WordData.reachable_core_list_for(u)).to eq(["i", "you", "like", "he", "think", "favorite", "pretend"])
     end
     
     it "should return words available from the root board" do
@@ -254,7 +254,7 @@ RSpec.describe WordData, :type => :model do
       u.save
       Worker.process_queues
       Worker.process_queues
-      expect(WordData.reachable_core_list_for(u)).to eq(["i", "you", "he", "think", "like", "favorite", "pretend"])
+      expect(WordData.reachable_core_list_for(u)).to eq(["i", "you", "like", "he", "think", "favorite", "pretend"])
     end
     
     it "should return words available from the sidebar" do
@@ -277,7 +277,7 @@ RSpec.describe WordData, :type => :model do
       u.save
       Worker.process_queues
       Worker.process_queues
-      expect(WordData.reachable_core_list_for(u)).to eq(["i", "think", "like", "no", "yes", "favorite", "pretend"])
+      expect(WordData.reachable_core_list_for(u)).to eq(["i", "like", "no", "yes", "think", "favorite", "pretend"])
     end
     
     it "should not return words that aren't accessible, even if they're core words" do

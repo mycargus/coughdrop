@@ -208,9 +208,9 @@ describe Api::IntegrationsController, :type => :controller do
   end
   
   describe "get 'show'" do
-    it 'should require an api token' do
+    it 'should not require an api token' do
       get 'show', params: {'id' => 'asdf'}
-      assert_missing_token
+      assert_not_found('asdf')
     end
     
     it "should error if record doesn't exist" do
@@ -244,7 +244,7 @@ describe Api::IntegrationsController, :type => :controller do
       expect(json['integration']['name']).to eq('good integration')
       expect(json['integration']['webhook']).to eq(true)
       expect(json['integration']['render']).to eq(true)
-      expect(json['integration']['template_key']).to eq('ahem')
+      expect(json['integration']['template_key']).to eq(nil)
       expect(json['integration']['integration_key']).to eq('asdf')
       expect(json['integration']['user_settings']).to eq([
         {'name' => 'a', 'label' => nil, 'value' => 'aaa'}

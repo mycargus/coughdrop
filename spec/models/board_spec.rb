@@ -1021,6 +1021,39 @@ describe Board, :type => :model do
       expect(b2.errored?).to eq(true)
       expect(b2.processing_errors).to eq(['cannot copy protected boards'])
     end
+    
+    it "should set visibility to public" do
+      u = User.create
+      b = Board.create(:user => u)
+      b.process({'visibility' => 'public'})
+      expect(b.public).to eq(true)
+      expect(b.settings['unlisted']).to eq(false)
+    end
+    
+    it "should set visibility to unlisted" do
+      u = User.create
+      b = Board.create(:user => u)
+      b.process({'visibility' => 'unlisted'})
+      expect(b.public).to eq(true)
+      expect(b.settings['unlisted']).to eq(true)
+    end
+    
+    it "should set visibility to private" do
+      u = User.create
+      b = Board.create(:user => u, :public => true)
+      b.process({'visibility' => 'private'})
+      expect(b.public).to eq(false)
+      expect(b.settings['unlisted']).to eq(false)
+    end
+    
+    it "should mark an update to visibility" do
+      u = User.create
+      b = Board.create(:user => u)
+      b.process({'visibility' => 'public'})
+      expect(b.public).to eq(true)
+      expect(b.settings['unlisted']).to eq(false)
+      expect(b.settings['edit_description']['notes']).to eq(['set to public'])
+    end
   end
 
   it "should securely serialize settings" do

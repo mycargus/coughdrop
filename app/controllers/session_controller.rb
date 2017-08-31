@@ -17,8 +17,10 @@ class SessionController < ApplicationController
       @error = error
       render #:status => 400
     else
+      scope = params['scope'] || ''
+      scope = scope.sub(/full/, '')
       config = {
-        'scope' => params['scope'],
+        'scope' => scope,
         'redirect_uri' => params['redirect_uri'] || key.redirect_uri,
         'device_key' => params['device_key'],
         'device_name' => params['device_name'],
@@ -53,7 +55,7 @@ class SessionController < ApplicationController
       if user && params['approve_token']
         id = params['approve_token'].split(/~/)[0]
         device = Device.find_by_global_id(id)
-        if !device || !device.valid_token?(params['approve_token'])
+        if !device || !device.valid_token?(params['approve_token']) || !device.permission_scopes.include?('full')
           error = 'invalid_token'
         end
       elsif !user || !user.valid_password?(params['password'])

@@ -49,6 +49,9 @@ class ApplicationController < ActionController::Base
         end
       end
       @api_user = @api_device && @api_device.user
+      if @api_user && @api_device
+        @api_user.permission_scopes_device = @api_device
+      end
       # TODO: timezone user setting
       Time.zone = "Mountain Time (US & Canada)"
       PaperTrail.whodunnit = user_for_paper_trail

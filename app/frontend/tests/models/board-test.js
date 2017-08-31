@@ -70,6 +70,10 @@ describe('Board', function() {
         expect(record.get('name')).toEqual('cool stuff');
       });
     });
+
+    it("should use the updated name if provided", function() {
+      expect('test').toEqual('todo');
+    });
   });
 
   describe("labels", function() {

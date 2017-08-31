@@ -685,7 +685,7 @@ describe Uploader do
         {
           'id' => 'bacon-1-0',
           'title' => 'Bacon is Yummy',
-          'image' => 'https://d1afj2lqudmea0.cloudfront.net/bacon-yum.png',
+          'image' => 'https://tarheelreader.org/bacon-yum.png',
           'image_content_type' => 'image/jpeg',
           'url' => 'https://tarheelreader.org/bacon',
           'image_attribution' => 'https://tarheelreader.org/photo-credits/?id=12345',
@@ -694,7 +694,7 @@ describe Uploader do
         {
           'id' => 'bacon-1-1',
           'title' => 'I Love Bacon',
-          'image' => 'https://d1afj2lqudmea0.cloudfront.net/heart.png',
+          'image' => 'https://tarheelreader.org/heart.png',
           'image_content_type' => 'image/jpeg',
           'url' => 'https://tarheelreader.org/bacon',
           'image_attribution' => 'https://tarheelreader.org/photo-credits/?id=12345',
@@ -703,7 +703,7 @@ describe Uploader do
         {
           'id' => 'bacon-1-2',
           'title' => 'We Should Get Some Bacon',
-          'image' => 'https://d1afj2lqudmea0.cloudfront.net/shopping.png',
+          'image' => 'https://tarheelreader.org/shopping.png',
           'image_content_type' => 'image/jpeg',
           'url' => 'https://tarheelreader.org/bacon',
           'image_attribution' => 'https://tarheelreader.org/photo-credits/?id=12345',

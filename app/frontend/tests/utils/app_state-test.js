@@ -2506,4 +2506,10 @@ describe('app_state', function() {
       });
     });
   });
+
+  describe('board_url', function() {
+    it('should return the correct values', function() {
+      expect('test').toEqual('todo');
+    });
+  });
 });

@@ -29,4 +29,10 @@ describe('Sound', function() {
     sound.didLoad();
     expect(sound.get('checked_for_data_url')).toEqual(true);
   });
+
+  describe("extension", function() {
+    it('should have specs', function() {
+      expect('test').toEqual('todo');
+    });
+  });
 });

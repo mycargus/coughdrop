@@ -22,6 +22,7 @@ module JsonApi::Integration
 
     if obj.integration_key
       json['integration_key'] = obj.integration_key
+      json['template'] = true if obj.template
     elsif obj.template
       json['integration_key'] = obj.integration_key
       json['template'] = true

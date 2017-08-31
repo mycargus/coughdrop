@@ -323,6 +323,14 @@ describe Device, :type => :model do
       d.settings = {'permission_scopes' => ['a', 'b']}
       expect(d.permission_scopes).to eq(['a', 'b'])
     end
+    
+    it "should return defined scopes if for an oauth token" do
+      d = Device.new
+      d.developer_key_id = 1
+      expect(d.permission_scopes).to eq([])
+      d.settings = {'permission_scopes' => ['b', 'c']}
+      expect(d.permission_scopes).to eq(['b', 'c'])
+    end
   end
   
   describe "inactivity_timeout" do
