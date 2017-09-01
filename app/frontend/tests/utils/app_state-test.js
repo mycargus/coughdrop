@@ -2515,4 +2515,113 @@ describe('app_state', function() {
       expect(app_state.get('board_url').string).toEqual('http://www.stuff.com/a/b');
     });
   });
+
+  describe('auto_exit_speak_mode', function() {
+    it('should clear the timeout if not in speak mode', function() {
+      app_state.set('speak_mode_started', 12345);
+      expect(app_state.get('speak_mode')).toEqual(false);
+      app_state.set('medium_refresh_stamp', 1234);
+      expect(app_state.get('speak_mode_started')).toEqual(null);
+    });
+
+    it('should auto-exit speak mode and post a notice if for the current user, who is a limited supervisor', function() {
+      var stamp = (new Date()).getTime() - (20 * 60 *1000);
+      app_state.set('sessionUser', Ember.Object.create({id: '12345', limited_supervisor: true}));
+      stashes.set('current_mode', 'speak');
+      app_state.set('currentBoardState', {key: 'trade', id: '1_1'});
+      expect(app_state.get('currentUser')).toEqual(app_state.get('sessionUser'));
+      expect(app_state.get('speak_mode')).toEqual(true);
+      var noticed = false;
+      stub(modal, 'notice', function(message, under, sticky) {
+        expect(under).toEqual(true);
+        expect(sticky).toEqual(true);
+        expect(!!message.match(/limited to 15 minutes/)).toEqual(true);
+        noticed = true;
+      });
+      expect(app_state.get('speak_mode')).toEqual(true);
+      app_state.set('speak_mode_started', stamp);
+      app_state.set('medium_refresh_stamp', 1234);
+      waitsFor(function() { return noticed; });
+      runs(function() {
+        expect(app_state.get('speak_mode')).toEqual(false);
+        expect(app_state.get('speak_mode_started')).toEqual(null);
+      });
+    });
+
+    it('should auto-exit speak mode and post a notice if supporting a communicator who is expired', function() {
+      var stamp = (new Date()).getTime() - (20 * 60 *1000);
+      app_state.set('sessionUser', Ember.Object.create({id: '12345'}));
+      stashes.set('current_mode', 'speak');
+      app_state.set('currentBoardState', {key: 'trade', id: '1_1'});
+      app_state.set('referenced_speak_mode_user', Ember.Object.create({id: '23456', expired: true}));
+      expect(app_state.get('currentUser')).toEqual(app_state.get('sessionUser'));
+      expect(app_state.get('speak_mode')).toEqual(true);
+      var noticed = false;
+      stub(modal, 'notice', function(message, under, sticky) {
+        expect(under).toEqual(true);
+        expect(sticky).toEqual(true);
+        expect(!!message.match(/limited to 15 minutes/)).toEqual(true);
+        noticed = true;
+      });
+      expect(app_state.get('speak_mode')).toEqual(true);
+      app_state.set('speak_mode_started', stamp);
+      app_state.set('medium_refresh_stamp', 1234);
+      waitsFor(function() { return noticed; });
+      runs(function() {
+        expect(app_state.get('speak_mode')).toEqual(false);
+        expect(app_state.get('speak_mode_started')).toEqual(null);
+      });
+    });
+
+    it('should audo-exit if for a really really expired communicator', function() {
+      var stamp = (new Date()).getTime() - (40 * 60 *1000);
+      app_state.set('sessionUser', Ember.Object.create({id: '12345', really_really_expired: true}));
+      stashes.set('current_mode', 'speak');
+      app_state.set('currentBoardState', {key: 'trade', id: '1_1'});
+      expect(app_state.get('currentUser')).toEqual(app_state.get('sessionUser'));
+      expect(app_state.get('speak_mode')).toEqual(true);
+      var noticed = false;
+      stub(modal, 'notice', function(message, under, sticky) {
+        expect(under).toEqual(true);
+        expect(sticky).toEqual(true);
+        expect(!!message.match(/limited to 30 minutes/)).toEqual(true);
+        noticed = true;
+      });
+      expect(app_state.get('speak_mode')).toEqual(true);
+      app_state.set('speak_mode_started', stamp);
+      app_state.set('medium_refresh_stamp', 1234);
+      waitsFor(function() { return noticed; });
+      runs(function() {
+        expect(app_state.get('speak_mode')).toEqual(false);
+        expect(app_state.get('speak_mode_started')).toEqual(null);
+      });
+    });
+
+    it('should not auto-exit speak mode if for an expired communicator', function() {
+      var stamp = (new Date()).getTime() - (40 * 60 *1000);
+      app_state.set('sessionUser', Ember.Object.create({id: '12345', expired: true}));
+      stashes.set('current_mode', 'speak');
+      app_state.set('currentBoardState', {key: 'trade', id: '1_1'});
+      expect(app_state.get('currentUser')).toEqual(app_state.get('sessionUser'));
+      expect(app_state.get('speak_mode')).toEqual(true);
+      var noticed = false;
+      stub(modal, 'notice', function(message, under, sticky) {
+        noticed = true;
+      });
+      expect(app_state.get('speak_mode')).toEqual(true);
+      app_state.set('speak_mode_started', stamp);
+      app_state.set('medium_refresh_stamp', 1234);
+      var waited = false;
+      Ember.run.later(function() {
+        waited = true;
+      }, 500);
+      waitsFor(function() { return waited; });
+      runs(function() {
+        expect(noticed).toEqual(false);
+        expect(app_state.get('speak_mode')).toEqual(true);
+        expect(app_state.get('speak_mode_started')).toNotEqual(null);
+      });
+    });
+
+  });
 });

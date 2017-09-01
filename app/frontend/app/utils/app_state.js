@@ -961,22 +961,30 @@ var app_state = Ember.Object.extend({
     if(this.get('speak_mode') && this.get('speak_mode_started')) {
       var started = this.get('speak_mode_started');
       var done = false;
-      if(this.get('currentUser.id') == this.get('sessionUser.id') && this.get('currentUser.limited_supervisor')) {
+      // If running speak mode for themselves, supervisors need to not be paid or working withs omeone
+      if(this.get('currentUser.id') == this.get('sessionUser.id') && !this.get('referenced_speak_mode_user') && this.get('currentUser.limited_supervisor')) {
         if(started < now - (15 * 60 * 1000)) {
           done = i18n.t('limited_supervisor_timeout', "Speak mode sessions are limited to 15 minutes for supervisors not working with paid communicators");
         }
+      // If running speak mode for a communicator, check the status of the communicator
       } else if(this.get('sessionUser.id') != this.get('referenced_speak_mode_user.id') && this.get('referenced_speak_mode_user.expired')) {
         if(started < now - (15 * 60 * 1000)) {
           done = i18n.t('expired_supervisee_timeout', "Speak mode sessions are limited to 15 minutes when working with communicators that don't have an active account");
+        }
+      // If running speak mode as a communicator, leave it go until they're really really expired
+      } else if(this.get('currentUser.really_really_expired')) {
+        if(started < now - (30 * 60 * 1000)) {
+          done = i18n.t('really_expired_communicator_timeout', "This account has expired, and sessions are limited to 30 minutes. If you need help with funding we can help, please contact us!");
         }
       }
 
       if(done) {
         this.toggle_speak_mode();
         modal.notice(done, true, true);
+        this.set('speak_mode_started', null);
       }
     } else {
-      this.set('speak_mode_timeout', null);
+      this.set('speak_mode_started', null);
     }
   }.observes('speak_mode_started', 'medium_refresh_stamp'),
   current_board_name: function() {
