@@ -751,23 +751,6 @@ describe('app_state', function() {
       expect(stashes.get('last_mode')).toEqual('radish');
     });
 
-    it("should popup premium-required notification if running as an app and the user isn't premium-enabled", function() {
-      var found_template = null;
-      var found_settings = null;
-      stub(modal, 'open', function(template, settings) {
-        found_template = template;
-        found_settings = settings;
-        return Ember.RSVP.resolve({});
-      });
-      var browserless = capabilities.browserless;
-      capabilities.browserless = true;
-      app_state.set('sessionUser', Ember.Object.create({expired_or_limited_supervisor: true, user_name: 'frederick'}));
-      app_state.toggle_mode('speak');
-      expect(found_template).toEqual('premium-required');
-      expect(found_settings).toEqual({remind_to_upgrade: true, action: 'app_speak_mode', user_name: 'frederick', limited_supervisor: undefined});
-      capabilities.browserless = browserless;
-    });
-
     it("should poll for geo if enabled and entering speak mode", function() {
       var polling = false;
       stub(stashes.geo, 'poll', function() {

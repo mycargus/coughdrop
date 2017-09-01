@@ -24,7 +24,7 @@ var utterance = Ember.Object.extend({
   },
   update_voice: function() {
     var user = app_state.get('currentUser');
-    if(user) {
+    if(user && user.get) {
       if(user.get && user.get('preferences.device.voice')) {
         user.update_voice_uri();
         speecher.set_voice(user.get('preferences.device.voice'), user.get('preferences.device.alternate_voice'));

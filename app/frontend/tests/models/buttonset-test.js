@@ -273,6 +273,7 @@ describe('Buttonset', function() {
     it("should look up locally-cached images for use if available", function() {
       db_wait(function() {
         var stored = false;
+        persistence.primed = true;
         stub(persistence, 'ajax', function (options) {
           return Ember.RSVP.resolve({
             content_type: 'image/png',

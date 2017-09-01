@@ -392,6 +392,7 @@ describe('Board', function() {
         {id: 4}
       ]);
       var call_args = [];
+      persistence.primed = true;
       stub(persistence, 'push_records', function(type, ids) {
         if(type == 'image') {
           CoughDrop.store.push({data: {type: 'image', id: 'a', attributes: {id: 'a', url: 'http://www.example.com/pic.png'}}});

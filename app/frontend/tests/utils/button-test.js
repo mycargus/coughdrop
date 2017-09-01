@@ -383,6 +383,7 @@ context('Button', function() {
       b.image_id = 'asdf';
       var loaded = false;
 
+      persistence.primed = true;
       queryLog.defineFixture({
         method: 'GET',
         type: 'image',
