@@ -533,14 +533,16 @@
           {{#unless app_state.superProtectedSpeakMode}}
             {{#if app_state.speak_mode}}
               {{#if app_state.feature_flags.enable_all_buttons}}
-                <li><a href="#" {{action 'toggle_all_buttons'}}>
-                  <span class="glyphicon glyphicon-apple"></span>
-                  {{#if stashes.all_buttons_enabled}}
-                    {{t "Hide Hidden Buttons" key='hide_disabled_buttons'}}
-                  {{else}}
-                    {{t "Show Hidden Buttons" key='show_all_buttons'}}
-                  {{/if}}
-                </a></li>
+                {{#unless app_state.currentUser.preferences.prevent_hide_buttons}}
+                  <li><a href="#" {{action 'toggle_all_buttons'}}>
+                    <span class="glyphicon glyphicon-apple"></span>
+                    {{#if stashes.all_buttons_enabled}}
+                      {{t "Hide Hidden Buttons" key='hide_disabled_buttons'}}
+                    {{else}}
+                      {{t "Show Hidden Buttons" key='show_all_buttons'}}
+                    {{/if}}
+                  </a></li>
+                {{/unless}}
               {{/if}}
             {{/if}}
             {{#if app_state.sessionUser.supervisees}}

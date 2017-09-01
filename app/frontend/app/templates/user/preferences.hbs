@@ -399,6 +399,14 @@
       <div class="col-sm-5">
         {{bound-select select_class="form-control" select_id="hidden_buttons" content=hiddenButtonsList selection=model.preferences.hidden_buttons action=(action (mut model.preferences.hidden_buttons)) }}
       </div>
+      <div class="col-sm-5 col-sm-offset-3">
+        <div class="checkbox">
+          <label>
+            {{input type="checkbox" checked=model.preferences.prevent_hide_buttons id="prevent_hide_buttons"}}
+            {{t "Disable \"Show Hidden Buttons\" option in Speak Mode" key='prevent_hide_buttons'}}
+          </label>
+        </div>
+      </div>
     </div>
   {{/unless}}
 
