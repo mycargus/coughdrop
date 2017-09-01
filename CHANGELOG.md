@@ -2,6 +2,15 @@
 
 ## Master
 
+### 2017-09-01
+- optional clicking sound when selecting unspoken buttons
+- more robust support for OBF, pdf-generation
+- auto-exit speak mode for unpaid supervisors
+- faster board rendering on mobile
+- 'unlisted' setting for boards to be public but not searchable
+- better support for media playback on mobile
+- better error handling for media transcoding
+
 ### 2017-06-30
 - Tarheel Reader integration
 - option for clear background on button symbols
