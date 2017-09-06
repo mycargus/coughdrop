@@ -2249,6 +2249,73 @@ describe('editManager', function() {
       runs();
     });
 
+    it("should preserve existing links if specified", function() {
+      stub(modal, 'flash', function() { });
+      var model = {
+        id: '1_1',
+        key: 'example/fred',
+        buttons: [{id: 1, load_board: {key: 'asdf', id: '1_2'}}],
+        grid: {}
+      };
+      var b = CoughDrop.store.createRecord('board', model);
+      var found = false;
+      var promise = Ember.RSVP.resolve({board: model});
+      queryLog.defineFixture({
+        method: 'POST',
+        type: 'board',
+        response: promise,
+        compare: function(object) {
+          found = true;
+          return true;
+        }
+      });
+      var copy = null;
+      editManager.copy_board(b, 'keep_links').then(function(res) { copy = res; });
+      waitsFor(function() { return found && copy; });
+      runs(function() {
+        expect(copy.get('linked_boards').length).toEqual(1);
+        expect(copy.get('buttons')[0].id).toEqual(1);
+      });
+    });
+
+    it("should remove board links if specified", function() {
+      stub(modal, 'flash', function() { });
+      var model = {
+        id: '1_1',
+        key: 'example/fred',
+        buttons: [{id: 1, load_board: {key: 'asdf', id: '1_2'}}],
+        grid: {}
+      };
+      var b = CoughDrop.store.createRecord('board', model);
+      var found = false;
+      var promise = Ember.RSVP.resolve({board: model});
+      queryLog.defineFixture({
+        method: 'POST',
+        type: 'board',
+        response: promise,
+        compare: function(object) {
+          found = true;
+          return true;
+        }
+      });
+      queryLog.defineFixture({
+        method: 'PUT',
+        type: 'board',
+        response: promise,
+        compare: function(object) {
+          found = true;
+          return true;
+        }
+      });
+      var copy = null;
+      editManager.copy_board(b, 'remove_links').then(function(res) { copy = res; });
+      waitsFor(function() { return found && copy; });
+      runs(function() {
+        expect(copy.get('linked_boards').length).toEqual(0);
+        expect(copy.get('buttons')[0].id).toEqual(1);
+      });
+    });
+
     it("should trigger a call to reload_including_all_downstream", function() {
       app_state.set('currentBoardState', {id: '1_1'});
       stub(modal, 'flash', function() { });

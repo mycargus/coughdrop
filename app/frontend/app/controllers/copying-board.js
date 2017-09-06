@@ -11,7 +11,7 @@ export default modal.ModalController.extend({
     _this.set('loading', true);
     _this.set('error', null);
     var board = _this.get('model.board');
-    if(this.get('model.action') == 'keep_links') {
+    if(this.get('model.action') == 'keep_links' || this.get('model.action') == 'remove_links') {
       _this.start_copying();
     } else {
       BoardHierarchy.load_with_button_set(board).then(function(hierarchy) {

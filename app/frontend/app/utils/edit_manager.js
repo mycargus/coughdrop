@@ -845,6 +845,17 @@ var editManager = Ember.Object.extend({
     return new Ember.RSVP.Promise(function(resolve, reject) {
       var ids_to_copy = old_board.get('downstream_board_ids_to_copy') || [];
       var save = old_board.create_copy(user, make_public);
+      if(decision == 'remove_links') {
+        save = save.then(function(res) {
+          res.get('buttons').forEach(function(b) {
+            if(Ember.get(b, 'load_board')) {
+              Ember.set(b, 'load_board', null);
+            }
+          });
+          return res.save();
+        });
+
+      }
       save.then(function(board) {
         board.set('should_reload', true);
         var done_callback = function(result) {
@@ -900,7 +911,7 @@ var editManager = Ember.Object.extend({
         } else {
           done_callback();
         }
-      }, function() {
+      }, function(err) {
         reject(i18n.t('copying_failed', "Board copy failed unexpectedly"));
       });
     });
