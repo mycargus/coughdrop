@@ -92,7 +92,7 @@ export default Ember.Component.extend({
     capabilities.eye_gaze.listen('noisy');
 
     var eye_listener = function(e) {
-      if(_this.get('user.preferences.device.dwell_type') == 'eyegaze') {
+      if(!_this.get('user.preferences.device.dwell_type') || _this.get('user.preferences.device.dwell_type') == 'eyegaze') {
         var ratio = window.devicePixelRatio || 1.0;
         e.screenX = ratio * (e.clientX + (window.screenInnerOffsetX || window.screenX));
         e.screenY = ratio * (e.clientY + (window.screenInnerOffsetY || window.screenY));

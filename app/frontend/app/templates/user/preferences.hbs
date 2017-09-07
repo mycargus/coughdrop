@@ -820,7 +820,7 @@
           {{bound-select select_class="form-control" select_id="scanning_mode" content=dwellList selection=model.preferences.device.dwell_type action=(action (mut model.preferences.device.dwell_type)) }}
         </div>
         <div class="col-sm-2">
-          <button class='btn btn-default' {{action "test_dwell"}}>
+          <button class='btn btn-default' {{action "test_dwell"}} style='width: 100%;'>
             {{#if testing_dwell}}
               {{t "Stop Tracking" key='stop_test_dwell'}}
             {{else}}
@@ -828,6 +828,13 @@
             {{/if}}
           </button>
         </div>
+        {{#if eyegaze_type}}
+          {{#if calibratable}}
+            <div class="col-sm-2">
+              <button class='btn btn-default' {{action "calibrate"}} style='width: 100%; margin-bottom: 3px;'>{{t "Calibrate Tracker" key='calibrate'}}</button>
+            </div>
+          {{/if}}
+        {{/if}}
         {{#if testing_dwell}}
           <div class="col-sm-5 col-sm-offset-3">
             {{dwell-tracker user=model type=model.preferences.device.dwell_type}}

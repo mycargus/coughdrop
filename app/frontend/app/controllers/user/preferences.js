@@ -132,6 +132,12 @@ export default Ember.Controller.extend({
       this.set('model.preferences.device.auto_sync', this.get('model.auto_sync'));
     }
   }.observes('model.id', 'model.auto_sync'),
+  check_calibration: function() {
+    var _this = this;
+    capabilities.eye_gaze.calibratable(function(res) {
+      _this.set('calibratable', !!res);
+    });
+  },
   check_core_words: function() {
     var _this = this;
     _this.set('core_lists', {loading: true});
@@ -196,6 +202,13 @@ export default Ember.Controller.extend({
   eyegaze_type: function() {
     return this.get('model.preferences.device.dwell') && this.get('model.preferences.device.dwell_type') == 'eyegaze';
   }.property('model.preferences.device.dwell', 'model.preferences.device.dwell_type'),
+  update_dwell_defaults: function() {
+    if(this.get('model.preferences.device.dwell')) {
+      if(!this.get('model.preferences.device.dwell_type')) {
+        this.set('model.preferences.device.dwell_type', 'eyegaze');
+      }
+    }
+  }.observes('model.preferences.device.dwell'),
   wakelock_capable: function() {
     return capabilities.wakelock_capable();
   }.property(),
@@ -432,6 +445,15 @@ export default Ember.Controller.extend({
       list = list.filter(function(p) { return (p != "add:" + str) && (p != "remove:" + str); });
       list.push("add:" + str);
       this.set('model.preferences.requested_phrase_changes', list);
+    },
+    calibrate: function() {
+      capabilities.eye_gaze.calibratable(function(res) {
+        if(res) {
+          capabilities.eye_gaze.calibrate();
+        } else {
+          modal.error(i18n.t('cannot_calibrate', "Eye gaze cannot be calibrated at this time"));
+        }
+      });
     },
     remove_phrase: function(str) {
       var list = this.get('model.preferences.requested_phrase_changes') || [];

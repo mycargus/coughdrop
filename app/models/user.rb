@@ -595,6 +595,9 @@ class User < ActiveRecord::Base
       end
 
       # For eye gaze users we will auto-enable the status so they can see eye status
+      if device['dwell'] && !device['dwell_type']
+        device['dwell_type'] = 'eyegaze'
+      end
       if device['dwell'] && device['dwell_type'] == 'eyegaze'
         self.settings['preferences']['blank_status'] = true
       end
