@@ -667,6 +667,9 @@ var speecher = Ember.Object.extend({
       capabilities.tts.stop_text();
       if(this.audio.text) {
         this.audio.text.pause();
+        if(this.audio.text.media) {
+          this.audio.text.media.pause();
+        }
         this.audio.text.removeEventListener('ended', this.audio.text.lastListener);
         this.audio.text.removeEventListener('pause', this.audio.text.lastListener);
         var audio = this.audio.text;
@@ -679,6 +682,9 @@ var speecher = Ember.Object.extend({
     if(type == 'background' || type == 'all') {
       if(this.audio.background) {
         this.audio.background.pause();
+        if(this.audio.background.media) {
+          this.audio.background.media.pause();
+        }
         this.audio.background.removeEventListener('ended', this.audio.background.lastListener);
         this.audio.background.removeEventListener('pause', this.audio.background.lastListener);
         var audio = this.audio.background;
