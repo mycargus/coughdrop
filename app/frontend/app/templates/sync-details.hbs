@@ -24,29 +24,31 @@
           {{t "%{num} cached" num=sync.cached key='n_cached'}}
           <a href='#'{{action 'toggle_statuses' sync}}>{{t "see details" key='see_details'}}</a>
           {{#if sync.toggled}}
-            <table class='table table-striped table-hover'>
-              <tbody>
-                {{#each sync.statuses as |status|}}
-                  <tr>
-                    <td>
-                      {{status.key}}
-                      {{#if status.error}}
-                        <div class='text-danger' style='margin-left: 10px;'><em>{{status.error}}</em></div>
-                      {{/if}}
-                    </td>
-                    <td>
-                      {{#if status.downloaded}}
-                        {{t "downloaded" key='downloaded'}}
-                      {{else if status.re_downloaded}}
-                        {{t "updated" key='re_downloaded'}}
-                      {{else if status.cached}}
-                        {{t "cached (no change)" key='cached_no_change'}}
-                      {{/if}}
-                    </td>
-                  </tr>
-                {{/each}}
-              </tbody>
-            </table>
+            <div style='max-height: 60vh; overflow: auto;'>
+              <table class='table table-striped table-hover'>
+                <tbody>
+                  {{#each sync.statuses as |status|}}
+                    <tr>
+                      <td>
+                        {{status.key}}
+                        {{#if status.error}}
+                          <div class='text-danger' style='margin-left: 10px;'><em>{{status.error}}</em></div>
+                        {{/if}}
+                      </td>
+                      <td>
+                        {{#if status.downloaded}}
+                          {{t "downloaded" key='downloaded'}}
+                        {{else if status.re_downloaded}}
+                          {{t "updated" key='re_downloaded'}}
+                        {{else if status.cached}}
+                          {{t "cached (no change)" key='cached_no_change'}}
+                        {{/if}}
+                      </td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
           {{/if}}
         {{/if}}
       {{/each}}
