@@ -144,7 +144,7 @@ task "extras:desktop" => :environment do
   match = str.match(/window\.app_version\s+=\s+\"([0-9\.]+\w*)\";/)
   str = File.read("../#{folder}/package.json")
   full_version = (match && match[1]) || Date.today.strftime('%Y.%m.%d')
-  full_version = full_version[2..-1].gsub(/[a-z]+/, '')
+  full_version = full_version[2..-1].gsub(/[a-z]+/, '').gsub(/\.0+/, '.')
   str = str.sub(/\"version\"\s*:\s*\"[^\"]+\"/, "\"version\": \"#{full_version}\"");
   File.write("../#{folder}/package.json", str)
 
