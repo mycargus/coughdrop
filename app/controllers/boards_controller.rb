@@ -73,6 +73,11 @@ class BoardsController < ApplicationController
     render :layout => false
   end
   
+  def video
+    response.headers.except! 'X-Frame-Options'
+    render :layout => false
+  end
+  
   def icon
     board = Board.find_by_path(params['id'])
     if board

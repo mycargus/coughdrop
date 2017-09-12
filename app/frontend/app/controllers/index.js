@@ -298,11 +298,11 @@ export default Ember.Controller.extend({
     set_selected: function(selected) {
       this.set('selected', selected);
     },
-    intro_video: function(url) {
+    intro_video: function(id) {
       if(window.ga) {
         window.ga('send', 'event', 'Setup', 'video', 'Intro video opened');
       }
-      modal.open('inline-video', {video: {url: url}, hide_overlay: true});
+      modal.open('inline-video', {video: {type: 'youtube', id: id}, hide_overlay: true});
     },
     intro: function() {
       if(window.ga) {

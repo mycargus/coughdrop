@@ -217,7 +217,7 @@ export default Ember.Controller.extend({
     home: function(plus_video) {
       this.transitionToRoute('index');
       if(plus_video) {
-        modal.open('inline-video', {video: {url: "https://www.youtube.com/embed/gsxfLVhUbus?rel=0"}, hide_overlay: true});
+        modal.open('inline-video', {video: {type: 'youtube', id: url: "gsxfLVhUbus"}, hide_overlay: true});
         if(window.ga) {
           window.ga('send', 'event', 'Setup', 'video', 'Setup Video Launched');
         }

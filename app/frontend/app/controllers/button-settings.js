@@ -309,7 +309,7 @@ export default modal.ModalController.extend({
   track_video: function() {
     if(this.get('model.video.popup') && this.get('model.video.test_url') && !this.get('player')) {
       var _this = this;
-      CoughDrop.YT.track('link_video_preview').then(function(player) {
+      CoughDrop.Videos.track('link_video_preview').then(function(player) {
         _this.set('player', player);
       });
     }

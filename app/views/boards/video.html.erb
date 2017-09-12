@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <body style='padding: 0; margin: 0;'>
+    <% if params['source'] == 'youtube' && params['id'] %>
+      <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
+      <div id="container">
+        <div id="player"></div>
+      </div>
+
+      <script id='whatever'></script>
+      <script id="bacon">
+        // 2. This code loads the IFrame Player API code asynchronously.
+        var tag = document.createElement('script');
+
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        // 3. This function creates an <iframe> (and YouTube player)
+        //    after the API code downloads.
+        var player;
+        var Player = {
+          state: 'initialized',
+          set_state: function(state) {
+            var last_state = Player.state
+            Player.state = state;
+            if(last_state != Player.state) {
+              Player.notify();
+            }
+          },
+          notify: function() {
+            var res = {
+              state: Player.state,
+              video_status: true
+            };
+            if(Player.duration != undefined) {
+              res.duration = Player.duration;
+            }
+            if(Player.time != undefined) {
+              res.time = Player.time;
+            }
+            window.parent.postMessage(res, '*');
+          },
+          poll: function() {
+            if(player) {
+              if(player && player.getDuration) {
+                Player.duration = Math.round(player.getDuration());
+              }
+              if(player && player.getCurrentTime) {
+                Player.time = Math.round(player.getCurrentTime());
+              }
+              if(player && player.getPlayerState) {
+                var state = player.getPlayerState();
+                if(state == window.YT.PlayerState.PLAYING) {
+                  Player.set_state('playing');
+                } else if(Player.state == 'playing') {
+                  Player.set_state('paused');
+                }
+              }
+              Player.notify();
+            }
+            setTimeout(Player.poll, 250);
+          }
+        };
+        function onYouTubeIframeAPIReady() {
+          player = new YT.Player('player', {
+            playerVars: { 'autoplay': 1, 'controls': 0, 'showinfo': 0, 'origin': 'http://localhost:3000', 'rel': 0 },
+            height: window.innerHeight,
+            width: window.innerWidth,
+            videoId: '<%= params['id'] %>',
+            events: {
+              'onStateChange': function(event) {
+                if(event.data == window.YT.PlayerState.ENDED) {
+                  Player.set_state('ended');
+                } else if(event.data == window.YT.PlayerState.PAUSED) {
+                  Player.set_state('paused');
+                } else if(event.data == window.YT.PlayerState.CUED) {
+                  Player.set_state('paused');
+                } else if(event.data == window.YT.PlayerState.PLAYING) {
+                  Player.set_state('playing');
+                }
+              },
+              'onError': function(event) {
+                if(callback) {
+                  if(event.data == 5 || event.data == 101 || event.data == 150) {
+                    Player.set_state('embed_error');
+                  } else {
+                    Player.set_state('error');
+                  }
+                }
+              }
+            }
+          });
+          Player.notify();
+        }
+        setTimeout(Player.poll, 500);
+        window.addEventListener('message', function(event) {
+          if(event.data && event.data.video_message && event.data.action == 'pause') {
+            if(player) { player.pauseVideo(); }
+          } else if(event.data && event.data.video_message && event.data.action == 'play') {
+            if(player) { player.playVideo(); }
+          }
+        });
+      </script>
+    <% else %>
+      <div style='height: 40px; font-size: 30px; margin-top: calc(50vh - 20px); text-align: center; font-family: Arial'>
+        Invalid Video Resource
+      </div>
+    <% end %>
+  </body>
+</html>

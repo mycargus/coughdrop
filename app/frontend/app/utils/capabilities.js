@@ -38,6 +38,7 @@ var capabilities;
   }
 
   capabilities = window.capabilities || {};
+  capabilities.fallback_host = 'https://app.mycoughdrop.com';
   capabilities.installed_app = !!capabilities.installed_app;
   capabilities.browserless = !!(capabilities.installed_app || navigator.standalone);
   capabilities.queued_db_actions = [];

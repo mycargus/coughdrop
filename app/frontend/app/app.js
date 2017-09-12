@@ -308,112 +308,206 @@ CoughDrop.avatarUrls = [
   {alt: 'stegosaurus', url: 'https://s3.amazonaws.com/opensymbols/libraries/language-craft/stegosaurus.png'}
 ];
 
-CoughDrop.YT = {
-  track: function(player_id, callback) {
+CoughDrop.Videos = {
+  players: {},
+  track: function(dom_id, callback) {
     return new Ember.RSVP.Promise(function(resolve, reject) {
-      if(!CoughDrop.YT.ready) {
-        var tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-        window.onYouTubeIframeAPIReady = function() {
-          CoughDrop.YT.ready = true;
-          CoughDrop.YT.track(player_id, callback).then(function(player) {
-            resolve(player);
-          }, function() { reject('no_player'); });
-        };
-      } else {
-        setTimeout(function() {
-          var player = Ember.Object.extend({
-            current_time: function() {
-              var p = this.get('_player');
-              return p && p.getCurrentTime && p.getCurrentTime();
-            },
-            cleanup: function() {
-              this.set('disabled', true);
-            },
-            pause: function() {
-              var p = this.get('_player');
-              if(p && p.pauseVideo) {
-                p.pauseVideo();
-              }
-            },
-            play: function() {
-              var p = this.get('_player');
-              if(p && p.playVideo) {
-                p.playVideo();
-              }
-            }
-          }).create();
-          player.set('_player', new window.YT.Player(player_id, {
-            events: {
-              'onStateChange': function(event) {
-                if(callback) {
-                  if(event.data == window.YT.PlayerState.ENDED) {
-                    callback('end');
-                    player.set('paused', false);
-                  } else if(event.data == window.YT.PlayerState.PAUSED) {
-                    callback('pause');
-                    player.set('paused', true);
-                  } else if(event.data == window.YT.PlayerState.CUED) {
-                    callback('pause');
-                    player.set('paused', true);
-                  } else if(event.data == window.YT.PlayerState.PLAYING) {
-                    callback('play');
-                    player.set('paused', false);
-                  }
-                }
-              },
-              'onError': function(event) {
-                if(callback) {
-                  if(event.data == 5 || event.data == 101 || event.data == 150) {
-                    callback('embed_error');
-                    player.set('paused', true);
-                  } else {
-                    callback('error');
-                    player.set('paused', true);
-                  }
-                }
-              }
-            }
-          }));
-          CoughDrop.YT.players = CoughDrop.YT.players || [];
-          CoughDrop.YT.players.push(player);
-          resolve(player);
-        }, 200);
-      }
+      CoughDrop.Videos.waiting = CoughDrop.Videos.waiting || {};
+      CoughDrop.Videos.waiting[dom_id] = CoughDrop.Videos.waiting[dom_id] || [];
+      var found = false;
+      CoughDrop.Videos.waiting[dom_id].push(function(player) {
+        found = true;
+        if(callback) {
+          player.addListener(callback);
+        }
+        console.log('player ready!', dom_id);
+        resolve(player);
+      });
+      setTimeout(function() {
+        reject("player never initialized");
+      }, 5000);
     });
   },
-  poll: function() {
-    (CoughDrop.YT.players || []).forEach(function(player) {
-      if(!player.get('disabled')) {
-        var p = player.get('_player');
-        if(p && p.getDuration) {
-          player.set('duration', Math.round(p.getDuration()));
-        }
-        if(p && p.getCurrentTime) {
-          player.set('time', Math.round(p.getCurrentTime()));
-        }
-        if(p && p.getPlayerState) {
-          var state = p.getPlayerState();
-          if(state == window.YT.PlayerState.PLAYING) {
-            player.set('paused', false);
-            if(!p.started) {
-              p.started = true;
-              player.set('started', true);
-            }
-          } else {
-            player.set('paused', true);
-          }
-        }
+  player_ready: function(dom, window) {
+    if(!dom.id) { return; }
+    if(CoughDrop.Videos.players[dom.id] && CoughDrop.Videos.players[dom.id]._dom == dom) {
+      return;
+    }
+    console.log("initializing player", dom.id);
+    if(CoughDrop.Videos.players[dom.id]) {
+      CoughDrop.Videos.players[dom.id].cleanup();
+    }
+    var player = Ember.Object.extend({
+      _target_window: window,
+      _dom: dom,
+      current_time: function() {
+        return player.get('time');
+      },
+      cleanup: function() {
+        player.set('disabled', true);
+      },
+      pause: function() {
+        player._target_window.postMessage({video_message: true, action: 'pause'}, '*');
+      },
+      play: function() {
+        player._target_window.postMessage({video_message: true, action: 'play'}, '*');
+      },
+      addListener: function(callback) {
+        if(!callback) { return; }
+        player.listeners = [];
+        player.listeners.push(callback);
+      },
+      trigger: function(event) {
+        (player.listeners || []).forEach(function(callback) {
+          callback(event);
+        });
       }
+    }).create({state: 'initialized'});
+    CoughDrop.Videos.players[dom.id] = player;
+    CoughDrop.Videos.waiting = CoughDrop.Videos.waiting || {};
+    (CoughDrop.Videos.waiting[dom.id] || []).forEach(function(callback) {
+      callback(player);
     });
-    Ember.run.later(CoughDrop.YT.poll, 100);
+    CoughDrop.Videos.waiting[dom.id] = [];
+  },
+  player_status: function(event) {
+    if(event.source && event.source.frameElement && event.source.frameElement.id) {
+      CoughDrop.Videos.player_ready(event.source.frameElement, event.source);
+      var player = CoughDrop.Videos.players[event.source.frameElement.id];
+      if(player) {
+        if(event.data && event.data.time !== undefined) {
+          player.set('time', event.data.time);
+        }
+        if(event.data && event.data.duration !== undefined) {
+          player.set('duration', event.data.duration);
+        }
+        var last_state = player.get('state');
+        if(event.data.state !== last_state) {
+          player.set('state', event.data.state);
+          player.trigger(event.data.state);
+        }
+        player.set('paused', player.get('state') != 'playing');
+      }
+    }
   }
 };
-if(!Ember.testing) {
-  Ember.run.later(CoughDrop.YT.poll, 500);
-}
+window.addEventListener('message', function(event) {
+  if(event.data && event.data.video_status) {
+    if(event.source && event.source.frameElement && event.source.frameElement.id) {
+      var dom_id = event.source.frameElement.id;
+      var elem = event.source.frameElement;
+      CoughDrop.Videos.player_status(event);
+    }
+  }
+});
+
+
+// CoughDrop.YT = {
+//   track: function(player_id, callback) {
+//     return new Ember.RSVP.Promise(function(resolve, reject) {
+//       if(!CoughDrop.YT.ready) {
+//         var tag = document.createElement('script');
+//         tag.src = "https://www.youtube.com/iframe_api";
+//         var firstScriptTag = document.getElementsByTagName('script')[0];
+//         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+//         window.onYouTubeIframeAPIReady = function() {
+//           CoughDrop.YT.ready = true;
+//           CoughDrop.YT.track(player_id, callback).then(function(player) {
+//             resolve(player);
+//           }, function() { reject('no_player'); });
+//         };
+//       } else {
+//         setTimeout(function() {
+//           var player = Ember.Object.extend({
+//             current_time: function() {
+//               var p = this.get('_player');
+//               return p && p.getCurrentTime && p.getCurrentTime();
+//             },
+//             cleanup: function() {
+//               this.set('disabled', true);
+//             },
+//             pause: function() {
+//               var p = this.get('_player');
+//               if(p && p.pauseVideo) {
+//                 p.pauseVideo();
+//               }
+//             },
+//             play: function() {
+//               var p = this.get('_player');
+//               if(p && p.playVideo) {
+//                 p.playVideo();
+//               }
+//             }
+//           }).create();
+//           player.set('_player', new window.YT.Player(player_id, {
+//             events: {
+//               'onStateChange': function(event) {
+//                 if(callback) {
+//                   if(event.data == window.YT.PlayerState.ENDED) {
+//                     callback('end');
+//                     player.set('paused', false);
+//                   } else if(event.data == window.YT.PlayerState.PAUSED) {
+//                     callback('pause');
+//                     player.set('paused', true);
+//                   } else if(event.data == window.YT.PlayerState.CUED) {
+//                     callback('pause');
+//                     player.set('paused', true);
+//                   } else if(event.data == window.YT.PlayerState.PLAYING) {
+//                     callback('play');
+//                     player.set('paused', false);
+//                   }
+//                 }
+//               },
+//               'onError': function(event) {
+//                 if(callback) {
+//                   if(event.data == 5 || event.data == 101 || event.data == 150) {
+//                     callback('embed_error');
+//                     player.set('paused', true);
+//                   } else {
+//                     callback('error');
+//                     player.set('paused', true);
+//                   }
+//                 }
+//               }
+//             }
+//           }));
+//           CoughDrop.YT.players = CoughDrop.YT.players || [];
+//           CoughDrop.YT.players.push(player);
+//           resolve(player);
+//         }, 200);
+//       }
+//     });
+//   },
+//   poll: function() {
+//     (CoughDrop.YT.players || []).forEach(function(player) {
+//       if(!player.get('disabled')) {
+//         var p = player.get('_player');
+//         if(p && p.getDuration) {
+//           player.set('duration', Math.round(p.getDuration()));
+//         }
+//         if(p && p.getCurrentTime) {
+//           player.set('time', Math.round(p.getCurrentTime()));
+//         }
+//         if(p && p.getPlayerState) {
+//           var state = p.getPlayerState();
+//           if(state == window.YT.PlayerState.PLAYING) {
+//             player.set('paused', false);
+//             if(!p.started) {
+//               p.started = true;
+//               player.set('started', true);
+//             }
+//           } else {
+//             player.set('paused', true);
+//           }
+//         }
+//       }
+//     });
+//     Ember.run.later(CoughDrop.YT.poll, 100);
+//   }
+// };
+// if(!Ember.testing) {
+//   Ember.run.later(CoughDrop.YT.poll, 500);
+// }
 
 CoughDrop.Visualizations = {
   wait: function(name, callback) {
