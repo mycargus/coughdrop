@@ -92,14 +92,14 @@ Ember.$(document).on('mousedown touchstart', function(event) {
     }
   }
 }).on('keydown', function(event) {
-  if(!buttonTracker.scanning_enabled) { return; }
-  if(event.keyCode && event.keyCode == buttonTracker.select_keycode) { // spacebar key
+  if(!buttonTracker.check('scanning_enabled')) { return; }
+  if(event.keyCode && event.keyCode == buttonTracker.check('select_keycode')) { // spacebar key
     scanner.pick();
     event.preventDefault();
-  } else if(event.keyCode && buttonTracker.any_select) {
+  } else if(event.keyCode && buttonTracker.check('any_select')) {
     scanner.pick();
     event.preventDefault();
-  } else if(event.keyCode && event.keyCode == buttonTracker.next_keycode) { // 1 key
+  } else if(event.keyCode && event.keyCode == buttonTracker.check('next_keycode')) { // 1 key
     scanner.next();
     event.preventDefault();
   }
@@ -158,6 +158,13 @@ var buttonTracker = Ember.Object.extend({
         Ember.$(document).trigger(Ember.$.Event(event));
       }
     });
+  },
+  check: function(attr) {
+    if(app_state.get('speak_mode')) {
+      return buttonTracker[attr];
+    } else {
+      return null;
+    }
   },
   touch_start: function(event) {
     // advanced_selection regions should be eating all click events and
@@ -221,9 +228,9 @@ var buttonTracker = Ember.Object.extend({
     }
     if(event.type == 'touchstart' || event.type == 'mousedown' || event.type == 'touchmove') {
       buttonTracker.buttonDown = true;
-    } else if(event.type == 'gazelinger' && buttonTracker.dwell_enabled) {
+    } else if(event.type == 'gazelinger' && buttonTracker.check('dwell_enabled')) {
       buttonTracker.dwell_linger(event);
-    } else if(event.type == 'mousemove' && buttonTracker.dwell_enabled && buttonTracker.dwell_type == 'mouse_dwell') {
+    } else if(event.type == 'mousemove' && buttonTracker.check('dwell_enabled') && buttonTracker.check('dwell_type') == 'mouse_dwell') {
       buttonTracker.dwell_linger(event);
     }
     if(['gazelinger', 'mousemove', 'touchmove', 'scanover'].indexOf(event.type) != -1) {
@@ -277,7 +284,7 @@ var buttonTracker = Ember.Object.extend({
       return;
     }
 
-    if(buttonTracker.buttonDown && buttonTracker.any_select && buttonTracker.scanning_enabled) {
+    if(buttonTracker.buttonDown && buttonTracker.check('any_select') && buttonTracker.check('scanning_enabled')) {
       if(event.type != 'mousedown' && event.type != 'touchstart') {
         console.log('prevented because scanning');
         event.preventDefault();
@@ -302,13 +309,13 @@ var buttonTracker = Ember.Object.extend({
         }
         var width = Ember.$(window).width();
         if(event.clientX <= (width / 2)) {
-          if(buttonTracker.left_screen_action == 'next') {
+          if(buttonTracker.check('left_screen_action') == 'next') {
             return scanner.next();
           } else {
             return scanner.pick();
           }
-        } else {
-          if(buttonTracker.right_screen_action == 'next') {
+        } else {right_screen_action
+          if(buttonTracker.check('') == 'next') {
             return scanner.next();
           } else {
             return scanner.pick();
@@ -334,10 +341,10 @@ var buttonTracker = Ember.Object.extend({
         buttonTracker.longPressEvent = event;
         Ember.run.cancel(buttonTracker.track_long_press.later);
         Ember.run.cancel(buttonTracker.track_short_press.later);
-        if(buttonTracker.long_press_delay) {
+        if(buttonTracker.check('long_press_delay')) {
           buttonTracker.track_long_press.later = Ember.run.later(buttonTracker, buttonTracker.track_long_press, buttonTracker.long_press_delay);
         }
-        if(buttonTracker.short_press_delay) {
+        if(buttonTracker.check('short_press_delay')) {
           buttonTracker.track_short_press.later = Ember.run.later(buttonTracker, buttonTracker.track_short_press, buttonTracker.short_press_delay);
         }
       } else {
@@ -525,7 +532,7 @@ var buttonTracker = Ember.Object.extend({
           }
         }
         // ignore presses that are too short
-        if(buttonTracker.minimum_press && buttonTracker.initialTarget && (ts - buttonTracker.initialTarget.timestamp) < buttonTracker.minimum_press) {
+        if(buttonTracker.check('minimum_press') && buttonTracker.initialTarget && (ts - buttonTracker.initialTarget.timestamp) < buttonTracker.minimum_press) {
           elem_wrap = null;
         }
       }
@@ -661,7 +668,7 @@ var buttonTracker = Ember.Object.extend({
     if(buttonTracker.last_triggering_dwell_event) {
       // after a selection, require a little bit of movement before recognizing input
       var last = buttonTracker.last_triggering_dwell_event;
-      var needed_distance = buttonTracker.dwell_release_distance || 30;
+      var needed_distance = buttonTracker.check('dwell_release_distance') || 30;
       var diffX = Math.abs(event.clientX - last.clientX);
       var diffY = Math.abs(event.clientY - last.clientY);
       if(diffX < needed_distance && diffY < needed_distance) {
@@ -700,7 +707,7 @@ var buttonTracker = Ember.Object.extend({
       document.body.appendChild(icon);
       buttonTracker.dwell_icon_elem = icon;
     }
-    if(buttonTracker.dwell_cursor) {
+    if(buttonTracker.check('dwell_cursor')) {
       buttonTracker.dwell_icon_elem.style.left = (event.clientX - 5) + "px";
       buttonTracker.dwell_icon_elem.style.top = (event.clientY - 5) + "px";
     }
@@ -1194,9 +1201,9 @@ var buttonTracker = Ember.Object.extend({
     if(ls.selection_type == 'touch' && ls.total_events > 0 && ls.multi_touch_events > 0 && (ls.multi_touch_events / (ls.total_events - 1)) >= 0.4) {
       ls.multi_touch = true;
     }
-    if(ls.multi_touch && buttonTracker.multi_touch_modeling) {
+    if(ls.multi_touch && buttonTracker.check('multi_touch_modeling')) {
       ls.modeling = true;
-    } else if(ls.selection_type != 'dwell' && buttonTracker.dwell_modeling) {
+    } else if(ls.selection_type != 'dwell' && buttonTracker.check('dwell_modeling')) {
       ls.modeling = true;
     }
     stashes.last_selection = ls;
