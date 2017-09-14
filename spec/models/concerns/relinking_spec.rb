@@ -143,6 +143,41 @@ describe Relinking, :type => :model do
       Board.copy_board_links_for(u2, {:starting_old_board => b1, :starting_new_board => b2})
     end
     
+    it "should not create duplicate copies" do
+      u1 = User.create
+      u2 = User.create
+      b1 = Board.create(:user => u1, :public => true)
+      b1a = Board.create(:user => u1, :public => true)
+      b1b = Board.create(:user => u1, :public => true)
+      b1.settings['buttons'] = [
+        {'id' => 1, 'load_board' => {'key' => b1a.key, 'id' => b1a.global_id}},
+        {'id' => 2, 'load_board' => {'key' => b1b.key, 'id' => b1b.global_id}}
+      ]
+      b1.instance_variable_set('@buttons_changed', true);
+      b1.save!
+      b1a.settings['buttons'] = [
+        {'id' => 1, 'load_board' => {'key' => b1b.key, 'id' => b1b.global_id}},
+        {'id' => 2, 'load_board' => {'key' => b1b.key, 'id' => b1b.global_id}}
+      ]
+      b1a.instance_variable_set('@buttons_changed', true);
+      b1a.save!
+      
+      Worker.process_queues
+      expect(b1.reload.settings['downstream_board_ids']).to eq([b1a.global_id, b1b.global_id])
+      expect(b1a.reload.settings['downstream_board_ids']).to eq([b1b.global_id])
+      
+      expect(Board.count).to eq(3)
+      
+      b2 = b1.copy_for(u2)
+      Board.copy_board_links_for(u2, {:starting_old_board => b1, :starting_new_board => b2})
+      ids = Board.all.map(&:global_id).sort
+
+      Worker.process_queues
+
+      expect(b2.reload.settings['downstream_board_ids']).to eq([ids[-2], ids[-1]])
+      expect(Board.count).to eq(6)
+    end
+    
     it "should not copy downstream boards that it doesn't have permission to access" do
       u1 = User.create
       u2 = User.create
