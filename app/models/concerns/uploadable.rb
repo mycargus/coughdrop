@@ -19,6 +19,14 @@ module Uploadable
     GoSecure.sha512(self.global_id + self.class.to_s, 'uploadable_file')
   end
   
+  def best_url
+    if self.settings && self.settings['cached_copy_url']
+      self.settings['cached_copy_url']
+    else
+      Uploader.fronted_url(self.url)
+    end
+  end
+
   def full_filename
     return self.settings['full_filename'] if self.settings['full_filename']
     extension = ""

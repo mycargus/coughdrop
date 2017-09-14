@@ -8,7 +8,7 @@ module JsonApi::Sound
   def self.build_json(sound, args={})
     json = {}
     json['id'] = sound.global_id
-    json['url'] = sound.url
+    json['url'] = sound.best_url
     json['created'] = sound.created_at && sound.created_at.iso8601
     ['pending', 'content_type', 'duration', 'name', 'transcription', 'tags'].each do |key|
       json[key] = sound.settings[key]
