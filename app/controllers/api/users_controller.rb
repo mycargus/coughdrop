@@ -118,6 +118,7 @@ class Api::UsersController < ApplicationController
       res = {voice_added: true, voice_id: params['voice_id']}
       if params['voice_url']
         res[:download_url] = Uploader.signed_download_url(params['voice_url'])
+        res[:download_language_url] = Uploader.signed_download_url(params['language_url']) if params['language_url']
       end
       render json: res.to_json
     else

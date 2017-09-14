@@ -83,63 +83,63 @@ var voices = Ember.Object.extend({
       voice_id: "acap:Karen", size: 26,
       locale: "en-US", gender: "f", age: "adult",
       ref_id: "enu_karen_22k_ns",
-      language_version: "1.128",
+      language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Karen-22khz"
     },
     {
       voice_id: "acap:Kenny", size: 59,
       locale: "en-US", gender: "m", age: "adult",
       ref_id: "enu_kenny_22k_ns",
-      language_version: "1.128",
+      language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Kenny-22khz"
     },
     {
       voice_id: "acap:Laura", size: 60,
       locale: "en-US", gender: "f", age: "adult",
       ref_id: "enu_laura_22k_ns",
-      language_version: "1.128",
+      language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Laura-22khz"
     },
     {
       voice_id: "acap:Micah", size: 28,
       locale: "en-US", gender: "m", age: "adult",
       ref_id: "enu_micah_22k_ns",
-      language_version: "1.128",
+      language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Micah-22khz"
     },
     {
       voice_id: "acap:Nelly", size: 53,
       locale: "en-US", gender: "f", age: "adult",
       ref_id: "enu_nelly_22k_ns",
-      language_version: "1.128",
+      language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Nelly-22khz"
     },
     {
       voice_id: "acap:Rod", size: 59,
       locale: "en-US", gender: "m", age: "adult",
       ref_id: "enu_rod_22k_ns",
-      language_version: "1.128",
+      language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Rod-22khz"
     },
     {
       voice_id: "acap:Ryan", size: 59,
       locale: "en-US", gender: "m", age: "adult",
       ref_id: "enu_ryan_22k_ns",
-      language_version: "1.128",
+      language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Ryan-22khz"
     },
     {
       voice_id: "acap:Saul", size: 34,
       locale: "en-US", gender: "m", age: "adult",
       ref_id: "enu_saul_22k_ns",
-      language_version: "1.128",
+      language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Saul-22khz"
     },
     {
       voice_id: "acap:Sharon", size: 229,
       locale: "en-US", gender: "f", age: "adult",
       ref_id: "enu_sharon_22k_ns",
-      language_version: "1.128",
+      language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Sharon-22khz"
     },
     {
@@ -153,14 +153,14 @@ var voices = Ember.Object.extend({
       voice_id: "acap:Tracy", size: 74,
       locale: "en-US", gender: "f", age: "adult",
       ref_id: "enu_tracy_22k_ns",
-      language_version: "1.128",
+      language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Tracy-22khz"
     },
     {
       voice_id: "acap:Will", size: 41,
       locale: "en-US", gender: "m", age: "adult",
       ref_id: "enu_will_22k_ns",
-      language_version: "1.128",
+      language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Will-22khz"
     },
     {
@@ -697,14 +697,14 @@ var voices = Ember.Object.extend({
       voice_id: "acap:Rodrigo", size: 67,
       locale: "es-US", gender: "m", age: "adult",
       ref_id: "spu_rodrigo_22k_ns",
-      language_version: "1.128",
+      language_version: "1.288",
       voice_dir: "hqm-ref-USSpanish-Rodrigo-22khz"
     },
     {
       voice_id: "acap:Rosa", size: 76,
       locale: "es-US", gender: "f", age: "adult",
       ref_id: "spu_rosa_22k_ns",
-      language_version: "1.128",
+      language_version: "1.288",
       voice_dir: "hqm-ref-USSpanish-Rosa-22khz"
     },
   ]
