@@ -41,7 +41,7 @@ Ember.$(document).on('mousedown touchstart', function(event) {
   }
   buttonTracker.touch_continue(event);
 }).on('mouseup touchend touchcancel blur', function(event) {
-  if(capabilities.system == 'iOS' && !capabilities.installed_app && !buttonTracker.ios_initialized) {
+  if(capabilities.system == 'iOS' && !buttonTracker.ios_initialized) {
     var u = new SpeechSynthesisUtterance();
     u.text = "";
     speechSynthesis.speak(u);
