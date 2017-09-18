@@ -1,3 +1,5 @@
+require 'timeout'
+
 class Webhook < ActiveRecord::Base
   include Async
   include SecureSerialize
@@ -140,7 +142,15 @@ class Webhook < ActiveRecord::Base
         if callback['include_content'] && record && record.respond_to?(:webhook_content)
           body[:content] = record.webhook_content(notification_type, callback['content_type'], additional_args)
         end
-        res = Typhoeus.post(url, body: body)
+        res = nil
+        s = 10
+        begin
+          Timeout::timeout(s) do
+            res = Typhoeus.post(url, body: body)
+          end
+        rescue Timeout::Error => e
+          res = OpenStruct.new(:code => 0, :body => "Timeout, request took more than #{s} seconds")
+        end
         results << {
           url: url,
           response_code: res.code,

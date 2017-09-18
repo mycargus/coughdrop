@@ -34,7 +34,11 @@ var Button = Ember.Object.extend({
     } else if(this.get('apps') != null) {
       this.set('buttonAction', 'app');
     } else if(this.get('integration') != null) {
-      this.set('buttonAction', 'integration');
+      if(this.get('integration.action_type') == 'webhook') {
+        this.set('buttonAction', 'webhook');
+      } else {
+        this.set('buttonAction', 'integration');
+      }
     } else {
       this.set('buttonAction', 'talk');
     }
@@ -47,6 +51,9 @@ var Button = Ember.Object.extend({
   }.property('buttonAction'),
   integrationAction: function() {
     return this.get('buttonAction') == 'integration';
+  }.property('buttonAction'),
+  webhookAction: function() {
+    return this.get('buttonAction') == 'webhook';
   }.property('buttonAction'),
   action_styling: function() {
     return Button.action_styling(this.get('buttonAction'), this);
@@ -480,7 +487,11 @@ Button.action_styling = function(action, button) {
     } else if(button.apps != null) {
       action = 'app';
     } else if(button.integration != null) {
-      action = 'integration';
+      if(button.integration.action_type == 'webhook') {
+        action = 'webhook';
+      } else {
+        action = 'integration';
+      }
     } else {
       action = 'talk';
     }
@@ -497,18 +508,22 @@ Button.action_styling = function(action, button) {
     } else {
       res.action_image = path('images/folder.png');
     }
-  } else if(action == 'integration') {
+  } else if(action == 'integration' || action == 'webhook') {
     var state = button.action_status || {};
     if(button.integration && button.integration.action_type == 'render') {
       res.action_image = path('images/folder_integration.png');
     } else if(state.pending) {
       res.action_image = path('images/clock.png');
+      res.action_class = res.action_class + "pending ";
     } else if(state.errored) {
       res.action_image = path('images/error.png');
+      res.action_class = res.action_class + "errored ";
     } else if(state.completed) {
       res.action_image = path('images/check.png');
+      res.action_class = res.action_class + "succeeded ";
     } else {
       res.action_image = path('images/action.png');
+      res.action_class = res.action_class + "ready ";
     }
   } else if(action == 'talk') {
     res.action_image = path('images/talk.png');
@@ -657,6 +672,20 @@ Button.extra_actions = function(button) {
             obj.state = action_state_id;
           }
           button.set('action_status', obj);
+          // Necessary to do fast-html caching
+          Ember.run.later(function() {
+            var $button = Ember.$(".board[data-id='" + board_id + "']").find(".button[data-id='" + button.get('id') + "']");
+            if($button.length) {
+              $button.find(".action_container").removeClass('pending').removeClass('errored').removeClass('succeeded');
+              if(obj && obj.pending) {
+                $button.find(".action_container").addClass('pending');
+              } else if(obj && obj.errored) {
+                $button.find(".action_container").addClass('errored');
+              } else if(obj && obj.completed) {
+                $button.find(".action_container").addClass('succeeded');
+              }
+            }
+          }, 100);
           if(obj && (obj.errored || obj.completed)) {
             Ember.run.later(function() {
               update_state(null);
