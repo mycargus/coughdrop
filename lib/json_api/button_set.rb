@@ -14,8 +14,10 @@ module JsonApi::ButtonSet
       json['name'] = board.settings && board.settings['name']
       json['full_set_revision'] = board.full_set_revision
     end
-    # TODO: remove this for better perf once all apps are updated
-    json['buttons'] = button_set.data['buttons']
+    
+    json['buttons'] = {}.merge(button_set.data['buttons'])
+    json['buttons'].each{|b| b['image'] = Uploader.fronted_url(b['image']) if b['image'] }
+
     board_ids = button_set.data['board_ids'] || button_set.data['buttons'].map{|b| b['board_id'] }.uniq
     
     # TODO: sharding
