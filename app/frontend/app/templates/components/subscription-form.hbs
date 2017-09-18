@@ -199,6 +199,7 @@
           {{#if trial_option}}
             {{#if subscription.user.really_really_expired}}
               &nbsp;&nbsp;<a href="#" class='btn btn-default btn-lg' {{action 'reload'}}>{{t "Reload, I've updated my account" key='reload_subscription_updated'}}</a>
+              &nbsp;&nbsp;<a href="#" class='btn btn-default btn-lg' {{action 'logout'}}>{{t "Log Out" key='log_out'}}</a>
             {{else if subscription.user.really_expired}}
               &nbsp;&nbsp;<a href="#" rel='skip_subscription' class='btn btn-default btn-lg' {{action 'skip_subscription'}}>{{t "I need more time" key='i_need_more_time'}}</a>
             {{else}}

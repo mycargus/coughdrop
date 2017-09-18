@@ -56,6 +56,9 @@ export default Ember.Component.extend({
     reload: function() {
       location.reload();
     },
+    logout: function() {
+      session.invalidate(true);
+    },
     reset: function() {
       this.get('subscription').reset();
     },
