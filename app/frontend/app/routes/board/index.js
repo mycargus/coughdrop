@@ -60,6 +60,8 @@ export default Ember.Route.extend({
         app_state.toggle_home_lock(true);
       }
       stashes.persist('root_board_state', state);
+      stashes.persist('temporary_root_board_state', null);
+      app_state.set('temporary_root_board_key', null);
     }
     editManager.setup(controller);
     app_state.set('board_virtual_dom.sendAction', function(action, id, extra) {
