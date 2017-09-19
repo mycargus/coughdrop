@@ -665,7 +665,7 @@ Button.resource_from_url = function(url) {
 
 Button.extra_actions = function(button) {
   if(button && button.integration && button.integration.action_type == 'webhook') {
-    var user_id = app_state.get('currentUser.id');
+    var user_id = app_state.get('currentUser.id') || 'nobody';
     var board_id = app_state.get('currentBoardState.id');
     if(user_id && board_id) {
       var action_state_id = Math.random();

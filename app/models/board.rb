@@ -832,7 +832,7 @@ class Board < ActiveRecord::Base
       button = self.settings['buttons'].detect{|b| b['id'].to_s == additional_args['button_id'].to_s }
       user = additional_args && User.find_by_path(additional_args['user_id'])
       res = []
-      if button && button['integration'] && button['integration']['user_integration_id'] && user && self.allows?(user, 'view')
+      if button && button['integration'] && button['integration']['user_integration_id'] && self.allows?(user, 'view')
         ui = UserIntegration.find_by_path(button['integration']['user_integration_id'])
         res << ui.record_code if ui && ui.settings['button_webhook_url']
       end
@@ -847,20 +847,20 @@ class Board < ActiveRecord::Base
       button = self.settings['buttons'].detect{|b| b['id'].to_s == additional_args['button_id'].to_s }
       res = {}
       user = additional_args && User.find_by_path(additional_args['user_id'])
-      if button && button['integration'] && button['integration']['user_integration_id'] && user && self.allows?(user, 'view')
+      if button && button['integration'] && button['integration']['user_integration_id'] && self.allows?(user, 'view')
         ui = UserIntegration.find_by_path(button['integration']['user_integration_id'])
         associated_user = additional_args && User.find_by_path(additional_args['associated_user_id'])
         associated_user = nil if associated_user && !associated_user.allows?(user, 'supervise')
-        if ui && user && ui.settings['button_webhook_url']
+        if ui && ui.settings['button_webhook_url']
           placement_code = ui.placement_code(self.global_id, button['id'].to_s)
           ref_user = associated_user || user
-          user_code = ui.placement_code(ref_user.global_id)
+          user_code = ui.placement_code(ref_user ? ref_user.global_id : "nobody")
           res = {
             'action' => button['integration']['action'],
             'placement_code' => placement_code,
-            'user_code' => user_code
+            'user_code' => ref_user ? user_code : nil
           }
-          if ui.allow_private_information?
+          if user && ui.allow_private_information?
             res['user_id'] = user.global_id
             res['board_id'] = board.global_id
             res['button_id'] = button['id']

@@ -1,7 +1,7 @@
 class Api::UsersController < ApplicationController
   extend ::NewRelic::Agent::MethodTracer
 
-  before_action :require_api_token, :except => [:update, :show, :create, :confirm_registration, :forgot_password, :password_reset, :protected_image, :subscribe]
+  before_action :require_api_token, :except => [:update, :show, :create, :confirm_registration, :forgot_password, :password_reset, :protected_image, :subscribe, :activate_button]
   def show
     user = User.find_by_path(params['id'])
     user_device = @api_user == user && @api_device
@@ -128,8 +128,8 @@ class Api::UsersController < ApplicationController
   
   def activate_button
     user = User.find_by_path(params['user_id'])
-    return unless exists?(user, params['user_id'])
-    return unless allowed?(user, 'supervise')
+    return if params['user_id'] != 'nobody' && !exists?(user, params['user_id'])
+    return if user && !allowed?(user, 'supervise')
     board = Board.find_by_path(params['board_id'])
     return unless exists?(board, params['board_id'])
     return unless allowed?(board, 'view')
@@ -147,7 +147,7 @@ class Api::UsersController < ApplicationController
       end
     end
     progress = Progress.schedule(board, :notify, 'button_action', {
-      'user_id' => user.global_id,
+      'user_id' => user && user.global_id,
       'immediate' => true,
       'associated_user_id' => (associated_user && associated_user.global_id),
       'button_id' => params['button_id']
