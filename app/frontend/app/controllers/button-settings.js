@@ -180,7 +180,7 @@ export default modal.ModalController.extend({
   load_user_integrations: function() {
     var user_id = this.get('model.integration_user_id') || 'self';
     var _this = this;
-    if(this.get('model.integrationAction')) {
+    if(this.get('model.integrationOrWebhookAction')) {
       _this.set('user_integrations', {loading: true});
       Utils.all_pages('integration', {user_id: user_id, for_button: true}, function() {
       }).then(function(res) {
@@ -191,7 +191,7 @@ export default modal.ModalController.extend({
     } else {
       _this.set('user_integrations', []);
     }
-  }.observes('model.integrationAction', 'model.integration_user_id'),
+  }.observes('model.integrationOrWebhookAction', 'model.integration_user_id'),
   parts_of_speech: function() {
     return CoughDrop.parts_of_speech;
   }.property(),

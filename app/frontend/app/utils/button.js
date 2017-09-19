@@ -52,6 +52,9 @@ var Button = Ember.Object.extend({
   integrationAction: function() {
     return this.get('buttonAction') == 'integration';
   }.property('buttonAction'),
+  integrationOrWebhookAction: function() {
+    return this.get('buttonAction') == 'integration' || this.get('buttonAction') == 'webhook';
+  }.property('buttonAction'),
   webhookAction: function() {
     return this.get('buttonAction') == 'webhook';
   }.property('buttonAction'),

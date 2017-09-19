@@ -700,7 +700,7 @@ var editManager = Ember.Object.extend({
             if(newButton.apps.web && newButton.apps.web.launch_url) {
               newButton.apps.web.launch_url = currentButton.get('fixed_app_url');
             }
-          } else if(currentButton.get('buttonAction') == 'integration') {
+          } else if(currentButton.get('buttonAction') == 'integration' || currentButton.get('buttonAction') == 'webhook') {
             delete newButton['load_board'];
             delete newButton['apps'];
             delete newButton['url'];
