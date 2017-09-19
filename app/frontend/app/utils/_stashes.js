@@ -229,6 +229,16 @@ var stashes = Ember.Object.extend({
   current_timestamp: function() {
     return Date.now() / 1000;
   },
+  notify_observers(button) {
+    if(window.parent && window.parent != window && CoughDrop.embedded) {
+      window.parent.postMessage({
+        type: 'aac_event',
+        aac_type: 'button',
+        text: button.vocalization || button.label,
+        sentence: stashes.get('working_vocalization').map(function(b) { return b.vocalization || b.label; }).join(" ")
+      }, '*');
+    }
+  },
   log_event: function(obj, user_id) {
     var timestamp = stashes.current_timestamp();
     var geo = null;
@@ -254,6 +264,7 @@ var stashes = Ember.Object.extend({
           geo: geo,
           button: obj
         };
+        stashes.notify_observers(obj);
       } else if(obj.tallies) {
         log_event = {
           type: 'assessment',
