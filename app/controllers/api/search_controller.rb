@@ -86,6 +86,7 @@ class Api::SearchController < ApplicationController
     # but it must also work for already-escaped URLs like
     # "http://www.stephaniequinn.com/Music/Commercial%2520DEMO%2520-%252013.mp3"
     uri = URI.parse(params['url']) rescue nil
+    Rails.logger.log("proxying #{params['url']}")
     uri ||= URI.parse(URI.escape(params['url']))
     # TODO: add timeout for slow requests
     request = Typhoeus::Request.new(uri.to_s, followlocation: true, follow_location: true)
