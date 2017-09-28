@@ -20,7 +20,7 @@ export default Ember.Controller.extend({
   }.property('persistence.last_sync_at'),
   check_daily_use: function() {
     var current_user_name = this.get('daily_use.user_name');
-    if(this.get('model.user_name') && current_user_name != this.get('model.user_name') && this.get('model.permissions.admin_support_actions') && !this.get('daily_use')) {
+    if((this.get('model.user_name') && current_user_name != this.get('model.user_name') && this.get('model.permissions.admin_support_actions')) || !this.get('daily_use')) {
       var _this = this;
       _this.set('daily_use', {loading: true});
       persistence.ajax('/api/v1/users/' + this.get('model.user_name') + '/daily_use', {type: 'GET'}).then(function(data) {
