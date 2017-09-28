@@ -27,6 +27,7 @@ module Uploader
   def self.remote_remove(url)
     remote_path = url.sub(/^https:\/\/#{ENV['UPLOADS_S3_BUCKET']}\.s3\.amazonaws\.com\//, '')
     remote_path = remote_path.sub(/^https:\/\/s3\.amazonaws\.com\/#{ENV['UPLOADS_S3_BUCKET']}\//, '')
+    remote_path = remote_path.sub(/^#{ENV['UPLOADS_S3_CDN']}/, '')
 
     raise "scary delete, not a path I'm comfortable deleting..." unless remote_path.match(/\w+\/.+\/\w+-\w+(\.\w+)?$/)
     config = remote_upload_config
@@ -174,6 +175,7 @@ module Uploader
     # don't re-download files that have already been downloaded
     res ||= url.match(/^https:\/\/#{ENV['OPENSYMBOLS_S3_BUCKET']}\.s3\.amazonaws\.com\//) if ENV['OPENSYMBOLS_S3_BUCKET']
     res ||= url.match(/^https:\/\/s3\.amazonaws\.com\/#{ENV['OPENSYMBOLS_S3_BUCKET']}\//) if ENV['OPENSYMBOLS_S3_BUCKET']
+    res ||= url.match(/^#{ENV['OPENSYMBOLS_S3_CDN']}\//) if ENV['OPENSYMBOLS_S3_CDN']
     res ||= protected_remote_url?(url)
     !!res
   end
