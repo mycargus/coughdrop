@@ -52,8 +52,9 @@ export default Ember.Route.extend({
         return Ember.RSVP.resolve(obj);
       });
     } else {
+      var _this = this;
       var find_board = function(allow_retry) {
-        var obj = this.store.findRecord('board', params.key);
+        var obj = _this.store.findRecord('board', params.key);
         return obj.then(function(data) {
           data.set('lookup_key', params.key);
           return Ember.RSVP.resolve(data);
