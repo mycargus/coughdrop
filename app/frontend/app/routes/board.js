@@ -52,16 +52,27 @@ export default Ember.Route.extend({
         return Ember.RSVP.resolve(obj);
       });
     } else {
-      var obj = this.store.findRecord('board', params.key);
-      return obj.then(function(data) {
-        data.set('lookup_key', params.key);
-        return Ember.RSVP.resolve(data);
-      }, function(err) {
-        var res = CoughDrop.store.createRecord('board', {id: 'bad', key: params.key});
-        res.set('lookup_key', params.key);
-        res.set('error', err);
-        return Ember.RSVP.resolve(res);
-      });
+      var find_board = function(allow_retry) {
+        var obj = this.store.findRecord('board', params.key);
+        return obj.then(function(data) {
+          data.set('lookup_key', params.key);
+          return Ember.RSVP.resolve(data);
+        }, function(err) {
+          var error = err;
+          if(err && err.errors) {
+            error = err.errors[0];
+          }
+          if(error.status != '404' && allow_retry) {
+            return find_board(false);
+          } else {
+            var res = CoughDrop.store.createRecord('board', {id: 'bad', key: params.key});
+            res.set('lookup_key', params.key);
+            res.set('error', error);
+            return Ember.RSVP.resolve(res);
+          }
+        });
+      };
+      return find_board(true);;
     }
   }
 });
