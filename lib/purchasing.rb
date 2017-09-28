@@ -408,6 +408,91 @@ module Purchasing
     cancel_other_subscriptions(user, 'all')
   end
   
+  def self.reconcile(with_side_effects=false)
+    Stripe.api_key = ENV['STRIPE_SECRET_KEY']
+    customers = Stripe::Customer.list(:limit => 10)
+    customer_actives = 0
+    user_actives = 0
+    total = 0
+    cancel_months = {}
+    cancels = {}
+    puts "retrieving expired subscriptions..."
+    Stripe::Subscription.list(:limit => 20, :status => 'canceled').auto_paging_each do |sub|
+      cancels[sub['customer']] ||= []
+      cancels[sub['customer']] << sub
+    end
+    customers.auto_paging_each do |customer|
+      total += 1
+      cus_id = customer['id']
+      email = customer['email']
+      puts "checking #{cus_id} #{email}"
+      if !customer
+        puts "\tcustomer not found"
+        next
+      end
+      user_id = customer['metadata'] && customer['metadata']['user_id']
+      user = user_id && User.find_by_global_id(user_id)
+      if !user
+        puts "\tuser not found"
+        next
+      end
+
+      customer_subs = customer['subscriptions'].to_a
+      user_active = user.recurring_subscription?
+      user_actives += 1 if user_active
+      customer_active = false
+      
+      if customer_subs.length > 1
+        puts "\ttoo many subscriptions"
+      elsif customer_subs.length == 0 
+        check_cancels = false
+        if user.settings['subscription'] && user.settings['subscription']['customer_id'] == cus_id
+          check_cancels = true
+          puts "\tno subscription found, but expected (FREELOADER)" if user_active
+          if user_active && with_side_effects
+            User.schedule(:subscription_event, {
+              'unsubscribe' => true,
+              'user_id' => user.global_id,
+              'customer_id' => cus_id,
+              'subscription_id' => object['id'],
+              'cancel_others_on_update' => true,
+              'source' => 'customer.reconciliation'
+            })
+          else
+            puts "\tuser active without a subscription (huh?)" if user_active
+          end
+        else
+          if user_active
+            puts "\tuser active and tied to a different customer id, #{user.settings['subscription']['customer_id']}"
+            user_actives -= 1
+          else
+            check_cancels = true
+          end
+        end
+        if check_cancels
+          subs = cancels[cus_id] || []
+          sub = subs[0]
+          if sub
+            canceled = Time.at(sub['canceled_at'])
+            created = Time.at(customer['created'])
+            if canceled > 6.months.ago
+              cancel_months[canceled.month] ||= []
+              cancel_months[canceled.month] << (canceled - created) / 1.month.to_i
+            end
+          end
+        end
+      else
+        sub = customer_subs[0]
+        customer_active = sub['status'] == 'active'
+        customer_actives += 1 if customer_active
+        puts "\tcustomer is #{sub['status']} but user is #{user_active ? 'subscribed' : 'expired'}" if user_active != customer_active
+      end
+    end
+    puts "TOTALS: checked #{total}, paying customers #{customer_actives}, paying users #{user_actives}"
+    cancel_months.each{|k, a| cancel_months[k] = (cancel_months[k].sum / cancel_months[k].length.to_f).round(1) }
+    puts "CANCELS: #{cancel_months.to_a.sort_by(&:first).reverse.to_json}"
+  end
+  
   def self.cancel_other_subscriptions(user, except_subscription_id)
     return false unless user && user.settings && user.settings['subscription']
     Stripe.api_key = ENV['STRIPE_SECRET_KEY']
