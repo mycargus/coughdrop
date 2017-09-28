@@ -343,6 +343,17 @@ var speecher = Ember.Object.extend({
             speak_utterance();
           });
         });
+      } else if(capabilities.system == 'iOS' && window.TTS) {
+        console.log("using native iOS tts");
+        window.TTS.speak({
+          text: utterance.text,
+          rate: utterance.rate,
+          locale: (voice && voice.lang)
+        }, function() {
+          callback();
+        }, function(err) {
+          speak_utterance();
+        })
       } else {
         var delay = (capabilities.installed_app && capabilities.system == 'Windows') ? 300 : 0;
         var _this = this;
