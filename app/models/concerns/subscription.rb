@@ -174,7 +174,7 @@ module Subscription
             self.settings['subscription']['customer_id'] = args['customer_id']
           end
           self.settings['subscription']['started'] = Time.now.iso8601 
-          self.settings['subscription']['started'] = nil if args['plan_id'] == 'monthly_free'
+          self.settings['subscription']['started'] = nil if args['plan_id'] == 'monthly_free' || args['plan_id'] == 'slp_monthly_free'
           self.settings['subscription']['token_summary'] = args['token_summary']
           self.settings['subscription']['plan_id'] = args['plan_id']
           self.settings['subscription']['free_premium'] = args['plan_id'] == 'slp_monthly_free'
