@@ -343,7 +343,7 @@ var speecher = Ember.Object.extend({
             speak_utterance();
           });
         });
-      } else if(capabilities.system == 'iOS' && window.TTS) {
+      } else if(capabilities.system == 'iOS' && window.TTS && (!opts.voiceURI || opts.voiceURI == 'force_default' || opts.voiceURI == 'default')) {
         console.log("using native iOS tts");
         window.TTS.speak({
           text: utterance.text,
