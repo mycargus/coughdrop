@@ -74,6 +74,12 @@
         <dd>
           {{model.stars}}
         </dd>
+      {{#if model.permissions.edit}}
+        <dt>{{t "Rename" key='rename'}}</dt>
+        <dd>
+          <a href="#" {{action 'renameBoard'}}>{{t "change board key" key='change_board_key'}}</a>
+        </dd>
+      {{/if}}
     </dl>
     {{#if hierarchy}}
       <dl class="dl-horizontal" style="margin-top: 20px;">

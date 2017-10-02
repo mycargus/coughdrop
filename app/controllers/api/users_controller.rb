@@ -158,7 +158,7 @@ class Api::UsersController < ApplicationController
   def rename
     user = User.find_by_path(params['user_id'])
     return unless exists?(user)
-    return unless allowed?(user, 'edit')
+    return unless allowed?(user, 'admin_support_actions')
     if params['new_key'] && params['old_key'] == user.user_name && user.rename_to(params['new_key'])
       render json: {rename: true, key: params['new_key']}.to_json
     else

@@ -395,6 +395,40 @@ export default Ember.Controller.extend({
         this.set('subscription_settings', {action: action, type: i18n.t('force_device_logout', "Force Logout on all Devices (this may cause the user to lose some logs)")});
       }
     },
+    rename_user: function(confirm) {
+      if(confirm === undefined) {
+        this.set('new_user_name', {});
+      } else if(confirm === false) {
+        this.set('new_user_name', null);
+      } else {
+        if(!this.get('new_user_name')) {
+          this.set('new_user_name', {});
+        }
+        if(!this.get('new_user_name.value')) { return; }
+
+        var _this = this;
+        var new_key = _this.get('new_user_name.value');
+        var old_key = _this.get('new_user_name.old_value');
+        if(old_key != _this.get('model.user_name')) { return; }
+
+        _this.set('new_user_name', {renaming: true});
+        persistence.ajax('/api/v1/users/' + this.get('model.user_name') + '/rename', {
+          type: 'POST',
+          data: {
+            old_key: _this.get('model.user_name'),
+            new_key: new_key
+          }
+        }).then(function(res) {
+          _this.set('new_user_name', null);
+          _this.transitionToRoute('user.index', res.key);
+          Ember.run.later(function() {
+            modal.success(i18n.t('user_renamed_to', "User successfully renamed to %{k}. The full renaming process can take a little while to complete.", {k: res.key}));
+          }, 200);
+        }, function(err) {
+          _this.set('new_user_name', {error: true});
+        });
+      }
+    },
     reset_password: function(confirm) {
       if(confirm === undefined) {
         this.set('password', {});

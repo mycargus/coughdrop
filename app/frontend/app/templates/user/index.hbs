@@ -530,8 +530,43 @@
               {{t "Password reset to <strong>%{pw}</strong>!" key='password_was_reset' pw=password.pw}}
             {{/if}}
           </div>
+        {{else if new_user_name}}
+          <div>
+            {{t "Are you sure you want to change the user's user name? They will receive an email notifying them of the change." key='confirm_change'}}<br/>
+            <form class="form-horizontal" {{action "nothing"}}>
+              <div class="form-group">
+                <label for="old_key" class="col-sm-3 control-label">{{t "Current User Name" key='old_key'}}</label>
+                <div class="col-sm-5">
+                  {{input type='text' class='form-control' id='old_key' value=new_user_name.old_value placeholder="current user name"}}
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="new_key" class="col-sm-3 control-label">{{t "New User Name" key='new_key'}}</label>
+                <div class="col-sm-5">
+                  {{input type='text' class='form-control' id='new_key' value=new_user_name.value placeholder="new key"}}
+                </div>
+              </div>
+
+              <div class="form-group">
+                <div class='col-sm-5 col-sm-offset-3'>
+                  <button class='btn btn-default' {{action 'rename_user' true}}>
+                    {{#if new_user_name.renaming}}
+                      {{t "Changing User Name" key='change_user_name'}}
+                    {{else if new_user_name.error}}
+                      {{t "Error Changing User Name" key='error_changing_user_name'}}
+                    {{else}}
+                      {{t "Change User Name" key='change_user_name'}}
+                    {{/if}}
+                  </button>
+                  <button class='btn btn-default' {{action 'rename_user' false}}>{{t "Cancel" key='cancel'}}</button>
+                </div>
+              </div>
+            </form>
+          </div>
         {{else}}
           <a href="#" {{action 'reset_password'}} class="btn btn-default">{{t "Reset Password" key='reset_password'}}</a>
+          <a href="#" {{action 'rename_user'}} class="btn btn-default">{{t "Change User Name" key='change_user_name'}}</a>
           {{#link-to 'user.history' model.user_name class='btn btn-default'}}{{t "Edit History" key='edit_history'}}{{/link-to}}
         {{/if}}
         {{#if model.permissions.admin_support_actions}}

@@ -106,6 +106,8 @@ export default Ember.Component.extend({
             _this.set('login_error', i18n.t('invalid_login', "Invalid user name or password"));
           } else if(err.error == "Invalid client secret") {
             _this.set('login_error', i18n.t('invalid_login', "Your login token is expired, please try again"));
+          } else if(err.error && err.error.match(/user name was changed/i) && err.user_name) {
+            _this.set('login_error', i18n.t('user_name_changed', "NOTE: User name has changed to \"%{un}\"", {un: err.user_name}));
           } else {
             _this.set('login_error', i18n.t('login_error', "There was an unexpected problem logging in"));
           }

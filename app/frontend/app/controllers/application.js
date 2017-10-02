@@ -292,9 +292,6 @@ export default Ember.Controller.extend({
         this.transitionToRoute('index');
       }
     },
-    renameBoard: function() {
-      modal.open('rename-board', {board: this.get('board').get('model')});
-    },
     shareBoard: function() {
       if(this.get('board.model.protected_material')) {
         modal.error(i18n.t('cant_share_protected_boards', "This board contains purchased content, and can't be shared."));

@@ -148,7 +148,13 @@ class SessionController < ApplicationController
         # tokens, so the token 
         render json: JsonApi::Token.as_json(u, d).to_json
       else
-        api_error 400, { error: "Invalid authentication attempt" }
+        old_key = OldKey.find_by(:type => 'user', :key => params['username'])
+        user = old_key && old_key.record
+        if user && user.valid_password?(params['password'])
+          api_error 400, { error: "User name was changed", user_name: user.user_name}
+        else
+          api_error 400, { error: "Invalid authentication attempt" }
+        end
       end
     else
       api_error 400, { error: "Invalid authentication approach" }

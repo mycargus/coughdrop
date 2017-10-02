@@ -13,6 +13,7 @@ export default Ember.Route.extend({
     controller.set('model', model);
     controller.set('extras', coughDropExtras);
     controller.set('password', null);
+    controller.set('new_user_name', null);
     controller.update_selected();
     controller.reload_logs();
     controller.load_badges();

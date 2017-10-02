@@ -41,6 +41,9 @@ export default modal.ModalController.extend({
     boardStats: function() {
       modal.open('board-stats', {board: this.get('model')});
     },
+    renameBoard: function() {
+      modal.open('rename-board', {board: this.get('model')});
+    },
     button_set_words: function() {
       modal.open('button-set', {board: this.get('model'), button_set: this.get('model.button_set')});
     },

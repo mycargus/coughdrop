@@ -482,6 +482,32 @@ describe SessionController, :type => :controller do
       expect(d2).to eq(d)
     end
     
+    it "should note a user name change if the password is correct" do
+      token = GoSecure.browser_token
+      u = User.new(:user_name => "fred")
+      u.generate_password("seashell")
+      u.rename_to('freddy')
+      u.save
+      post :token, params: {:grant_type => 'password', :client_id => 'browser', :client_secret => token, :username => 'fred', :password => 'seashell'}
+      expect(response).to_not be_success
+      json = JSON.parse(response.body)
+      expect(json['error']).to eq('User name was changed')
+      expect(json['user_name']).to eq('freddy')
+    end
+    
+    it "should not note a user name change if the password is incorrect" do
+      token = GoSecure.browser_token
+      u = User.new(:user_name => "fred")
+      u.generate_password("seashell")
+      u.rename_to('freddy')
+      u.save
+      post :token, params: {:grant_type => 'password', :client_id => 'browser', :client_secret => token, :username => 'fred', :password => 'seashells'}
+      expect(response).to_not be_success
+      json = JSON.parse(response.body)
+      expect(json['error']).to eq('Invalid authentication attempt')
+      expect(json['user_name']).to eq('freddy')
+    end
+    
     it "should throttle to prevent brute force attacks" do
       token = GoSecure.browser_token
       u = User.new(:user_name => "fred")
