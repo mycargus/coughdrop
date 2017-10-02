@@ -7,7 +7,7 @@ class GiftPurchase < ActiveRecord::Base
   before_save :generate_defaults
   replicated_model  
   
-  add_permissions('view') { self.active == true }
+  add_permissions('view', ['*']) { self.active == true }
 
   def self.find_by_code(code)
     code = code.downcase.gsub(/o/, '0')
