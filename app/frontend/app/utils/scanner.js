@@ -388,8 +388,15 @@ var scanner = Ember.Object.extend({
     // things really complicated.
 
     var $elem = this.find_elem("#hidden_input");
+
     if($elem.length === 0) {
       var type = capabilities.system == 'iOS' ? 'text' : 'checkbox';
+
+      // when in whole-screen-as-switch mode, don't bother listening for key events
+      if(buttonTracker.left_screen_action || buttonTracker.right_screen_action) {
+        type = 'checkbox';
+      }
+
       $elem = this.make_elem("<input/>", {type: type, id: 'hidden_input', autocomplete: 'off', autocorrect: 'off', autocapitalize: 'off', spellcheck: 'off'});
       $elem.css({position: 'absolute', left: '-1000px'});
       document.body.appendChild($elem[0]);
@@ -397,7 +404,7 @@ var scanner = Ember.Object.extend({
     if(this.find_elem("#hidden_input:focus").length === 0 && !this.keyboard_tried_to_show) {
       $elem.select().focus();
     }
-    scanner.hide_input();
+//    scanner.hide_input();
   },
   load_children: function(elem, elements, index) {
     var parent = Ember.$.extend({higher_level: elements, higher_level_index: index}, elem);

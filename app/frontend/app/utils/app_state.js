@@ -569,6 +569,10 @@ var app_state = Ember.Object.extend({
         buttonTracker.next_keycode = _this.get('currentUser.preferences.device.scanning_next_keycode');
         buttonTracker.left_screen_action = _this.get('currentUser.preferences.device.scanning_left_screen_action');
         buttonTracker.right_screen_action = _this.get('currentUser.preferences.device.scanning_right_screen_action');
+        if(capabilities.system == 'iOS' && !capabilities.installed_app && !buttonTracker.left_screen_action && !buttonTracker.right_screen_action) {
+          modal.warning(i18n.t('keyboard_may_jump', "NOTE: if you don't have a bluetooth switch installed, the keyboard may keep popping up while trying to scan."));
+        }
+        modal.close();
         scanner.start({
           scan_mode: _this.get('currentUser.preferences.device.scanning_mode'),
           interval: _this.get('currentUser.preferences.device.scanning_interval'),
