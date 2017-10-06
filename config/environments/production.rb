@@ -32,7 +32,7 @@ Coughdrop::Application.configure do
   class NoCompression
     def compress(string)
       # do nothing
-      string
+      string.gsub(/\/\/\# sourceMappingURL/, '//# xsourceMappingURL')
     end
   end
   config.assets.js_compressor = NoCompression.new
