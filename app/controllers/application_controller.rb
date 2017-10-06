@@ -104,7 +104,7 @@ class ApplicationController < ActionController::Base
     scopes = ['*']
     if @api_user && @api_device
       @api_user.permission_scopes_device = @api_device
-      scopes = @api_user.permission_scopes
+      scopes = @api_user.permission_scopes || []
     end
     if !obj || !obj.allows?(@api_user, permission, scopes)
       res = {error: "Not authorized"}

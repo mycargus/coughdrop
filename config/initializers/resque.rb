@@ -35,3 +35,7 @@ module RedisInit
 end
 
 RedisInit.init
+
+require 'permissable'
+[ 'read_logs', 'full', 'read_boards', 'read_profile' ].each{|s| Permissable.add_scope(s) }
+Permissable.set_redis(RedisInit.permissions, RedisInit.cache_token)

@@ -41,6 +41,7 @@ gem 'rack-timeout'
 gem 'pg_search'
 gem 'silencer'
 gem 'go_secure'
+gem 'permissable-coughdrop'
 
 # TODO: pinned to master because wasn't working with rails 5
 gem 'ar-octopus', require: 'octopus', git: 'https://github.com/whitmer/octopus'

@@ -1011,7 +1011,7 @@ class User < ActiveRecord::Base
     if self.permission_scopes_device
       self.permission_scopes_device.permission_scopes
     else
-      []
+      nil
     end
   end
   

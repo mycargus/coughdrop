@@ -74,7 +74,21 @@ describe Api::UsersController, :type => :controller do
       @device.settings['permission_scopes'] = ['read_profile']
       @device.save
       u = User.create
+      u.permission_scopes_device = @device
+      
       User.link_supervisor_to_user(@user, u)
+      expect(u.permission_scopes).to eq(['read_profile'])
+      expect(u.permissions_for(u, u.permission_scopes)).to eq({
+        "user_id"=>u.global_id, 
+        "view_existence"=>true, 
+        "view_detailed"=>true,
+        "view_deleted_boards"=>true, 
+        "supervise"=>false, 
+        "edit"=>false, 
+        "manage_supervision"=>false, 
+        "delete"=>false
+      })
+
       get :show, params: {:id => 'self'}
       expect(response).to be_success
       json = JSON.parse(response.body)
@@ -92,7 +106,6 @@ describe Api::UsersController, :type => :controller do
       get :show, params: {:id => u.global_id}
       expect(response).to be_success
       json = JSON.parse(response.body)
-      puts json['user']['permissions'].to_json
       expect(json['user']['id']).to eq(u.global_id)
       expect(json['user']['supervisees']).to eq(nil)
       expect(json['user']['preferences']).to eq(nil)
@@ -104,11 +117,32 @@ describe Api::UsersController, :type => :controller do
       @device.settings['permission_scopes'] = ['full']
       @device.save
       u = User.create
+      u.permission_scopes_device = @device
+      expect(u.permission_scopes).to eq(['full'])
+
       User.link_supervisor_to_user(@user, u)
+      expect(u.permissions_for(@user)).to eq({
+        'user_id' => @user.global_id,
+        "view_existence"=>true, 
+        "edit"=>true, 
+        "manage_supervision"=>true, 
+        "view_deleted_boards"=>true, 
+        "view_detailed"=>true, 
+        "supervise"=>true
+      })
+      
       get :show, params: {:id => u.global_id}
       expect(response).to be_success
       json = JSON.parse(response.body)
-      puts json['user']['permissions'].to_json
+      expect(json['user']['permissions']).to eq({
+        'user_id' => @user.global_id,
+        "view_existence"=>true, 
+        "edit"=>true, 
+        "manage_supervision"=>true, 
+        "view_deleted_boards"=>true, 
+        "view_detailed"=>true, 
+        "supervise"=>true
+      })
       expect(json['user']['id']).to eq(u.global_id)
       expect(json['user']['preferences']).to_not eq(nil)
     end
