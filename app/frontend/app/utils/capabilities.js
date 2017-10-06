@@ -682,16 +682,27 @@ var capabilities;
                 setTimeout(function() {
                   promise.reject({error: "timeout"});
                 }, 5000);
-                window.cd_persistent_storage.requestQuota(req_size, function(allotted_size) {
-                  if(allotted_size && allotted_size > 0) {
+                // Annoying repeat requests for storage was making me miserable
+                if(capabilities.storage.already_limited_size) {
+                  if(used > 0) {
                     get_file_system();
                   } else {
-                    promise.reject({error: "rejected"});
+                    promise.reject({error: "already rejected"});
                   }
-                }, function(err) {
-                  promise.reject(err);
-                });
-
+                } else {
+                  window.cd_persistent_storage.requestQuota(req_size, function(allotted_size) {
+                    if(allotted_size < req_size) {
+                      capabilities.storage.already_limited_size = true;
+                    }
+                    if(allotted_size && allotted_size > 0) {
+                      get_file_system();
+                    } else {
+                      promise.reject({error: "rejected"});
+                    }
+                  }, function(err) {
+                    promise.reject(err);
+                  });
+                }
               } else if(capabilities.root_dir_entry) {
                 return promise.resolve(capabilities.root_dir_entry);
               } else {
