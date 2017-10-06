@@ -8,11 +8,13 @@ Remember, your purchase doesn't just help you or the communicators you work with
 it also goes to help fund communicators in need, and to help push technology 
 forward for the thousands communicators in need around the world!<br/><br/>
 
-Your account is set to expire <b><%= @user.expires_at.to_s(:long_ordinal) %></b>. 
+Your premium access is set to expire <b><%= @user.expires_at.to_s(:long_ordinal) %></b>. 
 Please 
 <a href="<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription?confirmation=<%= @user.registration_code %>">update your billing settings</a> 
 so that you don't miss out on the great resource CoughDrop can be to help
-struggling communicators.<br/><br/>
+struggling communicators. If you don't need CoughDrop right now, don't worry, you won't
+be automatically billed or anything, and your account will stay here waiting for you
+in case you decide to pick it up again later.<br/><br/>
 
 If you need help finding a funding solution, please don't be afraid to reach out to us, 
 we're willing to work with individuals to find a good solution. Just 

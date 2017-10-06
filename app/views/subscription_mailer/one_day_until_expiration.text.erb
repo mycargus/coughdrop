@@ -1,5 +1,7 @@
 Hello! This is a final reminder that the <%= @user.grace_period? ? "free trial" : "subscription" %> for the CoughDrop user account "<%= @user.user_name %>" is about to expire. It is set to expire *<%= @user.expires_at.to_s(:long_ordinal) %>*. Please update your billing settings(<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription?confirmation=<%= @user.registration_code %>) so you don't lose out on CoughDrop's rich set of communication and tracking tools.
 
+If you don't need CoughDrop right now, don't worry, you won't be automatically billed or anything, and your account will stay here waiting for you in case you decide to pick it up again later.
+
 CoughDrop is more than just a communication app, it's a movement. We're trying to show just how much better communication can be, and how much of a different a team-enabling tool like CoughDrop can make in helping communicators be heard, and we need your help spreading that vision. Your purchase doesn't just help you, it can help fund the app for families in need, and also supports initiatives for more openness and interoperability in AAC. We hope you'll consider purchasing a paid account (<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription?confirmation=<%= @user.registration_code %>) to help in this good work.
 
 If you need help finding a funding solution yourself, please don't be afraid to reach out to us, we're willing to work with individuals to find a good solution. Just access our support site (https://coughdrop.zendesk.com) to make a request.
