@@ -516,6 +516,14 @@ class Api::UsersController < ApplicationController
     render json: res.to_json
   end
   
+  def word_map
+    user = User.find_by_path(params['user_id'])
+    return unless exists?(user, params['user_id'])
+    return unless allowed?(user, 'view_word_map')
+    res = BoardDownstreamButtonSet.word_map_for(user)
+    render json: res.to_json
+  end
+  
   protected
   def grab_url(url)
     url = url.sub(/^https/, 'http') if url.match(/lessonpix/)

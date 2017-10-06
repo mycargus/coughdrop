@@ -61,9 +61,12 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
             'board_id' => board_to_visit.global_id,
             'board_key' => board_to_visit.key,
             'hidden' => !!button['hidden'],
+            'hidden_link' => !!bv[:hidden],
             'image' => image && image.url,
+            'image_id' => button['image_id'],
             'sound_id' => button['sound_id'],
             'label' => button['label'],
+            'force_vocalize' => button['add_to_vocalization'],
             'vocalization' => button['vocalization'],
             'link_disabled' => !!button['link_disabled'],
             'border_color' => button['border_color'],
@@ -84,7 +87,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
             if linked_board && !linked_board_ids.include?(linked_board.global_id) && !button['hidden'] && !button['link_disabled']
               button_data['preferred_link'] = true
               linked_board_ids << button['load_board']['id']
-              boards_to_visit << {:board => linked_board, :depth => bv[:depth] + 1, :index => idx} if !visited_board_ids.include?(linked_board.global_id)
+              boards_to_visit << {:board => linked_board, :depth => bv[:depth] + 1, :hidden => (bv[:hidden] || button['hidden'] || button['link_disabled']), :index => idx} if !visited_board_ids.include?(linked_board.global_id)
             end
           end
           all_buttons << button_data
@@ -99,5 +102,39 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
       end
       set
     end
+  end
+  
+  def self.word_map_for(user)
+    board_key = user && user.settings['preferences'] && user.settings['preferences']['home_board'] && user.settings['preferences']['home_board']['key']
+    board = Board.find_by_path(board_key) if board_key
+    button_set = board && board.board_downstream_button_set
+    return nil unless button_set
+    res = {'words' => [], 'word_map' => {}}
+    
+    # TODO: include images with attribution
+    
+    button_set.data['buttons'].each do |button|
+      if !button['hidden']
+        if !button['linked_board_id'] || user.settings['preferences']['vocalize_linked_buttons'] || button['force_vocalize']
+          if button['label'] && button['label'].split(/\s/).length <= 2
+            res['words'] << button['label'].downcase
+            locale = button['locale'] || 'en'
+            res['word_map'][locale] ||= {}
+            res['word_map'][locale][button['label']] = {
+              'label' => button['label'].downcase,
+              'border_color' => button['border_color'],
+              'background_color' => button['background_color'],
+              'image' => {
+                'image_url' => button['image'],
+                'license' => 'private'
+              }
+            }
+          end
+        end
+      end
+    end
+    res['words'].uniq!
+    
+    res
   end
 end

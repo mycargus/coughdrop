@@ -44,6 +44,9 @@ describe BoardDownstreamButtonSet, :type => :model do
         'hidden' => false,
         'sound_id' => nil,
         'image' => nil,
+        'image_id' => nil,
+        'hidden_link' => false,
+        'force_vocalize' => nil,
         'link_disabled' => false,
         'vocalization' => nil,
         'background_color' => nil,
@@ -59,6 +62,9 @@ describe BoardDownstreamButtonSet, :type => :model do
         'sound_id' => nil,
         'hidden' => true,
         'image' => nil,
+        'image_id' => nil,
+        'hidden_link' => false,
+        'force_vocalize' => nil,
         'link_disabled' => false,
         'vocalization' => nil,
         'background_color' => nil,
@@ -87,6 +93,9 @@ describe BoardDownstreamButtonSet, :type => :model do
         'hidden' => false,
         'sound_id' => s.global_id,
         'image' => nil,
+        'image_id' => nil,
+        'hidden_link' => false,
+        'force_vocalize' => nil,
         'link_disabled' => false,
         'vocalization' => nil,
         'background_color' => 'asdf',
@@ -102,6 +111,9 @@ describe BoardDownstreamButtonSet, :type => :model do
         'sound_id' => nil,
         'hidden' => true,
         'image' => nil,
+        'image_id' => nil,
+        'hidden_link' => false,
+        'force_vocalize' => nil,
         'link_disabled' => false,
         'vocalization' => nil,
         'background_color' => nil,
@@ -133,6 +145,9 @@ describe BoardDownstreamButtonSet, :type => :model do
         'depth' => 1,
         'hidden' => false,
         'image' => nil,
+        'image_id' => nil,
+        'hidden_link' => false,
+        'force_vocalize' => nil,
         'link_disabled' => false,
         'vocalization' => nil,
         'background_color' => nil,
@@ -141,6 +156,66 @@ describe BoardDownstreamButtonSet, :type => :model do
       })
     end
     
+    it "should not include disabled buttons" do
+      u = User.create
+      b = Board.create(:user => u)
+      b2 = Board.create(:user => u)
+      b3 = Board.create(:user => u)
+      b.process({'buttons' => [
+        {'id' => 1, 'label' => 'hat', 'load_board' => {'id' => b2.global_id, 'key' => b2.key}, 'hidden' => true, 'add_to_vocalization' => true},
+        {'id' => 2, 'label' => 'car', 'load_board' => {'id' => b3.global_id, 'key' => b3.key}, 'link_disabled' => true}
+      ]}, :user => u)
+      b2.process({'buttons' => [
+        {'id' => 1, 'label' => 'yellow'}
+      ]})
+      b3.process({'buttons' => [
+        {'id' => 1, 'label' => 'green'}
+      ]})
+      bs = BoardDownstreamButtonSet.update_for(b.global_id)
+      expect(bs).not_to eq(nil)
+      expect(bs.data['buttons'].length).to eq(2)
+      expect(bs.data['buttons'][0]).to eq({
+        'id' => 1,
+        'label' => 'hat',
+        'board_id' => b.global_id,
+        'sound_id' => nil,
+        'board_key' => b.key,
+        'depth' => 0,
+        'hidden' => true,
+        'linked_board_id' => b2.global_id,
+        'linked_board_key' => b2.key,
+        'image' => nil,
+        'image_id' => nil,
+        'hidden_link' => false,
+        'force_vocalize' => true,
+        'link_disabled' => false,
+        'vocalization' => nil,
+        'background_color' => nil,
+        'border_color' => nil,
+        'locale' => 'en'
+      })
+      expect(bs.data['buttons'][1]).to eq({
+        'id' => 2,
+        'label' => 'car',
+        'board_id' => b.global_id,
+        'sound_id' => nil,
+        'board_key' => b.key,
+        'depth' => 0,
+        'hidden' => false,
+        'image' => nil,
+        'image_id' => nil,
+        'hidden_link' => false,
+        'force_vocalize' => nil,
+        'link_disabled' => true,
+        'linked_board_id' => b3.global_id,
+        'linked_board_key' => b3.key,
+        'vocalization' => nil,
+        'background_color' => nil,
+        'border_color' => nil,
+        'locale' => 'en'
+      })
+    end
+        
     it "should include link details on buttons that link to other boards" do
       u = User.create
       b = Board.create(:user => u)
@@ -164,6 +239,9 @@ describe BoardDownstreamButtonSet, :type => :model do
         'depth' => 0,
         'hidden' => false,
         'image' => nil,
+        'image_id' => nil,
+        'hidden_link' => false,
+        'force_vocalize' => nil,
         'link_disabled' => false,
         'vocalization' => nil,
         'preferred_link' => true,
@@ -195,6 +273,9 @@ describe BoardDownstreamButtonSet, :type => :model do
         'sound_id' => nil,
         'hidden' => false,
         'image' => nil,
+        'image_id' => nil,
+        'hidden_link' => false,
+        'force_vocalize' => nil,
         'link_disabled' => false,
         'vocalization' => nil,
         'background_color' => nil,
