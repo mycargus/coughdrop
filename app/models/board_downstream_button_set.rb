@@ -104,9 +104,9 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
     end
   end
   
-  def self.spoken_button?(button)
+  def self.spoken_button?(button, user)
     if !button['hidden']
-      if !button['linked_board_id'] || user.settings['preferences']['vocalize_linked_buttons'] || button['force_vocalize']
+      if !button['linked_board_id'] || (user && user.settings['preferences']['vocalize_linked_buttons']) || button['force_vocalize']
         if button['label'] && button['label'].split(/\s/).length <= 2
           return true
         end
@@ -125,7 +125,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
     # TODO: include images with attribution
     
     button_set.data['buttons'].each do |button|
-      if spoken_button?(button)
+      if spoken_button?(button, user)
         res['words'] << button['label'].downcase
         locale = button['locale'] || 'en'
         res['word_map'][locale] ||= {}

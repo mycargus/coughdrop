@@ -187,7 +187,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
         batch.each do |button_set|
           button_set.data['buttons'].each do |button|
             word = button['label'].downcase
-            if BoardDownstreamButtonSet.spoken_button?(button) && valid_words[word]
+            if BoardDownstreamButtonSet.spoken_button?(button, nil) && valid_words[word]
               word_user_counts[word] = (word_user_counts[word] || []) + board_user_ids[button_set.board_id]
             end
           end
