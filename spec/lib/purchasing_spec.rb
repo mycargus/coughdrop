@@ -293,7 +293,7 @@ describe Purchasing do
       res = Purchasing.purchase(u, {'id' => 'free'}, 'slp_monthly_free');
       u.reload
       expect(u.settings['subscription']).not_to eq(nil)
-      expect(u.settings['subscription']['started']).not_to eq(nil)
+      expect(u.settings['subscription']['started']).to eq(nil)
       expect(res).to eq({:success => true, :type => 'slp_monthly_free'})
       expect(u.reload.settings['subscription']['plan_id']).to eq('slp_monthly_free')
       expect(u.reload.settings['subscription']['free_premium']).to eq(true)
@@ -323,8 +323,32 @@ describe Purchasing do
       res = Purchasing.purchase(u, {'id' => 'token'}, 'long_term_75')
       expect(res).to eq({:success => false, :error => "75 not valid for type long_term_75"});
 
+      ENV['CURRENT_SALE'] = nil
+      res = Purchasing.purchase(u, {'id' => 'token'}, 'long_term_100')
+      expect(res).to eq({:success => false, :error => "100 not valid for type long_term_100"});
+
       res = Purchasing.purchase(u, {'id' => 'token'}, 'long_term_350')
       expect(res).to eq({:success => false, :error => "350 not valid for type long_term_350"});
+    end
+    
+    it "should allow discounts during a sale" do
+      u = User.create
+      ENV['CURRENT_SALE'] = nil
+
+      expect(Purchasing.active_sale?).to eq(false)
+
+      res = Purchasing.purchase(u, {'id' => 'token'}, 'long_term_75')
+      expect(res).to eq({:success => false, :error => "75 not valid for type long_term_75"});
+
+      res = Purchasing.purchase(u, {'id' => 'token'}, 'long_term_100')
+      expect(res).to eq({:success => false, :error => "100 not valid for type long_term_100"});
+
+      ENV['CURRENT_SALE'] = 2.weeks.from_now.to_i.to_s
+      expect(Purchasing.active_sale?).to eq(true)
+      res = Purchasing.purchase(u, {'id' => 'token'}, 'long_term_100')
+      expect(res[:error]).to eq('unexpected_error');
+
+      ENV['CURRENT_SALE'] = nil
     end
     
     it "should error gracefully on invalid purchase types" do
@@ -976,6 +1000,27 @@ describe Purchasing do
       res = Purchasing.purchase_gift({}, {'type' => 'long_term_50'})
       expect(res[:success]).to eq(false)
       expect(res[:error]).to eq("50 not valid for type long_term_50")
+
+      ENV['CURRENT_SALE'] = nil
+      res = Purchasing.purchase_gift({}, {'type' => 'long_term_100'})
+      expect(res[:success]).to eq(false)
+      expect(res[:error]).to eq("100 not valid for type long_term_100")
+    end
+    
+    it "should allow discounts during a sale" do
+      ENV['CURRENT_SALE'] = nil
+
+      expect(Purchasing.active_sale?).to eq(false)
+      res = Purchasing.purchase_gift({}, {'type' => 'long_term_100'})
+      expect(res[:success]).to eq(false)
+      expect(res[:error]).to eq("100 not valid for type long_term_100")
+
+      ENV['CURRENT_SALE'] = 2.weeks.from_now.to_i.to_s
+      res = Purchasing.purchase_gift({}, {'type' => 'long_term_100'})
+      expect(res[:success]).to eq(false)
+      expect(res[:error]).to eq("unexpected_error")
+
+      ENV['CURRENT_SALE'] = nil
     end
     
     it "should gracefully handle API errors" do
@@ -1242,7 +1287,7 @@ describe Purchasing do
     expect(u.subscription_hash['free_premium']).to eq(true)
     expect(u.subscription_hash['grace_period']).to eq(false)
     expect(u.subscription_hash['plan_id']).to eq('slp_monthly_free')
-    expect(u.subscription_hash['started']).to_not eq(nil)
+    expect(u.subscription_hash['started']).to eq(nil)
 
     expect(Stripe::Charge).to receive(:create).with({
       :amount => 20000,
@@ -1356,7 +1401,7 @@ describe Purchasing do
     expect(u.subscription_hash['free_premium']).to eq(true)
     expect(u.subscription_hash['grace_period']).to eq(false)
     expect(u.subscription_hash['plan_id']).to eq('slp_monthly_free')
-    expect(u.subscription_hash['started']).to_not eq(nil)
+    expect(u.subscription_hash['started']).to eq(nil)
 
     expect(Stripe::Charge).to receive(:create).with({
       :amount => 20000,

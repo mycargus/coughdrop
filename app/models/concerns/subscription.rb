@@ -430,6 +430,10 @@ module Subscription
         json['purchased'] = self.settings['subscription']['customer_id'] != 'free'
         json['plan_id'] = self.settings['subscription']['last_purchase_plan_id']
         json['free_premium'] = self.settings['subscription']['free_premium'] if self.free_premium?
+      elsif self.settings['subscription']['free_premium']
+        json['active'] = true
+        json['free_premium'] = self.settings['subscription']['free_premium']
+        json['plan_id'] = self.settings['subscription']['plan_id']
       end
     end
     # TODO: remove in later API revision, after like July 2016

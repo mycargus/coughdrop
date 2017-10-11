@@ -92,11 +92,15 @@ export default Ember.Controller.extend({
         });
       };
 
+      if(subscription.get('subscription_amount') == 'long_term_200' && subscription.get('much_cheaper_offer')) {
+        subscription.set('subscription_amount', 'long_term_100');
+      }
       Subscription.purchase(subscription).then(function(result) {
         var amount = subscription.get('subscription_amount');
         if(amount == 'long_term_custom') {
           var num = subscription.get('subscription_custom_amount');
           amount = 'long_term_custom_' + num;
+        } if(amount == 200) {
         }
         subscribe(result, amount);
       });

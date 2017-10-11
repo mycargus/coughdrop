@@ -48,9 +48,19 @@
             <div class="btn-group btn-group-lg money two-line" role="group" aria-label="subscription plan" style="min-width: 500px; overflow: auto;">
               <button type="button" class={{long_term_200_class}} {{action "set_subscription" 'long_term_200'}}>
                 <div style="position: absolute; width: 100%; width: calc(100% + 3px); color: #000; border: 1px solid #ccc; z-index: 3; top: -1px; left: -1px; background: #afa; padding: 3px 0; text-shadow: 1px 1px 2px #aaa; font-size: 16px;">
+                  {{#if subscription.much_cheaper_offer}}
+                    {{t "sale! 50% off" key='save_50_percent'}}
+                  {{else}}
                     {{t "suggested" key='suggested'}}
+                  {{/if}}
                 </div>
-                $200<br/><span class='text-muted money-smaller' style='display: block; line-height: 14px; margin-top: 10px;'>{{t "includes 5 years<br/>of cloud extras" key='5_years_cloud_extras'}}</span>
+                {{#if subscription.much_cheaper_offer}}
+                  <span style='text-decoration: line-through; display: block; margin-top: -25px; margin-bottom: 4px; color: #888; font-size: 16px;'>&nbsp;$200&nbsp;</span>
+                  $100
+                  <br/><span class='text-muted money-smaller' style='display: block; line-height: 14px; margin-top: 10px;'>{{t "includes 5 years<br/>of cloud extras" key='5_years_cloud_extras'}}</span>
+                {{else}}
+                  $200<br/><span class='text-muted money-smaller' style='display: block; line-height: 14px; margin-top: 10px;'>{{t "includes 5 years<br/>of cloud extras" key='5_years_cloud_extras'}}</span>
+                {{/if}}
               </button>
               <button type="button" class={{long_term_250_class}} {{action "set_subscription" 'long_term_250'}}>
                 $250<br/><span class='text-muted money-smaller' style='display: block; line-height: 14px; margin-top: 10px;'>{{t "includes 5 years<br/>of cloud extras" key='5_years_cloud_extras'}}</span>

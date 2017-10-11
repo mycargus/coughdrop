@@ -55,6 +55,14 @@ var Subscription = Ember.Object.extend({
       this.set('sale', !!CoughDrop.sale);
       this.set('sale_ends', sale);
     }
+    var _this = this;
+    Ember.run.later(function() {
+      var sale = new Date(CoughDrop.sale * 1000);
+      if(sale && now && sale > now) {
+        _this.set('sale', !!CoughDrop.sale);
+        _this.set('sale_ends', sale);
+      }
+    }, 500);
     this.set('email', null);
     if(this.get('user')) {
       var u = this.get('user');
@@ -117,6 +125,8 @@ var Subscription = Ember.Object.extend({
       if(this.get('subscription_amount') == 'long_term_custom') {
         var amount = parseInt(this.get('subscription_custom_amount'), 10);
         return this.get('any_subscription_amount') || (amount > 100 && (amount % 50 === 0));
+      } else if(CoughDrop.sale && this.get('subscription_amount') == 'long_term_100') {
+        return true;
       } else {
         return !!(this.get('email') && ['long_term_150', 'long_term_200', 'long_term_250', 'long_term_300'].indexOf(this.get('subscription_amount')) != -1);
       }

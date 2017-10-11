@@ -178,7 +178,8 @@ module Purchasing
       valid_amount = false unless [3, 4, 5, 6, 7, 8, 9, 10].include?(amount)
       description = "CoughDrop communicator monthly subscription"
     elsif type.match(/^long_term/)
-      valid_amount = false unless [100, 150, 200, 250, 300].include?(amount)
+      valid_amount = false unless [150, 200, 250, 300].include?(amount)
+      valid_amount = true if amount == 100 && self.active_sale?
       description = "CoughDrop communicator license purchase"
     else
       return {success: false, error: "unrecognized purchase type, #{type}"}
@@ -287,6 +288,10 @@ module Purchasing
     {success: true, type: type}
   end
   
+  def self.active_sale?
+    !!(ENV['CURRENT_SALE'] && ENV['CURRENT_SALE'].to_i > Time.now.to_i)
+  end
+  
   def self.purchase_gift(token, opts)
     user = opts['user_id'] && User.find_by_global_id(opts['user_id'])
     Stripe.api_key = ENV['STRIPE_SECRET_KEY']
@@ -310,6 +315,7 @@ module Purchasing
       end
     elsif type.match(/^long_term/)
       valid_amount = false unless [150, 200, 250, 300].include?(amount)
+      valid_amount = true if amount == 100 && self.active_sale?
       description = "sponsored CoughDrop license"
     else
       return {success: false, error: "unrecognized purchase type, #{type}"}
