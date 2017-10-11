@@ -1217,9 +1217,9 @@ describe Api::UsersController, :type => :controller do
   end
 
   describe "activate_button" do
-    it "should require an api token" do
+    it "should not require an api token" do
       post :activate_button, params: {:user_id => 'asdf', :board_id => 'asdf'}
-      assert_missing_token
+      assert_not_found('asdf')
     end
     
     it "should require a valid user" do
