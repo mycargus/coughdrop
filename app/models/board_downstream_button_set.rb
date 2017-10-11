@@ -104,6 +104,17 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
     end
   end
   
+  def self.spoken_button?(button)
+    if !button['hidden']
+      if !button['linked_board_id'] || user.settings['preferences']['vocalize_linked_buttons'] || button['force_vocalize']
+        if button['label'] && button['label'].split(/\s/).length <= 2
+          return true
+        end
+      end
+    end
+    false
+  end
+  
   def self.word_map_for(user)
     board_key = user && user.settings['preferences'] && user.settings['preferences']['home_board'] && user.settings['preferences']['home_board']['key']
     board = Board.find_by_path(board_key) if board_key
@@ -114,23 +125,19 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
     # TODO: include images with attribution
     
     button_set.data['buttons'].each do |button|
-      if !button['hidden']
-        if !button['linked_board_id'] || user.settings['preferences']['vocalize_linked_buttons'] || button['force_vocalize']
-          if button['label'] && button['label'].split(/\s/).length <= 2
-            res['words'] << button['label'].downcase
-            locale = button['locale'] || 'en'
-            res['word_map'][locale] ||= {}
-            res['word_map'][locale][button['label']] = {
-              'label' => button['label'].downcase,
-              'border_color' => button['border_color'],
-              'background_color' => button['background_color'],
-              'image' => {
-                'image_url' => button['image'],
-                'license' => 'private'
-              }
-            }
-          end
-        end
+      if spoken_button?(button)
+        res['words'] << button['label'].downcase
+        locale = button['locale'] || 'en'
+        res['word_map'][locale] ||= {}
+        res['word_map'][locale][button['label'].downcase] = {
+          'label' => button['label'].downcase,
+          'border_color' => button['border_color'],
+          'background_color' => button['background_color'],
+          'image' => {
+            'image_url' => button['image'],
+            'license' => 'private'
+          }
+        }
       end
     end
     res['words'].uniq!

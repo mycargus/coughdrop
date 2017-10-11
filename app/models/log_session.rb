@@ -93,13 +93,15 @@ class LogSession < ActiveRecord::Base
         hit_locations[board_id][x][y] ||= 0
         hit_locations[board_id][x][y] += 1
       end
+
       if event['button'] && event['button']['label'] && (!event['parts_of_speech'] || event['parts_of_speech']['types'] == ['other'])
         if event['button']['part_of_speech']
           speech = {'types' => [event['button']['part_of_speech']]}
         end
-        word = event['spelling'] || event['button']['completion'] || event['button']['vocalization'] || event['button']['label']
+        word = LogSession.event_text(event)
+
         speech ||= WordData.find_word(word)
-        if !speech && !event['modified_by_next'] && (event['spelling'] || event['completion'] || !(event['button']['vocalization'] || "").match(/^[\+:]/))
+        if !speech && !event['modified_by_next'] && (event['spelling'] || event['button']['completion'] || !(event['button']['vocalization'] || "").match(/^[\+:]/))
           speech = {'types' => ['other']}
           if event['button'] && event['button']['type'] == 'speak'
             RedisInit.default.hincrby('missing_words', word.to_s, 1) if RedisInit.default
@@ -217,6 +219,11 @@ class LogSession < ActiveRecord::Base
     true
   end
   
+  def self.event_text(event)
+    return nil unless event
+    (event['button'] && event['button']['completion']) || event['spelling'] || (event['button'] && event['button']['vocalization']) || (event['button'] && event['button']['label'])
+  end
+  
   def require_nonce
     if !self.data['nonce']
       self.data['nonce'] = GoSecure.nonce('log_nonce')
@@ -260,7 +267,7 @@ class LogSession < ActiveRecord::Base
             button = {
               'button_id' => event['button']['button_id'],
               'board_id' => event['button']['board']['id'],
-              'text' => (event['completion'] || event['spelling'] || event['button']['vocalization'] || event['button']['label']),
+              'text' => LogSession.event_text(event),
               'count' => 0
             }
             if button['button_id'] && button['board_id']

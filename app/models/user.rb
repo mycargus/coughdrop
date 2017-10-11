@@ -40,7 +40,7 @@ class User < ActiveRecord::Base
   add_permissions('edit', 'manage_supervision', 'view_deleted_boards') {|user| user.edit_permission_for?(self) }
   add_permissions('view_existence', 'view_detailed', 'supervise', 'view_deleted_boards') {|user| user.supervisor_for?(self) }
   add_permissions('manage_supervision', 'support_actions') {|user| Organization.manager_for?(user, self) }
-  add_permissions('admin_support_actions', 'view_deleted_boards') {|user| Organization.admin_manager?(user) }
+  add_permissions('admin_support_actions', 'support_actions', 'view_deleted_boards') {|user| Organization.admin_manager?(user) }
   add_permissions('view_word_map', ['*']) {|user| user.supervisor_for?(self) }
   cache_permissions
   

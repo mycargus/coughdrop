@@ -469,4 +469,51 @@ describe BoardDownstreamButtonSet, :type => :model do
       expect(res[0].board_id).to eq(b.id)
     end
   end
+  
+  describe "word_map_for" do
+    it 'should return nil if no button set found' do
+      u = User.create
+      expect(BoardDownstreamButtonSet.word_map_for(u)).to eq(nil)
+    end
+    
+    it 'should return a mapping of all words in the user\' button set' do
+      u = User.create
+      b = Board.create(:user => u, :settings => {
+        'buttons' => [
+          {'id' => '1', 'label' => 'Hat', 'border_color' => '#f00', 'background_color' => '#fff', 'baon' => true},
+          {'id' => '2', 'label' => 'RAT', 'border_color' => '#f00', 'background_color' => '#fff', 'baon' => true},
+          {'id' => '3', 'label' => 'hat', 'border_color' => '#000', 'background_color' => '#888', 'baon' => true},
+          {'id' => '3', 'label' => 'hat', 'locale' => 'es', 'border_color' => '#000', 'background_color' => '#888', 'baon' => true},
+        ]
+      })
+      u.settings['preferences']['home_board'] = {'id' => b.global_id, 'key' => b.key}
+      u.save
+      BoardDownstreamButtonSet.update_for(b.global_id)
+      expect(BoardDownstreamButtonSet.word_map_for(u)).to eq({
+        'words' => ['hat', 'rat'],
+        'word_map' => {
+          'en' => {
+            'hat' => {
+              'label' => 'hat',
+              'border_color' => '#000',
+              'background_color' => '#888',
+              'image' => {
+                'image_url' => nil,
+                'license' => 'private'
+              }
+            },
+            'rat' => {
+              'label' => 'rat',
+              'border_color' => '#f00',
+              'background_color' => '#fff',
+              'image' => {
+                'image_url' => nil,
+                'license' => 'private'
+              }
+            }
+          }
+        }
+      })
+    end
+  end
 end

@@ -16,6 +16,7 @@ describe Supervising, :type => :model do
         'view_existence' => true,
         'view_detailed' => true,
         'view_deleted_boards' => true,
+        'view_word_map' => true,
         'supervise' => true
       })
       u.settings['supervisors'] = [{'user_id' => u2.global_id, 'edit_permission' => true}]
@@ -26,6 +27,7 @@ describe Supervising, :type => :model do
         'view_existence' => true,
         'view_detailed' => true,
         'view_deleted_boards' => true,
+        'view_word_map' => true,
         'supervise' => true,
         'edit' => true
       })

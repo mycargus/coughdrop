@@ -7,19 +7,22 @@ class WeeklyStatsSummary < ActiveRecord::Base
   secure_serialize :data  
   before_save :generate_defaults  
   after_save :schedule_badge_check
+  after_save :track_for_trends
   
   def schedule_badge_check
-    UserBadge.schedule_once(:check_for, self.related_global_id(self.user_id), self.global_id)
+    UserBadge.schedule_once(:check_for, self.related_global_id(self.user_id), self.global_id) if self.user_id && self.user_id > 0
     true
   end
   
   def generate_defaults
+    self.data ||= {}
     found_ids = [self.user_id, self.board_id].compact.length
     raise "no summary index defined" if found_ids == 0
     true
   end
-  
-  def self.update_for(log_session_id, all=false)
+
+  def self.update_for(log_session_id)
+    all = false
     log_session = LogSession.find_by_global_id(log_session_id)
     return if !log_session || log_session.log_type != 'session'
     return unless log_session.user_id && log_session.started_at && log_session.data && log_session.data['stats']

@@ -83,6 +83,7 @@ describe Api::UsersController, :type => :controller do
         "view_existence"=>true, 
         "view_detailed"=>true,
         "view_deleted_boards"=>true, 
+        'view_word_map' => true,
         "supervise"=>false, 
         "edit"=>false, 
         "manage_supervision"=>false, 
@@ -128,6 +129,7 @@ describe Api::UsersController, :type => :controller do
         "manage_supervision"=>true, 
         "view_deleted_boards"=>true, 
         "view_detailed"=>true, 
+        'view_word_map' => true,
         "supervise"=>true
       })
       
@@ -141,6 +143,7 @@ describe Api::UsersController, :type => :controller do
         "manage_supervision"=>true, 
         "view_deleted_boards"=>true, 
         "view_detailed"=>true, 
+        'view_word_map' => true,
         "supervise"=>true
       })
       expect(json['user']['id']).to eq(u.global_id)
@@ -1156,7 +1159,7 @@ describe Api::UsersController, :type => :controller do
       assert_not_found
     end
 
-    it "should require edit permissions" do
+    it "should require admin permissions" do
       u = User.create
       token_user
       post :rename, params: {:user_id => u.global_id}
@@ -1165,6 +1168,9 @@ describe Api::UsersController, :type => :controller do
     
     it "should rename the board" do
       token_user
+      o = Organization.create(:admin => true)
+      o.add_manager(@user.user_name, true)
+
       post :rename, params: {:user_id => @user.global_id, :old_key => @user.user_name, :new_key => "wilford"}
       expect(response).to be_success
       json = JSON.parse(response.body)
@@ -1173,6 +1179,9 @@ describe Api::UsersController, :type => :controller do
 
     it "should require the correct old_key" do
       token_user
+      o = Organization.create(:admin => true)
+      o.add_manager(@user.user_name, true)
+
       post :rename, params: {:user_id => @user.global_id, :old_key => @user.user_name + "asdf", :new_key => "wilford"}
       expect(response).not_to be_success
       json = JSON.parse(response.body)
@@ -1182,6 +1191,9 @@ describe Api::UsersController, :type => :controller do
     
     it "should require a valid new_key" do
       token_user
+      o = Organization.create(:admin => true)
+      o.add_manager(@user.user_name, true)
+
       post :rename, params: {:user_id => @user.global_id, :old_key => @user.user_name}
       expect(response).not_to be_success
       json = JSON.parse(response.body)
@@ -1191,6 +1203,9 @@ describe Api::UsersController, :type => :controller do
     
     it "should report if there was a new_key name collision" do
       token_user
+      o = Organization.create(:admin => true)
+      o.add_manager(@user.user_name, true)
+
       u2 = User.create
       post :rename, params: {:user_id => @user.global_id, :old_key => @user.user_name, :new_key => u2.user_name}
       expect(response).not_to be_success
@@ -1805,6 +1820,37 @@ describe Api::UsersController, :type => :controller do
       get 'protected_image', params: {'user_id' => u.global_id, 'user_token' => u.user_token, 'library' => 'lessonpix', 'image_id' => '12345'}
       expect(response).to be_redirect
       expect(response.location).to eq('http://www.example.com/pic.png')
+    end
+  end
+  
+  describe "word_map" do
+    it "should require an api token" do
+      get 'word_map', params: {'user_id' => 'asdf'}
+      assert_missing_token
+    end
+    
+    it "should require a valid user" do
+      token_user
+      get 'word_map', params: {'user_id' => 'asdf'}
+      assert_not_found('asdf')
+    end
+    
+    it "should require authorization" do
+      token_user
+      u = User.create
+      get 'word_map', params: {'user_id' => u.global_id}
+      assert_unauthorized
+    end
+    
+    it "should return the word map" do
+      token_user
+      expect(BoardDownstreamButtonSet).to receive(:word_map_for){|user|
+        expect(user).to eq(@user)
+      }.and_return({a: 1})
+      get 'word_map', params: {'user_id' => @user.global_id}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json).to eq({'a' => 1})
     end
   end
 end
