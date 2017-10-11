@@ -96,21 +96,25 @@
         </div>
       {{/if}}
 
-      {{stats/core-usage trends=trends}}
+      <div style='display: none;'>
+        {{stats/core-usage trends=trends}}
+      </div>
 
       <div class='col-sm-6' style='margin-bottom: 50px;'>
         <h4>{{t "Most-Common Words" key='most_common_words'}}</h4>
         {{stats/word-cloud stats=word_cloud_stats zoom=1 short=true}}
       </div>
 
-      {{stats/modeling-frequency trends=trends}}
+      <div style='display: none;'>
+        {{stats/modeling-frequency trends=trends}}
+      </div>
 
       <div class='col-sm-6' style='margin-bottom: 50px;'>
         <h4>{{t "Common Home Boards" key='common_home_boards'}}</h4>
         {{#if home_boards}}
           <div class="list-group">
             {{#each home_boards as |board|}}
-              {{#link-to 'boards.index' board.key}}{{board.key}} ({{board.pct}}%){{/link-to}}
+              {{#link-to 'board' board.key}}{{board.key}} ({{board.pct}}%){{/link-to}}
             {{/each}}
           </div>
         {{else}}

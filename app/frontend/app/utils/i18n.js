@@ -87,7 +87,7 @@ Ember.templateHelpers.seconds_ago = function(seconds, distance) {
       if(hours > 999) {
         hours = Ember.templateHelpers.delimit(hours);
       }
-      return i18n.t('hours_ago', "hour", {hash: {count: hours}});
+      return i18n.t('hours_ago', "hour", {hash: {count: hours, number: true}});
     } else {
       var days = Math.round(hours / 24);
       if(days < 7) {
@@ -197,7 +197,7 @@ var i18n = Ember.Object.extend({
 
     if(options && options.hash && options.hash.count !== undefined) {
       var count = options.hash.count;
-      if(count && count.length) { count = count.length; }
+      if(count && count.length && !options.hash.number) { count = count.length; }
       if(options.increment == 'count' || options.hash.increment == 'count') { count++; }
       if(count != 1) {
         str = count + " " + this.pluralize(str);
