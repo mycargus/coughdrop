@@ -92,12 +92,13 @@ class WeeklyStatsSummary < ActiveRecord::Base
   end
 
   def track_for_trends
+    return true if self.user_id <= 0
     already_scheduled = Worker.scheduled_for?(:slow, self.class, :perform_action, {
       'method' => 'track_trends',
       'arguments' => [self.weekyear]
     })
     if !already_scheduled
-      Worker.schedule_for(:slow, self.cass, :perform_action, {
+      Worker.schedule_for(:slow, self.class, :perform_action, {
         'method' => 'track_trends',
         'arguments' => [self.weekyear]
       })
@@ -212,14 +213,16 @@ class WeeklyStatsSummary < ActiveRecord::Base
       end
     end
     
-    total.data['home_boards'] = {}
-    home_boards.each do |key, user_ids|
-      user_ids.uniq!
-      board = Board.find_by_path(key)
-      board = board.parent_board if board.parent_board
-      # at least 5 users need it as their home page, and it needs to be for at least .5% of users
-      if user_ids.length >= 5 && user_ids.length >= total.data['totals']['total_users'] / 200
-        total.data['home_boards'][key] = user_ids
+    if current_trends
+      total.data['home_boards'] = {}
+      home_boards.each do |key, user_ids|
+        user_ids.uniq!
+        board = Board.find_by_path(key)
+        board = board.parent_board if board.parent_board
+        # at least 5 users need it as their home page, and it needs to be for at least .5% of users
+        if user_ids.length >= 5 && user_ids.length >= total.data['totals']['total_users'] / 200
+          total.data['home_boards'][key] = user_ids
+        end
       end
     end
     
