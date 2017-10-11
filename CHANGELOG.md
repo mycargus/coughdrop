@@ -2,6 +2,13 @@
 
 ## Master
 
+### 2017-10-11
+- fixes for media playback in speak mode
+- support for CDNs for cached images
+- global trends interface
+- better support for native text-to-speech
+- better support for "login via CoughDrop"
+
 ### 2017-09-01
 - optional clicking sound when selecting unspoken buttons
 - more robust support for OBF, pdf-generation
