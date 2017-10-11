@@ -181,16 +181,31 @@ describe Webhook, :type => :model do
         expect(url).to eq('http://www.example.com/ping')
         expect(args[:body][:token]).to eq(token)
       }.and_return(OpenStruct.new(code: 200))
-      w.notify('swinging', w, {})
+      res = w.notify('swinging', w, {})
+      expect(res).to eq([{:url=>"http://www.example.com/ping", :response_code=>200, :response_body=>nil}])
     end
     
+    it "should error on slow external responses" do
+      u = User.create
+      token = Webhook.register(u, u, {:callback => 'http://www.example.com/ping', :notification_type => 'swinging'})
+      w = Webhook.last
+      expect(Typhoeus).to receive(:post){|url, args|
+        expect(url).to eq('http://www.example.com/ping')
+        expect(args[:body][:token]).to eq(token)
+        raise Timeout::Error.new('asdf')
+      }.and_return(OpenStruct.new(code: 200))
+      res = w.notify('swinging', w, {})
+      expect(res).to eq([{:url=>"http://www.example.com/ping", :response_code=>0, :response_body=>"Timeout, request took more than 10 seconds"}])
+    end
+
     it "should handle internal service callbacks as well" do
       u = User.create
       token = Webhook.register_internal(u, u, {:callback => 'push_notification', :notification_type => 'swinging'})
       w = Webhook.last
       expect(Typhoeus).not_to receive(:post)
       expect(w).to receive(:internal_notify).with('push_notification', 'swinging')
-      w.notify('swinging', w, {})
+      res = w.notify('swinging', w, {})
+      expect(res).to eq([{:internal=>true}])
     end
 
     it "should post information to all matching webhooks" do 
