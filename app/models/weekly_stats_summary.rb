@@ -317,7 +317,8 @@ class WeeklyStatsSummary < ActiveRecord::Base
         summary.data['word_pairs'].each do |k, pair|
           stash[:word_pairs][k] ||= {
             'a' => pair['a'],
-            'b' => pair['b']
+            'b' => pair['b'],
+            'count' => 0
           }
           stash[:word_pairs][k]['count'] += pair['count']
         end
