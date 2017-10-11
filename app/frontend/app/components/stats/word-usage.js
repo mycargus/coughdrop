@@ -66,7 +66,7 @@ export default Ember.Component.extend({
           pointSize: 3
         };
 
-        var chart = new window.google.visualization.AreaChart(elem);
+        var chart = new window.google.visualization.LineChart(elem);
         window.google.visualization.events.addListener(chart, 'select', function() {
           var selection = chart.getSelection()[0];
           var row = raw_data[selection.row + 1];
