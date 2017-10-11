@@ -38,9 +38,9 @@ export default Ember.Component.extend({
         var raw_data = [[i18n.t('week of', "Week Of"), i18n.t('percent_modeled', "Percent Modeled")]];
         var max_val = 10;
         weeks.forEach(function(week) {
-          var row = [week.date.format('YYYY-MM-DD'), (week.modeled_percent || 0) * 100];
+          var row = [week.date.format('YYYY-MM-DD'), week.modeled_percent || 0];
           raw_data.push(row);
-          max_val = Math.max(max_val, (week.modeled_percent || 0) * 100);
+          max_val = Math.max(max_val, week.modeled_percent || 0);
         });
 
         var data = window.google.visualization.arrayToDataTable(raw_data);
