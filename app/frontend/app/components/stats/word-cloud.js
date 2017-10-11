@@ -8,11 +8,11 @@ export default Ember.Component.extend({
   },
   canvas_style: function() {
     var res = 'width: 100%; height: 400px;';
-    if(this.get('short')) { res = "width: 100%; height: 200px;"; }
+    if(this.get('short')) { res = "width: 100%; height: 300px;"; }
     return Ember.String.htmlSafe(res);
   }.property('short'),
   canvas_height: function() {
-    return Ember.String.htmlSafe(this.get('short') ? (768 / 2) : 768);
+    return Ember.String.htmlSafe(this.get('short') ? (768 * 2 / 3) : 768);
   }.property('short'),
   draw: function() {
     var elem = this.get('element').getElementsByClassName('word_cloud')[0];

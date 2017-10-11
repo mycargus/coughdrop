@@ -101,29 +101,28 @@
         {{stats/word-cloud stats=word_cloud_stats zoom=1 short=true}}
       </div>
 
-      <div style='display: none;'>
-        {{stats/core-usage trends=trends}}
-      </div>
+      {{stats/core-usage trends=trends}}
 
       <div class='col-sm-6' style='margin-bottom: 50px;'>
         <h4>{{t "Common Home Boards" key='common_home_boards'}}</h4>
         {{#if home_boards}}
-          <div class="list-group">
-            {{#each home_boards as |board|}}
-              {{#link-to 'board' board.key class='list-group-item'}}{{board.key}}{{/link-to}}
-            {{/each}}
+          <div style='max-height: 300px; overflow: auto;'>
+            <div class="list-group">
+              {{#each home_boards as |board|}}
+                {{#link-to 'board' board.key class='list-group-item'}}{{board.key}}{{/link-to}}
+              {{/each}}
+            </div>
           </div>
         {{else}}
           {{t "None available" key='none_available'}}
         {{/if}}
       </div>
 
-      <div style='display: none;'>
-        {{stats/modeling-frequency trends=trends}}
-      </div>
+      {{stats/modeling-frequency trends=trends}}
 
       <div class='col-sm-6'>
-        <p>{{t "Isn't data great? Did you know we have over <b>%{cnt}</b> communicators who have opted in to sharing their anonymized usage data with researchers? We work with AAC research organizations and institutions to discover valuable trends and insights that can help move the industry forward." key='data_summary' cnt=trends.research_communicators}}</p>
+        <p>{{t "Isn't data great? Usually when we see a little bit, it makes us think of more questions to ask, and we want to dig in deeper. There's always more to learn, more research we can do to help communicators succeed." key='data_summary_1'}}</p>
+        <p>{{t "Did you know we have over <b>%{cnt}</b> communicators who have opted in to sharing their anonymized usage data with researchers? We work with AAC research organizations and institutions to discover valuable trends and insights that can help move the industry forward." key='data_summary_2' cnt=trends.research_communicators}}</p>
         <p>{{#link-to 'contact'}}{{t "Please contact us" key='please_contact_us'}}{{/link-to}} {{t "if you'd like to collaborate on an AAC research project." key='for_research_project'}}</p>
       </div>
 

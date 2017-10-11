@@ -21,32 +21,28 @@ export default Ember.Component.extend({
     }
   }.property('right_side'),
   draw: function() {
-    var stats = this.get('usage_stats');
-    var ref_stats = this.get('ref_stats');
-    var elem = this.get('element').getElementsByClassName('daily_stats')[0];
+    var trends = this.get('trends');
+    var elem = this.get('element').getElementsByClassName('core_usage')[0];
 
     CoughDrop.Visualizations.wait('word-graph', function() {
-      if(elem && stats && stats.get('days')) {
-        var raw_data = [[i18n.t('day', "Day"), i18n.t('total_words', "Total Words"), i18n.t('unique_words', "Unique Words")]];
-        if(stats.get('modeled_words')) {
-          raw_data[0].push(i18n.t('modeled_words', "Modeled Words"));
+      if(elem && trends && trends.weeks) {
+        var weeks = [];
+        for(var idx in trends.weeks) {
+          trends.weeks[idx].weekyear = idx;
+          var wy = idx.toString();
+          trends.weeks[idx].date = moment(wy.substring(0, 4) + "-W" + wy.substring(4, 6) + "-0");
+          weeks.push(trends.weeks[idx]);
         }
-        var max_words = 0;
-        for(var day in stats.get('days')) {
-          var day_data = stats.get('days')[day];
-          var row = [day, day_data.total_words, day_data.unique_words];
-          if(stats.get('modeled_words')) {
-            row.push(day_data.modeled_words);
-          }
+        weeks = weeks.sort(function(a, b) { return a.weekyear - b.weekyear; });
+
+        var raw_data = [[i18n.t('week of', "Week Of"), i18n.t('percent_core', "Percent Core")]];
+        var max_val = 10;
+        weeks.forEach(function(week) {
+          var row = [week.date.format('YYYY-MM-DD'), (week.core_percent || 0) * 100];
           raw_data.push(row);
-          max_words = Math.max(max_words, day_data.total_words || 0);
-        }
-        if(ref_stats) {
-          for(var day in ref_stats.get('days')) {
-            var day_data = ref_stats.get('days')[day];
-            max_words = Math.max(max_words, day_data.total_words || 0);
-          }
-        }
+          max_val = Math.max(max_val, (week.core_percent || 0) * 100);
+        });
+
         var data = window.google.visualization.arrayToDataTable(raw_data);
 
         var options = {
@@ -59,14 +55,14 @@ export default Ember.Component.extend({
             baseline: 0,
             viewWindow: {
               min: 0,
-              max: max_words
+              max: max_val
             }
           },
           colors: ['#428bca', '#444444', '#f2b367'],
-          pointSize: 3
+          pointSize: 6
         };
 
-        var chart = new window.google.visualization.AreaChart(elem);
+        var chart = new window.google.visualization.LineChart(elem);
         window.google.visualization.events.addListener(chart, 'select', function() {
           var selection = chart.getSelection()[0];
           var row = raw_data[selection.row + 1];

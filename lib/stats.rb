@@ -732,8 +732,8 @@ module Stats
                 if (event['timestamp'] || 0) - (last_button_event['timestamp'] || 0) < 5.minutes.to_i
                   hash = Digest::MD5.hexdigest(text + "::" + last_text)
                   pairs[hash] ||= {
-                    'a' => last_text,
-                    'b' => text,
+                    'a' => last_text.downcase,
+                    'b' => text.downcase,
                     'count' => 0
                   }
                   pairs[hash]['count'] += 1
