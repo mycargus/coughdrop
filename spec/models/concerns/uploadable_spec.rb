@@ -824,4 +824,17 @@ describe Uploadable, :type => :model do
       end
     end
   end
+  
+  describe "best_url" do
+    it 'should return the cached url if defined' do
+      bi = ButtonImage.new(:settings => {'cached_copy_url' => 'asdf'})
+      expect(bi.best_url).to eq('asdf')
+    end
+    
+    it 'should return the frontend url if defined' do
+      expect(Uploader).to receive(:fronted_url).with('asdf').and_return('jkl')
+      bi = ButtonImage.new(:url => 'asdf', :settings => {})
+      expect(bi.best_url).to eq('jkl')
+    end
+  end
 end

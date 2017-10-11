@@ -775,4 +775,25 @@ describe Uploader do
       ])
     end
   end
+  
+  describe "fronted_url" do
+    it 'should return nil on nil' do
+      expect(Uploader.fronted_url(nil)).to eq(nil)
+    end
+    
+    it 'should return the same url on no match' do
+      expect(Uploader.fronted_url('asdf')).to eq('asdf')
+      expect(Uploader.fronted_url('http://www.example.com/pig.png')).to eq('http://www.example.com/pig.png')
+    end
+    
+    it 'should return the CDN url if matching' do
+      expect(ENV).to receive('[]').with('UPLOADS_S3_BUCKET').and_return(nil).at_least(1).times
+      expect(ENV).to receive('[]').with('UPLOADS_S3_CDN').and_return('bacon').at_least(1).times
+      expect(ENV).to receive('[]').with('OPENSYMBOLS_S3_BUCKET').and_return('cheese').at_least(1).times
+      expect(ENV).to receive('[]').with('OPENSYMBOLS_S3_CDN').and_return('https://abc.cdn.com').at_least(1).times
+      expect(Uploader.fronted_url('https://cheese.s3.amazonaws.com/c/d/pic.png')).to eq('https://abc.cdn.com/c/d/pic.png')
+      expect(Uploader.fronted_url('https://cheese.s3.amazonaws.com/pic.png')).to eq('https://abc.cdn.com/pic.png')
+      expect(Uploader.fronted_url('https://s3.amazonaws.com/cheese/c/d/pic.png')).to eq('https://abc.cdn.com/c/d/pic.png')
+    end
+  end
 end

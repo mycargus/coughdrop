@@ -14,7 +14,7 @@ describe Api::SoundsController, :type => :controller do
       expect(response).to be_success
       json = JSON.parse(response.body)
       expect(json['sound']['id']).not_to eq(nil)
-      expect(json['sound']['url']).to eq(url)
+      expect(json['sound']['url']).to eq("#{ENV['UPLOADS_S3_CDN']}/bacon.mp3")
       expect(json['meta']).to eq(nil)
     end
     
@@ -50,7 +50,7 @@ describe Api::SoundsController, :type => :controller do
       expect(response).to be_success
       json = JSON.parse(response.body)
       expect(json['sound']['id']).not_to eq(nil)
-      expect(json['sound']['url']).to eq(url)
+      expect(json['sound']['url']).to eq("#{ENV['UPLOADS_S3_CDN']}/bacon.mp3")
       expect(json['meta']).to eq(nil)
       bs = ButtonSound.find_by_global_id(json['sound']['id'])
       expect(bs).to_not eq(nil)

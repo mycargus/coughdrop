@@ -41,9 +41,9 @@ module Uploader
     return nil unless url
     maps = [[ENV['UPLOADS_S3_BUCKET'], ENV['UPLOADS_S3_CDN']], [ENV['OPENSYMBOLS_S3_BUCKET'], ENV['OPENSYMBOLS_S3_CDN']]]
     maps.each do |bucket, cdn|
-      if url.match(/^https:\/\/#{bucket}\.s3\.amazonaws\.com\//) && cdn
+      if bucket && url.match(/^https:\/\/#{bucket}\.s3\.amazonaws\.com\//) && cdn
         url = url.sub(/^https:\/\/#{bucket}\.s3\.amazonaws\.com\//, cdn + "/")
-      elsif url.match(/^https:\/\/s3\.amazonaws\.com\/#{bucket}\//) && cdn
+      elsif bucket && url.match(/^https:\/\/s3\.amazonaws\.com\/#{bucket}\//) && cdn
         url= url.sub(/^https:\/\/s3\.amazonaws\.com\/#{bucket}\//, cdn + "/")
       end
     end

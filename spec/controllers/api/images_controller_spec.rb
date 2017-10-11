@@ -14,7 +14,7 @@ describe Api::ImagesController, :type => :controller do
       expect(response).to be_success
       json = JSON.parse(response.body)
       expect(json['image']['id']).not_to eq(nil)
-      expect(json['image']['url']).to eq(url)
+      expect(json['image']['url']).to eq("#{ENV['UPLOADS_S3_CDN']}/bacon.png")
       expect(json['meta']).to eq(nil)
     end
     
