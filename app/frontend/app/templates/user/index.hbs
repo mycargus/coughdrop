@@ -527,7 +527,7 @@
             {{else if password.error}}
               {{t "Password reset failed" key='password_reset_failed'}}
             {{else if password.pw}}
-              {{t "Password reset to <strong>%{pw}</strong>!" key='password_was_reset' pw=password.pw}}
+              {{t "Password reset to <strong>%{pw}</strong>" key='password_was_reset' pw=password.pw}}
             {{/if}}
           </div>
         {{else if new_user_name}}
