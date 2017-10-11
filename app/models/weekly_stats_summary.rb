@@ -131,6 +131,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     total.data['totals']['total_words'] = 0
     total.data['totals']['total_buttons'] = 0
     total.data['totals']['total_core_words'] = 0
+    total.data['word_counts'] = {}
     total.data['user_ids'] = []
 
     valid_words = WordData.standardized_words
@@ -168,7 +169,6 @@ class WeeklyStatsSummary < ActiveRecord::Base
         total.data['totals']['total_core_words'] += summary.data['stats']['core_words']['core'] || 0
         total.data['totals']['total_users'] += 1
         summary.data['stats']['all_word_counts'].each do |word, cnt|
-          total.data['word_counts'] ||= {}
           if word && valid_words[word.downcase]
             total.data['word_counts'][word.downcase] = (total.data['word_counts'][word.downcase] || 0) + cnt 
           end
