@@ -505,7 +505,6 @@ describe SessionController, :type => :controller do
       expect(response).to_not be_success
       json = JSON.parse(response.body)
       expect(json['error']).to eq('Invalid authentication attempt')
-      expect(json['user_name']).to eq('freddy')
     end
     
     it "should throttle to prevent brute force attacks" do
