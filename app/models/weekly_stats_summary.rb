@@ -137,11 +137,11 @@ class WeeklyStatsSummary < ActiveRecord::Base
     word_pairs = {}
     home_boards = {}
     sums.find_in_batches(batch_size: 10) do |batch|
-      if current_trends
-        # TODO: sharding
-        users = User.where(:id => batch.map(&:user_id))
-        users.each do |user|
-          total.data['user_ids'] << user.global_id
+      # TODO: sharding
+      users = User.where(:id => batch.map(&:user_id))
+      users.each do |user|
+        total.data['user_ids'] << user.global_id
+        if current_trends
           if user.settings['preferences'] && user.settings['preferences']['home_board'] && user.settings['preferences']['home_board']['id']
             root_board = Board.find_by_path(user.settings['preferences']['home_board']['id'])
             while root_board.parent_board
