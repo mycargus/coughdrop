@@ -32,10 +32,10 @@ export default Ember.Controller.extend({
     if(hash) {
       var res = [];
       for(var idx in hash) {
-        res.push({key: idx, count: hash[idx]});
+        res.push({key: idx, pct: hash[idx]});
       }
       return res.sort(function(a, b) {
-        return b.count - a.count;
+        return b.pct - a.pct;
       });
     }
   }.property('trends.home_boards')

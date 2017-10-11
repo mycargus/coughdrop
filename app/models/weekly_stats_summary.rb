@@ -92,7 +92,17 @@ class WeeklyStatsSummary < ActiveRecord::Base
   end
 
   def track_for_trends
-    self.class.schedule_once(:track_trends, self.weekyear)
+    already_scheduled = Worker.scheduled_for?(:slow, self.class, :perform_action, {
+      'method' => 'track_trends',
+      'arguments' => [self.weekyear]
+    })
+    if !already_scheduled
+      Worker.schedule_for(:slow, self.cass, :perform_action, {
+        'method' => 'track_trends',
+        'arguments' => [self.weekyear]
+      })
+    end
+    
     return true
   end
   
@@ -207,7 +217,8 @@ class WeeklyStatsSummary < ActiveRecord::Base
       user_ids.uniq!
       board = Board.find_by_path(key)
       board = board.parent_board if board.parent_board
-      if user_ids.length >= 5 && user_ids.length >= total.data['totals']['total_users'] / 50
+      # at least 5 users need it as their home page, and it needs to be for at least .5% of users
+      if user_ids.length >= 5 && user_ids.length >= total.data['totals']['total_users'] / 200
         total.data['home_boards'][key] = user_ids
       end
     end
@@ -258,13 +269,14 @@ class WeeklyStatsSummary < ActiveRecord::Base
     earliest = nil
     latest = nil
     WeeklyStatsSummary.where(['weekyear >= ?', cutoffweekyear]).where(:user_id => 0).each do |summary|
+      next unless summary.data && summary.data['totals']
       date = Date.commercial(summary.weekyear / 100, summary.weekyear % 100) - 1
       earliest = [earliest, date].compact.min
       latest = [latest, date].compact.max
       week = {
         'modeled_percent' => (summary.data['totals']['total_modeled_buttons'].to_f / summary.data['totals']['total_buttons'].to_f * 2.0).round(1) / 2.0,
         'core_percent' => (summary.data['totals']['total_core_words'].to_f / summary.data['totals']['total_words'].to_f * 2.0).round(1) / 2.0,
-        'words_per_minute' => (summary.data['totals']['total_words'].to_f / summary.data['totals']['total_session_seconds'].to_f / 60.0).round(1)
+        'words_per_minute' => (summary.data['totals']['total_words'].to_f / summary.data['totals']['total_session_seconds'].to_f * 60.0).round(1)
       }
       res['weeks'][summary.weekyear] = week
 
@@ -317,7 +329,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
 
     res[:core_percent] = (stash[:core_words].to_f / stash[:total_words].to_f * 2.0).round(1) / 2.0
     res[:core_percent] = 0.0 if res[:core_percent].nan?
-    res[:words_per_minute] = (stash[:total_words].to_f / stash[:total_session_seconds].to_f / 60.0).round(1)
+    res[:words_per_minute] = (stash[:total_words].to_f / stash[:total_session_seconds].to_f * 60.0).round(1)
     res[:words_per_minute] = 0.0 if res[:words_per_minute].nan?
     res[:research_communicators] = 500
     if include_admin

@@ -327,7 +327,7 @@ describe WeeklyStatsSummary, :type => :model do
       expect(res[:core_percent]).to eq((9.0 / (14+18).to_f).round(1))
       expect(res[:modeled_percent]).to eq((7.0 / (8 + 11).to_f * 2.0).round(1) / 2.0)
       expect(res[:total_session_seconds]).to eq(123+456)
-      expect(res[:words_per_minute]).to eq(((2+12+12+6).to_f / (123+456).to_f / 60.0).round(1))
+      expect(res[:words_per_minute]).to eq(((2+12+12+6).to_f / (123+456).to_f * 60.0).round(1))
     end
 
     it 'should include basic totals for each week' do
@@ -366,12 +366,12 @@ describe WeeklyStatsSummary, :type => :model do
       expect(res['weeks'][cw1]).to eq({
         'modeled_percent' => (5.0 / 8.0 * 2.0).round(1) / 2.0,
         'core_percent' => (4.0 / 14.0 * 2.0).round(1) / 2.0,
-        'words_per_minute' => (14.0 / 123.0 / 60.0).round(1)
+        'words_per_minute' => (14.0 / 123.0 * 60.0).round(1)
       })
       expect(res['weeks'][cw2]).to eq({
         'modeled_percent' => (2.0 / 11.0 * 2.0).round(1) / 2.0,
         'core_percent' => (5.0 / 18.0 * 2.0).round(1) / 2.0,
-        'words_per_minute' => (18.0 / 456.0 / 60.0).round(1)
+        'words_per_minute' => (18.0 / 456.0 * 60.0).round(1)
       })
     end
     
@@ -427,7 +427,7 @@ describe WeeklyStatsSummary, :type => :model do
       expect(res[:core_percent]).to eq((9.0 / (14+18).to_f).round(1))
       expect(res[:modeled_percent]).to eq((7.0 / (8 + 11).to_f * 2.0).round(1) / 2.0)
       expect(res[:total_session_seconds]).to eq(123+456)
-      expect(res[:words_per_minute]).to eq(((2+12+12+6).to_f / (123+456).to_f / 60.0).round(1))
+      expect(res[:words_per_minute]).to eq(((2+12+12+6).to_f / (123+456).to_f * 60.0).round(1))
       expect(res[:total_users]).to eq(nil)
       expect(res[:total_sessions]).to eq(nil)
       expect(res[:sessions_per_user]).to eq(nil)
@@ -470,7 +470,7 @@ describe WeeklyStatsSummary, :type => :model do
       expect(res[:core_percent]).to eq((9.0 / (14+18).to_f).round(1))
       expect(res[:modeled_percent]).to eq((7.0 / (8 + 11).to_f * 2.0).round(1) / 2.0)
       expect(res[:total_session_seconds]).to eq(123+456)
-      expect(res[:words_per_minute]).to eq(((2+12+12+6).to_f / (123+456).to_f / 60.0).round(1))
+      expect(res[:words_per_minute]).to eq(((2+12+12+6).to_f / (123+456).to_f * 60.0).round(1))
       expect(res[:total_users]).to eq(5)
       expect(res[:total_sessions]).to eq(9)
       expect(res[:sessions_per_user]).to eq(9.0 / 5.0)

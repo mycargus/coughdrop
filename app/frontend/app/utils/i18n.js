@@ -84,6 +84,9 @@ Ember.templateHelpers.seconds_ago = function(seconds, distance) {
   } else {
     var hours = Math.round(seconds / 3600 * 10) / 10;
     if(distance != 'long' || hours < 24) {
+      if(hours > 999) {
+        hours = Ember.templateHelpers.delimit(hours);
+      }
       return i18n.t('hours_ago', "hour", {hash: {count: hours}});
     } else {
       var days = Math.round(hours / 24);
