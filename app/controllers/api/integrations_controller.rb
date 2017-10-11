@@ -17,11 +17,12 @@ class Api::IntegrationsController < ApplicationController
   end
   
   def show
+    orig_id = params['id']
     if UserIntegration.global_integrations[params['id']]
       params['id'] = UserIntegration.global_integrations[params['id']]
     end
     integration = UserIntegration.find_by_path(params['id'])
-    return unless exists?(integration, params['id'])
+    return unless exists?(integration, orig_id)
     return unless allowed?(integration, 'view')
     render json: JsonApi::Integration.as_json(integration, {wrapper: true, permissions: @api_user})
   end
