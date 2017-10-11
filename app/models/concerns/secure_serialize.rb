@@ -13,7 +13,7 @@ module SecureSerialize
   def load_secure_object
     @secure_object_json = nil.to_json
     if self.id
-      attr = read_attribute(self.class.secure_column)
+      attr = read_attribute(self.class.secure_column) || self.send(self.class.secure_column)
       if attr && attr.match(/\s*^{/)
         @secure_object = JSON.parse(attr)
       else
