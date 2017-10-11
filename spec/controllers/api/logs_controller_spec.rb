@@ -436,4 +436,37 @@ describe Api::LogsController, :type => :controller do
       expect(json['log']).to_not eq(nil)
     end
   end
+  
+  describe "trends" do
+    it "should not require an api token" do
+      expect(Permissable.permissions_redis).to receive(:get).and_return(nil)
+      expect(WeeklyStatsSummary).to receive(:trends).with(false).and_return({a: 1})
+      get 'trends'
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json).to eq({'a' => 1})
+    end
+    
+    it "should return trend data" do
+      expect(Permissable.permissions_redis).to receive(:get).and_return(nil)
+      expect(WeeklyStatsSummary).to receive(:trends).with(false).and_return({a: 1})
+      get 'trends'
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json).to eq({'a' => 1})
+    end
+    
+    it "should return additional data for admins" do
+      o = Organization.create(:admin => true)
+      token_user
+      o.add_manager(@user.user_name, true)
+
+      expect(Permissable.permissions_redis).to receive(:get).and_return(nil).at_least(1).times
+      expect(WeeklyStatsSummary).to receive(:trends).with(true).and_return({a: 1})
+      get 'trends'
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json).to eq({'a' => 1})
+    end
+  end
 end

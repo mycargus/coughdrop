@@ -1002,4 +1002,59 @@ SOME SILLY GARBAGE
       expect(res[3]['timestamp']).to eq(1468396865)
     end
   end
+  
+  describe "word_pairs" do
+    it 'should generate a list of pairs' do
+      u = User.create
+      d = Device.create
+      s1 = LogSession.process_new({'events' => [{'type' => 'button', 'button' => {'label' => 'good', 'spoken' => true}, 'timestamp' => 1445037743}, {'type' => 'button', 'button' => {'label' => 'we', 'spoken' => true}, 'timestamp' => 1445037743}]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [{'type' => 'button', 'button' => {'label' => 'bad', 'spoken' => true}, 'timestamp' => 1445044954}]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s3 = LogSession.process_new({'events' => [{'type' => 'button', 'button' => {'label' => 'up', 'spoken' => true}, 'timestamp' => 1444994571}]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s4 = LogSession.process_new({'events' => [{'type' => 'button', 'button' => {'label' => 'down', 'spoken' => true}, 'timestamp' => 1444994886}, {'type' => 'button', 'button' => {'label' => 'this', 'spoken' => true}, 'timestamp' => 1444994886}, {'type' => 'button', 'button' => {'label' => 'when', 'spoken' => true}, 'timestamp' => 1444994886}, {'type' => 'button', 'button' => {'label' => 'like', 'spoken' => true}, 'timestamp' => 1444994887}]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      
+      res = Stats.word_pairs([s1, s2, s3, s4])
+      expect(res).to eq({
+        "64b4232e689544e3f19e510306caaca8" => {"a"=>"this", "b"=>"when", "count"=>1},
+        "774b25a0bbd018d13ab37d517f461444" => {"a"=>"when", "b"=>"like", "count"=>1},
+        "77b9476cebc127e4da5785a1d98f6dd6" => {"a"=>"down", "b"=>"this", "count"=>1},
+        "af956f01857e752ae09e4f1c433940dc" => {"a"=>"good", "b"=>"we", "count"=>1},
+      })
+    end
+    
+    it 'should not include pairs over too long a delay' do
+      u = User.create
+      d = Device.create
+      s1 = LogSession.process_new({'events' => [{'type' => 'button', 'button' => {'label' => 'good', 'spoken' => true}, 'timestamp' => 1445037743}, {'type' => 'button', 'button' => {'label' => 'we', 'spoken' => true}, 'timestamp' => 1445037743}]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [{'type' => 'button', 'button' => {'label' => 'bad', 'spoken' => true}, 'timestamp' => 1445044954}]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s3 = LogSession.process_new({'events' => [{'type' => 'button', 'button' => {'label' => 'up', 'spoken' => true}, 'timestamp' => 1444994571}]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s4 = LogSession.process_new({'events' => [{'type' => 'button', 'button' => {'label' => 'down', 'spoken' => true}, 'timestamp' => 1444994886}, {'type' => 'button', 'button' => {'label' => 'this', 'spoken' => true}, 'timestamp' => 1444994886}, {'type' => 'button', 'button' => {'label' => 'blech', 'spoken' => true}, 'timestamp' => 1444994886}, {'type' => 'button', 'button' => {'label' => 'like', 'spoken' => true}, 'timestamp' => 1444994887}]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      
+      res = Stats.word_pairs([s1, s2, s3, s4])
+      expect(res).to eq({"af956f01857e752ae09e4f1c433940dc"=>{"a"=>"good", "b"=>"we", "count"=>1}, "77b9476cebc127e4da5785a1d98f6dd6"=>{"a"=>"down", "b"=>"this", "count"=>1}})
+    end
+    
+    it 'should not include pairs where one is not a valid key' do
+      u = User.create
+      d = Device.create
+      s1 = LogSession.process_new({'events' => [{'type' => 'button', 'button' => {'label' => 'down', 'spoken' => true}, 'timestamp' => 1445037743}, {'type' => 'button', 'button' => {'label' => 'this', 'spoken' => true}, 'timestamp' => 1445037743}]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [{'type' => 'button', 'button' => {'label' => 'bad', 'spoken' => true}, 'timestamp' => 1445044954}]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s3 = LogSession.process_new({'events' => [{'type' => 'button', 'button' => {'label' => 'up', 'spoken' => true}, 'timestamp' => 1444994571}]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s4 = LogSession.process_new({'events' => [{'type' => 'button', 'button' => {'label' => 'down', 'spoken' => true}, 'timestamp' => 1444994886}, {'type' => 'button', 'button' => {'label' => 'this', 'spoken' => true}, 'timestamp' => 1444994886}, {'type' => 'button', 'button' => {'label' => 'blech', 'spoken' => true}, 'timestamp' => 1444994886}, {'type' => 'button', 'button' => {'label' => 'like', 'spoken' => true}, 'timestamp' => 1444994887}]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      
+      res = Stats.word_pairs([s1, s2, s3, s4])
+      expect(res).to eq({"77b9476cebc127e4da5785a1d98f6dd6"=>{"a"=>"down", "b"=>"this", "count"=>2}})
+    end
+    
+    it 'should not include two valid words with an invalid one in the middle' do
+      u = User.create
+      d = Device.create
+      s1 = LogSession.process_new({'events' => [{'type' => 'button', 'button' => {'label' => 'good', 'spoken' => true}, 'timestamp' => 1445037743}, {'type' => 'button', 'button' => {'label' => 'we', 'spoken' => true}, 'timestamp' => 1445037743}]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [{'type' => 'button', 'button' => {'label' => 'bad', 'spoken' => true}, 'timestamp' => 1445044954}]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s3 = LogSession.process_new({'events' => [{'type' => 'button', 'button' => {'label' => 'up', 'spoken' => true}, 'timestamp' => 1444994571}]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s4 = LogSession.process_new({'events' => [{'type' => 'button', 'button' => {'label' => 'down', 'spoken' => true}, 'timestamp' => 1444994886}, {'type' => 'button', 'button' => {'label' => 'this', 'spoken' => true}, 'timestamp' => 1444994886}, {'type' => 'button', 'button' => {'label' => 'blech', 'spoken' => true}, 'timestamp' => 1444994886}, {'type' => 'button', 'button' => {'label' => 'like', 'spoken' => true}, 'timestamp' => 1444994887}]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      
+      res = Stats.word_pairs([s1, s2, s3, s4])
+      expect(res).to eq({"af956f01857e752ae09e4f1c433940dc"=>{"a"=>"good", "b"=>"we", "count"=>1}, "77b9476cebc127e4da5785a1d98f6dd6"=>{"a"=>"down", "b"=>"this", "count"=>1}})
+    end
+  end
 end

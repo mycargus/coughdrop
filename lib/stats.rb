@@ -717,6 +717,37 @@ module Stats
     res
   end
   
+  def self.word_pairs(sessions)
+    valid_words = WordData.standardized_words
+    pairs = {}
+    sessions.each do |session|
+      last_button_event = nil
+      session.data['events'].each do |event|
+        if event['type'] == 'button'
+          text = LogSession.event_text(event)
+          if text && text.length > 0 && (event['button']['spoken'] || event['button']['for_speaking'])
+            if last_button_event
+              last_text = LogSession.event_text(last_button_event)
+              if valid_words[text.downcase] && last_text && valid_words[last_text.downcase]
+                if (event['timestamp'] || 0) - (last_button_event['timestamp'] || 0) < 5.minutes.to_i
+                  hash = Digest::MD5.hexdigest(text + "::" + last_text)
+                  pairs[hash] ||= {
+                    'a' => last_text,
+                    'b' => text,
+                    'count' => 0
+                  }
+                  pairs[hash]['count'] += 1
+                end
+              end
+            end
+            last_button_event = event
+          end
+        end
+      end
+    end
+    pairs
+  end
+  
   TIMEBLOCK_MOD = 7 * 24 * 4
   TIMEBLOCK_OFFSET = 4 * 24 * 4
   def self.time_block(timestamp)

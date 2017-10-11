@@ -6,6 +6,14 @@ export default Ember.Component.extend({
   didInsertElement: function() {
     this.draw();
   },
+  canvas_style: function() {
+    var res = 'width: 100%; height: 400px;';
+    if(this.get('short')) { res = "width: 100%; height: 200px;"; }
+    return Ember.String.htmlSafe(res);
+  }.property('short'),
+  canvas_height: function() {
+    return Ember.String.htmlSafe(this.get('short') ? (768 / 2) : 768);
+  }.property('short'),
   draw: function() {
     var elem = this.get('element').getElementsByClassName('word_cloud')[0];
     if(elem) {
@@ -31,7 +39,8 @@ export default Ember.Component.extend({
         list: list,
         gridSize: 16,
         weightFactor: function (size) {
-          return ((size / max) * 245 * _this.get('zoom')) + 5;
+          var res = ((size / max) * 245 * (_this.get('zoom') || 1)) + 5;
+          return res;
         }
       });
     }

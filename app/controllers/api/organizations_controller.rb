@@ -115,8 +115,10 @@ class Api::OrganizationsController < ApplicationController
       stats = {}
       boards.each do |board|
         ref = board
-        if board.parent_board_id && boards_by_id[board.parent_board_id]
-          ref = boards_by_id[board.parent_board_id]
+        level = 0
+        while ref.parent_board_id && boards_by_id[ref.parent_board_id] && level < 5
+          level += 1
+          ref = boards_by_id[ref.parent_board_id]
         end
         stats[ref.key] ||= 0
         stats[ref.key] += (counts[board.id] || 0)

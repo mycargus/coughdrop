@@ -50,6 +50,7 @@ Router.map(function() {
   this.route('login');
   this.route('register');
   this.route('intro');
+  this.route('trends');
   this.route('forgot_password');
   this.route('forgot_login');
   this.route('partners');

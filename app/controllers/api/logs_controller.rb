@@ -1,5 +1,5 @@
 class Api::LogsController < ApplicationController
-  before_action :require_api_token, :except => [:lam]
+  before_action :require_api_token, :except => [:lam, :trends]
   
   def index
     user = User.find_by_path(params['user_id'])
@@ -128,6 +128,19 @@ class Api::LogsController < ApplicationController
     else
       render plain: Stats.lam([log])
     end
+  end
+  
+  def trends
+    extra_data = !!(@api_user && @api_user.allows?(@api_user, 'admin_support_actions'))
+    res = JSON.parse(Permissable.permissions_redis.get('global/stats/trends')) rescue nil
+    if !res || extra_data
+      res = WeeklyStatsSummary.trends(extra_data)
+      if !extra_data
+        Permissable.permissions_redis.setex('global/stats/trends', 24.hours.to_i, res.to_json)
+      end
+    end
+    
+    render json: res
   end
   
 end

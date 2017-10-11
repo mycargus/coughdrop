@@ -328,6 +328,19 @@ class WordData < ActiveRecord::Base
     true
   end
   
+  def self.standardized_words
+    @@standardized_words ||= nil
+    return @@standardized_words if @@standardized_words
+    hash = {}
+    (self.core_lists || []).each do |list|
+      (list['words'] || []).each do |word|
+        hash[word] = true
+      end
+    end
+    @@standardized_words = hash
+    @@standardized_words
+  end
+  
   def self.message_bank_suggestions
     @@message_bank_suggestions ||= nil
     return @@message_bank_suggestions if @@message_bank_suggestions

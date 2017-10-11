@@ -395,6 +395,11 @@ RSpec.describe WordData, :type => :model do
       expect(WordData.message_bank_suggestions[0]['id']).to eq('boston_childrens')
     end
   end
+  
+  describe "standardized_words" do
+    it 'should return a hash of words' do
+      expect(WordData.standardized_words['this']).to eq(true)
+      expect(WordData.standardized_words['golem']).to eq(nil)
+    end
+  end
 end
-
-

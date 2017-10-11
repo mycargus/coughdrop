@@ -1,0 +1,126 @@
+<div class='row'>
+  <div class='col-sm-8 col-sm-offset-2'>
+    <h2 style='margin-bottom: 30px;'>{{t "CoughDrop Usage Trends" key='coughdrop_usage_trends'}}</h2>
+
+    <p style='margin-bottom: 20px;'>{{t "Curious how CoughDrop is being used? We have a large number of communicators using CoughDrop, and thought it might help to see how those communicators are benefitting from our cloud-based, team-enabling AAC app." key='trends_explainer'}}</p>
+    {{#if trends.loading}}
+      {{t "Loading trends..." key='loading_trends'}}
+    {{else if trends.error}}
+      {{t "Error loading trends." key='error_loading_trends'}}
+    {{else if trends}}
+      <p>{{t "Data for %{start} to %{end}" start=trends.started_at end=trends.ended_at key='data_for_start_to_end'}}</p>
+      <div class="col-sm-3 col-xs-6" style={{elem_style}}>
+        <div class="panel panel-default summary">
+          <div class="panel-heading">
+            {{t "Time Logged" key='total_session_time'}}
+          </div>
+          <div class="panel-body">
+            {{seconds_ago trends.total_session_seconds}}
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-3 col-xs-6">
+        <div class="panel panel-default summary">
+          <div class="panel-heading">
+            {{t "Modeling Frequency" key='percent_modeling'}}
+          </div>
+          <div class="panel-body">
+            {{trends.modeled_percent}}%
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-3 col-xs-6">
+        <div class="panel panel-default summary">
+          <div class="panel-heading">
+            {{t "Core Usage" key='core_usage'}}
+          </div>
+          <div class="panel-body">
+            {{trends.core_percent}}%
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-3 col-xs-6">
+        <div class="panel panel-default summary">
+          <div class="panel-heading">
+            {{t "Words per minute" key='words_per_minute'}}
+          </div>
+          <div class="panel-body">
+            {{trends.words_per_minute}}
+          </div>
+        </div>
+      </div>
+
+      {{#if trends.total_users}}
+        <div class='col-sm-12'>
+          <span class='label label-danger'>{{t "Not Public Information:" key='not_public_information'}}</span>
+        </div>
+        <div class="col-sm-3 col-xs-6" style={{elem_style}}>
+          <div class="panel panel-default summary">
+            <div class="panel-heading">
+              {{t "Total Users" key='total_users'}}
+            </div>
+            <div class="panel-body">
+              {{trends.total_users}}
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-3 col-xs-6">
+          <div class="panel panel-default summary">
+            <div class="panel-heading">
+              {{t "Total Sessions" key='total_sessions'}}
+            </div>
+            <div class="panel-body">
+              {{trends.total_sessions}}
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-3 col-xs-6">
+          <div class="panel panel-default summary">
+            <div class="panel-heading">
+              {{t "Avg. Sessions per User" key='average_sessions_per_user'}}
+            </div>
+            <div class="panel-body">
+              {{trends.sessions_per_user}}
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-3 col-xs-6">
+          <div class="panel panel-default summary">
+            <div class="panel-heading">
+              {{t "Total Words" key='total_words'}}
+            </div>
+            <div class="panel-body">
+              {{trends.total_words}}
+            </div>
+          </div>
+        </div>
+      {{/if}}
+
+      {{stats/core-usage trends=trends}}
+
+      <div class='col-sm-6' style='margin-bottom: 50px;'>
+        <h4>{{t "Most-Common Words" key='most_common_words'}}</h4>
+        {{stats/word-cloud stats=word_cloud_stats zoom=1 short=true}}
+      </div>
+
+      {{stats/modeling-frequency trends=trends}}
+
+      <div class='col-sm-6' style='margin-bottom: 50px;'>
+        <h4>{{t "Common Home Boards" key='common_home_boards'}}</h4>
+        {{#if home_boards}}
+          HOME BOARDS
+        {{else}}
+          {{t "None available" key='none_available'}}
+        {{/if}}
+      </div>
+
+      <div class='col-sm-6'>
+        <p>{{t "Isn't data great? Did you know we have over <b>%{cnt}</b> communicators who have opted in to sharing their anonymized usage data with researchers? We work with AAC research organizations and institutions to discover valuable trends and insights that can help move the industry forward." key='data_summary' cnt=trends.research_communicators}}</p>
+        <p>{{#link-to 'contact'}}{{t "Please contact us" key='please_contact_us'}}{{/link-to}} {{t "if you'd like to collaborate on an AAC research project." key='for_research_project'}}</p>
+      </div>
+
+    {{else}}
+      {{t "No data to show." key='no_data_to_show'}}
+    {{/if}}
+  </div>
+</div>
