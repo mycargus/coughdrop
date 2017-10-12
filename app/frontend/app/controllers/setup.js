@@ -69,6 +69,16 @@ export default Ember.Controller.extend({
     }
     return res;
   }.property('fake_user.preferences.device.dwell', 'app_state.currentUser.preferences.device.dwell', 'fake_user.preferences.device.scanning', 'app_state.currentUser.preferences.device.scanning'),
+  home_return: function() {
+    var res = {};
+    var user = app_state.get('currentUser') || this.get('fake_user');
+    if(user.get('preferences.auto_home_return')) {
+      res.auto_return = true;
+    } else {
+      res.stay = true;
+    }
+    return res;
+  }.property('fake_user.preferences.auto_home_return', 'app_state.currentUser.preferences.auto_home_return'),
   notification: function() {
     var res = {};
     var user = app_state.get('currentUser') || this.get('fake_user');
@@ -96,7 +106,7 @@ export default Ember.Controller.extend({
     var user = app_state.get('currentUser') || this.get('fake_user');
     if(!this.get('cell') && user.get('cell_phone')) {
       this.set('cell', user.get('cell_phone'));
-    } else {
+    } else if(this.get('cell')) {
       user.set('cell_phone', this.get('cell'));
       this.send('set_preference', 'cell_phone', this.get('cell'));
     }
@@ -121,18 +131,23 @@ export default Ember.Controller.extend({
       }
     }
   }.observes('pin', 'fake_user.preferences.require_speak_mode_pin', 'app_state.currentUser.preferences.require_speak_mode_pin', 'fake_user.preferences.speak_mode_pin', 'app_state.currentUser.preferences.speak_mode_pin'),
-  update_checkbox_preferences: function() {
+  update_checkbox_preferences: function(a, b, c) {
     var do_update = false;
     var _this = this;
+    if(_this.get('ignore_update')) { return; }
+
     var user = app_state.get('currentUser') || this.get('fake_user');
     ['vocalize_buttons', 'vocalize_linked_buttons', 'auto_home_return'].forEach(function(pref) {
-      if(_this.get(pref) == null && user.get('preferences.' + pref)) {
+      if(b && b.match(/fake_user|currentUser/) /*_this.get(pref) == null*/ && user.get('preferences.' + pref) != null) {
+        _this.set('ignore_update', true);
         _this.set(pref, user.get('preferences.' + pref));
+        _this.set('ignore_update', false);
       } else if(_this.get(pref) != null && _this.get(pref) != user.get('preferences.' + pref)) {
         user.set('preferences.' + pref, _this.get(pref));
         do_update = true;
       }
     });
+
     if(do_update) {
       this.send('set_preference', 'extra', true);
     }
@@ -176,11 +191,13 @@ export default Ember.Controller.extend({
         }
       }));
     }
-    this.set('cell', app_state.get('currentUser.cell_phone'));
-    var _this = this;
-    ['vocalize_buttons', 'vocalize_linked_buttons', 'auto_home_return'].forEach(function(pref) {
-      _this.set(pref, app_state.get('currentUser.preferences.' + pref));
-    });
+    if(app_state.get('currentUser')) {
+      this.set('cell', app_state.get('currentUser.cell_phone'));
+      var _this = this;
+      ['vocalize_buttons', 'vocalize_linked_buttons', 'auto_home_return'].forEach(function(pref) {
+        _this.set(pref, app_state.get('currentUser.preferences.' + pref));
+      });
+    }
     app_state.controller.set('setup_page', this.get('page'));
     Ember.$('html,body').scrollTop(0);
   }.observes('page'),
@@ -198,6 +215,14 @@ export default Ember.Controller.extend({
           user.set('preferences.device.dwell', false);
           user.set('preferences.device.scanning', true);
         }
+      } else if(preference == 'home_return') {
+        if(value == 'auto_return') {
+          this.set('auto_home_return', true);
+          return;
+        } else {
+          this.set('auto_home_return', false);
+          return;
+        }
       } else {
         user.set('preferences.' + preference, value);
       }
@@ -209,11 +234,13 @@ export default Ember.Controller.extend({
         app_state.controller.set('footer_status', {message: i18n.t('updating_user', "Updating User...")});
         user.save().then(function() {
           app_state.controller.set('footer_status', null);
+          user.reload();
         }, function(err) {
           app_state.controller.set('footer_status', {error: i18n.t('error_updating_user', "Error Updating User")});
         });
       }
     },
+
     home: function(plus_video) {
       this.transitionToRoute('index');
       if(plus_video) {

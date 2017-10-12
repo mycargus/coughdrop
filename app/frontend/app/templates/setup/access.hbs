@@ -7,6 +7,16 @@
       <a href="#" class={{if access.dwell 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'access' 'dwell'}}>{{t "Eye or Dwell Tracking" key='dwell_tracking'}}</a>
     </div>
   </div>
+  <p>
+    {{t "For most communicators, automatically returning home after selecting a button will help them learn a consistent sequence to find buttons (called a motor plan), so we recommend this as the default but you can change it if needed." key='home_return_1'}}
+  </p>
+  <div class='setup_setting'>
+    <label>{{t "What happens when the communicator selects a button?" key='access_selection'}}</label>
+    <div class="btn-group-vertical" style="width: 100%;">
+      <a href="#" class={{if home_return.auto_return 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'home_return' 'auto_return'}}>{{t "Return to the Home Board" key='return_to_the_home_board'}}</a>
+      <a href="#" class={{if home_return.stay 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'home_return' 'stay'}}>{{t "Stay on the Current Board" key='stay_on_the_current_board'}}</a>
+    </div>
+  </div>
 </div>
 <div class='col-sm-5'>
   {{#if access.touch}}
