@@ -23,9 +23,9 @@
         <button {{action 'quick_action' 'url'}} class='btn btn-lg btn-default' style='text-align: left;'><span class='glyphicon glyphicon-link' style='margin-right: 3px;'></span> {{t "Link to a Web Site or Video" key='link_to_web_site'}}</button>
         <button {{action 'quick_action' 'hide'}} class='btn btn-lg btn-default' style='text-align: left;'>
           {{#if model.hidden}}
-            <span class='glyphicon glyphicon-eye-close' style='margin-right: 3px;'></span> {{t "Hide this Button" key='hide_this_button'}}
-          {{else}}
             <span class='glyphicon glyphicon-eye-open' style='margin-right: 3px;'></span> {{t "Un-Hide this Button" key='hide_this_button'}}
+          {{else}}
+            <span class='glyphicon glyphicon-eye-close' style='margin-right: 3px;'></span> {{t "Hide this Button" key='hide_this_button'}}
           {{/if}}
         </button>
         {{#if paint_hide_reminder}}
