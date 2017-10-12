@@ -394,4 +394,84 @@ class WeeklyStatsSummary < ActiveRecord::Base
     
     res
   end
+  
+  def self.word_trends(word)
+    word = word.downcase
+    start = 8.weeks.ago.to_date
+    cweek = start.cweek
+    cwyear = start.cwyear
+    cutoffweekyear = (cwyear * 100) + cweek
+    earliest = nil
+    latest = nil
+    
+    res = {}
+    stash = {}
+    stash[:user_ids] = []
+    stash[:usage_count] = 0.0
+    stash[:max_usage_count] = 0.0
+    res[:weeks] = {}
+    res[:pairs] = []
+
+    stash[:home_board_user_ids] = []
+    WeeklyStatsSummary.where(['weekyear >= ?', cutoffweekyear]).where(:user_id => 0).each do |summary|
+      next unless summary.data && summary.data['totals']
+      date = Date.commercial(summary.weekyear / 100, summary.weekyear % 100) - 1
+      earliest = [earliest, date].compact.min
+      latest = [latest, date].compact.max
+
+      available_user_ids = (summary.data['available_words'] || {})[word] || []
+      home_board_user_ids = summary.data['home_board_user_ids'] || summary.data['user_ids'] || []
+
+      max_usage_count = summary.data['word_counts'].map(&:last).max
+      usage_count = summary.data['word_counts'][word] || 0.0
+
+      avail = (available_user_ids.length.to_f / home_board_user_ids.length.to_f).round(2)
+      avail = 0.0 if avail.nan?
+      usage = (usage_count.to_f / max_usage_count.to_f).round(2)
+      usage = 0.0 if usage.nan?
+      week = {
+        'available_for' => avail,
+        'usage_count' => usage
+      }
+      res[:weeks][summary.weekyear] = week
+      stash[:home_board_user_ids] += home_board_user_ids
+      stash[:user_ids] += summary.data['user_ids'] || []
+      stash[:usage_count] += usage_count
+      stash[:max_usage_count] += max_usage_count
+
+      stash[:available_user_ids] ||= []
+      stash[:available_user_ids] += available_user_ids
+      
+      (summary.data['word_matches'][word] || []).each do |pair|
+        found = res[:pairs].detect{|p| [p['a'], p['b']].sort == [pair['a'], pair['b']].sort }
+        if found
+          res[:pairs]['count'] += pair['count']
+          res[:pairs]['user_count'] += pair['user_count']
+        else
+          res[:pairs] << pair
+        end
+      end
+    end
+
+    if stash[:available_user_ids]
+      res[:available_for] = (stash[:available_user_ids].uniq.length.to_f / stash[:home_board_user_ids].uniq.length.to_f).round(2)
+      res[:available_for] = 0.0 if res[:available_for].nan?
+    end
+    res[:usage_count] = (stash[:usage_count].to_f / stash[:max_usage_count].to_f).round(2)
+    res[:usage_count] = 0.0 if res[:usage_count].nan?
+    
+    max_user_count = res[:pairs].map{|p| p['user_count'] || 0 }.max
+    max_count = res[:pairs].map{|p| p['count'] || 0 }.max
+    res[:pairs].each do |pair|
+      uc = pair.delete('user_count')
+      c = pair.delete('count')
+      pair['partner'] = pair['a'] == word ? pair['a'] : pair['b']
+      pair['users'] = (uc.to_f / stash[:user_ids].uniq.length.to_f).round(2)
+      pair['users'] = 0.0 if pair['users'].nan?
+      pair['usages'] = (c.to_f / max_count.to_f).round(2)
+      pair['usages'] = 0.0 if pair['usages'].nan?
+    end
+    
+    res
+  end
 end

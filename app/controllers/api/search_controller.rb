@@ -66,10 +66,15 @@ class Api::SearchController < ApplicationController
     
   def parts_of_speech
     data = WordData.find_word(params['q'])
+    res = {}
     if !data && params['suggestions']
       str = "#{params['q']}-not_defined"
       RedisInit.default.hincrby('overridden_parts_of_speech', str, 1) if RedisInit.default
       return api_error 404, {error: 'word not found'} unless data
+    end
+    
+    if params['suggestions']
+      # res['recent_usage'] = WeeklyStatsSummary.word_trends(params['q'])
     end
     
     if params['suggestions'] && (data['sentences'] || []).length == 0
@@ -77,7 +82,7 @@ class Api::SearchController < ApplicationController
       RedisInit.default.hincrby('overridden_parts_of_speech', str, 1) if RedisInit.default
     end
 
-    render json: data.to_json
+    render json: res.merge(data).to_json
   end
   
   def proxy
