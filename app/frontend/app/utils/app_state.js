@@ -1251,7 +1251,7 @@ var app_state = Ember.Object.extend({
 
     var button_to_speak = obj;
     var specialty = utterance.specialty_button(obj);
-    var skip_speaking_by_default = !!(button.load_board || button_to_speak.special || button.url || button.apps || (button.integration && button.integration.action_type == 'render'));
+    var skip_speaking_by_default = !!(button.load_board || specialty || button_to_speak.special || button.url || button.apps || (button.integration && button.integration.action_type == 'render'));
     if(skip_speaking_by_default && !button.add_to_vocalization) {
     } else if(specialty) {
       button_to_speak = Ember.$.extend({}, specialty);
@@ -1266,6 +1266,7 @@ var app_state = Ember.Object.extend({
         if(!skip_speaking_by_default) {
           obj.for_speaking = true;
         }
+
         if(app_state.get('currentUser.preferences.vocalize_buttons') || (!app_state.get('currentUser') && window.user_preferences.any_user.vocalize_buttons)) {
           if(skip_speaking_by_default && !app_state.get('currentUser.preferences.vocalize_linked_buttons') && !button.add_to_vocalization) {
             // don't say it...
