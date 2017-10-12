@@ -23,11 +23,11 @@
     <div class="form-group">
       <label for="change_to" class="col-sm-2 control-label">{{t "Find/Add" key='find_add'}}</label>
       <div class="col-sm-10 options">
+        <button class="btn btn-default" {{action "build_board"}} style='margin-right: 20px;'>{{t "New" key='new'}}</button>
         <span class="board_search_field">
           {{input value=linkedBoardName class="form-control" id="change_to" placeholder="Board name or key"}}
         </span>
         <button class="btn btn-default" {{action "find_board"}}>{{t "Find" key='find'}}</button>
-        <button class="btn btn-default" {{action "build_board"}}>{{t "New" key='new'}}</button>
         {{#unless pending_board}}
           <div class="row" style="margin-top: 5px;">
             <div class="col-sm-12">
