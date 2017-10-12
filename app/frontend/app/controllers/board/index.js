@@ -619,7 +619,7 @@ export default Ember.Controller.extend({
       res = res + 'show_all_buttons ';
     } else if(!stretchable && app_state.get('currentUser.preferences.hidden_buttons') == 'hint') {
       res = res + 'hint_hidden_buttons ';
-    } else if!stretchable && (app_state.get('currentUser.preferences.hidden_buttons') == 'grid') {
+    } else if(!stretchable && app_state.get('currentUser.preferences.hidden_buttons') == 'grid') {
       res = res + 'grid_hidden_buttons ';
     }
     if(app_state.get('currentUser.hide_symbols')) {
