@@ -74,7 +74,7 @@ class Api::SearchController < ApplicationController
     end
     
     if params['suggestions']
-      # res['recent_usage'] = WeeklyStatsSummary.word_trends(params['q'])
+      res['recent_usage'] = WeeklyStatsSummary.word_trends(params['q'])
     end
     
     if params['suggestions'] && (data['sentences'] || []).length == 0

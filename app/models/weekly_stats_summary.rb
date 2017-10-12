@@ -149,14 +149,16 @@ class WeeklyStatsSummary < ActiveRecord::Base
         if current_trends
           if user.settings['preferences'] && user.settings['preferences']['home_board'] && user.settings['preferences']['home_board']['id']
             root_board = Board.find_by_path(user.settings['preferences']['home_board']['id'])
-            while root_board.parent_board
+            while root && root_board.parent_board
               root_board = root_board.parent_board
             end
-            local_board_id = root_board.id
-            board_key = root_board.key || user.settings['preferences']['home_board']['key']
-            home_boards[board_key] = (home_boards[board_key] || []) + [user.global_id] if root_board && root_board.public
-            board_user_ids[local_board_id] ||= []
-            board_user_ids[local_board_id] << user.global_id
+            if root_board
+              local_board_id = root_board.id
+              board_key = root_board.key || user.settings['preferences']['home_board']['key']
+              home_boards[board_key] = (home_boards[board_key] || []) + [user.global_id] if root_board && root_board.public
+              board_user_ids[local_board_id] ||= []
+              board_user_ids[local_board_id] << user.global_id
+            end
           end
         end
       end
@@ -465,7 +467,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     res[:pairs].each do |pair|
       uc = pair.delete('user_count')
       c = pair.delete('count')
-      pair['partner'] = pair['a'] == word ? pair['a'] : pair['b']
+      pair['partner'] = pair['a'] == word ? pair['b'] : pair['a']
       pair['users'] = (uc.to_f / stash[:user_ids].uniq.length.to_f).round(2)
       pair['users'] = 0.0 if pair['users'].nan?
       pair['usages'] = (c.to_f / max_count.to_f).round(2)
