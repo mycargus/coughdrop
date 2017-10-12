@@ -445,8 +445,8 @@ class WeeklyStatsSummary < ActiveRecord::Base
       (summary.data['word_matches'][word] || []).each do |pair|
         found = res[:pairs].detect{|p| [p['a'], p['b']].sort == [pair['a'], pair['b']].sort }
         if found
-          res[:pairs]['count'] += pair['count']
-          res[:pairs]['user_count'] += pair['user_count']
+          found['count'] += pair['count']
+          found['user_count'] += pair['user_count']
         else
           res[:pairs] << pair
         end
