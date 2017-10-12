@@ -81,6 +81,9 @@ export default Ember.Component.extend({
       }
       this.set('subscription.subscription_amount', amount);
     },
+    bulk_purchase: function() {
+      this.set('show_bulk_purchase', !this.get('show_bulk_purchase'));
+    },
     show_options: function() {
       this.set('subscription.show_options', true);
       this.set('subscription.show_cancel', false);

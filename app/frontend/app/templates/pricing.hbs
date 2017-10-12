@@ -1,28 +1,16 @@
 <div class="row">
-  <div class="col-sm-10 col-sm-offset-2">
+  <div class="col-sm-9 col-sm-offset-3">
     <h2>{{t "CoughDrop Pricing Options" key='coughdrop_pricing_options'}}</h2>
     <div class="row">
-    <div class='col-sm-9'>
+    <div class='col-sm-7'>
       <span class='glyphicon glyphicon-info-sign' style="float: left; font-size: 30px; margin-right: 10px;"></span>
-      <p>
-        {{t "We want CoughDrop to be accessible to as many people as possible, so we offer multiple purchasing options. After the 2-month trial if you need a little more time, or don't have the resources to make a large up-front purchase, you can pay monthly for a CoughDrop subscription. Or for a hefty discount you can purchase a long-term CoughDrop license." key='multiple_pricing_options'}}
-        {{t "We also offer discounts for " key='also_ofer_discounts_for'}}
-        <a href="#" {{action 'show_bulk_purchase'}}>
-          {{t "bulk purchases," key='bulk_purchases'}}
-        </a>
-        {{t "and more pricing options for " key='and_more_pricing_options_for'}}
-        <a href="#" {{action 'show_alternative_pricing'}}>
-          {{t "insurance and grant funded needs." key='insurance_and_grant_funding_needs'}}
-        </a>
+      <p style='padding-bottom: 20px;'>
+        {{t "We want CoughDrop to be accessible to as many people as possible, so we offer multiple purchasing options. After the 2-month trial if you need a little more time, or don't have the resources to make a large up-front purchase, you can pay monthly for a CoughDrop subscription, or for a hefty discount you can purchase full CoughDrop license." key='multiple_pricing_options'}}
       </p>
       <div style="clear: left;"></div>
       {{#if show_bulk_purchase}}
         <p class="explanation" style="margin-top: 10px;">
           {{t "We love working with school districts and organizations who want to support multiple communicators! If you're interested in purchasing multiple licenses, please <a href='/contact?to=sales'>contact our sales team</a> for more information." key='bulk_information'}}
-        </p>
-      {{else if show_alternative_pricing}}
-        <p class="explanation" style="margin-top: 10px;">
-          {{t "Sometimes insurance companies and grants require one-time or longer-term purchases for hardware and software. We don't want pricing to be the issue, so please <a href='/contact?to=sales'>contact our sales team</a> to learn about additional purchasing options we offer." key='alternative_pricing_information'}}
         </p>
       {{/if}}
     </div>

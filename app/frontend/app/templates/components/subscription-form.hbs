@@ -4,7 +4,7 @@
     <button class='btn btn-primary btn-lg' {{action 'check_pricing'}} style='height: 75px; width: calc(50% - 7px);'>{{t "See Purchasing<br/>Options" key='see_purchasing'}}</button>
   </div>
 {{else}}
-  <form {{action "purchase" on="submit"}} class="row">
+  <form {{action "purchase" on="submit"}} class="row" style='max-width: 600px;'>
     <div class="form-group"><div class="col-sm-12">
     {{#unless see_pricing}}
       {{#if trial_option}}
@@ -69,9 +69,9 @@
           </td>
         </tr>
         <tr>
-          <td>{{t "cloud extras included in subscription" key='included_in_subscription'}}</td>
-          <td>{{t "5 years of cloud extras included<br/>with purchase" key='5_years_included'}}</td>
-          <td colspan="2" class='separator dim'>{{t "cloud extras work for supported communicators" key='for_supported_communicators'}}</td>
+          <td>{{t "<a href='http://blog.mycoughdrop.com/what-in-the-world-are-aac-cloud-extras/' target='_blank'>cloud extras</a> included in subscription" key='included_in_subscription'}}</td>
+          <td>{{t "5 years of <a href='http://blog.mycoughdrop.com/what-in-the-world-are-aac-cloud-extras/' target='_blank'>cloud extras</a> included<br/>with purchase" key='5_years_included'}}</td>
+          <td colspan="2" class='separator dim'>{{t "<a href='http://blog.mycoughdrop.com/what-in-the-world-are-aac-cloud-extras/' target='_blank'>cloud extras</a> work for supported communicators" key='for_supported_communicators'}}</td>
         </tr>
         <tr>
           <td colspan="2">{{t "run on multiple devices" key='run_on_multiple_devices'}}</td>
@@ -79,13 +79,23 @@
         </tr>
         <tr>
           <td colspan="2">{{t "full communication system" key='full_communication_system'}}</td>
-          <td colspan="2" class='separator dim'>{{t "works as a communication system for supported communicators" key='works_for_communicators'}}</td>
+          <td colspan="2" class='separator dim'>{{t "use to support and model with paid communicators" key='works_for_communicators'}}</td>
         </tr>
         <tr>
           <td colspan="2">{{t "premium voices included" key='premium_voices'}}</td>
           <td colspan="2" class='separator dim'>{{t "track usage, get alerts and modify<br/>boards for communicators" key='track_for_communicators'}}</td>
         </tr>
-        {{#unless pricing_only}}
+        {{#if pricing_only}}
+          <tr>
+            <td colspan="2">
+              <a href="#" {{action 'bulk_purchase'}}>{{t "interested in a bulk purchase or PO?" key='interested_in_bulk_purchase'}}</a>
+            </td>
+            <td colspan="2" class='separator dim'>
+              {{t "user management tools available for organizations," key='org_tools_available'}}
+              {{#link-to 'contact'}}{{t "contact us!" key='contact_us'}}{{/link-to}}
+            </td>
+          </tr>
+        {{else}}
           <tr>
             <td style='width: 25%;'>
               <button style='width: 100%;' rel='monthly' class={{communicator_monthly_subscription_class}} type="button" {{action "set_subscription_type" 'monthly_communicator'}}>
@@ -136,12 +146,7 @@
                   <span style="display: inline-block; width: 150px; margin-left: 5px;">
                     {{input type='text' value=subscription.gift_code class='form-control input-lg' placeholder='CODE'}}
                   </span>
-                  {{#if trial_moves_gift_option}}
-                    <button class='btn btn-default'>cancel gift</button>
-                  {{/if}}
                 </div>
-              {{else if trial_moves_gift_option}}
-                <button class='btn btn-default' rel='free_trial' {{action 'skip_subscription'}}>{{t "Start with a 2-month trial" key='two_month_trial'}}</button>
               {{else}}
                 <a href="#" {{action 'set_subscription_type' 'gift_code'}}>
                   {{t "I have a gift code" key='have_a_gift_code'}}
@@ -149,41 +154,53 @@
               {{/if}}
               {{/if}}
             </td>
-            <td colspan="2" class='separator dim'>
-              {{#if trial_moves_gift_option}}
-                <a href="#" {{action 'set_subscription_type' 'gift_code'}}>
-                  {{t "I have a gift code" key='have_a_gift_code'}}
-                </a>
-              {{/if}}
+            <td colspan="2" class='separator dim' style='text-align: right;'>
+              <a href="#" {{action 'bulk_purchase'}}>
+                {{t "Bulk Purchase or PO?" key='bulk_purchase_or_po'}}
+              </a>
             </td>
           </tr>
-        {{/unless}}
+        {{/if}}
       </tbody>
     </table>
     </div></div>
-    {{#if pricing_only}}
-      <div class="form-group">
-        <div class="col-sm-9" style="margin-top: 20px; padding-bottom: 20px;">
-          <p style="font-size: 18px;"><strong>{{t "Or start with a 2-month free trial and make sure it works for you." key='after_free_trial'}}</strong></p>
-          <p style="margin-top: 10px;">
-            <a href="#" {{action 'show_expiration_notes'}}>{{t "What happens if my subscription expires?" key='what_happens_expires'}}</a>
+    {{#if show_bulk_purchase}}
+      <div class='form-group'>
+        <div class='col-sm-12' style='margin-top: 30px; padding-bottom: 20px;'>
+          <p>
+            <span class='glyphicon glyphicon-paperclip' style='float: left; font-size: 30px; margin-right: 10px;'></span>
+            {{t "We love working with school districts and organizations who want to support multiple communicators! If you're interested in purchasing multiple licenses, or purchasing without using a credit card, please <a href='/contact?to=sales'>contact our sales team for more information</a>." key='bulk_purchase_explainer'}}
           </p>
-          {{#if show_expiration_notes}}
-            <p class="explanation" style="margin-top: 10px;">
-              {{t "We don't want to shut off anyone's voice, even if funding unexpectedly becomes an issue down the line. When a user's subscription expires CoughDrop will still work as a communication system but premium features like reporting and video notes will be disabled. If you need help with funding please <a href='https://coughdrop.zendesk.com'>contact our support team</a> for more information." key='expiration_notes'}}
-            </p>
-          {{/if}}
         </div>
       </div>
+    {{/if}}
+    {{#if pricing_only}}
+      {{#unless show_bulk_purchase}}
+        <div class="form-group">
+          <div class="col-sm-12" style="margin-top: 20px; padding-bottom: 20px; width: 630px;">
+            <div style='text-align: center;'>
+              <p style="font-size: 18px; color: #888;">{{t "Or start with a 2-month free trial and make sure it works for you." key='after_free_trial'}}</p>
+              <p style="margin-top: -10px;">
+                <a href="#" {{action 'show_expiration_notes'}}>{{t "What happens if my subscription expires?" key='what_happens_expires'}}</a>
+              </p>
+            </div>
+            {{#if show_expiration_notes}}
+              <p class="explanation" style="margin-top: 10px;">
+                {{t "We don't want to shut off anyone's voice, even if funding unexpectedly becomes an issue down the line. When a user's subscription expires CoughDrop will still work as a communication system but premium features like reporting and video notes will be disabled. If you need help with funding please <a href='https://coughdrop.zendesk.com'>contact our support team</a> for more information." key='expiration_notes'}}
+              </p>
+            {{/if}}
+          </div>
+        </div>
+      {{/unless}}
       <div class="form-group">
-        <div class="col-sm-9">
+        <div class="col-sm-12">
           {{#link-to 'register' class='btn btn-lg btn-primary'}}{{t "Sign Up for a Free Trial of CoughDrop" key='sign_up_for_trial_coughdrop'}}{{/link-to}}
           {{#link-to 'gift_purchase' class='btn btn-lg btn-default'}}{{t "Purchase as a Gift" key='purchase_as_a_Gift'}}{{/link-to}}
         </div>
       </div>
     {{else}}
       <div class="form-group">
-        <div class="col-sm-9" style='margin-top: 20px;'>
+        <div class="col-sm-12" style='margin-top: 20px;'>
           {{#if not_authenticated}}
             {{#unless subscription.confirmation}}
               <p class='text-danger'>{{t "There appears to be an issue with your session that could prevent your purchase from completing. Please try logging out and back in. If that doesn't correct the problem, please try a different browser or contact our support team." key='error_subscription_wont_word'}}</p>
