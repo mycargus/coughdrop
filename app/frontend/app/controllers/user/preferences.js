@@ -282,6 +282,9 @@ export default Ember.Controller.extend({
     }
     this.set('logging_set', this.get('model.preferences.logging'));
   }.observes('model.preferences.logging'),
+  buttons_stretched: function() {
+    return this.get('model.preferences.stretch_buttons') && this.get('model.preferences.stretch_buttons') != 'none';
+  }.property('model.preferences.stretch_buttons'),
   needs: 'application',
   actions: {
     plus_minus: function(direction, attribute) {

@@ -142,7 +142,7 @@
       <div class="checkbox">
         <label>
           {{input type="checkbox" checked=model.preferences.blank_status id="blank_status"}}
-          {{t "Show time and device status when vocalization window is empty" key='blank_status'}}
+          {{t "Show time and device status when sentence box is empty" key='blank_status'}}
         </label>
       </div>
     </div>
@@ -397,7 +397,11 @@
     <div class="form-group">
       <label for="hidden_buttons" class="col-sm-3 control-label">{{t "Hidden Buttons" key='hidden_buttons'}}</label>
       <div class="col-sm-5">
-        {{bound-select select_class="form-control" select_id="hidden_buttons" content=hiddenButtonsList selection=model.preferences.hidden_buttons action=(action (mut model.preferences.hidden_buttons)) }}
+        {{#if buttons_stretched}}
+          <p class='form-control-static'><em>{{t "When \"Stretch Buttons\" is enabled, hidden buttons cannot be shown" key='no_hidden_buttons_when_stretching'}}</em></p>
+        {{else}}
+          {{bound-select select_class="form-control" select_id="hidden_buttons" content=hiddenButtonsList selection=model.preferences.hidden_buttons action=(action (mut model.preferences.hidden_buttons)) }}
+        {{/if}}
       </div>
       {{#if app_state.feature_flags.enable_all_buttons}}
         <div class="col-sm-5 col-sm-offset-3">

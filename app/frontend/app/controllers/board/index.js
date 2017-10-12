@@ -614,11 +614,12 @@ export default Ember.Controller.extend({
     if(this.get('stashes.current_mode')) {
       res = res + this.get('stashes.current_mode')  + " ";
     }
+    var stretchable = !app_state.get('edit_mode') && app_state.get('currentUser.preferences.stretch_buttons') && app_state.get('currentUser.preferences.stretch_buttons') != 'none'; // not edit mode and user-enabled
     if(this.get('stashes.all_buttons_enabled')) {
       res = res + 'show_all_buttons ';
-    } else if(app_state.get('currentUser.preferences.hidden_buttons') == 'hint') {
+    } else if(!stretchable && app_state.get('currentUser.preferences.hidden_buttons') == 'hint') {
       res = res + 'hint_hidden_buttons ';
-    } else if(app_state.get('currentUser.preferences.hidden_buttons') == 'grid') {
+    } else if!stretchable && (app_state.get('currentUser.preferences.hidden_buttons') == 'grid') {
       res = res + 'grid_hidden_buttons ';
     }
     if(app_state.get('currentUser.hide_symbols')) {
@@ -651,7 +652,7 @@ export default Ember.Controller.extend({
       }
     }
     return res;
-  }.property('stashes.all_buttons_enabled', 'stashes.current_mode', 'paint_mode', 'border_style', 'text_style', 'model.finding_target', 'app_state.currentUser.preferences.hidden_buttons', 'app_state.currentUser.hide_symbols', 'app_state.currentUser.preferences.folder_icons'),
+  }.property('stashes.all_buttons_enabled', 'stashes.current_mode', 'paint_mode', 'border_style', 'text_style', 'model.finding_target', 'app_state.currentUser.preferences.hidden_buttons', 'app_state.currentUser.hide_symbols', 'app_state.currentUser.preferences.folder_icons', 'app_state.currentUser.preferences.stretch_buttons'),
   suggestion_class: function() {
     var res = "advanced_selection ";
     if(this.get('text_style')) {
