@@ -76,7 +76,7 @@ export default modal.ModalController.extend({
   }.observes('model.label'),
   buttonActions: function() {
     var res = [
-      {name: i18n.t('talk', "Add button to the vocalization window"), id: "talk"},
+      {name: i18n.t('talk', "Add button to the vocalization box"), id: "talk"},
       {name: i18n.t('folder', "Open/Link to another board"), id: "folder"},
       {name: i18n.t('link', "Open a web site in a browser tab"), id: "link"},
       {name: i18n.t('app', "Launch an application"), id: "app"}

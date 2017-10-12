@@ -142,7 +142,7 @@
       <div class="checkbox">
         <label>
           {{input type="checkbox" checked=model.preferences.blank_status id="blank_status"}}
-          {{t "Show time and device status when sentence box is empty" key='blank_status'}}
+          {{t "Show time and device status when vocalization box is empty" key='blank_status'}}
         </label>
       </div>
     </div>
@@ -509,7 +509,7 @@
   {{/if}}
   <h2 style="margin: 50px 0 20px 0;">{{t "Device Preferences" key='device_preferences'}} ({{model.preferences.device.name}})</h2>
   <div class="form-group">
-    <label for="vocalization_height" class="col-sm-3 control-label">{{t "Vocalization Window Size" key='vocalization_height'}}</label>
+    <label for="vocalization_height" class="col-sm-3 control-label">{{t "Vocalization Box Size" key='vocalization_height'}}</label>
     <div class="col-sm-5">
       {{bound-select select_class="form-control" select_id="vocalization_height" content=vocalizationHeightList selection=model.preferences.device.vocalization_height action=(action (mut model.preferences.device.vocalization_height)) }}
     </div>
