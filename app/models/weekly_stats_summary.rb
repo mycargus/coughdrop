@@ -133,16 +133,19 @@ class WeeklyStatsSummary < ActiveRecord::Base
     total.data['totals']['total_core_words'] = 0
     total.data['word_counts'] = {}
     total.data['user_ids'] = []
+    total.data['home_board_user_ids'] = []
 
     valid_words = WordData.standardized_words
     board_user_ids = {}
     word_pairs = {}
     home_boards = {}
+    user_ids_with_home_boards = []
     sums.find_in_batches(batch_size: 10) do |batch|
       # TODO: sharding
       users = User.where(:id => batch.map(&:user_id))
       users.each do |user|
         total.data['user_ids'] << user.global_id
+        total.data['home_board_user_ids'] << user.global_id if user.settings['preferences'] && user.settings['preferences']['home_board'] && user.settings['preferences']['home_board']['id']
         if current_trends
           if user.settings['preferences'] && user.settings['preferences']['home_board'] && user.settings['preferences']['home_board']['id']
             root_board = Board.find_by_path(user.settings['preferences']['home_board']['id'])
@@ -208,7 +211,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     total.data['available_words'] = {}
     word_user_counts.each do |word, user_ids|
       user_ids.uniq!
-      if user_ids.length >= 5 && user_ids.length > total.data['totals']['total_users'] / 2
+      if user_ids.length >= 3 && user_ids.length > total.data['totals']['total_users'] / 3
         total.data['available_words'][word] = user_ids
       end
     end
@@ -269,6 +272,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     stash[:total_sessions] = 0
     stash[:total_words] = 0
     stash[:word_counts] = {}
+    stash[:home_board_user_ids] = []
     earliest = nil
     latest = nil
     WeeklyStatsSummary.where(['weekyear >= ?', cutoffweekyear]).where(:user_id => 0).each do |summary|
@@ -290,6 +294,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
       stash[:total_words] += summary.data['totals']['total_words']
       stash[:user_ids] += summary.data['user_ids'] || []
       stash[:total_sessions] += summary.data['totals']['total_sessions']
+      stash[:home_board_user_ids] += summary.data['home_board_user_ids'] || summary.data['user_ids'] || []
       
       if summary.data['word_counts']
         summary.data['word_counts'].each do |word, cnt|
@@ -349,21 +354,22 @@ class WeeklyStatsSummary < ActiveRecord::Base
       res[:max_word_count] = max_word_count if include_admin
       stash[:word_counts].each do |word, cnt|
         res[:word_counts] ||= {}
-        res[:word_counts][word] = (cnt.to_f / max_word_count.to_f * 2.0).round(1) / 2.0 if cnt > 10
+        res[:word_counts][word] = ((cnt.to_f / max_word_count.to_f * 10.0).round(1) / 10.0).round(2) if cnt > 10
       end
     end
-    
+
+    home_board_users = stash[:home_board_user_ids].uniq.length.to_f
     if stash[:home_boards]
       stash[:home_boards].each do |key, user_ids|
         res[:home_boards] ||= {}
-        res[:home_boards][key] = (user_ids.uniq.length.to_f / stash[:user_ids].uniq.length.to_f * 2.0).round(1) / 2.0
+        res[:home_boards][key] = ((user_ids.uniq.length.to_f / home_board_users * 10.0).round(1) / 10.0).round(2)
       end
     end
     
     if stash[:available_words] && include_admin
       stash[:available_words].each do |word, user_ids|
         res[:available_words] ||= {}
-        res[:available_words] = (user_ids.uniq.length.to_f / stash[:user_ids].uniq.length.to_f * 2.0).round(1) / 2.0
+        res[:available_words][word] = ((user_ids.uniq.length.to_f / home_board_users * 10.0).round(1) / 10.0).round(2)
       end
     end
     
