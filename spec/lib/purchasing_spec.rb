@@ -403,7 +403,8 @@ describe Purchasing do
         expect(subs).to receive(:create){|opts|
           expect(opts).to eq({
             :plan => 'monthly_6',
-            :source => 'token'
+            :source => 'token',
+            trial_end: (u.created_at + 60.days).to_i
           })
           subs.data.push(new_sub)
         }.and_return(new_sub)
@@ -433,7 +434,8 @@ describe Purchasing do
         expect(subs).to receive(:create){|opts|
           expect(opts).to eq({
             :plan => 'monthly_6',
-            :source => 'token'
+            :source => 'token',
+            trial_end: (u.created_at + 60.days).to_i
           })
           subs.data.push(new_sub)
         }.and_return(new_sub)
@@ -460,7 +462,8 @@ describe Purchasing do
         expect(subs).to receive(:create){|opts|
           expect(opts).to eq({
             :plan => 'monthly_6',
-            :source => 'token'
+            :source => 'token',
+            trial_end: (u.created_at + 60.days).to_i
           })
           subs.data.push(new_sub)
         }.and_return(new_sub)
@@ -503,7 +506,8 @@ describe Purchasing do
         expect(cus.subscriptions).to receive(:create){|opts|
           expect(opts).to eq({
             :plan => 'monthly_6',
-            :source => 'token'
+            :source => 'token',
+            trial_end: (u.created_at + 60.days).to_i
           })
           subs.data.push(new_sub)
         }.and_return(new_sub)
@@ -587,7 +591,8 @@ describe Purchasing do
         expect(subs).to receive(:create){|opts|
           expect(opts).to eq({
             plan: 'monthly_6',
-            source: 'token'
+            source: 'token',
+            trial_end: (u.created_at + 60.days).to_i
           })
           subs.data.push(new_sub)
         }.and_return(new_sub)
@@ -1297,7 +1302,7 @@ describe Purchasing do
       :receipt_email => nil,
       :metadata => {
         'user_id' => u.global_id,
-        'plan_id' => 'long_term_200'
+        'plan_id' => 'long_term_200',
       }
     }).and_return({
       'id' => 'asdf',
@@ -1369,7 +1374,8 @@ describe Purchasing do
     }).and_return(customer)
     expect(customer.subscriptions).to receive(:create).with({
       :plan => 'monthly_6',
-      :source => 'tokenasdfasdf'
+      :source => 'tokenasdfasdf',
+      trial_end: (u.created_at + 60.days).to_i
     }).and_raise("You cannot use a Stripe token more than once")
     Purchasing.purchase(u, {'id' => 'tokenasdfasdf'}, 'monthly_6')
     expect(u.reload.subscription_events.length).to eq(16)

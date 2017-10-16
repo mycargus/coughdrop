@@ -253,7 +253,7 @@ module Purchasing
               :plan => plan_id,
               :source => token['id'],
               # TODO: uncomment this to let people finish their free trial before being charged
-#              :trial_end => trial_end
+              :trial_end => trial_end
             })
           end
           customer = Stripe::Customer.retrieve(customer.id)
