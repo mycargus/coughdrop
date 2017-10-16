@@ -71,31 +71,36 @@ var modal = Ember.Object.extend({
       maxX = maxX + 10;
       maxY = maxY + 10;
     }
-    var settings = {
+    var settings = modal.highlight_settings || Ember.Object.create();
+    settings.setProperties({
       left: Math.floor(minX),
       top: Math.floor(minY),
       width: Math.ceil(maxX - minX),
       height: Math.ceil(maxY - minY),
       bottom: Math.floor(maxY),
-    };
+    });
 
     options = options || {};
-    settings.overlay = options.overlay;
-    if(settings.overlay !== false) { settings.overlay = true; }
-    settings.clear_overlay = options.clear_overlay;
-    settings.prevent_close = options.prevent_close;
-    settings.select_anywhere = options.select_anywhere;
-    settings.defer = Ember.RSVP.defer();
-    var promise = settings.defer.promise;
+    settings.set('overlay', options.overlay);
+    if(settings.get('overlay') !== false) { settings.set('overlay', true); }
+    settings.set('clear_overlay', options.clear_overlay);
+    settings.set('prevent_close', options.prevent_close);
+    settings.set('select_anywhere', options.select_anywhere);
+    settings.set('defer', Ember.RSVP.defer());
+    var promise = settings.get('defer')promise;
     if(modal.highlight_controller) {
       if(modal.highlight_promise) {
         modal.highlight_promise.reject('closing due to new highlight');
       }
       modal.highlight_controller.set('model', settings);
     } else {
-      modal.open('highlight', settings);
+      modal.close();
+      Ember.run.later(function() {
+        modal.open('highlight', settings);
+      });
     }
-    modal.highlight_promise = settings.defer;
+    modal.highlight_promise = settings.get('defer');
+    modal.highlight_settings = settings;
     return promise;
   },
   close_highlight: function() {

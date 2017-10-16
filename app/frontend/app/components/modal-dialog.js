@@ -2,7 +2,7 @@ import Ember from 'ember';
 import capabilities from '../utils/capabilities';
 
 export default Ember.Component.extend({
-  didInsertElement: function() {
+  didRender: function() {
     this.stretch();
     if(!this.get('already_opened')) {
       this.set('already_opened', true);
@@ -12,6 +12,9 @@ export default Ember.Component.extend({
       var height = Ember.$(window).height() - 50;
       Ember.$(this.get('element')).find(".modal-content").css('maxHeight', height).css('overflow', 'auto');
 //     }
+  },
+  willClearRender: function() {
+    this.set('already_opened', false);
   },
   stretch: function() {
     if(this.get('stretch_ratio')) {

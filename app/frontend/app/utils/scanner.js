@@ -25,10 +25,13 @@ var scanner = Ember.Object.extend({
       return;
     }
     var rows = [];
-    options = options || this.last_options || {};
+    options = options || this.last_options;
+    if(!options) { return; }
+
     this.last_options = options;
     options.scan_mode = options.scan_mode || "row";
     options.interval = options.interval || 1000;
+    options.all_elements = [];
 
     if(modal.is_open() && !modal.is_open('highlight')) {
       return;
@@ -311,13 +314,39 @@ var scanner = Ember.Object.extend({
     Ember.run.cancel(scanner.interval);
     this.scanning = false;
     this.keyboard_tried_to_show = false;
+    this.last_options = null;
     modal.close_highlight();
   },
+  same_elements: function(a, b) {
+    if(!a || !b || a.length != b.length) {
+      return false;
+    }
+    for(var idx = 0; idx < a.length; idx++) {
+      if(!a[idx] || !b[idx] || !a[idx].dom || !b[idx].dom || a[idx].dom[0] != b[idx].dom[0]) {
+        return false;
+      }
+      if(a.children || b.children) {
+        if(!a.children || !b.children || a.children.length != b.children.length) {
+          return false;
+        }
+        if(!scanner.compare_elements(a.children, b.children)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  },
   scan_elements: function(elements, options) {
-    this.elements = elements;
+    var retry = false;
+    if(scanner.interval && scanner.same_elements(elements, this.elements)) {
+      retry = true;
+    }
+    if(!retry) {
+      this.elements = elements;
+      this.element_index = 0;
+    }
     this.options = options;
-    this.element_index = 0;
-    this.next_element();
+    this.next_element(retry);
   },
   pick: function() {
     var elem = scanner.current_element;
@@ -426,7 +455,7 @@ var scanner = Ember.Object.extend({
     }
     scanner.next_element();
   },
-  next_element: function() {
+  next_element: function(retry) {
     var elem = this.elements[this.element_index];
     if(!elem) {
       elem = elem || this.elements[0];
@@ -449,12 +478,15 @@ var scanner = Ember.Object.extend({
       options.clear_overlay = false;
     }
 
-    if(this.options && this.options.audio) {
-      if(elem && elem.sound) {
-        speecher.speak_audio(elem.sound, 'text', false, {alternate_voice: true, interrupt: false});
-      } else if(elem && elem.label) {
-        var clean_label = (elem.label || "").replace(/^[\+\:]/, '');
-        speecher.speak_text(clean_label, false, {alternate_voice: true, interrupt: false});
+    // Don't repeat
+    if(!retry) {
+      if(this.options && this.options.audio) {
+        if(elem && elem.sound) {
+          speecher.speak_audio(elem.sound, 'text', false, {alternate_voice: true, interrupt: false});
+        } else if(elem && elem.label) {
+          var clean_label = (elem.label || "").replace(/^[\+\:]/, '');
+          speecher.speak_text(clean_label, false, {alternate_voice: true, interrupt: false});
+        }
       }
     }
     scanner.listen_for_input();
@@ -469,15 +501,18 @@ var scanner = Ember.Object.extend({
         scanner.pick();
       }
     }, function() { });
-    scanner.interval = Ember.run.later(function() {
-      if(scanner.current_element == elem) {
-        if(scanner.options && scanner.options.scanning_auto_select) {
-          scanner.pick();
-        } else {
-          scanner.next();
+    // Don't repeat
+    if(!retry && scanner.interval) {
+      scanner.interval = Ember.run.later(function() {
+        if(scanner.current_element == elem) {
+          if(scanner.options && scanner.options.scanning_auto_select) {
+            scanner.pick();
+          } else {
+            scanner.next();
+          }
         }
-      }
-    }, options.interval || 1000);
+      }, options.interval || 1000);
+    }
   }
 }).create();
 window.addEventListener('keyboardWillShow', function() {
@@ -486,5 +521,6 @@ window.addEventListener('keyboardWillShow', function() {
   }
   scanner.hide_input();
 });
+window.scanner = scanner;
 
 export default scanner;
