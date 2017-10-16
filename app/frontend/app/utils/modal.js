@@ -87,7 +87,8 @@ var modal = Ember.Object.extend({
     settings.set('prevent_close', options.prevent_close);
     settings.set('select_anywhere', options.select_anywhere);
     settings.set('defer', Ember.RSVP.defer());
-    var promise = settings.get('defer')promise;
+    var promise = settings.get('defer').promise;
+
     if(modal.highlight_controller) {
       if(modal.highlight_promise) {
         modal.highlight_promise.reject('closing due to new highlight');
