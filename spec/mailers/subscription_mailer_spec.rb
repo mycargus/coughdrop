@@ -199,6 +199,8 @@ describe SubscriptionMailer, :type => :mailer do
         'email' => 'bob@example.com',
         'seconds' => 2.years.to_i
       })
+      expect(gift.bulk_purchase?).to eq(false)
+      expect(gift.settings['giver_email']).to eq('bob@example.com')
       m = SubscriptionMailer.gift_created(gift.global_id)
       expect(m.to).to eq(['bob@example.com'])
       expect(m.subject).to eq("CoughDrop - Gift Created")
@@ -213,16 +215,19 @@ describe SubscriptionMailer, :type => :mailer do
       expect(text).to match(/"#{gift.code}"/)
       expect(text).to match(/2 years/)
     end
-    
+
     it "should generate a bulk purchase message if appropriate" do
       giver = User.create(:settings => {'email' => 'fred@example.com'})
       gift = GiftPurchase.process_new({
         'licenses' => 4,
         'amount' => '1234',
         'organization' => 'org name',
-        'email' => 'bob@example.com'
+        'email' => 'bob@example.com',
       }, {
+        'giver' => giver,        
       })
+      expect(gift.bulk_purchase?).to eq(true)
+      expect(gift.settings['giver_email']).to eq('fred@example.com')
       m = SubscriptionMailer.gift_created(gift.global_id)
       expect(m.to).to eq(['bob@example.com'])
       expect(m.subject).to eq("CoughDrop - Bulk Purchase")

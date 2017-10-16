@@ -83,12 +83,16 @@ class GiftPurchase < ActiveRecord::Base
     self.settings['giver_email'] = non_user_params['email'] if non_user_params['email']
     if non_user_params['giver']
       self.settings['giver_id'] = non_user_params['giver'].global_id
-      self.settings['giver_email'] ||= non_user_params['giver'].settings['email']
+      self.settings['giver_email'] ||= non_user_params['giver'].settings['email'] if non_user_params['giver'].settings['email']
     end
 
     ['licenses', 'amount', 'memo', 'email', 'organization', 'gift_name'].each do |arg|
       self.settings[arg] = params[arg] if params[arg] && !params[arg].blank?
     end
+    if non_user_params['giver'] && self.settings['licenses']
+      self.settings['giver_email'] = non_user_params['giver'].settings['email'] if non_user_params['giver'].settings['email']
+    end
+
     ['customer_id', 'token_summary', 'plan_id', 'purchase_id'].each do |arg|
       self.settings[arg] = non_user_params[arg] if non_user_params[arg]
     end

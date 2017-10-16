@@ -69,7 +69,8 @@ class SubscriptionMailer < ActionMailer::Base
     @gift = GiftPurchase.find_by_global_id(gift_id)
     subject = "CoughDrop - Gift Created"
     subject = "CoughDrop - Bulk Purchase" if @gift.bulk_purchase?
-    mail(to: @gift.settings['giver_email'], subject: subject)
+    email = @gift.bulk_purchase? ? @gift.settings['email'] : @gift.settings['giver_email']
+    mail(to: email, subject: subject)
   end
   
   def gift_redeemed(gift_id)

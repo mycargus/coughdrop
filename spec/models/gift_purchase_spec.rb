@@ -105,6 +105,22 @@ describe GiftPurchase, :type => :model do
     expect(g.settings['purchase_id']).to eq('23456')
     expect(g.settings['bacon']).to eq(nil)
   end
+
+  it "should force the giver email for bulk purchases" do
+    giver = User.create(:settings => {'email' => 'fred@example.com'})
+    gift = GiftPurchase.process_new({
+      'licenses' => 4,
+      'amount' => '1234',
+      'organization' => 'org name',
+      'email' => 'bob@example.com',
+    }, {
+      'giver' => giver, 
+      'email' => 'stan@example.com'       
+    })
+    expect(gift.bulk_purchase?).to eq(true)
+    expect(gift.settings['giver_email']).to eq('fred@example.com')
+    expect(gift.settings['email']).to eq('bob@example.com')
+  end
   
   it "should process bulk purchase settings" do
     g = GiftPurchase.process_new({
