@@ -102,7 +102,7 @@ module Relinking
         if !orig.allows?(user, 'view') && !orig.allows?(auth_user, 'view')
           # TODO: make a note somewhere that a change should have happened but didn't due to permissions
         else
-          copy = orig.copy_for(user)
+          copy = orig.copy_for(user, make_public, starting_new_board.global_id)
           pending_replacements << [orig, copy]
         end
       end

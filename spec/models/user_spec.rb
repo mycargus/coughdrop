@@ -632,6 +632,23 @@ describe User, :type => :model do
       end
       u3.copy_board_links(b1.global_id, b2.global_id, [], false, "user:#{u2.global_id}")
     end
+    
+    it "should make sub-boards public if specified" do
+      u1 = User.create
+      u2 = User.create
+      User.link_supervisor_to_user(u1, u2, nil, true)
+      b1 = Board.create(:user => u2)
+      b2 = Board.create(:user => u2)
+      b1.settings['buttons'] = [{'id' => 1, 'load_board' => {'key' => b2.key, 'id' => b2.global_id}}]
+      b1.save!
+      b1.track_downstream_boards!
+      b3 = b1.copy_for(u1)
+      u1.copy_board_links(b1.global_id, b3.global_id, [], true, "user:#{u1.global_id}")
+      expect(Board.count).to eq(4)
+      b4 = Board.last
+      expect(b4.parent_board_id).to eq(b2.id)
+      expect(b4.public).to eq(true)
+    end
   end
  
   describe "notify_of_changes" do
