@@ -149,7 +149,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
         if current_trends
           if user.settings['preferences'] && user.settings['preferences']['home_board'] && user.settings['preferences']['home_board']['id']
             root_board = Board.find_by_path(user.settings['preferences']['home_board']['id'])
-            while root && root_board.parent_board
+            while root_board && root_board.parent_board
               root_board = root_board.parent_board
             end
             if root_board
