@@ -307,11 +307,13 @@ var scanner = Ember.Object.extend({
   },
   reset: function() {
     Ember.run.cancel(scanner.interval);
+    scanner.interval = null;
     this.start();
     this.listen_for_input();
   },
   stop: function()  {
     Ember.run.cancel(scanner.interval);
+    scanner.interval = null;
     this.scanning = false;
     this.keyboard_tried_to_show = false;
     this.last_options = null;
@@ -449,6 +451,7 @@ var scanner = Ember.Object.extend({
   },
   next: function() {
     Ember.run.cancel(scanner.interval);
+    scanner.interval = null;
     scanner.element_index = scanner.element_index + 1;
     if(scanner.element_index >= scanner.elements.length) {
       scanner.element_index = 0;
@@ -502,7 +505,7 @@ var scanner = Ember.Object.extend({
       }
     }, function() { });
     // Don't repeat
-    if(!retry && scanner.interval) {
+    if(!retry || !scanner.interval) {
       scanner.interval = Ember.run.later(function() {
         if(scanner.current_element == elem) {
           if(scanner.options && scanner.options.scanning_auto_select) {
