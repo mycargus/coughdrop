@@ -26,7 +26,7 @@ class Api::GiftsController < ApplicationController
       'gift_name' => params['gift']['gift_name']
     }, {
       'giver' => @api_user,
-      'email' => @api_user.settings['email'] || ,
+      'email' => @api_user.settings['email'],
       'seconds' => params['gift']['seconds'].to_i
     })
     
