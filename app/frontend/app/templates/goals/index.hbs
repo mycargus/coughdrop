@@ -2,6 +2,13 @@
 {{#if goals}}
   {{#each goals as |goal|}}
     <div class='well goal' {{action 'select_goal' goal}}>
+      <div style='float: left; width: 50px; height: 65px; overflow: hidden; margin: -10px 10px -10px 0; font-size: 40px; text-align: center; line-height: 20px;'>
+        {{#if goal.badge_image_url}}
+          <img src={{goal.badge_image_url}} style='width: 50px; max-height: 50px; opacity: 0.8;' />
+        {{else}}
+          <span class='glyphicon glyphicon-flag' style='margin-top: 10px;'></span>
+        {{/if}}
+      </div>
       {{#link-to 'goals.goal' goal.id}}
         {{goal.high_level_summary}}
       {{/link-to}}
@@ -15,6 +22,7 @@
       <div class='description text-muted'>
         {{safe goal.high_level_description 'stripped'}}
       </div>
+      <div style='clear: left;'></div>
     </div>
   {{/each}}
 {{else}}
@@ -35,6 +43,13 @@
   {{#if global_goals}}
     {{#each global_goals as |goal|}}
       <div class='well goal' {{action 'select_goal' goal}}>
+        <div style='float: left; width: 50px; height: 65px; overflow: hidden; margin: -10px 10px -10px 0; font-size: 40px; text-align: center; line-height: 20px;'>
+          {{#if goal.badge_image_url}}
+            <img src={{goal.badge_image_url}} style='width: 50px; max-height: 50px; opacity: 0.8;' />
+          {{else}}
+            <span class='glyphicon glyphicon-flag' style='margin-top: 10px;'></span>
+          {{/if}}
+        </div>
         {{#link-to 'goals.goal' goal.id}}
           {{goal.high_level_summary}}
         {{/link-to}}
@@ -48,6 +63,7 @@
         <div class='description text-muted'>
           {{safe goal.high_level_description 'stripped'}}
         </div>
+        <div style='clear: left;'></div>
       </div>
     {{/each}}
   {{else}}

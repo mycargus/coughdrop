@@ -182,10 +182,18 @@
       <p class='text-danger'>{{t "There was an error trying to save the goal" key='error_saving_goal'}}</p>
     {{/if}}
 {{else}}
-  <div class='safe_html'>{{safe model.description}}</div>
+  <div class='safe_html' style='margin: 20px 0 50px;'>{{safe model.description}}</div>
   {{#if model.video}}
     <div style="margin-top: 10px;">
       <video src={{model.video.url}} controls style='max-width: 100%; max-height: 400px; border: 1px solid #ccc;'></video>
+    </div>
+  {{/if}}
+
+  {{#if model.assessment_badge}}
+    <h4>{{t "Automated Tracking" key='automated_tracking'}}</h4>
+    <div style='margin-bottom: 30px;'>
+      <em>{{t "Assessments will be automatically generated based on the following criteria:" key='assessments_based_on_criteria'}}</em><br/>
+      {{assessment_badge_description}}
     </div>
   {{/if}}
 
@@ -236,7 +244,7 @@
     <p>{{t "No Comments" key='no_comments'}}</p>
     <button class='btn btn-default'>{{t "Add Comment" key='add_comment'}}</button>
   </div>
-  <h4>{{t "Notes and Assessments" key='notes_and_assessments'}}</h4>
+  <h4 style='margin-top: 20px;'>{{t "Notes and Assessments" key='notes_and_assessments'}}</h4>
   <div class="table-responsive">
     <table class="table table-hover table-bordered">
       <thead>

@@ -47,8 +47,16 @@ export default Ember.Controller.extend({
       return this.get('model.badges');
     }
   }.property('model.badges', 'user_badges'),
+  assessment_badge_description: function() {
+    var ub = CoughDrop.store.createRecord('badge', {
+      name: this.get('model.badge_name') || this.get('model.summary'),
+      level: 0,
+      completion_settings: this.get('model.assessment_badge')
+    });
+    return ub.get('completion_explanation');
+  }.property('model.assessment_badge'),
   weighted_average_status_face_class: function() {
-    var status = this.get('model.status.weighted_average_status') || 0;
+    var status = this.get('model.stats.weighted_average_status') || 0;
     var res = "face";
     if(status >= 3.5) {
     } else if(status >= 2.5) {

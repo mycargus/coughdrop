@@ -29,7 +29,7 @@ CoughDrop.Badge = DS.Model.extend({
   progress_style: function() {
     return Ember.String.htmlSafe("width: " + Math.min(Math.max((this.get('progress') || 0) * 100, 0), 100) + "%");
   }.property('progress'),
-  numbered_interval(interval, number) {
+  numbered_interval: function(interval, number) {
     var res = {multiplier: 1, unit: i18n.t('day', "day")};
     if(interval == 'monthyear') {
       res.unit = i18n.t('month', "month");
@@ -167,6 +167,10 @@ CoughDrop.Badge = DS.Model.extend({
         res = res + i18n.t('for_a_total_of', " for a total of ");
         res = res + i18n.t('n_items', this.get('completion_type'), {count: badge_level.matching_instances});
       }
+    } else if(badge_level.assessment) {
+      var interval = this.numbered_interval(badge_level.interval, 1);
+      res = res + i18n.t('every', " every ");
+      res = res + interval.unit;
     } else {
       return null;
     }
