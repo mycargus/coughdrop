@@ -38,5 +38,10 @@ export default Ember.Controller.extend({
         return b.pct - a.pct;
       });
     }
-  }.property('trends.home_boards')
+  }.property('trends.home_boards'),
+  actions: {
+    show_private_info: function() {
+      this.set('showing_private_info', true);
+    }
+  }
 });
