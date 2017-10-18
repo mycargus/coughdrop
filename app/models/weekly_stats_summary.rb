@@ -107,6 +107,24 @@ class WeeklyStatsSummary < ActiveRecord::Base
     return true
   end
   
+  def self.update_for_board(log_session)
+    all = false
+    return if !log_session || log_session.log_type != 'session'
+    return unless log_session.user_id && log_session.started_at && log_session.data && log_session.data['stats']
+    start_at = log_session.started_at.utc.beginning_of_week(:sunday)
+    end_at = log_session.started_at.utc.end_of_week(:sunday)
+    cweek = start_at.to_date.cweek
+    cwyear = start_at.to_date.cwyear
+    weekyear = (cwyear * 100) + cweek
+
+    board_id_events.each do |board_id, board_clump|
+      summary = WeeklyStatsSummary.find_or_create_by(:weekyear => weekyear, :board_id => board_id)
+      sessions = LogSessionBoard.find_sessions(board_id, {:start_at => start_at, :end_at => end_at})
+      
+      total_stats = LogSessionBoard.init_stats(sessions)
+    end
+  end
+  
   def self.track_trends(weekyear)
     start = 1.week.ago.to_date
     cweek = start.cweek
