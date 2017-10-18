@@ -514,7 +514,7 @@ class UserGoal < ActiveRecord::Base
   
   def self.advance_goals
     UserGoal.where(['advance_at < ?', Time.now]).each do |goal|
-      goal.schedule(:advance!)
+      goal.schedule(:advance!) if goal.user && goal.user.premium?
     end
   end
 end
