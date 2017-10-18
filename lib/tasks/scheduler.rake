@@ -25,6 +25,12 @@ task :clean_old_deleted_boards => :environment do
   puts "done, #{count} deleted."
 end
 
+task :advance_goals => :environment do
+  puts "Advancing goals..."
+  count = UserGoal.advance_goals.count
+  puts "done, #{count} advanced."
+end
+
 task :transcode_errored_records => :environment do
   puts "Transcoding records that didn't get properly transcoded"
   count = ButtonSound.schedule_missing_transcodings
