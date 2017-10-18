@@ -1303,6 +1303,7 @@ var app_state = Ember.Object.extend({
       obj.completion = obj.completion || button_to_speak.label;
     }
 //    console.log(obj);
+    obj.depth = (stashes.get('boardHistory') || []).length;
     stashes.log(obj);
     var _this = this;
 
