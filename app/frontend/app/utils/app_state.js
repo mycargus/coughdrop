@@ -348,6 +348,7 @@ var app_state = Ember.Object.extend({
     if(enable === undefined || enable === null) {
       enable = !app_state.get('manual_modeling');
     }
+    app_state.set('last_activation', (new Date()).getTime());
     app_state.set('manual_modeling', !!enable);
     if(enable) {
       app_state.set('modeling_started', (new Date()).getTime());
@@ -376,13 +377,19 @@ var app_state = Ember.Object.extend({
       }
       // progressively get more aggressive at auto-clearing modeling flag
       var duration = now - app_state.get('modeling_started');
-      var cutoff = 60 * 1000;
-      if(duration > (10 * 60 * 1000)) {
+      // by default, clear manual modeling mode after 5 minutes of inactivity
+      var cutoff = 5 * 60 * 1000;
+      // if you've been modeling for more than 30 minutes, then auto-clear after
+      // 5 seconds without modeling
+      if(duration > (30 * 60 * 1000)) {
         cutoff = 5 * 1000;
-      } else if(duration > (5 * 60 * 1000)) {
-        cutoff = 15 * 1000;
-      } else if(duration > (2 * 60 * 1000)) {
+      // if you've been modeling for 10-30 minutes, then auto-clear modeling after
+      // 30 seconds of inactivity
+      } else if(duration > (10 * 60 * 1000)) {
         cutoff = 30 * 1000;
+      // if you've been modeling for 5-10 minutes, then auto-clear after 60 inactive seconds
+      } else if(duration > (5 * 60 * 1000)) {
+        cutoff = 60 * 1000;
       }
       if(now - app_state.get('last_activation') > cutoff) {
         app_state.toggle_modeling();
