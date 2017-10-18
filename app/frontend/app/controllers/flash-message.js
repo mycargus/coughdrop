@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import modal from '../utils/modal';
 import app_state from '../utils/app_state';
+import capabilities from '../utils/capabilities';
 
 export default Ember.Controller.extend({
   display_class: function() {
@@ -16,6 +17,7 @@ export default Ember.Controller.extend({
 
       this.set('message', settings.text);
       this.set('sticky', settings.sticky);
+      this.set('subscribe', settings.subscribe);
       var class_name = 'alert-info';
       if(settings.type == 'warning') { class_name = 'alert-warning'; }
       if(settings.type == 'error') { class_name = 'alert-danger'; }
@@ -26,6 +28,11 @@ export default Ember.Controller.extend({
       this.set('alert_type', class_name);
     },
     closing: function() {
+    },
+    confirm: function() {
+      if(this.get('subscribe') && !capabilities.installed_app) {
+        this.transitionToRoute('user.subscription', app_state.get('currentUser.user_name'));
+      }
     }
   }
 });

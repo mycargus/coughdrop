@@ -151,7 +151,7 @@ var modal = Ember.Object.extend({
       }, 2000);
     }
   },
-  flash: function(text, type, below_header, sticky) {
+  flash: function(text, type, below_header, sticky, opts) {
     if(!this.route) { throw "must call setup before trying to show a flash message"; }
     type = type || 'notice';
     this.route.disconnectOutlet({
@@ -162,6 +162,10 @@ var modal = Ember.Object.extend({
     if(below_header) {
       this.settings_for['flash'].below_header = below_header;
     }
+    if(opts && opts.subscribe_redirect) {
+      this.settings_for['flash'].subscribe = true;
+    }
+
     var _this = this;
     Ember.run.later(function() {
       var timeout = below_header ? 500 : 1500;
@@ -176,17 +180,17 @@ var modal = Ember.Object.extend({
   fade_flash: function() {
     Ember.$('.flash').addClass('fade');
   },
-  warning: function(text, below_header, sticky) {
-    modal.flash(text, 'warning', below_header, sticky);
+  warning: function(text, below_header, sticky, opts) {
+    modal.flash(text, 'warning', below_header, sticky, opts);
   },
-  error: function(text, below_header, sticky) {
-    modal.flash(text, 'error', below_header, sticky);
+  error: function(text, below_header, sticky, opts) {
+    modal.flash(text, 'error', below_header, sticky, opts);
   },
-  notice: function(text, below_header, sticky) {
-    modal.flash(text, 'notice', below_header, sticky);
+  notice: function(text, below_header, sticky, opts) {
+    modal.flash(text, 'notice', below_header, sticky, opts);
   },
-  success: function(text, below_header, sticky) {
-    modal.flash(text, 'success', below_header, sticky);
+  success: function(text, below_header, sticky, opts) {
+    modal.flash(text, 'success', below_header, sticky, opts);
   }
 }).create();
 
