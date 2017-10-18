@@ -982,8 +982,8 @@ var app_state = Ember.Object.extend({
         if(started < now - (15 * 60 * 1000)) {
           done = i18n.t('expired_supervisee_timeout', "Speak mode sessions are limited to 15 minutes when working with communicators that don't have an active account");
         }
-      // If running speak mode as a communicator, leave it go until they're really really expired
-      } else if(this.get('currentUser.really_really_expired')) {
+      // If running speak mode as a communicator, leave it go until they're really expired
+      } else if(this.get('currentUser.really_expired')) {
         if(started < now - (30 * 60 * 1000)) {
           done = i18n.t('really_expired_communicator_timeout', "This account has expired, and sessions are limited to 30 minutes. If you need help with funding we can help, please contact us!");
         }
