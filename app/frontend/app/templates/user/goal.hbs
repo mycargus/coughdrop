@@ -192,8 +192,12 @@
   {{#if model.assessment_badge}}
     <h4>{{t "Automated Tracking" key='automated_tracking'}}</h4>
     <div style='margin-bottom: 30px;'>
-      <em>{{t "Assessments will be automatically generated based on the following criteria:" key='assessments_based_on_criteria'}}</em><br/>
-      {{assessment_badge_description}}
+      {{#if assessment_badge_description}}
+        <em>{{t "Assessments will be automatically generated based on the following criteria:" key='assessments_based_on_criteria'}}</em><br/>
+        {{assessment_badge_description}}
+      {{else}}
+        {{t "Assessment not properly configured, data will not be reliable" key='assessment_misconfigured'}}
+      {{/if}}
     </div>
   {{/if}}
 
