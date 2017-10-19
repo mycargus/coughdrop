@@ -355,7 +355,7 @@ var app_state = Ember.Object.extend({
     }
   },
   update_modeling: function() {
-    if(this.get('modeling')) {
+    if(this.get('modeling') !== undefined && this.get('modeling') !== null) {
       stashes.set('modeling', !!this.get('modeling'));
     }
   }.observes('modeling'),
