@@ -66,7 +66,7 @@ var session = Ember.Object.extend({
     return persistence.ajax(url, {
       type: 'GET'
     }).then(function(data) {
-      if(data.authenticated !== true) {
+      if(data.authenticated === false) {
         session.set('invalid_token', true);
         if(allow_invalidate) {
           session.invalidate(true);
@@ -154,6 +154,9 @@ var session = Ember.Object.extend({
     }
   },
   invalidate: function() {
+    if(session.get('user_name') && session.get('user_name').match(/wahl/)) {
+      console.error('session invalidated for wahly');
+    }
     var full_invalidate = !!(app_state.get('currentUser') || stashes.get_object('auth_settings', true));
     stashes.flush();
     stashes.setup();
