@@ -160,7 +160,7 @@ module Stats
       stats[:id] = device.global_id
       stats[:name] = device.settings['name'] || "Unspecified device"
       stats[:last_used_at] = device.last_used_at.iso8601
-      stats[:total_sessions] = device_sessions.length
+      stats[:total_sessions] = device_sessions.select{|s| s.log_type == 'session' }.length
       started = device_sessions.map(&:started_at).compact.min
       stats[:started_at] = started && started.iso8601
       ended = device_sessions.map(&:ended_at).compact.max
@@ -292,6 +292,7 @@ module Stats
     all_devices = nil
     all_locations = nil
     goals = {}
+    button_chains = {}
 
     stats_list.each do |stats|
       stats = stats.with_indifferent_access
@@ -339,6 +340,12 @@ module Stats
       end
       if stats[:all_word_sequence]
 #        all_word_sequences << stats[:all_word_sequence].join(' ')
+      end
+      
+      if stats[:buttons_used]
+        stats[:buttons_used]['button_chains'].each do |chain, count|
+          button_chains[chain] = (button_chains[chain] || 0) + count
+        end
       end
       
       merge_sensor_stats!(res, stats)
@@ -420,6 +427,10 @@ module Stats
     end
     if res[:touch_locations]
       res[:max_touches] = res[:touch_locations].map(&:last).max
+    end
+    res[:button_chains] = {}
+    button_chains.each do |chain, count|
+      res[:button_chains][chain] = count if count > (res[:total_sessions] / 25)
     end
     if res[:time_offset_blocks]
       max = 0
@@ -560,7 +571,7 @@ module Stats
   
   def self.init_stats(sessions)
     stats = {}
-    stats[:total_sessions] = sessions.length
+    stats[:total_sessions] = sessions.select{|s| s.log_type == 'session' }.length
     stats[:total_utterances] = 0.0
     stats[:total_utterance_words] = 0.0
     stats[:total_utterance_buttons] = 0.0
@@ -640,7 +651,7 @@ module Stats
       location = {}
       location[:id] = cluster.global_id
       location[:type] = cluster.cluster_type
-      location[:total_sessions] = cluster_sessions.length
+      location[:total_sessions] = cluster_sessions.select{|s| s.log_type == 'session' }.length
       started = cluster_sessions.map(&:started_at).compact.min
       location[:started_at] = started && started.iso8601
       ended = cluster_sessions.map(&:ended_at).compact.max
@@ -661,6 +672,93 @@ module Stats
     end
     res
   end
+
+  def self.goals_for_user(user, start_at, end_at)
+    goals = UserGoal.where(user_id: user.id)
+    goals = goals.select{|g| g.active_during(start_at, end_at) }
+    res = {
+      'goals_set' => {},
+      'badges_earned' => {}
+    }
+    templates = UserGoal.find_all_by_global_id(goals.map{|g| g.settings['template_id'] }.compact)
+    goals.each do |goal|
+      template_goal = templates.detect{|g| g.global_id == goal.settings['template_id'] }
+      res['goals_set'][goal.global_id] = {
+        'template_goal_id' => goal.settings['template_id'],
+        'name' => (template_goal || goal).settings['summary'],
+      }
+    end
+    badges = UserBadge.where(user_id: user.id, earned: true)
+    badges = badges.select{|b| b.earned_during(start_at, end_at) }
+    badges.each do |badge|
+      template = badge.template_goal
+      template_badge = template && template.badge_level(badge.level) 
+      badge_data = (template_badge || badge.data)
+      res['badges_earned'][badge.global_id] = {
+        'goal_id' => badge.related_global_id(badge.user_goal_id),
+        'template_goal_id' => template && template.global_id,
+        'level' => badge.level,
+        'global' => badge.data['global_goal'],
+        'shared' => badge.highlighted,
+        'name' => badge_data['name'] || badge.data['name'],
+        'image_url' => badge_data['image_url'] || badge.data['image_url']
+      }
+    end
+    res
+  end 
+  
+  
+  def self.buttons_used(sessions)
+    res = {
+      'button_ids' => [],
+      'button_chains' => {}
+    }
+    sessions.each do |session|
+      current_chain = []
+      last_timestamp = nil
+      last_button_id = nil
+      session.data['events'].each do |event|
+        if event['type'] == 'button'
+          button = event['button']
+          if !event['modeling'] && button
+            button_text = LogSession.event_text(event)
+
+            if button_text && button_text.length > 0 && (event['button']['spoken'] || event['button']['for_speaking'])
+              button_key = "#{button['board']['id']}:#{button['button_id']}"
+              res['button_ids'] << button_key
+              
+              # If less than 2 minutes since the last hit, let's add it to the button sequence,
+              # and we'll go ahead and stop counting if it's the same button multiple times
+              if (!last_button_id || last_button_id != button_key) && (!last_timestamp || (event['timestamp'] - last_timestamp) < (2 * 60))
+                current_chain << button_text
+                if current_chain.length >= 3
+                  sequence = current_chain[-3, 3]
+                  sequence_key = sequence.join(', ')
+                  res['button_chains'][sequence_key] = (res['button_chains'][sequence_key] || 0) + 1
+                  if current_chain.length >= 4
+                    sequence = current_chain[-4, 4]
+                    sequence_key = sequence.join(', ')
+                    res['button_chains'][sequence_key] = (res['button_chains'][sequence_key] || 0) + 1
+                  end
+                end
+              end
+              last_timestamp = event['timestamp']
+              last_button_id = button_key
+            end
+          else
+            last_timestamp = nil
+            last_button_id = nil
+            current_chain = []
+          end
+        elsif event['type'] == 'utterance' || (event['type'] == 'action' && event['action']['action'] == 'clear')
+          last_timestamp = nil
+          last_button_id = nil
+          current_chain = []
+        end
+      end
+    end
+    res
+  end 
   
   def self.parts_of_speech_stats(sessions)
     res = {
@@ -914,7 +1012,6 @@ module Stats
     idx = 0
     sessions.find_in_batches(:batch_size => 10) do |batch|
       idx += 1
-      puts idx
       batch.each do |log|
         (log.data['events'] || []).each do |event|
           if event['type'] == 'button' && event['button'] && event['button']['board']

@@ -645,8 +645,12 @@ describe UserGoal, type: :model do
     end
     
     it "should schedule only advancing goals" do
-      g = UserGoal.create(:advance_at => 2.weeks.ago)
+      u = User.create
+      expect(u.premium?).to eq(true)
+      
+      g = UserGoal.create(:advance_at => 2.weeks.ago, :user => u)
       g2 = UserGoal.create(:advance_at => 1.hour.from_now)
+      g3 = UserGoal.create(:advance_at => 2.weeks.ago)
       Worker.process_queues
       UserGoal.advance_goals
       expect(Worker.scheduled_actions).to eq([{
@@ -656,6 +660,7 @@ describe UserGoal, type: :model do
     end
     
     it "should advance to the next goal in a sequence" do
+      two_weeks = 2.weeks.to_i
       t2 = UserGoal.create(:template => true, :settings => {
         'author_id' => '8765',
         'summary' => 'step 2',
@@ -677,7 +682,7 @@ describe UserGoal, type: :model do
       }, {user: u, author: u})
       expect(g1.settings['author_id']).to eq(u.global_id)
       expect(g1.settings['template_id']).to eq(t1.global_id)
-      expect(g1.advance_at.to_i).to eq((Time.now + 2.weeks).to_i)
+      expect(g1.advance_at.to_i).to eq((Time.now + two_weeks).to_i)
       expect(g1.active).to eq(true)
       g1.advance_at = 2.hours.ago
       
@@ -716,7 +721,7 @@ describe UserGoal, type: :model do
       }, {user: u, author: u})
       expect(g1.settings['author_id']).to eq(u.global_id)
       expect(g1.settings['template_id']).to eq(t1.global_id)
-      expect(g1.advance_at.to_i).to eq((Time.now + 2.weeks).to_i)
+      expect(g1.advance_at.to_i).to eq((Time.now + 2.weeks.to_i).to_i)
       expect(g1.active).to eq(true)
       g1.advance_at = 2.hours.ago
       
@@ -940,5 +945,27 @@ describe UserGoal, type: :model do
     Worker.process_queues
     u.reload
     expect(u.settings['primary_goal']).to eq(nil)
+  end
+  
+  describe "active_during" do
+    it "should return the correct value" do
+      u = User.create
+      g = UserGoal.create(user: u)
+      g.active = true
+      g.settings['started_at'] = 5.hours.ago.iso8601
+      expect(g.active_during(24.hours.ago, 12.hours.ago)).to eq(false)
+      expect(g.active_during(12.hours.ago, 2.hours.ago)).to eq(true)
+      expect(g.active_during(3.hours.ago, 2.hours.ago)).to eq(true)
+      
+      g.active = false
+      expect(g.active_during(24.hours.ago, 12.hours.ago)).to eq(false)
+      expect(g.active_during(12.hours.ago, 2.hours.ago)).to eq(false)
+      expect(g.active_during(3.hours.ago, 2.hours.ago)).to eq(false)
+      
+      g.settings['ended_at'] = 4.hours.ago.iso8601
+      expect(g.active_during(24.hours.ago, 12.hours.ago)).to eq(false)
+      expect(g.active_during(12.hours.ago, 2.hours.ago)).to eq(true)
+      expect(g.active_during(3.hours.ago, 2.hours.ago)).to eq(false)
+    end
   end
 end

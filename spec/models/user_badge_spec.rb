@@ -28,6 +28,8 @@ describe UserBadge, type: :model do
       expect(badges[0].earned).to eq(true)
       expect(badges[0].level).to eq(1)
       expect(badges[0].data['name']).to eq("Good Goal")
+      expect(badges[0].data['samples']).to eq([])
+      expect(badges[0].data['explanation']).to eq("3 words")
     end
     
     it "should not mark a simple badge as earned if it isn't" do
@@ -110,6 +112,7 @@ describe UserBadge, type: :model do
       expect(badges[0].earned).to eq(true)
       expect(badges[0].level).to eq(1)
       expect(badges[0].data['name']).to eq("Good Goal")
+      expect(badges[0].data['explanation']).to eq("3 words")
     end
         
     it "should allow retroactive badge checking" do
@@ -140,6 +143,7 @@ describe UserBadge, type: :model do
       expect(badges[0].earned).to eq(true)
       expect(badges[0].level).to eq(1)
       expect(badges[0].data['name']).to eq("Good Goal")
+      expect(badges[0].data['explanation']).to eq("3 words")
     end
     
     it "should award a badge for using at least 10 buttons 5 days in a row" do
@@ -186,15 +190,18 @@ describe UserBadge, type: :model do
       expect(badges[0].level).to eq(1)
       expect(badges[0].data['name']).to eq("Good Goal")
       expect(badges[0].data['max_level']).to eq(nil)
+      expect(badges[0].data['explanation']).to eq("10 buttons")
       expect(badges[1].earned).to eq(true)
       expect(badges[1].level).to eq(2)
       expect(badges[1].data['name']).to eq("Good Goal")
       expect(badges[1].data['max_level']).to eq(nil)
+      expect(badges[1].data['explanation']).to eq("10 buttons")
       expect(badges[2].earned).to eq(false)
       expect(badges[2].level).to eq(3)
       expect(badges[2].current_progress).to eq(0.5)
       expect(badges[2].data['max_level']).to eq(true)
       expect(badges[2].data['name']).to eq("Good Goal")
+      expect(badges[2].data['explanation']).to eq(nil)
     end
     
     it "should award a badge for speaking at least 10 words 5 weeks in a row" do
@@ -234,13 +241,16 @@ describe UserBadge, type: :model do
       expect(badges[0].earned).to eq(true)
       expect(badges[0].level).to eq(1)
       expect(badges[0].data['name']).to eq("Good Goal")
+      expect(badges[0].data['explanation']).to eq("12 words")
       expect(badges[1].earned).to eq(true)
       expect(badges[1].level).to eq(2)
       expect(badges[1].data['name']).to eq("Good Goal")
+      expect(badges[1].data['explanation']).to eq("12 words")
       expect(badges[2].earned).to eq(false)
       expect(badges[2].level).to eq(3)
       expect(badges[2].current_progress).to eq(0.5)
       expect(badges[2].data['name']).to eq("Good Goal")
+      expect(badges[2].data['explanation']).to eq(nil)
     end
     
     it "should award a badge for having a least 5 sessions 3 months in a row" do
@@ -287,13 +297,16 @@ describe UserBadge, type: :model do
       expect(badges[0].earned).to eq(true)
       expect(badges[0].level).to eq(1)
       expect(badges[0].data['name']).to eq("Good Goal")
+      expect(badges[0].data['explanation']).to eq("5 sessions")
       expect(badges[1].earned).to eq(true)
       expect(badges[1].level).to eq(2)
       expect(badges[1].data['name']).to eq("Good Goal")
+      expect(badges[1].data['explanation']).to eq("5 sessions")
       expect(badges[2].earned).to eq(false)
       expect(badges[2].level).to eq(3)
       expect(badges[2].current_progress).to eq(5.0 / 6.0)
       expect(badges[2].data['name']).to eq("Good Goal")
+      expect(badges[2].data['explanation']).to eq(nil)
     end
     
     it "should award a badge for using at least 3 of the watchwords twice every day for 3 weeks" do
@@ -338,13 +351,19 @@ describe UserBadge, type: :model do
       expect(badges[0].earned).to eq(true)
       expect(badges[0].level).to eq(1)
       expect(badges[0].data['name']).to eq("Good Goal")
+      expect(badges[0].data['samples'].sort).to eq(["cat rat", "cat sat sat sat sat", "fat cat", "fat rat", "fat rat cat", "fat rat cat sat", "fat rat cat sat sat", "rat cat sat sat sat", "sat sat sat", "sat sat sat sat", "sat sat sat sat sat"])
+      expect(badges[0].data['explanation']).to eq("cat rat, cat sat sat sat sat, fat cat, fat rat, fat rat cat, fat rat cat sat, fat rat cat sat sat, rat cat sat sat sat, sat sat sat, sat sat sat sat, sat sat sat sat sat")
       expect(badges[1].earned).to eq(true)
       expect(badges[1].level).to eq(2)
       expect(badges[1].data['name']).to eq("Good Goal")
+      expect(badges[1].data['samples'].sort).to eq(["cat rat", "cat sat sat sat sat", "fat cat", "fat rat", "fat rat cat", "fat rat cat sat", "fat rat cat sat sat", "rat cat sat sat sat", "sat sat sat", "sat sat sat sat", "sat sat sat sat sat"])
+      expect(badges[1].data['explanation']).to eq("cat rat, cat sat sat sat sat, fat cat, fat rat, fat rat cat, fat rat cat sat, fat rat cat sat sat, rat cat sat sat sat, sat sat sat, sat sat sat sat, sat sat sat sat sat")
       expect(badges[2].earned).to eq(false)
       expect(badges[2].level).to eq(3)
       expect(badges[2].current_progress).to eq(15.0 / 21.0)
       expect(badges[2].data['name']).to eq("Good Goal")
+      expect(badges[2].data['samples']).to eq(nil)
+      expect(badges[2].data['explanation']).to eq(nil)
     end
     
     it "should award a badge for using at least 3 of the watchwords twice every day for 3 weeks, with at least 5 different watchwords each week" do
@@ -395,13 +414,19 @@ describe UserBadge, type: :model do
       expect(badges[0].earned).to eq(true)
       expect(badges[0].level).to eq(1)
       expect(badges[0].data['name']).to eq("Good Goal")
+      expect(badges[0].data['samples'].sort).to eq(["cat rat fat","cat rat sat mat pat","dat dat dat","fat cat rat","fat cat rat sat","fat cat rat sat mat","fat rat cat","mat pat dat dat dat","pat dat dat dat","rat sat mat pat dat","sat mat pat dat dat"])
+      expect(badges[0].data['explanation']).to eq("cat rat fat, cat rat sat mat pat, dat dat dat, fat cat rat, fat cat rat sat, fat cat rat sat mat, fat rat cat, mat pat dat dat dat, pat dat dat dat, rat sat mat pat dat, sat mat pat dat dat")
       expect(badges[1].earned).to eq(true)
       expect(badges[1].level).to eq(2)
       expect(badges[1].data['name']).to eq("Good Goal")
+      expect(badges[1].data['samples'].sort).to eq(["cat rat fat","cat rat sat mat pat","dat dat dat","fat cat rat","fat cat rat sat","fat cat rat sat mat","fat rat cat","mat pat dat dat dat","pat dat dat dat","rat sat mat pat dat","sat mat pat dat dat"])
+      expect(badges[1].data['explanation']).to eq("cat rat fat, dat dat dat, fat cat rat, fat cat rat sat, fat cat rat sat mat, fat rat cat, mat pat dat dat dat, pat dat dat dat")
       expect(badges[2].earned).to eq(false)
       expect(badges[2].level).to eq(3)
       expect(badges[2].current_progress).to eq(15.0 / 21.0)
       expect(badges[2].data['name']).to eq("Good Goal")
+      expect(badges[2].data['samples']).to eq(nil)
+      expect(badges[2].data['explanation']).to eq(nil)
     end
 
     it "should award a partial badge for using at least 2 of the multi-part watchwords once every day for 3 weeks, with at least 2 different watchwords each week" do
@@ -452,10 +477,14 @@ describe UserBadge, type: :model do
       expect(badges[0].earned).to eq(true)
       expect(badges[0].level).to eq(1)
       expect(badges[0].data['name']).to eq("Good Goal")
+      expect(badges[0].data['samples'].sort).to eq(["cat rat fat", "fat cat rat sat mat pat", "fat rat cat", "cat rat sat mat pat dat dat", "fat cat rat sat mat"].sort)
+      expect(badges[0].data['explanation']).to eq("cat rat fat, cat rat sat mat pat dat dat, fat cat rat sat mat, fat cat rat sat mat pat, fat rat cat")
       expect(badges[1].earned).to eq(false)
       expect(badges[1].level).to eq(2)
       expect(badges[1].data['name']).to eq("Good Goal")
       expect(badges[1].data['percent']).to eq(15.0 / 21.0)
+      expect(badges[1].data['samples']).to eq(nil)
+      expect(badges[1].data['explanation']).to eq(nil)
     end    
     it "should award a badge for using at least 3 different parts of speech at least 5 days" do
       u = User.create
@@ -504,13 +533,19 @@ describe UserBadge, type: :model do
       expect(badges[0].earned).to eq(true)
       expect(badges[0].level).to eq(1)
       expect(badges[0].data['name']).to eq("Good Goal")
+      expect(badges[0].data['samples']).to eq([])
+      expect(badges[0].data['explanation']).to eq("")
       expect(badges[1].earned).to eq(true)
       expect(badges[1].level).to eq(2)
       expect(badges[1].data['name']).to eq("Good Goal")
+      expect(badges[1].data['samples']).to eq([])
+      expect(badges[1].data['explanation']).to eq("")
       expect(badges[2].earned).to eq(false)
       expect(badges[2].level).to eq(3)
       expect(badges[2].current_progress).to eq(0.2)
       expect(badges[2].data['name']).to eq("Good Goal")
+      expect(badges[2].data['samples']).to eq(nil)
+      expect(badges[2].data['explanation']).to eq(nil)
     end
     
     it "should award three levels of badges at once for using at least 5, 10, and 100 buttons" do
@@ -551,13 +586,19 @@ describe UserBadge, type: :model do
       expect(badges[0].earned).to eq(true)
       expect(badges[0].level).to eq(1)
       expect(badges[0].data['name']).to eq("Good Goal")
+      expect(badges[0].data['samples']).to eq([])
+      expect(badges[0].data['explanation']).to eq("5 buttons")
       expect(badges[1].earned).to eq(true)
       expect(badges[1].level).to eq(2)
       expect(badges[1].data['name']).to eq("Good Goal")
+      expect(badges[1].data['samples']).to eq([])
+      expect(badges[1].data['explanation']).to eq("5 buttons")
       expect(badges[2].earned).to eq(true)
       expect(badges[2].level).to eq(3)
       expect(badges[2].current_progress).to eq(1.0)
       expect(badges[2].data['name']).to eq("Good Goal")
+      expect(badges[2].data['samples']).to eq([])
+      expect(badges[2].data['explanation']).to eq("5 buttons")
     end
     
     it "should not award the next level of badge even if the next level is easier than the current level" do
@@ -766,6 +807,7 @@ describe UserBadge, type: :model do
       expect(auto_tracks.map{|s| s.data['assessment']['totals']['correct']}).to eq([1, 0, 1, 0, 0])
       expect(auto_tracks.map{|s| s.data['assessment']['totals']['incorrect']}).to eq([0, 1, 0, 1, 1])
       expect(auto_tracks.map{|s| s.data['assessment']['automatic']}).to eq([true, true, true, true, true])
+      expect(auto_tracks.map{|s| s.data['assessment']['explanation']}).to eq(["10 buttons", false, "10 buttons", false, false])
       expect(auto_tracks.map{|s| s.data['assessment']['manual']}).to eq([false, false, false, false, false])
     end
 
@@ -869,6 +911,7 @@ describe UserBadge, type: :model do
         {'correct' => 0, 'incorrect' => 1},
         {'correct' => 0, 'incorrect' => 1}
       ])
+      expect(assessments.map{|a| a.data['assessment']['explanation'] }).to eq([false, false, "3 buttons", false, false])
     end
     
     it "should update the existing log session for the badge assessment if it already exists" do
@@ -1168,6 +1211,8 @@ describe UserBadge, type: :model do
         :ended => ended,
         :tally => 4,
         :streak => 3,
+        :samples => [],
+        :explanation => 'good stuff happened',
         :units => [{}]
       })
       expect(b.id).to_not eq(nil)
@@ -1177,6 +1222,8 @@ describe UserBadge, type: :model do
         'ended' => ended.utc.iso8601,
         'earn_recorded' => Time.now.utc.iso8601,
         'units' => [{}],
+        'explanation' => 'good stuff happened',
+        'samples' => [],
         'tally' => 4,
         'name' => 'Unnamed Badge',
         'badge_level' => nil,
@@ -2190,14 +2237,14 @@ describe UserBadge, type: :model do
       }, {
         'instance_count' => 4
       })
-      expect(res).to eq(true)
+      expect(!!res).to eq(true)
 
       res = UserBadge.valid_unit({
         total: 5
       }, {
         'instance_count' => 6
       })
-      expect(res).to eq(false)
+      expect(!!res).to eq(false)
     end
     
     it "should check matches for watchlist badges" do
@@ -2206,14 +2253,14 @@ describe UserBadge, type: :model do
       }, {
         'watchlist' => true
       })
-      expect(res).to eq(false)
+      expect(!!res).to eq(false)
 
       res = UserBadge.valid_unit({
         matches: [{}]
       }, {
         'watchlist' => true
       })
-      expect(res).to eq(true)
+      expect(!!res).to eq(true)
     end
     
     it "should limit matches to those above the minimum" do
@@ -2223,7 +2270,7 @@ describe UserBadge, type: :model do
         'watchlist' => true,
         'watch_type_minimum' => 3
       })
-      expect(res).to eq(false)
+      expect(!!res).to eq(false)
 
       res = UserBadge.valid_unit({
         matches: [{count: 1}, {count: 2}]
@@ -2231,7 +2278,7 @@ describe UserBadge, type: :model do
         'watchlist' => true,
         'watch_type_minimum' => 2
       })
-      expect(res).to eq(true)
+      expect(!!res).to eq(true)
     end
     
     it "should limit matches when the total hasn't been reached" do
@@ -2241,7 +2288,7 @@ describe UserBadge, type: :model do
         'watchlist' => true,
         'watch_total' => 4
       })
-      expect(res).to eq(false)
+      expect(!!res).to eq(false)
 
       res = UserBadge.valid_unit({
         matches: [{count: 1}, {count: 2}]
@@ -2249,7 +2296,7 @@ describe UserBadge, type: :model do
         'watchlist' => true,
         'watch_total' => 3
       })
-      expect(res).to eq(true)
+      expect(!!res).to eq(true)
     end
     
     it "should limit matches when the number of types hasn't been reached" do
@@ -2262,12 +2309,16 @@ describe UserBadge, type: :model do
       expect(res).to eq(false)
 
       res = UserBadge.valid_unit({
-        matches: [{count: 1}, {count: 2}]
+        matches: [{count: 1, :samples => ['a b']}, {count: 2, :samples => ['ok cool', 'that is me']}]
       }, {
         'watchlist' => true,
         'watch_type_count' => 2
       })
-      expect(res).to eq(true)
+      expect(res).to eq({
+        :explanation => "a b, ok cool, that is me",
+        :samples => ["a b", "ok cool", "that is me"],
+        :valid => true
+      })
     end
   end
 
@@ -2285,16 +2336,19 @@ describe UserBadge, type: :model do
       res = UserBadge.cluster_days(:bacon, [
         {bacon: 1, total: 5, next: {bacon: 2}},
         {bacon: 3, total: 1, next: {bacon: 4}},
-        {bacon: 2, total: 3, matches: [{value: 'a', count: 2}, {value: 'b', count: 1}], next: {bacon: 3}},
-        {bacon: 2, total: 1, matches: [{value: 'b', count: 5}, {value: 'c', count: 3}], next: {bacon: 3}},
+        {bacon: 2, total: 3, matches: [{value: 'a', count: 2, :samples => ['a', 'b']}, {value: 'b', count: 1, :samples => ['b', 'b']}], next: {bacon: 3}, :explanation => 'cool beans'},
+        {bacon: 2, total: 1, matches: [{value: 'b', count: 5, :samples => ['c']}, {value: 'c', count: 3, :samples => ['c']}], next: {bacon: 3}, :explanation => 'something'},
       ])
       expect(res.map{|r| r[:bacon] }).to eq([1, 2, 3])
       expect(res[0][:total]).to eq(5)
       expect(res[0][:matches]).to eq(nil)
+      expect(res[0][:explanation]).to eq("")
       expect(res[1][:total]).to eq(4)
-      expect(res[1][:matches]).to eq([{value: 'a', count: 2}, {value: 'b', count: 6}, {value: 'c', count: 3}])
+      expect(res[1][:matches]).to eq([{value: 'a', count: 2, samples: ['a', 'b']}, {value: 'b', count: 6, samples: ['b', 'b', 'c']}, {value: 'c', count: 3, samples: ['c']}])
+      expect(res[1][:explanation]).to eq("cool beans, something")
       expect(res[2][:total]).to eq(1)
       expect(res[2][:matches]).to eq(nil)
+      expect(res[2][:explanation]).to eq("")
     end
   end
 
@@ -2384,7 +2438,38 @@ describe UserBadge, type: :model do
       expect(b.disabled).to eq(true)
     end
   end
+  
+  describe "earned_during" do
+    it "should return the correct value" do
+      g = UserBadge.new
+      expect(g).to receive(:awarded_at).and_return(nil)
+      expect(g.earned_during(nil, nil)).to eq(false)
+      expect(g).to receive(:awarded_at).and_return(3.hours.ago).at_least(1).times
+      expect(g.earned_during(4.hours.ago, 1.hour.ago)).to eq(true)
+      expect(g.earned_during(5.hours.ago, 4.hour.ago)).to eq(false)
+      expect(g.earned_during(2.hours.ago, 1.hour.ago)).to eq(false)
+    end
+  end
+  
+  describe "template_goal" do
+    it "should return the correct value" do
+      g = UserBadge.new
+      res = OpenStruct.new(template: false, settings: {})
+      expect(g).to receive(:user_goal).and_return(res)
+      expect(g.template_goal).to eq(nil)
+      
+      res = OpenStruct.new(template: true)
+      expect(g).to receive(:user_goal).and_return(res)
+      expect(g.template_goal).to eq(res)
+      
+      u = User.create
+      ug = UserGoal.create
+      expect(g).to receive(:user_goal).and_return(OpenStruct.new(settings: {'template_id' => ug.global_id}))
+      expect(g.template_goal).to eq(ug)
+    end
+  end
 end
+
 
 #     # possible goals:
 #     # - speaking streak, consecutive days spoken in a row
@@ -2422,3 +2507,5 @@ end
 #     
 #     # - some way to say, used each of M words at least N times each in a given period
 # end
+
+

@@ -82,6 +82,15 @@ class WeeklyStatsSummary < ActiveRecord::Base
     total_stats[:word_pairs] = Stats.word_pairs(sessions)
     total_stats[:days] = days
     total_stats[:locations] = Stats.location_use_for_sessions(sessions)
+    total_stats[:goals] = Stats.goals_for_user(log_session.user, start_at, end_at)
+    total_stats[:buttons_used] = Stats.buttons_used(sessions)
+    
+    # TODO: include for the week:
+    # - goals set, including name, id, template_id, public template
+    # - badges earned, including name, goal id, template goal id, level
+    # At the week trend level:
+    # - total goals set, named public goals set including # of times in use, % of users with active goal
+    # - total badges earned, names public badges earned including level and # of times earned
     
     summary.data ||= {}
     summary.data['stats'] = total_stats
@@ -152,6 +161,11 @@ class WeeklyStatsSummary < ActiveRecord::Base
     total.data['word_counts'] = {}
     total.data['user_ids'] = []
     total.data['home_board_user_ids'] = []
+    board_usages = {}
+    total.data['goals'] = {
+      'goals_set' => {},
+      'badges_earned' => {}
+    }
 
     valid_words = WordData.standardized_words
     board_user_ids = {}
@@ -197,6 +211,56 @@ class WeeklyStatsSummary < ActiveRecord::Base
           end
         end
         
+        if summary.data['stats']['buttons_used']
+          (summary.data['stats']['buttons_used']['button_ids'] || []).each do |button_id|
+            board_id = button_id.split(/:/, 2)[0]
+            board_usages[board_id] = (board_usages[board_id] || 0) + 1
+          end
+        end
+        
+        if summary.data['stats']['goals']
+          summary.data['stats']['goals']['goals_set'].each do |goal_id, goal|
+            if goal['template_goal_id']
+              total.data['goals']['goals_set'][goal['template_goal_id']] ||= {
+                'name' => goal['name'],
+                'user_ids' => []
+              }
+              total.data['goals']['goals_set'][goal['template_goal_id']]['user_ids'] << summary.user_id
+            else
+              total.data['goals']['goals_set']['private'] ||= {
+                'ids' => [],
+                'user_ids' => []
+              }
+              total.data['goals']['goals_set']['private']['ids'] << goal_id
+              total.data['goals']['goals_set']['private']['user_ids'] << summary.user_id
+            end
+          end
+          summary.data['stats']['goals']['badges_earned'].each do |badge_id, badge|
+            if badge['template_goal_id']
+              total.data['goals']['badges_earned'][badge['template_goal_id']] ||= {
+                'goal_id' => badge['template_goal_id'],
+                'name' => badge['name'],
+                'global' => badge['global'],
+                'levels' => [],
+                'user_ids' => [],
+                'shared_user_ids' => []
+              }
+              total.data['goals']['badges_earned'][badge['template_goal_id']]['user_ids'] << summary.user_id
+              total.data['goals']['badges_earned'][badge['template_goal_id']]['levels'] << badge['level']
+              total.data['goals']['badges_earned'][badge['template_goal_id']]['shared_user_ids'] << summary.user_id if badge['shared']
+            else
+              total.data['goals']['badges_earned']['private'] ||= {
+                'ids' => [],
+                'names' => [],
+                'user_ids' => []
+              }
+              total.data['goals']['badges_earned']['private']['user_ids'] << summary.user_id
+              total.data['goals']['badges_earned']['private']['names'] << badge['name']
+              total.data['goals']['badges_earned']['private']['ids'] << badge_id
+            end
+          end
+        end
+        
         # iterate through events, tracking previous and (possibly) current spoken event
         # if there's a previous and current, and there hasn't been too long a delay
         # between them, and both words are included in a core word list, 
@@ -212,6 +276,18 @@ class WeeklyStatsSummary < ActiveRecord::Base
         end
       end
     end
+
+    total.data['board_usages'] = {}
+    Board.find_all_by_global_id(board_usages.to_a.map(&:first)).each do |board|
+      if board.public && !board.parent_board_id
+        total.data['board_usages'][board.key] = board_usages[board.global_id]
+      elsif board.public && board.parent_board
+        total.data['board_usages'][board.parent_board.key] = board_usages[board.global_id]
+      end
+    end
+    
+    total.data['totals']['goal_set'] = total.data['goals']['goals_set'].map{|k, g| g['user_ids'].length }.flatten.sum
+    total.data['totals']['badges_earned'] = total.data['goals']['badges_earned'].map{|k, b| b['user_ids'].length }.flatten.sum
 
     # Get a list of all the words common to most user boards and record their frequency
     word_user_counts = {}    
@@ -292,6 +368,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     stash[:total_sessions] = 0
     stash[:total_words] = 0
     stash[:word_counts] = {}
+    stash[:board_usages] = {}
     stash[:home_board_user_ids] = []
     earliest = nil
     latest = nil
@@ -303,7 +380,9 @@ class WeeklyStatsSummary < ActiveRecord::Base
       week = {
         'modeled_percent' => 100.0 * (summary.data['totals']['total_modeled_buttons'].to_f / summary.data['totals']['total_buttons'].to_f * 2.0).round(1) / 2.0,
         'core_percent' => 100.0 * (summary.data['totals']['total_core_words'].to_f / summary.data['totals']['total_words'].to_f * 2.0).round(1) / 2.0,
-        'words_per_minute' => (summary.data['totals']['total_words'].to_f / summary.data['totals']['total_session_seconds'].to_f * 60.0).round(1)
+        'words_per_minute' => (summary.data['totals']['total_words'].to_f / summary.data['totals']['total_session_seconds'].to_f * 60.0).round(1),
+        'goals_percent' => 100.0 * ((summary.data['totals']['goals_set'] || 0).to_f / summary.data['user_ids'].length.to_f).round(2),
+        'badges_percent' => 100.0 * ((summary.data['totals']['badges_earned'] || 0).to_f / summary.data['user_ids'].length.to_f).round(2)
       }
       res['weeks'][summary.weekyear] = week
 
@@ -319,6 +398,12 @@ class WeeklyStatsSummary < ActiveRecord::Base
       if summary.data['word_counts']
         summary.data['word_counts'].each do |word, cnt|
           stash[:word_counts][word] = (stash[:word_counts][word] || 0) + cnt
+        end
+      end
+      
+      if summary.data['board_usages']
+        summary.data['board_usages'].each do |key, cnt|
+          stash[:board_usages][key] = (stash[:board_usages][key] || 0) + cnt
         end
       end
       
@@ -348,13 +433,47 @@ class WeeklyStatsSummary < ActiveRecord::Base
           stash[:word_pairs][k]['count'] += pair['count']
         end
       end
+      
+      if summary.data['goals']
+        stash[:goal_user_ids] ||= []
+        stash[:goal_user_ids] += summary.data['goals']['goals_set'].map{|k, g| g['user_ids'] }.flatten
+        stash[:goals] ||= {}
+        summary.data['goals']['goals_set'].each do |goal_id, goal|
+          stash[:goals][goal_id] ||= {
+            'name' => goal['name'],
+            'template' => goal['template'],
+            'public' => goal['public'],
+            'user_ids' => []
+          }
+          stash[:goals][goal_id]['user_ids'] << goal['user_ids'] || []
+        end
+        stash[:badged_user_ids] ||= []
+        stash[:badged_user_ids] += summary.data['goals']['badges_earned'].map{|k, b| b['user_ids'] }.flatten
+        stash[:badges] ||= {}
+        summary.data['goals']['badges_earned'].each do |goal_id, badge|
+          stash[:badges][goal_id] ||= {
+            'goal_id' => badge['goal_id'],
+            'name' => badge['name'],
+            'template_goal_id' => badge['template_goal'],
+            'levels' => [],
+            'user_ids' => [],
+            'shared_user_ids' => []
+          }
+          stash[:badges][goal_id]['user_ids'] << badge['user_ids'] || []
+          stash[:badges][goal_id]['levels'] += badge['levels'] || []
+          stash[:badges][goal_id]['shared_user_ids'] << badge['shared_user_ids'] || []
+        end
+      end
     end
     
+    total_users = stash[:user_ids].uniq.length
     res[:started_at] = earliest && earliest.iso8601
     res[:ended_at] = latest && latest.iso8601
     res[:total_session_seconds] = stash[:total_session_seconds]
     res[:modeled_percent] = 100.0 * (stash[:modeled_buttons].to_f / stash[:total_buttons].to_f * 2.0).round(1) / 2.0
     res[:modeled_percent] = 0.0 if res[:modeled_percent].nan?
+    res[:goals_percent] = 100.0 * (stash[:goal_user_ids].uniq.length.to_f / total_users.to_f).round(2) if stash[:goal_user_ids]
+    res[:badges_percent] = 100.0 * (stash[:badged_user_ids].uniq.length.to_f / total_users.to_f).round(2) if stash[:badged_user_ids]
 
     res[:core_percent] = 100.0 * (stash[:core_words].to_f / stash[:total_words].to_f * 2.0).round(1) / 2.0
     res[:core_percent] = 0.0 if res[:core_percent].nan?
@@ -362,11 +481,20 @@ class WeeklyStatsSummary < ActiveRecord::Base
     res[:words_per_minute] = 0.0 if res[:words_per_minute].nan?
     res[:research_communicators] = 500
     if include_admin
-      res[:total_users] = stash[:user_ids].uniq.length
+      res[:total_users] = total_users
       res[:total_sessions] = stash[:total_sessions]
       res[:sessions_per_user] = (res[:total_sessions].to_f / res[:total_users].to_f).round(1)
       res[:sessions_per_user] = 0.0 if res[:sessions_per_user].nan?
       res[:total_words] = stash[:total_words]
+    end
+    
+    if stash[:board_usages]
+      max_usage_count = stash[:board_usages].map(&:last).max || 0.0
+      res[:max_board_usage_count] = max_usage_count if include_admin
+      stash[:board_usages].each do |key, cnt|
+        res[:board_usages] ||= {}
+        res[:board_usages][key] = (cnt.to_f / max_usage_count.to_f).round(2) if cnt > 10
+      end
     end
     
     if stash[:word_counts]
@@ -393,6 +521,34 @@ class WeeklyStatsSummary < ActiveRecord::Base
       end
     end
     
+    if stash[:goals]
+      stash[:goals].each do |goal_id, goal|
+        next if goal_id == 'private'
+        res[:goals] ||= {}
+        res[:goals][goal_id] = {
+          'id' => goal_id,
+          'name' => goal['name'],
+          'users' => (goal['user_ids'].uniq.length.to_f / total_users.to_f * 2.0).round(3) / 2.0
+        }
+      end
+    end
+    
+    if stash[:badges]
+      stash[:badges].each do |template_goal_id, badge|
+        next if template_goal_id == 'private'
+        res[:badges] ||= {}
+        levels = {}
+        badge['levels'].each{|l| levels[l.to_s] = (levels[l.to_s] || 0) + 1 }
+        levels.each{|lvl, cnt| levels[lvl] = (levels[lvl].to_f / badge['levels'].length.to_f).round(2) }
+        res[:badges][template_goal_id] = {
+          'template_goal_id' => template_goal_id,
+          'name' => badge['name'],
+          'levels' => levels,
+          'users' => (badge['user_ids'].uniq.length.to_f / total_users.to_f * 2.0).round(3) / 2.0
+        }
+      end
+    end
+    
     if stash[:word_pairs] && include_admin
       max_word_pair = stash[:word_pairs].map{|k, p| p['count'] }.max || 0.0
       res[:max_word_pair] = max_word_pair if include_admin
@@ -410,7 +566,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     # safe-ish stats row: total logged time, % modeling, % core words, average words per minute
     # unsafe stats row: total users, total sessions, sessions per user, total words
     # also: words available to % of users, most-common home boards
-    # TODO: devices per communicator, supervisors per communicator, goals set, 
+    # TODO: devices per communicator, supervisors per communicator, goals set, badges earned, most common badges
     
     res
   end

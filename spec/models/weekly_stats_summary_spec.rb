@@ -277,6 +277,73 @@ describe WeeklyStatsSummary, :type => :model do
         "51122eaf1983d05e75976c574d8530ef"=>{"count"=>6, "a"=>"that", "b"=>"then", "user_count"=>6}
       })
     end
+    
+    it "should include goal data" do
+      u = User.create
+      tg = UserGoal.create(template: true, global: true, settings: {'summary' => 'template goal'})
+      g1 = UserGoal.create(:user => u, active: true, settings: {'summary' => 'good goal', 'started_at' => 2.weeks.ago.iso8601})
+      g2 = UserGoal.create(:user => u, active: true, settings: {'template_id' => tg.global_id, 'summary' => 'temp goal', 'started_at' => 1.week.ago.iso8601})
+      g3 = UserGoal.create(:user => u, settings: {'summary' => 'old goal', 'started_at' => 6.hours.ago.iso8601, 'ended_at' => 2.hours.ago.iso8601})
+      g4 = UserGoal.create(:user => u, settings: {'summary' => 'really old goal', 'started_at' => 6.weeks.ago.iso8601, 'ended_at' => 2.weeks.ago.iso8601})
+      b1 = UserBadge.create(user: u, user_goal: g2, level: 1, earned: true)
+      b2 = UserBadge.create(user: u, user_goal: tg, level: 2, earned: true)
+
+      d = Device.create
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'this', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 5},
+        {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'that', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 3},
+        {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'then', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      WeeklyStatsSummary.update_for(s1.global_id)
+
+      sum = WeeklyStatsSummary.last
+      hash = {
+        'goals_set' => {},
+        'badges_earned' => {}
+      }
+      hash['goals_set'][g1.global_id] = {'template_goal_id' => nil, 'name' => 'good goal'}
+      hash['goals_set'][g2.global_id] = {'template_goal_id' => tg.global_id, 'name' => 'template goal'}
+      hash['goals_set'][g3.global_id] = {'template_goal_id' => nil, 'name' => 'old goal'}
+      hash['badges_earned'][b1.global_id] = {'goal_id' => g2.global_id, 'template_goal_id' => tg.global_id, 'level' => 1, 'global' => nil, 'shared' => nil, 'name' => 'Unnamed Badge', 'image_url' => nil}
+      hash['badges_earned'][b2.global_id] = {'goal_id' => tg.global_id, 'template_goal_id' => tg.global_id, 'level' => 2, 'global' => true, 'shared' => nil, 'name' => 'Unnamed Badge', 'image_url' => nil}
+      expect(sum.data['stats']['goals']).to eq(hash)
+      
+      sum = WeeklyStatsSummary.track_trends(sum.weekyear)
+      hash['goals_set'] = {}
+      hash['goals_set']['private'] = {'ids' => [g1.global_id, g3.global_id], 'user_ids' => [u.id, u.id]}
+      hash['goals_set'][tg.global_id] = {'name' => 'template goal', 'user_ids' => [u.id]}
+      hash['badges_earned'] = {}
+      hash['badges_earned'][tg.global_id] = {'goal_id' => tg.global_id, 'name' => 'Unnamed Badge', 'global' => nil, 'levels' => [1, 2], 'user_ids' => [u.id, u.id], 'shared_user_ids' => []}
+      expect(sum.data['goals']).to eq(hash)
+    end
+    
+    it "should include buttons used data" do
+      u = User.create
+      b = Board.create(user: u, public: true)
+      6.times do
+        u = User.create
+        d = Device.create
+        s1 = LogSession.process_new({'events' => [
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'this', 'button_id' => 1, 'board' => {'id' => b.global_id}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 5},
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'that', 'button_id' => 2, 'board' => {'id' => b.global_id}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 3},
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'then', 'button_id' => 3, 'board' => {'id' => b.global_id}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i}
+        ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+        WeeklyStatsSummary.update_for(s1.global_id)
+      end
+
+      sum = WeeklyStatsSummary.last
+      expect(sum.data['stats']['buttons_used']).to eq({
+        'button_ids' => ["#{b.global_id}:1", "#{b.global_id}:2", "#{b.global_id}:3"],
+        'button_chains' => {
+          'this, that, then' => 1
+        }
+      })
+      
+      sum = WeeklyStatsSummary.track_trends(sum.weekyear)
+      hash = {}
+      hash[b.key] = 18
+      expect(sum.data['board_usages']).to eq(hash)
+    end
   end
   
   describe "trends" do
@@ -330,6 +397,84 @@ describe WeeklyStatsSummary, :type => :model do
       expect(res[:total_session_seconds]).to eq(123+456)
       expect(res[:words_per_minute]).to eq(((2+12+12+6).to_f / (123+456).to_f * 60.0).round(1))
     end
+    
+    it 'should include board usages' do
+      u = User.create
+      b = Board.create(user: u, public: true)
+      6.times do
+        u = User.create
+        d = Device.create
+        s1 = LogSession.process_new({'events' => [
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'this', 'button_id' => 1, 'board' => {'id' => b.global_id}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 5},
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'that', 'button_id' => 2, 'board' => {'id' => b.global_id}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 3},
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'then', 'button_id' => 3, 'board' => {'id' => b.global_id}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i}
+        ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+        WeeklyStatsSummary.update_for(s1.global_id)
+      end
+
+      sum = WeeklyStatsSummary.last
+      expect(sum.data['stats']['buttons_used']).to eq({
+        'button_ids' => ["#{b.global_id}:1", "#{b.global_id}:2", "#{b.global_id}:3"],
+        'button_chains' => {
+          'this, that, then' => 1
+        }
+      })
+      
+      sum = WeeklyStatsSummary.track_trends(sum.weekyear)
+      hash = {}
+      hash[b.key] = 18
+      expect(sum.data['board_usages']).to eq(hash)
+      
+      res = WeeklyStatsSummary.trends
+      hash[b.key] = 1.0
+      expect(res[:board_usages]).to eq(hash)
+    end
+    
+    it 'should include goals data' do
+      u = User.create
+      tg = UserGoal.create(template: true, global: true, settings: {'summary' => 'template goal'})
+      g1 = UserGoal.create(:user => u, active: true, settings: {'summary' => 'good goal', 'started_at' => 2.weeks.ago.iso8601})
+      g2 = UserGoal.create(:user => u, active: true, settings: {'template_id' => tg.global_id, 'summary' => 'temp goal', 'started_at' => 1.week.ago.iso8601})
+      g3 = UserGoal.create(:user => u, settings: {'summary' => 'old goal', 'started_at' => 6.hours.ago.iso8601, 'ended_at' => 2.hours.ago.iso8601})
+      g4 = UserGoal.create(:user => u, settings: {'summary' => 'really old goal', 'started_at' => 6.weeks.ago.iso8601, 'ended_at' => 2.weeks.ago.iso8601})
+      b1 = UserBadge.create(user: u, user_goal: g2, level: 1, earned: true)
+      b2 = UserBadge.create(user: u, user_goal: tg, level: 2, earned: true)
+
+      d = Device.create
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'this', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 5},
+        {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'that', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 3},
+        {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'then', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      WeeklyStatsSummary.update_for(s1.global_id)
+
+      sum = WeeklyStatsSummary.last
+      hash = {
+        'goals_set' => {},
+        'badges_earned' => {}
+      }
+      hash['goals_set'][g1.global_id] = {'template_goal_id' => nil, 'name' => 'good goal'}
+      hash['goals_set'][g2.global_id] = {'template_goal_id' => tg.global_id, 'name' => 'template goal'}
+      hash['goals_set'][g3.global_id] = {'template_goal_id' => nil, 'name' => 'old goal'}
+      hash['badges_earned'][b1.global_id] = {'goal_id' => g2.global_id, 'template_goal_id' => tg.global_id, 'level' => 1, 'global' => nil, 'shared' => nil, 'name' => 'Unnamed Badge', 'image_url' => nil}
+      hash['badges_earned'][b2.global_id] = {'goal_id' => tg.global_id, 'template_goal_id' => tg.global_id, 'level' => 2, 'global' => true, 'shared' => nil, 'name' => 'Unnamed Badge', 'image_url' => nil}
+      expect(sum.data['stats']['goals']).to eq(hash)
+      
+      sum = WeeklyStatsSummary.track_trends(sum.weekyear)
+      hash['goals_set'] = {}
+      hash['goals_set']['private'] = {'ids' => [g1.global_id, g3.global_id], 'user_ids' => [u.id, u.id]}
+      hash['goals_set'][tg.global_id] = {'name' => 'template goal', 'user_ids' => [u.id]}
+      hash['badges_earned'] = {}
+      hash['badges_earned'][tg.global_id] = {'goal_id' => tg.global_id, 'name' => 'Unnamed Badge', 'global' => nil, 'levels' => [1, 2], 'user_ids' => [u.id, u.id], 'shared_user_ids' => []}
+      expect(sum.data['goals']).to eq(hash)
+      
+      res = WeeklyStatsSummary.trends
+      hash = {}
+      hash[tg.global_id] = {'id' => tg.global_id, 'name' => 'template goal', 'users' => 1.0}
+      expect(res[:goals]).to eq(hash)
+      hash[tg.global_id] = {'template_goal_id' => tg.global_id, 'name' => 'Unnamed Badge', 'levels' => {'1' => 0.5, '2' => 0.5}, 'users' => 1.0}
+      expect(res[:badges]).to eq(hash)
+    end
 
     it 'should include basic totals for each week' do
       start = 1.month.ago.to_date
@@ -367,12 +512,16 @@ describe WeeklyStatsSummary, :type => :model do
       expect(res['weeks'][cw1]).to eq({
         'modeled_percent' => (5.0 / 8.0 * 2.0).round(1) / 2.0 * 100.0,
         'core_percent' => (4.0 / 14.0 * 2.0).round(1) / 2.0 * 100.0,
-        'words_per_minute' => (14.0 / 123.0 * 60.0).round(1)
+        'words_per_minute' => (14.0 / 123.0 * 60.0).round(1),
+        'badges_percent' => 0.0,
+        'goals_percent' => 0.0
       })
       expect(res['weeks'][cw2]).to eq({
         'modeled_percent' => (2.0 / 11.0 * 2.0).round(1) / 2.0 * 100.0,
         'core_percent' => (5.0 / 18.0 * 2.0).round(1) / 2.0 * 100.0,
-        'words_per_minute' => (18.0 / 456.0 * 60.0).round(1)
+        'words_per_minute' => (18.0 / 456.0 * 60.0).round(1),
+        'badges_percent' => 0.0,
+        'goals_percent' => 0.0
       })
     end
     

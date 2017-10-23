@@ -80,6 +80,18 @@ class UserBadge < ActiveRecord::Base
     return nil unless self.earned
     (self.data && self.data['earn_recorded'] && Time.parse(self.data['earn_recorded'])) || self.updated_at
   end
+
+  def earned_during(start_at, end_at)
+    awarded = self.awarded_at
+    return !!(awarded && awarded >= start_at && awarded <= end_at)
+  end  
+  
+  def template_goal
+    goal = self.user_goal
+    return goal if goal && goal.template
+    return UserGoal.find_by_global_id(goal.settings['template_id']) if goal && goal.settings['template_id']
+    return nil
+  end
   
   def award!(earned, badge_level=nil)
     return if self.earned
@@ -93,6 +105,8 @@ class UserBadge < ActiveRecord::Base
     self.data['units'] = earned[:units]
     self.data['tally'] = earned[:tally] if earned[:tally]
     self.data['streak'] = earned[:streak] if earned[:streak]
+    self.data['samples'] = earned[:samples] if earned[:samples]
+    self.data['explanation'] = earned[:explanation] if earned[:explanation]
     self.data['percent'] = 1.0
     self.data['badge_level'] = badge_level
     self.update_badge_data
@@ -347,8 +361,9 @@ class UserBadge < ActiveRecord::Base
           end
           valid = valid_unit(unit, badge_level)
           session.data['assessment']['tallies'][0]['correct'] = !!valid
-          session.data['assessment']['totals']['correct'] = valid ? 1 : 0
-          session.data['assessment']['totals']['incorrect'] = valid ? 0 : 1
+          session.data['assessment']['totals']['correct'] = !!valid ? 1 : 0
+          session.data['assessment']['totals']['incorrect'] = !!valid ? 0 : 1
+          session.data['assessment']['explanation'] = valid && valid[:explanation]
           session.data['assessment']['automatic'] = true
           session.instance_variable_set('@goal_clustering_scheduled', true)
           session.save
@@ -357,7 +372,9 @@ class UserBadge < ActiveRecord::Base
       else
         # filter units to only those that meet the needed criteria
         units = units.select do |unit|
-          valid_unit(unit, badge_level)
+          va = valid_unit(unit, badge_level)
+          unit[:explanation] = va[:explanation] if va.is_a?(Hash)
+          va
         end
       end
       start_date = nil
@@ -387,6 +404,7 @@ class UserBadge < ActiveRecord::Base
       date_blocks = clean_date_blocks(date_blocks)
       
       units.each_with_index do |unit, idx|
+        samples = (unit[:matches] || []).map{|m| m[:samples] || []}.flatten.uniq
         valid = true
         if badge_level['watch_type_interval']
           block_id = unit[badge_level['watch_type_interval'].to_sym]
@@ -408,7 +426,9 @@ class UserBadge < ActiveRecord::Base
             earned = {
               :started => start_date,
               :ended => unit[measure],
-              :streak => streak
+              :streak => streak,
+              :explanation => unit[:explanation],
+              :samples => samples
             }
           end
         elsif badge_level['matching_units']
@@ -421,7 +441,9 @@ class UserBadge < ActiveRecord::Base
             earned = {
               :started => start_date,
               :ended => unit[measure],
-              :tally => tally
+              :tally => tally,
+              :explanation => unit[:explanation],
+              :samples => samples
             }
           end
         elsif badge_level['matching_instances']
@@ -434,7 +456,9 @@ class UserBadge < ActiveRecord::Base
             earned = {
               :started => start_date,
               :ended => unit[measure],
-              :tally => tally
+              :tally => tally,
+              :explanation => unit[:explanation],
+              :samples => samples
             }
           end
         end
@@ -485,16 +509,35 @@ class UserBadge < ActiveRecord::Base
         if data['all_word_sequences'] && data['all_word_sequences'].length > 0
           word_hits = {}
           data['all_word_sequences'].compact.each do |sequence|
-            str = sequence.join(' ')
+            str = sequence.join(' ').gsub(/\s+/, "\s")
             badge_level['words_list'].each do |word|
-              words = str.scan(Regexp.new(word, 'i'))
-              word_hits[word] = (word_hits[word] || 0) + words.length
+              index = -1
+              while index
+                index = str.index(Regexp.new("\\b#{word}\\b", 'i'), index + 1)
+                if index
+                  pre = [str.rindex(/\b\w+\b/, [index - 1, 0].max), 0].max
+                  pre2 = str.rindex(/\b\w+\b/, [pre - 1, 0].max) if pre
+
+                  post = str.index(/\b\w+\b/, index + 1)
+                  post += word.length if post
+                  post = str.length unless post
+                  post2 = str.index(/\b\w+\b/, post + 1) if post
+                  post2 += word.length if post2
+
+                  substr = str[(pre2 || pre)..(post2 || post || str.length)]
+                  word_hits[word] = (word_hits[word] || []) + [substr.strip]
+                end
+              end
+#              words = str.scan(Regexp.new("\\b#{word}\\b", 'i'))
+#              word_hits[word] = (word_hits[word] || 0) + words.length
             end
           end
-          word_hits.each do |key, cnt|
+
+          word_hits.each do |key, list|
             matches << {
               value: key,
-              count: cnt
+              count: list.length,
+              samples: list
             }
           end
         else
@@ -570,9 +613,43 @@ class UserBadge < ActiveRecord::Base
       if badge_level['watch_type_count']
         matches = [] unless matches.length >= badge_level['watch_type_count']
       end
+      if matches.length > 0
+        samples = matches.map{|m| m[:samples] || []}.flatten
+        return {
+          valid: true,
+          samples: samples,
+          explanation: samples.uniq.sort.join(', ')
+        }
+      else
+        return false
+      end
       return matches.length > 0
     elsif badge_level['instance_count']
-      return unit[:total] && unit[:total] >= badge_level['instance_count']
+      if unit[:total] && unit[:total] >= badge_level['instance_count']
+        key = ""
+        if badge_level['word_instances']
+          key = 'words'
+        elsif badge_level['button_instances']
+          key = 'buttons'
+        elsif badge_level['session_instances']
+          key = 'sessions'
+        elsif badge_level['modeled_button_instances']
+          key = 'modeled buttons'
+        elsif badge_level['modeled_word_instances']
+          key = 'modeled words'
+        elsif badge_level['unique_word_instances']
+          key = 'unique words'
+        elsif badge_level['unique_button_instances']
+          key = 'unique buttons'
+        end
+        return {
+          valid: true,
+          count_key: key,
+          explanation: "#{unit[:total]} #{key}"
+        }
+      else
+        return false
+      end
     end
     return false
   end
@@ -588,25 +665,34 @@ class UserBadge < ActiveRecord::Base
         unit_hash[unit_id][:next] = {}
         unit_hash[unit_id][:next][measure] = day[:next][measure]
         unit_hash[unit_id][:total] = (unit_hash[unit_id][:total] || 0) + day[:total]
+        unit_hash[unit_id][:explanation] ||= ""
+        unit_hash[unit_id][:explanation] += ", " if unit_hash[unit_id][:explanation].length > 0
+        unit_hash[unit_id][:explanation] += day[:explanation] if day[:explanation]
         matches = {}
         (unit_hash[unit_id][:matches] || []).each do |match|
-          matches[match[:value]] = (matches[match[:value]] || 0) + match[:count]
+          matches[match[:value]] ||= {:count => 0, :samples => [], :explanation => ""}
+          matches[match[:value]][:count] += match[:count] || 0
+          matches[match[:value]][:samples] += match[:samples] || []
         end
         (day[:matches] || []).each do |match|
-          matches[match[:value]] = (matches[match[:value]] || 0) + match[:count]
+          matches[match[:value]] ||= {:count => 0, :samples => [], :explanation => ""}
+          matches[match[:value]][:count] += match[:count] || 0
+          matches[match[:value]][:samples] += match[:samples] || []
         end
         if matches.keys.length > 0
           unit_hash[unit_id][:matches] = []
-          matches.each do |k, v|
+          matches.each do |k, m|
             unit_hash[unit_id][:matches] << {
               value: k,
-              count: v
+              count: m[:count],
+              samples: m[:samples]
             }
           end
         end
       end
       units = unit_hash.map{|k, u| u }
     end
+
     units.sort_by{|u| u[measure] }
   end
   

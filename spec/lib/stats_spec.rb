@@ -28,6 +28,7 @@ describe Stats do
         :max_touches => 0,
         :words_by_frequency => [],
         :buttons_by_frequency => [],
+        :button_chains => {},
         :words_per_minute => 0.0,
         :buttons_per_minute => 0.0,
         :utterances_per_minute => 0.0,
@@ -59,6 +60,7 @@ describe Stats do
         :buttons_by_frequency => [],
         :buttons_per_minute => 0.0,
         :buttons_per_utterance => 0.0,
+        :button_chains => {},
         :total_buttons => 0,
         :total_utterances => 0.0,
         :total_words => 0,
@@ -1055,6 +1057,120 @@ SOME SILLY GARBAGE
       
       res = Stats.word_pairs([s1, s2, s3, s4])
       expect(res).to eq({"af956f01857e752ae09e4f1c433940dc"=>{"a"=>"good", "b"=>"we", "count"=>1}, "77b9476cebc127e4da5785a1d98f6dd6"=>{"a"=>"down", "b"=>"this", "count"=>1}})
+    end
+  end
+  
+  describe "goals_for_user" do
+    it "should return goals set" do
+      u = User.create
+      g1 = UserGoal.create(user: u, active: true, settings: {'summary' => 'a', 'started_at' => 6.hours.ago.iso8601})
+      g2 = UserGoal.create(user: u, settings: {'summary' => 'b', 'started_at' => 8.hours.ago.iso8601, 'ended_at' => 1.hour.ago.iso8601})
+      g3 = UserGoal.create(user: u, settings: {'summary' => 'c', 'started_at' => 12.hours.ago.iso8601, 'ended_at' => 11.hours.ago.iso8601})
+      g4 = UserGoal.create(user: u, settings: {'summary' => 'd', 'started_at' => 6.hours.ago})
+      
+      res = Stats.goals_for_user(u, 4.hours.ago, 2.hours.ago)
+      hash = {'goals_set' => {}, 'badges_earned' => {}}
+      hash['goals_set'][g1.global_id] = {'template_goal_id' => nil, 'name' => 'a'}
+      hash['goals_set'][g2.global_id] = {'template_goal_id' => nil, 'name' => 'b'}
+      hash['goals_set'][g4.global_id] = {'template_goal_id' => nil, 'name' => 'd'}
+      
+      expect(res).to eq(hash)
+    end
+    
+    it "should collect template goal connections" do
+      u = User.create
+      t1 = UserGoal.create(template: true, settings: {'summary' => 'temp'})
+      expect(t1.global_id).to_not eq(nil)
+      g1 = UserGoal.create(user: u, active: true, settings: {'template_id' => t1.global_id, 'summary' => 'a', 'started_at' => 6.hours.ago.iso8601})
+      g2 = UserGoal.create(user: u, settings: {'summary' => 'b', 'started_at' => 8.hours.ago.iso8601, 'ended_at' => 1.hour.ago.iso8601})
+      g3 = UserGoal.create(user: u, settings: {'summary' => 'c', 'started_at' => 12.hours.ago.iso8601, 'ended_at' => 11.hours.ago.iso8601})
+      g4 = UserGoal.create(user: u, settings: {'summary' => 'd', 'started_at' => 6.hours.ago})
+      
+      res = Stats.goals_for_user(u, 4.hours.ago, 2.hours.ago)
+      hash = {'goals_set' => {}, 'badges_earned' => {}}
+      hash['goals_set'][g1.global_id] = {'template_goal_id' => t1.global_id, 'name' => 'temp'}
+      hash['goals_set'][g2.global_id] = {'template_goal_id' => nil, 'name' => 'b'}
+      hash['goals_set'][g4.global_id] = {'template_goal_id' => nil, 'name' => 'd'}
+      
+      expect(res).to eq(hash)
+    end
+    
+    it "should include earned badges" do
+      u = User.create
+      t1 = UserGoal.create(template: true, settings: {'summary' => 'aa'})
+      u1 = UserGoal.create(user: u, settings: {'summary' => 'bb', 'template_id' => t1.global_id})
+      u2 = UserGoal.create(user: u, global: true, settings: {'summary' => 'cc'})
+      
+      b1 = UserBadge.create(user: u, earned: true, user_goal_id: u1.id, level: 1, data: {'earn_recorded' => 12.hours.ago.iso8601, 'name' => 'a'})
+      expect(b1.template_goal).to eq(t1)
+      b2 = UserBadge.create(user: u, earned: true, user_goal_id: u2.id, level: 2, data: {'earn_recorded' => 6.hours.ago.iso8601, 'name' => 'b'})
+      b3 = UserBadge.create(user: u, earned: true, user_goal_id: u1.id, level: 2, data: {'earn_recorded' => 18.hours.ago.iso8601, 'name' => 'c'})
+
+      res = Stats.goals_for_user(u, 14.hours.ago, 2.hours.ago)
+      hash = {'goals_set' => {}, 'badges_earned' => {}}
+      hash['badges_earned'][b1.global_id] = {'goal_id' => u1.global_id, 'template_goal_id' => t1.global_id, 'level' => 1, 'global' => nil, 'shared' => nil, 'name' => 'a', 'image_url' => nil}
+      hash['badges_earned'][b2.global_id] = {'goal_id' => u2.global_id, 'template_goal_id' => nil, 'level' => 2, 'global' => true, 'shared' => nil, 'name' => 'b', 'image_url' => nil}
+      
+      expect(res).to eq(hash)
+    end
+  end
+  
+  describe "buttons_used" do
+    it 'should include button ids used' do
+      u = User.create
+      b = Board.create(user: u, public: true)
+      d = Device.create
+      sessions = []
+      6.times do |i|
+        s1 = LogSession.process_new({'events' => [
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'this', 'button_id' => i, 'board' => {'id' => b.global_id}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 5},
+#          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'that', 'button_id' => 2, 'board' => {'id' => b.global_id}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 3},
+#          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'then', 'button_id' => 3, 'board' => {'id' => b.global_id}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i}
+        ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+        sessions << s1
+      end
+
+      res = Stats.buttons_used(sessions)
+      expect(res['button_ids']).to eq(["#{b.global_id}:0", "#{b.global_id}:1", "#{b.global_id}:2", "#{b.global_id}:3", "#{b.global_id}:4", "#{b.global_id}:5", ])
+      expect(res['button_chains']).to eq({})
+    end
+    
+    it 'should include valid button chains' do
+      u = User.create
+      b = Board.create(user: u, public: true)
+      d = Device.create
+      sessions = []
+      6.times do |i|
+        s1 = LogSession.process_new({'events' => [
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'this', 'button_id' => 1, 'board' => {'id' => b.global_id}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 5},
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'that', 'button_id' => 2, 'board' => {'id' => b.global_id}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 3},
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'then', 'button_id' => 3, 'board' => {'id' => b.global_id}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i}
+        ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+        sessions << s1
+      end
+
+      res = Stats.buttons_used(sessions)
+      expect(res['button_ids'].length).to eq(18)
+      expect(res['button_chains']).to eq({'this, that, then' => 6})
+    end
+
+    it 'should include long-delay button chains' do
+      u = User.create
+      b = Board.create(user: u, public: true)
+      d = Device.create
+      sessions = []
+      6.times do |i|
+        s1 = LogSession.process_new({'events' => [
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'this', 'button_id' => 1, 'board' => {'id' => b.global_id}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 5},
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'that', 'button_id' => 2, 'board' => {'id' => b.global_id}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 10000},
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'then', 'button_id' => 3, 'board' => {'id' => b.global_id}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 10001}
+        ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+        sessions << s1
+      end
+
+      res = Stats.buttons_used(sessions)
+      expect(res['button_ids'].length).to eq(18)
+      expect(res['button_chains']).to eq({})
     end
   end
 end

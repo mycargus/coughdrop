@@ -46,6 +46,17 @@ class UserGoal < ActiveRecord::Base
     end
   end
   
+  def active_during(start_at, end_at)
+    if active
+      started = Time.parse(self.settings['started_at']) rescue nil
+      return !!(started && started <= end_at)
+    else
+      started = Time.parse(self.settings['started_at']) rescue nil
+      ended = Time.parse(self.settings['ended_at']) rescue nil
+      return !!(started && ended && started <= end_at && ended >= start_at)
+    end
+  end
+  
   def update_template_header
     if @skip_update_template_header
       @skip_update_template_header = false
