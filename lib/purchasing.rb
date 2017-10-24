@@ -482,8 +482,8 @@ module Purchasing
             canceled = Time.at(sub['canceled_at'])
             created = Time.at(customer['created'])
             if canceled > 6.months.ago
-              cancel_months[canceled.month] ||= []
-              cancel_months[canceled.month] << (canceled - created) / 1.month.to_i
+              cancel_months[(canceled.year * 100) + canceled.month] ||= []
+              cancel_months[(canceled.year * 100) + canceled.month] << (canceled - created) / 1.month.to_i
             end
           end
         end
@@ -495,7 +495,12 @@ module Purchasing
       end
     end
     puts "TOTALS: checked #{total}, paying customers #{customer_actives}, paying users #{user_actives}"
-    cancel_months.each{|k, a| cancel_months[k] = (cancel_months[k].sum / cancel_months[k].length.to_f).round(1) }
+    cancel_months.each{|k, a| 
+      res = []
+      res << (cancel_months[k].sum / cancel_months[k].length.to_f).round(1) 
+      res << (cancel_months[k].length)
+      cancel_months[k] = res
+    }
     puts "CANCELS: #{cancel_months.to_a.sort_by(&:first).reverse.to_json}"
   end
   
