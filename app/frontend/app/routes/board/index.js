@@ -95,7 +95,7 @@ export default Ember.Route.extend({
         var force_fetch = !app_state.get('speak_mode');
         if(persistence.get('syncing') && !insufficient_data) { force_fetch = false; }
         reload = model.reload(force_fetch).then(null, function(err) {
-          return model.reload(force_fetch);
+          return model.reload(false);
         });
       // if we're offline, then we should only reload if we absolutely have to (i.e. ordered_buttons isn't set)
       } else if(!controller.get('ordered_buttons')) {
