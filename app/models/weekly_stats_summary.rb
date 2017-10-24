@@ -224,7 +224,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
         end
         
         if summary.data['stats']['goals']
-          summary.data['stats']['goals']['goals_set'].each do |goal_id, goal|
+          (summary.data['stats']['goals']['goals_set'] || {}).each do |goal_id, goal|
             if goal['template_goal_id']
               total.data['goals']['goals_set'][goal['template_goal_id']] ||= {
                 'name' => goal['name'],
@@ -240,7 +240,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
               total.data['goals']['goals_set']['private']['user_ids'] << summary.user_id
             end
           end
-          summary.data['stats']['goals']['badges_earned'].each do |badge_id, badge|
+          (summary.data['stats']['goals']['badges_earned'] || {}).each do |badge_id, badge|
             if badge['template_goal_id']
               total.data['goals']['badges_earned'][badge['template_goal_id']] ||= {
                 'goal_id' => badge['template_goal_id'],
