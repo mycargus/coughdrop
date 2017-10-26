@@ -347,7 +347,7 @@ var speecher = Ember.Object.extend({
         console.log("using native iOS tts");
         window.TTS.speak({
           text: utterance.text,
-          rate: utterance.rate,
+          rate: (utterance.rate || 1.0) * 1.3,
           locale: (voice && voice.lang)
         }, function() {
           callback();
@@ -675,6 +675,9 @@ var speecher = Ember.Object.extend({
       // this.speaks = [];
       if((speecher.last_text || "").match(/put/)) { debugger; }
       speecher.scope.speechSynthesis.cancel();
+      if(capabilities.system == 'iOS' && window.TTS) {
+        window.TTS.stop(function() { }, function() { });
+      }
       capabilities.tts.stop_text();
       if(this.audio.text) {
         this.audio.text.pause();
