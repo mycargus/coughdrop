@@ -107,10 +107,13 @@ class WeeklyStatsSummary < ActiveRecord::Base
       'arguments' => [self.weekyear]
     })
     if !already_scheduled
-      Worker.schedule_for(:slow, self.class, :perform_action, {
-        'method' => 'track_trends',
-        'arguments' => [self.weekyear]
-      })
+      if !RedisInit.default.get('trends_tracked_recently')
+        RedisInit.default.setex('trends_tracked_recently', 'true', 6.hours.to_i)
+        Worker.schedule_for(:slow, self.class, :perform_action, {
+          'method' => 'track_trends',
+          'arguments' => [self.weekyear]
+        })
+      end
     end
     
     return true
