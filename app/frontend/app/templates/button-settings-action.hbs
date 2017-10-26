@@ -568,7 +568,7 @@
     {{/if}}
   {{/if}}
   {{#unless model.talkAction}}
-    <div class="form-group">
+    <div class={{if pending_board "form-group dim" "form-group"}}>
       <div class="col-sm-10">
         <div class="checkbox">
           <label>

@@ -1160,6 +1160,9 @@ footer .wide_links {
   77% { transform: translate(4px,-5px); }
   87% { transform: translate(2px,-2px); }
 }
+.dim {
+  opacity: 0.5;
+}
 .dim_glyph_until_hover {
   .glyphicon {
     opacity: 0.8;
