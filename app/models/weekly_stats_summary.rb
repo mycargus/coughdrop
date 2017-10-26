@@ -180,7 +180,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     word_pairs = {}
     home_boards = {}
     user_ids_with_home_boards = []
-    sums.find_in_batches(batch_size: 10) do |batch|
+    sums.find_in_batches(batch_size: 5) do |batch|
       # TODO: sharding
       users = User.where(:id => batch.map(&:user_id))
       users.each do |user|
@@ -286,11 +286,13 @@ class WeeklyStatsSummary < ActiveRecord::Base
     end
 
     total.data['board_usages'] = {}
-    Board.find_all_by_global_id(board_usages.to_a.map(&:first)).each do |board|
-      if board.public && !board.parent_board_id
-        total.data['board_usages'][board.key] = board_usages[board.global_id]
-      elsif board.public && board.parent_board
-        total.data['board_usages'][board.parent_board.key] = board_usages[board.global_id]
+    Board.find_all_by_global_id(board_usages.to_a.map(&:first)).find_in_batches(batch_size: 10) do |batch|
+      batch.each do |board|
+        if board.fully_listed? && !board.parent_board_id
+          total.data['board_usages'][board.key] = board_usages[board.global_id]
+        elsif board.fully_listed? && board.parent_board
+          total.data['board_usages'][board.parent_board.key] = board_usages[board.global_id]
+        end
       end
     end
     
@@ -301,7 +303,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     word_user_counts = {}    
     if current_trends
       board_ids = board_user_ids.map(&:first)
-      BoardDownstreamButtonSet.where(:board_id => board_ids).find_in_batches(batch_size: 10) do |batch|
+      BoardDownstreamButtonSet.where(:board_id => board_ids).find_in_batches(batch_size: 5) do |batch|
         batch.each do |button_set|
           button_set.data['buttons'].each do |button|
             word = button['label'].downcase
@@ -380,96 +382,98 @@ class WeeklyStatsSummary < ActiveRecord::Base
     stash[:home_board_user_ids] = []
     earliest = nil
     latest = nil
-    WeeklyStatsSummary.where(['weekyear >= ?', cutoffweekyear]).where(:user_id => 0).each do |summary|
-      next unless summary.data && summary.data['totals']
-      date = Date.commercial(summary.weekyear / 100, summary.weekyear % 100) - 1
-      earliest = [earliest, date].compact.min
-      latest = [latest, date].compact.max
-      week = {
-        'modeled_percent' => 100.0 * (summary.data['totals']['total_modeled_buttons'].to_f / summary.data['totals']['total_buttons'].to_f * 2.0).round(1) / 2.0,
-        'core_percent' => 100.0 * (summary.data['totals']['total_core_words'].to_f / summary.data['totals']['total_words'].to_f * 2.0).round(1) / 2.0,
-        'words_per_minute' => (summary.data['totals']['total_words'].to_f / summary.data['totals']['total_session_seconds'].to_f * 60.0).round(1),
-        'goals_percent' => 100.0 * ((summary.data['totals']['goals_set'] || 0).to_f / summary.data['user_ids'].length.to_f).round(2),
-        'badges_percent' => 100.0 * ((summary.data['totals']['badges_earned'] || 0).to_f / summary.data['user_ids'].length.to_f).round(2)
-      }
-      res['weeks'][summary.weekyear] = week
+    WeeklyStatsSummary.where(['weekyear >= ?', cutoffweekyear]).where(:user_id => 0).find_in_batches(batch_size: 20) do |batch|
+      batch.each do |summary|
+        next unless summary.data && summary.data['totals']
+        date = Date.commercial(summary.weekyear / 100, summary.weekyear % 100) - 1
+        earliest = [earliest, date].compact.min
+        latest = [latest, date].compact.max
+        week = {
+          'modeled_percent' => 100.0 * (summary.data['totals']['total_modeled_buttons'].to_f / summary.data['totals']['total_buttons'].to_f * 2.0).round(1) / 2.0,
+          'core_percent' => 100.0 * (summary.data['totals']['total_core_words'].to_f / summary.data['totals']['total_words'].to_f * 2.0).round(1) / 2.0,
+          'words_per_minute' => (summary.data['totals']['total_words'].to_f / summary.data['totals']['total_session_seconds'].to_f * 60.0).round(1),
+          'goals_percent' => 100.0 * ((summary.data['totals']['goals_set'] || 0).to_f / summary.data['user_ids'].length.to_f).round(2),
+          'badges_percent' => 100.0 * ((summary.data['totals']['badges_earned'] || 0).to_f / summary.data['user_ids'].length.to_f).round(2)
+        }
+        res['weeks'][summary.weekyear] = week
 
-      stash[:total_session_seconds] += summary.data['totals']['total_session_seconds']
-      stash[:modeled_buttons] += summary.data['totals']['total_modeled_buttons']
-      stash[:total_buttons] += summary.data['totals']['total_buttons']
-      stash[:core_words] += summary.data['totals']['total_core_words']
-      stash[:total_words] += summary.data['totals']['total_words']
-      stash[:user_ids] += summary.data['user_ids'] || []
-      stash[:total_sessions] += summary.data['totals']['total_sessions']
-      stash[:home_board_user_ids] += summary.data['home_board_user_ids'] || summary.data['user_ids'] || []
+        stash[:total_session_seconds] += summary.data['totals']['total_session_seconds']
+        stash[:modeled_buttons] += summary.data['totals']['total_modeled_buttons']
+        stash[:total_buttons] += summary.data['totals']['total_buttons']
+        stash[:core_words] += summary.data['totals']['total_core_words']
+        stash[:total_words] += summary.data['totals']['total_words']
+        stash[:user_ids] += summary.data['user_ids'] || []
+        stash[:total_sessions] += summary.data['totals']['total_sessions']
+        stash[:home_board_user_ids] += summary.data['home_board_user_ids'] || summary.data['user_ids'] || []
       
-      if summary.data['word_counts']
-        summary.data['word_counts'].each do |word, cnt|
-          stash[:word_counts][word] = (stash[:word_counts][word] || 0) + cnt
+        if summary.data['word_counts']
+          summary.data['word_counts'].each do |word, cnt|
+            stash[:word_counts][word] = (stash[:word_counts][word] || 0) + cnt
+          end
         end
-      end
       
-      if summary.data['board_usages']
-        summary.data['board_usages'].each do |key, cnt|
-          stash[:board_usages][key] = (stash[:board_usages][key] || 0) + cnt
+        if summary.data['board_usages']
+          summary.data['board_usages'].each do |key, cnt|
+            stash[:board_usages][key] = (stash[:board_usages][key] || 0) + cnt
+          end
         end
-      end
       
-      if summary.data['available_words']
-        summary.data['available_words'].each do |word, user_ids|
-          stash[:available_words] ||= {}
-          stash[:available_words][word] = (stash[:available_words][word] || []) + user_ids
+        if summary.data['available_words']
+          summary.data['available_words'].each do |word, user_ids|
+            stash[:available_words] ||= {}
+            stash[:available_words][word] = (stash[:available_words][word] || []) + user_ids
+          end
         end
-      end
       
-      if summary.data['home_boards']
-        stash[:home_boards] ||= {}
-        summary.data['home_boards'].each do |key, user_ids|
-          stash[:home_boards][key] ||= []
-          stash[:home_boards][key] += user_ids
+        if summary.data['home_boards']
+          stash[:home_boards] ||= {}
+          summary.data['home_boards'].each do |key, user_ids|
+            stash[:home_boards][key] ||= []
+            stash[:home_boards][key] += user_ids
+          end
         end
-      end
       
-      if summary.data['word_pairs']
-        stash[:word_pairs] ||= {}
-        summary.data['word_pairs'].each do |k, pair|
-          stash[:word_pairs][k] ||= {
-            'a' => pair['a'],
-            'b' => pair['b'],
-            'count' => 0
-          }
-          stash[:word_pairs][k]['count'] += pair['count']
+        if summary.data['word_pairs']
+          stash[:word_pairs] ||= {}
+          summary.data['word_pairs'].each do |k, pair|
+            stash[:word_pairs][k] ||= {
+              'a' => pair['a'],
+              'b' => pair['b'],
+              'count' => 0
+            }
+            stash[:word_pairs][k]['count'] += pair['count']
+          end
         end
-      end
       
-      if summary.data['goals']
-        stash[:goal_user_ids] ||= []
-        stash[:goal_user_ids] += summary.data['goals']['goals_set'].map{|k, g| g['user_ids'] }.flatten
-        stash[:goals] ||= {}
-        summary.data['goals']['goals_set'].each do |goal_id, goal|
-          stash[:goals][goal_id] ||= {
-            'name' => goal['name'],
-            'template' => goal['template'],
-            'public' => goal['public'],
-            'user_ids' => []
-          }
-          stash[:goals][goal_id]['user_ids'] << goal['user_ids'] || []
-        end
-        stash[:badged_user_ids] ||= []
-        stash[:badged_user_ids] += summary.data['goals']['badges_earned'].map{|k, b| b['user_ids'] }.flatten
-        stash[:badges] ||= {}
-        summary.data['goals']['badges_earned'].each do |goal_id, badge|
-          stash[:badges][goal_id] ||= {
-            'goal_id' => badge['goal_id'],
-            'name' => badge['name'],
-            'template_goal_id' => badge['template_goal'],
-            'levels' => [],
-            'user_ids' => [],
-            'shared_user_ids' => []
-          }
-          stash[:badges][goal_id]['user_ids'] << badge['user_ids'] || []
-          stash[:badges][goal_id]['levels'] += badge['levels'] || []
-          stash[:badges][goal_id]['shared_user_ids'] << badge['shared_user_ids'] || []
+        if summary.data['goals']
+          stash[:goal_user_ids] ||= []
+          stash[:goal_user_ids] += summary.data['goals']['goals_set'].map{|k, g| g['user_ids'] }.flatten
+          stash[:goals] ||= {}
+          summary.data['goals']['goals_set'].each do |goal_id, goal|
+            stash[:goals][goal_id] ||= {
+              'name' => goal['name'],
+              'template' => goal['template'],
+              'public' => goal['public'],
+              'user_ids' => []
+            }
+            stash[:goals][goal_id]['user_ids'] << goal['user_ids'] || []
+          end
+          stash[:badged_user_ids] ||= []
+          stash[:badged_user_ids] += summary.data['goals']['badges_earned'].map{|k, b| b['user_ids'] }.flatten
+          stash[:badges] ||= {}
+          summary.data['goals']['badges_earned'].each do |goal_id, badge|
+            stash[:badges][goal_id] ||= {
+              'goal_id' => badge['goal_id'],
+              'name' => badge['name'],
+              'template_goal_id' => badge['template_goal'],
+              'levels' => [],
+              'user_ids' => [],
+              'shared_user_ids' => []
+            }
+            stash[:badges][goal_id]['user_ids'] << badge['user_ids'] || []
+            stash[:badges][goal_id]['levels'] += badge['levels'] || []
+            stash[:badges][goal_id]['shared_user_ids'] << badge['shared_user_ids'] || []
+          end
         end
       end
     end
