@@ -57,10 +57,14 @@ class ClusterLocation < ActiveRecord::Base
     elsif type == 'geo'
       hash = GoSecure.sha512(user.id.to_s + type_data.to_json, type)
     end
-    self.find_or_create_by(user_id: user.id, cluster_type: type, cluster_hash: hash)
+    res = self.find_or_create_by(user_id: user.id, cluster_type: type, cluster_hash: hash)
+    res.data['ip_address'] = type_data if type == 'ip_address'
+    res.data['geo'] = type_data if type == 'geo'
+    res
   end
   
   def generate_defaults
+    self.data ||= {}
     self.cluster_type ||= 'ip_address'
     if self.user_id && self.ip_address? && self.data['ip_address']
       self.cluster_hash = GoSecure.sha512(self.user_id.to_s + "::" + self.data['ip_address'], self.cluster_type)
@@ -266,7 +270,7 @@ class ClusterLocation < ActiveRecord::Base
       id, sessions = nearbies.max_by{|a, b| b.length }
       sessions ||= []
       if sessions.length >= self.frequency_tolerance
-        cluster = ClusterLocation.find_or_create_by_cluster(user, 'geo', {ts: Time.now.to_i})
+        cluster = ClusterLocation.find_or_create_by_cluster(user, 'geo', {ts: Time.now.to_i, r: rand})
         sessions.each do |session|
           session.geo_cluster_id = cluster.id
           session.save

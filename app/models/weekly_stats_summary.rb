@@ -108,7 +108,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     })
     if !already_scheduled
       if !RedisInit.default.get('trends_tracked_recently')
-        RedisInit.default.setex('trends_tracked_recently', 'true', 6.hours.to_i)
+        RedisInit.default.setex('trends_tracked_recently', 6.hours.to_i, 'true')
         Worker.schedule_for(:slow, self.class, :perform_action, {
           'method' => 'track_trends',
           'arguments' => [self.weekyear]
@@ -286,7 +286,8 @@ class WeeklyStatsSummary < ActiveRecord::Base
     end
 
     total.data['board_usages'] = {}
-    Board.find_all_by_global_id(board_usages.to_a.map(&:first)).find_in_batches(batch_size: 10) do |batch|
+    board_ids = board_usages.to_a.map(&:first)
+    Board.where(id: Board.local_ids(board_ids)).find_in_batches(batch_size: 10) do |batch|
       batch.each do |board|
         if board.fully_listed? && !board.parent_board_id
           total.data['board_usages'][board.key] = board_usages[board.global_id]
