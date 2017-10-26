@@ -9,10 +9,19 @@ module Worker
     @queue = queue.to_s
     job_hash = Digest::MD5.hexdigest(args.to_json)
     note_job(job_hash)
+    size = Resque.size(queue)
     if queue == :slow
       Resque.enqueue(SlowWorker, klass.to_s, method_name, *args)
+      if size > 1000 && !RedistInit.default.get("queue_warning_#{queue}")
+        RedisInit.default.setex("queue_warning_#{queue}", "true", 5.minutes.to_I)
+        Rails.logger.error("job queue full: #{queue}, #{size} entries")
+      end
     else
       Resque.enqueue(Worker, klass.to_s, method_name, *args)
+      if size > 5000 && !RedistInit.default.get("queue_warning_#{queue}")
+        RedisInit.default.setex("queue_warning_#{queue}", "true", 5.minutes.to_i)
+        Rails.logger.error("job queue full: #{queue}, #{size} entries")
+      end
     end
   end
   
