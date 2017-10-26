@@ -69,6 +69,9 @@
                       </button>
                       <ul class="dropdown-menu" role="menu">
                         <li>{{#link-to 'user' supervisee.user_name}}{{t "Account" key='account'}}{{/link-to}}</li>
+                        {{#if supervisee.home_board_key}}
+                          <li>{{#link-to 'board' supervisee.home_board_key}}{{t "Home Board" key='home_board'}}{{/link-to}}</li>
+                        {{/if}}
                         <li><a href="#" {{action 'homeInSpeakMode' supervisee.id true}}>{{t "Speak Mode (modeling)" key='speak_mode_as_me'}}</a></li>
                         <li><a href="#" {{action 'homeInSpeakMode' supervisee.id}}>{{t "Speak Mode (as %{user_name})" key='speak_mode_as_user' user_name=supervisee.user_name}}</a></li>
                         <li>{{#link-to 'user.stats' supervisee.user_name (query-params start=null end=null device_id=null location_id=null split=null start2=null end2=null device_id2=null location_id2=null)}}{{t "Reports" key='reports'}}{{/link-to}}</li>
