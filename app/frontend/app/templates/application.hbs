@@ -622,7 +622,7 @@
   {{ outlet }}
 </div>
 {{#if app_state.sidebar_visible}}
-  <div id="sidebar" style={{sidebar_style}} class="advanced_selection">
+  <div id="sidebar" class='noselect' style={{sidebar_style}} class="advanced_selection">
     {{#unless app_state.currentUser.preferences.quick_sidebar}}
       <span style="margin: 5px; text-align: right; white-space: nowrap;">
         {{#if app_state.currentUser}}
@@ -665,7 +665,7 @@
   {{#if app_state.speak_mode}}
     {{#unless app_state.currentUser.preferences.disable_quick_sidebar}}
       {{#unless app_state.sidebar_relegated}}
-        <div id="sidebar_tease" class="advanced_selection" {{action "toggleSidebar"}}>
+        <div id="sidebar_tease" class="advanced_selection noselect" {{action "toggleSidebar"}}>
           {{#if app_state.fenced_sidebar_board}}
             <span class='glyphicon glyphicon-map-marker' style='font-size: 20px; vertical-align: middle;'></span>
           {{/if}}
