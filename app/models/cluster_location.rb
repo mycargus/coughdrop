@@ -11,6 +11,7 @@ class ClusterLocation < ActiveRecord::Base
   include SecureSerialize
   belongs_to :user
   after_save :generate_stats
+  before_save :generate_defaults
 #   has_many :ip_sessions, :class_name => 'LogSession', :foreign_key => 'ip_cluster_id'
 #   has_many :geo_sessions, :class_name => 'LogSession', :foreign_key => 'geo_cluster_id'
   replicated_model  
@@ -49,6 +50,26 @@ class ClusterLocation < ActiveRecord::Base
     LogSession.where(:geo_cluster_id => self.id)
   end
   
+  def self.find_or_create_by_cluster(user, type, type_data)
+    hash = nil
+    if type == 'ip_address'
+      hash = GoSecure.sha512(user.id.to_s + "::" + type_data, type)
+    elsif type == 'geo'
+      hash = GoSecure.sha512(user.id.to_s + type_data.to_json, type)
+    end
+    self.find_or_create_by(user_id: user.id, cluster_type: type, cluster_hash: hash)
+  end
+  
+  def generate_defaults
+    self.cluster_type ||= 'ip_address'
+    if self.user_id && self.ip_address? && self.data['ip_address']
+      self.cluster_hash = GoSecure.sha512(self.user_id.to_s + "::" + self.data['ip_address'], self.cluster_type)
+    elsif self.user_id && self.geo? && self.data['geo']
+      self.cluster_hash = GoSecure.sha512(self.user_id.to_s + self.data['geo'].to_json, self.cluster_type)
+    end
+    true
+  end
+  
   def generate_stats(frd=false)
     return if @already_generating_stats
     @already_generating_stats = true
@@ -57,13 +78,7 @@ class ClusterLocation < ActiveRecord::Base
       return true
     end
     Rails.logger.info("generating stats for #{self.global_id}")
-    self.data ||= {}
-    self.cluster_type ||= 'ip_address'
-    if self.user_id && self.ip_address? && self.data['ip_address']
-      self.cluster_hash = GoSecure.sha512(self.user_id.to_s + "::" + self.data['ip_address'], self.cluster_type)
-    elsif self.user_id && self.geo? && self.data['geo']
-      self.cluster_hash = GoSecure.sha512(self.user_id.to_s + self.data['geo'].to_json, self.cluster_type)
-    end
+    self.generate_defaults
     
     sessions = []
     if self.ip_address?
@@ -251,7 +266,7 @@ class ClusterLocation < ActiveRecord::Base
       id, sessions = nearbies.max_by{|a, b| b.length }
       sessions ||= []
       if sessions.length >= self.frequency_tolerance
-        cluster = ClusterLocation.create(:user => user, :cluster_type => 'geo')
+        cluster = ClusterLocation.find_or_create_by_cluster(user, 'geo', {ts: Time.now.to_i})
         sessions.each do |session|
           session.geo_cluster_id = cluster.id
           session.save
@@ -288,7 +303,8 @@ class ClusterLocation < ActiveRecord::Base
     Rails.logger.info("generating new ip clusters")
     ips.each do |ip, sessions|
       readable_ip = sessions.first.data['readable_ip_address']
-      cluster = ClusterLocation.create(:user => user, :cluster_type => 'ip_address', :data => {'ip_address' => ip, 'readable_ip_address' => readable_ip})
+      cluster = ClusterLocation.find_or_create_by_cluster(user, 'ip_address', ip)
+      cluster.data['readable_ip_address'] = readable_ip
       sessions.each do |session|
         session.ip_cluster_id = cluster.id
         session.save
