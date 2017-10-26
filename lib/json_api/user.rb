@@ -142,6 +142,7 @@ module JsonApi::User
         json['edit_permission'] = args[:supervisor].edit_permission_for?(user)
         json['premium'] = user.premium?
         json['goal'] = user.settings['primary_goal']
+        json['home_board_key'] = user.settings['preferences'] && user.settings['preferences']['home_board'] && user.settings['preferences']['home_board']['key']
       elsif args[:supervisee]
         json['edit_permission'] = user.edit_permission_for?(args[:supervisee])
         org_unit = user.org_unit_for_supervising(args[:supervisee])
