@@ -675,7 +675,7 @@ var speecher = Ember.Object.extend({
       // this.speaks = [];
       if((speecher.last_text || "").match(/put/)) { debugger; }
       speecher.scope.speechSynthesis.cancel();
-      if(capabilities.system == 'iOS' && window.TTS) {
+      if(capabilities.system == 'iOS' && window.TTS && window.TTS.stop) {
         window.TTS.stop(function() { }, function() { });
       }
       capabilities.tts.stop_text();
