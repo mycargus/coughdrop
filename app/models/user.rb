@@ -523,6 +523,7 @@ class User < ActiveRecord::Base
       self.clear_existing_subscription
       if non_user_params['premium_until'] == 'forever'
         self.settings['subscription']['never_expires'] = true
+        self.expires_at = nil
       else
         raise "there are better channels for this now"
         self.expires_at = non_user_params['premium_until']
