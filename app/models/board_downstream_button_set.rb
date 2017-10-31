@@ -11,10 +11,9 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
   
   def generate_defaults
     self.data ||= {}
-    self.data['buttons'] ||= []
-    self.data['board_ids'] = self.data['buttons'].map{|b| b['board_id'] }.compact.uniq
-    self.data['button_count'] = self.data['buttons'].length
-    self.data['board_count'] = self.data['buttons'].map{|b| b['board_id'] }.uniq.length
+    self.data['board_ids'] = self.buttons.map{|b| b['board_id'] }.compact.uniq
+    self.data['button_count'] = self.buttons.length
+    self.data['board_count'] = self.buttons.map{|b| b['board_id'] }.uniq.length
     self.data.delete('json_response')
   end
   

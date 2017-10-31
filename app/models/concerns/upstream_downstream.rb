@@ -71,7 +71,7 @@ module UpstreamDownstream
       downs += children
     end
     downs = downs.uniq.sort - [top_board.global_id]
-    changed = (downs != top_board.settings['downstream_board_ids'])
+    changed = (downs != (top_board.settings['downstream_board_ids'] || []).uniq.sort)
     total_buttons = 0
     unlinked_buttons = 0
     revision_hashes = [top_board.current_revision]
@@ -108,7 +108,7 @@ module UpstreamDownstream
 
     # step 3: notify upstream if there was a change
     Rails.logger.info('saving if changed')
-    if changed || buttons_changed || downstream_buttons_changed || downstream_boards_changed
+    if changed || downstream_buttons_changed || downstream_boards_changed
       Rails.logger.info('saving because changed') if changed
       Rails.logger.info('saving because buttons changed') if buttons_changed
       Rails.logger.info('saving because downstream buttons changed') if downstream_buttons_changed
@@ -193,6 +193,7 @@ module UpstreamDownstream
     self.settings['immediately_upstream_board_ids'] << id
     self.settings['immediately_upstream_board_ids'] = self.settings['immediately_upstream_board_ids'].uniq.sort
     self.update_setting('immediately_upstream_board_ids', self.settings['immediately_upstream_board_ids'], :save!)
+    BoardDownstreamButtonSet.schedule_once(:update_for, self.global_id)
   end
   
   def update_any_upstream
@@ -258,7 +259,6 @@ module UpstreamDownstream
       # munge through all at once. With enough workers I guess that'd be no
       # big deal, but right now we don't have enough, so those get run
       # in a single long-running job instead.
-      # TODO: add a third queue for potentially long-running jobs
       @@lumped_triggers ||= nil
       if !triggers && @@lumped_triggers
         if @@lumped_triggers.length > 0

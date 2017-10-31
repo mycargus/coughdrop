@@ -209,6 +209,12 @@
               </a>
             {{/if}}
           {{/if}}
+        {{else if app_state.currentUser.home_board_pending}}
+          <a class="list-group-item">
+            <span class="glyphicon glyphicon-home"></span>
+            {{t "current home board:" key='current_home_board'}}<br/>
+            <strong>{{t "copying %{brd}..." key='copying_board' brd=app_state.currentUser.home_board_pending}}</strong>
+          </a>
         {{else}}
           {{#link-to 'home-boards' class="list-group-item"}}
             <span class="glyphicon glyphicon-home"></span>

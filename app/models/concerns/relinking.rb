@@ -29,6 +29,7 @@ module Relinking
     board.settings['locale'] = self.settings['locale']
     board.settings['translations'] = self.settings['translations']
     board.settings['buttons'] = self.settings['buttons']
+    board.settings['downstream_board_ids'] = self.settings['downstream_board_ids']
     board.settings['license'] = self.settings['license']
     board.settings['grid'] = self.settings['grid']
     board.settings['never_edited'] = true
@@ -84,7 +85,7 @@ module Relinking
         self.settings['buttons'][idx]['load_board']['key'] = new_board.key
       end
     end
-    self.save
+    self.settings['downstream_board_ids'] = (self.settings['downstream_board_ids'] || []).map{|id| id == old_board.global_id ? new_board.global_id : id }
   end
 
   module ClassMethods
@@ -124,7 +125,6 @@ module Relinking
         home = Board.find_by_path(user.settings['preferences']['home_board']['id'])
         home.track_downstream_boards!
       end
-      
     end
 
     def copy_board_links_for(user, opts)
@@ -163,6 +163,7 @@ module Relinking
         replacement_map[old_board.global_id] = new_board
       end
       # for each board that needs replacing...
+      boards_to_save = []
       while pending_replacements.length > 0
         old_board, new_board = pending_replacements.shift
         # iterate through all the original boards and look for references to the old board
@@ -176,22 +177,26 @@ module Relinking
               # if you explicitly said update instead of replace my boards, then go ahead
               # and update in-place.
               board.replace_links!(old_board, new_board)
+              boards_to_save << board
             elsif !board.just_for_user?(user)
               # if it's not already private for the user, make a private copy for the user 
               # and add to list of replacements to handle.
               copy = board.copy_for(user, opts[:make_public], opts[:copy_id])
               copy.replace_links!(old_board, new_board)
+              boards_to_save << copy
               replacement_map[board.global_id] = copy
               pending_replacements << [board, copy]
             else
               # if it's private for the user, and no one else is using it, go ahead and
               # update it in-place
               board.replace_links!(old_board, new_board)
+              boards_to_save << board
             end
           else
           end
         end
       end
+      boards_to_save.uniq.each{|b| b.save }
       @replacement_map = replacement_map
       
       return replacement_map[user.settings['preferences']['home_board']['id']] if user.settings['preferences'] && user.settings['preferences']['home_board']

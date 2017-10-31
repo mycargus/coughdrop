@@ -161,26 +161,53 @@ export default Ember.Controller.extend({
       if(option == 'starting') {
         board = stashes.get('root_board_state') || this.get('board').get('model');
       }
-      if(app_state.get('currentUser.supervisees') && !option) {
+      var board_user_name = Ember.get(board, 'key').split(/\//)[1];
+      var needs_confirmation = app_state.get('currentUser.supervisees') || board_user_name != app_state.get('currentUser.user_name');
+      if(needs_confirmation && !option) {
         modal.open('set-as-home', {board: board});
       } else {
         var user = app_state.get('currentUser');
+        var _this = this;
         if(user) {
-          user.set('preferences.home_board', {
-            id: board.get('id'),
-            key: board.get('key')
-          });
-          var _this = this;
-          user.save().then(function() {
+          var done = function() {
             if(persistence.get('online') && persistence.get('auto_sync')) {
               Ember.run.later(function() {
               console.debug('syncing because home board changes');
                 persistence.sync('self').then(null, function() { });
               }, 1000);
             }
-          }, function() {
-            modal.error(i18n.t('set_as_home_failed', "Home board update failed unexpectedly"));
-          });
+
+          };
+          if(option == 'starting') {
+            // TODO: make a personal copy of the board for the user
+            user.set('home_board_pending', Ember.get(board, 'key'));
+            debugger
+            CoughDrop.store.findRecord('board', Ember.get(board, 'id')).then(function(board) {
+              editManager.copy_board(board, 'links_copy_as_home', user, false).then(function() {
+                user.set('home_board_pending', false);
+                done();
+              }, function() {
+                user.set('home_board_pending', false);
+                modal.error(i18n.t('set_as_home_failed', "Home board update failed unexpectedly"));
+              });
+              _this.send('setup_go', 'forward');
+            }, function() {
+              user.set('home_board_pending', false);
+              modal.error(i18n.t('set_as_home_failed', "Home board update failed unexpectedly"));
+            });
+          } else {
+            user.set('preferences.home_board', {
+              id: Ember.get(board, 'id'),
+              key: Ember.get(board, 'key')
+            });
+            var _this = this;
+            user.save().then(function() {
+              done();
+              _this.send('setup_go', 'forward');
+            }, function() {
+              modal.error(i18n.t('set_as_home_failed', "Home board update failed unexpectedly"));
+            });
+          }
         }
       }
     },

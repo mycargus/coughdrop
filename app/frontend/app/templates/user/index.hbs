@@ -312,6 +312,99 @@
             <li role="presentation" class={{if prior_home_selected 'active'}}><a href="#" {{action 'set_selected' 'prior_home'}}>{{t "Prior Home Boards" key='prior_home'}}</a></li>
           {{/if}}
         </ul>
+        {{#if board_list}}
+          {{#if board_list.loading}}
+            {{t "Loading..." key='loading'}}
+          {{else if board_list.error}}
+            {{t "Failed to load" key='failed_to_load'}}
+          {{else if board_list.results}}
+            {{#if prior_home_selected}}
+              <ul class="list-group" style="max-width: 350px;">
+                {{#each board_list.filtered_results as |board|}}
+                  <li class="list-group-item">
+                    {{#link-to "board" board.board.key}}{{board.board.key}}{{/link-to}}
+                  </li>
+                {{/each}}
+              </ul>
+              {{#unless show_all_boards}}
+                <a href="#" {{action "show_more_boards"}}>show more</a>
+              {{/unless}}
+            {{else}}
+              {{#if board_list.sub_result}}
+                <div style='margin-bottom: 5px;'><em>{{t "Showing boards copied with %{k}" key='showing_boards_copied_with' k=parent_object.board.key}}</em></div>
+                <a href="#" class='btn btn-default' {{action 'load_children'}} style='margin-bottom: 10px;'>{{t "Back to Full List" key='back_to_full_list'}}</a>
+              {{/if}}
+              <form style="margin-bottom: 10px;" {{action 'nothing' on='submit'}}>
+                <div style="width: 250px;">
+                {{input type="text" value=filterString class="form-control" placeholder="Filter Results"}}
+                </div>
+              </form>
+              <div class="row">
+                {{#each board_list.filtered_results as |board|}}
+                  {{#if board.board.key}}
+                    {{#unless board.board.removed}}
+                      <div class="col-sm-2 col-xs-3 board_with_action">
+                        {{#if board.children}}
+                            <a href='#' {{action 'load_children' board}} class='well well-sm board_icon folder'>
+                              <span style='display: block;'>
+                                  <span class="icon" style='display: block;'>
+                                    <img src={{board.board.icon_url_with_fallback}} onerror="button_broken_image(this);"/>
+                                  </span>
+                                  <span style="display: block; height: 50px">
+                                    <span style="color: #888; padding-left: 8px; display: block;">
+                                      <span class="glyphicon glyphicon-folder-open"></span>
+                                      {{board.children.length}}
+                                    </span>
+                                    {{#if board.board.stars}}
+                                      <span style="color: #222; padding-left: 8px; display: block;">
+                                        <span class="glyphicon glyphicon-star"></span>
+                                        {{board.board.stars}}
+                                      </span>
+                                    {{/if}}
+                                    {{#if board.board.different_locale}}
+                                      <span style='color: #888; padding-left: 8px; display: block;'>
+                                        {{board.board.shortened_locale}}
+                                      </span>
+                                    {{/if}}
+                                  </span>
+                                  <span style="display: block; clear: both;"></span>
+                              </span>
+                              <span class="names" title={{board.long_preview}}>
+                                <span class="name">
+                                  {{#unless board.board.public}}<span class="glyphicon glyphicon-lock"></span>{{/unless}}
+                                  {{board.board.name}}{{#if board.board.copy_version}} <span style='color: #666; font-size: 10px;'>({{board.board.copy_version}})</span>{{/if}}
+                                </span><br/>
+                              </span><br/>
+                              <span class="user_name">{{board.board.user_name}}</span><br/>
+                            </a>
+                        {{else}}
+                          {{#with board.board as |board|}}
+                            {{partial "board-icon"}}
+                          {{/with}}
+                        {{/if}}
+                        {{#if model.permissions.edit}}
+                          <button class="board_action" {{action 'remove_board' board_list.remove_type board.board}}>
+                            <span title={{board_list.remove_label}}><span class='glyphicon glyphicon-trash'></span></span>
+                          </button>
+                        {{/if}}
+                      </div>
+                    {{/unless}}
+                  {{/if}}
+                {{/each}}
+                {{#unless show_all_boards}}
+                  {{#unless filterString}}
+                    <div class="col-sm-12">
+                      <a href="#" {{action "show_more_boards"}}>show more</a>
+                    </div>
+                  {{/unless}}
+                {{/unless}}
+              </div>
+            {{/if}}
+          {{else}}
+            {{t "None found" key='none_found'}}
+          {{/if}}
+        {{/if}}
+        <div style='display: none;'>
         {{#if mine_selected}}
           {{#if model.my_boards.loading}}
             {{t "Loading..." key='loading'}}
@@ -509,6 +602,7 @@
             <a href="#" {{action "show_more_prior_home_boards"}}>show more</a>
           {{/unless}}
         {{/if}}
+        </div>
       </div>
     </div>
   {{#if model.permissions.support_actions}}
