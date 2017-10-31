@@ -1,4 +1,6 @@
+import Ember from 'ember';
 import modal from '../utils/modal';
+import i18n from '../utils/i18n';
 import persistence from '../utils/persistence';
 
 export default modal.ModalController.extend({
@@ -26,6 +28,7 @@ export default modal.ModalController.extend({
         _this.set('loading', false);
         _this.set('error', false);
         board.set('removed', true);
+
         modal.close();
       }, function() {
         _this.set('loading', false);
@@ -34,3 +37,4 @@ export default modal.ModalController.extend({
     }
   }
 });
+

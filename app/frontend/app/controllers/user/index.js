@@ -46,98 +46,69 @@ export default Ember.Controller.extend({
       this.get('starred_boards_shortened').length === 0 &&
       this.get('shared_boards_shortened').length === 0;
   }.property('model.preferences.home_board.key', 'public_boards_shortened', 'private_boards_shortened', 'starred_boards_shortened', 'shared_boards_shortened'),
-  shortened_list_of_prior_home_boards: function() {
-    var list = this.get('model.prior_home_boards') || [];
-    if(list.loading || list.error) { list = []; }
-    if(this.get('show_all_prior_home_boards')) {
-      return list;
-    } else {
-      if(list.length < 10) {
-        this.set('show_all_prior_home_boards', true);
-      }
-      return list.slice(0, 10);
+  board_list: function() {
+    var list = [];
+    var res = {remove_type: 'delete', remove_label: i18n.t('delete', "delete")};
+    if(this.get('selected') == 'mine' || !this.get('selected')) {
+      list = this.get('model.my_boards');
+    } else if(this.get('selected') == 'public') {
+      list = this.get('model.public_boards');
+    } else if(this.get('selected') == 'private') {
+      list = this.get('model.private_boards');
+    } else if(this.get('selected') == 'starred') {
+      list = this.get('model.starred_boards');
+      res.remove_type = 'unstar';
+      res.remove_label = i18n.t('unstar', "unstar");
+    } else if(this.get('selected') == 'shared') {
+      list = this.get('model.shared_boards');
+      res.remove_type = 'unlink';
+      res.remove_label = i18n.t('unlink', "unlink");
+    } else if(this.get('selected') == 'prior_home') {
+      list = this.get('model.prior_home_boards');
     }
-  }.property('model.prior_home_boards', 'show_all_prior_home_boards'),
-  my_boards_shortened: function() {
-    var list = this.get('model.my_boards') || [];
-    if(list.loading || list.error) { list = []; }
+    list = list || [];
+    if(list.loading || list.error) { return list; }
+
+    if(this.get('parent_object')) {
+      list = [];
+      list.push({board: this.get('parent_object.board')});
+      (this.get('parent_object.children') || []).forEach(function(b) {
+        list.push({board: b.board});
+      });
+      list.done = true;
+      res.sub_result = true;
+    }
+
+    res.results = list;
+    var board_ids = {};
+    var new_list = [];
+    if(this.get('parent_object')) {
+      new_list = list;
+    } else {
+      list.forEach(function(b) {
+        var obj = {board: b, children: []};
+        board_ids[Ember.get(b, 'id')] = obj;
+        if(Ember.get(b, 'copy_id') && board_ids[b.get('copy_id')]) {
+          board_ids[b.get('copy_id')].children.push({board: b});
+        } else {
+          new_list.push(obj);
+        }
+      });
+    }
     if(this.get('filterString')) {
       var re = new RegExp(this.get('filterString'), 'i');
-      list = list.filter(function(i) { return i.get('search_string').match(re); });
-      return list.slice(0, 18);
-    } else if(this.get('show_all_my_boards')) {
-      return list;
+      new_list = new_list.filter(function(i) { return i.board.get('search_string').match(re); });
+      res.filtered_results = new_list.slice(0, 18);
+    } else if(this.get('show_all_boards')) {
+      res.filtered_results = new_list;
     } else {
-      if(list && list.length <= 18) {
-        this.set('show_all_my_boards', true);
+      if(list.done && new_list && new_list.length <= 18) {
+        this.set('show_all_boards', true);
       }
-      return list.slice(0, 18);
+      res.filtered_results = new_list.slice(0, 18);
     }
-  }.property('model.my_boards', 'show_all_my_boards', 'filterString'),
-  public_boards_shortened: function() {
-    var list = this.get('model.public_boards') || [];
-    if(list.loading || list.error) { list = []; }
-    if(this.get('filterString')) {
-      var re = new RegExp(this.get('filterString'), 'i');
-      list = list.filter(function(i) { return i.get('search_string').match(re); });
-      return list.slice(0, 18);
-    } else if(this.get('show_all_public_boards')) {
-      return list;
-    } else {
-      if(list && list.length <= 18) {
-        this.set('show_all_public_boards', true);
-      }
-      return list.slice(0, 18);
-    }
-  }.property('model.public_boards', 'show_all_public_boards', 'filterString'),
-  private_boards_shortened: function() {
-    var list = this.get('model.private_boards') || [];
-    if(list.loading || list.error) { list = []; }
-    if(this.get('filterString')) {
-      var re = new RegExp(this.get('filterString'), 'i');
-      list = list.filter(function(i) { return i.get('search_string').match(re); });
-      return list.slice(0, 18);
-    } else if(this.get('show_all_private_boards')) {
-      return list;
-    } else {
-      if(list && list.length <= 18) {
-        this.set('show_all_private_boards', true);
-      }
-      return list.slice(0, 18);
-    }
-  }.property('model.private_boards', 'show_all_private_boards', 'filterString'),
-  starred_boards_shortened: function() {
-    var list = this.get('model.starred_boards') || [];
-    if(list.loading || list.error) { list = []; }
-    if(this.get('filterString')) {
-      var re = new RegExp(this.get('filterString'), 'i');
-      list = list.filter(function(i) { return i.get('search_string').match(re); });
-      return list.slice(0, 18);
-    } else if(this.get('show_all_starred_boards')) {
-      return list;
-    } else {
-      if(list && list.length <= 18) {
-        this.set('show_all_starred_boards', true);
-      }
-      return list.slice(0, 18);
-    }
-  }.property('model.starred_boards', 'show_all_starred_boards', 'filterString'),
-  shared_boards_shortened: function() {
-    var list = this.get('model.shared_boards') || [];
-    if(list.loading || list.error) { list = []; }
-    if(this.get('filterString')) {
-      var re = new RegExp(this.get('filterString'), 'i');
-      list = list.filter(function(i) { return i.get('search_string').match(re); });
-      return list.slice(0, 18);
-    } else if(this.get('show_all_shared_boards')) {
-      return list;
-    } else {
-      if(list && list.length <= 18) {
-        this.set('show_all_shared_boards', true);
-      }
-      return list.slice(0, 18);
-    }
-  }.property('model.shared_boards', 'show_all_shared_boards', 'filterString'),
+    return res;
+  }.property('selected', 'parent_object', 'show_all_boards', 'filterString', 'model.my_boards', 'model.prior_home_boards', 'model.public_boards', 'model.private_boards', 'model.starred_boards', 'model.shared_boards'),
   reload_logs: function() {
     var _this = this;
     if(!persistence.get('online')) { return; }
@@ -210,6 +181,8 @@ export default Ember.Controller.extend({
           args.per_page = meta.per_page;
           args.offset = meta.next_offset;
           _this.generate_or_append_to_list(args, list_name, list_id, true);
+        } else {
+          _this.set(list_name + '.done', true);
         }
       }
     }, function() {
@@ -300,27 +273,18 @@ export default Ember.Controller.extend({
     supervision_settings: function() {
       modal.open('supervision-settings', {user: this.get('model')});
     },
-    show_more_prior_home_boards: function() {
-      this.set('show_all_prior_home_boards', true);
-    },
-    show_more_my_boards: function() {
-      this.set('show_all_my_boards', true);
-    },
-    show_more_public_boards: function() {
-      this.set('show_all_public_boards', true);
-    },
-    show_more_private_boards: function() {
-      this.set('show_all_private_boards', true);
-    },
-    show_more_starred_boards: function() {
-      this.set('show_all_starred_boards', true);
-    },
-    show_more_shared_boards: function() {
-      this.set('show_all_shared_boards', true);
+    show_more_boards: function() {
+      this.set('show_all_boards', true);
     },
     set_selected: function(selected) {
       this.set('selected', selected);
+      this.set('show_all_boards', false);
+      this.set('parent_object', null);
 //       this.set('filterString', '');
+    },
+    load_children: function(obj) {
+      this.set('show_all_boards', false);
+      this.set('parent_object', obj);
     },
     nothing: function() {
     },

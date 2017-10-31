@@ -330,6 +330,30 @@ describe Relinking, :type => :model do
       boards = Board.find_all_by_global_id(b2.settings['downstream_board_ids'])
       expect(boards.map(&:public)).to eq([true])
     end
+    
+    it "should mark everything with the correct copy_id" do
+      u1 = User.create
+      u2 = User.create
+      b1 = Board.create(:user => u1, :public => true)
+      b1a = Board.create(:user => u1, :public => true)
+      b1b = Board.create(:user => u1, :public => true)
+      b1a.settings['buttons'] = [{'id' => 1, 'load_board' => {'key' => b1b.key, 'id' => b1b.global_id, 'link_disabled' => true}}]
+      b1a.save!
+      b1a.track_downstream_boards!
+      b1.settings['buttons'] = [{'id' => 1, 'load_board' => {'key' => b1a.key, 'id' => b1a.global_id}}]
+      b1.save!
+      b1.track_downstream_boards!
+      expect(b1.settings['downstream_board_ids']).to eq([b1a.global_id, b1b.global_id])
+      b2 = b1.copy_for(u2)
+      Board.copy_board_links_for(u2, {:valid_ids => [b1.global_id, b1a.global_id], :starting_old_board => b1, :starting_new_board => b2})
+
+      b2.reload
+      expect(b2.settings['buttons'][0]['load_board']['key']).not_to eq(b1a.key)
+      expect(b2.settings['copy_id']).to eq(nil)
+      b2a = Board.find_by_path(b2.settings['buttons'][0]['load_board']['key'])
+      expect(b2a.settings['buttons'][0]['load_board']['key']).to eq(b1b.key)
+      expect(b2a.settings['copy_id']).to eq(b2.global_id)
+    end
   end
  
   describe "replace_board_for" do

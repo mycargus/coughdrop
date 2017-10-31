@@ -30,6 +30,7 @@ CoughDrop.Board = DS.Model.extend({
   full_set_revision: DS.attr('string'),
   current_revision: DS.attr('string'),
   for_user_id: DS.attr('string'),
+  copy_id: DS.attr('string'),
   image_urls: DS.attr('raw'),
   sound_urls: DS.attr('raw'),
   translations: DS.attr('raw'),

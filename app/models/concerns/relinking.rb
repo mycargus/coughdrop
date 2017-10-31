@@ -37,6 +37,46 @@ module Relinking
     board
   end
   
+  def assert_copy_id
+    return true if self.settings['copy_id']
+    return false if !self.parent_board_id
+    if (self.settings['immediately_upstream_board_ids'] || []).length > 0
+      upstreams = Board.find_all_by_global_id(self.settings['immediately_upstream_board_ids'])
+      # if all upstream boards are copies and belong to the current user, let's assume this goes with them
+      if upstreams.all?{|u| u.parent_board_id } && upstreams.map(&:user_id).uniq == [self.user_id]
+        parent = self.parent_board
+        upstream_parents = upstreams.map(&:parent_board)
+        # if all original upstream boards belong to the current board's original user, then they're
+        # probably part of a copy group
+        if upstream_parents.map(&:user_id).uniq == [parent.user_id]
+          asserted_copy_id = upstreams.map{|u| u.settings['asserted_copy_id'] && u.settings['copy_id'] }.compact.first
+          # if a known root board is found, go ahead and mark it as such
+          if upstreams.length > 10 && self.key.match(/top-page/)
+            self.settings['copy_id'] = self.global_id
+            self.settings['asserted_copy_id'] = true
+            self.save
+            return true
+          # if any of the upstream boards have an asserted copy id, go ahead and use that
+          elsif asserted_copy_id
+            self.settings['copy_id'] = asserted_copy_id
+            self.settings['asserted_copy_id'] = true
+            self.save
+            return true
+          # if the upstream boards have unasserted copy ids, let's not link it up
+          elsif upstreams.any?{|u| u.settings['copy_id'] }
+          # if the parent has no upstream boards, consider it the root of the copy group
+          elsif upstreams.length == 1 && (upstreams[0].settings['immediately_upstream_board_ids'] || []).length == 0
+            self.settings['copy_id'] = upstreams[0].global_id
+            self.settings['asserted_copy_id'] = true
+            self.save
+            return true
+          end
+        end
+      end
+    end
+    return false
+  end
+  
   def replace_links!(old_board, new_board)
     (self.settings['buttons'] || []).each_with_index do |button, idx|
       if button['load_board'] && button['load_board']['id'] == old_board.global_id
