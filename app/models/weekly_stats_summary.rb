@@ -306,7 +306,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
       board_ids = board_user_ids.map(&:first)
       BoardDownstreamButtonSet.where(:board_id => board_ids).find_in_batches(batch_size: 5) do |batch|
         batch.each do |button_set|
-          button_set.data['buttons'].each do |button|
+          button_set.buttons.each do |button|
             word = button['label'].downcase
             if BoardDownstreamButtonSet.spoken_button?(button, nil) && valid_words[word]
               word_user_counts[word] = (word_user_counts[word] || []) + board_user_ids[button_set.board_id]

@@ -211,7 +211,7 @@ class WordData < ActiveRecord::Base
     res = []
     words = {}
     button_sets.each do |bs|
-      bs.data['buttons'].each do |b| 
+      bs.buttons.each do |b| 
         if b['hidden']
           nil
         elsif b['linked_board_id'] && !b['link_disabled']
@@ -239,7 +239,7 @@ class WordData < ActiveRecord::Base
     res = []
     words = {}
     button_sets.each do |bs| 
-      bs.data['buttons'].each do |b| 
+      bs.buttons.each do |b| 
         if b['hidden']
           nil
         elsif b['linked_board_id'] && !b['link_disabled']
@@ -265,7 +265,7 @@ class WordData < ActiveRecord::Base
     list = self.core_list_for(user)
     button_sets ||= BoardDownstreamButtonSet.for_user(user)
     reachable_words = button_sets.map{|bs| 
-      bs.data['buttons'].map{|b| 
+      bs.buttons.map{|b| 
         if b['hidden']
           nil
         elsif b['linked_board_id'] && !b['link_disabled']

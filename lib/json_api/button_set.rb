@@ -15,13 +15,13 @@ module JsonApi::ButtonSet
       json['full_set_revision'] = board.full_set_revision
     end
     
-    json['buttons'] = (button_set.data['buttons'] || []).map{|b| 
+    json['buttons'] = (button_set.buttons || []).map{|b| 
       res = {}.merge(b) 
       res['image'] = Uploader.fronted_url(b['image']) if b['image']
       res
     }
 
-    board_ids = button_set.data['board_ids'] || button_set.data['buttons'].map{|b| b['board_id'] }.uniq
+    board_ids = button_set.data['board_ids'] || button_set.buttons.map{|b| b['board_id'] }.uniq
     
     # TODO: sharding
     allowed_ids = {}

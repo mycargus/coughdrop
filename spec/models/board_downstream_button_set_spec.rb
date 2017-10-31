@@ -4,7 +4,7 @@ describe BoardDownstreamButtonSet, :type => :model do
   it "should generate defaults" do
     bs = BoardDownstreamButtonSet.create
     expect(bs.data).not_to eq(nil)
-    expect(bs.data['buttons']).to eq([])
+    expect(bs.buttons).to eq([])
     expect(bs.data['button_count']).to eq(0)
     expect(bs.data['board_count']).to eq(0)
   end
@@ -419,12 +419,16 @@ describe BoardDownstreamButtonSet, :type => :model do
       Worker.process_queues
       Worker.process_queues
       
+      expect(b2.reload.settings['immediately_upstream_board_ids']).to eq([b.global_id])
+      BoardDownstreamButtonSet.update_for(b2.global_id)
+
       bs = b.reload.board_downstream_button_set
       expect(bs).not_to eq(nil)
-      expect(bs.data['buttons'].length).to eq(2)
+      expect(bs.buttons.length).to eq(2)
       bs2 = b2.reload.board_downstream_button_set
       expect(bs2).not_to eq(nil)
-      expect(bs2.data['buttons'].length).to eq(1)
+      expect(bs2.data['buttons']).to eq(nil)
+      expect(bs2.buttons.length).to eq(1)
       
       b2.reload.process({'buttons' => [
         {'id' => 1, 'label' => 'blouse'},
@@ -438,12 +442,133 @@ describe BoardDownstreamButtonSet, :type => :model do
       BoardDownstreamButtonSet.update_for(b.global_id)
       BoardDownstreamButtonSet.update_for(b2.global_id)
       
-      bs2.reload
+      bs2 = BoardDownstreamButtonSet.find(bs2.id)
       expect(bs2).not_to eq(nil)
-      expect(bs2.data['buttons'].length).to eq(2)
-      bs.reload
+      expect(bs2.buttons.length).to eq(2)
+      bs = BoardDownstreamButtonSet.find(bs.id)
       expect(bs).not_to eq(nil)
-      expect(bs.data['buttons'].length).to eq(3)
+      expect(bs.buttons.length).to eq(3)
+    end
+    
+    it "should use an existing upstream board if available" do
+      u = User.create
+      b = Board.create(user: u)
+      b2 = Board.create(user: u)
+      b.process({'buttons' => [
+        {'id' => 1, 'label' => 'hat', 'load_board' => {'id' => b2.global_id, 'key' => b2.key}},
+        {'id' => 2, 'label' => 'car'}
+      ]}, {:user => u})
+      b2.process({'buttons' => [
+        {'id' => 3, 'label' => 'har'},
+        {'id' => 4, 'label' => 'cap'}
+      ]}, {:user => u})
+      Worker.process_queues
+      Worker.process_queues
+      
+      bs = b.reload.board_downstream_button_set
+      expect(bs).to_not eq(nil)
+      expect(bs.data['buttons']).to_not eq(nil)
+      expect(bs.buttons.length).to eq(4)
+      bs2 = b2.reload.board_downstream_button_set
+      expect(bs2).to_not eq(nil)
+      expect(bs2.data['buttons']).to eq(nil)
+      expect(bs2.data['source_id']).to eq(bs.global_id)
+      expect(bs2.buttons.length).to eq(2)
+    end
+    
+    it "should use existing upstream board when copying boards" do
+      u = User.create
+      u2 = User.create
+      b = Board.create(user: u, public: true)
+      b2 = Board.create(user: u, public: true)
+      b.process({'buttons' => [
+        {'id' => 1, 'label' => 'hat', 'load_board' => {'id' => b2.global_id, 'key' => b2.key}},
+        {'id' => 2, 'label' => 'car'}
+      ]}, {:user => u})
+      b2.process({'buttons' => [
+        {'id' => 3, 'label' => 'har'},
+        {'id' => 4, 'label' => 'cap'}
+      ]}, {:user => u})
+      Worker.process_queues
+      Worker.process_queues
+      
+      bb = b.reload.copy_for(u2)
+      bb.save!
+      res = Board.copy_board_links_for(u2, {:starting_old_board => b.reload, :starting_new_board => bb.reload})
+      bb2 = Board.where(parent_board_id: b2.id).first
+      expect(bb2).to_not eq(nil)
+      
+      Worker.process_queues
+      Worker.process_queues
+
+      bs = bb.reload.board_downstream_button_set
+      expect(bs).to_not eq(nil)
+      expect(bs.data['buttons']).to_not eq(nil)
+      expect(bs.buttons.length).to eq(4)
+      bs2 = bb2.reload.board_downstream_button_set
+      expect(bs2).to_not eq(nil)
+      expect(bs2.data['buttons']).to eq(nil)
+      expect(bs2.data['source_id']).to eq(bs.global_id)
+      expect(bs2.buttons.length).to eq(2)
+    end
+    
+    it "should stop using an existing upstream board if disconnected" do
+      u = User.create
+      b = Board.create(user: u)
+      b2 = Board.create(user: u)
+      b3 = Board.create(user: u)
+      b.process({'buttons' => [
+        {'id' => 1, 'label' => 'hat', 'load_board' => {'id' => b2.global_id, 'key' => b2.key}},
+        {'id' => 2, 'label' => 'car'}
+      ]}, {:user => u})
+      b2.process({'buttons' => [
+        {'id' => 3, 'label' => 'har'},
+        {'id' => 4, 'label' => 'cap', 'load_board' => {'id' => b3.global_id, 'key' => b3.key}}
+      ]}, {:user => u})
+      b3.process({'buttons' => [
+        {'id' => 3, 'label' => 'hax'},
+        {'id' => 4, 'label' => 'cax'}
+      ]}, {:user => u})
+      Worker.process_queues
+      Worker.process_queues
+      
+      bs = b.reload.board_downstream_button_set
+      expect(bs).to_not eq(nil)
+      expect(bs.data['buttons']).to_not eq(nil)
+      expect(bs.data['linked_board_ids']).to eq([b2.global_id, b3.global_id])
+      expect(bs.buttons.length).to eq(6)
+      bs2 = b2.reload.board_downstream_button_set
+      expect(bs2).to_not eq(nil)
+      expect(bs2.data['buttons']).to eq(nil)
+      expect(bs2.data['source_id']).to eq(bs.global_id)
+      expect(bs2.buttons.length).to eq(4)
+      bs3 = b3.reload.board_downstream_button_set
+      expect(bs3).to_not eq(nil)
+      expect(bs3.data['buttons']).to eq(nil)
+      expect(bs3.data['source_id']).to eq(bs.global_id)
+      expect(bs3.buttons.length).to eq(2)
+      
+      b.process({'buttons' => [
+        {'id' => 1, 'label' => 'hat'},
+        {'id' => 2, 'label' => 'car'}
+      ]}, {:user => u})
+      Worker.process_queues
+      Worker.process_queues
+
+      bs = b.reload.board_downstream_button_set
+      expect(bs).to_not eq(nil)
+      expect(bs.data['buttons']).to_not eq(nil)
+      expect(bs.buttons.length).to eq(2)
+      bs2 = b2.reload.board_downstream_button_set
+      expect(bs2).to_not eq(nil)
+      expect(bs2.data['buttons']).to_not eq(nil)
+      expect(bs2.data['source_id']).to eq(nil)
+      expect(bs2.buttons.length).to eq(4)
+      bs3 = b3.reload.board_downstream_button_set
+      expect(bs3).to_not eq(nil)
+      expect(bs3.data['buttons']).to eq(nil)
+      expect(bs3.data['source_id']).to eq(bs2.global_id)
+      expect(bs3.buttons.length).to eq(2)
     end
   end
   
@@ -514,6 +639,47 @@ describe BoardDownstreamButtonSet, :type => :model do
           }
         }
       })
+    end
+  end
+  
+  describe "buttons" do
+    it "should retrieve from the correct source" do
+      bs = BoardDownstreamButtonSet.create(board_id: 1)
+      bs.data['buttons'] = [{'id' => 1, 'board_id' => '1_1'}, {'id' => 2, 'board_id' => '1_2'}]
+      bs.save
+      expect(bs.buttons).to eq([{'id' => 1, 'board_id' => '1_1'}, {'id' => 2, 'board_id' => '1_2'}])
+      bs2 = BoardDownstreamButtonSet.create(board_id: 2)
+      bs2 = BoardDownstreamButtonSet.find(bs2.id)
+      bs2.data['source_id'] = bs.global_id
+      expect(bs2.buttons).to eq([{'id' => 2, 'board_id' => '1_2'}])
+    end
+  end
+  
+  describe "buttons_starting_from" do
+    it "should include multiple levels" do
+      u = User.create
+      b = Board.create(user: u)
+      b2 = Board.create(user: u)
+      b3 = Board.create(user: u)
+      b.process({'buttons' => [
+        {'id' => 1, 'label' => 'hat', 'load_board' => {'id' => b2.global_id, 'key' => b2.key}},
+        {'id' => 2, 'label' => 'car'}
+      ]}, {:user => u})
+      b2.process({'buttons' => [
+        {'id' => 3, 'label' => 'har'},
+        {'id' => 4, 'label' => 'cap', 'load_board' => {'id' => b3.global_id, 'key' => b3.key}}
+      ]}, {:user => u})
+      b3.process({'buttons' => [
+        {'id' => 3, 'label' => 'hax'},
+        {'id' => 4, 'label' => 'cax'}
+      ]}, {:user => u})
+      Worker.process_queues
+      Worker.process_queues
+      
+      bs = b.reload.board_downstream_button_set
+      expect(bs.buttons_starting_from(b.global_id).length).to eq(6)
+      expect(bs.buttons_starting_from(b2.global_id).length).to eq(4)
+      expect(bs.buttons_starting_from(b3.global_id).length).to eq(2)
     end
   end
 end

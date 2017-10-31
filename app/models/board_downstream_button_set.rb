@@ -11,7 +11,9 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
   
   def generate_defaults
     self.data ||= {}
+    @buttons = nil
     self.data['board_ids'] = self.buttons.map{|b| b['board_id'] }.compact.uniq
+    self.data['linked_board_ids'] = self.buttons.map{|b| b['linked_board_id'] }.compact.uniq
     self.data['button_count'] = self.buttons.length
     self.data['board_count'] = self.buttons.map{|b| b['board_id'] }.uniq.length
     self.data.delete('json_response')
@@ -32,11 +34,66 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
     button_sets = boards.map{|b| b.board_downstream_button_set }.compact.uniq
   end
   
+  def buttons
+    return @buttons if @buttons
+    if self.data['source_id']
+      bs = BoardDownstreamButtonSet.find_by_global_id(self.data['source_id'])
+      if bs
+        @buttons = bs.buttons_starting_from(self.related_global_id(self.board_id))
+        return @buttons
+      end
+    end
+    if self.data['buttons']
+      @buttons = self.data['buttons']
+    else
+      @buttons = []
+    end
+  end
+  
+  def buttons_starting_from(board_id)
+    boards_to_include = {}
+    boards_to_include[board_id] = true
+    res = []
+    (self.data['buttons'] || []).each do |button|
+      if boards_to_include[button['board_id']]
+        if button['linked_board_id']
+          boards_to_include[button['linked_board_id']] = true
+        end
+      end
+    end
+    (self.data['buttons'] || []).each do |button|
+      if boards_to_include[button['board_id']]
+        res << button
+      end
+    end
+    res
+  end
+  
   def self.update_for(board_id)
     board = Board.find_by_global_id(board_id)
     if board
       set = BoardDownstreamButtonSet.find_or_create_by(:board_id => board.id) rescue nil
       set ||= BoardDownstreamButtonSet.find_or_create_by(:board_id => board.id)
+      
+      existing_board_ids = (set.data || {})['linked_board_ids'] || []
+      
+      Board.find_all_by_global_id(board.settings['immediately_upstream_board_ids'] || []).each do |brd|
+        set.data['found_upstream_board'] = true
+        bs = brd.board_downstream_button_set
+        set.data['found_upstream_set'] = !!bs
+        if bs && bs.data['buttons'] && bs.data['linked_board_ids'].include?(board.global_id)
+          set.data['source_id'] = bs.global_id
+          set.data['buttons'] = nil
+          set.save
+          return set
+        elsif bs && bs.data['source_id'] && bs.data['linked_board_ids'].include?(board.global_id)
+          set.data['source_id'] = bs.data['source_id']
+          set.data['buttons'] = nil
+          set.save
+          return set
+        end
+      end
+      
       boards_hash = {}
       Board.find_all_by_global_id(board.settings['downstream_board_ids'] || []).each do |brd|
         boards_hash[brd.global_id] = brd
@@ -94,7 +151,12 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
         boards_to_visit.sort_by!{|bv| [bv[:depth], bv[:index]] }
       end
       set.data['buttons'] = all_buttons
+      set.data['source_id'] = nil
       set.save
+      lost_board_ids = existing_board_ids - set.data['linked_board_ids']
+      lost_board_ids.each do |id|
+        BoardDownstreamButtonSet.schedule_once(:update_for, id)
+      end
       if board.settings['board_downstream_button_set_id'] != set.global_id
         # TODO: race condition?
         board.update_setting('board_downstream_button_set_id', set.global_id)
@@ -123,7 +185,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
     
     # TODO: include images with attribution
     
-    button_set.data['buttons'].each do |button|
+    button_set.buttons.each do |button|
       if spoken_button?(button, user)
         res['words'] << button['label'].downcase
         locale = button['locale'] || 'en'
