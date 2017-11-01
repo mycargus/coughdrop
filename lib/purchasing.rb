@@ -408,7 +408,7 @@ module Purchasing
       'unsubscribe' => true,
       'manual_unsubscribe' => true,
       'user_id' => user.global_id,
-      'customer_id' => user.settings['subscription']['customer_id'],
+      'customer_id' => (user.settings['subscription'] || {})['customer_id'],
       'subscription_id' => user.settings['subscription']['subscription_id']
     })
     cancel_other_subscriptions(user, 'all')
