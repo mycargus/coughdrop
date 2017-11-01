@@ -209,12 +209,12 @@ class UserMailer < ActionMailer::Base
   def organization_assigned(user_id, org_id)
     @user = User.find_by_global_id(user_id)
     @org = Organization.find_by_global_id(org_id)
-    mail_message(@user, "Organization Sponsorship Added")
+    mail_message(@user, "Organization Sponsorship Added") if @user && @org
   end
   
   def organization_unassigned(user_id, org_id)
     @user = User.find_by_global_id(user_id)
     @org = Organization.find_by_global_id(org_id)
-    mail_message(@user, "Organization Sponsorship Removed")
+    mail_message(@user, "Organization Sponsorship Removed") if @user && @org
   end
 end
