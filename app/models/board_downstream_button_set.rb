@@ -81,7 +81,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
         set.data['found_upstream_board'] = true
         bs = brd.board_downstream_button_set
         set.data['found_upstream_set'] = !!bs
-        linked_board_ids = bs.data['linked_board_ids'] || brd.buttons.map{|b| b['linked_board_id'] }.compact.uniq
+        linked_board_ids = bs.data['linked_board_ids'] || bs.buttons.map{|b| b['linked_board_id'] }.compact.uniq
         if bs && bs.data['buttons'] && linked_board_ids.include?(board.global_id)
           set.data['source_id'] = bs.global_id
           set.data['buttons'] = nil
