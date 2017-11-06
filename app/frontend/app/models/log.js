@@ -135,7 +135,17 @@ export default DS.Model.extend({
       var str = date.format('YYYY-MM-DD');
       var day = daily.find(finder);
       day = day || {date: str, activity: Ember.String.htmlSafe('none')};
-      if(day.active === false) {
+      if(day.activity_level == 1) {
+        day.activity = Ember.String.htmlSafe('light');
+      } else if(day.activity_level == 2) {
+        day.activity = Ember.String.htmlSafe('light-moderate');
+      } else if(day.activity_level == 3) {
+        day.activity = Ember.String.htmlSafe('moderate');
+      } else if(day.activity_level == 4) {
+        day.activity = Ember.String.htmlSafe('moderate-active');
+      } else if(day.activity_level == 5) {
+        day.activity = Ember.String.htmlSafe('active');
+      } else if(day.active === false) {
         day.activity = Ember.String.htmlSafe('light');
       } else if(day.active === true) {
         day.activity = Ember.String.htmlSafe('active');

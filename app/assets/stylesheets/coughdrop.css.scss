@@ -1022,6 +1022,17 @@ footer .wide_links {
   &.light {
     background: #bddaf3;
   }
+  &.light-moderate {
+    background: #9ACBF5;
+  }
+  &.moderate {
+    background: #7AB9F0;
+    color: #fff;
+  }
+  &.moderate-active {
+    background: #4595D9;
+    color: #fff;
+  }
   &.active {
     background: #337ab7;
     color: #fff;
@@ -1032,6 +1043,7 @@ footer .wide_links {
     }
   }
 }
+
 .daily_use::after {
   content: "";
   display: block;

@@ -358,7 +358,7 @@ var stashes = Ember.Object.extend({
         days.push({
           date: d.date,
           activity_level: level,
-          active: d.total_minutes > 30
+          active: d.total_minutes >= 30
         });
       });
       // ajax call to push daily_use data
