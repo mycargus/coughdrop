@@ -14,6 +14,7 @@ module Renaming
   end
 
   def rename_to(to_key)
+    to_key = to_key.downcase
     @collision_error = nil
     from_key = (record_type == 'board' ? self.key : self.user_name)
     record = self
