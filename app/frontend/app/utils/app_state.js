@@ -99,24 +99,31 @@ var app_state = Ember.Object.extend({
 
         find.then(function(user) {
           console.log("user initialization working..");
-          if(!user.get('fresh') && stashes.get('online')) {
-            user.reload().then(function(user) {
-              app_state.set('sessionUser', user);
-            }, function() { });
+          var valid_user = Ember.RSVP.resolve(user);
+          if(session.get('user_id') && session.get('user_id') != user.get('id')) {
+            // mismatch due to a user being renamed
+            valid_user = CoughDrop.store.findRecord('user', session.get('user_id'));
           }
-          app_state.set('sessionUser', user);
+          valid_user.then(function(user) {
+            if(!user.get('fresh') && stashes.get('online')) {
+              user.reload().then(function(user) {
+                app_state.set('sessionUser', user);
+              }, function() { });
+            }
+            app_state.set('sessionUser', user);
 
-          if(stashes.get('speak_mode_user_id') || stashes.get('referenced_speak_mode_user_id')) {
-            var ref_id = stashes.get('speak_mode_user_id') || stashes.get('referenced_speak_mode_user_id');
-            CoughDrop.store.findRecord('user', ref_id).then(function(user) {
-              if(stashes.get('speak_mode_user_id')) {
-                app_state.set('speakModeUser', user);
-              }
-              app_state.set('referenced_speak_mode_user', user);
-            }, function() {
-              console.error('failed trying to speak as ' + ref_id);
-            });
-          }
+            if(stashes.get('speak_mode_user_id') || stashes.get('referenced_speak_mode_user_id')) {
+              var ref_id = stashes.get('speak_mode_user_id') || stashes.get('referenced_speak_mode_user_id');
+              CoughDrop.store.findRecord('user', ref_id).then(function(user) {
+                if(stashes.get('speak_mode_user_id')) {
+                  app_state.set('speakModeUser', user);
+                }
+                app_state.set('referenced_speak_mode_user', user);
+              }, function() {
+                console.error('failed trying to speak as ' + ref_id);
+              });
+            }
+          });
         }, function(err) {
           if(stashes.get('current_mode') == 'edit') {
             controller.toggleMode('edit');
