@@ -40,7 +40,16 @@ var session = Ember.Object.extend({
           session.persist({
             access_token: response.access_token,
             user_name: response.user_name,
+            user_id: response.user_id
           });
+          // update selfUserId, in the off chance that it has changed from our local copy
+          // due to my user_name being renamed, and then me logging in to a new account
+          // with the old user_name.
+          if(response.user_id) {
+            persistence.store('settings', {id: response.user_id}, 'selfUserId').then(null, function() {
+              return Ember.RSVP.reject({error: "selfUserId not persisted from login"});
+            });
+          }
           stashes.persist_object('just_logged_in', true, false);
           resolve(response);
         });
@@ -76,6 +85,7 @@ var session = Ember.Object.extend({
       }
       if(data.user_name) {
         session.set('user_name', data.user_name);
+        session.set('user_id', data.user_id);
       }
       if(data.sale !== undefined) {
         CoughDrop.sale = parseInt(data.sale, 10) || false;
@@ -113,6 +123,7 @@ var session = Ember.Object.extend({
       session.set('isAuthenticated', true);
       session.set('access_token', store_data.access_token);
       session.set('user_name', store_data.user_name);
+      session.set('user_id', store_data.user_id);
       session.set('as_user_id', store_data.as_user_id);
     } else if(!store_data.access_token) {
       session.invalidate();
@@ -131,6 +142,7 @@ var session = Ember.Object.extend({
     var data = session.restore();
     data.access_token = options.access_token;
     data.user_name = options.user_name;
+    data.user_id = options.user_id;
     stashes.flush();
     stashes.setup();
     session.persist(data);
@@ -167,7 +179,8 @@ var session = Ember.Object.extend({
     Ember.run.later(function() {
       session.set('isAuthenticated', false);
       session.set('access_token', null);
-      session.set('user_name', null);
+      session.set(' ', null);
+      session.set('user_id', null);
       session.set('as_user_id', null);
     });
   }

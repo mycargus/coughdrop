@@ -168,6 +168,7 @@ class SessionController < ApplicationController
       render json: {
         authenticated: valid, 
         user_name: @api_user.user_name, 
+        user_id: @api_user.global_id,
         avatar_image_url: (valid ? @api_user.generated_avatar_url : nil),
         scopes: @api_device && @api_device.permission_scopes,
         sale: ENV['CURRENT_SALE'],
