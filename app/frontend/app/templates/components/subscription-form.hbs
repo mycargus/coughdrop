@@ -24,7 +24,7 @@
         </tr>
         <tr>
           <td colspan="2" style='vertical-align: top;'>{{t "Works as a general communication app for one user on multiple devices, and can be linked to many free supporters" key='general_communication'}}</td>
-          <td colspan="2" style='vertical-align: top; font-size: ' class='separator dim'>{{t "Free account to be used for supporting communicators on devices or on the web. Some features are limited to only work for linked communicators" key='supporting_communicators'}}</td>
+          <td colspan="2" style='vertical-align: top; font-size: ' class='separator semi_dim'>{{t "Free account to be used for supporting communicators on devices or on the web. Some features are limited to only work for linked communicators" key='supporting_communicators'}}</td>
         </tr>
         <tr>
           <td style='width: 25%; vertical-align: top; padding-top: 40px; color: #888; position: relative;'>
@@ -58,39 +58,39 @@
             {{/if}}
             <div style='margin-top: -5px; line-height: 17px;'>{{t "lifetime purchase" key='one_time_purchase'}}</div>
           </td>
-          <td class='separator dim' style='position: relative; width: 25%; vertical-align: top; padding-top: 40px; color: #888;'>
+          <td class='separator semi_dim' style='position: relative; width: 25%; vertical-align: top; padding-top: 40px; color: #888;'>
             <span style='font-size: 40px; vertical-align: middle; color: #000;'>free</span>
             <div class='middle'>{{t "- or -" key='dash_or_dash'}}</div>
             <div style='margin-top: -5px; line-height: 17px;'>{{t "when supporting communicators" key='when_supporting_communicators'}}</div>
           </td>
-          <td class='dim' style='width: 25%; vertical-align: top; padding-top: 40px; color: #888;'>
+          <td class='semi_dim' style='width: 25%; vertical-align: top; padding-top: 40px; color: #888;'>
             $<span style='font-size: 40px; vertical-align: middle; color: #000; padding-left: 3px;'>50</span>
             <div style='margin-top: -5px; line-height: 17px;'>{{t "donate a license<br/> to those in need" key='donate_a_license'}}</div>
           </td>
         </tr>
         <tr>
           <td colspan="2">{{t "run on multiple devices" key='run_on_multiple_devices'}}</td>
-          <td colspan="2" class='separator dim'>{{t "run on multiple devices" key='run_on_multiple_devices'}}</td>
+          <td colspan="2" class='separator semi_dim'>{{t "run on multiple devices" key='run_on_multiple_devices'}}</td>
         </tr>
         <tr>
           <td colspan="2">{{t "full communication system" key='full_communication_system'}}</td>
-          <td colspan="2" class='separator dim'>{{t "use to support and model with paid communicators" key='works_for_communicators'}}</td>
+          <td colspan="2" class='separator semi_dim'>{{t "use to support and model with paid communicators" key='works_for_communicators'}}</td>
         </tr>
         <tr>
           <td colspan="2">{{t "premium voices included" key='premium_voices'}}</td>
-          <td colspan="2" class='separator dim'>{{t "track usage, get alerts and modify<br/>boards for communicators" key='track_for_communicators'}}</td>
+          <td colspan="2" class='separator semi_dim'>{{t "track usage, get alerts and modify<br/>boards for communicators" key='track_for_communicators'}}</td>
         </tr>
         <tr>
           <td>{{t "<a href='http://blog.mycoughdrop.com/what-in-the-world-are-aac-cloud-extras/' target='_blank'>cloud extras</a> included in subscription" key='included_in_subscription'}}</td>
           <td>{{t "<a href='http://blog.mycoughdrop.com/what-in-the-world-are-aac-cloud-extras/' target='_blank'>cloud extras</a><br/>5-year credit<br/>included" key='5_years_included'}}</td>
-          <td colspan="2" class='separator dim'>{{t "<a href='http://blog.mycoughdrop.com/what-in-the-world-are-aac-cloud-extras/' target='_blank'>cloud extras</a> work for supported communicators" key='for_supported_communicators'}}</td>
+          <td colspan="2" class='separator semi_dim'>{{t "<a href='http://blog.mycoughdrop.com/what-in-the-world-are-aac-cloud-extras/' target='_blank'>cloud extras</a> work for supported communicators" key='for_supported_communicators'}}</td>
         </tr>
         {{#if pricing_only}}
           <tr>
             <td colspan="2">
               <a href="#" {{action 'bulk_purchase'}}>{{t "interested in a bulk purchase or PO?" key='interested_in_bulk_purchase'}}</a>
             </td>
-            <td colspan="2" class='separator dim'>
+            <td colspan="2" class='separator semi_dim'>
               {{t "user management tools available for organizations," key='org_tools_available'}}
               {{#link-to 'contact'}}{{t "contact us!" key='contact_us'}}{{/link-to}}
             </td>
@@ -119,13 +119,13 @@
                 {{/if}}
               </button>
             </td>
-            <td class='separator dim' style='width: 25%;'>
+            <td class='separator semi_dim' style='width: 25%;'>
               <button type="button" rel='slp_free' class={{slp_monthly_free_class}} {{action "set_subscription" 'slp_monthly_free'}}>
                 <b>{{t "select this plan" key='select_this_plan'}}</b><br/>
                 {{t "free supporter" key='free_for_supporters'}}
               </button>
             </td>
-            <td class='dim' style='width: 25%;'>
+            <td class='semi_dim' style='width: 25%;'>
               <button type="button" rel='slp_paid' class={{slp_long_term_50_class}} {{action "set_subscription" 'slp_long_term_50'}}>
                 <b>{{t "select this plan" key='select_this_plan'}}</b><br/>
                 {{t "$50 donation" key='50_donation'}}
@@ -154,7 +154,7 @@
               {{/if}}
               {{/if}}
             </td>
-            <td colspan="2" class='separator dim' style='text-align: right;'>
+            <td colspan="2" class='separator semi_dim' style='text-align: right;'>
               <a href="#" {{action 'bulk_purchase'}}>
                 {{t "Bulk Purchase or PO?" key='bulk_purchase_or_po'}}
               </a>
