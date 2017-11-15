@@ -63,6 +63,12 @@ module Relinking
             self.settings['asserted_copy_id'] = true
             self.save
             return true
+          # if the board and its upstreams were all created within 30 seconds of each other, call it a batch
+          elsif self.created_at - (upstreams.map(&:created_at).min) < 30
+            self.settings['copy_id'] = upstreams[0].global_id
+            self.settings['asserted_copy_id'] = true
+            self.save
+            return true
           # if the upstream boards have unasserted copy ids, let's not link it up
           elsif upstreams.any?{|u| u.settings['copy_id'] }
           # if the parent has no upstream boards, consider it the root of the copy group
