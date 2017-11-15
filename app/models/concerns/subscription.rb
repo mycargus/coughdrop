@@ -463,9 +463,9 @@ module Subscription
       
   module ClassMethods  
     def check_for_subscription_updates
-      # TODO: send out a one-month and three-month warning for long-term purchase subscriptions
-      alerts = {:approaching => 0, :approaching_emailed => 0, :upcoming => 0, :upcoming_emailed => 0, :expired => 0, :expired_emailed => 0, :recent_less_active => 0}
+      alerts = {:approaching => 0, :approaching_emailed => 0, :upcoming => 0, :upcoming_emailed => 0, :expired => 0, :expired_emailed => 0, :expired_follow_up => 0, :recent_less_active => 0}
       
+      # send out a one-month and three-month warning for long-term purchase subscriptions
       [1, 3].each do |num|
         approaching_expires = User.where(['expires_at > ? AND expires_at < ?', num.months.from_now - 0.5.days, num.months.from_now + 0.5.days])
         approaching_expires.each do |user|
@@ -521,6 +521,20 @@ module Subscription
             'subscription' => {'last_expired_notification' => Time.now.iso8601}
           })
           alerts[:expired_emailed] += 1
+        end
+      end
+      
+      recently_expired = User.where(['expires_at > ? AND expires_at < ?', 3.weeks.ago, 2.weeks.ago])
+      recently_expired.each do |user|
+        user.settings['subscription'] ||= {}
+        last_recently_expired = Time.parse(user.settings['subscription']['last_expired_follow_up']) rescue Time.at(0)
+        if last_recently_expired < 6.months.ago
+          if user.communicator_role?
+            # message asking why they didn't go with it
+          else
+            # if inactive, message asking why they aren't super stoked about it
+          end
+          alerts[:expired_follow_up] += 1
         end
       end
       
