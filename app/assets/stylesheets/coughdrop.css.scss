@@ -3482,6 +3482,12 @@ body:-ms-fullscreen {
   .signup_links {
     visibility: hidden;
   }
+  .flash {
+    left: -webkit-calc(100% / 8); 
+    left: calc(100% / 8); 
+    right: -webkit-calc(100% / 8); 
+    right: calc(100% / 8); 
+  }
 }
 @media (max-width: 767px) {
   span.hidden-xs {

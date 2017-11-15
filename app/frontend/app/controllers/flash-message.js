@@ -18,6 +18,7 @@ export default Ember.Controller.extend({
       this.set('message', settings.text);
       this.set('sticky', settings.sticky);
       this.set('subscribe', settings.subscribe);
+      this.set('redirect', settings.redirect);
       var class_name = 'alert-info';
       if(settings.type == 'warning') { class_name = 'alert-warning'; }
       if(settings.type == 'error') { class_name = 'alert-danger'; }
@@ -30,9 +31,14 @@ export default Ember.Controller.extend({
     closing: function() {
     },
     confirm: function() {
-      if(this.get('subscribe') && !capabilities.installed_app) {
-        this.transitionToRoute('user.subscription', app_state.get('currentUser.user_name'));
+      if(this.get('redirect')) {
+        if(this.get('redirect.subscribe') && !capabilities.installed_app) {
+          this.transitionToRoute('user.subscription', app_state.get('currentUser.user_name'));
+        }
       }
+    },
+    contact: function() {
+      this.transitionToRoute('contact');
     }
   }
 });
