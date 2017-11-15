@@ -46,8 +46,8 @@ module Relinking
       # if all upstream boards are copies and belong to the current user, let's assume this goes with them
       if upstreams.all?{|u| u.parent_board_id } && upstreams.map(&:user_id).uniq == [self.user_id]
         parent = self.parent_board
-        upstream_parents = upstreams.map(&:parent_board)
-        # if all original upstream boards belong to the current board's original user, then they're
+        upstream_parents = upstreams.map(&:parent_board).select{|b| b.user_id == parent.user_id }
+        # if any original upstream boards belong to the current board's original user, then this is
         # probably part of a copy group
         if upstream_parents.map(&:user_id).uniq == [parent.user_id]
           asserted_copy_id = upstreams.map{|u| u.settings['asserted_copy_id'] && u.settings['copy_id'] }.compact.first

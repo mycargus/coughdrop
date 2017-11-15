@@ -211,6 +211,7 @@ var app_state = Ember.Object.extend({
     var controller = this.controller;
     controller.updateTitle();
     modal.close();
+    modal.close_board_preview();
     if(app_state.get('edit_mode')) {
       // TODO: confirm leaving exit mode before continuing
       app_state.toggle_edit_mode();
@@ -359,14 +360,17 @@ var app_state = Ember.Object.extend({
       stashes.set('modeling', !!this.get('modeling'));
     }
   }.observes('modeling'),
-  modeling: function() {
+  modeling: function(ch) {
     var res = !!(this.get('manual_modeling') || this.get('modeling_for_user'));
     return res;
   }.property('manual_modeling', 'modeling_for_user', 'modeling_ts'),
   modeling_for_user: function() {
     var res = this.get('speak_mode') && this.get('currentUser') && this.get('referenced_speak_mode_user') && app_state.get('currentUser.id') != this.get('referenced_speak_mode_user.id');
+    var _this = this;
     // this is weird and hacky, but for some reason modeling wasn't reliably updating when modeling_for_user changed
-    this.set('modeling_ts', (new Date()).getTime() + "_" + Math.random());
+    Ember.run.later(function() {
+      _this.set('modeling_ts', (new Date()).getTime() + "_" + Math.random());
+    });
     return !!res;
   }.property('speak_mode', 'currentUser', 'referenced_speak_mode_user'),
   auto_clear_modeling: function() {
@@ -554,7 +558,7 @@ var app_state = Ember.Object.extend({
   home_in_speak_mode: function(opts) {
     opts = opts || {};
     var speak_mode_user = opts.user || app_state.get('currentUser');
-    var preferred = (speak_mode_user && speak_mode_user.get('preferences.home_board')) || opts.fallback_board_state || stashes.get('root_board_state') || {key: 'example/yesno'};
+    var preferred = opts.force_board_state || (speak_mode_user && speak_mode_user.get('preferences.home_board')) || opts.fallback_board_state || stashes.get('root_board_state') || {key: 'example/yesno'};
     // TODO: same as above, in .toggle_mode
     if(speak_mode_user && !opts.reminded && speak_mode_user.get('expired')) {
       return modal.open('premium-required', {user_name: speak_mode_user.get('user_name'), remind_to_upgrade: true, action: 'app_speak_mode'}).then(function() {
@@ -679,8 +683,8 @@ var app_state = Ember.Object.extend({
             if(!app_state.get('speak_mode')) {
               _this.toggle_speak_mode();
             }
-            var current = app_state.get('currentBoardState');
             var user_state = u.get('preferences.home_board');
+            var current = app_state.get('currentBoardState') || user_state;
             if(user_state && user_state.id != current.id) {
               stashes.persist('temporary_root_board_state', current);
               stashes.persist('root_board_state', user_state);
@@ -966,34 +970,36 @@ var app_state = Ember.Object.extend({
   }.property('speak_mode', 'embedded'),
   auto_exit_speak_mode: function() {
     var now = (new Date()).getTime();
+    var redirect_option = false;
     // if we're speaking as the current user and they're a limited supervisor, or if
     // we're speaking/modeling related to a supervisee and they're expired, limit
     // the session to 15 minutes and notify them of the time limit.
     if(this.get('speak_mode') && this.get('speak_mode_started')) {
       var started = this.get('speak_mode_started');
       var done = false;
-      // If running speak mode for themselves, supervisors need to not be paid or working withs omeone
+      // If running speak mode for themselves, supervisors need to be paid or working with someone
       if(this.get('currentUser.id') == this.get('sessionUser.id') && !this.get('referenced_speak_mode_user') && this.get('currentUser.limited_supervisor')) {
         if(started < now - (15 * 60 * 1000)) {
-          done = i18n.t('limited_supervisor_timeout', "Speak mode sessions are limited to 15 minutes for supervisors not working with paid communicators");
+          redirect_option = 'contact';
+          done = i18n.t('limited_supervisor_timeout', "Speak mode sessions are limited to 15 minutes for supervisors not working with paid communicators. Please contact us if you need a full-featured evaluation account.");
         }
       // If running speak mode for a communicator, check the status of the communicator
       } else if(this.get('sessionUser.id') != this.get('referenced_speak_mode_user.id') && this.get('referenced_speak_mode_user.expired')) {
         if(started < now - (15 * 60 * 1000)) {
-          done = i18n.t('expired_supervisee_timeout', "Speak mode sessions are limited to 15 minutes when working with communicators that don't have an active account");
+          redirect_option = 'contact';
+          done = i18n.t('expired_supervisee_timeout', "Speak mode sessions are limited to 15 minutes when working with communicators that don't have a paid or sponsored account.");
         }
-      // If running speak mode as a communicator, leave it go until they're really expired
-      var subscribe_redirect = false;
-      } else if(this.get('currentUser.really_expired')) {
-        if(started < now - (30 * 60 * 1000)) {
-          subscribe_redirect = true;
-          done = i18n.t('really_expired_communicator_timeout', "This account has expired, and sessions are limited to 30 minutes. If you need help with funding we can help, please contact us!");
+      // If running speak mode as a communicator, check if they're expired
+      } else if(this.get('currentUser.expired')) {
+        if(started < now - (15 * 60 * 1000)) {
+          redirect_option = 'subscribe';
+          done = i18n.t('really_expired_communicator_timeout', "This account has expired, and sessions are limited to 15 minutes. If you need help with funding we can help, please contact us!");
         }
       }
 
       if(done) {
         this.toggle_speak_mode();
-        modal.notice(done, true, true, {subscribe_redirect: subscribe_redirect});
+        modal.notice(done, true, true, {redirect: redirect_option});
         this.set('speak_mode_started', null);
       }
     } else {

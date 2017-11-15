@@ -453,9 +453,11 @@
             <img src="{{path 'images/settings.png'}}" style="opacity: 0.7; height: 25px; margin: -12px 3px -10px -25px;"/>
           {{/if}}
           {{#if session.isAuthenticated}}
-            <span class="user_name">
-            {{app_state.currentUser.user_name}}
-            </span>
+            {{#unless app_state.currentUser.preferences.new_index}}
+              <span class="user_name">
+                {{app_state.currentUser.user_name}}
+              </span>
+            {{/unless}}
           {{else}}
             <span class="user_name">
               {{t "Not signed in" key='not_signed_in'}}
@@ -677,6 +679,7 @@
 {{/if}}
 
 {{outlet 'modal'}}
+{{outlet 'board-preview'}}
 {{outlet 'flash-message'}}
 {{#if setup_footer}}
   {{partial 'setup-footer'}}

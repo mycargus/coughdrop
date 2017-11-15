@@ -875,6 +875,7 @@ var editManager = Ember.Object.extend({
           } else {
             resolve(board);
           }
+          stashes.persist('last_index_browse', 'personal');
           old_board.reload_including_all_downstream(affected_board_ids);
         };
         var endpoint = null;

@@ -77,10 +77,8 @@
               {{#if foundBoards.results}}
                 <div class="row" style="margin-top: 10px; max-height: 250px; overflow: auto;">
                   {{#each foundBoards.results as |board|}}
-                    <div class="col-sm-4" {{action "selectFoundBoard" board}}>
-                      <span class="well well-sm board_icon">
-                        {{partial "board-icon-without-link"}}
-                      </span>
+                    <div class="col-sm-4 simple_board_holder">
+                      {{board-icon board=board noinfo=true option='select' action='selectFoundBoard'}}
                     </div>
                   {{/each}}
                 </div>

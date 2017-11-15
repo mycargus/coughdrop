@@ -15,6 +15,12 @@ header {
       margin-top: 70px;
     }
   }
+  &.new_index {
+    box-shadow: 0px 2px 10px -5px #444;
+    &.speaking {
+      box-shadow: none;
+    }
+  }
   .button_icon {
     font-size: 25px;
   }

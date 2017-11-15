@@ -8,6 +8,7 @@ import capabilities from '../utils/capabilities';
 import CoughDrop from '../app';
 import coughDropExtras from '../utils/extras';
 import session from '../utils/session';
+import i18n from '../utils/i18n';
 
 export default Ember.Route.extend({
   model: function() {
@@ -91,6 +92,10 @@ export default Ember.Route.extend({
     homeInSpeakMode: function(board_for_user_id, keep_as_self) {
       if(board_for_user_id) {
         app_state.set_speak_mode_user(board_for_user_id, true, keep_as_self);
+      } else if((app_state.get('currentUser.supervisees') || []).length > 0) {
+        var prompt = i18n.t('speak_as_which_user', "Select User to Speak As");
+        app_state.set('referenced_speak_mode_user', null);
+        app_state.controller.send('switch_communicators', {stay: true, modeling: 'ask', skip_me: true, header: prompt});
       } else {
         app_state.home_in_speak_mode();
       }

@@ -1,0 +1,16 @@
+<a href="{{board_record.key}}" {{action 'pick_board' board_record}} class={{display_class}}>
+  {{#unless noinfo}}
+    <a href="#" {{action 'board_preview' board_record bubbles=false}} class='info'><span class='glyphicon glyphicon-info-sign'></span></a>
+  {{/unless}}
+  <img src={{board_record.icon_url_with_fallback}} onerror="button_broken_image(this);"/>
+  <div class='name'>
+  {{board_record.name}}
+  </div>
+  <div class='author'>
+    {{#if children}}
+      {{t "board" key='n_boards' count=children.length}}
+    {{else}}
+      {{t "by" key='by'}} {{board_record.user_name}}
+    {{/if}}
+  </div>
+</a>

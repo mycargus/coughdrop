@@ -1,7 +1,12 @@
 {{#opening-observer done_opening='draw_charts'}}
 {{#if model.full_premium_or_trial_period}}
   {{#if model.preferences.logging}}
-    <h2>{{t "Usage Reports" key='usage_reports'}}</h2>
+    <h2>
+      {{t "Usage Reports for %{un}" key='usage_reports' un=model.user_name}}
+      {{#if app_state.currentUser.supervisees.length}}
+        <button class='btn btn-default' style='margin-left: 10px;' {{action 'switch_communicators'}}>{{t "Switch Communicators" key='switch_communicators'}}</button>
+      {{/if}}
+    </h2>
     {{#if usage_stats}}
       <div class="row">
         {{stats/data-filter usage_stats=usage_stats ref_stats=usage_stats2 side_by_side=usage_stats2 app_state=app_state snapshots=snapshots compare_to='compare_to' clear_side='clear_left_side' update_filter='update_left_filter'}}
@@ -138,6 +143,9 @@
   {{/if}}
 {{else if session.isAuthenticated}}
   <h2>{{t "Premium Membership Required" key='premium_required'}}</h2>
+  {{#if app_state.currentUser.supervisees.length}}
+    <button class='btn btn-default' style='margin-left: 10px;' {{action 'switch_communicators'}}>{{t "Switch Communicators" key='switch_communicators'}}</button>
+  {{/if}}
   <p>
     {{t "CoughDrop is a powerful, flexible communication tool with lots of great features. Some features, including this one, are only available to users who have purchased a premium account. Please " key='purchase_subscription_1'}}
     {{#if app_state.feature_flags.subscriptions}}

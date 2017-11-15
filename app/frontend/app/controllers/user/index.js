@@ -41,10 +41,10 @@ export default Ember.Controller.extend({
   }.observes('model.user_name', 'model.permissions.admin_support_actions'),
   blank_slate: function() {
     return !this.get('model.preferences.home_board.key') &&
-      this.get('public_boards_shortened').length === 0 &&
-      this.get('private_boards_shortened').length === 0 &&
-      this.get('starred_boards_shortened').length === 0 &&
-      this.get('shared_boards_shortened').length === 0;
+      (this.get('public_boards_shortened') || []).length === 0 &&
+      (this.get('private_boards_shortened') || []).length === 0 &&
+      (this.get('starred_boards_shortened') || []).length === 0 &&
+      (this.get('shared_boards_shortened') || []).length === 0;
   }.property('model.preferences.home_board.key', 'public_boards_shortened', 'private_boards_shortened', 'starred_boards_shortened', 'shared_boards_shortened'),
   board_list: function() {
     var list = [];
@@ -100,7 +100,7 @@ export default Ember.Controller.extend({
       new_list = new_list.filter(function(i) { return i.board.get('search_string').match(re); });
       res.filtered_results = new_list.slice(0, 18);
     } else if(this.get('show_all_boards')) {
-      res.filtered_results = new_list;
+      res.filtered_results = new_list.slice(0, 300);
     } else {
       if(list.done && new_list && new_list.length <= 18) {
         this.set('show_all_boards', true);
@@ -242,6 +242,9 @@ export default Ember.Controller.extend({
           _this.reload_logs();
         });
       }, function() { });
+    },
+    stats: function() {
+      this.transitionToRoute('user.stats', this.get('model.user_name'));
     },
     approve_or_reject_org: function(approve) {
       var user = this.get('model');

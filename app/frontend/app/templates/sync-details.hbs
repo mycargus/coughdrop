@@ -4,8 +4,63 @@
     <h3>{{t "Sync Details" key='sync_details'}}</h3>
   </div>
   <div class="modal-body">
-    {{#if model.details}}
-      {{#each model.details as |sync|}}
+    <div style='float: right;'>
+      <button class='btn btn-lg btn-default' {{action 'sync'}}>
+        <span class={{refreshing_class}}></span>
+        {{#if persistence.syncing}}
+          {{t "Syncing..." key='syncing'}}
+        {{else}}
+          {{t "Sync Now" key='sync_now'}}
+        {{/if}}
+      </button>
+    </div>
+    <h3>
+      <span>
+      {{#if persistence.sync_succeeded}}
+        {{#if session.invalid_token}}
+          {{t "Please re-login and sync again" key='sync_done'}}
+        {{else}}
+          {{t "Sync Done!" key='sync_done'}}
+        {{/if}}
+      {{else if persistence.sync_finished}}
+        {{t "Done with " key='done_with'}}
+        {{t "error" key='n_errors' count=persistence.sync_errors}}
+        {{t "(see log)" key='see_log'}}
+      {{else}}
+        {{#if persistence.sync_failed}}
+          {{t "Sync Failed, see details below" key='sync_failed'}}
+          {{#if persistence.sync_status_error}}
+            <span title={{persistence.sync_status_error}}>{{persistence.sync_status_error}}</span>
+          {{/if}}
+        {{else}}
+          {{#if persistence.syncing}}
+            {{t "Syncing..." key='syncing'}}
+            {{#if persistence.sync_progress}}
+              {{#if persistence.sync_progress.total}}
+                {{persistence.sync_progress.visited}} /
+                {{t "board" key='communication_set_board' count=persistence.sync_progress.total}}
+              {{else}}
+                {{t "initializing..." key='initializing'}}
+              {{/if}}
+            {{/if}}
+          {{else}}
+            {{#if needs_sync}}
+              {{#if app_state.installed_app}}
+                {{t "Sync before going offline!" key='needs_update'}}
+              {{else}}
+                {{t "Sync if planning to go offline" key='sync_if_planning_offline'}}
+              {{/if}}
+            {{else}}
+              {{t "Synced and ready for offline" key='up_to_date'}}
+            {{/if}}
+          {{/if}}
+        {{/if}}
+      {{/if}}
+      </span>
+    </h3>
+
+    {{#if details}}
+      {{#each details as |sync|}}
         <h3>
           {{#if sync.errored}}
             <span class='text-danger'>{{date_ago sync.finished}}</span>
@@ -53,7 +108,7 @@
         {{/if}}
       {{/each}}
     {{else}}
-      <p>{{t "No sync details to show" key='no_sync_details'}}</p>
+      <p style='margin-top: 20px;'>{{t "No sync details to show" key='no_sync_details'}}</p>
     {{/if}}
   </div>
   <div class="modal-footer">

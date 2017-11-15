@@ -181,7 +181,6 @@ export default Ember.Controller.extend({
           if(option == 'starting') {
             // TODO: make a personal copy of the board for the user
             user.set('home_board_pending', Ember.get(board, 'key'));
-            debugger
             CoughDrop.store.findRecord('board', Ember.get(board, 'id')).then(function(board) {
               editManager.copy_board(board, 'links_copy_as_home', user, false).then(function() {
                 user.set('home_board_pending', false);
@@ -692,10 +691,16 @@ export default Ember.Controller.extend({
     } else {
       res = res + "no_user ";
     }
+    if(this.get('app_state.currentUser.preferences.new_index')) {
+      res = res + "new_index ";
+    }
     return res;
-  }.property('app_state.sidebar_visible', 'app_state.index_view', 'session.isAuthenticated'),
+  }.property('app_state.sidebar_visible', 'app_state.index_view', 'session.isAuthenticated', 'app_state.currentUser.preferences.new_index'),
   header_class: function() {
     var res = "row ";
+    if(this.get('app_state.currentUser.preferences.new_index')) {
+      res = res + 'new_index ';
+    }
     if(this.get('app_state.header_size')) {
       res = res + this.get('app_state.header_size') + ' ';
     }
@@ -703,5 +708,5 @@ export default Ember.Controller.extend({
       res = res + 'speaking advanced_selection';
     }
     return res;
-  }.property('app_state.header_size', 'app_state.speak_mode')
+  }.property('app_state.header_size', 'app_state.speak_mode', 'app_state.currentUser.preferences.new_index')
 });

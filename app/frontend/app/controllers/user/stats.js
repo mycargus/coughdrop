@@ -318,6 +318,10 @@ export default Ember.Controller.extend({
           _this.load_snapshots();
         }
       });
+    },
+    switch_communicators: function() {
+      var prompt = i18n.t('select_user_for_reports', "Select User for Reports");
+      app_state.controller.send('switch_communicators', {stay: true, modeling: true, skip_me: true, route: 'user.stats', header: prompt});
     }
   }
 });

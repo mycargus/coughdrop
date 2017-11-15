@@ -58,8 +58,8 @@
         {{#if model.starting_boards}}
           <div class="row" style="margin-left: -5px; margin-right: 0;">
           {{#each model.starting_boards as |board|}}
-            <div class="col-sm-2 col-xs-4">
-              {{partial "board-icon"}}
+            <div class="col-sm-2 col-xs-4 simple_board_holder">
+              {{board-icon board=board}}
             </div>
           {{/each}}
           </div>
@@ -70,128 +70,175 @@
       {{/unless}}
     {{/if}}
   {{/if}}
-  <div class="row">
-    <div class="col-sm-3 col-xs-6">
-      <div class="panel panel-default summary smaller">
-        <div class="panel-heading">
-          {{t "Current home board" key='current_home_board'}}
-        </div>
-        <div class="panel-body">
-            {{#if model.preferences.home_board.key}}
-              {{#link-to 'board' model.preferences.home_board.key}}{{model.preferences.home_board.key}}{{/link-to}}
-            {{else}}
-              {{t "None" key='none'}}
-            {{/if}}
-        </div>
-      </div>
-    </div>
-    <div class="col-sm-3 col-xs-6">
-      <div class="panel panel-default summary smaller">
-        <div class="panel-heading">
-          {{t "Current board set" key='current_home_board'}}
-        </div>
-        <div class="panel-body">
-          {{t "board" key='board' count=model.stats.board_set_ids}}
-        </div>
-      </div>
-    </div>
-    <div class="col-sm-3 col-xs-6">
-      <div class="panel panel-default summary smaller">
-        <div class="panel-heading">
-          {{t "Liked boards" key='starred_boards'}}
-        </div>
-        <div class="panel-body">
-          {{t "board" key='boards' count=model.stats.starred_boards}}
-        </div>
-      </div>
-    </div>
-    <div class="col-sm-3 col-xs-6">
-      <div class="panel panel-default summary smaller">
-        <div class="panel-heading">
-          {{t "Status" key='status'}}
-        </div>
-        <div class="panel-body">
-          {{#if model.public}}
-            {{t "public" key='public'}}
-          {{else}}
-            {{t "private" key='private'}}
-          {{/if}}
-        </div>
-      </div>
-    </div>
-  </div>
-  {{#if model.permissions.supervise}}
-    <div class="row">
-      <div class="col-sm-3 col-xs-6">
-        <button style='width: 100%; height: 38px;' class='btn btn-small btn-default' {{action "recordNote" "text"}}>{{t "New Note" key='text_note'}}</button>
-        {{#if app_state.feature_flags.assessments}}
-          <button style='width: 100%; height: 38px; margin-top: 5px;' class='btn btn-small btn-default' {{action "quick_assessment"}}>{{t "Quick Assessment" key='quick_assessment'}}</button>
+  <div class="row big_buttons">
+    {{#if app_state.currentUser.preferences.new_index}}
+      <div class='col-sm-3 col-xs-6 big_button_holder'>
+        {{#if model.preferences.home_board.key}}
+          <div style='position: absolute; z-index: 2; margin: 12px;'><span class='glyphicon glyphicon-home'></span> {{t "Home Board:" key='home_board'}}</div>
+          {{board-icon board=model.preferences.home_board}}
+        {{else}}
+          {{#link-to 'home-boards' class='btn big_button btn-default'}}
+            <span class='glyphicon glyphicon-home'></span>
+            {{t "No Home<br/>Board Set" key='no_home_board_set'}}
+          {{/link-to}}
         {{/if}}
+      </div>
+      <div class='col-sm-3 col-xs-6 big_button_holder'>
+        <button class='btn big_button btn-default' {{action 'stats'}} style='border-color: rgb(232, 96, 96); background: rgb(255, 155, 155);'>
+          <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/Line%20Graph-2c932e7f91.svg'>
+          {{t "Reports" key='reports'}}
+        </button>
+      </div>
+      <div class='col-sm-3 col-xs-6 big_button_holder'>
+        {{#link-to 'user.goals' app_state.currentUser.user_name class='btn big_button btn-default bottom_row'}}
+          <span class='glyphicon glyphicon-flag'></span>
+          {{t "Goals" key='goals'}}
+        {{/link-to}}
+      </div>
+      <div class='col-sm-3 col-xs-6 big_button_holder'>
+        <button class='btn big_button btn-default middle_row' {{action "supervision_settings"}}>
+          <span class='glyphicon glyphicon-user'></span>
+          {{t "Supervisors" key='manage_supervisors'}}
+        </button>
+      </div>
+      {{#if model.permissions.supervise}}
+        <div class='col-xs-12' style='text-align: right; margin-top: -5px; margin-bottom: -10px;'>
+          <div class="btn-group">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style='border-width: 3px; background: #eee;'>
+              <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/extra_455_g.svg' style='height: 30px;'/>
+              {{t "Extras" key='extras'}} <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" style='right: 0; left: auto;'>
+              <li><a href="#" {{action "recordNote" "text"}}>New Note</a></li>
+              <li><a href="#" {{action "quick_assessment"}}>Quick Assessment</a></li>
+              <li><a href="#" {{action 'view_devices'}}>My Devices</a></li>
+              {{#if model.permissions.delete}}
+                <li>{{#link-to 'setup'}}{{t "Getting Started Wizard" key='getting_started_wizard'}}{{/link-to}}</li>
+              {{/if}}
+            </ul>
+          </div>
+        </div>
+      {{/if}}
+    {{else}}
+      <div class="col-sm-3 col-xs-6">
+        <div class="panel panel-default summary smaller">
+          <div class="panel-heading">
+            {{t "Current home board" key='current_home_board'}}
+          </div>
+          <div class="panel-body">
+              {{#if model.preferences.home_board.key}}
+                {{#link-to 'board' model.preferences.home_board.key}}{{model.preferences.home_board.key}}{{/link-to}}
+              {{else}}
+                {{t "None" key='none'}}
+              {{/if}}
+          </div>
+        </div>
       </div>
       <div class="col-sm-3 col-xs-6">
         <div class="panel panel-default summary smaller">
           <div class="panel-heading">
-            {{t "My device" key='my_device'}}
+            {{t "Current board set" key='current_home_board'}}
           </div>
           <div class="panel-body">
-            {{#if model.devices}}
-              {{model.current_device_name}}
-              <div class="sub_link">
-                {{#if model.multiple_devices}}
-                    <a href="#" {{action 'view_devices'}}>{{t "see all %{tally} devices" tally=model.device_count key='see_all_devices'}}</a>
-                {{/if}}
-                &nbsp;
+            {{t "board" key='board' count=model.stats.board_set_ids}}
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-3 col-xs-6">
+        <div class="panel panel-default summary smaller">
+          <div class="panel-heading">
+            {{t "Liked boards" key='starred_boards'}}
+          </div>
+          <div class="panel-body">
+            {{t "board" key='boards' count=model.stats.starred_boards}}
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-3 col-xs-6">
+        <div class="panel panel-default summary smaller">
+          <div class="panel-heading">
+            {{t "Status" key='status'}}
+          </div>
+          <div class="panel-body">
+            {{#if model.public}}
+              {{t "public" key='public'}}
+            {{else}}
+              {{t "private" key='private'}}
+            {{/if}}
+          </div>
+        </div>
+      </div>
+      {{#if model.permissions.supervise}}
+          <div class="col-sm-3 col-xs-6">
+            <button style='width: 100%; height: 38px;' class='btn btn-small btn-default' {{action "recordNote" "text"}}>{{t "New Note" key='text_note'}}</button>
+            {{#if app_state.feature_flags.assessments}}
+              <button style='width: 100%; height: 38px; margin-top: 5px;' class='btn btn-small btn-default' {{action "quick_assessment"}}>{{t "Quick Assessment" key='quick_assessment'}}</button>
+            {{/if}}
+          </div>
+          <div class="col-sm-3 col-xs-6">
+            <div class="panel panel-default summary smaller">
+              <div class="panel-heading">
+                {{t "My device" key='my_device'}}
               </div>
-            {{else}}
-              {{t "none linked" key='none_linked'}}
+              <div class="panel-body">
+                {{#if model.devices}}
+                  {{model.current_device_name}}
+                  <div class="sub_link">
+                    {{#if model.multiple_devices}}
+                        <a href="#" {{action 'view_devices'}}>{{t "see all %{tally} devices" tally=model.device_count key='see_all_devices'}}</a>
+                    {{/if}}
+                    &nbsp;
+                  </div>
+                {{else}}
+                  {{t "none linked" key='none_linked'}}
+                {{/if}}
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-3 col-xs-6">
+            <div class="panel panel-default summary smaller">
+              <div class="panel-heading">
+                {{t "My supervisors" key='linked_supervisors'}}
+              </div>
+              <div class="panel-body">
+                    <span {{action "supervision_settings"}}>
+                      {{#if model.supervisors_or_managing_org}}
+                        <span style="cursor: pointer;">{{model.supervisor_names}}</span>
+                      {{else}}
+                        {{t "none linked" key='none_linked'}}
+                      {{/if}}
+                    </span>
+                    <div class="sub_link">
+                      {{#if model.permissions.manage_supervision}}
+                        <a href="#" {{action 'add_supervisor'}}>{{t "add supervisor" key='add_supervisor'}}</a>
+                      {{/if}}
+                      &nbsp;
+                    </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-3 col-xs-6">
+            {{#if model.supervisees}}
+              <div class="panel panel-default summary smaller">
+                <div class="panel-heading">
+                  {{t "People I supervise" key='linked_users'}}
+                </div>
+                <div class="panel-body" {{action "supervision_settings"}}>
+                  <span style="cursor: pointer;">{{model.supervisee_names}}</span>
+                  <div class="sub_link">&nbsp;</div>
+                </div>
+              </div>
             {{/if}}
           </div>
+      {{/if}}
+      {{#if model.permissions.delete}}
+        <div class='col-xs-12' style='margin-top: 10px; margin-bottom: 15px;'>
+          {{#link-to 'setup' class='btn btn-default'}}{{t "Launch the Getting Started Wizard Again" key='launch_setup'}}{{/link-to}}
         </div>
-      </div>
-      <div class="col-sm-3 col-xs-6">
-        <div class="panel panel-default summary smaller">
-          <div class="panel-heading">
-            {{t "My supervisors" key='linked_supervisors'}}
-          </div>
-          <div class="panel-body">
-                <span {{action "supervision_settings"}}>
-                  {{#if model.supervisors_or_managing_org}}
-                    <span style="cursor: pointer;">{{model.supervisor_names}}</span>
-                  {{else}}
-                    {{t "none linked" key='none_linked'}}
-                  {{/if}}
-                </span>
-                <div class="sub_link">
-                  {{#if model.permissions.manage_supervision}}
-                    <a href="#" {{action 'add_supervisor'}}>{{t "add supervisor" key='add_supervisor'}}</a>
-                  {{/if}}
-                  &nbsp;
-                </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-3 col-xs-6">
-        {{#if model.supervisees}}
-          <div class="panel panel-default summary smaller">
-            <div class="panel-heading">
-              {{t "People I supervise" key='linked_users'}}
-            </div>
-            <div class="panel-body" {{action "supervision_settings"}}>
-              <span style="cursor: pointer;">{{model.supervisee_names}}</span>
-              <div class="sub_link">&nbsp;</div>
-            </div>
-          </div>
-        {{/if}}
-      </div>
-    </div>
-  {{/if}}
-  {{#if model.permissions.delete}}
-    <div class='row'>
-      <div class='col-xs-12' style='margin-top: -17px; margin-bottom: 15px;'>
-        {{#link-to 'setup'}}{{t "Launch the Getting Started Wizard Again" key='launch_setup'}}{{/link-to}}
-      </div>
-    </div>
-  {{/if}}
+      {{/if}}
+    {{/if}}
+  </div>
+  {{#unless app_state.currentUser.preferences.new_index}}
   <div class="row">
     <div class="col-sm-3 col-xs-6">
       {{#if model.permissions.edit}}
@@ -293,6 +340,7 @@
       </div>
     {{/if}}
   </div>
+  {{/unless}}
     <div class="row">
       <div class="col-sm-12">
         <h4>{{t "Available Boards:" key='available_boards_colon'}}</h4>
@@ -332,7 +380,7 @@
             {{else}}
               {{#if board_list.sub_result}}
                 <div style='margin-bottom: 5px;'><em>{{t "Showing boards copied with %{k}" key='showing_boards_copied_with' k=parent_object.board.key}}</em></div>
-                <a href="#" class='btn btn-default' {{action 'load_children'}} style='margin-bottom: 10px;'>{{t "Back to Full List" key='back_to_full_list'}}</a>
+                <a href="#" class='btn btn-default' {{action 'load_children'}} style='margin-bottom: 10px;'><span class='glyphicon glyphicon-arrow-left'></span> {{t "Back to Full List" key='back_to_full_list'}}</a>
               {{/if}}
               <form style="margin-bottom: 10px;" {{action 'nothing' on='submit'}}>
                 <div style="width: 250px;">
@@ -343,44 +391,11 @@
                 {{#each board_list.filtered_results as |board|}}
                   {{#if board.board.key}}
                     {{#unless board.board.removed}}
-                      <div class="col-sm-2 col-xs-3 board_with_action">
+                      <div class="col-sm-2 col-xs-3 board_with_action simple_board_holder">
                         {{#if board.children}}
-                            <a href='#' {{action 'load_children' board}} class='well well-sm board_icon folder'>
-                              <span style='display: block;'>
-                                  <span class="icon" style='display: block;'>
-                                    <img src={{board.board.icon_url_with_fallback}} onerror="button_broken_image(this);"/>
-                                  </span>
-                                  <span style="display: block; height: 50px">
-                                    <span style="color: #888; padding-left: 8px; display: block;">
-                                      <span class="glyphicon glyphicon-folder-open"></span>
-                                      {{board.children.length}}
-                                    </span>
-                                    {{#if board.board.stars}}
-                                      <span style="color: #222; padding-left: 8px; display: block;">
-                                        <span class="glyphicon glyphicon-star"></span>
-                                        {{board.board.stars}}
-                                      </span>
-                                    {{/if}}
-                                    {{#if board.board.different_locale}}
-                                      <span style='color: #888; padding-left: 8px; display: block;'>
-                                        {{board.board.shortened_locale}}
-                                      </span>
-                                    {{/if}}
-                                  </span>
-                                  <span style="display: block; clear: both;"></span>
-                              </span>
-                              <span class="names" title={{board.long_preview}}>
-                                <span class="name">
-                                  {{#unless board.board.public}}<span class="glyphicon glyphicon-lock"></span>{{/unless}}
-                                  {{board.board.name}}{{#if board.board.copy_version}} <span style='color: #666; font-size: 10px;'>({{board.board.copy_version}})</span>{{/if}}
-                                </span><br/>
-                              </span><br/>
-                              <span class="user_name">{{board.board.user_name}}</span><br/>
-                            </a>
+                          {{board-icon board=board noinfo=true action='load_children'}}
                         {{else}}
-                          {{#with board.board as |board|}}
-                            {{partial "board-icon"}}
-                          {{/with}}
+                          {{board-icon board=board.board}}
                         {{/if}}
                         {{#if model.permissions.edit}}
                           <button class="board_action" {{action 'remove_board' board_list.remove_type board.board}}>
@@ -420,8 +435,8 @@
               {{#each my_boards_shortened as |board|}}
                 {{#if board.key}}
                   {{#unless board.removed}}
-                    <div class="col-sm-2 col-xs-3 board_with_action">
-                      {{partial "board-icon"}}
+                    <div class="col-sm-2 col-xs-3 board_with_action simple_board_holder">
+                      {{board-icon board=board}}
                       {{#if model.permissions.edit}}
                         <button class="board_action" {{action 'remove_board' 'delete' board}}>
                           <span title={{t "delete" key='delete'}}><span class='glyphicon glyphicon-trash'></span></span>
@@ -457,8 +472,8 @@
               {{#each public_boards_shortened as |board|}}
                 {{#if board.key}}
                   {{#unless board.removed}}
-                    <div class="col-sm-2 col-xs-3 board_with_action">
-                      {{partial "board-icon"}}
+                    <div class="col-sm-2 col-xs-3 board_with_action simple_board_holder">
+                      {{board-icon board=board}}
                       {{#if model.permissions.edit}}
                         <button class="board_action" {{action 'remove_board' 'delete' board}}>
                           <span title={{t "delete" key='delete'}}><span class='glyphicon glyphicon-trash'></span></span>
@@ -494,8 +509,8 @@
               {{#each private_boards_shortened as |board|}}
                 {{#if board.key}}
                   {{#unless board.removed}}
-                    <div class=" col-sm-2 col-xs-3 board_with_action">
-                      {{partial "board-icon"}}
+                    <div class=" col-sm-2 col-xs-3 board_with_action simple_board_holder">
+                      {{board-icon board=board}}
                       {{#if model.permissions.edit}}
                         <button class="board_action" {{action 'remove_board' 'delete' board}}>
                           <span title={{t "delete" key='delete'}}><span class='glyphicon glyphicon-trash'></span></span>
@@ -531,8 +546,8 @@
               {{#each starred_boards_shortened as |board|}}
                 {{#if board.key}}
                   {{#unless board.removed}}
-                    <div class="col-sm-2 col-xs-3 board_with_action">
-                      {{partial "board-icon"}}
+                    <div class="col-sm-2 col-xs-3 board_with_action simple_board_holder">
+                      {{board-icon board=board}}
                       {{#if model.permissions.edit}}
                         <button class="board_action" {{action 'remove_board' 'unstar' board}}>
                           <span title={{t "unstar" key='unstar'}}><span class='glyphicon glyphicon-star-empty'></span></span>
@@ -568,8 +583,8 @@
               {{#each shared_boards_shortened as |board|}}
                 {{#if board.key}}
                   {{#unless board.removed}}
-                    <div class="col-sm-2 col-xs-3 board_with_action">
-                      {{partial "board-icon"}}
+                    <div class="col-sm-2 col-xs-3 board_with_action simple_board_holder">
+                      {{board-icon board=board}}
                       {{#if model.permissions.edit}}
                         <button class="board_action" {{action 'remove_board' 'unlink' board}}>
                           <span title={{t "unlink" key='unlink'}}><span class='glyphicon glyphicon-remove'></span></span>

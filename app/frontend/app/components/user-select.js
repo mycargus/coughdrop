@@ -7,12 +7,13 @@ export default Ember.Component.extend({
   action: Ember.K, // action to fire on change
   didInsertElement: function() {
     var supervisees = [];
+    var _this = this;
     if(!this.get('users') && app_state.get('sessionUser.supervisees')) {
       app_state.get('sessionUser.supervisees').forEach(function(supervisee) {
         supervisees.push({
           name: supervisee.user_name,
           image: supervisee.avatar_url,
-          disabled: !supervisee.edit_permission,
+          disabled: !_this.get('allow_all') && !supervisee.edit_permission,
           id: supervisee.id
         });
       });
@@ -20,6 +21,8 @@ export default Ember.Component.extend({
         supervisees.unshift({
           name: i18n.t('me', "me"),
           id: 'self',
+          disabled: this.get('skip_me'),
+          self: true,
           image: app_state.get('sessionUser.avatar_url_with_fallback')
         });
       }
@@ -32,6 +35,12 @@ export default Ember.Component.extend({
     }
     this.set('users', this.get('users') || supervisees);
   },
+  include_me: function() {
+    var self = (this.get('users') || []).find(function(u) { return u.id == 'self'; });
+    if(self) {
+      Ember.set(self, 'disabled', !!this.get('skip_me'));
+    }
+  }.observes('skip_me'),
   for_user_image: function() {
     var res = null;
     var user_id = this.get('selection');

@@ -28,7 +28,7 @@ export default modal.ModalController.extend({
     return user_name == board_user_name;
   }.property('currently_selected_id', 'model.board.user_name'),
   multiple_users: function() {
-    return !!this.get('has_supservisees');
+    return !!this.get('has_supervisees');
   }.property('has_supervisees'),
   pending: function() {
     return this.get('status.updating') || this.get('status.copying');

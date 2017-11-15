@@ -6,6 +6,7 @@ import app_state from '../utils/app_state';
 import session from '../utils/session';
 import modal from '../utils/modal';
 import stashes from '../utils/_stashes';
+import i18n from '../utils/i18n';
 
 export default Ember.Controller.extend({
   registration_types: CoughDrop.registrationTypes,
@@ -121,6 +122,25 @@ export default Ember.Controller.extend({
     }
     return res;
   }.property('needs_sync'),
+  current_boards: function() {
+    var res = {};
+    if(this.get('popular_selected')) {
+      res = this.get('popularBoards');
+    } else if(this.get('personal_selected')) {
+      res = this.get('personalBoards');
+    } else if(this.get('suggested_selected')) {
+      res = this.get('homeBoards');
+    } else if(this.get('recent_selected')) {
+      res = this.get('recentOfflineBoards');
+    }
+    return res;
+  }.property('popular_selected', 'personal_selected', 'suggested_selected', 'recent_selected', 'popularBoards', 'personalBoards', 'homeBoards', 'recentOfflineBoards'),
+  pending_updates: function() {
+    return this.get('app_state.currentUser.pending_org') ||
+                this.get('app_state.currentUser.pending_supervision_org') ||
+                (this.get('app_state.currentUser.pending_board_shares') || []).length > 0 ||
+                this.get('app_state.currentUser.unread_messages');
+  }.property('app_state.currentUser.pending_org', 'app_state.currentUser.pending_supervision_org', 'app_state.currentUser.pending_board_shares', 'app_state.currentUser.unread_messages'),
   update_selected: function() {
     var _this = this;
     if(!persistence.get('online')) { return; }
@@ -145,7 +165,7 @@ export default Ember.Controller.extend({
         if(key == 'recent') {
           persistence.find_recent('board').then(function(boards) {
             if(boards && boards.slice) {
-              boards = boards.slice(0, 9);
+              boards = boards.slice(0, 12);
             }
             _this.set('recentOfflineBoards', boards);
           });
@@ -153,7 +173,7 @@ export default Ember.Controller.extend({
           if(!(_this.get('homeBoards') || {}).length) {
             _this.set('homeBoards', {loading: true});
           }
-          _this.store.query('board', {public: true, starred: true, user_id: 'example', sort: 'custom_order', per_page: 9}).then(function(data) {
+          _this.store.query('board', {public: true, starred: true, user_id: 'example', sort: 'custom_order', per_page: 12}).then(function(data) {
             _this.set('homeBoards', data);
             _this.checkForBlankSlate();
           }, function() {
@@ -166,7 +186,7 @@ export default Ember.Controller.extend({
           if(!(_this.get('personalBoards') || {}).length) {
             _this.set('personalBoards', {loading: true});
           }
-          _this.store.query('board', {user_id: 'self', per_page: 9}).then(function(boards) {
+          _this.store.query('board', {user_id: 'self', copies: false, per_page: 12}).then(function(boards) {
             _this.set('personalBoards', boards);
           }, function() {
             if(!(_this.get('personalBoards') || {}).length) {
@@ -215,6 +235,9 @@ export default Ember.Controller.extend({
   many_supervisees: function() {
     return (app_state.get('currentUser.supervisees') || []).length > 5;
   }.property('app_state.currentUser.supervisees'),
+  some_supervisees: function() {
+    return (app_state.get('currentUser.supervisees') || []).length > 3;
+  }.property('app_state.currentUser.supervisees'),
   save_user_pref_change: function() {
     var mode = app_state.get('currentUser.preferences.auto_open_speak_mode');
     if(mode !== undefined) {
@@ -225,6 +248,22 @@ export default Ember.Controller.extend({
       this.set('last_auto_open_speak_mode', mode);
     }
   }.observes('app_state.currentUser.preferences.auto_open_speak_mode'),
+  index_nav: function() {
+    var res = {};
+    if(this.get('index_nav_state')) {
+      res[this.get('index_nav_state')] = true;
+    } else if(app_state.get('currentUser.preferences.device.last_index_nav')) {
+      res[app_state.get('currentUser.preferences.device.last_index_nav')] = true;
+    } else {
+      if(this.get('model.supporter_role')) {
+//        res.supervisees = true;
+        res.main = true;
+      } else {
+        res.main = true;
+      }
+    }
+    return res;
+  }.property('index_nav_state', 'model.supporter_role', 'app_state.currentUser.preference.device.last_index_nav'),
   subscription_check: function() {
     // if the user is in the free trial or is really expired, they need the subscription
     // modal to pop up
@@ -270,6 +309,7 @@ export default Ember.Controller.extend({
        modal.open('getting-started', {progress: app_state.get('currentUser.preferences.progress')});
     },
     record_note: function(user) {
+      user = user || app_state.get('currentUser');
       Ember.set(user, 'avatar_url_with_fallback', Ember.get(user, 'avatar_url'));
       modal.open('record-note', {note_type: 'text', user: user}).then(function() {
         Ember.run.later(function() {
@@ -298,6 +338,24 @@ export default Ember.Controller.extend({
     set_selected: function(selected) {
       this.set('selected', selected);
     },
+    set_index_nav: function(nav) {
+      if(nav == 'main' || nav == 'supervisees') {
+        var u = app_state.get('currentUser');
+        u.set('preferences.device.last_index_nav', nav);
+        u.save().then(null, function() { });
+      } else if(nav == 'updates') {
+        if(app_state.get('currentUser')) {
+          app_state.get('currentUser').reload().then(null, function() { });
+        }
+      }
+      this.set('index_nav_state', nav);
+    },
+    toggle_extras: function() {
+      this.set('show_main_extras', !this.get('show_main_extras'));
+    },
+    expand_left_nav: function() {
+      this.set('left_nav_expanded', !this.get('left_nav_expanded'));
+    },
     intro_video: function(id) {
       if(window.ga) {
         window.ga('send', 'event', 'Setup', 'video', 'Intro video opened');
@@ -322,6 +380,28 @@ export default Ember.Controller.extend({
     sync_details: function() {
       var list = ([].concat(persistence.get('sync_log') || [])).reverse();
       modal.open('sync-details', {details: list});
+    },
+    stats: function(user_name) {
+      if(!user_name) {
+        if((app_state.get('currentUser.supervisees') || []).length > 0) {
+          var prompt = i18n.t('select_user_for_reports', "Select User for Reports");
+          app_state.controller.send('switch_communicators', {stay: true, modeling: true, skip_me: true, route: 'user.stats', header: prompt});
+          return;
+        } else {
+          user_name = app_state.get('currentUser.user_name');
+        }
+      }
+      this.transitionToRoute('user.stats', user_name, {queryParams: {start: null, end: null, device_id: null, location_id: null, split: null, start2: null, end2: null, devicde_id2: null, location_id2: null}});
+    },
+    goals: function() {
+      if((app_state.get('currentUser.supervisees') || []).length > 0) {
+        var prompt = i18n.t('select_user_for_goals', "Select User for Goals");
+        app_state.controller.send('switch_communicators', {stay: true, modeling: true, skip_me: true, route: 'user.goals', header: prompt});
+        return;
+      } else {
+        var user_name = app_state.get('currentUser.user_name');
+        this.transitionToRoute('user.stats', user_name, {queryParams: {start: null, end: null, device_id: null, location_id: null, split: null, start2: null, end2: null, devicde_id2: null, location_id2: null}});
+      }
     }
   }
 });

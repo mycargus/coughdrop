@@ -445,7 +445,8 @@ class User < ActiveRecord::Base
       'skip_supervisee_sync', 'sync_refresh_interval', 'multi_touch_modeling',
       'goal_notifications', 'word_suggestion_images', 'hidden_buttons',
       'speak_on_speak_mode', 'ever_synced', 'folder_icons', 'allow_log_reports',
-      'symbol_background', 'disable_button_help', 'click_buttons', 'prevent_hide_buttons']
+      'symbol_background', 'disable_button_help', 'click_buttons', 'prevent_hide_buttons',
+      'new_index']
 
   PROGRESS_PARAMS = ['setup_done', 'intro_watched', 'profile_edited', 'preferences_edited', 'home_board_set', 'app_added', 'skipped_subscribe_modal']
   def process_params(params, non_user_params)

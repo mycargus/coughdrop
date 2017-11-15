@@ -162,8 +162,10 @@ var modal = Ember.Object.extend({
     if(below_header) {
       this.settings_for['flash'].below_header = below_header;
     }
-    if(opts && opts.subscribe_redirect) {
-      this.settings_for['flash'].subscribe = true;
+    if(opts && opts.redirect) {
+      var hash = {};
+      hash[opts.redirect] = true;
+      this.settings_for['flash'].redirect = hash;
     }
 
     var _this = this;
@@ -191,6 +193,15 @@ var modal = Ember.Object.extend({
   },
   success: function(text, below_header, sticky, opts) {
     modal.flash(text, 'success', below_header, sticky, opts);
+  },
+  board_preview: function(board, callback) {
+    modal.route.render('board-preview', { into: 'application', outlet: 'board-preview', model: {board: board, option: board.preview_option, callback: callback}});
+  },
+  close_board_preview: function() {
+    modal.route.disconnectOutlet({
+      outlet: 'board-preview',
+      parentView: 'application'
+    });
   }
 }).create();
 

@@ -43,7 +43,7 @@
         {{#each category_boards as |board|}}
           {{#if board.key}}
             <div class="col-xs-4">
-              {{partial "board-icon"}}
+              {{board-icon board=board}}
             </div>
           {{/if}}
         {{/each}}
