@@ -329,11 +329,14 @@ var stashes = Ember.Object.extend({
     var found = false;
     daily_use.forEach(function(d) {
       if(d.date == today) {
-        found = true;
+        found = d;
         // if it's been less than 5 minutes since the last event, add the difference
-        // to the total minutes for the day
+        // to the total minutes for the day, otherwise just say we've had a teeny
+        // bit of activity.
         if(now - d.last_timestamp < (5 * 60 * 1000)) {
-          d.total_minutes = (d.total_minutes || 0) + ((now - d.last_timestamp) / (5 * 60 * 1000));
+          d.total_minutes = (d.total_minutes || 0) + ((now - d.last_timestamp) / (60 * 1000));
+        } else {
+          d.total_minutes = (d.total_minutes || 0) + 0.25;
         }
         d.last_timestamp = now;
       }
@@ -341,12 +344,18 @@ var stashes = Ember.Object.extend({
     if(!found) {
       daily_use.push({
         date: today,
-        last_timestamp: now
+        last_timestamp: now,
+        total_minutes: 0.25,
+        recorded_minutes: 0
       });
     }
     stashes.persist('daily_use', daily_use);
-    // once we have data for more than one day, push it and then clear the history
+    // once we have data for more than one day, or at least 10 new minutes of usage, push it and then clear the history
+    var do_push = daily_use.length > 1 || (found && (found.total_minutes - found.recorded_minutes) > 10);
     if(daily_use.length > 1 && stashes.get('online')) {
+      if(found) {
+        found.recorded_minutes = found.total_minutes;
+      }
       var days = [];
       daily_use.forEach(function(d) {
         var level = 0;

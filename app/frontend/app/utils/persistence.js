@@ -950,6 +950,7 @@ var persistence = Ember.Object.extend({
     var user_name = user_id;
     if(this.get('online')) {
       stashes.push_log();
+      stashes.track_daily_use();
     }
     persistence.set('last_sync_event_at', (new Date()).getTime());
 
