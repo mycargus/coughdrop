@@ -286,13 +286,16 @@ class WeeklyStatsSummary < ActiveRecord::Base
     end
 
     total.data['board_usages'] = {}
+    total.data['board_locales'] = {}
     board_ids = board_usages.to_a.map(&:first)
     Board.where(id: Board.local_ids(board_ids)).find_in_batches(batch_size: 10) do |batch|
       batch.each do |board|
         if board.fully_listed? && !board.parent_board_id
           total.data['board_usages'][board.key] = board_usages[board.global_id]
+          total.data['board_locales'][board.settings['locale'] || 'en'] = (total.data['board_locales'][board.settings['locale'] || 'en'] || 0) + board_usages[board.global_id]
         elsif board.fully_listed? && board.parent_board
           total.data['board_usages'][board.parent_board.key] = board_usages[board.global_id]
+          total.data['board_locales'][board.settings['locale'] || 'en'] = (total.data['board_locales'][board.settings['locale'] || 'en'] || 0) + board_usages[board.global_id]
         end
       end
     end
@@ -380,6 +383,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     stash[:total_words] = 0
     stash[:word_counts] = {}
     stash[:board_usages] = {}
+    stash[:board_locales] = {}
     stash[:home_board_user_ids] = []
     earliest = nil
     latest = nil
@@ -416,6 +420,9 @@ class WeeklyStatsSummary < ActiveRecord::Base
         if summary.data['board_usages']
           summary.data['board_usages'].each do |key, cnt|
             stash[:board_usages][key] = (stash[:board_usages][key] || 0) + cnt
+          end
+          (summary.data['board_locales'] || {}).each do |locale, cnt|
+            stash[:board_locales][key] = (stash[:board_locales][key] || 0) + cnt
           end
         end
       
@@ -507,6 +514,14 @@ class WeeklyStatsSummary < ActiveRecord::Base
       stash[:board_usages].each do |key, cnt|
         res[:board_usages] ||= {}
         res[:board_usages][key] = (cnt.to_f / max_usage_count.to_f).round(2) if cnt > 10
+      end
+      if stash[:board_locales]
+        max_locale_count = stash[:board_locales].map(&:last).max || 0.0
+        res[:max_board_locales_count] = max_locale_count if include_admin
+        stash[:board_locales].each do |key, cnt|
+          res[:board_locales] ||= {}
+          res[:board_locales][key] = (cnt.to_f / max_locale_count.to_f).round(2) if cnt > 5
+        end
       end
     end
     
