@@ -89,6 +89,8 @@ class Api::BoardsController < ApplicationController
     self.class.trace_execution_scoped(['boards/category']) do
       if params['category']
         boards = boards[0, 100].select{|b| (b.settings['categories'] || []).include?(params['category']) }
+      elsif params['copies'] == false || params['copies'] == 'false'
+        boards = boards[0, 500].select{|b| !b.settings['copy_id'] || b.settings['copy_id'] == b.global_id }[0, 100]
       end
     end
     
