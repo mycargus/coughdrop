@@ -1,7 +1,7 @@
 Hello! We wanted to reach out and make sure you know that your 
-<%= @user.grace_period? ? "free trial" : "subscription" %>
+<%= @user.grace_period? ? "free trial" : "premium access" %>
 for
-the CoughDrop user account <b><%= @user.user_name %></b> is about to expire. 
+the CoughDrop user account <b><%= @user.user_name %></b> will conclude soon. 
 Hopefully CoughDrop has been a useful tool and you're excited to 
 keep using it. We're constantly working with experts to make CoughDrop easier
 and more informative, and it'd be great to have you along for the ride.<br/><br/> 
@@ -21,8 +21,8 @@ struggling communicators.<br/><br/>
 
 If you need help finding a funding solution, please don't be afraid to reach out to us, 
 we're willing to work with individuals to find a good solution. Just 
-<a href="https://coughdrop.zendesk.com">access our support site</a>
-to make a request, and we'll be happy to work with you.<br/><br/>
+<a href="<%= JsonApi::Json.current_host %>/contact">contact us</a>
+and we'll be happy to work with you.<br/><br/>
 
 Thanks!<br/>
 -The CoughDrop Team

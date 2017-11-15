@@ -6,17 +6,25 @@ difference for you.<br/><br/>
 
 You've signed up for an account with the user name <b><%= @user.display_user_name %></b>.
 To finish registering just
-<a href="<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/confirm_registration/<%= @user.registration_code %>">open this link in your web browser of choice</a>.<br/><br/>
+<a href="<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/confirm_registration/<%= @user.registration_code %>">open this link in your web browser of choice</a>.
+<% if @user.grace_period? %>CoughDrop comes with "cloud extras" features that include
+logging, reports, goals and badges, and your CoughDrop account will have access to these
+features through <b><%= @user.expires_at.to_s(:long_ordinal) %></b>.<% end %>
+<br/><br/>
 
-After that you'll be good to go. There are lots of powerful tools in CoughDrop for tracking
-and reporting on usage, customizing how buttons look, changing the header, etc. You can
-find walkthroughs on simple and advanced features on
+CoughDrop has a lot of great features, from eye tracking to switches to reports to badges, but 
+those features are all more than happy to
+wait patiently until you're ready for them. You can
+find walkthroughs and guides on the simple and advanced features available in the CoughDrop app
+by visiting
 <a href="https://coughdrop.zendesk.com">our support site</a> or
-<a href="https://www.youtube.com/channel/UCSVyFzvGVeFSOS7TP06re1g">our YouTube channel</a>. You can also file a ticket
-there if you think something might be broken.<br/><br/>
+<a href="https://www.youtube.com/channel/UCSVyFzvGVeFSOS7TP06re1g">our YouTube channel</a>. 
+You can also <a href="<%= JsonApi::Json.current_host %>/contact">shoot us a message</a>
+there is you think something might be broken.<br/><br/>
 
 If you ever find something you think could be improved upon, we'd love
-to hear about it! Our goal is to build something that can help enable communicators to succeed,
+to hear about it, so please <a href="<%= JsonApi::Json.current_host %>/contact">contact us</a>! 
+Our goal is to build something that can help enable communicators to succeed,
 and we're always looking for new ways to make that happen!<br/><br/><br/>
 
 Thanks!<br/>
