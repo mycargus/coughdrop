@@ -154,29 +154,31 @@ class UserLink < ApplicationRecord
           }
         }
       end
-      possible_units = OrganizationUnit.where(:organization_id => record.class.local_ids(org_ids))
-      possible_units.each do |unit|
-        sup = (unit.settings['supervisors'] || []).detect{|s| s['user_id'] == record.global_id }
-        comm = (unit.settings['communicators'] || []).detect{|c| c['user_id'] == record.global_id }
-        if sup
-          res << {
-            'user_id' => record.global_id,
-            'record_code' => Webhook.get_record_code(unit),
-            'type' => 'org_unit_supervisor',
-            'old_school' => true,
-            'state' => {
-              'edit_permission' => sup['edit_permission']
+      if org_ids.length > 0
+        possible_units = OrganizationUnit.where(:organization_id => record.class.local_ids(org_ids))
+        possible_units.each do |unit|
+          sup = (unit.settings['supervisors'] || []).detect{|s| s['user_id'] == record.global_id }
+          comm = (unit.settings['communicators'] || []).detect{|c| c['user_id'] == record.global_id }
+          if sup
+            res << {
+              'user_id' => record.global_id,
+              'record_code' => Webhook.get_record_code(unit),
+              'type' => 'org_unit_supervisor',
+              'old_school' => true,
+              'state' => {
+                'edit_permission' => sup['edit_permission']
+              }
             }
-          }
-        end
-        if comm
-          res << {
-            'user_id' => record.global_id,
-            'record_code' => Webhook.get_record_code(unit),
-            'type' => 'org_unit_communicator',
-            'old_school' => true,
-            'state' => {}
-          }
+          end
+          if comm
+            res << {
+              'user_id' => record.global_id,
+              'record_code' => Webhook.get_record_code(unit),
+              'type' => 'org_unit_communicator',
+              'old_school' => true,
+              'state' => {}
+            }
+          end
         end
       end
     elsif record.is_a?(Organization)
