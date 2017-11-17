@@ -47,7 +47,7 @@ describe SubscriptionMailer, :type => :mailer do
       expect(m.subject).to eq("CoughDrop - Billing Notice")
       
       html = message_body(m, :html)
-      expect(html).to match(/about to expire/)
+      expect(html).to match(/will conclude soon/)
       expect(html).to match(/#{u.expires_at.to_s(:long_ordinal)}/)
       expect(html).to match(/<b>#{u.settings['name']}<\/b>/)
       
