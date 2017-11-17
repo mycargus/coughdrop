@@ -906,14 +906,15 @@ describe Sharing, :type => :model do
       b2.settings['buttons'] = [{'id' => 1, 'load_board' => {'id' => b3.global_id}}]
       b2.save
       User.link_supervisor_to_user(u, u4)
+      expect(UserLink.count).to eq(1)
       b.share_with(u4, true, false)
       Worker.process_queues
-      expect(b.allows?(u, 'view')).to eq(true)
-      expect(b.allows?(u4, 'view')).to eq(true)
-      expect(b2.allows?(u, 'view')).to eq(true)
-      expect(b2.allows?(u4, 'view')).to eq(true)
-      expect(b3.allows?(u, 'view')).to eq(true)
-      expect(b3.allows?(u4, 'view')).to eq(true)
+
+      expect(b4.public).to eq(false)
+      expect(b4.user).to eq(u3)
+      expect(b4.user.edit_permission_for?(u)).to eq(false)
+      expect(b4.user.allows?(u, 'edit')).to eq(false)
+      expect(b4.shared_with?(u)).to eq(false)
       expect(b4.allows?(u, 'view')).to eq(false)
       expect(b4.allows?(u4, 'view')).to eq(false)
     end

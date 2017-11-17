@@ -29,7 +29,13 @@ module Supervising
   end
   
   def supervisor_user_ids
-    (self.settings['supervisors'] || []).map{|s| s['user_id'] }
+    sups = UserLink.links_for(self).select{|l| l['type'] == 'supervisor' && l['user_id'] == self.global_id}
+    sups.map{|l| l['record_code'].split(/:/)[1] }.uniq
+  end
+  
+  def supervisor_links
+    return [] unless self.id
+    UserLink.links_for(self).select{|l| l['type'] == 'supervisor' && l['user_id'] == self.global_id }
   end
   
   def supervisor_for?(user)
@@ -60,9 +66,14 @@ module Supervising
     res.reverse.uniq{|e| [e['id'], e['type']] }.sort_by{|e| e['id'] }
   end
 
+  def supervisee_links
+    return [] unless self.id
+    code = Webhook.get_record_code(self)
+    UserLink.links_for(self).select{|l| l['type'] == 'supervisor' && l['record_code'] == code }
+  end
+  
   def supervised_user_ids
-    return [] unless self.settings && self.settings['supervisees']
-    (self.settings['supervisees'] || []).map{|s| s['user_id'] }
+    supervisee_links.map{|l| l['user_id'] }.compact.uniq
   end
   
   def supervisees
@@ -74,12 +85,12 @@ module Supervising
   end
   
   def edit_permission_for?(supervisee)
-    !!(supervisee.settings['supervisors'] || []).detect{|s| s['user_id'] == self.global_id && s['edit_permission'] }
+    supervisee.supervisor_links.any?{|l| l['record_code'] == Webhook.get_record_code(self) && l['user_id'] == supervisee.global_id && l['state']['edit_permission'] }
   end
 
-  def org_unit_for_supervising(supervisee)
-    sup = (supervisee.settings['supervisors'] || []).detect{|s| s['user_id'] == self.global_id && s['organization_unit_id'] }
-    sup && OrganizationUnit.find_by_global_id(sup['organization_unit_id'])
+  def org_units_for_supervising(supervisee)
+    unit_ids = supervisee_links.map{|l| l['state']['organization_unit_ids'] }.compact.flatten.uniq
+    OrganizationUnit.find_all_by_global_id(unit_ids)
   end
   
   def process_supervisor_key(key)
@@ -146,20 +157,27 @@ module Supervising
       supervisor = user if supervisor.global_id == user.global_id
       sup = (user.settings['supervisors'] || []).detect{|s| s['user_id'] == supervisor.global_id }
       org_unit_ids = (sup || {})['organization_unit_ids'] || []
+      org_unit_ids += UserLink.links_for(user).select{|l| l['type'] == 'supervisor' && l['user_id'] == user.global_id && l['record_code'] == Webhook.get_record_code(supervisor) }.map{|l| l['state'] && l['state']['organization_unit_ids'] }.compact.flatten
+      org_unit_ids.uniq!
+      
       user.settings['supervisors'] = (user.settings['supervisors'] || []).select{|s| s['user_id'] != supervisor.global_id }
       do_unlink = true
       if organization_unit_id && (org_unit_ids - [organization_unit_id]).length > 0
-        sup['organization_unit_ids'] -= [organization_unit_id]
-        user.settings['supervisors'] << sup
+        org_unit_ids -= [organization_unit_id]
+        link = UserLink.generate(user, supervisor, 'supervisor')
+        link.data['state']['organization_unit_ids'] = org_unit_ids
+        link.save!
         do_unlink = false
+      else
+        UserLink.remove(user, supervisor, 'supervisor')
       end
       user.update_setting({
         'supervisors' => user.settings['supervisors']
       })
       user.reload
       if do_unlink
+        supervisor.reload
         supervisor.settings['supervisees'] = (supervisor.settings['supervisees'] || []).select{|s| s['user_id'] != user.global_id }
-        # TODO: force browser refresh for supervisor after an unlink?
         # If a user was auto-subscribed for being added as a supervisor, un-subscribe them when removed
         if supervisor.settings['supervisees'].empty? && supervisor.settings && supervisor.settings['subscription'] && supervisor.settings['subscription']['subscription_id'] == 'free_auto_adjusted'
           supervisor.update_subscription({
@@ -178,24 +196,37 @@ module Supervising
     def link_supervisor_to_user(supervisor, user, code=nil, editor=true, organization_unit_id=nil)
       # raise "free_premium users can't add supervisors" if user.free_premium?
       supervisor = user if supervisor.global_id == user.global_id
+      
       org_unit_ids = ((user.settings['supervisors'] || []).detect{|s| s['user_id'] == supervisor.global_id } || {})['organization_unit_ids'] || []
-      user.settings['supervisors'] = (user.settings['supervisors'] || []).select{|s| s['user_id'] != supervisor.global_id }
-      sup = {
-        'user_id' => supervisor.global_id,
-        'user_name' => supervisor.user_name,
-        'edit_permission' => editor,
-        'organization_unit_ids' => org_unit_ids
-      }
-      if organization_unit_id
-        sup['organization_unit_ids'] << organization_unit_id 
-        sup['organization_unit_ids'].uniq!
-      end
-      user.settings['supervisors'] << sup
-      user.settings['link_codes'] -= [code] if code
-      user.update_setting({
-        'supervisors' => user.settings['supervisors'],
-        'link_codes' => user.settings['link_codes']
-      })
+      org_unit_ids += UserLink.links_for(user).select{|l| l['type'] == 'supervisor' && l['record_code'] == Webhook.get_record_code(supervisor) }.map{|l| l['state'] && l['state']['organization_unit_ids'] }.compact.flatten
+
+      link = UserLink.generate(user, supervisor, 'supervisor')
+      link.data['state']['edit_permission'] = true if editor
+      link.data['state']['supervisee_user_name'] = user.user_name
+      link.data['state']['supervisor_user_name'] = supervisor.user_name
+      link.data['state']['organization_unit_ids'] = ((org_unit_ids || []) + ([organization_unit_id].compact)).uniq
+      link.save!
+
+
+#      user.settings['supervisors'] = (user.settings['supervisors'] || []).select{|s| s['user_id'] != supervisor.global_id }
+#       sup = {
+#         'user_id' => supervisor.global_id,
+#         'user_name' => supervisor.user_name,
+#         'edit_permission' => editor,
+#         'organization_unit_ids' => org_unit_ids
+#       }
+#       if organization_unit_id
+#         sup['organization_unit_ids'] << organization_unit_id 
+#         sup['organization_unit_ids'].uniq!
+#       end
+#       user.settings['supervisors'] << sup
+#       user.settings['link_codes'] -= [code] if code
+#       user.update_setting({
+#         'supervisors' => user.settings['supervisors'],
+#         'link_codes' => user.settings['link_codes']
+#       })
+
+      supervisor.reload
       # first-time supervisors should automatically be set to the supporter role
       if !supervisor.settings['supporter_role_auto_set']
         supervisor.settings['supporter_role_auto_set'] = true
@@ -210,15 +241,15 @@ module Supervising
           'plan_id' => 'slp_monthly_free'
         })
       end
-      supervisor.settings['supervisees'] = (supervisor.settings['supervisees'] || []).select{|s| s['user_id'] != user.global_id }
-      supervisor.settings['supervisees'] << {
-        'user_id' => user.global_id,
-        'user_name' => user.user_name,
-        'edit_permission' => editor
-      }
-      supervisor.update_setting({
-        'supervisees' => supervisor.settings['supervisees']
-      })
+#       supervisor.settings['supervisees'] = (supervisor.settings['supervisees'] || []).select{|s| s['user_id'] != user.global_id }
+#       supervisor.settings['supervisees'] << {
+#         'user_id' => user.global_id,
+#         'user_name' => user.user_name,
+#         'edit_permission' => editor
+#       }
+#       supervisor.update_setting({
+#         'supervisees' => supervisor.settings['supervisees']
+#       })
       supervisor.schedule_once(:update_available_boards)
     end
   end

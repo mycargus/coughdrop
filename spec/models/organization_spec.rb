@@ -233,11 +233,12 @@ describe Organization, :type => :model do
       expect(u2.reload.supervisor_user_ids).to eq([u1.global_id])
       expect(u2.reload.supervised_user_ids).to eq([])
       
-      
+      expect(UserLink.count).to eq(2)
       o.remove_supervisor(u1.user_name)
       
       Worker.process_queues
       Worker.process_queues
+      expect(UserLink.count).to eq(0)
 
       expect(u1.reload.supervisor_user_ids).to eq([])
       expect(u1.reload.supervised_user_ids).to eq([])

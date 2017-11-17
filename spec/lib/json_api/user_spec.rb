@@ -91,6 +91,7 @@ describe JsonApi::User do
       expect(hash['stats']['board_set_ids'].length).to eq(0)
       
       u.settings['preferences'] = {'home_board' => {'id' => b.global_id}}
+      u.save
       u2.settings['preferences'] = {'home_board' => {'id' => b2.global_id}}
       u2.save
       
@@ -99,6 +100,7 @@ describe JsonApi::User do
       expect(hash['stats']['board_set_ids_including_supervisees'].length).to eq(1)
       
       u.settings['starred_board_ids'] = ["4_1", b.global_id]
+      u.save
       hash = JsonApi::User.build_json(u, permissions: u)
       expect(hash['stats']['board_set_ids'].length).to eq(1)
       expect(hash['stats']['board_set_ids_including_supervisees'].length).to eq(1)
@@ -363,6 +365,9 @@ describe JsonApi::User do
         expect(hash['supervisors'][0]['edit_permission']).to eq(false)
 
         u.settings['supervisors'] = [{'user_id' => u2.global_id, 'edit_permission' => true}]
+        u2.settings['supervisees'] = [{'user_id' => u.global_id, 'edit_permission' => true}]
+        u2.save
+        expect(u2.edit_permission_for?(u)).to eq(true)
         hash = JsonApi::User.build_json(u, permissions: u)
         expect(hash['permissions']).not_to eq(nil)
         expect(hash['supervisors']).not_to eq(nil)

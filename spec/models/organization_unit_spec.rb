@@ -181,8 +181,9 @@ describe OrganizationUnit, :type => :model do
       ou2.add_supervisor(u2.global_id)
       Worker.process_queues
       expect(u1.reload.supervisor_user_ids).to eq([u2.global_id])
-      expect(u1.settings['supervisors'].length).to eq(1)
-      expect(u1.settings['supervisors'][0]['organization_unit_ids']).to eq([ou1.global_id, ou2.global_id])
+      expect(u1.supervisor_links.length).to eq(1)
+      expect(u1.supervisor_links[0]['state']['organization_unit_ids']).to eq([ou1.global_id, ou2.global_id])
+      expect(u1.settings['supervisors']).to eq(nil)
     end
   end  
   
@@ -246,14 +247,16 @@ describe OrganizationUnit, :type => :model do
       ou2.add_supervisor(u2.global_id)
       Worker.process_queues
       expect(u1.reload.supervisor_user_ids).to eq([u2.global_id])
-      expect(u1.settings['supervisors'].length).to eq(1)
-      expect(u1.settings['supervisors'][0]['organization_unit_ids']).to eq([ou1.global_id, ou2.global_id])
+      expect(u1.supervisor_links.length).to eq(1)
+      expect(u1.supervisor_links[0]['state']['organization_unit_ids']).to eq([ou1.global_id, ou2.global_id])
+      expect(u1.settings['supervisors']).to eq(nil)
 
       ou2.remove_supervisor(u2.global_id)
       Worker.process_queues
       expect(u1.reload.supervisor_user_ids).to eq([u2.global_id])
-      expect(u1.settings['supervisors'].length).to eq(1)
-      expect(u1.settings['supervisors'][0]['organization_unit_ids']).to eq([ou1.global_id])
+      expect(u1.supervisor_links.length).to eq(1)
+      expect(u1.supervisor_links[0]['state']['organization_unit_ids']).to eq([ou1.global_id])
+      expect(u1.settings['supervisors']).to eq(nil)
     end
   end
   
@@ -323,8 +326,9 @@ describe OrganizationUnit, :type => :model do
       ou2.add_supervisor(u2.global_id)
       Worker.process_queues
       expect(u1.reload.supervisor_user_ids).to eq([u2.global_id])
-      expect(u1.settings['supervisors'].length).to eq(1)
-      expect(u1.settings['supervisors'][0]['organization_unit_ids']).to eq([ou1.global_id, ou2.global_id])
+      expect(u1.supervisor_links.length).to eq(1)
+      expect(u1.supervisor_links[0]['state']['organization_unit_ids']).to eq([ou1.global_id, ou2.global_id])
+      expect(u1.settings['supervisors']).to eq(nil)
     end
   end
   
@@ -365,14 +369,16 @@ describe OrganizationUnit, :type => :model do
       ou2.add_supervisor(u2.global_id)
       Worker.process_queues
       expect(u1.reload.supervisor_user_ids).to eq([u2.global_id])
-      expect(u1.settings['supervisors'].length).to eq(1)
-      expect(u1.settings['supervisors'][0]['organization_unit_ids']).to eq([ou1.global_id, ou2.global_id])
+      expect(u1.supervisor_links.length).to eq(1)
+      expect(u1.supervisor_links[0]['state']['organization_unit_ids']).to eq([ou1.global_id, ou2.global_id])
+      expect(u1.settings['supervisors']).to eq(nil)
 
       ou2.remove_communicator(u1.global_id)
       Worker.process_queues
       expect(u1.reload.supervisor_user_ids).to eq([u2.global_id])
-      expect(u1.settings['supervisors'].length).to eq(1)
-      expect(u1.settings['supervisors'][0]['organization_unit_ids']).to eq([ou1.global_id])
+      expect(u1.supervisor_links.length).to eq(1)
+      expect(u1.supervisor_links[0]['state']['organization_unit_ids']).to eq([ou1.global_id])
+      expect(u1.settings['supervisors']).to eq(nil)
     end
   end
   
@@ -405,25 +411,25 @@ describe OrganizationUnit, :type => :model do
       }
       ou.save
       ou.assert_supervision!
-      expect(u1.reload.settings['supervisors'].sort_by{|s| s['user_id']}).to eq([{
-        'user_id' => u3.global_id, 'user_name' => u3.user_name, 'edit_permission' => false, 'organization_unit_ids' => [ou.global_id]
+      expect(u1.reload.supervisor_links.sort_by{|s| [s['user_id'], s['record_code']]}).to eq([{
+        'user_id' => u1.global_id, 'record_code' => Webhook.get_record_code(u3), 'type' => 'supervisor', 'state' => {'supervisor_user_name' => u3.user_name, 'supervisee_user_name' => u1.user_name, 'organization_unit_ids' => [ou.global_id]}
       }, {
-        'user_id' => u4.global_id, 'user_name' => u4.user_name, 'edit_permission' => true, 'organization_unit_ids' => [ou.global_id]
+        'user_id' => u1.global_id, 'record_code' => Webhook.get_record_code(u4), 'type' => 'supervisor', 'state' => {'supervisor_user_name' => u4.user_name, 'supervisee_user_name' => u1.user_name, 'edit_permission' => true, 'organization_unit_ids' => [ou.global_id]}
       }])
-      expect(u2.reload.settings['supervisors'].sort_by{|s| s['user_id']}).to eq([{
-        'user_id' => u3.global_id, 'user_name' => u3.user_name, 'edit_permission' => false, 'organization_unit_ids' => [ou.global_id]
+      expect(u2.reload.supervisor_links.sort_by{|s| [s['user_id'], s['record_code']]}).to eq([{
+        'user_id' => u2.global_id, 'record_code' => Webhook.get_record_code(u3), 'type' => 'supervisor', 'state' => {'supervisor_user_name' => u3.user_name, 'supervisee_user_name' => u2.user_name, 'organization_unit_ids' => [ou.global_id]}
       }, {
-        'user_id' => u4.global_id, 'user_name' => u4.user_name, 'edit_permission' => true, 'organization_unit_ids' => [ou.global_id]
+        'user_id' => u2.global_id, 'record_code' => Webhook.get_record_code(u4), 'type' => 'supervisor', 'state' => {'supervisor_user_name' => u4.user_name, 'supervisee_user_name' => u2.user_name, 'edit_permission' => true, 'organization_unit_ids' => [ou.global_id]}
       }])
-      expect(u3.reload.settings['supervisees'].sort_by{|s| s['user_id']}).to eq([{
-        'user_id' => u1.global_id, 'user_name' => u1.user_name, 'edit_permission' => false
+      expect(u3.reload.supervisee_links.sort_by{|s| [s['user_id'], s['record_code']]}).to eq([{
+        'user_id' => u1.global_id, 'record_code' => Webhook.get_record_code(u3), 'type' => 'supervisor', 'state' => {'supervisor_user_name' => u3.user_name, 'supervisee_user_name' => u1.user_name, 'organization_unit_ids' => [ou.global_id]}
       }, {
-        'user_id' => u2.global_id, 'user_name' => u2.user_name, 'edit_permission' => false
+        'user_id' => u2.global_id, 'record_code' => Webhook.get_record_code(u3), 'type' => 'supervisor', 'state' => {'supervisor_user_name' => u3.user_name, 'supervisee_user_name' => u2.user_name, 'organization_unit_ids' => [ou.global_id]}
       }])
-      expect(u4.reload.settings['supervisees'].sort_by{|s| s['user_id']}).to eq([{
-        'user_id' => u1.global_id, 'user_name' => u1.user_name, 'edit_permission' => true
+      expect(u4.reload.supervisee_links.sort_by{|s| [s['user_id'], s['record_code']]}).to eq([{
+        'user_id' => u1.global_id, 'record_code' => Webhook.get_record_code(u4), 'type' => 'supervisor', 'state' => {'supervisor_user_name' => u4.user_name, 'supervisee_user_name' => u1.user_name, 'edit_permission' => true, 'organization_unit_ids' => [ou.global_id]}
       }, {
-        'user_id' => u2.global_id, 'user_name' => u2.user_name, 'edit_permission' => true
+        'user_id' => u2.global_id, 'record_code' => Webhook.get_record_code(u4), 'type' => 'supervisor', 'state' => {'supervisor_user_name' => u4.user_name, 'supervisee_user_name' => u2.user_name, 'edit_permission' => true, 'organization_unit_ids' => [ou.global_id]}
       }])
     end
     
@@ -434,32 +440,34 @@ describe OrganizationUnit, :type => :model do
       u4 = User.create
       ou = OrganizationUnit.create
       User.link_supervisor_to_user(u3, u1)
-      User.link_supervisor_to_user(u3, u2)
+      User.link_supervisor_to_user(u3, u2, nil, false)
+      expect(UserLink.count).to eq(2)
       ou.settings = {
         'communicators' => [{'user_id' => u1.global_id}, {'user_id' => u2.global_id}],
         'supervisors' => [{'user_id' => u3.global_id}, {'user_id' => u4.global_id, 'edit_permission' => true}]
       }
       ou.save
       ou.assert_supervision!
-      expect(u1.reload.settings['supervisors'].sort_by{|s| s['user_id']}).to eq([{
-        'user_id' => u3.global_id, 'user_name' => u3.user_name, 'edit_permission' => false, 'organization_unit_ids' => [ou.global_id]
+      expect(UserLink.count).to eq(4)
+      expect(u1.reload.supervisor_links.sort_by{|s| [s['user_id'], s['record_code']]}).to eq([{
+        'user_id' => u1.global_id, 'record_code' => Webhook.get_record_code(u3), 'type' => 'supervisor', 'state' => {'supervisor_user_name' => u3.user_name, 'supervisee_user_name' => u1.user_name, 'edit_permission' => true, 'organization_unit_ids' => [ou.global_id]}
       }, {
-        'user_id' => u4.global_id, 'user_name' => u4.user_name, 'edit_permission' => true, 'organization_unit_ids' => [ou.global_id]
+        'user_id' => u1.global_id, 'record_code' => Webhook.get_record_code(u4), 'type' => 'supervisor', 'state' => {'supervisor_user_name' => u4.user_name, 'supervisee_user_name' => u1.user_name, 'edit_permission' => true, 'organization_unit_ids' => [ou.global_id]}
       }])
-      expect(u2.reload.settings['supervisors'].sort_by{|s| s['user_id']}).to eq([{
-        'user_id' => u3.global_id, 'user_name' => u3.user_name, 'edit_permission' => false, 'organization_unit_ids' => [ou.global_id]
+      expect(u2.reload.supervisor_links.sort_by{|s| [s['user_id'], s['record_code']]}).to eq([{
+        'user_id' => u2.global_id, 'record_code' => Webhook.get_record_code(u3), 'type' => 'supervisor', 'state' => {'supervisor_user_name' => u3.user_name, 'supervisee_user_name' => u2.user_name, 'organization_unit_ids' => [ou.global_id]}
       }, {
-        'user_id' => u4.global_id, 'user_name' => u4.user_name, 'edit_permission' => true, 'organization_unit_ids' => [ou.global_id]
+        'user_id' => u2.global_id, 'record_code' => Webhook.get_record_code(u4), 'type' => 'supervisor', 'state' => {'supervisor_user_name' => u4.user_name, 'supervisee_user_name' => u2.user_name, 'edit_permission' => true, 'organization_unit_ids' => [ou.global_id]}
       }])
-      expect(u3.reload.settings['supervisees'].sort_by{|s| s['user_id']}).to eq([{
-        'user_id' => u1.global_id, 'user_name' => u1.user_name, 'edit_permission' => false
+      expect(u3.reload.supervisee_links.sort_by{|s| [s['user_id'], s['record_code']]}).to eq([{
+        'user_id' => u1.global_id, 'record_code' => Webhook.get_record_code(u3), 'type' => 'supervisor', 'state' => {'supervisor_user_name' => u3.user_name, 'supervisee_user_name' => u1.user_name, 'edit_permission' => true, 'organization_unit_ids' => [ou.global_id]}
       }, {
-        'user_id' => u2.global_id, 'user_name' => u2.user_name, 'edit_permission' => false
+        'user_id' => u2.global_id, 'record_code' => Webhook.get_record_code(u3), 'type' => 'supervisor', 'state' => {'supervisor_user_name' => u3.user_name, 'supervisee_user_name' => u2.user_name, 'organization_unit_ids' => [ou.global_id]}
       }])
-      expect(u4.reload.settings['supervisees'].sort_by{|s| s['user_id']}).to eq([{
-        'user_id' => u1.global_id, 'user_name' => u1.user_name, 'edit_permission' => true
+      expect(u4.reload.supervisee_links.sort_by{|s| [s['user_id'], s['record_code']]}).to eq([{
+        'user_id' => u1.global_id, 'record_code' => Webhook.get_record_code(u4), 'type' => 'supervisor', 'state' => {'supervisor_user_name' => u4.user_name, 'supervisee_user_name' => u1.user_name, 'edit_permission' => true, 'organization_unit_ids' => [ou.global_id]}
       }, {
-        'user_id' => u2.global_id, 'user_name' => u2.user_name, 'edit_permission' => true
+        'user_id' => u2.global_id, 'record_code' => Webhook.get_record_code(u4), 'type' => 'supervisor', 'state' => {'supervisor_user_name' => u4.user_name, 'supervisee_user_name' => u2.user_name, 'edit_permission' => true, 'organization_unit_ids' => [ou.global_id]}
       }])
     end
   end

@@ -126,6 +126,7 @@ module Renaming
       # - User.supervisors[idx][user_name]
       # - User.supervisees[idx][user_name]
       # - User.boards_i_shared[idx][user_name]
+      # - UserLink.data[state][supervis(ee|or)_user_name]
       # TODO: still need to track
       # - LogSession.note[author]
       # - UserVideo.comments[idx][user_name]
@@ -134,6 +135,23 @@ module Renaming
       record.boards.each do |board|
         postfix = board.key.split(/\//)[1]
         board.rename_to(record.user_name + '/' + postfix)
+      end
+      # TODO: sharding
+      UserLink.where(user_id: record.id).each do |link|
+        if link.data && link.data['state']
+          if link.data['state']['supervisee_user_name'] != to_key
+            link.data['state']['supervisee_user_name'] = to_key 
+            link.save
+          end
+        end
+      end
+      UserLink.where(record_code: Webhook.get_record_code(record)).each do |link|
+        if link.data && link.data['state']
+          if link.data['state']['supervisor_user_name'] != to_key
+            link.data['state']['supervisor_user_name'] = to_key 
+            link.save
+          end
+        end
       end
       (record.settings['boards_shared_with_me'] || []).each do |hash|
         board = Board.find_by_path(hash['board_id'])

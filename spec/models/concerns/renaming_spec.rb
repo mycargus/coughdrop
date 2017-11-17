@@ -188,20 +188,22 @@ describe Renaming, :type => :model do
         u = User.create
         u2 = User.create
         User.link_supervisor_to_user(u2, u, nil, true)
-        expect(u2.reload.settings['supervisees'][0]['user_name']).to eq(u.user_name)
+        expect(u2.reload.supervisee_links[0]['state']['supervisee_user_name']).to eq(u.user_name)
+        expect(u.reload.supervisor_links[0]['state']['supervisee_user_name']).to eq(u.user_name)
         u.rename_to('joyce')
         Worker.process_queues
-        expect(u2.reload.settings['supervisees'][0]['user_name']).to eq('joyce')
+        expect(u2.reload.supervisee_links[0]['state']['supervisee_user_name']).to eq('joyce')
+        expect(u.reload.supervisor_links[0]['state']['supervisee_user_name']).to eq('joyce')
       end
       
       it "should update all supervisees" do
         u = User.create
         u2 = User.create
         User.link_supervisor_to_user(u2, u, nil, true)
-        expect(u.reload.settings['supervisors'][0]['user_name']).to eq(u2.user_name)
+        expect(u.reload.supervisor_links[0]['state']['supervisor_user_name']).to eq(u2.user_name)
         u2.rename_to('belinda')
         Worker.process_queues
-        expect(u.reload.settings['supervisors'][0]['user_name']).to eq('belinda')
+        expect(u.reload.supervisor_links[0]['state']['supervisor_user_name']).to eq('belinda')
       end
     end
     

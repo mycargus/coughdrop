@@ -11,6 +11,8 @@ describe Supervising, :type => :model do
       })
       u.settings['supervisors'] = [{'user_id' => u2.global_id}]
       u.updated_at = Time.now
+      u2.settings['supervisees'] = [{'user_id' => u.global_id}]
+      u2.updated_at = Time.now
       expect(u.permissions_for(u2)).to eq({
         'user_id' => u2.global_id,
         'view_existence' => true,
@@ -21,6 +23,10 @@ describe Supervising, :type => :model do
       })
       u.settings['supervisors'] = [{'user_id' => u2.global_id, 'edit_permission' => true}]
       u.updated_at = Time.now
+      u2.settings['supervisees'] = [{'user_id' => u.global_id, 'edit_permission' => true}]
+      u2.updated_at = Time.now
+
+      expect(u2.edit_permission_for?(u)).to eq(true)
       expect(u.permissions_for(u2)).to eq({
         'user_id' => u2.global_id,
         'manage_supervision' => true,
@@ -31,53 +37,6 @@ describe Supervising, :type => :model do
         'supervise' => true,
         'edit' => true
       })
-    end
-    
-    it "should generate a link code for the user" do
-      u = User.create
-      code = u.generate_link_code
-      expect(code).not_to eq(nil)
-      id, nonce, ts = code.split(/-/, 3)
-      expect(u.settings['link_codes']).to eq([code])
-      expect(Time.at(ts.to_i)).to be > 10.seconds.ago
-      expect(id).to eq(u.global_id)
-    end
-    
-    it "should flush old link codes when generating a new link code" do
-      u = User.create
-      good_code = "#{u.global_id}-def-#{Time.now.to_i}"
-      u.settings['link_codes'] = ["#{u.global_id}-abc-1389652558", good_code]
-      code = u.generate_link_code
-      expect(code).not_to eq(nil)
-      expect(u.settings['link_codes'].length).to eq(2)
-      expect(u.settings['link_codes']).to eq([good_code, code])
-    end
-    
-    it "should not generate a link code for a non-premium user" do
-      u = User.create('expires_at' => 12.months.ago)
-      expect(u.generate_link_code).to eq(nil)
-      expect(u.settings['link_codes']).to eq(nil)
-    end
-    
-    it "should link a user to a new supervisor" do
-      u = User.create
-      code = u.generate_link_code
-      u2 = User.create
-      u2.link_to_supervisee_by_code(code)
-      expect(u2.settings['supervisees']).to eq([{'user_id' => u.global_id, 'user_name' => u.user_name, 'edit_permission' => true}])
-      u.reload
-      expect(u.settings['supervisors']).to eq([{'user_id' => u2.global_id, 'user_name' => u2.user_name, 'edit_permission' => true, 'organization_unit_ids' => []}])
-    end
-    
-    it "should link to a supervisee by code when editing" do
-      u = User.create
-      code = u.generate_link_code
-      expect(code).not_to eq(nil)
-      u2 = User.create
-      u2.process({:supervisee_code => code})
-      expect(u2.settings['supervisees']).to eq([{'user_id' => u.global_id, 'user_name' => u.user_name, 'edit_permission' => true}])
-      u.reload
-      expect(u.settings['supervisors']).to eq([{'user_id' => u2.global_id, 'user_name' => u2.user_name, 'edit_permission' => true, 'organization_unit_ids' => []}])
     end
     
     it "should error on supervisee failure when editing" do
@@ -96,83 +55,13 @@ describe Supervising, :type => :model do
       expect(res.processing_errors).to eq(["supervisee add failed"])
     end
     
-    it "should remove the link code once it has been used" do
-      u = User.create
-      code = u.generate_link_code
-      u2 = User.create
-      expect(u.settings['link_codes'].length).to eq(1)
-      expect(u2.link_to_supervisee_by_code(code)).to eq(true)
-      expect(u.reload.settings['link_codes'].length).to eq(0)
-    end
-    
-    it "should not create multiple links to the same supervisor" do
-      u = User.create
-      u2 = User.create
-      u.settings['supervisors'] = [{'user_id' => u2.global_id}]
-      u.save
-
-      code = u.generate_link_code
-      expect(u2.link_to_supervisee_by_code(code)).to eq(true)
-      u.reload
-      expect(u.settings['supervisors']).to eq([{'user_id' => u2.global_id, 'user_name' => u2.user_name, 'edit_permission' => true, 'organization_unit_ids' => []}])
-    end
-    
-    it "should not allow a user to supervise themself" do
-      u = User.create
-
-      code = u.generate_link_code
-      expect(u.link_to_supervisee_by_code(code)).to eq(false)
-    end
-
-    it "should not accept an expired link code" do
-      u = User.create
-      u2 = User.create
-
-      code = "#{u.global_id}-abc-1379652558"
-      u.settings['link_codes'] = [code]
-      u.save
-      
-      expect(u2.link_to_supervisee_by_code(code)).to eq(false)
-      expect(u2.settings['supervisees']).to eq(nil)
-      u.reload
-      expect(u.settings['supervisors']).to eq(nil)
-    end
-    
-    it "should not link a non-premium supervisor to a user with too many non-premium supervisors" do
-      u = User.create
-      u.settings['supervisors'] = []
-      supers = []
-      5.times do |i|
-        s = User.create(:expires_at => 12.months.ago)
-        u.settings['supervisors'] << {'user_id' => s.global_id}
-        supers << s
-      end
-      u.save
-      u2 = User.create
-      code = u.generate_link_code
-      expect(u2.link_to_supervisee_by_code(code)).to eq(false)
-      
-      s = supers.last
-      s.expires_at = 12.hours.from_now
-      s.save
-      expect(u2.link_to_supervisee_by_code(code)).to eq(true)
-    end
-    
-    it "should not link a supervisor to a non-premium user" do
-      u = User.create
-      code = u.generate_link_code
-      expect(code).not_to eq(nil)
-      u.expires_at = 12.months.ago
-      u.save
-      u2 = User.create
-      expect(u2.link_to_supervisee_by_code(code)).to eq(false)
-    end
-    
     it "should unlink a user and supervisor" do
       u = User.create
       u2 = User.create(:settings => {'supervisees' => [{'user_id' => u.global_id}]})
       u.settings['supervisors'] = [{'user_id' => u2.global_id}]
       u.save
+      expect(u2.supervised_user_ids).to eq([u.global_id])
+      expect(u.supervisor_user_ids).to eq([u2.global_id])
       User.unlink_supervisor_from_user(u2, u)
       expect(u2.settings['supervisees']).to eq([])
       expect(u.settings['supervisors']).to eq([])
@@ -203,75 +92,147 @@ describe Supervising, :type => :model do
       u1 = User.create
       u2 = User.create
       User.link_supervisor_to_user(u1, u2, nil, true, '1_1')
-      expect(u2.settings['supervisors']).to eq([{
-        'user_id' => u1.global_id,
-        'user_name' => u1.user_name,
-        'edit_permission' => true,
-        'organization_unit_ids' => ['1_1']
+      expect(UserLink.links_for(u1)).to eq([{
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(u1),
+        'type' => 'supervisor',
+        'state' => {
+          'edit_permission' => true, 
+          'supervisor_user_name' => u1.user_name,
+          'supervisee_user_name' => u2.user_name,
+          'organization_unit_ids' => ['1_1']
+        }
       }])
+      expect(u2.settings['supervisors']).to eq(nil)
 
       User.link_supervisor_to_user(u1, u2, nil, true, '1_2')
-      expect(u2.settings['supervisors']).to eq([{
-        'user_id' => u1.global_id,
-        'user_name' => u1.user_name,
-        'edit_permission' => true,
-        'organization_unit_ids' => ['1_1', '1_2']
+      expect(UserLink.links_for(u1)).to eq([{
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(u1),
+        'type' => 'supervisor',
+        'state' => {
+          'edit_permission' => true, 
+          'supervisor_user_name' => u1.user_name,
+          'supervisee_user_name' => u2.user_name,
+          'organization_unit_ids' => ['1_1', '1_2']
+        }
       }])
+      expect(u2.settings['supervisors']).to eq(nil)
     end
 
     it "should correctly handle multiple org unit ids" do
       u1 = User.create
       u2 = User.create
       User.link_supervisor_to_user(u1, u2, nil, true, '1_1')
-      expect(u2.settings['supervisors']).to eq([{
-        'user_id' => u1.global_id,
-        'user_name' => u1.user_name,
-        'edit_permission' => true,
-        'organization_unit_ids' => ['1_1']
+      expect(UserLink.count).to eq(1)
+      expect(u2.supervisor_links).to eq([{
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(u1),
+        'type' => 'supervisor',
+        'state' => {
+          'edit_permission' => true,
+          'organization_unit_ids' => ['1_1'],
+          'supervisor_user_name' => u1.user_name,
+          'supervisee_user_name' => u2.user_name
+        }
       }])
+      expect(u1.supervisee_links).to eq([{
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(u1),
+        'type' => 'supervisor',
+        'state' => {
+          'edit_permission' => true,
+          'organization_unit_ids' => ['1_1'],
+          'supervisor_user_name' => u1.user_name,
+          'supervisee_user_name' => u2.user_name
+        }
+      }])
+      expect(u2.settings['supervisors']).to eq(nil)
 
       User.link_supervisor_to_user(u1, u2, nil, true, '1_2')
-      expect(u2.settings['supervisors']).to eq([{
-        'user_id' => u1.global_id,
-        'user_name' => u1.user_name,
-        'edit_permission' => true,
-        'organization_unit_ids' => ['1_1', '1_2']
+      expect(u2.supervisor_links).to eq([{
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(u1),
+        'type' => 'supervisor',
+        'state' => {
+          'edit_permission' => true,
+          'organization_unit_ids' => ['1_1', '1_2'],
+          'supervisor_user_name' => u1.user_name,
+          'supervisee_user_name' => u2.user_name
+        }
       }])
+      expect(u1.supervisee_links).to eq([{
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(u1),
+        'type' => 'supervisor',
+        'state' => {
+          'edit_permission' => true,
+          'organization_unit_ids' => ['1_1', '1_2'],
+          'supervisor_user_name' => u1.user_name,
+          'supervisee_user_name' => u2.user_name
+        }
+      }])
+      expect(u2.settings['supervisors']).to eq(nil)
 
       User.link_supervisor_to_user(u1, u2, nil, true, '1_2')
-      expect(u2.settings['supervisors']).to eq([{
-        'user_id' => u1.global_id,
-        'user_name' => u1.user_name,
-        'edit_permission' => true,
-        'organization_unit_ids' => ['1_1', '1_2']
+      expect(u2.supervisor_links).to eq([{
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(u1),
+        'type' => 'supervisor',
+        'state' => {
+          'edit_permission' => true,
+          'organization_unit_ids' => ['1_1', '1_2'],
+          'supervisor_user_name' => u1.user_name,
+          'supervisee_user_name' => u2.user_name
+        }
       }])
+      expect(u2.settings['supervisors']).to eq(nil)
 
       User.link_supervisor_to_user(u1, u2, nil, true, '1_3')
-      expect(u2.settings['supervisors']).to eq([{
-        'user_id' => u1.global_id,
-        'user_name' => u1.user_name,
-        'edit_permission' => true,
-        'organization_unit_ids' => ['1_1', '1_2', '1_3']
+      expect(u2.supervisor_links).to eq([{
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(u1),
+        'type' => 'supervisor',
+        'state' => {
+          'edit_permission' => true,
+          'organization_unit_ids' => ['1_1', '1_2', '1_3'],
+          'supervisor_user_name' => u1.user_name,
+          'supervisee_user_name' => u2.user_name
+        }
       }])
+      expect(u2.settings['supervisors']).to eq(nil)
       
       User.unlink_supervisor_from_user(u1, u2, '1_2')
-      expect(u2.settings['supervisors']).to eq([{
-        'user_id' => u1.global_id,
-        'user_name' => u1.user_name,
-        'edit_permission' => true,
-        'organization_unit_ids' => ['1_1', '1_3']
+      expect(u2.supervisor_links).to eq([{
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(u1),
+        'type' => 'supervisor',
+        'state' => {
+          'edit_permission' => true,
+          'organization_unit_ids' => ['1_1', '1_3'],
+          'supervisor_user_name' => u1.user_name,
+          'supervisee_user_name' => u2.user_name
+        }
       }])
+      expect(u2.settings['supervisors']).to eq(nil)
 
       User.unlink_supervisor_from_user(u1, u2, '1_1')
-      expect(u2.settings['supervisors']).to eq([{
-        'user_id' => u1.global_id,
-        'user_name' => u1.user_name,
-        'edit_permission' => true,
-        'organization_unit_ids' => ['1_3']
+      expect(u2.supervisor_links).to eq([{
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(u1),
+        'type' => 'supervisor',
+        'state' => {
+          'edit_permission' => true,
+          'organization_unit_ids' => ['1_3'],
+          'supervisor_user_name' => u1.user_name,
+          'supervisee_user_name' => u2.user_name
+        }
       }])
+      expect(u2.settings['supervisors']).to eq(nil)
 
       User.unlink_supervisor_from_user(u1, u2, '1_3')
-      expect(u2.settings['supervisors']).to eq([])
+      expect(u2.supervisor_links).to eq([])
+      expect(u2.settings['supervisors']).to eq(nil)
     end
   end
 
@@ -280,16 +241,58 @@ describe Supervising, :type => :model do
       u = User.create
       u2 = User.create
       u2.process({'supervisor_key' => "add-#{u.global_id}"})
-      expect(u2.reload.settings['supervisors']).to eq([{'user_id' => u.global_id, 'user_name' => u.user_name, 'edit_permission' => false, 'organization_unit_ids' => []}])
-      expect(u.reload.settings['supervisees']).to eq([{'user_id' => u2.global_id, 'user_name' => u2.user_name, 'edit_permission' => false}])
+      expect(u2.reload.supervisor_links).to eq([
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(u),
+        'type' => 'supervisor', 
+        'state' => {
+          'organization_unit_ids' => [],
+          'supervisor_user_name' => u.user_name,
+          'supervisee_user_name' => u2.user_name
+        }
+      ])
+      expect(u2.reload.settings['supervisors']).to eq(nil)
+      expect(u.reload.supervisee_links).to eq([
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(u),
+        'type' => 'supervisor', 
+        'state' => {
+          'organization_unit_ids' => [],
+          'supervisor_user_name' => u.user_name,
+          'supervisee_user_name' => u2.user_name
+        }
+      ])
+      expect(u.reload.settings['supervisees']).to eq(nil)
     end
 
     it "should allow adding an edit supervisor by key when editing" do
       u = User.create
       u2 = User.create
       u2.process({'supervisor_key' => "add_edit-#{u.global_id}"})
-      expect(u2.reload.settings['supervisors']).to eq([{'user_id' => u.global_id, 'user_name' => u.user_name, 'edit_permission' => true, 'organization_unit_ids' => []}])
-      expect(u.reload.settings['supervisees']).to eq([{'user_id' => u2.global_id, 'user_name' => u2.user_name, 'edit_permission' => true}])
+      expect(u2.reload.supervisor_links).to eq([
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(u),
+        'type' => 'supervisor', 
+        'state' => {
+          'edit_permission' => true,
+          'organization_unit_ids' => [],
+          'supervisor_user_name' => u.user_name,
+          'supervisee_user_name' => u2.user_name
+        }
+      ])
+      expect(u2.reload.settings['supervisors']).to eq(nil)
+      expect(u.reload.supervisee_links).to eq([
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(u),
+        'type' => 'supervisor', 
+        'state' => {
+          'edit_permission' => true,
+          'organization_unit_ids' => [],
+          'supervisor_user_name' => u.user_name,
+          'supervisee_user_name' => u2.user_name
+        }
+      ])
+      expect(u.reload.settings['supervisees']).to eq(nil)
     end
 
     it "should raise an error when supervisor adding fails" do
@@ -301,10 +304,34 @@ describe Supervising, :type => :model do
       u = User.create
       u2 = User.create
       User.link_supervisor_to_user(u2, u)
-      expect(u.reload.settings['supervisors']).to eq([{'user_id' => u2.global_id, 'user_name' => u2.user_name, 'edit_permission' => true, 'organization_unit_ids' => []}])
-      expect(u2.reload.settings['supervisees']).to eq([{'user_id' => u.global_id, 'user_name' => u.user_name, 'edit_permission' => true}])
+      expect(u.reload.supervisor_links).to eq([{
+        'user_id' => u.global_id,
+        'record_code' => Webhook.get_record_code(u2),
+        'type' => 'supervisor',
+        'state' => {
+          'edit_permission' => true,
+          'supervisor_user_name' => u2.user_name,
+          'supervisee_user_name' => u.user_name,
+          'organization_unit_ids' => []
+        }
+      }])
+      expect(u.reload.settings['supervisors']).to eq(nil)
+      expect(u2.reload.supervisee_links).to eq([{
+        'user_id' => u.global_id,
+        'record_code' => Webhook.get_record_code(u2),
+        'type' => 'supervisor',
+        'state' => {
+          'edit_permission' => true,
+          'supervisor_user_name' => u2.user_name,
+          'supervisee_user_name' => u.user_name,
+          'organization_unit_ids' => []
+        }
+      }])
+      expect(u2.reload.settings['supervisees']).to eq(nil)
       u.process({'supervisor_key' => "remove_supervisor-#{u2.global_id}"})
-      expect(u.reload.settings['supervisors']).to eq([])
+      expect(u.reload.supervisor_links).to eq([])
+      expect(u.reload.settings['supervisors']).to eq(nil)
+      expect(u2.reload.supervisee_links).to eq([])
       expect(u2.reload.settings['supervisees']).to eq([])
     end
     it "should raise an error when supervisor remove fails" do
@@ -317,10 +344,34 @@ describe Supervising, :type => :model do
       u = User.create
       u2 = User.create
       User.link_supervisor_to_user(u2, u)
-      expect(u.reload.settings['supervisors']).to eq([{'user_id' => u2.global_id, 'user_name' => u2.user_name, 'edit_permission' => true, 'organization_unit_ids' => []}])
-      expect(u2.reload.settings['supervisees']).to eq([{'user_id' => u.global_id, 'user_name' => u.user_name, 'edit_permission' => true}])
+      expect(u.reload.supervisor_links).to eq([{
+        'user_id' => u.global_id,
+        'record_code' => Webhook.get_record_code(u2),
+        'type' => 'supervisor',
+        'state' => {
+          'edit_permission' => true,
+          'supervisor_user_name' => u2.user_name,
+          'supervisee_user_name' => u.user_name,
+          'organization_unit_ids' => []
+        }
+      }])
+      expect(u.reload.settings['supervisors']).to eq(nil)
+      expect(u2.reload.supervisee_links).to eq([{
+        'user_id' => u.global_id,
+        'record_code' => Webhook.get_record_code(u2),
+        'type' => 'supervisor',
+        'state' => {
+          'edit_permission' => true,
+          'supervisor_user_name' => u2.user_name,
+          'supervisee_user_name' => u.user_name,
+          'organization_unit_ids' => []
+        }
+      }])
+      expect(u2.reload.settings['supervisees']).to eq(nil)
       u2.process({'supervisor_key' => "remove_supervisee-#{u.global_id}"})
-      expect(u.reload.settings['supervisors']).to eq([])
+      expect(u.reload.supervisor_links).to eq([])
+      expect(u.reload.settings['supervisors']).to eq(nil)
+      expect(u2.reload.supervisee_links).to eq([])
       expect(u2.reload.settings['supervisees']).to eq([])
     end
     
@@ -436,14 +487,17 @@ describe Supervising, :type => :model do
       u2 = User.create
       u3 = User.create
       User.link_supervisor_to_user(u3, u)
+      expect(UserLink.count).to eq(1)
       u.reload
-      User.link_supervisor_to_user(u, u2)
+      User.link_supervisor_to_user(u.reload, u2.reload)
+      expect(UserLink.count).to eq(2)
       u.reload
       expect(u.reload.settings['subscription']['plan_id']).to eq('slp_monthly_free')
       expect(u.settings['subscription']['subscription_id']).to eq('free_auto_adjusted')
       expect(u.grace_period?).to eq(false)
       expect(u.supervisors).to eq([u3])
       Worker.process_queues
+      expect(UserLink.count).to eq(1)
       expect(u.reload.supervisors).to eq([])
     end
   end
