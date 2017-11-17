@@ -422,7 +422,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
             stash[:board_usages][key] = (stash[:board_usages][key] || 0) + cnt
           end
           (summary.data['board_locales'] || {}).each do |locale, cnt|
-            stash[:board_locales][key] = (stash[:board_locales][key] || 0) + cnt
+            stash[:board_locales][locale] = (stash[:board_locales][locale] || 0) + cnt
           end
         end
       

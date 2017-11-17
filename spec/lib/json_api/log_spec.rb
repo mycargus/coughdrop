@@ -275,7 +275,8 @@ describe JsonApi::Log do
       json = JsonApi::Log.as_json(l, :permissions => u, :wrapper => true)
       expect(json['log']['daily_use']).to eq([
         {'date' => 3, 'a' => 3},
-        {'date' => 4, 'a' => 2}
+        {'date' => 4, 'a' => 2},
+        {'date' => 5, 'a' => 1}
       ])
     end
   end

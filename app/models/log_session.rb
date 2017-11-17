@@ -651,7 +651,7 @@ class LogSession < ActiveRecord::Base
       day = day.to_unsafe_h if day.respond_to?(:to_unsafe_h)
       existing_day ||= day
       existing_day['active'] ||= day['active']
-      existing_day['activity_level'] = [existing_day['activity_level'] || 0, day['activity_level']].max
+      existing_day['activity_level'] = [existing_day['activity_level'], day['activity_level']].compact.max
       days[day['date']] = existing_day
     end
     session.data['days'] = days
