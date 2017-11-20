@@ -94,9 +94,17 @@ module JsonApi::User
       json['terms_agree'] = !!user.settings['terms_agreed']
       json['subscription'] = user.subscription_hash
       json['organizations'] = user.organization_hash
-      json['pending_board_shares'] = (user.settings['boards_shared_with_me'] || []).select{|s| s['pending'] }.each do |share|
-        share['user_name'] ||= (share['board_key'] || '').split(/\//)[0]
-      end
+      json['pending_board_shares'] = UserLink.links_for(user).select{|l| l['user_id'] == user.global_id && l['state'] && l['state']['pending'] }.map{|link|
+        {
+          'user_name' => link['state']['sharer_user_name'] || (link['state']['board_key'] || '').split(/\//)[0],
+          'board_key' => link['state']['board_key'],
+          'board_id' => link['record_code'].split(/:/)[1],
+          'include_downstream' => !!link['state']['include_downstream'],
+          'allow_editing' => !!link['state']['allow_editing'],
+          'pending' => !!link['state']['pending'],
+          'user_id' => link['user_id']
+        }
+      }
       
       supervisors = user.supervisors
       supervisees = user.supervisees

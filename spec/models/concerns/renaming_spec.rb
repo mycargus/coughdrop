@@ -136,11 +136,33 @@ describe Renaming, :type => :model do
         u2 = User.create
         b = Board.create(:user => u)
         b.share_with(u2)
-        expect(u2.settings['boards_shared_with_me'].length).to eq(1)
-        expect(u2.settings['boards_shared_with_me'][0]['board_key']).to eq(b.key)
+        expect(UserLink.links_for(u2)).to eq([{
+          'user_id' => u2.global_id,
+          'record_code' => Webhook.get_record_code(b),
+          'type' => 'board_share',
+          'state' => {
+            'sharer_id' => u.global_id,
+            'sharer_user_name' => u.user_name,
+            'user_name' => u2.user_name,
+            'board_key' => b.key,
+            'pending' => false
+          }
+        }])
+        expect(u2.settings['boards_shared_with_me']).to eq(nil)
         b.reload.rename_to("#{u.user_name}/bestest")
         Worker.process_queues
-        expect(u2.reload.settings['boards_shared_with_me'][0]['board_key']).to eq("#{u.user_name}/bestest")
+        expect(UserLink.links_for(u2)).to eq([{
+          'user_id' => u2.global_id,
+          'record_code' => Webhook.get_record_code(b),
+          'type' => 'board_share',
+          'state' => {
+            'sharer_id' => u.global_id,
+            'sharer_user_name' => u.user_name,
+            'user_name' => u2.user_name,
+            'board_key' => "#{u.user_name}/bestest",
+            'pending' => false
+          }
+        }])
       end
     
       it "should update any log entries where previous_key or new_id match the old key" do
@@ -173,15 +195,74 @@ describe Renaming, :type => :model do
         expect(b2.reload.key).to eq("fred/sprouts")
       end
       
+      it "should update all users who have has boards shared with them" do
+        u = User.create
+        u2 = User.create
+        b = Board.create(:user => u)
+        b.share_with(u2)
+        expect(UserLink.links_for(u)).to eq([{
+          'user_id' => u2.global_id,
+          'record_code' => Webhook.get_record_code(b),
+          'type' => 'board_share',
+          'state' => {
+            'sharer_id' => u.global_id,
+            'sharer_user_name' => u.user_name,
+            'user_name' => u2.user_name,
+            'pending' => false,
+            'board_key' => b.key
+          }
+        }])
+        expect(u.reload.settings['boards_i_shared']).to eq(nil)
+        u2.rename_to("janice")
+        Worker.process_queues
+        expect(UserLink.links_for(u)).to eq([{
+          'user_id' => u2.global_id,
+          'record_code' => Webhook.get_record_code(b),
+          'type' => 'board_share',
+          'state' => {
+            'sharer_id' => u.global_id,
+            'sharer_user_name' => u.user_name,
+            'user_name' => 'janice',
+            'pending' => false,
+            'board_key' => b.key
+          }
+        }])
+        expect(u.reload.settings['boards_i_shared']).to eq(nil)
+      end
+
       it "should update all users who have shared boards with the user" do
         u = User.create
         u2 = User.create
         b = Board.create(:user => u)
         b.share_with(u2)
-        expect(u.reload.settings['boards_i_shared'][b.global_id][0]['user_name']).to eq(u2.user_name)
-        u2.rename_to("janice")
+        expect(UserLink.links_for(u)).to eq([{
+          'user_id' => u2.global_id,
+          'record_code' => Webhook.get_record_code(b),
+          'type' => 'board_share',
+          'state' => {
+            'sharer_id' => u.global_id,
+            'sharer_user_name' => u.user_name,
+            'user_name' => u2.user_name,
+            'pending' => false,
+            'board_key' => b.key
+          }
+        }])
+        expect(u.reload.settings['boards_i_shared']).to eq(nil)
+        u.rename_to("janice")
         Worker.process_queues
-        expect(u.reload.settings['boards_i_shared'][b.global_id][0]['user_name']).to eq('janice')
+        expect(UserLink.links_for(u)).to eq([{
+          'user_id' => u2.global_id,
+          'record_code' => Webhook.get_record_code(b),
+          'type' => 'board_share',
+          'state' => {
+            'sharer_id' => u.global_id,
+            'sharer_user_name' => 'janice',
+            'user_name' => u2.user_name,
+            'pending' => false,
+            'board_key' => b.key
+          }
+        }])
+        expect(u.reload.settings['boards_i_shared']).to eq(nil)
       end
       
       it "should update all supervisors" do

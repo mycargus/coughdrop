@@ -17,7 +17,7 @@ class UserLink < ApplicationRecord
   
   def touch_connections
     # TODO: sharding
-    User.where(id: self.user_id).update_all(updated_at: Time.now)
+    User.where(id: [self.user_id, self.secondary_user_id].compact).update_all(updated_at: Time.now)
     r = self.record
     if r
       # TODO: sharding
@@ -54,7 +54,7 @@ class UserLink < ApplicationRecord
   end
   
   def self.links_for(record, force=false)
-    return nil unless record
+    return [] unless record && record.id
     record_code = Webhook.get_record_code(record)
     cache_string = Permissable.permissions_redis.get("links/for/#{record_code}/#{record.updated_at}")
     if !force
@@ -69,9 +69,10 @@ class UserLink < ApplicationRecord
     if record.is_a?(User)
       # TODO: sharding
       list += self.where(user_id: record.id)
+      list += self.where(secondary_user_id: record.id)
     end
     list += self.where(record_code: record_code)
-    res = list.map do |link|
+    res = list.uniq.map do |link|
       {
         'user_id' => link.related_global_id(link.user_id),
         'record_code' => link.record_code,
@@ -88,13 +89,15 @@ class UserLink < ApplicationRecord
           'type' => 'board_share',
           'old_school' => true,
           'state' => {
-            'include_downstream' => share['include_downstream'],
-            'allow_editing' => share['allow_editing'],
-            'pending' => share['pending'],
-            'board_key' => share['board_key']
+            'include_downstream' => !!share['include_downstream'],
+            'allow_editing' => !!share['allow_editing'],
+            'pending' => !!share['pending'],
+            'board_key' => share['board_key'],
+            'user_name' => record.user_name
           }
         }
       end
+
       (record.settings['supervisors'] || []).each do |sup|
         res << {
           'user_id' => record.global_id,
@@ -126,6 +129,7 @@ class UserLink < ApplicationRecord
           'user_id' => record.global_id,
           'record_code' => "Organization:#{org_id}",
           'type' => 'org_user',
+          'old_school' => true,
           'state' => {
             'sponsored' => opts['sponsored'],
             'pending' => opts['pending']
@@ -138,6 +142,7 @@ class UserLink < ApplicationRecord
           'user_id' => record.global_id,
           'record_code' => "Organization:#{org_id}",
           'type' => 'org_manager',
+          'old_school' => true,
           'state' => {
             'full_manager' => opts['full_manager']
           }
@@ -149,6 +154,7 @@ class UserLink < ApplicationRecord
           'user_id' => record.global_id,
           'record_code' => "Organization:#{org_id}",
           'type' => 'org_supervisor',
+          'old_school' => true,
           'state' => {
             'pending' => opts['pending']
           }
@@ -192,6 +198,7 @@ class UserLink < ApplicationRecord
               'user_id' => user_id,
               'record_code' => record_code,
               'type' => 'org_user',
+              'old_school' => true,
               'state' => {
                 'pending' => !approved,
                 'sponsored' => sponsored
@@ -202,6 +209,7 @@ class UserLink < ApplicationRecord
               'user_id' => user_id,
               'record_code' => record_code,
               'type' => 'org_manager',
+              'old_school' => true,
               'state' => {
                 'full_manager' => true # TODO: this isn't always true...
               }
@@ -211,6 +219,7 @@ class UserLink < ApplicationRecord
               'user_id' => user_id,
               'record_code' => record_code,
               'type' => 'org_supervisor',
+              'old_school' => true,
               'state' => {}
             }
           elsif type == 'subscription'
@@ -218,6 +227,7 @@ class UserLink < ApplicationRecord
               'user_id' => user_id,
               'record_code' => record_code,
               'type' => 'org_subscription',
+              'old_school' => true,
               'state' => {}
             }
           end
@@ -260,6 +270,9 @@ class UserLink < ApplicationRecord
             'type' => 'board_share',
             'old_school' => true,
             'state' => {
+              'board_key' => record.key,
+              'sharer_id' => author.global_id,
+              'sharer_user_name' => author.user_name,
               'include_downstream' => share['include_downstream'],
               'allow_editing' => share['allow_editing'],
               'pending' => share['pending'],

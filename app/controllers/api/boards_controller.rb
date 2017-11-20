@@ -18,7 +18,7 @@ class Api::BoardsController < ApplicationController
             shared_board_ids = Board.all_shared_board_ids_for(user)
             # TODO: fix when sharding actually happens
             boards = boards.where(arel[:id].in(Board.local_ids(shared_board_ids)))
-          elsif params['include_shared'] && (user.settings['boards_shared_with_me'] || []).length > 0
+          elsif params['include_shared']
             arel = Board.arel_table
             shared_board_ids = Board.all_shared_board_ids_for(user)
             # TODO: fix when sharding actually happens

@@ -75,22 +75,32 @@ describe Sharing, :type => :model do
       b = Board.create(:user => u)
       res = b.share_with(u2)
       expect(res).to eq(true)
-      expect(u.settings['boards_i_shared']).not_to eq(nil)
-      expect(u.settings['boards_i_shared'][b.global_id]).to eq([{
+      expect(UserLink.links_for(u)).to eq([{
         'user_id' => u2.global_id,
-        'user_name' => u2.user_name,
-        'include_downstream' => false,
-        'allow_editing' => false,
-        'pending' => false
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'pending' => false,
+          'user_name' => u2.user_name
+        }
       }])
-      expect(u2.settings['boards_shared_with_me']).not_to eq(nil)
-      expect(u2.settings['boards_shared_with_me']).to eq([{
-        'board_id' => b.global_id,
-        'board_key' => b.key,
-        'include_downstream' => false,
-        'allow_editing' => false,
-        'pending' => false
+      expect(u.settings['boards_i_shared']).to eq(nil)
+      expect(UserLink.links_for(u2)).to eq([{
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'pending' => false,
+          'user_name' => u2.user_name
+        }
       }])
+      expect(u2.settings['boards_shared_with_me']).to eq(nil)
     end
     
     it "should replace an existing share setting" do
@@ -106,22 +116,53 @@ describe Sharing, :type => :model do
       }]
       res = b.share_with(u2)
       expect(res).to eq(true)
+      expect(UserLink.links_for(u)).to eq([{
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'pending' => false,
+          'user_name' => u2.user_name
+        }
+      }])
       expect(u.settings['boards_i_shared']).not_to eq(nil)
       expect(u.settings['boards_i_shared'][b.global_id]).to eq([{
-        'user_id' => u2.global_id,
-        'user_name' => u2.user_name,
-        'include_downstream' => false,
-        'allow_editing' => false,
-        'pending' => false
+        'user_id' => u2.global_id, 'hat' => true
       }])
-      expect(u2.settings['boards_shared_with_me']).not_to eq(nil)
       expect(u2.settings['boards_shared_with_me']).to eq([{
-        'board_id' => b.global_id,
-        'board_key' => b.key,
-        'include_downstream' => false,
-        'allow_editing' => false,
-        'pending' => false
+        'board_id' => b.global_id, 'cheese' => true
       }])
+
+      expect(UserLink.links_for(u2)).to eq([
+      {
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'pending' => false,
+          'user_name' => u2.user_name
+        }
+      },
+      {
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'old_school' => true,
+        'state' => {
+          'user_name' => u2.user_name,
+          'include_downstream' => false,
+          'pending' => false,
+          'allow_editing' => false,
+          'board_key' => nil
+        }
+      }
+      ])
     end
     
     it "should error gracefully on an invalid user" do
@@ -139,76 +180,126 @@ describe Sharing, :type => :model do
       b = Board.create(:user => u)
       res = b.share_with(u2)
       expect(res).to eq(true)
-      expect(u.settings['boards_i_shared']).not_to eq(nil)
-      expect(u.settings['boards_i_shared'][b.global_id].length).to eq(1)
-      expect(u.settings['boards_i_shared'][b.global_id]).to eq([{
+      expect(UserLink.links_for(u)).to eq([{
         'user_id' => u2.global_id,
-        'user_name' => u2.user_name,
-        'include_downstream' => false,
-        'allow_editing' => false,
-        'pending' => false
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'pending' => false,
+          'user_name' => u2.user_name
+        }
       }])
-      expect(u2.settings['boards_shared_with_me']).not_to eq(nil)
-      expect(u2.settings['boards_shared_with_me']).to eq([{
-        'board_id' => b.global_id,
-        'board_key' => b.key,
-        'include_downstream' => false,
-        'allow_editing' => false,
-        'pending' => false
+      expect(u.settings['boards_i_shared']).to eq(nil)
+      expect(UserLink.links_for(u2)).to eq([{
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'pending' => false,
+          'user_name' => u2.user_name
+        }
       }])
+      expect(u2.settings['boards_shared_with_me']).to eq(nil)
       
       res = b.share_with(u3, true)
       b = Board.find(b.id)
       u = User.find(u.id)
-      expect(u.settings['boards_i_shared']).not_to eq(nil)
-      expect(u.settings['boards_i_shared'][b.global_id].length).to eq(2)
-      expect(u.settings['boards_i_shared'][b.global_id]).to eq([{
+      expect(UserLink.links_for(u)).to eq([{
         'user_id' => u2.global_id,
-        'user_name' => u2.user_name,
-        'include_downstream' => false,
-        'allow_editing' => false,
-        'pending' => false
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'pending' => false,
+          'user_name' => u2.user_name
+        }
       }, {
         'user_id' => u3.global_id,
-        'user_name' => u3.user_name,
-        'include_downstream' => true,
-        'allow_editing' => false,
-        'pending' => false
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'user_name' => u3.user_name,
+          'pending' => false,
+          'include_downstream' => true
+        }
+      }])
+      expect(u.settings['boards_i_shared']).to eq(nil)
+      expect(UserLink.links_for(u3)).to eq([{
+        'user_id' => u3.global_id,
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'user_name' => u3.user_name,
+          'pending' => false,
+          'include_downstream' => true
+        }
       }])
       
       b.share_with(u4)
       b.share_with(u5)
       b = Board.find(b.id)
       u = User.find(u.id)
-      expect(u.settings['boards_i_shared']).not_to eq(nil)
-      expect(u.settings['boards_i_shared'][b.global_id].length).to eq(4)
-      expect(u.settings['boards_i_shared'][b.global_id]).to eq([{
+      expect(UserLink.links_for(u).sort_by{|l| l['user_id'] }).to eq([{
         'user_id' => u2.global_id,
-        'user_name' => u2.user_name,
-        'include_downstream' => false,
-        'allow_editing' => false,
-        'pending' => false
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'pending' => false,
+          'user_name' => u2.user_name
+        }
       }, {
         'user_id' => u3.global_id,
-        'user_name' => u3.user_name,
-        'include_downstream' => true,
-        'allow_editing' => false,
-        'pending' => false
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'user_name' => u3.user_name,
+          'pending' => false,
+          'include_downstream' => true
+        }
       }, {
         'user_id' => u4.global_id,
-        'user_name' => u4.user_name,
-        'include_downstream' => false,
-        'allow_editing' => false,
-        'pending' => false
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'pending' => false,
+          'user_name' => u4.user_name
+        }
       }, {
         'user_id' => u5.global_id,
-        'user_name' => u5.user_name,
-        'include_downstream' => false,
-        'allow_editing' => false,
-        'pending' => false
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'pending' => false,
+          'user_name' => u5.user_name
+        }
       }])
-      
-      
+      expect(u.settings['boards_i_shared']).to eq(nil)
     end
 
     it "should not get all messed up if you try to share with yourself" do
@@ -217,41 +308,60 @@ describe Sharing, :type => :model do
       b = Board.create(:user => u)
       res = b.share_with(u2)
       expect(res).to eq(true)
-      expect(u.settings['boards_i_shared']).not_to eq(nil)
-      expect(u.settings['boards_i_shared'][b.global_id].length).to eq(1)
-      expect(u.settings['boards_i_shared'][b.global_id]).to eq([{
+      expect(UserLink.links_for(u)).to eq([{
         'user_id' => u2.global_id,
-        'user_name' => u2.user_name,
-        'include_downstream' => false,
-        'allow_editing' => false,
-        'pending' => false
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'user_name' => u2.user_name,
+          'pending' => false
+        }
       }])
-      expect(u2.settings['boards_shared_with_me']).not_to eq(nil)
-      expect(u2.settings['boards_shared_with_me']).to eq([{
-        'board_id' => b.global_id,
-        'board_key' => b.key,
-        'include_downstream' => false,
-        'allow_editing' => false,
-        'pending' => false
+      expect(u.settings['boards_i_shared']).to eq(nil)
+      expect(u2.settings['boards_shared_with_me']).to eq(nil)
+      expect(UserLink.links_for(u2)).to eq([{
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'user_name' => u2.user_name,
+          'pending' => false
+        }
       }])
       
       res = b.share_with(u, true)
       b = Board.find(b.id)
       u = User.find(u.id)
-      expect(u.settings['boards_i_shared']).not_to eq(nil)
-      expect(u.settings['boards_i_shared'][b.global_id].length).to eq(2)
-      expect(u.settings['boards_i_shared'][b.global_id]).to eq([{
-        'user_id' => u2.global_id,
-        'user_name' => u2.user_name,
-        'include_downstream' => false,
-        'allow_editing' => false,
-        'pending' => false
-      }, {
+      expect(u.settings['boards_i_shared']).to eq(nil)
+      expect(UserLink.links_for(u)).to eq([{
         'user_id' => u.global_id,
-        'user_name' => u.user_name,
-        'include_downstream' => true,
-        'allow_editing' => false,
-        'pending' => false
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'user_name' => u.user_name,
+          'pending' => false,
+          'include_downstream' => true
+        }
+      }, {
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'user_name' => u2.user_name,
+          'pending' => false
+        }
       }])
     end
     
@@ -261,35 +371,39 @@ describe Sharing, :type => :model do
       b = Board.create(:user => u)
       res = b.share_with(u2, true, true)
       expect(res).to eq(true)
-      expect(u.settings['boards_i_shared']).not_to eq(nil)
-      expect(u.settings['boards_i_shared'][b.global_id].length).to eq(1)
-      expect(u.settings['boards_i_shared'][b.global_id]).to eq([{
+      expect(UserLink.links_for(u)).to eq([{
         'user_id' => u2.global_id,
-        'user_name' => u2.user_name,
-        'include_downstream' => true,
-        'allow_editing' => true,
-        'pending' => true
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'user_name' => u2.user_name,
+          'pending' => true,
+          'include_downstream' => true,
+          'allow_editing' => true
+        }
       }])
-      expect(u2.settings['boards_shared_with_me']).not_to eq(nil)
-      expect(u2.settings['boards_shared_with_me']).to eq([{
-        'board_id' => b.global_id,
-        'board_key' => b.key,
-        'include_downstream' => true,
-        'allow_editing' => true,
-        'pending' => true
+      expect(u.settings['boards_i_shared']).to eq(nil)
+      expect(u2.settings['boards_shared_with_me']).to eq(nil)
+      expect(UserLink.links_for(u2)).to eq([{
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'user_name' => u2.user_name,
+          'pending' => true,
+          'include_downstream' => true,
+          'allow_editing' => true
+        }
       }])
     end
   end
   
-  def update_shares_for(user, approve)
-    user_ids = self.shared_user_ids
-    if user && user_ids.include?(user.global_id)
-      share_or_unshare(user, approve, :include_downstream => true, :allow_editing => true, :pending_allow_editing => false)
-    else
-      false
-    end
-  end
-
   describe "update_shares_for" do
     it "should call share_with with the appropriate arguments" do
       u = User.create
@@ -297,42 +411,70 @@ describe Sharing, :type => :model do
       b = Board.create(:user => u)
       res = b.share_with(u2, true, true)
       expect(res).to eq(true)
-      expect(u.settings['boards_i_shared']).not_to eq(nil)
-      expect(u.settings['boards_i_shared'][b.global_id].length).to eq(1)
-      expect(u.settings['boards_i_shared'][b.global_id]).to eq([{
+      expect(UserLink.links_for(u)).to eq([{
         'user_id' => u2.global_id,
-        'user_name' => u2.user_name,
-        'include_downstream' => true,
-        'allow_editing' => true,
-        'pending' => true
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'user_name' => u2.user_name,
+          'include_downstream' => true,
+          'allow_editing' => true,
+          'pending' => true
+        }
       }])
-      expect(u2.settings['boards_shared_with_me']).not_to eq(nil)
-      expect(u2.settings['boards_shared_with_me']).to eq([{
-        'board_id' => b.global_id,
-        'board_key' => b.key,
-        'include_downstream' => true,
-        'allow_editing' => true,
-        'pending' => true
+      expect(u.settings['boards_i_shared']).to eq(nil)
+      expect(UserLink.links_for(u2)).to eq([{
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'user_name' => u2.user_name,
+          'include_downstream' => true,
+          'allow_editing' => true,
+          'pending' => true
+        }
       }])
+      expect(u2.settings['boards_shared_with_me']).to eq(nil)
       
       b.update_shares_for(u2, true)
-      expect(u.settings['boards_i_shared']).not_to eq(nil)
-      expect(u.settings['boards_i_shared'][b.global_id].length).to eq(1)
-      expect(u.settings['boards_i_shared'][b.global_id]).to eq([{
+      u2.reload
+      u.reload
+      expect(UserLink.links_for(u)).to eq([{
         'user_id' => u2.global_id,
-        'user_name' => u2.user_name,
-        'include_downstream' => true,
-        'allow_editing' => true,
-        'pending' => false
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'user_name' => u2.user_name,
+          'include_downstream' => true,
+          'allow_editing' => true,
+          'pending' => false
+        }
       }])
-      expect(u2.settings['boards_shared_with_me']).not_to eq(nil)
-      expect(u2.settings['boards_shared_with_me']).to eq([{
-        'board_id' => b.global_id,
-        'board_key' => b.key,
-        'include_downstream' => true,
-        'allow_editing' => true,
-        'pending' => false
+      expect(u.settings['boards_i_shared']).to eq(nil)
+      expect(UserLink.links_for(u2)).to eq([{
+        'user_id' => u2.global_id,
+        'record_code' => Webhook.get_record_code(b),
+        'type' => 'board_share',
+        'state' => {
+          'sharer_id' => u.global_id,
+          'sharer_user_name' => u.user_name,
+          'board_key' => b.key,
+          'user_name' => u2.user_name,
+          'include_downstream' => true,
+          'allow_editing' => true,
+          'pending' => false
+        }
       }])
+      expect(u2.settings['boards_shared_with_me']).to eq(nil)
     end
   end
   
@@ -354,6 +496,9 @@ describe Sharing, :type => :model do
       expect(u.settings['boards_i_shared'][b.global_id]).to eq([])
       expect(u2.settings['boards_shared_with_me']).not_to eq(nil)
       expect(u2.settings['boards_shared_with_me']).to eq([])
+      expect(UserLink.count).to eq(0)
+      expect(UserLink.links_for(u.reload)).to eq([])
+      expect(UserLink.links_for(u2)).to eq([])
     end
 
     it "should error gracefully on an invalid user" do
@@ -653,6 +798,7 @@ describe Sharing, :type => :model do
       b4.share_with(u2, true)
       expect(Board.all_shared_board_ids_for(u2, true).sort).to eq([b.global_id])
       b.update_shares_for(u2, true)
+      u2.reload
       expect(Board.all_shared_board_ids_for(u2, true).sort).to eq([b.global_id, b2.global_id, b3.global_id])
     end
   end
@@ -724,8 +870,9 @@ describe Sharing, :type => :model do
       Board.where(:user_id => u.id).update_all(:updated_at => 2.weeks.ago)
       
       b.share_with(u)
-      expect(b.reload.updated_at).to be < 1.hour.ago
+      expect(b.reload.updated_at).to be > 1.hour.ago
       expect(b2.reload.updated_at).to be < 1.hour.ago
+      Board.where(:user_id => u.id).update_all(:updated_at => 2.weeks.ago)
 
       Worker.process_queues
       expect(b.reload.updated_at).to be > 1.hour.ago
@@ -744,8 +891,9 @@ describe Sharing, :type => :model do
       Board.where(:user_id => u.id).update_all(:updated_at => 2.weeks.ago)
       
       b.unshare_with(u)
-      expect(b.reload.updated_at).to be < 1.hour.ago
+      expect(b.reload.updated_at).to be > 1.hour.ago
       expect(b2.reload.updated_at).to be < 1.hour.ago
+      Board.where(:user_id => u.id).update_all(:updated_at => 2.weeks.ago)
 
       Worker.process_queues
       expect(b.reload.updated_at).to be > 1.hour.ago
@@ -881,11 +1029,16 @@ describe Sharing, :type => :model do
       expect(b.allows?(u2, 'edit')).to eq(false)
       
       b.share_with(u2, true, true)
+      u2.reload
+      u.reload
       expect(b2.allows?(u, 'view')).to eq(true)
       expect(b2.allows?(u, 'edit')).to eq(false)
       expect(b.allows?(u2, 'edit')).to eq(true)
-      
+
       b.update_shares_for(u2, true)
+#      Worker.process_queues
+      u2.reload
+      u.reload
       expect(b2.allows?(u, 'view')).to eq(true)
       expect(b2.allows?(u, 'edit')).to eq(true)
     end
@@ -905,8 +1058,9 @@ describe Sharing, :type => :model do
       b3 = Board.create(:user => u)
       b2.settings['buttons'] = [{'id' => 1, 'load_board' => {'id' => b3.global_id}}]
       b2.save
-      User.link_supervisor_to_user(u, u4)
       expect(UserLink.count).to eq(1)
+      User.link_supervisor_to_user(u, u4)
+      expect(UserLink.count).to eq(2)
       b.share_with(u4, true, false)
       Worker.process_queues
 

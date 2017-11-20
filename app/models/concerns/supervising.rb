@@ -205,6 +205,7 @@ module Supervising
       link.data['state']['supervisee_user_name'] = user.user_name
       link.data['state']['supervisor_user_name'] = supervisor.user_name
       link.data['state']['organization_unit_ids'] = ((org_unit_ids || []) + ([organization_unit_id].compact)).uniq
+      link.secondary_user_id = supervisor.id
       link.save!
 
 
