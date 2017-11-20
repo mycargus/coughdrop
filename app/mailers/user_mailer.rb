@@ -62,7 +62,7 @@ class UserMailer < ActionMailer::Base
   end
   
   def forgot_password(user_ids)
-    @users = User.find_all_by_global_id(:id => user_ids)
+    @users = User.find_all_by_global_id(user_ids)
     @user = @users.first if @users.length == 1
     mail_message(@user, "Forgot Password Confirmation")
   end
