@@ -298,72 +298,27 @@ class UserLink < ApplicationRecord
         generated['state'] ||= link['state']
         generated.save!
       end
+      if record.is_a?(User)
+        ['boards_shared_with_me', 'boards_i_shared', 'supervisors', 'supervisees', 'managed_by', 'manager_for', 'supervisor_for'].each do |key|
+          record.settings["#{key}_old"] = record.settings[key] if record.settings[key]
+          record.settings.delete(key)
+        end
+        record.save
+      elsif record.is_a?(Board)
+        
+      elsif record.is_a?(Organization)
+        record.settings['attached_user_ids_old'] = record.settings['attached_user_ids'] if record.settings['attached_user_ids']
+        record.settings.delete('attached_user_ids')
+        record.save
+      elsif record.is_a?(OrganizationUnit)
+        ['supervisors', 'communicators'.each do |key|
+          record.settings["#{key}_old"] = record.settings[key] if record.settings[key]
+          record.settings.delete(key)
+        end
+        record.save
+      end
+      
     end
     true
   end
 end
-
-
-  def self.attached_orgs(user, include_org=false)
-    res = []
-    org_ids = []
-    user.settings ||= {}
-    (user.settings['managed_by'] || {}).each do |org_id, opts|
-      org_ids << org_id
-    end
-    (user.settings['manager_for'] || {}).each do |org_id, opts|
-      org_ids << org_id
-    end
-    (user.settings['supervisor_for'] || {}).each do |org_id, opts|
-      org_ids << org_id
-    end
-    orgs = {}
-    Organization.find_all_by_global_id(org_ids.uniq).each do |org|
-      orgs[org.global_id] = org
-    end
-    (user.settings['managed_by'] || {}).each do |org_id, opts|
-      org = orgs[org_id]
-      if org
-        e = {
-          'id' => org_id,
-          'name' => org.settings['name'],
-          'type' => 'user',
-          'added' => opts['added'],
-          'pending' => opts['pending'],
-          'sponsored' => opts['sponsored']
-        }
-        e['org'] = org if include_org
-        res << e if org
-      end
-    end
-    (user.settings['manager_for'] || {}).each do |org_id, opts|
-      org = orgs[org_id]
-      if org
-        e = {
-          'id' => org_id,
-          'name' => org.settings['name'],
-          'type' => 'manager',
-          'added' => opts['added'],
-          'full_manager' => !!opts['full_manager'],
-          'admin' => org.admin,
-        }
-        e['org'] = org if include_org
-        res << e if org
-      end
-    end
-    (user.settings['supervisor_for'] || {}).each do |org_id, opts|
-      org = orgs[org_id]
-      if org
-        e = {
-          'id' => org_id,
-          'name' => org.settings['name'],
-          'type' => 'supervisor',
-          'added' => opts['added'],
-          'pending' => !!opts['pending']
-        }
-        e['org'] = org if include_org
-        res << e if org
-      end
-    end
-    res
-  end
