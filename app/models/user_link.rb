@@ -311,7 +311,7 @@ class UserLink < ApplicationRecord
         record.settings.delete('attached_user_ids')
         record.save
       elsif record.is_a?(OrganizationUnit)
-        ['supervisors', 'communicators'.each do |key|
+        ['supervisors', 'communicators'].each do |key|
           record.settings["#{key}_old"] = record.settings[key] if record.settings[key]
           record.settings.delete(key)
         end
