@@ -88,7 +88,7 @@ GEM
       unf (>= 0.0.5, < 1.0.0)
     dotenv (2.1.1)
     erubis (2.7.0)
-    ethon (0.10.1)
+    ethon (0.11.0)
       ffi (>= 1.3.0)
     execjs (2.7.0)
     ffi (1.9.18)
@@ -165,7 +165,7 @@ GEM
     notiffany (0.1.1)
       nenv (~> 0.1)
       shellany (~> 0.0)
-    obf (0.8.2)
+    obf (0.8.3)
       CFPropertyList
       json
       mime-types

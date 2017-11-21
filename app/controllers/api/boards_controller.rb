@@ -289,7 +289,15 @@ class Api::BoardsController < ApplicationController
     board = Board.find_by_path(params['board_id'])
     return unless exists?(board)
     return unless allowed?(board, 'view')
-    progress = Progress.schedule(board, :generate_download, (@api_user && @api_user.global_id), params['type'], params['include'], params['headerless'], params['text_on_top'], params['transparent_background'])
+    progress = Progress.schedule(board, :generate_download, (@api_user && @api_user.global_id), params['type'], {
+      'include' => params['include'],
+      'headerless' => params['headerless'] == '1',
+      'text_on_top' => params['text_on_top'] == '1',
+      'transparent_background' => params['transparent_background'] == '1',
+      'text_only' => params['text_only'] == '1',
+      'text_case' => params['text_case'],
+      'font' => params['font']
+    })
     render json: JsonApi::Progress.as_json(progress, :wrapper => true).to_json
   end
   

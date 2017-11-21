@@ -48,29 +48,35 @@
                 <p>{{t "This board contains links to sub-boards. Would you like to print a packet containing all available sub-boards, or just the current board?" key='confirm_print_board'}}</p>
               {{/if}}
               <p>
-                <label>
-                  {{input type='checkbox' checked=include_header}}
-                  {{t "Include a vocalization header in the printed pdf" key='include_header'}}
-                </label>
+                <div class="btn-group" role="group" aria-label="Print Header" style='margin-bottom: 20px; width: 100%;'>
+                  <button type="button" {{action 'set_attribute' 'include_header' false}} class={{if include_header "btn btn-default" "btn btn-primary"}} style='font-size: 20px; width: 50%; padding: 10px 30px 10px;'>
+                    {{t "No Header" key='no_header'}}
+                  </button>
+                  <button type="button" {{action 'set_attribute' 'include_header' true}} class={{if include_header "btn btn-primary" "btn btn-default"}} style='font-size: 20px; width: 50%; padding: 10px 30px 10px;'>
+                    {{t "Vocalization Header" key='vocalization_header'}}
+                  </button>
+                </div>
               </p>
               <p>
-                <label>
-                  {{input type='checkbox' checked=text_below}}
-                  {{t "Print with text below the images" key='text_below'}}
-                </label>
+                <div class="btn-group" role="group" aria-label="Print Header" style='margin-bottom: 20px; width: 100%;'>
+                  <button type="button" {{action 'set_attribute' 'text_below' false}} class={{if text_below "btn btn-default" "btn btn-primary"}} style='font-size: 20px; width: 50%; padding: 10px 30px 10px;'>
+                    {{t "Text Below Images" key='text_below_images'}}
+                  </button>
+                  <button type="button" {{action 'set_attribute' 'text_below' true}} class={{if text_below "btn btn-primary" "btn btn-default"}} style='font-size: 20px; width: 50%; padding: 10px 30px 10px;'>
+                    {{t "Text Above Images" key='text_above_images'}}
+                  </button>
+                </div>
               </p>
               <p>
-                <label>
-                  {{input type='checkbox' checked=white_background}}
-                  {{t "Print all images with a white background" key='white_background'}}
-                </label>
+                <div class="btn-group" role="group" aria-label="Print Header" style='margin-bottom: 20px; width: 100%;'>
+                  <button type="button" {{action 'set_attribute' 'white_background' false}} class={{if white_background "btn btn-default" "btn btn-primary"}} style='font-size: 20px; width: 50%; padding: 10px 30px 10px;'>
+                    {{t "Color Backgrounds" key='transparent_image_background'}}
+                  </button>
+                  <button type="button" {{action 'set_attribute' 'white_background' true}} class={{if white_background "btn btn-primary" "btn btn-default"}} style='font-size: 20px; width: 50%; padding: 10px 30px 10px;'>
+                    {{t "White Backgrounds" key='white_behind_images'}}
+                  </button>
+                </div>
               </p>
-              {{#if model.has_links}}
-                <button {{action "startDownload" "all"}} class="btn btn-primary">{{t "Print full board set" key='download_all_boards'}}</button>
-                <button {{action "startDownload" "this"}} class="btn btn-default">{{t "Print just this board" key='download_this_board'}}</button>
-              {{else}}
-                <button {{action "startDownload" "this"}} class="btn btn-primary">{{t "Print this board" key='print_this_board'}}</button>
-              {{/if}}
             {{/if}}
           {{/if}}
         {{/if}}
@@ -80,6 +86,23 @@
     {{/if}}
   </div>
   <div class="modal-footer">
-    <a href="#" class="btn" {{action 'close'}}>{{t "Close" key='close'}}</a>
+    {{#if persistence.online}}
+      {{#if finished}}
+      {{else}}
+        {{#if errored}}
+        {{else}}
+          {{#if progress}}
+          {{else}}
+            {{#if model.has_links}}
+              <button {{action "startDownload" "all"}} class="btn btn-primary">{{t "Print full board set" key='download_all_boards'}}</button>
+              <button {{action "startDownload" "this"}} class="btn btn-default">{{t "Print just this board" key='download_this_board'}}</button>
+            {{else}}
+              <button {{action "startDownload" "this"}} class="btn btn-primary">{{t "Print this board" key='print_this_board'}}</button>
+            {{/if}}
+          {{/if}}
+        {{/if}}
+      {{/if}}
+    {{/if}}
+    <a href="#" class="btn btn-default" {{action 'close'}}>{{t "Close" key='close'}}</a>
   </div>
 {{/modal-dialog}}

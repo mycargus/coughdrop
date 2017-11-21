@@ -50,6 +50,18 @@ export default modal.ModalController.extend({
         if(!this.get('white_background') && !this.get('download_type')) {
           url = url + "&transparent_background=1";
         }
+        if(app_state.get('currentUser.preferences.device.button_text_position') == 'text_only') {
+          url = url + "&text_only=1";
+        }
+        if(app_state.get('currentUser.preferences.device.button_style')) {
+          url = url + "&font=" + app_state.get('currentUser.preferences.device.button_style').replace(/(_caps|_small)$/, '');
+          if((app_state.get('currentUser.preferences.device.button_style') || "").match(/_caps/)) {
+            url = url + "&text_case=upper";
+          } else if((app_state.get('currentUser.preferences.device.button_style') || "").match(/_small/)) {
+            url = url + "&text_case=lower";
+          }
+        }
+
         var download = persistence.ajax(url, {type: 'POST'});
         var _this = this;
         this.set('progress', {
@@ -67,6 +79,9 @@ export default modal.ModalController.extend({
           });
         });
       }
+    },
+    set_attribute: function(attr, val) {
+      this.set(attr, val);
     },
     close: function() {
       progress_tracker.untrack(this.get('track_id'));

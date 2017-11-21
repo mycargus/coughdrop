@@ -243,32 +243,68 @@ describe Board, :type => :model do
   describe "generate_download" do
     it "should raise if an invalid type is provided" do
       b = Board.new
-      expect { b.generate_download(nil, 'bacon') }.to raise_error(Progress::ProgressError, "Unexpected download type, bacon")
+      expect { b.generate_download(nil, 'bacon', {}) }.to raise_error(Progress::ProgressError, "Unexpected download type, bacon")
     end
     
     it "should raise if conversion fails" do
       b = Board.new
-      expect(Converters::Utils).to receive(:board_to_remote).with(b, nil, 'obf', 'this', false, false, false).and_return(nil)
-      expect { b.generate_download(nil, 'obf') }.to raise_error(Progress::ProgressError, "No URL generated")
+      expect(Converters::Utils).to receive(:board_to_remote).with(b, nil, {
+        'file_type' => 'obf', 
+        'include' => 'this', 
+        'headerless' => false, 
+        'text_on_top' => false, 
+        'transparent_background' => false,
+        'text_only' => false,
+        'text_case' => nil,
+        'font' => nil
+      }).and_return(nil)
+      expect { b.generate_download(nil, 'obf', {}) }.to raise_error(Progress::ProgressError, "No URL generated")
     end
     
     it "should return the download URL on success" do
       b = Board.new
-      expect(Converters::Utils).to receive(:board_to_remote).with(b, nil, 'obf', 'this', false, false, false).and_return("http://www.file.com")
-      expect(b.generate_download(nil, 'obf')).to eq({:download_url => "http://www.file.com"})
+      expect(Converters::Utils).to receive(:board_to_remote).with(b, nil, {
+        'file_type' => 'obf', 
+        'include' => 'this', 
+        'headerless' => false, 
+        'text_on_top' => false, 
+        'transparent_background' => false,
+        'text_only' => false,
+        'text_case' => nil,
+        'font' => nil
+      }).and_return("http://www.file.com")
+      expect(b.generate_download(nil, 'obf', {})).to eq({:download_url => "http://www.file.com"})
     end
     
     it "should periodically update progress" do
       b = Board.new
-      expect(Converters::Utils).to receive(:board_to_remote).with(b, nil, 'obf', 'this', false, false, false).and_return("http://www.file.com")
-      expect(Progress).to receive(:update_current_progress).with(0.05, :generating_files)
-      b.generate_download(nil, 'obf')
+      expect(Converters::Utils).to receive(:board_to_remote).with(b, nil, {
+        'file_type' => 'obf', 
+        'include' => 'this', 
+        'headerless' => false, 
+        'text_on_top' => false, 
+        'transparent_background' => false,
+        'text_only' => false,
+        'text_case' => nil,
+        'font' => nil
+      }).and_return("http://www.file.com")
+      expect(Progress).to receive(:update_current_progress).with(0.03, :generating_files)
+      b.generate_download(nil, 'obf', {})
     end
     
     it "should allow an unauthenticated user" do
       b = Board.new
-      expect(Converters::Utils).to receive(:board_to_remote).with(b, nil, 'obf', 'this', false, false, false).and_return("http://www.file.com")
-      expect(b.generate_download(nil, 'obf')).to eq({:download_url => "http://www.file.com"})
+      expect(Converters::Utils).to receive(:board_to_remote).with(b, nil, {
+        'file_type' => 'obf', 
+        'include' => 'this', 
+        'headerless' => false, 
+        'text_on_top' => false, 
+        'transparent_background' => false,
+        'text_only' => false,
+        'text_case' => nil,
+        'font' => nil
+      }).and_return("http://www.file.com")
+      expect(b.generate_download(nil, 'obf', {})).to eq({:download_url => "http://www.file.com"})
     end
   end
 

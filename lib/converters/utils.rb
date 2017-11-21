@@ -15,7 +15,27 @@ module Converters::Utils
     nil
   end
   
-  def self.board_to_remote(board, user, file_type, include, headerless=false, text_on_top=false, transparent_background=false)
+  def self.board_to_remote(board, user, opts)
+    file_type = opts['file_type']
+    include = opts['include']
+    headerless = opts['headerless'] || false
+    text_on_top = opts['text_on_top'] || false
+    transparent_background = opts['transparent_background'] || false
+    text_case = opts['text_case'] || 'default'
+    text_only = opts['text_only'] || false
+
+    font = nil
+    if opts['font']
+      if opts['font'] == 'default'
+        font = File.expand_path('../../../public/fonts/TimesNewRoman.ttf')
+      elsif opts['font'] == 'comic_sans'
+        font = File.expand_path('../../../public/fonts/ComicSans.ttf')
+      elsif opts['font'] == 'open_dyslexic'
+        font = File.expand_path('../../../public/fonts/OpenDyslexicAlta-Regular.otf')
+      elsif opts['font'] == 'architects_daughter'
+        font = File.expand_path('../../../public/fonts/ArchitectsDaughter.ttf')
+      end
+    end
     Progress.update_current_progress(0.2, :converting_file)
     # TODO: key off just the last change id for the board(s) when building the
     # filename, return existing filename if it exists and isn't about to expire
@@ -33,7 +53,9 @@ module Converters::Utils
     end
     key = GoSecure.sha512(board.id.to_s, 'board_id')
     
-    filename = "board_" + board.current_revision + (include == 'all' ? '1' : '0') + (headerless ? '1' : '0') + (text_on_top ? '1' : '0') + (transparent_background ? '1' : '0') + "." + file_type.to_s
+    opts_hash = Digest::MD5.hexdigest(opts.to_json)[0, 20]
+    
+    filename = "board_" + board.current_revision + opts_hash + "." + file_type.to_s
     remote_path = "downloads/#{key}/#{filename}"
     url = Uploader.check_existing_upload(remote_path)
     return url if url
@@ -44,12 +66,22 @@ module Converters::Utils
         if include == 'all'
           Converters::CoughDrop.to_obz(board, path, {'user' => user})
         else
-          Converters::CoughDrop.to_obz(board, path, {'user' => user, 'headerless' => !!headerless, 'text_on_top' => !!text_on_top, 'transparent_background' => !!transparent_background})
+          # TODO: these cases are the same, why do we have both??
+          Converters::CoughDrop.to_obz(board, path, {'user' => user})
         end
       elsif file_type == 'obf'
         Converters::CoughDrop.to_obf(board, path)
       elsif file_type == 'pdf'
-        Converters::CoughDrop.to_pdf(board, path, {'user' => user, 'packet' => (include == 'all'), 'headerless' => !!headerless, 'text_on_top' => !!text_on_top, 'transparent_background' => !!transparent_background})
+        Converters::CoughDrop.to_pdf(board, path, {
+          'user' => user, 
+          'packet' => (include == 'all'), 
+          'headerless' => !!headerless, 
+          'text_on_top' => !!text_on_top, 
+          'transparent_background' => !!transparent_background,
+          'font' => font,
+          'text_case' => text_case,
+          'text_only' => text_only
+        })
       end
     end
     Progress.update_current_progress(0.9, :uploading_file)

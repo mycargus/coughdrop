@@ -7,54 +7,54 @@ describe Converters::Utils do
       b = Board.create(:user => u)
       expect(Uploader).to receive(:check_existing_upload).and_return("http://www.example.com/file.obf")
       expect(Progress).to receive(:update_current_progress).with(0.2, :converting_file)
-      Converters::Utils.board_to_remote(b, u.global_id, 'obf', 'this')
+      Converters::Utils.board_to_remote(b, u.global_id, {'file_type' => 'obf', 'include' => 'this'})
     end
     
     it "should convert to only obf, obz or pdf" do
       u = User.create()
       b = Board.create(:user => u)
       expect(Uploader).to receive(:remote_upload).and_return("http://www.example.com/file.obf")
-      res = Converters::Utils.board_to_remote(b, u.global_id, 'obf', 'this')
+      res = Converters::Utils.board_to_remote(b, u.global_id, {'file_type' => 'obf', 'include' => 'this'})
       expect(res).to eq("http://www.example.com/file.obf")
 
       expect(Uploader).to receive(:remote_upload).and_return("http://www.example.com/file.obf")
-      res = Converters::Utils.board_to_remote(b, u.global_id, 'obf', 'all')
+      res = Converters::Utils.board_to_remote(b, u.global_id, {'file_type' => 'obf', 'include' => 'all'})
       expect(res).to eq("http://www.example.com/file.obf")
 
       expect(Uploader).to receive(:remote_upload).and_return("http://www.example.com/file.pdf")
-      res = Converters::Utils.board_to_remote(b, u.global_id, 'pdf', 'this')
+      res = Converters::Utils.board_to_remote(b, u.global_id, {'file_type' => 'pdf', 'include' => 'this'})
       expect(res).to eq("http://www.example.com/file.pdf")
 
       expect(Uploader).to receive(:remote_upload).and_return("http://www.example.com/file.obz")
-      res = Converters::Utils.board_to_remote(b, u.global_id, 'obz', 'this')
+      res = Converters::Utils.board_to_remote(b, u.global_id, {'file_type' => 'obz', 'include' => 'this'})
       expect(res).to eq("http://www.example.com/file.obz")
 
       expect(Uploader).to receive(:remote_upload).and_return("http://www.example.com/file.obz")
-      res = Converters::Utils.board_to_remote(b, u.global_id, 'obz', 'all')
+      res = Converters::Utils.board_to_remote(b, u.global_id, {'file_type' => 'obz', 'include' => 'all'})
       expect(res).to eq("http://www.example.com/file.obz")
 
-      expect { Converters::Utils.board_to_remote(b, u.global_id, 'txt', 'this') }.to raise_error("Unrecognized conversion type: txt")
+      expect { Converters::Utils.board_to_remote(b, u.global_id, {'file_type' => 'txt', 'include' => 'this'}) }.to raise_error("Unrecognized conversion type: txt")
     end
     
     it "should upload the file to the remote storage service" do
       u = User.create()
       b = Board.create(:user => u)
       expect(Uploader).to receive(:remote_upload).and_return("http://www.example.com/file.obf")
-      res = Converters::Utils.board_to_remote(b, u.global_id, 'obf', 'this')
+      res = Converters::Utils.board_to_remote(b, u.global_id, {'file_type' => 'obf', 'include' => 'this'})
       expect(res).to eq("http://www.example.com/file.obf")
     end
     
     it "should raise an error for unrecognized file types" do
       u = User.create()
       b = Board.create(:user => u)
-      expect { Converters::Utils.board_to_remote(b, u.global_id, 'txt', 'this') }.to raise_error("Unrecognized conversion type: txt")
+      expect { Converters::Utils.board_to_remote(b, u.global_id, {'file_type' => 'txt', 'include' => 'this'}) }.to raise_error("Unrecognized conversion type: txt")
     end
     
     it "should raise an error if the upload failed" do
       u = User.create()
       b = Board.create(:user => u)
       expect(Uploader).to receive(:remote_upload).and_return(nil)
-      expect { Converters::Utils.board_to_remote(b, u.global_id, 'obf', 'this') }.to raise_error("File not uploaded")
+      expect { Converters::Utils.board_to_remote(b, u.global_id, {'file_type' => 'obf', 'include' => 'this'}) }.to raise_error("File not uploaded")
     end
   end
 

@@ -168,13 +168,22 @@ class Board < ActiveRecord::Base
     return boards.map{|b| JsonApi::Board.as_json(b, :permissions => user) }
   end
   
-  def generate_download(user_id, type, include='this', headerless=false, text_on_top=false, transparent_background=false)
+  def generate_download(user_id, type, opts)
     res = {}
     user = User.find_by_global_id(user_id)
-    Progress.update_current_progress(0.05, :generating_files)
-    Progress.as_percent(0.05, 0.9) do
+    Progress.update_current_progress(0.03, :generating_files)
+    Progress.as_percent(0.03, 0.9) do
       if ['obz', 'obf', 'pdf'].include?(type.to_s)
-        url = Converters::Utils.board_to_remote(self, user, type.to_s, include, !!headerless, !!text_on_top, !!transparent_background)
+        url = Converters::Utils.board_to_remote(self, user, {
+          'file_type' => type.to_s,
+          'include' => opts['include'] || 'this',
+          'headerless' => !!opts['headerless'],
+          'text_on_top' => !!opts['text_on_top'],
+          'transparent_background' => !!opts['transparent_background'],
+          'text_only' => !!opts['text_only'],
+          'text_case' => opts['text_case'],
+          'font' => opts['font']
+        })
         if !url
           raise Progress::ProgressError, "No URL generated"
         end
