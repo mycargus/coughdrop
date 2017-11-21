@@ -42,9 +42,9 @@ Ember.$(document).on('mousedown touchstart', function(event) {
   buttonTracker.touch_continue(event);
 }).on('mouseup touchend touchcancel blur', function(event) {
   if(capabilities.system == 'iOS' && !buttonTracker.ios_initialized) {
-    var u = new SpeechSynthesisUtterance();
+    var u = new window.SpeechSynthesisUtterance();
     u.text = "";
-    speechSynthesis.speak(u);
+    window.speechSynthesis.speak(u);
     buttonTracker.ios_initialized = true;
   }
   if((event.type == 'mouseup' || event.type == 'touchend' || event.type == 'touchcancel') && buttonTracker.dwell_elem) {
@@ -314,7 +314,7 @@ var buttonTracker = Ember.Object.extend({
           } else {
             return scanner.pick();
           }
-        } else {right_screen_action
+        } else {
           if(buttonTracker.check('') == 'next') {
             return scanner.next();
           } else {

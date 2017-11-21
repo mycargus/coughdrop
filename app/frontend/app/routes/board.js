@@ -73,7 +73,7 @@ export default Ember.Route.extend({
           }
         });
       };
-      return find_board(true);;
+      return find_board(true);
     }
   }
 });

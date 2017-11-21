@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import modal from '../utils/modal';
 import app_state from '../utils/app_state';
+import editManager from '../utils/edit_manager';
 import persistence from '../utils/persistence';
 import CoughDrop from '../app';
 

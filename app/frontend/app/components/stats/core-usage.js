@@ -30,7 +30,7 @@ export default Ember.Component.extend({
         for(var idx in trends.weeks) {
           trends.weeks[idx].weekyear = idx;
           var wy = idx.toString();
-          trends.weeks[idx].date = moment(wy.substring(0, 4) + "-W" + wy.substring(4, 6) + "-0");
+          trends.weeks[idx].date = window.moment(wy.substring(0, 4) + "-W" + wy.substring(4, 6) + "-0");
           weeks.push(trends.weeks[idx]);
         }
         weeks = weeks.sort(function(a, b) { return a.weekyear - b.weekyear; });
