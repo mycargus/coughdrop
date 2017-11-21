@@ -57,26 +57,28 @@
                   </button>
                 </div>
               </p>
-              <p>
-                <div class="btn-group" role="group" aria-label="Print Header" style='margin-bottom: 20px; width: 100%;'>
-                  <button type="button" {{action 'set_attribute' 'text_below' false}} class={{if text_below "btn btn-default" "btn btn-primary"}} style='font-size: 20px; width: 50%; padding: 10px 30px 10px;'>
-                    {{t "Text Below Images" key='text_below_images'}}
-                  </button>
-                  <button type="button" {{action 'set_attribute' 'text_below' true}} class={{if text_below "btn btn-primary" "btn btn-default"}} style='font-size: 20px; width: 50%; padding: 10px 30px 10px;'>
-                    {{t "Text Above Images" key='text_above_images'}}
-                  </button>
-                </div>
-              </p>
-              <p>
-                <div class="btn-group" role="group" aria-label="Print Header" style='margin-bottom: 20px; width: 100%;'>
-                  <button type="button" {{action 'set_attribute' 'white_background' false}} class={{if white_background "btn btn-default" "btn btn-primary"}} style='font-size: 20px; width: 50%; padding: 10px 30px 10px;'>
-                    {{t "Color Backgrounds" key='transparent_image_background'}}
-                  </button>
-                  <button type="button" {{action 'set_attribute' 'white_background' true}} class={{if white_background "btn btn-primary" "btn btn-default"}} style='font-size: 20px; width: 50%; padding: 10px 30px 10px;'>
-                    {{t "White Backgrounds" key='white_behind_images'}}
-                  </button>
-                </div>
-              </p>
+              {{#unless app_state.currentUser}}
+                <p>
+                  <div class="btn-group" role="group" aria-label="Print Header" style='margin-bottom: 20px; width: 100%;'>
+                    <button type="button" {{action 'set_attribute' 'text_below' false}} class={{if text_below "btn btn-default" "btn btn-primary"}} style='font-size: 20px; width: 50%; padding: 10px 30px 10px;'>
+                      {{t "Text Below Images" key='text_below_images'}}
+                    </button>
+                    <button type="button" {{action 'set_attribute' 'text_below' true}} class={{if text_below "btn btn-primary" "btn btn-default"}} style='font-size: 20px; width: 50%; padding: 10px 30px 10px;'>
+                      {{t "Text Above Images" key='text_above_images'}}
+                    </button>
+                  </div>
+                </p>
+                <p>
+                  <div class="btn-group" role="group" aria-label="Print Header" style='margin-bottom: 20px; width: 100%;'>
+                    <button type="button" {{action 'set_attribute' 'white_background' false}} class={{if white_background "btn btn-default" "btn btn-primary"}} style='font-size: 20px; width: 50%; padding: 10px 30px 10px;'>
+                      {{t "Color Backgrounds" key='transparent_image_background'}}
+                    </button>
+                    <button type="button" {{action 'set_attribute' 'white_background' true}} class={{if white_background "btn btn-primary" "btn btn-default"}} style='font-size: 20px; width: 50%; padding: 10px 30px 10px;'>
+                      {{t "White Backgrounds" key='white_behind_images'}}
+                    </button>
+                  </div>
+                </p>
+              {{/unless}}
             {{/if}}
           {{/if}}
         {{/if}}
