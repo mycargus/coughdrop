@@ -378,17 +378,26 @@
           </button>
         </div>
         {{#if show_main_extras}}
+          {{#if app_state.currentUser.preferences.progress.intro_watched}}
+            <div class='col-md-3 col-xs-4 big_button_holder'>
+              <button class='btn big_button btn-default middle_row' {{action "intro"}}>
+                <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/arasaac/have%20an%20idea.png'>
+                {{t "Learn<br/>and Setup" key='learn_and_setup'}}
+              </button>
+            </div>
+          {{else}}
+            <div class='col-md-3 col-xs-4 big_button_holder'>
+              <button class='btn big_button btn-default middle_row' {{action "newBoard"}}>
+                <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/New-ea00c9e5b0.svg'>
+                {{t "New Board" key='new_board'}}
+              </button>
+            </div>
+          {{/if}}
           <div class='col-md-3 col-xs-4 big_button_holder'>
             <button class='btn big_button btn-default middle_row' {{action "manage_supervisors"}}>
               <span class='glyphicon glyphicon-user'></span>
               {{t "Supervisors" key='manage_supervisors'}}
             </button>
-          </div>
-          <div class='col-md-3 col-xs-4 big_button_holder'>
-            {{#link-to 'user' app_state.currentUser.user_name class='btn big_button btn-default middle_row'}}
-              <span class='glyphicon glyphicon-book'></span>
-              {{t "My Boards" key='seel_all_my_boards'}}
-            {{/link-to}}
           </div>
           <div class='col-md-3 col-xs-4 big_button_holder'>
             {{#link-to 'user.preferences' app_state.currentUser.user_name class='btn big_button btn-default middle_row'}}
