@@ -95,7 +95,7 @@ export default Ember.Route.extend({
       } else if((app_state.get('currentUser.supervisees') || []).length > 0) {
         var prompt = i18n.t('speak_as_which_user', "Select User to Speak As");
         app_state.set('referenced_speak_mode_user', null);
-        app_state.controller.send('switch_communicators', {stay: true, modeling: 'ask', skip_me: true, header: prompt});
+        app_state.controller.send('switch_communicators', {stay: true, modeling: 'ask', skip_me: false, header: prompt});
       } else {
         app_state.home_in_speak_mode();
       }
