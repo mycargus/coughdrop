@@ -188,8 +188,9 @@ class UserLink < ApplicationRecord
     elsif record.is_a?(Organization)
       # include org connections
       record.settings ||= {}
-      (record.settings['attached_user_ids'] || {}).each do |type|
-        type.each do |user_id|
+      record_code = Webhook.get_record_code(record)
+      (record.settings['attached_user_ids'] || {}).each do |type, ids|
+        ids.each do |user_id|
           if type == 'user'
             sponsored = !!record.settings['attached_user_ids']['sponsored_user'].detect{|id| id == user_id }
             approved = !!record.settings['attached_user_ids']['approved_user'].detect{|id| id == user_id }
