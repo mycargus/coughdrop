@@ -362,6 +362,7 @@ describe Organization, :type => :model do
       expect(o.managed_user?(u)).to eq(true)
       expect(o2.managed_user?(u)).to eq(false)
       expect { o2.add_user(u.user_name, false) }.to_not raise_error #("already associated with a different organization")
+      u.reload
       expect(o.managed_user?(u)).to eq(true)
       expect(o2.managed_user?(u)).to eq(true)
     end
@@ -384,6 +385,7 @@ describe Organization, :type => :model do
       o2.add_user(u.user_name, false, true)
       
       expect{ o.add_user(u.user_name, false) }.to_not raise_error #("already associated with a different organization")
+      u.reload
       expect(o.managed_user?(u)).to eq(true)
       expect(o2.managed_user?(u)).to eq(true)
     end
@@ -469,10 +471,12 @@ describe Organization, :type => :model do
       o2 = Organization.create(:settings => {'total_licenses' => 1})
       u = User.create
       o2.add_user(u.user_name, false, true)
+      u.reload
       expect(o.managed_user?(u)).to eq(false)
       expect(o2.managed_user?(u)).to eq(true)
       expect(UserLink.count).to eq(1)
       expect{ o.remove_user(u.user_name) }.to_not raise_error #("already associated with a different organization")
+      u.reload
       expect(UserLink.count).to eq(1)
       expect(o.managed_user?(u)).to eq(false)
       expect(o2.managed_user?(u)).to eq(true)
@@ -740,6 +744,48 @@ describe Organization, :type => :model do
       expect(Organization.manager_for?(m, u2)).to eq(true)
       expect(Organization.manager_for?(u, m)).to eq(false)
       expect(Organization.manager_for?(u2, m)).to eq(false)
+    end
+    
+    it "should return true for an upstream manager" do
+      o1 = Organization.create(settings: {'total_licenses' => 1})
+      o2 = Organization.create(settings: {'total_licenses' => 1}, parent_organization_id: o1.id)
+      o3 = Organization.create(settings: {'total_licenses' => 1})
+      u1 = User.create
+      u2 = User.create
+      u3 = User.create
+      u4 = User.create
+      o1.add_manager(u1.user_name, true)
+      o1.add_user(u3.user_name, false)
+      o2.add_user(u2.user_name, false)
+      o3.add_user(u4.user_name, false)
+      u1.reload
+      u2.reload
+      u3.reload
+      u4.reload
+      expect(Organization.manager_for?(u1, u2)).to eq(true)
+      expect(Organization.manager_for?(u1, u3)).to eq(true)
+      expect(Organization.manager_for?(u1, u4)).to eq(false)
+    end
+    
+    it "should return true for multi-level upstream manager" do
+      o1 = Organization.create(settings: {'total_licenses' => 1})
+      o2 = Organization.create(settings: {'total_licenses' => 1}, parent_organization_id: o1.id)
+      o3 = Organization.create(settings: {'total_licenses' => 1}, parent_organization_id: o2.id)
+      u1 = User.create
+      u2 = User.create
+      u3 = User.create
+      u4 = User.create
+      o1.add_manager(u1.user_name, true)
+      o1.add_user(u3.user_name, false)
+      o2.add_user(u2.user_name, false)
+      o3.add_user(u4.user_name, false)
+      u1.reload
+      u2.reload
+      u3.reload
+      u4.reload
+      expect(Organization.manager_for?(u1, u2)).to eq(true)
+      expect(Organization.manager_for?(u1, u3)).to eq(true)
+      expect(Organization.manager_for?(u1, u4)).to eq(true)
     end
   end
   
@@ -1130,4 +1176,211 @@ describe Organization, :type => :model do
       })
     end
   end
+  
+  describe "parent orgs" do
+    describe "touch_parent" do
+      it "should update the parent" do
+        o = Organization.create
+        Organization.where(id: o.id).update_all(updated_at: 2.weeks.ago)
+        o.reload
+        expect(o.parent_organization_id).to eq(nil)
+        expect(o.has_children?).to eq(false)
+        updated = o.updated_at
+        o2 = Organization.create(parent_organization_id: o.id)
+        expect(o.reload.updated_at).to be > updated
+        expect(o.reload.has_children?).to eq(true)
+      end
+    end
+  
+    describe "has_children?" do
+      it "should return the correct value" do
+        o = Organization.create
+        Organization.where(id: o.id).update_all(updated_at: 2.weeks.ago)
+        o.reload
+        expect(o.parent_organization_id).to eq(nil)
+        expect(o.has_children?).to eq(false)
+        updated = o.updated_at
+        o2 = Organization.create(parent_organization_id: o.id)
+        expect(o.reload.updated_at).to be > updated
+        expect(o.reload.has_children?).to eq(true)
+        expect(o2.reload.has_children?).to eq(false)
+      end
+    
+      it "should use the cached value if available" do
+        o = Organization.create
+        Organization.where(id: o.id).update_all(updated_at: 2.weeks.ago)
+        o.reload
+        expect(o.parent_organization_id).to eq(nil)
+        expect(o.has_children?).to eq(false)
+        expect(Organization).to_not receive(:where)
+        expect(o.has_children?).to eq(false)
+      end
+    end
+
+    describe "upstream_orgs" do
+      it "should collect all upstream orgs" do
+        o1 = Organization.create
+        o2 = Organization.create(parent_organization_id: o1.id)
+        o3 = Organization.create(parent_organization_id: o2.id)
+        o4 = Organization.create(parent_organization_id: o3.id)
+        o5 = Organization.create(parent_organization_id: o3.id)
+        expect(o1.upstream_orgs.length).to eq(0)
+        expect(o2.upstream_orgs.length).to eq(1)
+        expect(o2.upstream_orgs.sort_by(&:id)).to eq([o1])
+        expect(o3.upstream_orgs.length).to eq(2)
+        expect(o3.upstream_orgs.sort_by(&:id)).to eq([o1, o2])
+        expect(o4.upstream_orgs.length).to eq(3)
+        expect(o4.upstream_orgs.sort_by(&:id)).to eq([o1, o2, o3])
+        expect(o5.upstream_orgs.length).to eq(3)
+        expect(o5.upstream_orgs.sort_by(&:id)).to eq([o1, o2, o3])
+      end
+      
+      it "should not barf on loops" do
+        o1 = Organization.create
+        o2 = Organization.create(parent_organization_id: o1.id)
+        o1.parent_organization_id = o2.id
+        o1.save
+        expect(o1.upstream_orgs).to eq([o2])
+        expect(o2.upstream_orgs).to eq([o1])
+      end
+    end  
+
+    describe "children_orgs" do
+      it "should collect all downstream orgs" do
+        o1 = Organization.create
+        o2 = Organization.create(parent_organization_id: o1.id)
+        o3 = Organization.create(parent_organization_id: o2.id)
+        o4 = Organization.create(parent_organization_id: o3.id)
+        o5 = Organization.create(parent_organization_id: o2.id)
+        o6 = Organization.create(parent_organization_id: o2.id)
+        o7 = Organization.create(parent_organization_id: o6.id)
+        o8 = Organization.create
+        o1.reload
+        o2.reload
+        o3.reload
+        o4.reload
+        o5.reload
+        o6.reload
+        expect(o1.has_children?).to eq(true)
+        expect(o2.has_children?).to eq(true)
+        expect(o3.has_children?).to eq(true)
+        expect(o4.has_children?).to eq(false)
+        expect(o5.has_children?).to eq(false)
+        expect(o6.has_children?).to eq(true)
+        expect(o7.has_children?).to eq(false)
+        expect(o8.has_children?).to eq(false)
+        
+        expect(o1.children_orgs.length).to eq(1)
+        expect(o1.children_orgs.sort_by(&:id)).to eq([o2])
+        expect(o2.children_orgs.length).to eq(3)
+        expect(o2.children_orgs.sort_by(&:id)).to eq([o3, o5, o6])
+        expect(o3.children_orgs.length).to eq(1)
+        expect(o3.children_orgs.sort_by(&:id)).to eq([o4])
+        expect(o4.children_orgs.length).to eq(0)
+        expect(o5.children_orgs.length).to eq(0)
+        expect(o6.children_orgs.length).to eq(1)
+        expect(o6.children_orgs.sort_by(&:id)).to eq([o7])
+        expect(o7.children_orgs.length).to eq(0)
+        expect(o8.children_orgs.length).to eq(0)
+      end
+    end
+  
+  
+    describe "downstream_orgs" do
+      it "should collect all downstream orgs" do
+        o1 = Organization.create
+        o2 = Organization.create(parent_organization_id: o1.id)
+        o3 = Organization.create(parent_organization_id: o2.id)
+        o4 = Organization.create(parent_organization_id: o3.id)
+        o5 = Organization.create(parent_organization_id: o2.id)
+        o6 = Organization.create(parent_organization_id: o2.id)
+        o7 = Organization.create(parent_organization_id: o6.id)
+        o8 = Organization.create
+        o1.reload
+        o2.reload
+        o3.reload
+        o4.reload
+        o5.reload
+        o6.reload
+        expect(o1.has_children?).to eq(true)
+        expect(o2.has_children?).to eq(true)
+        expect(o3.has_children?).to eq(true)
+        expect(o4.has_children?).to eq(false)
+        expect(o5.has_children?).to eq(false)
+        expect(o6.has_children?).to eq(true)
+        expect(o7.has_children?).to eq(false)
+        expect(o8.has_children?).to eq(false)
+        
+        expect(o1.downstream_orgs.length).to eq(6)
+        expect(o1.downstream_orgs.sort_by(&:id)).to eq([o2, o3, o4, o5, o6, o7])
+        expect(o2.downstream_orgs.length).to eq(5)
+        expect(o2.downstream_orgs.sort_by(&:id)).to eq([o3, o4, o5, o6, o7])
+        expect(o3.downstream_orgs.length).to eq(1)
+        expect(o3.downstream_orgs.sort_by(&:id)).to eq([o4])
+        expect(o4.downstream_orgs.length).to eq(0)
+        expect(o5.downstream_orgs.length).to eq(0)
+        expect(o6.downstream_orgs.length).to eq(1)
+        expect(o6.downstream_orgs.sort_by(&:id)).to eq([o7])
+        expect(o7.downstream_orgs.length).to eq(0)
+        expect(o8.downstream_orgs.length).to eq(0)
+      end
+      
+      it "should not barf on loops" do
+        o1 = Organization.create
+        o2 = Organization.create(parent_organization_id: o1.id)
+        o3 = Organization.create(parent_organization_id: o2.id)
+        o1.parent_organization_id = o3.id
+        o1.save
+        o1.reload
+        o2.reload
+        o3.reload
+
+        expect(o1.has_children?).to eq(true)
+        expect(o2.has_children?).to eq(true)
+        expect(o3.has_children?).to eq(true)
+
+        expect(o1.downstream_orgs.length).to eq(2)
+        expect(o1.downstream_orgs.sort_by(&:id)).to eq([o2, o3])
+        expect(o2.downstream_orgs.length).to eq(2)
+        expect(o2.downstream_orgs.sort_by(&:id)).to eq([o1, o3])
+        expect(o3.downstream_orgs.length).to eq(2)
+        expect(o3.downstream_orgs.sort_by(&:id)).to eq([o1, o2])
+      end
+    end
+  
+    describe "parent_org_id" do
+      it "should return the correct value" do
+        o = Organization.create
+        expect(o.parent_org_id).to eq(nil)
+        o.parent_organization_id = 123
+        expect(o.parent_org_id).to eq('1_123')
+      end
+    end
+  
+    describe "upstream_manager?" do
+      it "should return the correct value" do
+        o1 = Organization.create
+        o2 = Organization.create
+        u = User.create
+        expect(o1.reload.manager?(u.reload)).to eq(false)
+        expect(o1.reload.upstream_manager?(u.reload)).to eq(false)
+        expect(o2.reload.manager?(u.reload)).to eq(false)
+        expect(o2.reload.upstream_manager?(u.reload)).to eq(false)
+
+        res = o1.add_manager(u.user_name, true)
+        expect(res).to eq(true)
+        expect(o1.reload.manager?(u.reload)).to eq(true)
+        expect(o1.reload.upstream_manager?(u.reload)).to eq(false)
+        expect(o2.reload.manager?(u.reload)).to eq(false)
+        expect(o2.reload.upstream_manager?(u.reload)).to eq(false)
+        o2.parent_organization_id = o1.id
+        o2.save
+        expect(o1.reload.manager?(u.reload)).to eq(true)
+        expect(o1.reload.upstream_manager?(u.reload)).to eq(false)
+        expect(o2.reload.manager?(u.reload)).to eq(false)
+        expect(o2.reload.upstream_manager?(u.reload)).to eq(true)
+      end
+    end
+  end
+  
 end

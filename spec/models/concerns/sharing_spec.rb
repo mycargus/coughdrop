@@ -75,7 +75,7 @@ describe Sharing, :type => :model do
       b = Board.create(:user => u)
       res = b.share_with(u2)
       expect(res).to eq(true)
-      expect(UserLink.links_for(u)).to eq([{
+      expect(UserLink.links_for(u.reload)).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
@@ -88,7 +88,7 @@ describe Sharing, :type => :model do
         }
       }])
       expect(u.settings['boards_i_shared']).to eq(nil)
-      expect(UserLink.links_for(u2)).to eq([{
+      expect(UserLink.links_for(u2.reload)).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
@@ -111,12 +111,14 @@ describe Sharing, :type => :model do
       u.settings['boards_i_shared'][b.global_id] = [{
         'user_id' => u2.global_id, 'hat' => true
       }]
+      u.save
       u2.settings['boards_shared_with_me'] = [{
         'board_id' => b.global_id, 'cheese' => true
       }]
+      u2.save
       res = b.share_with(u2)
       expect(res).to eq(true)
-      expect(UserLink.links_for(u)).to eq([{
+      expect(UserLink.links_for(u.reload)).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
@@ -136,7 +138,7 @@ describe Sharing, :type => :model do
         'board_id' => b.global_id, 'cheese' => true
       }])
 
-      expect(UserLink.links_for(u2)).to eq([
+      expect(UserLink.links_for(u2.reload)).to eq([
       {
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(b),
@@ -180,7 +182,7 @@ describe Sharing, :type => :model do
       b = Board.create(:user => u)
       res = b.share_with(u2)
       expect(res).to eq(true)
-      expect(UserLink.links_for(u)).to eq([{
+      expect(UserLink.links_for(u.reload)).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
@@ -193,7 +195,7 @@ describe Sharing, :type => :model do
         }
       }])
       expect(u.settings['boards_i_shared']).to eq(nil)
-      expect(UserLink.links_for(u2)).to eq([{
+      expect(UserLink.links_for(u2.reload)).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
@@ -210,7 +212,7 @@ describe Sharing, :type => :model do
       res = b.share_with(u3, true)
       b = Board.find(b.id)
       u = User.find(u.id)
-      expect(UserLink.links_for(u)).to eq([{
+      expect(UserLink.links_for(u.reload)).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
@@ -235,7 +237,7 @@ describe Sharing, :type => :model do
         }
       }])
       expect(u.settings['boards_i_shared']).to eq(nil)
-      expect(UserLink.links_for(u3)).to eq([{
+      expect(UserLink.links_for(u3.reload)).to eq([{
         'user_id' => u3.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
@@ -253,7 +255,7 @@ describe Sharing, :type => :model do
       b.share_with(u5)
       b = Board.find(b.id)
       u = User.find(u.id)
-      expect(UserLink.links_for(u).sort_by{|l| l['user_id'] }).to eq([{
+      expect(UserLink.links_for(u.reload).sort_by{|l| l['user_id'] }).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
@@ -308,7 +310,7 @@ describe Sharing, :type => :model do
       b = Board.create(:user => u)
       res = b.share_with(u2)
       expect(res).to eq(true)
-      expect(UserLink.links_for(u)).to eq([{
+      expect(UserLink.links_for(u.reload)).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
@@ -322,7 +324,7 @@ describe Sharing, :type => :model do
       }])
       expect(u.settings['boards_i_shared']).to eq(nil)
       expect(u2.settings['boards_shared_with_me']).to eq(nil)
-      expect(UserLink.links_for(u2)).to eq([{
+      expect(UserLink.links_for(u2.reload)).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
@@ -339,7 +341,7 @@ describe Sharing, :type => :model do
       b = Board.find(b.id)
       u = User.find(u.id)
       expect(u.settings['boards_i_shared']).to eq(nil)
-      expect(UserLink.links_for(u)).to eq([{
+      expect(UserLink.links_for(u.reload)).to eq([{
         'user_id' => u.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
@@ -371,7 +373,7 @@ describe Sharing, :type => :model do
       b = Board.create(:user => u)
       res = b.share_with(u2, true, true)
       expect(res).to eq(true)
-      expect(UserLink.links_for(u)).to eq([{
+      expect(UserLink.links_for(u.reload)).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
@@ -387,7 +389,7 @@ describe Sharing, :type => :model do
       }])
       expect(u.settings['boards_i_shared']).to eq(nil)
       expect(u2.settings['boards_shared_with_me']).to eq(nil)
-      expect(UserLink.links_for(u2)).to eq([{
+      expect(UserLink.links_for(u2.reload)).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
@@ -411,7 +413,7 @@ describe Sharing, :type => :model do
       b = Board.create(:user => u)
       res = b.share_with(u2, true, true)
       expect(res).to eq(true)
-      expect(UserLink.links_for(u)).to eq([{
+      expect(UserLink.links_for(u.reload)).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
@@ -426,7 +428,7 @@ describe Sharing, :type => :model do
         }
       }])
       expect(u.settings['boards_i_shared']).to eq(nil)
-      expect(UserLink.links_for(u2)).to eq([{
+      expect(UserLink.links_for(u2.reload)).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
@@ -445,7 +447,7 @@ describe Sharing, :type => :model do
       b.update_shares_for(u2, true)
       u2.reload
       u.reload
-      expect(UserLink.links_for(u)).to eq([{
+      expect(UserLink.links_for(u.reload)).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
@@ -460,7 +462,7 @@ describe Sharing, :type => :model do
         }
       }])
       expect(u.settings['boards_i_shared']).to eq(nil)
-      expect(UserLink.links_for(u2)).to eq([{
+      expect(UserLink.links_for(u2.reload)).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
@@ -658,7 +660,7 @@ describe Sharing, :type => :model do
       b3 = Board.create(:user => u3)
       b.share_with(u3)
       b2.share_with(u3)
-      expect(Board.all_shared_board_ids_for(u3).sort).to eq([b.global_id, b2.global_id])
+      expect(Board.all_shared_board_ids_for(u3.reload).sort).to eq([b.global_id, b2.global_id])
     end
     
     it "should return downstream deep shares" do
@@ -680,7 +682,7 @@ describe Sharing, :type => :model do
       b.share_with(u3, true)
       b4.share_with(u3)
       
-      expect(Board.all_shared_board_ids_for(u3).sort).to eq([b.global_id, b2.global_id, b3.global_id, b4.global_id])
+      expect(Board.all_shared_board_ids_for(u3.reload).sort).to eq([b.global_id, b2.global_id, b3.global_id, b4.global_id])
     end
     
     it "should not return downstream deep shares by different authors than the original upstream shared boards" do
@@ -702,7 +704,7 @@ describe Sharing, :type => :model do
       b.share_with(u3, true)
       b4.share_with(u3)
       
-      expect(Board.all_shared_board_ids_for(u3).sort).to eq([b.global_id, b3.global_id, b4.global_id])
+      expect(Board.all_shared_board_ids_for(u3.reload).sort).to eq([b.global_id, b3.global_id, b4.global_id])
     end
     
     it "should not return duplicates" do
@@ -721,7 +723,7 @@ describe Sharing, :type => :model do
       b2.share_with(u3, true)
       b3.share_with(u3, true)
       
-      expect(Board.all_shared_board_ids_for(u3).sort).to eq([b.global_id, b2.global_id, b3.global_id])
+      expect(Board.all_shared_board_ids_for(u3.reload).sort).to eq([b.global_id, b2.global_id, b3.global_id])
     end
     
     it "should not return a downstream deep share by a different author even if that author shared an unrelated board" do
@@ -743,7 +745,7 @@ describe Sharing, :type => :model do
       b.share_with(u3, true)
       b4.share_with(u3)
       
-      expect(Board.all_shared_board_ids_for(u3).sort).to eq([b.global_id, b3.global_id, b4.global_id])
+      expect(Board.all_shared_board_ids_for(u3.reload).sort).to eq([b.global_id, b3.global_id, b4.global_id])
     end
     
     it "should return downstream deep shares by any of the co-authors, even if the share is pending" do
@@ -760,7 +762,7 @@ describe Sharing, :type => :model do
       
       b.share_with(u2, true, true)
       expect(b.reload.settings['downstream_board_ids']).to eq([b2.global_id, b3.global_id])
-      expect(Board.all_shared_board_ids_for(u2).sort).to eq([b.global_id, b2.global_id, b3.global_id])
+      expect(Board.all_shared_board_ids_for(u2.reload).sort).to eq([b.global_id, b2.global_id, b3.global_id])
     end
     
     it "should return only edit shares if specified" do
@@ -778,7 +780,7 @@ describe Sharing, :type => :model do
       
       b.share_with(u2, true, true)
       b4.share_with(u2, true)
-      expect(Board.all_shared_board_ids_for(u2, true).sort).to eq([b.global_id])
+      expect(Board.all_shared_board_ids_for(u2.reload, true).sort).to eq([b.global_id])
     end
     
     it "should return downstream deep edit shares only if the co-author has approved the edit-share" do
@@ -796,8 +798,8 @@ describe Sharing, :type => :model do
       
       b.share_with(u2, true, true)
       b4.share_with(u2, true)
-      expect(Board.all_shared_board_ids_for(u2, true).sort).to eq([b.global_id])
-      b.update_shares_for(u2, true)
+      expect(Board.all_shared_board_ids_for(u2.reload, true).sort).to eq([b.global_id])
+      b.reload.update_shares_for(u2, true)
       u2.reload
       expect(Board.all_shared_board_ids_for(u2, true).sort).to eq([b.global_id, b2.global_id, b3.global_id])
     end
@@ -854,7 +856,7 @@ describe Sharing, :type => :model do
       b.share_with(u2, false, true)
       b.share_with(u3, true, true)
       b.update_shares_for(u3, true)
-      expect(b.author_ids(true).sort).to eq([u.global_id, u3.global_id])
+      expect(b.reload.author_ids(true).sort).to eq([u.global_id, u3.global_id])
     end
   end
   
@@ -1035,11 +1037,11 @@ describe Sharing, :type => :model do
       expect(b2.allows?(u, 'edit')).to eq(false)
       expect(b.allows?(u2, 'edit')).to eq(true)
 
-      b.update_shares_for(u2, true)
+      b.reload.update_shares_for(u2.reload, true)
 #      Worker.process_queues
       u2.reload
       u.reload
-      expect(b2.allows?(u, 'view')).to eq(true)
+      expect(b2.reload.allows?(u, 'view')).to eq(true)
       expect(b2.allows?(u, 'edit')).to eq(true)
     end
     
@@ -1091,9 +1093,9 @@ describe Sharing, :type => :model do
       User.link_supervisor_to_user(u, u4)
       b.share_with(u4, true, false)
       Worker.process_queues
-      expect(b.allows?(u, 'view')).to eq(true)
-      expect(b.allows?(u4, 'view')).to eq(true)
-      expect(b.allows?(u5, 'view')).to eq(false)
+      expect(b.allows?(u.reload, 'view')).to eq(true)
+      expect(b.allows?(u4.reload, 'view')).to eq(true)
+      expect(b.allows?(u5.reload, 'view')).to eq(false)
       expect(b2.allows?(u, 'view')).to eq(true)
       expect(b2.allows?(u4, 'view')).to eq(true)
       expect(b2.allows?(u5, 'view')).to eq(false)
@@ -1105,9 +1107,9 @@ describe Sharing, :type => :model do
       expect(b4.allows?(u5, 'view')).to eq(false)
 
       User.link_supervisor_to_user(u5, u4)
-      expect(b.allows?(u, 'view')).to eq(true)
-      expect(b.allows?(u4, 'view')).to eq(true)
-      expect(b.allows?(u5, 'view')).to eq(true)
+      expect(b.allows?(u.reload, 'view')).to eq(true)
+      expect(b.allows?(u4.reload, 'view')).to eq(true)
+      expect(b.allows?(u5.reload, 'view')).to eq(true)
       expect(b2.allows?(u, 'view')).to eq(true)
       expect(b2.allows?(u4, 'view')).to eq(true)
       expect(b2.allows?(u5, 'view')).to eq(true)

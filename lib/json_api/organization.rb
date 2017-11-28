@@ -24,6 +24,12 @@ module JsonApi::Organization
       json['licenses_expire'] = org.settings['licenses_expire'] if org.settings['licenses_expire']
       json['total_supervisors'] = org.supervisors.count
       json['created'] = org.created_at.iso8601
+      json['children_orgs'] = org.children_orgs.map do |org|
+        {
+          'id' => org.global_id,
+          'name' => org.settings['name']
+        }
+      end
       recent_sessions = LogSession.where(['started_at > ?', 2.weeks.ago])
       if !org.admin?
         recent_sessions = recent_sessions.where(:user_id => org.users.map(&:id))

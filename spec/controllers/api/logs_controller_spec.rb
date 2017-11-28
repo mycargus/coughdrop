@@ -62,10 +62,9 @@ describe Api::LogsController, :type => :controller do
       expect(@user.reload.supervisees.length).to eq(2)
       get :index, params: {:user_id => @user.global_id, :supervisees => true}
       json = JSON.parse(response.body)
-      expect(json['log'].length).to eq(6)
-      expect(json['log'][0]['author']['id']).to eq(users[0].global_id)
-      expect(json['log'][1]['author']['id']).to eq(users[1].global_id)
-      expect(json['log'][2]['author']['id']).to eq(users[0].global_id)
+      logs = json['log'].sort_by{|l| l['id'] }
+      expect(logs.length).to eq(6)
+      expect(logs.map{|l| l['author']['id'] }.sort).to eq([users[0].global_id, users[0].global_id, users[0].global_id, users[1].global_id, users[1].global_id, users[1].global_id])
       expect(json['meta']['next_url']).to eq(nil)
     end
     

@@ -85,7 +85,8 @@ export default modal.ModalController.extend({
             voice.set('downloading', false);
             capabilities.wakelock('download_voice', false);
             _this.refresh_voices();
-          }, function() {
+          }, function(e) {
+            console.error("error downloading voice", e);
             _this.refresh_voices();
             capabilities.wakelock('download_voice', false);
             _this.set('voice_error', i18n.t('error_downloading_voice', "There was an unexpected problem while trying to download the voice"));

@@ -56,12 +56,10 @@ class UserLink < ApplicationRecord
   def self.links_for(record, force=false)
     return [] unless record && record.id
     record_code = Webhook.get_record_code(record)
-    cache_string = Permissable.permissions_redis.get("links/for/#{record_code}/#{record.updated_at}")
+    cache_key = "links/for/#{record_code}/#{record.updated_at.to_f}"
+    cached_data = Permissable.permissions_redis.get(cache_key)
     if !force
-      cache = nil
-      if cache_string
-        cache = JSON.parse(cache_string) rescue nil
-      end
+      cache = JSON.parse(cached_data) rescue nil
       return cache if cache
     end
 
@@ -286,7 +284,7 @@ class UserLink < ApplicationRecord
     end
     
     expires = 72.hours.to_i
-    Permissable.permissions_redis.setex(cache_string, expires, res.to_json)
+    Permissable.permissions_redis.setex(cache_key, expires, res.to_json)
     res
   end
   

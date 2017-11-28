@@ -105,8 +105,8 @@ describe Supervising, :type => :model do
       }])
       expect(u2.settings['supervisors']).to eq(nil)
 
-      User.link_supervisor_to_user(u1, u2, nil, true, '1_2')
-      expect(UserLink.links_for(u1)).to eq([{
+      User.link_supervisor_to_user(u1.reload, u2.reload, nil, true, '1_2')
+      expect(UserLink.links_for(u1.reload)).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(u1),
         'type' => 'supervisor',
@@ -125,7 +125,7 @@ describe Supervising, :type => :model do
       u2 = User.create
       User.link_supervisor_to_user(u1, u2, nil, true, '1_1')
       expect(UserLink.count).to eq(1)
-      expect(u2.supervisor_links).to eq([{
+      expect(u2.reload.supervisor_links).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(u1),
         'type' => 'supervisor',
@@ -136,7 +136,7 @@ describe Supervising, :type => :model do
           'supervisee_user_name' => u2.user_name
         }
       }])
-      expect(u1.supervisee_links).to eq([{
+      expect(u1.reload.supervisee_links).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(u1),
         'type' => 'supervisor',
@@ -150,7 +150,7 @@ describe Supervising, :type => :model do
       expect(u2.settings['supervisors']).to eq(nil)
 
       User.link_supervisor_to_user(u1, u2, nil, true, '1_2')
-      expect(u2.supervisor_links).to eq([{
+      expect(u2.reload.supervisor_links).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(u1),
         'type' => 'supervisor',
@@ -161,7 +161,7 @@ describe Supervising, :type => :model do
           'supervisee_user_name' => u2.user_name
         }
       }])
-      expect(u1.supervisee_links).to eq([{
+      expect(u1.reload.supervisee_links).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(u1),
         'type' => 'supervisor',
@@ -175,7 +175,7 @@ describe Supervising, :type => :model do
       expect(u2.settings['supervisors']).to eq(nil)
 
       User.link_supervisor_to_user(u1, u2, nil, true, '1_2')
-      expect(u2.supervisor_links).to eq([{
+      expect(u2.reload.supervisor_links).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(u1),
         'type' => 'supervisor',
@@ -189,7 +189,7 @@ describe Supervising, :type => :model do
       expect(u2.settings['supervisors']).to eq(nil)
 
       User.link_supervisor_to_user(u1, u2, nil, true, '1_3')
-      expect(u2.supervisor_links).to eq([{
+      expect(u2.reload.supervisor_links).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(u1),
         'type' => 'supervisor',
@@ -203,7 +203,7 @@ describe Supervising, :type => :model do
       expect(u2.settings['supervisors']).to eq(nil)
       
       User.unlink_supervisor_from_user(u1, u2, '1_2')
-      expect(u2.supervisor_links).to eq([{
+      expect(u2.reload.supervisor_links).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(u1),
         'type' => 'supervisor',
@@ -217,7 +217,7 @@ describe Supervising, :type => :model do
       expect(u2.settings['supervisors']).to eq(nil)
 
       User.unlink_supervisor_from_user(u1, u2, '1_1')
-      expect(u2.supervisor_links).to eq([{
+      expect(u2.reload.supervisor_links).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(u1),
         'type' => 'supervisor',
@@ -231,7 +231,7 @@ describe Supervising, :type => :model do
       expect(u2.settings['supervisors']).to eq(nil)
 
       User.unlink_supervisor_from_user(u1, u2, '1_3')
-      expect(u2.supervisor_links).to eq([])
+      expect(u2.reload.supervisor_links).to eq([])
       expect(u2.settings['supervisors']).to eq(nil)
     end
   end
@@ -427,11 +427,11 @@ describe Supervising, :type => :model do
       expect(o.reload.pending_supervisor?(u.reload)).to eq(true)
       expect(o.reload.supervisor?(u)).to eq(true)
       u.reload.process({'supervisor_key' => "approve_supervision-#{o.global_id}"})
-      expect(o.reload.pending_supervisor?(u)).to eq(false)
+      expect(o.reload.pending_supervisor?(u.reload)).to eq(false)
       expect(o.reload.supervisor?(u)).to eq(true)
       
       expect(u.process_supervisor_key("remove_supervision-#{o.global_id}")).to eq(true)
-      expect(o.reload.pending_supervisor?(u)).to eq(false)
+      expect(o.reload.pending_supervisor?(u.reload)).to eq(false)
       expect(o.reload.supervisor?(u)).to eq(false)
     end
     
@@ -440,10 +440,10 @@ describe Supervising, :type => :model do
       o = Organization.create(:settings => {'total_licenses' => 1})
       expect(o.reload.managed_user?(u)).to eq(false)
       o.add_user(u.user_name, true)
-      expect(o.reload.managed_user?(u)).to eq(true)
+      expect(o.reload.managed_user?(u.reload)).to eq(true)
       expect(o.reload.pending_user?(u)).to eq(true)
       u.reload.process({'supervisor_key' => "approve-org"})
-      expect(o.reload.managed_user?(u)).to eq(true)
+      expect(o.reload.managed_user?(u.reload)).to eq(true)
       expect(o.reload.pending_user?(u)).to eq(false)
       expect(u.settings['pending']).to eq(false)
     end
@@ -453,10 +453,10 @@ describe Supervising, :type => :model do
       o = Organization.create(:settings => {'total_licenses' => 1})
       expect(o.reload.managed_user?(u)).to eq(false)
       o.add_user(u.user_name, true)
-      expect(o.reload.managed_user?(u)).to eq(true)
+      expect(o.reload.managed_user?(u.reload)).to eq(true)
       expect(o.reload.pending_user?(u)).to eq(true)
       u.reload.process({'supervisor_key' => "remove_supervisor-org"})
-      expect(o.reload.managed_user?(u)).to eq(false)
+      expect(o.reload.managed_user?(u.reload)).to eq(false)
       expect(o.reload.pending_user?(u)).to eq(false)
       expect(UserLink.links_for(u)).to eq([])
       expect(u.reload.managing_organization).to eq(nil)

@@ -112,6 +112,7 @@ describe Subscription, :type => :model do
       expect(u.premium?).to eq(false)
       u.settings['managed_by'] = {'1' => {'pending' => false, 'sponsored' => true}}
       u.settings['subscription'] = {'org_sponsored' => true}
+      u.save
       expect(u.premium?).to eq(true)
     end
   end

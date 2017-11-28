@@ -53,10 +53,12 @@ export default Ember.Controller.extend({
       return this.get('selected_view');
     } else if(this.get('model.admin')) {
       return 'organizations';
+    } else if(!this.get('managers.length') && this.get('model.children_orgs.length')) {
+      return 'organizations';
     } else {
       return 'managers';
     }
-  }.property('selected_view', 'model.admin'),
+  }.property('selected_view', 'model.admin', 'managers', 'model.children_orgs'),
   show_organizations: function() {
     return this.get('shown_view') == 'organizations';
   }.property('shown_view'),

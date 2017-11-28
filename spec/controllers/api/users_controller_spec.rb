@@ -1640,6 +1640,8 @@ describe Api::UsersController, :type => :controller do
       token_user
       u = User.create
       User.link_supervisor_to_user(@user, u, nil, false)
+      @user.reload
+      u.reload
       expect(u.allows?(@user, 'edit')).to eq(false)
       expect(u.allows?(@user, 'supervise')).to eq(true)
       get 'core_lists', params: {'user_id' => u.global_id}
@@ -1725,6 +1727,8 @@ describe Api::UsersController, :type => :controller do
       token_user
       u = User.create
       User.link_supervisor_to_user(@user, u, nil, false)
+      u.reload
+      @user.reload
       expect(u.allows?(@user, 'edit')).to eq(false)
       expect(u.allows?(@user, 'supervise')).to eq(true)
       put 'update_core_list', params: {'user_id' => u.global_id}

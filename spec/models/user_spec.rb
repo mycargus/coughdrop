@@ -964,7 +964,8 @@ describe User, :type => :model do
           'key' => b.key
         }
       ], {'updater' => u2})
-      expect(b.shared_with?(u)).to eq(true)
+      u.save
+      expect(b.reload.shared_with?(u)).to eq(true)
       expect(u.settings['preferences']['sidebar_boards'].length).to eq(2)
     end
     

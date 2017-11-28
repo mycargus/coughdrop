@@ -72,6 +72,8 @@
   <ul class='nav nav-pills' style="margin-bottom: 15px; margin-top: 20px;">
     {{#if model.admin}}
       <li class={{if show_organizations 'active'}}><a href="#" {{action 'pick' 'organizations'}}>{{t "Organizations" key='organizations'}}</a></li>
+    {{else if model.children_orgs}}
+      <li class={{if show_organizations 'active'}}><a href="#" {{action 'pick' 'organizations'}}>{{t "Organizations" key='organizations'}}</a></li>
     {{/if}}
     <li class={{if show_managers 'active'}}><a href="#" {{action 'pick' 'managers'}}>{{t "Managers" key='managers'}}</a></li>
     <li class={{if show_supervisors 'active'}}><a href="#" {{action 'pick' 'supervisors'}}>{{t "Supervisors" key='supervisors'}}</a></li>
@@ -236,7 +238,25 @@
   {{/if}}
 
   {{#if show_organizations}}
-    {{#if model.admin}}
+    {{#if model.children_orgs}}
+      <p>
+        {{t "sub-organization" key='organizations' count=model.children_orgs.length}}
+      </p>
+      <table class="table table-hover" style="width: 400px;">
+        <tbody>
+          {{#each model.children_orgs as |org|}}
+            <tr>
+              <td style='font-size: 20px;'>
+                {{#link-to 'organization' org.id}}
+                  <span class='glyphicon glyphicon-paperclip' style="font-size: 25px; vertical-align: middle;"></span>
+                  {{org.name}}
+                {{/link-to}}
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    {{else if model.admin}}
       {{#if model.permissions.manage}}
         {{#if orgs.data}}
           <p>

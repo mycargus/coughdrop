@@ -2,17 +2,18 @@ require 'spec_helper'
 
 describe UserGoal, type: :model do
   it "should honor permissions" do
-    g = UserGoal.new
+    g = UserGoal.create
     expect(g.permissions_for(nil)).to eq({'user_id' => nil})
     u = User.create
     expect(g.permissions_for(u)).to eq({'user_id' => u.global_id})
     g.user = u
+    g.save
     expect(g.permissions_for(u)).to eq({'user_id' => u.global_id, 'view' => true, 'comment' => true, 'edit' => true})
     u2 = User.create
     User.link_supervisor_to_user(u2, u, nil, false)
-    expect(g.permissions_for(u2.reload)).to eq({'user_id' => u2.global_id, 'view' => true, 'comment' => true})
+    expect(g.reload.permissions_for(u2)).to eq({'user_id' => u2.global_id, 'view' => true, 'comment' => true})
     User.link_supervisor_to_user(u2, u, nil, true)
-    expect(g.permissions_for(u2.reload)).to eq({'user_id' => u2.global_id, 'view' => true, 'comment' => true, 'edit' => true})
+    expect(g.reload.permissions_for(u2.reload)).to eq({'user_id' => u2.global_id, 'view' => true, 'comment' => true, 'edit' => true})
   end
   
   describe "generate_defaults" do

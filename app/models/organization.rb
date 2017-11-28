@@ -7,6 +7,7 @@ class Organization < ActiveRecord::Base
   include Notifier
   secure_serialize :settings
   before_save :generate_defaults
+  after_save :touch_parent
   replicated_model  
   
   # cache should be invalidated if:
@@ -14,6 +15,7 @@ class Organization < ActiveRecord::Base
   add_permissions('view') { self.settings && self.settings['public'] == true }
   add_permissions('view', 'edit') {|user| self.assistant?(user) }
   add_permissions('view', 'edit', 'manage') {|user| self.manager?(user) }
+  add_permissions('view', 'edit', 'manage') {|user| self.upstream_manager?(user) }
   add_permissions('view', 'edit', 'manage', 'update_licenses', 'manage_subscription') {|user| Organization.admin && Organization.admin.manager?(user) }
   add_permissions('view') {|user| self.supervisor?(user) }
   add_permissions('delete') {|user| Organization.admin && !self.admin && Organization.admin.manager?(user) }
@@ -202,6 +204,12 @@ class Organization < ActiveRecord::Base
     !!links.detect{|l| l['type'] == 'org_manager' && l['record_code'] == Webhook.get_record_code(self) && l['user_id'] == user.global_id && l['state']['full_manager'] }
   end
   
+  def upstream_manager?(user)
+    org_record_codes = self.upstream_orgs.map{|o| Webhook.get_record_code(o) }
+    links = UserLink.links_for(user)
+    !!links.detect{|l| l['type'] == 'org_manager' && org_record_codes.include?(l['record_code']) && l['user_id'] == user.global_id && l['state']['full_manager'] }
+  end
+  
   def assistant?(user)
     links = UserLink.links_for(user)
     !!links.detect{|l| l['type'] == 'org_manager' && l['record_code'] == Webhook.get_record_code(self) && l['user_id'] == user.global_id }
@@ -301,9 +309,75 @@ class Organization < ActiveRecord::Base
     if (manager_orgs & user_orgs).length > 0
       # if user and manager are part of the same org
       return true
-    else
-      return admin_manager?(manager)
+    elsif manager_orgs.length > 0
+      return true if admin_manager?(manager)
+      if user_orgs.length > 0
+        # check for any user orgs higher in the hierarchy
+        more_user_record_codes = user_orgs.dup
+        last_user_record_codes = []
+        while last_user_record_codes.length != more_user_record_codes.length
+          last_user_record_codes = more_user_record_codes.dup
+          orgs = Organization.find_all_by_global_id(more_user_record_codes.map{|c| c.split(/:/)[1] })
+          parent_ids = orgs.map{|o| o.parent_org_id }.compact.uniq
+          more_user_record_codes += parent_ids.map{|id| "Organization:#{id}" }
+          more_user_record_codes.uniq!
+        end
+        return true if (manager_orgs & more_user_record_codes).length > 0
+      end
     end
+    return admin_manager?(manager)
+  end
+  
+  def touch_parent
+    return unless self.parent_organization_id
+    Organization.where(id: self.parent_organization_id).update_all(updated_at: Time.now)
+    true
+  end
+  
+  def parent_org_id
+    return nil unless self.parent_organization_id
+    self.related_global_id(self.parent_organization_id)
+  end
+  
+  def upstream_orgs
+    return [] unless self.parent_organization_id
+    org_ids = []
+    org = self
+    while org && org.parent_org_id && !org_ids.include?(org.parent_org_id)
+      org = Organization.find_by_global_id(org.parent_org_id)
+      org_ids << org.global_id if org
+      org_ids.uniq!
+    end
+    Organization.find_all_by_global_id(org_ids - [self.global_id])
+  end
+  
+  def has_children?
+    cache_key = "org/has_children/#{self.global_id}/#{self.updated_at.to_f}"
+    cached_data = JSON.parse(Permissable.permissions_redis.get(cache_key)) rescue nil
+    return cached_data['result'] if cached_data != nil
+    # TODO: sharding
+    res = Organization.where(parent_organization_id: self.id).count > 0
+    expires = 72.hours.to_i
+    Permissable.permissions_redis.setex(cache_key, expires, {result: res}.to_json)
+    res
+  end
+  
+  def children_orgs
+    return [] unless self.has_children?
+    # TODO: sharding
+    Organization.where(parent_organization_id: self.id)
+  end
+  
+  def downstream_orgs
+    return [] unless self.has_children?
+    list = [self]
+    last_list = []
+    while list.length != last_list.length
+      last_list = list.dup
+      list += list.map(&:children_orgs).flatten.compact
+      list.uniq!
+    end
+    list - [self]
   end
   
   def self.admin_manager?(manager)

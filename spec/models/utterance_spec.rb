@@ -79,6 +79,8 @@ describe Utterance, :type => :model do
       u1 = User.create
       u2 = User.create
       User.link_supervisor_to_user(u2, u1)
+      u1.reload
+      u2.reload
       button_list = [
         {'label' => 'hat', 'image' => 'http://www.example.com/pib.png'},
         {'label' => 'cat', 'image' => 'http://www.example.com/pib.png'},

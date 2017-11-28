@@ -256,6 +256,8 @@ module Supervising
 #         'supervisees' => supervisor.settings['supervisees']
 #       })
       supervisor.schedule_once(:update_available_boards)
+      user.save
+      supervisor.save
     end
   end
 end

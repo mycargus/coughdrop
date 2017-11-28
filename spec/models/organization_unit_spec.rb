@@ -44,10 +44,10 @@ describe OrganizationUnit, :type => :model do
       u = User.create
       o.add_supervisor(u.user_name, false)
       u.reload
-      expect(ou.permissions_for(u)['view_stats']).to eq(nil)
+      expect(ou.reload.permissions_for(u)['view_stats']).to eq(nil)
       expect(ou.add_supervisor(u.user_name)).to eq(true)
       u.reload
-      expect(ou.permissions_for(u)['view_stats']).to eq(true)
+      expect(ou.reload.permissions_for(u)['view_stats']).to eq(true)
     end
     
     it "should not allow assistants to view_stats" do
@@ -169,7 +169,7 @@ describe OrganizationUnit, :type => :model do
       expect(ou.add_supervisor(u.user_name, true)).to eq(true)
       expect(ou.add_supervisor(u.user_name, false)).to eq(true)
       expect(ou.settings['supervisors']).to eq([{'user_id' => u.global_id}])
-      expect(UserLink.links_for(ou)).to eq([{
+      expect(UserLink.links_for(ou.reload)).to eq([{
         'user_id' => u.global_id,
         'record_code' => Webhook.get_record_code(ou),
         'type' => 'org_unit_supervisor',
@@ -228,12 +228,16 @@ describe OrganizationUnit, :type => :model do
       ou = OrganizationUnit.create(:settings => {}, organization: o)
       expect(ou.all_user_ids).to eq([])
       ou.settings['supervisors'] = []
+      ou.save
       expect(ou.all_user_ids).to eq([])
       ou.settings['communicators'] = []
+      ou.save
       expect(ou.all_user_ids).to eq([])
       ou.settings['supervisors'] = [{'user_id' => 'asdf'}]
+      ou.save
       expect(ou.all_user_ids).to eq(['asdf'])
       ou.settings['communicators'] = [{'user_id' => 'asdf'}, {'user_id' => 'jkl'}]
+      ou.save
       expect(ou.all_user_ids).to eq(['asdf', 'jkl'])
       ou.save
       u1 = User.create
@@ -243,7 +247,7 @@ describe OrganizationUnit, :type => :model do
       u2 = User.create
       o.add_user(u2.global_id, false, false)
       expect(ou.add_communicator(u2.global_id)).to eq(true)
-      expect(ou.all_user_ids.sort).to eq([u1.global_id, u2.global_id, 'asdf', 'jkl'])
+      expect(ou.reload.all_user_ids.sort).to eq([u1.global_id, u2.global_id, 'asdf', 'jkl'])
     end
   end
   
@@ -371,7 +375,7 @@ describe OrganizationUnit, :type => :model do
       expect(ou.add_communicator(u.user_name)).to eq(true)
       expect(ou.add_communicator(u.user_name)).to eq(true)
       expect(ou.settings['communicators']).to eq([{'user_id' => u.global_id}])
-      expect(UserLink.links_for(ou)).to eq([{
+      expect(UserLink.links_for(ou.reload)).to eq([{
         'user_id' => u.global_id,
         'record_code' => Webhook.get_record_code(ou),
         'type' => 'org_unit_communicator',
@@ -683,7 +687,7 @@ describe OrganizationUnit, :type => :model do
       expect(ou.communicator?(u)).to eq(false)
       o.add_user(u.user_name, false, false)
       ou.add_communicator(u.user_name)
-      expect(ou.communicator?(u)).to eq(true)
+      expect(ou.reload.communicator?(u.reload)).to eq(true)
     end
   end
   
@@ -698,7 +702,7 @@ describe OrganizationUnit, :type => :model do
       expect(ou.supervisor?(u)).to eq(false)
       o.add_supervisor(u.user_name, false)
       ou.add_supervisor(u.user_name)
-      expect(ou.supervisor?(u)).to eq(true)
+      expect(ou.reload.supervisor?(u.reload)).to eq(true)
     end
   end
   

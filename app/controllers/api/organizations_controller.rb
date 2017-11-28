@@ -47,7 +47,11 @@ class Api::OrganizationsController < ApplicationController
     return unless allowed?(org, 'edit')
 
     approved_users = org.approved_users(false)
-    res = Organization.usage_stats(approved_users, org.admin?)
+    # if it's a shell org, go ahead and report on its children
+    if approved_users.count == 0
+      approved_users += org.downstream_orgs.map{|o| o.approved_users(false) }.flatten
+    end
+    res = Organization.usage_stats(approved_users.uniq, org.admin?)
     
     render json: res.to_json
   end
@@ -73,6 +77,10 @@ class Api::OrganizationsController < ApplicationController
       if !org.admin?
         # TODO: sharding
         users = users.where(:id => org.approved_users(false).map(&:id))
+        # if it's a shell org, go ahead and report on its children
+        if users.count == 0
+          users += org.downstream_orgs.map{|o| o.approved_users(false) }.flatten
+        end
       end
       users = users.select{|u| u.devices.where(['updated_at < ?', x.months.ago]).count > 0 }
     elsif params['report'] == 'setup_but_expired'

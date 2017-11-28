@@ -367,8 +367,10 @@ describe JsonApi::User do
         expect(hash['supervisors'][0]['edit_permission']).to eq(false)
 
         u.settings['supervisors'] = [{'user_id' => u2.global_id, 'edit_permission' => true}]
+        u.save
         u2.settings['supervisees'] = [{'user_id' => u.global_id, 'edit_permission' => true}]
         u2.save
+
         expect(u2.edit_permission_for?(u)).to eq(true)
         hash = JsonApi::User.build_json(u, permissions: u)
         expect(hash['permissions']).not_to eq(nil)
@@ -380,6 +382,7 @@ describe JsonApi::User do
         expect(hash['supervisors'][0]['edit_permission']).to eq(true)
         
         u.settings['supervisors'] = nil
+        u.save
         hash = JsonApi::User.build_json(u, permissions: u)
         expect(hash['permissions']).not_to eq(nil)
         expect(hash['supervisors']).to eq(nil)
@@ -402,7 +405,8 @@ describe JsonApi::User do
         expect(hash['supervisees'][0]['user_name']).to eq(u2.user_name)
         
         u.settings['supervisees'] = nil
-        hash = JsonApi::User.build_json(u, permissions: u)
+        u.save
+        hash = JsonApi::User.build_json(u.reload, permissions: u)
         expect(hash['permissions']).not_to eq(nil)
         expect(hash['supervisees']).to eq(nil)
       end

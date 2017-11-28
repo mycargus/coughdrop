@@ -151,7 +151,7 @@ describe Renaming, :type => :model do
         expect(u2.settings['boards_shared_with_me']).to eq(nil)
         b.reload.rename_to("#{u.user_name}/bestest")
         Worker.process_queues
-        expect(UserLink.links_for(u2)).to eq([{
+        expect(UserLink.links_for(u2.reload)).to eq([{
           'user_id' => u2.global_id,
           'record_code' => Webhook.get_record_code(b),
           'type' => 'board_share',
@@ -200,7 +200,7 @@ describe Renaming, :type => :model do
         u2 = User.create
         b = Board.create(:user => u)
         b.share_with(u2)
-        expect(UserLink.links_for(u)).to eq([{
+        expect(UserLink.links_for(u.reload)).to eq([{
           'user_id' => u2.global_id,
           'record_code' => Webhook.get_record_code(b),
           'type' => 'board_share',
@@ -215,7 +215,7 @@ describe Renaming, :type => :model do
         expect(u.reload.settings['boards_i_shared']).to eq(nil)
         u2.rename_to("janice")
         Worker.process_queues
-        expect(UserLink.links_for(u)).to eq([{
+        expect(UserLink.links_for(u.reload)).to eq([{
           'user_id' => u2.global_id,
           'record_code' => Webhook.get_record_code(b),
           'type' => 'board_share',
@@ -235,7 +235,7 @@ describe Renaming, :type => :model do
         u2 = User.create
         b = Board.create(:user => u)
         b.share_with(u2)
-        expect(UserLink.links_for(u)).to eq([{
+        expect(UserLink.links_for(u.reload)).to eq([{
           'user_id' => u2.global_id,
           'record_code' => Webhook.get_record_code(b),
           'type' => 'board_share',
@@ -250,7 +250,7 @@ describe Renaming, :type => :model do
         expect(u.reload.settings['boards_i_shared']).to eq(nil)
         u.rename_to("janice")
         Worker.process_queues
-        expect(UserLink.links_for(u)).to eq([{
+        expect(UserLink.links_for(u.reload)).to eq([{
           'user_id' => u2.global_id,
           'record_code' => Webhook.get_record_code(b),
           'type' => 'board_share',
