@@ -205,9 +205,11 @@ describe JsonApi::User do
           'never_expires' => true,
           'active' => true
         })
+        expect(u.expires_at).to_not eq(nil)
         
         o.add_user(u.user_name, false, true)
         u.reload
+        expect(u.expires_at).to eq(nil)
         u.settings['subscription']['never_expires'] = false
         json = JsonApi::User.build_json(u, permissions: u)
         expect(json['subscription']).to eq({

@@ -26,8 +26,9 @@ describe Subscription, :type => :model do
       u.settings['subscription']['never_expires'] = false
       u.settings['managed_by'] = {'1_1' => {'pending' => false, 'sponsored' => true}}
       u.settings['subscription'] = {}
-      u.settings['subscription']['org_sponsored'] = true
+      expect(u).to receive(:org_sponsored?).and_return(true)
       expect(u.grace_period?).to eq(false)
+      expect(u).to receive(:org_sponsored?).and_return(false).at_least(1).times
       u.settings['managed_by'] = nil
       u.settings['subscription'] = {}
       expect(u.grace_period?).to eq(true)
@@ -406,7 +407,7 @@ describe Subscription, :type => :model do
       u.settings['managed_by'] = {}
       u.settings['managed_by'][o.global_id] = {'pending' => false, 'sponsored' => true}
       expect(UserMailer).to receive(:schedule_delivery).with(:organization_unassigned, u.global_id, o.global_id)
-      u.update_subscription_organization(nil)
+      u.update_subscription_organization("r#{o.global_id}")
     end
     
     it "should not notify if no org set before or now" do
@@ -421,8 +422,10 @@ describe Subscription, :type => :model do
       u.settings['managed_by'] = {}
       u.settings['managed_by'][o.global_id] = {'pending' => false, 'sponsored' => true}
       u.settings['subscription']['org_sponsored'] = true
+      u.save
       expect(UserMailer).to receive(:schedule_delivery).with(:organization_unassigned, u.global_id, o.global_id)
-      u.update_subscription_organization(nil)
+      expect(Organization.sponsored?(u)).to eq(true)
+      u.update_subscription_organization("r#{o.global_id}")
       expect(u.expires_at.to_i).to eq(12.weeks.from_now.to_i)
     end
     
@@ -433,8 +436,9 @@ describe Subscription, :type => :model do
       u.settings['managed_by'][o.global_id] = {'pending' => false, 'sponsored' => true}
       u.settings['subscription']['org_sponsored'] = true
       expect(UserMailer).to receive(:schedule_delivery).with(:organization_unassigned, u.global_id, o.global_id)
-      u.update_subscription_organization(nil)
-      expect(u.expires_at.to_i).to eq(2.weeks.from_now.to_i)
+      u.update_subscription_organization("r#{o.global_id}")
+      expect(u.expires_at.to_i).to be > (2.weeks.from_now.to_i - 10)
+      expect(u.expires_at.to_i).to be < (2.weeks.from_now.to_i + 10)
     end
     
     it "should update settings when removing from an org" do
@@ -445,8 +449,9 @@ describe Subscription, :type => :model do
       u.expires_at = nil
       u.settings['subscription']['org_sponsored'] = true
       expect(UserMailer).to receive(:schedule_delivery).with(:organization_unassigned, u.global_id, o.global_id)
-      u.update_subscription_organization(nil)
-      expect(u.expires_at.to_i).to eq(2.weeks.from_now.to_i)
+      u.update_subscription_organization("r#{o.global_id}")
+      expect(u.expires_at.to_i).to be > (2.weeks.from_now.to_i - 10)
+      expect(u.expires_at.to_i).to be < (2.weeks.from_now.to_i + 10)
       expect(u.settings['subscription']['started']).to eq(nil)
       expect(u.settings['subscription']['added_to_organization']).to eq(nil)
     end
@@ -456,7 +461,18 @@ describe Subscription, :type => :model do
       o = Organization.create
       expect(UserMailer).to receive(:schedule_delivery).with(:organization_assigned, u.global_id, o.global_id)
       u.update_subscription_organization(o.global_id, true)
-      expect(u.settings['subscription']['org_pending']).to eq(true)
+      links = UserLink.links_for(u)
+      expect(links).to eq([{
+        'user_id' => u.global_id,
+        'record_code' => Webhook.get_record_code(o),
+        'type' => 'org_user',
+        'state' => {
+          'pending' => true,
+          'sponsored' => true,
+          'eval' => false,
+          'added' => links[0]['state']['added']
+        }
+      }])
       expect(u.expires_at).to eq(nil)
       expect(u.settings['subscription']['added_to_organization']).to eql(Time.now.iso8601)
       expect(Worker.scheduled?(User, :perform_action, {'id' => u.id, 'method' => 'subscription_token', 'arguments' => ['token', 'unsubscribe']})).to eq(false)
@@ -467,7 +483,18 @@ describe Subscription, :type => :model do
       o = Organization.create
       expect(UserMailer).to receive(:schedule_delivery).with(:organization_assigned, u.global_id, o.global_id)
       u.update_subscription_organization(o.global_id, false, false)
-      expect(u.settings['subscription']['org_sponsored']).to eq(false)
+      links = UserLink.links_for(u)
+      expect(links).to eq([{
+        'user_id' => u.global_id,
+        'record_code' => Webhook.get_record_code(o),
+        'type' => 'org_user',
+        'state' => {
+          'pending' => false,
+          'sponsored' => false,
+          'eval' => false,
+          'added' => links[0]['state']['added']
+        }
+      }])
       expect(u.expires_at).to_not eq(nil)
       expect(u.settings['subscription']['added_to_organization']).to eql(Time.now.iso8601)
       expect(Worker.scheduled?(User, :perform_action, {'id' => u.id, 'method' => 'subscription_token', 'arguments' => ['token', 'unsubscribe']})).to eq(false)

@@ -189,7 +189,8 @@ class UserLink < ApplicationRecord
       end
     elsif record.is_a?(Organization)
       # include org connections
-      record.settings['attached_user_ids'].each do |type|
+      record.settings ||= {}
+      (record.settings['attached_user_ids'] || {}).each do |type|
         type.each do |user_id|
           if type == 'user'
             sponsored = !!record.settings['attached_user_ids']['sponsored_user'].detect{|id| id == user_id }
@@ -201,7 +202,8 @@ class UserLink < ApplicationRecord
               'old_school' => true,
               'state' => {
                 'pending' => !approved,
-                'sponsored' => sponsored
+                'sponsored' => sponsored,
+                'eval' => false
               }
             }
           elsif type == 'manager'
@@ -249,12 +251,12 @@ class UserLink < ApplicationRecord
       end
       (record.settings['communicators'] || []).each do |com|
         res << {
-          'user_id' => sup['user_id'],
+          'user_id' => com['user_id'],
           'record_code' => record_code,
           'type' => 'org_unit_communicator',
           'old_school' => true,
           'state' => {
-            'user_name' => sup['user_name']
+            'user_name' => com['user_name']
           }
         }
       end

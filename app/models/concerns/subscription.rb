@@ -66,40 +66,37 @@ module Subscription
     true
   end
   
-  def update_subscription_organization(org_id, pending=false, sponsored=true)
+  def update_subscription_organization(org_id, pending=false, sponsored=true, eval_account=false)
     # used to pause subscription when the user is adopted by an organization, 
     # and possibly to resume the subscription when the user is dropped by an organization.
     prior_org = self.managing_organization
-    if org_id
+    link = nil
+    if org_id && (!org_id.is_a?(String) || !org_id.match(/^r/))
       new_org = org_id.is_a?(Organization) ? org_id : Organization.find_by_global_id(org_id)
       if new_org && self.settings['authored_organization_id'] == new_org.global_id && self.created_at > 2.weeks.ago
         pending = false
       end
       self.settings['subscription'] ||= {}
       if new_org
-        Organization.detach_user(self, 'user', new_org)
+#        Organization.detach_user(self, 'user', new_org)
       end
       if sponsored
         self.clear_existing_subscription(:track_seconds_left => true)
       end
-      self.settings['subscription']['org_sponsored'] = sponsored
       self.settings['subscription']['added_to_organization'] = Time.now.iso8601
-      self.settings['subscription']['org_pending'] = pending || false
+      self.settings['subscription']['eval_account'] = true if eval_account
       self.settings['preferences'] ||= {}
       self.settings['preferences']['role'] = 'communicator'
       self.settings['pending'] = false
       if new_org
-        new_org.attach_user(self, 'user', {'approved_user' => !pending, 'sponsored_user' => sponsored})
-        self.settings['managed_by'] = {}
-        # if already there and not pending, don't re-set to pending
-        if self.settings['managed_by'][new_org.global_id] && !self.settings['managed_by'][new_org.global_id]['pending']
+        link = UserLink.generate(self, new_org, 'org_user')
+        if link.id && !link.data['state']['pending']
           pending = false
         end
-        self.settings['managed_by'][new_org.global_id] = {
-          'added' => Time.now.iso8601,
-          'sponsored' => sponsored,
-          'pending' => pending
-        }
+        link.data['state']['added'] ||= Time.now.iso8601
+        link.data['state']['pending'] = !!pending unless pending == nil
+        link.data['state']['sponsored'] = !!sponsored unless sponsored == nil
+        link.data['state']['eval'] = !!eval_account unless eval_account == nil
         if sponsored && !pending
           self.expires_at = nil
           self.schedule(:process_subscription_token, 'token', 'unsubscribe')
@@ -108,18 +105,27 @@ module Subscription
       if !prior_org || prior_org != new_org
         UserMailer.schedule_delivery(:organization_assigned, self.global_id, new_org && new_org.global_id)
       end
+      self.assert_current_record!
+      res = self.save
+      link.save if link
+      return res
     else
-      self.settings['subscription'] ||= {}
-      Organization.detach_user(self, 'user')
-      self.clear_existing_subscription(:allow_grace_period => true) if self.org_sponsored?
-      # self.schedule(:update_subscription, {'resume' => true})
-      if prior_org
-        UserMailer.schedule_delivery(:organization_unassigned, self.global_id, prior_org && prior_org.global_id)
+      was_sponsored = self.org_sponsored?
+      if org_id
+        org_to_remove = Organization.find_by_global_id(org_id.sub(/^r/, ''))
+        if org_to_remove
+          org_to_remove.detach_user(self, 'user')
+          UserMailer.schedule_delivery(:organization_unassigned, self.global_id, prior_org && prior_org.global_id)
+        end
       end
+      self.reload
+      self.settings['subscription'] ||= {}
+      self.clear_existing_subscription(:allow_grace_period => true) if was_sponsored && !self.org_sponsored?
+      self.save
+      # self.schedule(:update_subscription, {'resume' => true})
     end
-    self.assert_current_record!
-    self.save
   rescue ActiveRecord::StaleObjectError
+    puts "stale :-/"
     self.schedule(:update_subscription_organization, org_id, pending, sponsored)
   end
   

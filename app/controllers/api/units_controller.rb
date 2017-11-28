@@ -29,7 +29,7 @@ class Api::UnitsController < ApplicationController
     return unless exists?(unit, params['unit_id'])
     return unless allowed?(unit, 'view_stats')
 
-    user_ids = (unit.settings['communicators'] || []).map{|s| s['user_id'] }
+    user_ids = UserLink.links_for(unit).select{|l| l['type'] == 'org_unit_communicator' }.map{|l| l['user_id'] }
     approved_users = User.find_all_by_global_id(user_ids)
     res = Organization.usage_stats(approved_users, false)
 
@@ -56,7 +56,7 @@ class Api::UnitsController < ApplicationController
     unit = OrganizationUnit.find_by_global_id(params['unit_id'])
     return unless exists?(unit, params['unit_id'])
     return unless allowed?(unit, 'view_stats')
-    user_ids = (unit.settings['communicators'] || []).map{|s| s['user_id'] }
+    user_ids = UserLink.links_for(unit).select{|l| l['type'] == 'org_unit_communicator' }.map{|l| l['user_id'] }
     approved_users = User.find_all_by_global_id(user_ids)
     # TODO: sharding
     logs = LogSession.where(:user_id => approved_users.map(&:id)).order(id: :desc)

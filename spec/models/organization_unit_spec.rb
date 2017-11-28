@@ -136,9 +136,16 @@ describe OrganizationUnit, :type => :model do
       u = User.create
       o.add_supervisor(u.user_name)
       expect(ou.add_supervisor(u.user_name, true)).to eq(true)
-      expect(ou.settings['supervisors'].length).to eq(1)
-      expect(ou.settings['supervisors'][0]['user_id']).to eq(u.global_id)
-      expect(ou.settings['supervisors'][0]['edit_permission']).to eq(true)
+      expect(ou.settings['supervisors']).to eq(nil)
+      expect(UserLink.links_for(ou)).to eq([{
+        'user_id' => u.global_id,
+        'record_code' => Webhook.get_record_code(ou),
+        'type' => 'org_unit_supervisor', 
+        'state' => {
+          'edit_permission' => true,
+          'user_name' => u.user_name
+        }
+      }])
     end
     
     it "should not duplicate the user in the list of supervisors" do
@@ -147,11 +154,39 @@ describe OrganizationUnit, :type => :model do
       u = User.create
       ou.settings['supervisors'] = [{'user_id' => u.global_id}]
       ou.save
+      expect(UserLink.links_for(ou)).to eq([{
+        'user_id' => u.global_id,
+        'record_code' => Webhook.get_record_code(ou),
+        'type' => 'org_unit_supervisor',
+        'old_school' => true,
+        'state' => {
+          'user_name' => nil,
+          'edit_permission' => nil
+        }
+      }])
       o.add_supervisor(u.user_name)
       expect(ou.add_supervisor(u.user_name, true)).to eq(true)
       expect(ou.add_supervisor(u.user_name, true)).to eq(true)
-      expect(ou.add_supervisor(u.user_name, true)).to eq(true)
-      expect(ou.settings['supervisors'].length).to eq(1)
+      expect(ou.add_supervisor(u.user_name, false)).to eq(true)
+      expect(ou.settings['supervisors']).to eq([{'user_id' => u.global_id}])
+      expect(UserLink.links_for(ou)).to eq([{
+        'user_id' => u.global_id,
+        'record_code' => Webhook.get_record_code(ou),
+        'type' => 'org_unit_supervisor',
+        'state' => {
+          'user_name' => u.user_name,
+          'edit_permission' => true
+        }
+      }, {
+        'user_id' => u.global_id,
+        'record_code' => Webhook.get_record_code(ou),
+        'type' => 'org_unit_supervisor',
+        'old_school' => true,
+        'state' => {
+          'user_name' => nil,
+          'edit_permission' => nil
+        }
+      }])
     end
     
     it "should schedule supervisor assertion" do
@@ -189,7 +224,8 @@ describe OrganizationUnit, :type => :model do
   
   describe "all_user_ids" do
     it "should return all supervisors and communicators" do
-      ou = OrganizationUnit.new(:settings => {})
+      o = Organization.create
+      ou = OrganizationUnit.create(:settings => {}, organization: o)
       expect(ou.all_user_ids).to eq([])
       ou.settings['supervisors'] = []
       expect(ou.all_user_ids).to eq([])
@@ -199,6 +235,15 @@ describe OrganizationUnit, :type => :model do
       expect(ou.all_user_ids).to eq(['asdf'])
       ou.settings['communicators'] = [{'user_id' => 'asdf'}, {'user_id' => 'jkl'}]
       expect(ou.all_user_ids).to eq(['asdf', 'jkl'])
+      ou.save
+      u1 = User.create
+      o.add_supervisor(u1.global_id, false)
+      expect(ou.add_supervisor(u1.global_id)).to eq(true)
+      expect(ou.all_user_ids).to eq([u1.global_id, 'asdf', 'jkl'])
+      u2 = User.create
+      o.add_user(u2.global_id, false, false)
+      expect(ou.add_communicator(u2.global_id)).to eq(true)
+      expect(ou.all_user_ids.sort).to eq([u1.global_id, u2.global_id, 'asdf', 'jkl'])
     end
   end
   
@@ -219,6 +264,18 @@ describe OrganizationUnit, :type => :model do
       expect(ou.remove_supervisor(u.global_id)).to eq(true)
       expect(ou.settings['supervisors'].length).to eq(1)
       expect(ou.settings['supervisors'].map{|s| s['user_id'] }).to eq(['asdf'])
+    end
+
+    it "should remove from the list of linked supervisors" do
+      o = Organization.create
+      u = User.create
+      ou = OrganizationUnit.create(:organization => o)
+      o.add_supervisor(u.global_id, false)
+      expect(ou.add_supervisor(u.global_id, false)).to eq(true)
+      expect(UserLink.count).to eq(2)
+      expect(ou.remove_supervisor(u.global_id)).to eq(true)
+      expect(ou.settings['supervisors']).to eq([])
+      expect(UserLink.count).to eq(1)
     end
     
     it "should schedule supervisor assertion" do
@@ -282,8 +339,15 @@ describe OrganizationUnit, :type => :model do
       u = User.create
       o.add_user(u.user_name, false, false)
       expect(ou.add_communicator(u.user_name)).to eq(true)
-      expect(ou.settings['communicators'].length).to eq(1)
-      expect(ou.settings['communicators'][0]['user_id']).to eq(u.global_id)
+      expect(ou.settings['communicators']).to eq(nil)
+      expect(UserLink.links_for(ou)).to eq([{
+        'user_id' => u.global_id,
+        'record_code' => Webhook.get_record_code(ou),
+        'type' => 'org_unit_communicator',
+        'state' => {
+          'user_name' => u.user_name
+        }
+      }])
     end
     
     it "should not duplicate the user in the list" do
@@ -292,11 +356,37 @@ describe OrganizationUnit, :type => :model do
       u = User.create
       ou.settings['communicators'] = [{'user_id' => u.global_id}]
       ou.save
+      expect(UserLink.links_for(ou)).to eq([{
+        'user_id' => u.global_id,
+        'record_code' => Webhook.get_record_code(ou),
+        'type' => 'org_unit_communicator',
+        'old_school' => true,
+        'state' => {
+          'user_name' => nil
+        }
+      }])
+
       o.add_user(u.user_name, false, false)
       expect(ou.add_communicator(u.user_name)).to eq(true)
       expect(ou.add_communicator(u.user_name)).to eq(true)
       expect(ou.add_communicator(u.user_name)).to eq(true)
-      expect(ou.settings['communicators'].length).to eq(1)
+      expect(ou.settings['communicators']).to eq([{'user_id' => u.global_id}])
+      expect(UserLink.links_for(ou)).to eq([{
+        'user_id' => u.global_id,
+        'record_code' => Webhook.get_record_code(ou),
+        'type' => 'org_unit_communicator',
+        'state' => {
+          'user_name' => u.user_name
+        }
+      }, {
+        'user_id' => u.global_id,
+        'record_code' => Webhook.get_record_code(ou),
+        'type' => 'org_unit_communicator',
+        'old_school' => true,
+        'state' => {
+          'user_name' => nil
+        }
+      }])
     end
     
     it "should schedule supervisor assertion" do
@@ -382,21 +472,21 @@ describe OrganizationUnit, :type => :model do
     end
   end
   
-  describe "assert_list" do
-    it "should update the list correctly" do
-      ou = OrganizationUnit.new(:settings => {
-        'supervisors' => [{'user_id' => 'asdf'}, {'user_id' => 'jkl'}, {'user_id' => 'jkl'}]
-      })
-      ou.assert_list('supervisors', 'jkl')
-      expect(ou.settings['supervisors']).to eq([{'user_id' => 'asdf'}])
-    end
-    
-    it "should handle when list not initialized" do
-      ou = OrganizationUnit.new(:settings => {})
-      ou.assert_list('something', nil)
-      expect(ou.settings['something']).to eq([])
-    end
-  end  
+#   describe "assert_list" do
+#     it "should update the list correctly" do
+#       ou = OrganizationUnit.new(:settings => {
+#         'supervisors' => [{'user_id' => 'asdf'}, {'user_id' => 'jkl'}, {'user_id' => 'jkl'}]
+#       })
+#       ou.assert_list('supervisors', 'jkl')
+#       expect(ou.settings['supervisors']).to eq([{'user_id' => 'asdf'}])
+#     end
+#     
+#     it "should handle when list not initialized" do
+#       ou = OrganizationUnit.new(:settings => {})
+#       ou.assert_list('something', nil)
+#       expect(ou.settings['something']).to eq([])
+#     end
+#   end  
   
   describe "assert_supervision!" do
     it "should update missing connections" do
@@ -489,8 +579,9 @@ describe OrganizationUnit, :type => :model do
         'communicators' => [{'user_id' => u1.global_id}, {'user_id' => u2.global_id}],
         'supervisors' => [{'user_id' => u3.global_id}, {'user_id' => u4.global_id}]
       }
-      expect(User).to receive(:unlink_supervisor_from_user).with(u4, u1, nil)
-      expect(User).to receive(:unlink_supervisor_from_user).with(u4, u2, nil)
+      ou.save
+      expect(User).to receive(:unlink_supervisor_from_user).with(u4, u1, ou.global_id)
+      expect(User).to receive(:unlink_supervisor_from_user).with(u4, u2, ou.global_id)
       ou.assert_supervision({'user_id' => u4.global_id, 'remove_supervisor' => true})
     end
     
@@ -504,6 +595,7 @@ describe OrganizationUnit, :type => :model do
         'communicators' => [{'user_id' => u1.global_id}, {'user_id' => u2.global_id}],
         'supervisors' => [{'user_id' => u3.global_id}, {'user_id' => u4.global_id, 'edit_permission' => true}]
       }
+      ou.save
       expect(User).to receive(:link_supervisor_to_user).with(u4, u1, nil, true, ou.global_id)
       expect(User).to receive(:link_supervisor_to_user).with(u4, u2, nil, true, ou.global_id)
       ou.assert_supervision({'user_id' => u4.global_id, 'add_supervisor' => true})
@@ -519,6 +611,7 @@ describe OrganizationUnit, :type => :model do
         'communicators' => [{'user_id' => u1.global_id}, {'user_id' => u2.global_id}],
         'supervisors' => [{'user_id' => u3.global_id}, {'user_id' => u4.global_id, 'edit_permission' => true}]
       }
+      ou.save
       expect(User).to receive(:link_supervisor_to_user).with(u4, u1, nil, true, ou.global_id)
       expect(User).to receive(:link_supervisor_to_user).with(u3, u1, nil, false, ou.global_id)
       ou.assert_supervision({'user_id' => u1.global_id, 'add_communicator' => true})
@@ -534,8 +627,9 @@ describe OrganizationUnit, :type => :model do
         'communicators' => [{'user_id' => u1.global_id}, {'user_id' => u2.global_id}],
         'supervisors' => [{'user_id' => u3.global_id}, {'user_id' => u4.global_id}]
       }
-      expect(User).to receive(:unlink_supervisor_from_user).with(u4, u1, nil)
-      expect(User).to receive(:unlink_supervisor_from_user).with(u3, u1, nil)
+      ou.save
+      expect(User).to receive(:unlink_supervisor_from_user).with(u4, u1, ou.global_id)
+      expect(User).to receive(:unlink_supervisor_from_user).with(u3, u1, ou.global_id)
       ou.assert_supervision({'user_id' => u1.global_id, 'remove_communicator' => true})
     end
     
@@ -551,8 +645,9 @@ describe OrganizationUnit, :type => :model do
         'communicators' => [{'user_id' => u1.global_id}, {'user_id' => u2.global_id}],
         'supervisors' => [{'user_id' => u3.global_id}, {'user_id' => u4.global_id}]
       }
-      expect(User).to receive(:unlink_supervisor_from_user).with(u4, u1, nil)
-      expect(User).to receive(:unlink_supervisor_from_user).with(u3, u1, nil)
+      ou.save
+      expect(User).to receive(:unlink_supervisor_from_user).with(u4, u1, ou.global_id)
+      expect(User).to receive(:unlink_supervisor_from_user).with(u3, u1, ou.global_id)
       expect(User).to_not receive(:unlink_supervisor_from_user).with(u5, u1)
       ou.assert_supervision({'user_id' => u1.global_id, 'remove_communicator' => true})
     end
@@ -569,8 +664,9 @@ describe OrganizationUnit, :type => :model do
         'communicators' => [{'user_id' => u1.global_id}, {'user_id' => u2.global_id}],
         'supervisors' => [{'user_id' => u3.global_id}, {'user_id' => u4.global_id}]
       }
-      expect(User).to receive(:unlink_supervisor_from_user).with(u4, u1, nil)
-      expect(User).to receive(:unlink_supervisor_from_user).with(u4, u2, nil)
+      ou.save
+      expect(User).to receive(:unlink_supervisor_from_user).with(u4, u1, ou.global_id)
+      expect(User).to receive(:unlink_supervisor_from_user).with(u4, u2, ou.global_id)
       expect(User).to_not receive(:unlink_supervisor_from_user).with(u4, u5)
       ou.assert_supervision({'user_id' => u4.global_id, 'remove_supervisor' => true})
     end

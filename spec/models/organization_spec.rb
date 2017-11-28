@@ -61,7 +61,10 @@ describe Organization, :type => :model do
       o1.add_manager(u.user_name, true)
       o2.add_manager(u.user_name, true)
       u.reload
-      expect(u.settings['manager_for'].keys.sort).to eq([o1.global_id, o2.global_id].sort)
+      links = UserLink.links_for(u).sort_by{|l| l['record_code'] }
+      expect(links.length).to eq(2)
+      expect(links[0]['record_code']).to eq(Webhook.get_record_code(o1))
+      expect(links[1]['record_code']).to eq(Webhook.get_record_code(o2))
       expect(o1.reload.manager?(u)).to eq(true)
       expect(o2.reload.manager?(u)).to eq(true)
     end
@@ -213,11 +216,11 @@ describe Organization, :type => :model do
     end
     
     it "should remove from any units when removing" do
-      o = Organization.create
-      u1 = User.create
-      u2 = User.create
-      ou1 = OrganizationUnit.create(:organization => o)
-      ou2 = OrganizationUnit.create(:organization => o)
+      o = Organization.create!
+      u1 = User.create!
+      u2 = User.create!
+      ou1 = OrganizationUnit.create!(:organization => o)
+      ou2 = OrganizationUnit.create!(:organization => o)
       o.add_supervisor(u1.user_name, false)
       o.add_user(u1.user_name, false, false)
       o.add_user(u2.user_name, false, false)
@@ -233,12 +236,12 @@ describe Organization, :type => :model do
       expect(u2.reload.supervisor_user_ids).to eq([u1.global_id])
       expect(u2.reload.supervised_user_ids).to eq([])
       
-      expect(UserLink.count).to eq(2)
+      expect(UserLink.count).to eq(9)
       o.remove_supervisor(u1.user_name)
       
       Worker.process_queues
       Worker.process_queues
-      expect(UserLink.count).to eq(0)
+      expect(UserLink.count).to eq(4)
 
       expect(u1.reload.supervisor_user_ids).to eq([])
       expect(u1.reload.supervised_user_ids).to eq([])
@@ -253,6 +256,7 @@ describe Organization, :type => :model do
       u = User.new
       u.settings = {'managed_by' => {}}
       u.settings['managed_by'][o.global_id] = {'sponsored' => true, 'pending' => false}
+      u.save
       expect(o.sponsored_user?(u)).to eq(true)
     end
     
@@ -261,6 +265,7 @@ describe Organization, :type => :model do
       u = User.new
       u.settings = {'manager_for' => {}}
       u.settings['manager_for'][o.global_id] = {'full_manager' => true}
+      u.save
       expect(o.manager?(u)).to eq(true)
       expect(o.assistant?(u)).to eq(true)
     end
@@ -270,6 +275,7 @@ describe Organization, :type => :model do
       u = User.new
       u.settings = {'manager_for' => {}}
       u.settings['manager_for'][o.global_id] = {'full_manager' => false}
+      u.save
       expect(o.manager?(u)).to eq(false)
       expect(o.assistant?(u)).to eq(true)
     end
@@ -279,6 +285,7 @@ describe Organization, :type => :model do
       u = User.new
       u.settings = {'supervisor_for' => {}}
       u.settings['supervisor_for'][o.global_id] = {'pending' => false}
+      u.save
       expect(o.supervisor?(u)).to eq(true)
       expect(o.pending_supervisor?(u)).to eq(false)
     end
@@ -288,6 +295,7 @@ describe Organization, :type => :model do
       u = User.new
       u.settings = {'supervisor_for' => {}}
       u.settings['supervisor_for'][o.global_id] = {'pending' => true}
+      u.save
       expect(o.supervisor?(u)).to eq(true)
       expect(o.pending_supervisor?(u)).to eq(true)
     end
@@ -297,6 +305,7 @@ describe Organization, :type => :model do
       u = User.new
       u.settings = {'managed_by' => {}}
       u.settings['managed_by'][o.global_id] = {'pending' => false, 'sponsored' => false}
+      u.save
       expect(o.managed_user?(u)).to eq(true)
     end
     
@@ -305,6 +314,7 @@ describe Organization, :type => :model do
       u = User.new
       u.settings = {'managed_by' => {}}
       u.settings['managed_by'][o.global_id] = {'pending' => true, 'sponsored' => false}
+      u.save
       expect(o.pending_user?(u)).to eq(true)
     end
   end
@@ -341,7 +351,7 @@ describe Organization, :type => :model do
       expect(u.settings['subscription']['seconds_left']).to be <= 100
     end
     
-    it "should not allow being a user in more than one org" do
+    it "should allow being a user in more than one org" do
       o = Organization.create(:settings => {'total_licenses' => 1})
       o2 = Organization.create(:settings => {'total_licenses' => 1})
       u = User.create(:expires_at => Time.now + 100)
@@ -351,7 +361,9 @@ describe Organization, :type => :model do
       u.reload
       expect(o.managed_user?(u)).to eq(true)
       expect(o2.managed_user?(u)).to eq(false)
-      expect { o2.add_user(u.user_name, false) }.to raise_error("already associated with a different organization")
+      expect { o2.add_user(u.user_name, false) }.to_not raise_error #("already associated with a different organization")
+      expect(o.managed_user?(u)).to eq(true)
+      expect(o2.managed_user?(u)).to eq(true)
     end
 
     it "should notify the user when they are added by an org" do
@@ -365,13 +377,15 @@ describe Organization, :type => :model do
       expect(o.sponsored_user?(u)).to eq(true)
     end
     
-    it "should error on adding a user that is managed by a different organization" do
-      o = Organization.create
+    it "should not error on adding a user that is managed by a different organization" do
+      o = Organization.create(:settings => {'total_licenses' => 1})
       o2 = Organization.create(:settings => {'total_licenses' => 1})
       u = User.create
       o2.add_user(u.user_name, false, true)
       
-      expect{ o.add_user(u.user_name, false) }.to raise_error("already associated with a different organization")
+      expect{ o.add_user(u.user_name, false) }.to_not raise_error #("already associated with a different organization")
+      expect(o.managed_user?(u)).to eq(true)
+      expect(o2.managed_user?(u)).to eq(true)
     end
     
     it "should correctly remove a user" do
@@ -439,6 +453,7 @@ describe Organization, :type => :model do
       
       expect(UserMailer).to receive(:schedule_delivery).with(:organization_unassigned, u.global_id, o.global_id)
       res = o.remove_user(u.user_name)
+      Worker.process_queues
       u.reload
       expect(res).to eq(true)
       expect(o.user?(u)).to eq(false)
@@ -449,13 +464,18 @@ describe Organization, :type => :model do
       expect{ o.remove_user('fred') }.to raise_error("invalid user, fred")
     end
     
-    it "should error on removing a user that is managed by a different organization" do
+    it "should not error on removing a user that is managed by a different organization" do
       o = Organization.create
       o2 = Organization.create(:settings => {'total_licenses' => 1})
       u = User.create
       o2.add_user(u.user_name, false, true)
-      
-      expect{ o.remove_user(u.user_name) }.to raise_error("already associated with a different organization")
+      expect(o.managed_user?(u)).to eq(false)
+      expect(o2.managed_user?(u)).to eq(true)
+      expect(UserLink.count).to eq(1)
+      expect{ o.remove_user(u.user_name) }.to_not raise_error #("already associated with a different organization")
+      expect(UserLink.count).to eq(1)
+      expect(o.managed_user?(u)).to eq(false)
+      expect(o2.managed_user?(u)).to eq(true)
     end
     
     it "should remove from any units when removing" do
@@ -475,7 +495,7 @@ describe Organization, :type => :model do
       
       Worker.process_queues
       Worker.process_queues
-      expect(u1.reload.supervisor_user_ids).to eq([u1.global_id, u2.global_id])
+      expect(u1.reload.supervisor_user_ids.sort).to eq([u1.global_id, u2.global_id])
       expect(u1.reload.supervised_user_ids).to eq([u1.global_id])
       expect(u2.reload.supervisor_user_ids).to eq([])
       expect(u2.reload.supervised_user_ids).to eq([u1.global_id])
@@ -786,9 +806,19 @@ describe Organization, :type => :model do
       expect(o.attached_users('user').length).to eq(1)
       expect(o.attached_users('approved_user').length).to eq(0)
       expect(o.attached_users('sponsored_user').length).to eq(1)
-      expect(u.settings['managed_by'][o.global_id]['sponsored']).to eq(true)
-      expect(u.settings['managed_by'][o.global_id]['pending']).to eq(true)
-      expect(u.settings['managed_by'][o.global_id]['added']).to_not eq(nil)
+      links = UserLink.links_for(u)
+      expect(links).to eq([{
+        'user_id' => u.global_id,
+        'record_code' => Webhook.get_record_code(o),
+        'type' => 'org_user',
+        'state' => {
+          'sponsored' => true, 
+          'pending' => true,
+          'eval' => false,
+          'added' => links[0]['state']['added']
+        }
+      }])
+      expect(links[0]['state']['added']).to_not eq(nil)
     end
   end
   

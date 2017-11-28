@@ -2,6 +2,7 @@ class Organization < ActiveRecord::Base
   include Permissions
   include Processable
   include GlobalId
+  include Async
   include SecureSerialize
   include Notifier
   secure_serialize :settings
@@ -44,13 +45,13 @@ class Organization < ActiveRecord::Base
   def add_manager(user_key, full=false)
     user = User.find_by_path(user_key)
     raise "invalid user, #{user_key}" unless user
-    user.settings ||= {}
-    user.settings['manager_for'] ||= {}
-    user.settings['manager_for'][self.global_id] = {'full_manager' => !!full, 'added' => Time.now.iso8601}
+#     user.settings ||= {}
+#     user.settings['manager_for'] ||= {}
+#     user.settings['manager_for'][self.global_id] = {'full_manager' => !!full, 'added' => Time.now.iso8601}
     user.settings['preferences']['role'] = 'supporter'
     user.assert_current_record!
     user.save
-    self.attach_user(user, 'manager')
+#     self.attach_user(user, 'manager')
     # TODO: trigger notification
     if user.grace_period? && !Organization.managed?(user)
       user.update_subscription({
@@ -60,6 +61,10 @@ class Organization < ActiveRecord::Base
         'plan_id' => 'slp_monthly_free'
       })
     end
+    link = UserLink.generate(user, self, 'org_manager')
+    link.data['state']['added'] ||= Time.now.iso8601
+    link.data['state']['full_manager'] = true if full
+    link.save!
     self.touch
     true
   rescue ActiveRecord::StaleObjectError
@@ -69,13 +74,13 @@ class Organization < ActiveRecord::Base
   def remove_manager(user_key)
     user = User.find_by_path(user_key)
     raise "invalid user, #{user_key}" unless user
-    user.settings ||= {}
-    user.settings['manager_for'] ||= {}
-    user.settings['manager_for'].delete(self.global_id)
+#     user.settings ||= {}
+#     user.settings['manager_for'] ||= {}
+#     user.settings['manager_for'].delete(self.global_id)
     self.detach_user(user, 'manager')
     # TODO: trigger notification
-    user.assert_current_record!
-    user.save
+#     user.assert_current_record!
+#     user.save
     self.touch
     true
   rescue ActiveRecord::StaleObjectError
@@ -88,13 +93,13 @@ class Organization < ActiveRecord::Base
     if user.settings['authored_organization_id'] && user.settings['authored_organization_id'] == self.global_id && user.created_at > 2.weeks.ago
       pending = false
     end
-    user.settings ||= {}
-    user.settings['supervisor_for'] ||= {}
-    user.settings['supervisor_for'][self.global_id] = {'pending' => pending, 'added' => Time.now.iso8601}
+#     user.settings ||= {}
+#     user.settings['supervisor_for'] ||= {}
+#     user.settings['supervisor_for'][self.global_id] = {'pending' => pending, 'added' => Time.now.iso8601}
     user.settings['preferences']['role'] = 'supporter'
     user.assert_current_record!
     user.save
-    self.attach_user(user, 'supervisor')
+#     self.attach_user(user, 'supervisor')
     if user.grace_period? && !Organization.managed?(user)
       user.update_subscription({
         'subscribe' => true,
@@ -103,6 +108,10 @@ class Organization < ActiveRecord::Base
         'plan_id' => 'slp_monthly_free'
       })
     end
+    link = UserLink.generate(user, self, 'org_supervisor')
+    link.data['state']['pending'] = pending unless link.data['state']['pending'] == false
+    link.data['state']['added'] ||= Time.now.iso8601
+    link.save
     self.touch
     true
   rescue ActiveRecord::StaleObjectError
@@ -110,30 +119,38 @@ class Organization < ActiveRecord::Base
   end
   
   def approve_supervisor(user)
-    if user.settings['supervisor_for'] && user.settings['supervisor_for'][self.global_id]
-      self.add_supervisor(user.user_name, false)
-      user.settings['supervisor_for'][self.global_id]['pending'] = false
+    links = UserLink.links_for(user).select{|l| l['type'] == 'org_supervisor' && l['record_code'] == Webhook.get_record_code(self) }
+    if links.length > 0
+      link = UserLink.generate(user, self, 'org_supervisor')
+      link.data['state']['pending'] = false
+      link.save
     end
+#     if user.settings['supervisor_for'] && user.settings['supervisor_for'][self.global_id]
+#       self.add_supervisor(user.user_name, false)
+#       user.settings['supervisor_for'][self.global_id]['pending'] = false
+#     end
   end
   
   def reject_supervisor(user)
-    if user.settings['supervisor_for'] && user.settings['supervisor_for'][self.global_id]
-      self.remove_supervisor(user.user_name)
-      user.settings['supervisor_for'].delete(self.global_id)
-    end
+    UserLink.remove(user, self, 'org_supervisor')
+#     if user.settings['supervisor_for'] && user.settings['supervisor_for'][self.global_id]
+#       self.remove_supervisor(user.user_name)
+#       user.settings['supervisor_for'].delete(self.global_id)
+#     end
   end
   
   def remove_supervisor(user_key)
     user = User.find_by_path(user_key)
     raise "invalid user, #{user_key}" unless user
-    user.settings ||= {}
-    user.settings['supervisor_for'] ||= {}
-    pending = user.settings['supervisor_for'][self.global_id] && user.settings['supervisor_for'][self.global_id]['pending']
-    user.settings['supervisor_for'].delete(self.global_id)
-    user.assert_current_record!
-    user.save
+    pending = !!UserLink.links_for(user).detect{|l| l['type'] == 'org_supervisor' && l['record_code'] == Webhook.get_record_code(self) && l['state']['pending'] }
+#     user.settings ||= {}
+#     user.settings['supervisor_for'] ||= {}
+#     pending = user.settings['supervisor_for'][self.global_id] && user.settings['supervisor_for'][self.global_id]['pending']
+#     user.settings['supervisor_for'].delete(self.global_id)
+#     user.assert_current_record!
+#     user.save
     self.detach_user(user, 'supervisor')
-    self.touch
+#     self.touch
     notify('org_removed', {
       'user_id' => user.global_id,
       'user_type' => 'supervisor',
@@ -148,7 +165,9 @@ class Organization < ActiveRecord::Base
   def add_subscription(user_key)
     user = User.find_by_path(user_key)
     raise "invalid user, #{user_key}" unless user
-    self.attach_user(user, 'subscription')
+    link = UserLink.generate(user, self, 'org_subscription')
+    link.save
+#     self.attach_user(user, 'subscription')
     self.log_purchase_event({
       'type' => 'add_subscription',
       'user_name' => user.user_name,
@@ -160,6 +179,7 @@ class Organization < ActiveRecord::Base
   def remove_subscription(user_key)
     user = User.find_by_path(user_key)
     raise "invalid user, #{user_key}" unless user
+    UserLink.remove(user, self, 'org_subscription')
     self.detach_user(user, 'subscription')
     self.log_purchase_event({
       'type' => 'remove_subscription',
@@ -178,105 +198,107 @@ class Organization < ActiveRecord::Base
   end
   
   def manager?(user)
-    res ||= user.settings && user.settings['manager_for'] && user.settings['manager_for'][self.global_id] && user.settings['manager_for'][self.global_id]['full_manager']
-    !!res
+    links = UserLink.links_for(user)
+    !!links.detect{|l| l['type'] == 'org_manager' && l['record_code'] == Webhook.get_record_code(self) && l['user_id'] == user.global_id && l['state']['full_manager'] }
   end
   
   def assistant?(user)
-    res ||= user.settings && user.settings['manager_for'] && user.settings['manager_for'][self.global_id]
-    !!res
+    links = UserLink.links_for(user)
+    !!links.detect{|l| l['type'] == 'org_manager' && l['record_code'] == Webhook.get_record_code(self) && l['user_id'] == user.global_id }
   end
   
   def supervisor?(user)
-    res = user.settings && user.settings['supervisor_for'] && user.settings['supervisor_for'][self.global_id]
-    !!res
+    links = UserLink.links_for(user)
+    !!links.detect{|l| l['type'] == 'org_supervisor' && l['record_code'] == Webhook.get_record_code(self) && l['user_id'] == user.global_id }
   end
   
   def managed_user?(user)
-    res ||= user.settings && user.settings['managed_by'] && user.settings['managed_by'][self.global_id]
-    !!res
+    links = UserLink.links_for(user)
+    res = !!links.detect{|l| l['type'] == 'org_user' && l['record_code'] == Webhook.get_record_code(self) && l['user_id'] == user.global_id }
+    res
   end
   
   def sponsored_user?(user)
-    res ||= user.settings && user.settings['managed_by'] && user.settings['managed_by'][self.global_id] && user.settings['managed_by'][self.global_id]['sponsored']
-    !!res
+    links = UserLink.links_for(user)
+    !!links.detect{|l| l['type'] == 'org_user' && l['record_code'] == Webhook.get_record_code(self) && l['user_id'] == user.global_id && l['state']['sponsored'] }
+  end
+  
+  def eval_user?(user)
+    links = UserLink.links_for(user)
+    !!links.detect{|l| l['type'] == 'org_user' && l['record_code'] == Webhook.get_record_code(self) && l['user_id'] == user.global_id && l['state']['eval'] }
   end
   
   def pending_user?(user)
-    res = managed_user?(user) && !!user.settings['subscription']['org_pending'] if user.settings && user.settings['subscription'] && user.settings['subscription']['org_pending'] != nil
-    res ||= !!user.settings['managed_by'][self.global_id]['pending'] if user.settings && user.settings['managed_by'] && user.settings['managed_by'][self.global_id]
-    !!res
+    links = UserLink.links_for(user)
+    !!links.detect{|l| l['type'] == 'org_user' && l['record_code'] == Webhook.get_record_code(self) && l['user_id'] == user.global_id && l['state']['pending'] }
   end
   
   def pending_supervisor?(user)
-    res = user.settings['supervisor_for'][self.global_id]['pending'] if user.settings && user.settings['supervisor_for'] && user.settings['supervisor_for'][self.global_id]
-    !!res
+    links = UserLink.links_for(user)
+    !!links.detect{|l| l['type'] == 'org_supervisor' && l['record_code'] == Webhook.get_record_code(self) && l['user_id'] == user.global_id && l['state']['pending'] }
   end
   
   def self.sponsored?(user)
-    res ||= user.settings && user.settings['managed_by'] && user.settings['managed_by'].any?{|id, opts| opts['sponsored'] }
-    !!res
+    links = UserLink.links_for(user)
+    !!links.detect{|l| l['type'] == 'org_user' && l['user_id'] == user.global_id && l['state']['sponsored'] }
   end
   
   def self.managed?(user)
-    res ||= !!(user.settings['managed_by'] && user.settings['managed_by'].keys.length > 0)
-    res
+    links = UserLink.links_for(user)
+    !!links.detect{|l| l['type'] == 'org_user' }
   end
   
   def self.supervisor?(user)
-    res = user.settings['supervisor_for'] && user.settings['supervisor_for'].keys.length > 0
-    !!res
+    links = UserLink.links_for(user)
+    !!links.detect{|l| l['type'] == 'org_supervisor' }
   end
   
   def self.manager?(user)
-    res ||= !!(user.settings['manager_for'] && user.settings['manager_for'].keys.length > 0)
-    res
+    links = UserLink.links_for(user)
+    !!links.detect{|l| l['type'] == 'org_manager' }
   end
   
-  def self.upgrade_management_settings
-    User.where('managed_organization_id IS NOT NULL').each do |user|
-      org = user.managed_organization
-      user.settings['manager_for'] ||= {}
-      if org && !user.settings['manager_for'][org.global_id]
-        user.settings['manager_for'][org.global_id] = {
-          'full_manager' => !!user.settings['full_manager']
-        }
-      end
-      user.settings.delete('full_manager')
-      user.managed_organization_id = nil
-      user.save
-    end
-    User.where('managing_organization_id IS NOT NULL').each do |user|
-      org = user.managing_organization
-      user.settings['managed_by'] ||= {}
-      if org && !user.settings['managed_by'][org.global_id]
-        user.settings['managed_by'][org.global_id] = {
-          'pending' => !!(user.settings['subscription'] && user.settings['subscription']['org_pending']),
-          'sponsored' => true
-        }
-      end
-      user.settings['subscription'].delete('org_pending') if user.settings['subscription']
-      user.managing_organization_id = nil
-      user.save
-    end
-    Organization.all.each do |org|
-      org.sponsored_users.each do |user|
-        org.attach_user(user, 'sponsored_user')
-      end
-      org.approved_users.each do |user|
-        org.attach_user(user, 'approved_user')
-      end
-    end
-  end
+#   def self.upgrade_management_settings
+#     User.where('managed_organization_id IS NOT NULL').each do |user|
+#       org = user.managed_organization
+#       user.settings['manager_for'] ||= {}
+#       if org && !user.settings['manager_for'][org.global_id]
+#         user.settings['manager_for'][org.global_id] = {
+#           'full_manager' => !!user.settings['full_manager']
+#         }
+#       end
+#       user.settings.delete('full_manager')
+#       user.managed_organization_id = nil
+#       user.save
+#     end
+#     User.where('managing_organization_id IS NOT NULL').each do |user|
+#       org = user.managing_organization
+#       user.settings['managed_by'] ||= {}
+#       if org && !user.settings['managed_by'][org.global_id]
+#         user.settings['managed_by'][org.global_id] = {
+#           'pending' => !!(user.settings['subscription'] && user.settings['subscription']['org_pending']),
+#           'sponsored' => true
+#         }
+#       end
+#       user.settings['subscription'].delete('org_pending') if user.settings['subscription']
+#       user.managing_organization_id = nil
+#       user.save
+#     end
+#     Organization.all.each do |org|
+#       org.sponsored_users.each do |user|
+#         org.attach_user(user, 'sponsored_user')
+#       end
+#       org.approved_users.each do |user|
+#         org.attach_user(user, 'approved_user')
+#       end
+#     end
+#   end
   
   def self.manager_for?(manager, user)
     return false unless manager && user
-    managed_orgs = []
-    managed_orgs += user.settings['managed_by'].select{|id, opts| !opts['pending'] }.map{|id, opts| id } if user.settings && user.settings['managed_by']
-    managed_orgs += user.settings['supervisor_for'].select{|id, opts| !opts['pending'] }.map{|id, opts| id } if user.settings && user.settings['supervisor_for']
-    managing_orgs = []
-    managing_orgs += manager.settings['manager_for'].select{|id, opts| opts['full_manager'] }.map{|id, opts| id } if manager.settings && manager.settings['manager_for']
-    if (managed_orgs & managing_orgs).length > 0
+    manager_orgs = UserLink.links_for(manager).select{|l| l['type'] == 'org_manager' && l['user_id'] == manager.global_id && l['state']['full_manager'] }.map{|l| l['record_code'] }
+    user_orgs = UserLink.links_for(user).select{|l| (l['type'] == 'org_user' || l['type'] == 'org_supervisor') && l['user_id'] == user.global_id && !l['state']['pending'] }.map{|l| l['record_code'] }
+    if (manager_orgs & user_orgs).length > 0
       # if user and manager are part of the same org
       return true
     else
@@ -285,37 +307,31 @@ class Organization < ActiveRecord::Base
   end
   
   def self.admin_manager?(manager)
-    managing_orgs = []
-    managing_orgs += manager.settings['manager_for'].select{|id, opts| opts['full_manager'] }.map{|id, opts| id } if manager.settings && manager.settings['manager_for']
+    manager_orgs = UserLink.links_for(manager).select{|l| l['type'] == 'org_manager' && l['user_id'] == manager.global_id && l['state']['full_manager'] }.map{|l| l['record_code'] }
     
-    if managing_orgs.length > 0
+    if manager_orgs.length > 0
       # if manager is part of the global org (the order of lookups seems weird, but should be a little more efficient)
       org = self.admin
-      return true if org && managing_orgs.include?(org.global_id)
+      return true if org && manager_orgs.include?(Webhook.get_record_code(org))
     end
     false
   end
   
-  def attach_user(user, user_type, additional_types=nil)
-    user_types = [user_type]
-    if additional_types
-      additional_types.each do |key, val|
-        user_types << key if val
-      end
-    end
-    user_types.each do |type|
-      self.settings['attached_user_ids'] ||= {}
-      self.settings['attached_user_ids'][type] ||= []
-      self.settings['attached_user_ids'][type] << user.global_id
-      self.settings['attached_user_ids'][type].uniq!
-    end
-    self.save
-  end
-
   def detach_user(user, user_type)
     user_types = [user_type]
+    UserLink.remove(user, self, "org_#{user_type}")
+    key = nil
     if user_type == 'user'
-      user_types += ['sponsored_user', 'approved_user']
+      user_types += ['sponsored_user', 'approved_user', 'eval_user']
+      key = 'managed_by'
+    elsif user_type == 'supervisor'
+      key = 'supervisor_for'
+    elsif user_type == 'manager'
+      key = 'manager_for'
+    end
+    if key && user.settings[key] && user.settings[key][self.global_id]
+      user.settings[key].delete(self.global_id)
+      user.save
     end
     user_types.each do |type|
       self.settings['attached_user_ids'] ||= {}
@@ -336,8 +352,25 @@ class Organization < ActiveRecord::Base
   end
   
   def attached_users(user_type)
-    user_ids = []
-    user_ids += ((self.settings['attached_user_ids'] || {})[user_type] || []).uniq
+    links = UserLink.links_for(self)
+    if user_type == 'user'
+      links = links.select{|l| l['type'] == 'org_user' }
+    elsif user_type == 'manager'
+      links = links.select{|l| l['type'] == 'org_manager' }
+    elsif user_type == 'supervisor'
+      links = links.select{|l| l['type'] == 'org_supervisor' }
+    elsif user_type == 'eval'
+      links = links.select{|l| l['type'] == 'org_user' && l['state']['eval'] }
+    elsif user_type == 'subscription'
+      links = links.select{|l| l['type'] == 'org_subscription' }
+    elsif user_type == 'approved_user'
+      links = links.select{|l| l['type'] == 'org_user' && !l['state']['pending'] }
+    elsif user_type == 'sponsored_user'
+      links = links.select{|l| l['type'] == 'org_user' && l['state']['sponsored'] }
+    else
+      raise "unrecognized type, #{user_type}"
+    end
+    user_ids = links.map{|l| l['user_id'] }.uniq
     User.where(:id => User.local_ids(user_ids))
   end
   
@@ -348,6 +381,16 @@ class Organization < ActiveRecord::Base
   def sponsored_users(chainable=true)
     # TODO: get rid of this double-lookup
     users = self.attached_users('user').select{|u| self.sponsored_user?(u) }
+    if chainable
+      User.where(:id => users.map(&:id))
+    else
+      users
+    end
+  end
+  
+  def eval_users(chainable=true)
+    # TODO: get rid of this double-lookup
+    users = self.attached_users('user').select{|u| self.eval_user?(u) }
     if chainable
       User.where(:id => users.map(&:id))
     else
@@ -378,64 +421,52 @@ class Organization < ActiveRecord::Base
   end
   
   def self.attached_orgs(user, include_org=false)
-    res = []
+    links = UserLink.links_for(user)
     org_ids = []
-    user.settings ||= {}
-    (user.settings['managed_by'] || {}).each do |org_id, opts|
-      org_ids << org_id
+    links.each do |link|
+      if link['type'] == 'org_user' || link['type'] == 'org_manager' || link['type'] == 'org_supervisor'
+        org_ids << link['record_code'].split(/:/)[1]
+      end
     end
-    (user.settings['manager_for'] || {}).each do |org_id, opts|
-      org_ids << org_id
-    end
-    (user.settings['supervisor_for'] || {}).each do |org_id, opts|
-      org_ids << org_id
-    end
+    res = []
     orgs = {}
     Organization.find_all_by_global_id(org_ids.uniq).each do |org|
-      orgs[org.global_id] = org
+      orgs[Webhook.get_record_code(org)] = org
     end
-    (user.settings['managed_by'] || {}).each do |org_id, opts|
-      org = orgs[org_id]
-      if org
+    links.each do |link|
+      org = orgs[link['record_code']]
+      if link['type'] == 'org_user' && org
         e = {
-          'id' => org_id,
+          'id' => org.global_id,
           'name' => org.settings['name'],
           'type' => 'user',
-          'added' => opts['added'],
-          'pending' => opts['pending'],
-          'sponsored' => opts['sponsored']
+          'added' => link['state']['added'],
+          'pending' => !!link['state']['pending'],
+          'sponsored' => !!link['state']['sponsored']
         }
         e['org'] = org if include_org
-        res << e if org
-      end
-    end
-    (user.settings['manager_for'] || {}).each do |org_id, opts|
-      org = orgs[org_id]
-      if org
+        res << e
+      elsif link['type'] == 'org_manager' && org
         e = {
-          'id' => org_id,
+          'id' => org.global_id,
           'name' => org.settings['name'],
           'type' => 'manager',
-          'added' => opts['added'],
-          'full_manager' => !!opts['full_manager'],
-          'admin' => org.admin,
+          'added' => link['state']['added'],
+          'full_manager' => !!link['state']['full_manager'],
+          'admin' => !!org.admin
         }
         e['org'] = org if include_org
-        res << e if org
-      end
-    end
-    (user.settings['supervisor_for'] || {}).each do |org_id, opts|
-      org = orgs[org_id]
-      if org
+        res << e
+      elsif link['type'] == 'org_supervisor' && org
         e = {
-          'id' => org_id,
+          'id' => org.global_id,
           'name' => org.settings['name'],
           'type' => 'supervisor',
-          'added' => opts['added'],
-          'pending' => !!opts['pending']
+          'added' => link['state']['added'],
+          'pending' => !!link['state']['pending']
         }
         e['org'] = org if include_org
-        res << e if org
+        res << e
       end
     end
     res
@@ -445,25 +476,27 @@ class Organization < ActiveRecord::Base
     managed_user?(user)
   end
   
-  def add_user(user_key, pending, sponsored=true)
+  def add_user(user_key, pending, sponsored=true, eval_account=false)
     user = User.find_by_path(user_key)
     raise "invalid user, #{user_key}" unless user
-    for_different_org ||= user.settings && user.settings['managed_by'] && (user.settings['managed_by'].keys - [self.global_id]).length > 0
-    raise "already associated with a different organization" if for_different_org
-    sponsored_user_count = self.sponsored_users(false).count
-    raise "no licenses available" if sponsored && ((self.settings || {})['total_licenses'] || 0) <= sponsored_user_count
-    user.update_subscription_organization(self, pending, sponsored)
+    # for_different_org ||= user.settings && user.settings['managed_by'] && (user.settings['managed_by'].keys - [self.global_id]).length > 0
+    # raise "already associated with a different organization" if for_different_org
+    if eval_account
+      sponsored_eval_count = self.eval_users(false).count
+      raise "no eval licenses available" if sponsored && ((self.settings || {})['total_eval_licenses'] || 0) <= sponsored_eval_count
+    else
+      sponsored_user_count = self.sponsored_users(false).count
+      raise "no licenses available" if sponsored && ((self.settings || {})['total_licenses'] || 0) <= sponsored_user_count
+    end
+    user.update_subscription_organization(self, pending, sponsored, eval_account)
     true
   end
   
   def remove_user(user_key)
     user = User.find_by_path(user_key)
     raise "invalid user, #{user_key}" unless user
-    for_different_org ||= user.settings && user.settings['managed_by'] && (user.settings['managed_by'].keys - [self.global_id]).length > 0
-    pending = user.settings['managed_by'] && user.settings['managed_by'][self.global_id] && user.settings['managed_by'][self.global_id]['pending']
-    raise "already associated with a different organization" if for_different_org
-    user.update_subscription_organization(nil)
-    self.detach_user(user, 'user')
+    pending = !!UserLink.links_for(user).detect{|l| l['type'] == 'org_user' && l['record_code'] == Webhook.get_record_code(self) && l['state']['pending'] }
+    user.update_subscription_organization("r#{self.global_id}")
     notify('org_removed', {
       'user_id' => user.global_id,
       'user_type' => 'user',
@@ -542,6 +575,23 @@ class Organization < ActiveRecord::Base
         }, false)
       end
     end
+    if params[:allotted_eval_licenses]
+      total = params[:allotted_eval_licenses].to_i
+      used = self.eval_users(false).count
+      if total < used
+        add_processing_error("too few eval licenses, remove some users first")
+        return false
+      end
+      if self.settings['total_eval_licenses'] != total
+        self.settings['total_eval_licenses'] = total
+        self.log_purchase_event({
+          'type' => 'update_eval_license_count',
+          'count' => total,
+          'updater_id' => non_user_params['updater'].global_id,
+          'updater_user_name' => non_user_params['updater'].user_name
+        }, false)
+      end
+    end
     if params[:licenses_expire]
       time = Time.parse(params[:licenses_expire])
       self.settings['licenses_expire'] = time.iso8601
@@ -555,9 +605,9 @@ class Organization < ActiveRecord::Base
       action, key = params[:management_action].split(/-/, 2)
       begin
         if action == 'add_user'
-          self.add_user(key, true)
+          self.add_user(key, true, true, false)
         elsif action == 'add_unsponsored_user'
-          self.add_user(key, true, false)
+          self.add_user(key, true, false, false)
         elsif action == 'add_supervisor'
           self.add_supervisor(key, true)
         elsif action == 'add_assistant' || action == 'add_manager'

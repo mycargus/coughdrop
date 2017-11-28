@@ -274,6 +274,7 @@ describe Api::OrganizationsController, :type => :controller do
         json = JSON.parse(response.body)
         expect(o.managed_user?(u.reload)).to eq(true)
         expect(o.sponsored_user?(u.reload)).to eq(true)
+        expect(o.pending_user?(u.reload)).to eq(true)
         expect(o.assistant?(u.reload)).to eq(false)
         expect(o.manager?(u.reload)).to eq(false)
       end

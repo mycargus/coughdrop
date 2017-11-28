@@ -386,9 +386,11 @@ describe Supervising, :type => :model do
       o = Organization.create(:settings => {'total_licenses' => 1})
       expect(o.reload.managed_user?(u)).to eq(false)
       o.add_user(u.user_name, true)
-      expect(o.reload.managed_user?(u)).to eq(false)
+      expect(o.reload.managed_user?(u.reload)).to eq(true)
+      expect(o.reload.pending_user?(u)).to eq(true)
       u.reload.process({'supervisor_key' => "approve-org"})
       expect(o.reload.managed_user?(u)).to eq(true)
+      expect(o.reload.pending_user?(u)).to eq(false)
     end
     
     it "should allow approving a pending superivision org" do
@@ -438,9 +440,11 @@ describe Supervising, :type => :model do
       o = Organization.create(:settings => {'total_licenses' => 1})
       expect(o.reload.managed_user?(u)).to eq(false)
       o.add_user(u.user_name, true)
-      expect(o.reload.managed_user?(u)).to eq(false)
+      expect(o.reload.managed_user?(u)).to eq(true)
+      expect(o.reload.pending_user?(u)).to eq(true)
       u.reload.process({'supervisor_key' => "approve-org"})
       expect(o.reload.managed_user?(u)).to eq(true)
+      expect(o.reload.pending_user?(u)).to eq(false)
       expect(u.settings['pending']).to eq(false)
     end
     
@@ -449,9 +453,12 @@ describe Supervising, :type => :model do
       o = Organization.create(:settings => {'total_licenses' => 1})
       expect(o.reload.managed_user?(u)).to eq(false)
       o.add_user(u.user_name, true)
-      expect(o.reload.managed_user?(u)).to eq(false)
+      expect(o.reload.managed_user?(u)).to eq(true)
+      expect(o.reload.pending_user?(u)).to eq(true)
       u.reload.process({'supervisor_key' => "remove_supervisor-org"})
       expect(o.reload.managed_user?(u)).to eq(false)
+      expect(o.reload.pending_user?(u)).to eq(false)
+      expect(UserLink.links_for(u)).to eq([])
       expect(u.reload.managing_organization).to eq(nil)
     end
     

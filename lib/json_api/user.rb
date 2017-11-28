@@ -184,6 +184,7 @@ module JsonApi::User
         if Organization.managed?(user)
           json['org_pending'] = args[:organization].pending_user?(user)
           json['org_sponsored'] = args[:organization].sponsored_user?(user)
+          json['org_eval'] = args[:organization].eval_user?(user)
           json['joined'] = user.created_at.iso8601
         end
       end

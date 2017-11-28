@@ -17,6 +17,7 @@ module JsonApi::Organization
     
     if json['permissions'] && json['permissions']['edit']
       json['allotted_licenses'] = org.settings['total_licenses'] || 0
+      org.sponsored_users(false)
       json['used_licenses'] = org.sponsored_users(false).count
       json['total_users'] = org.users.count
       json['total_managers'] = org.managers.count

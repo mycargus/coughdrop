@@ -44,8 +44,11 @@ describe JsonApi::Organization do
       u2 = User.create
       u3 = User.create
       o.add_manager(u.user_name, true)
-      o.add_user(u2.user_name, false)
-      o.add_user(u3.user_name, true)
+      expect(UserLink.count).to eq(1)
+      o.add_user(u2.user_name, false, true)
+      expect(UserLink.count).to eq(2)
+      o.add_user(u3.user_name, true, true)
+      expect(UserLink.count).to eq(3)
       u.reload
 
       d = Device.create(:user => u2)
@@ -71,13 +74,6 @@ describe JsonApi::Organization do
       expect(res['recent_session_count']).to eq(1)
       expect(res['recent_session_user_count']).to eq(1)
     end
-
-#     if json['permissions'] && json['permissions']['manage']
-#       json['org_subscriptions'] = org.subscriptions.map{|u| JsonApi::User.as_json(u, limited_identity: true, subscription: true) }
-#     end
-#     if json['permissions'] && json['permissions']['manage_subscription']
-#       json['purchase_history'] = org.purchase_history
-#     end
     
     it "should include purchase history if allowed" do
       u = User.create

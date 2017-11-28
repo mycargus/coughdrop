@@ -54,39 +54,46 @@ class OrganizationUnit < ActiveRecord::Base
     user = User.find_by_path(user_name)
     org = self.organization
     return false unless user && org && org.supervisor?(user)
-    assert_list('supervisors', user.global_id)
-    self.settings['supervisors'] << {
-      'user_id' => user.global_id,
-      'user_name' => user.user_name,
-      'edit_permission' => !!edit_permission
-    }
+    link = UserLink.generate(user, self, 'org_unit_supervisor')
+    link.data['state']['user_name'] = user.user_name
+    link.data['state']['edit_permission'] = true if edit_permission
+    link.save
+#     assert_list('supervisors', user.global_id)
+#     self.settings['supervisors'] << {
+#       'user_id' => user.global_id,
+#       'user_name' => user.user_name,
+#       'edit_permission' => !!edit_permission
+#     }
     self.schedule(:assert_supervision, {user_id: user.global_id, add_supervisor: user_name})
-    self.save
+    true
+#     self.save
   end
   
   def all_user_ids
-    res = []
-    res += (self.settings['supervisors'] || []).map{|s| s['user_id'] }
-    res += (self.settings['communicators'] || []).map{|s| s['user_id'] }
-    res.uniq
+    links = UserLink.links_for(self).select{|l| l['type'] == 'org_unit_supervisor' || l['type'] == 'org_unit_communicator' }
+    links.map{|l| l['user_id'] }.uniq
   end
   
   def supervisor?(user)
-    self.settings ||= {}
-    (self.settings['supervisors'] || []).map{|c| c['user_id'] }.include?(user && user.global_id)
+    return false unless user
+    links = UserLink.links_for(self).select{|l| l['type'] == 'org_unit_supervisor' }
+    !!links.detect{|l| l['user_id'] == user.global_id }
   end
   
   def communicator?(user)
-    self.settings ||= {}
-    (self.settings['communicators'] || []).map{|c| c['user_id'] }.include?(user && user.global_id)
+    return false unless user
+    links = UserLink.links_for(self).select{|l| l['type'] == 'org_unit_communicator' }
+    !!links.detect{|l| l['user_id'] == user.global_id }
   end
   
   def remove_supervisor(user_name)
     user = User.find_by_path(user_name)
     org = self.organization
     return false unless user && org
+    UserLink.remove(user, self, 'org_unit_supervisor')
     assert_list('supervisors', user.global_id)
     schedule(:assert_supervision, {user_id: user.global_id, remove_supervisor: user_name})
+    true
     self.save
   end
   
@@ -94,21 +101,27 @@ class OrganizationUnit < ActiveRecord::Base
     user = User.find_by_path(user_name)
     org = self.organization
     return false unless user && org && org.managed_user?(user) && !org.pending_user?(user)
-    assert_list('communicators', user.global_id)
-    self.settings['communicators'] << {
-      'user_id' => user.global_id,
-      'user_name' => user.user_name
-    }
+    link = UserLink.generate(user, self, 'org_unit_communicator')
+    link.data['state']['user_name'] = user.user_name
+    link.save
+#     assert_list('communicators', user.global_id)
+#     self.settings['communicators'] << {
+#       'user_id' => user.global_id,
+#       'user_name' => user.user_name
+#     }
     schedule(:assert_supervision, {user_id: user.global_id, add_communicator: user_name})
-    self.save
+    true
+#     self.save
   end
   
   def remove_communicator(user_name)
     user = User.find_by_path(user_name)
     org = self.organization
     return false unless user && org
+    UserLink.remove(user, self, 'org_unit_communicator')
     assert_list('communicators', user.global_id)
     schedule(:assert_supervision, {user_id: user.global_id, remove_communicator: user_name})
+    true
     self.save
   end
   
@@ -125,11 +138,10 @@ class OrganizationUnit < ActiveRecord::Base
   end
   
   def self.supervised_units(user)
-    supervision_orgs = Organization.attached_orgs(user, true).select{|o| o['type'] == 'supervisor' }.map{|o| o['org'] }
-    # TODO: sharding
-    possible_units = OrganizationUnit.where(:organization_id => supervision_orgs.map(&:id))
-    supervised_units = possible_units.select{|ou| (ou.settings['supervisors'] || []).any?{|s| s['user_id'] == user.global_id } }
-    supervised_units
+    return [] unless user
+    links = UserLink.links_for(user).select{|l| l['type'] == 'org_unit_supervisor' }
+    ids = links.select{|l| l['user_id'] == user.global_id }.map{|l| ['record_code'].split(/:/)[1] }
+    OrganizationUnit.find_all_by_global_id(ids).uniq
   end
   
   def assert_list(list, exclude_user_id)
@@ -137,21 +149,31 @@ class OrganizationUnit < ActiveRecord::Base
   end
   
   def assert_supervision!
-    communicators = User.find_all_by_global_id((self.settings['communicators'] || []).map{|s| s['user_id'] })
-    supervisors = User.find_all_by_global_id((self.settings['supervisors'] || []).map{|s| s['user_id'] })
+    links = UserLink.links_for(self)
+    communicator_ids = links.select{|l| l['type'] == 'org_unit_communicator' }.map{|l| l['user_id'] }.uniq
+    supervisor_links = links.select{|l| l['type'] == 'org_unit_supervisor' }
+    supervisor_ids = supervisor_links.map{|l| l['user_id'] }.uniq
+    communicators = User.find_all_by_global_id(communicator_ids)
+    supervisors = User.find_all_by_global_id(supervisor_ids)
     supervisors.each do |sup|
+      edit_permission = !!supervisor_links.detect{|l| l['user_id'] == sup.global_id && l['state'] && l['state']['edit_permission'] }
       communicators.each do |comm|
-        sup_ref = self.settings['supervisors'].detect{|s| s['user_id'] == sup.global_id } || {}
-        User.link_supervisor_to_user(sup, comm, nil, !!sup_ref['edit_permission'], self.global_id)
+        User.link_supervisor_to_user(sup, comm, nil, !!edit_permission, self.global_id)
       end
     end
   end
   
   def assert_supervision(opts={})
-    communicators = User.find_all_by_global_id((self.settings['communicators'] || []).map{|s| s['user_id'] })
-    supervisors = User.find_all_by_global_id((self.settings['supervisors'] || []).map{|s| s['user_id'] })
     ref_user = User.find_by_path(opts['user_id'])
     return false unless ref_user
+
+    links = UserLink.links_for(self)
+    communicator_ids = links.select{|l| l['type'] == 'org_unit_communicator' }.map{|l| l['user_id'] }.uniq
+    supervisor_links = links.select{|l| l['type'] == 'org_unit_supervisor' }
+    supervisor_ids = supervisor_links.map{|l| l['user_id'] }.uniq
+    communicators = User.find_all_by_global_id(communicator_ids)
+    supervisors = User.find_all_by_global_id(supervisor_ids)
+
     if opts['remove_supervisor']
       communicators.each do |user|
         User.unlink_supervisor_from_user(ref_user, user, self.global_id)
@@ -161,14 +183,14 @@ class OrganizationUnit < ActiveRecord::Base
         User.unlink_supervisor_from_user(user, ref_user, self.global_id)
       end
     elsif opts['add_supervisor']
-      sup = self.settings['supervisors'].detect{|s| s['user_id'] == ref_user.global_id } || {}
+      edit_permission = !!supervisor_links.detect{|l| l['user_id'] == ref_user.global_id && l['state'] && l['state']['edit_permission'] }
       communicators.each do |user|
-        User.link_supervisor_to_user(ref_user, user, nil, !!sup['edit_permission'], self.global_id)
+        User.link_supervisor_to_user(ref_user, user, nil, edit_permission, self.global_id)
       end
     elsif opts['add_communicator']
       supervisors.each do |user|
-        sup = self.settings['supervisors'].detect{|s| s['user_id'] == user.global_id } || {}
-        User.link_supervisor_to_user(user, ref_user, nil, !!sup['edit_permission'], self.global_id)
+        edit_permission = !!supervisor_links.detect{|l| l['user_id'] == user.global_id && l['state'] && l['state']['edit_permission'] }
+        User.link_supervisor_to_user(user, ref_user, nil, edit_permission, self.global_id)
       end
     end
   end

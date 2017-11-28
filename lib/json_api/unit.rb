@@ -13,22 +13,25 @@ module JsonApi::Unit
     
     users_hash = args[:page_data] && args[:page_data][:users_hash]
     if !users_hash
-      users = User.find_all_by_global_id(unit.all_user_ids)
+      users = ::User.find_all_by_global_id(unit.all_user_ids)
       users_hash = {}
       users.each{|u| users_hash[u.global_id] = u }
     end
     
+    links = UserLink.links_for(unit)
     json['supervisors'] = []
     json['communicators'] = []
-    (unit.settings['supervisors'] || []).sort_by{|u| u['user_name'] || '' }.each do |sup|
-      user = users_hash[sup['user_id']]
-      hash = JsonApi::User.as_json(user, limited_identity: true) if user
-      hash['org_unit_edit_permission'] = sup['edit_permission']
-      json['supervisors'] << hash
-    end
-    (unit.settings['communicators'] || []).sort_by{|u| u['user_name'] || '' }.each do |sup|
-      user = users_hash[sup['user_id']]
-      json['communicators'] << JsonApi::User.as_json(user, limited_identity: true) if user
+    UserLink.links_for(unit).each do |link|
+      user = users_hash[link['user_id']]
+      if user
+        if link['type'] == 'org_unit_supervisor'
+          hash = JsonApi::User.as_json(user, limited_identity: true)
+          hash['org_unit_edit_permission'] = !!(link['state'] && link['state']['edit_permission'])
+          json['supervisors'] << hash
+        elsif link['type'] == 'org_unit_communicator'
+          json['communicators'] << JsonApi::User.as_json(user, limited_identity: true)
+        end
+      end
     end
 
     if args.key?(:permissions)
