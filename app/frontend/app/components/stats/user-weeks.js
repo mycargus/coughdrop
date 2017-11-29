@@ -49,7 +49,6 @@ export default Ember.Component.extend({
         var weeks = user_weeks[user.id];
         user.week_stats = [];
         populated_stamps.forEach(function(stamp) {
-          console.log(weeks && weeks[stamp]);
           if(_this.get('user_type') == 'total') {
             var user_level = 0;
             if(weeks && weeks[stamp]) {
@@ -108,13 +107,16 @@ export default Ember.Component.extend({
             if(user.week_stats[idx].level > 0) {
               total_with_any_usage++;
             }
-            console.log(tally);
           });
           var avg = Math.round(tally / total_users * 10) / 10;
           // if any users have usage, it will be at least level 1
           var level = Math.ceil(avg * 2);
           // if at least 1/5 users have activity, it will be at least level 2
           if(total_with_any_usage > total_users / 5) {
+            level = Math.max(level, 2);
+          }
+          // if only a few users have activity but it's a noticeable level, set it to at least 2
+          if(total_with_any_usage < 3 && tally > session_cutoff) {
             level = Math.max(level, 2);
           }
           new_res[0].week_stats.push({
