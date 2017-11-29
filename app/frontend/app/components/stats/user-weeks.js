@@ -116,7 +116,7 @@ export default Ember.Component.extend({
             level = Math.max(level, 2);
           }
           // if only a few users have activity but it's a noticeable level, set it to at least 2
-          if(total_with_any_usage < 3 && tally > session_cutoff) {
+          if(total_with_any_usage <= 3 && tally >= 4) {
             level = Math.max(level, 2);
           }
           new_res[0].week_stats.push({
