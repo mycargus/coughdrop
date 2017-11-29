@@ -106,7 +106,7 @@
 
   <h3>{{t "Communicators" key='communicators'}}</h3>
   {{#if model.communicators}}
-    {{stats/user-weeks unit=model user_type='communicator' users=model.communicators weeks=model.user_weeks delete_user='delete_unit_user' deletable=model.permissions.edit}}
+    {{stats/user-weeks unit=model user_type='communicator' users=model.communicators weeks=model.user_weeks delete_user='delete_unit_user' deletable=model.permissions.edit max_session_count=model.max_session_count}}
   {{else}}
     <p style="margin-bottom: 30px;">{{t "None found" key='none_found'}}</p>
   {{/if}}

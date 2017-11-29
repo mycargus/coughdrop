@@ -64,7 +64,7 @@
               </div>
               <div style='margin-top: 20px; margin-left: 30px;'>
                 <strong>{{t "Communicators" key='communicators'}}</strong>
-                {{stats/user-weeks unit=unit user_type='communicator' users=unit.communicators weeks=unit.user_weeks delete_user='delete_unit_user' deletable=model.permissions.edit}}
+                {{stats/user-weeks unit=unit user_type='communicator' users=unit.communicators weeks=unit.user_weeks delete_user='delete_unit_user' deletable=model.permissions.edit max_session_count=max_session_count}}
               </div>
             {{else}}
               <div style='margin-top: 20px; margin-left: 30px;'>
