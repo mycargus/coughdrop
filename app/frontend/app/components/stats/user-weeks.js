@@ -14,7 +14,15 @@ export default Ember.Component.extend({
     var res = [];
     var _this = this;
     if(this.get('weeks') || true) {
-      var user_weeks = this.get('weeks') || {};
+      var user_weeks = {};
+      var weeks = this.get('weeks') || {};
+      for(var user_id in weeks) {
+        user_weeks[user_id] = weeks[user_id];
+      }
+      weeks = this.get('more_weeks') || {};
+      for(var user_id in weeks) {
+        user_weeks[user_id] = weeks[user_id];
+      }
 
       var max_count = 1;
       for(var user_id in user_weeks) {
@@ -44,7 +52,7 @@ export default Ember.Component.extend({
               user_level = weeks[stamp].average_level || 0;
               if(weeks[stamp].count) {
                 // # of communicator sessions for the week
-                user_level = Math.min(5, Math.round(weeks[stamp].count / 10));
+                user_level = Math.min(5, Math.round(weeks[stamp].count / 5));
               }
             }
             user.week_stats.push({
