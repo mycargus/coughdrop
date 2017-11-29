@@ -10,51 +10,15 @@ export default Ember.Controller.extend({
     this.set('units', {loading: true});
     Utils.all_pages('unit', {organization_id: this.get('model.id')}, function(list) {
       _this.set('units', list);
+      list.forEach(function(unit) {
+        unit.load_data();
+      });
     }).then(function(data) {
       _this.set('units', data);
     }, function() {
       _this.set('units', {error: true});
     });
   },
-  load_users: function() {
-    var _this = this;
-    Utils.all_pages('/api/v1/organizations/' + this.get('model.id') + '/users', {result_type: 'user', type: 'GET', data: {}}).then(function(data) {
-      _this.set('all_communicators', data.filter(function(u) { return !u.org_pending; }));
-    }, function(err) {
-      _this.set('user_error', true);
-    });
-    Utils.all_pages('/api/v1/organizations/' + this.get('model.id') + '/supervisors', {result_type: 'user', type: 'GET', data: {}}).then(function(data) {
-      _this.set('all_supervisors', data);
-    }, function(err) {
-      _this.set('user_error', true);
-    });
-  },
-  supervisor_options: function() {
-    var res = [{
-      id: null,
-      name: i18n.t('select_user', "[ Select User ]")
-    }];
-    (this.get('all_supervisors') || []).forEach(function(sup) {
-      res.push({
-        id: sup.id,
-        name: sup.user_name
-      });
-    });
-    return res;
-  }.property('all_supervisors'),
-  communicator_options: function() {
-    var res = [{
-      id: null,
-      name: i18n.t('select_user', "[ Select User ]")
-    }];
-    (this.get('all_communicators') || []).forEach(function(sup) {
-      res.push({
-        id: sup.id,
-        name: sup.user_name
-      });
-    });
-    return res;
-  }.property('all_communicators'),
   reorder_units: function(unit_ids) {
   },
   actions: {
@@ -75,14 +39,6 @@ export default Ember.Controller.extend({
       var _this = this;
       modal.open('confirm-delete-unit', {unit: unit}).then(function(res) {
         if(res && res.deleted) {
-          _this.refresh_units();
-        }
-      });
-    },
-    edit_unit: function(unit) {
-      var _this = this;
-      modal.open('edit-unit', {unit: unit}).then(function(res) {
-        if(res && res.updated) {
           _this.refresh_units();
         }
       });
@@ -115,6 +71,9 @@ export default Ember.Controller.extend({
       }, function() {
         modal.error(i18n.t('error_adding_user', "There was an unexpected error while trying to remove the user"));
       });
+    },
+    toggle_details: function(unit) {
+      unit.set('expanded', !unit.get('expanded'));
     },
     move_up: function(unit) {
     },

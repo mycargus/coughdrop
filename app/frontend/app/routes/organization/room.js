@@ -15,8 +15,7 @@ export default Ember.Route.extend({
   setupController: function(controller, model) {
     controller.set('model', model);
     controller.set('organization', this.modelFor('organization'));
-    controller.load_users();
-    controller.refresh_stats();
-    controller.refresh_logs();
+    model.load_data();
+    controller.get('organization').load_users();
   }
 });

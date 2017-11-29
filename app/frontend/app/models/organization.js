@@ -5,6 +5,7 @@ import i18n from '../utils/i18n';
 import persistence from '../utils/persistence';
 import modal from '../utils/modal';
 import Subscription from '../utils/subscription';
+import Utils from '../utils/misc';
 
 CoughDrop.Organization = DS.Model.extend({
   didLoad: function() {
@@ -59,7 +60,46 @@ CoughDrop.Organization = DS.Model.extend({
       res.push(user);
     });
     return res;
-  }.property('org_subscriptions')
+  }.property('org_subscriptions'),
+  load_users: function() {
+    var _this = this;
+    Utils.all_pages('/api/v1/organizations/' + this.get('id') + '/users', {result_type: 'user', type: 'GET', data: {}}).then(function(data) {
+      _this.set('all_communicators', data.filter(function(u) { return !u.org_pending; }));
+    }, function(err) {
+      _this.set('user_error', true);
+    });
+    Utils.all_pages('/api/v1/organizations/' + this.get('id') + '/supervisors', {result_type: 'user', type: 'GET', data: {}}).then(function(data) {
+      _this.set('all_supervisors', data);
+    }, function(err) {
+      _this.set('user_error', true);
+    });
+  },
+  supervisor_options: function() {
+    var res = [{
+      id: null,
+      name: i18n.t('select_user', "[ Select User ]")
+    }];
+    (this.get('all_supervisors') || []).forEach(function(sup) {
+      res.push({
+        id: sup.id,
+        name: sup.user_name
+      });
+    });
+    return res;
+  }.property('all_supervisors'),
+  communicator_options: function() {
+    var res = [{
+      id: null,
+      name: i18n.t('select_user', "[ Select User ]")
+    }];
+    (this.get('all_communicators') || []).forEach(function(sup) {
+      res.push({
+        id: sup.id,
+        name: sup.user_name
+      });
+    });
+    return res;
+  }.property('all_communicators')
 });
 CoughDrop.Organization.reopenClass({
   mimic_server_processing: function(record, hash) {

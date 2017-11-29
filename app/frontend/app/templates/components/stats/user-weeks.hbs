@@ -2,11 +2,15 @@
   <tbody>
     {{#each communicators_with_stats as |user|}}
       <tr>
-        <td style='width: 10%; white-space: nowrap;'>
-          {{#link-to 'user' user.user_name}}
-            <img src={{user.avatar_url}} style="height: 30px;"/>
-            {{user.user_name}}
-          {{/link-to}}
+        <td style='width: 20%; white-space: nowrap;'>
+          {{#if user.totals}}
+            {{t "room activity" key='room_activity'}}
+          {{else}}
+            {{#link-to 'user' user.user_name}}
+              <img src={{user.avatar_url}} style="height: 30px;"/>
+              {{user.user_name}}
+            {{/link-to}}
+          {{/if}}
         </td>
         <td style='padding: 0;'>
           <div class='user_weeks'>
@@ -17,15 +21,25 @@
                 {{else}}
                   &nbsp;
                 {{/if}}
-                {{count}}
+                <span class='sr-only'>
+                  {{stat.count}}
+                </span>
               </div>
             {{/each}}
           </div>
         </td>
+        <td style='width: 3%;'>
+          {{#if deletable}}
+            <a href="#" {{action 'delete_action' user.id}}>
+              <span class='glyphicon glyphicon-remove'></span>
+              <span class='sr-only'>{{t "Remove User" key='remove_user'}}</span>
+            </a>
+          {{/if}}
+        </td>
       </tr>
     {{/each}}
     <tr>
-      <td>{{t "week of" key='week_of'}}</td>
+      <td style='width: 20%;' class='text-muted'>{{t "week of" key='week_of'}}</td>
       <td style='padding: 5px 0 0;'>
         <div class='user_weeks'>
           {{#each labeled_weeks as |label|}}
@@ -34,6 +48,8 @@
             </div>
           {{/each}}
         </div>
+      </td>
+      <td style='width: 3%;'>
       </td>
     </tr>
   </tbody>

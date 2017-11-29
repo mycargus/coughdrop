@@ -22,7 +22,7 @@
             {{t "Recent sessions" key='recent_sessions'}}
           </div>
           <div class="panel-body">
-            {{t "session" key='sessions' count=user_counts.recent_session_count}}
+            {{t "session" key='sessions' count=model.user_counts.recent_session_count}}
           </div>
         </div>
       </div>
@@ -32,7 +32,7 @@
             {{t "Recently-logged users" key='recently_logged_users'}}
           </div>
           <div class="panel-body">
-            {{user_counts.recent_session_user_count}} / {{user_counts.total_users}}
+            {{model.user_counts.recent_session_user_count}} / {{model.user_counts.total_users}}
             {{t "users" key='users'}}
           </div>
         </div>
@@ -43,24 +43,55 @@
             {{t "Recently-logged hours" key='recently_logged_hours'}}
           </div>
           <div class="panel-body">
-            {{t "hour" key='n_hours' count=user_counts.recent_session_hours}}
+            {{t "hour" key='n_hours' count=model.user_counts.recent_session_hours}}
           </div>
         </div>
       </div>
+      {{#if model.permissions.edit}}
+        <div class='col-sm-12' style='margin-bottom: 10px;'>
+          <button class='btn btn-default' {{action 'add_users'}}>{{t "Add Users" key='add_users'}}</button>
+          <button class='btn btn-default' {{action 'edit_unit'}}>{{t "Edit Room" key='edit_room'}}</button>
+          <button class='btn btn-default' {{action 'delete_unit'}}>{{t "Delete Room" key='delete_room'}}</button>
+        </div>
+        {{#if model.adding_users}}
+          <div class='col-sm-6' style='margin-bottom: 20px;'>
+            <span style="display: inline-block; width: 150px;">
+              {{bound-select select_class="form-control" content=organization.supervisor_options selection=model.supervisor_user_name action=(action (mut model.supervisor_user_name)) }}
+            </span>
+            <div class="btn-group dropdown">
+              <button class='btn btn-default dropdown-toggle' data-toggle="dropdown" aria-expanded="false">
+                {{t "Add Supervisor" key='add_supervisor'}} <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="#" {{action 'add_unit_user' 'edit_supervisor'}}>{{t "Add With Edit Permission" key='add_with_edit_permission'}}</a></li>
+                <li><a href="#" {{action 'add_unit_user' 'supervisor'}}>{{t "Add As View Only" key='add_as_read_only'}}</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class='col-sm-6' style='margin-bottom: 20px;'>
+            <span style="display: inline-block; width: 150px;">
+              {{bound-select select_class="form-control" content=organization.communicator_options selection=model.communicator_user_name action=(action (mut model.communicator_user_name)) }}
+            </span>
+            <button class='btn btn-default' {{action 'add_unit_user' 'communicator'}}>{{t "Add Communicator" key='add_communicator'}}</button>
+          </div>
+        {{/if}}
+      {{/if}}
       <div class="col-sm-6" style="padding: 0;">
-        {{#if weekly_stats.error}}
+        {{#if model.weekly_stats.loading}}
+          {{t "Loading reports..." key='loading_reports'}}
+        {{else if model.weekly_stats.error}}
           {{t "There was a problem loading this report" key='problem_loading_report'}}
         {{else}}
-          {{stats/sessions-per-week weekly_stats=weekly_stats}}
+          {{stats/sessions-per-week weekly_stats=model.weekly_stats}}
         {{/if}}
       </div>
       <div class="col-sm-3" style="padding: 0;">
-        {{stats/recent-sessions total=user_counts.total_users recent=user_counts.recent_session_user_count}}
+        {{stats/recent-sessions total=model.user_counts.total_users recent=model.user_counts.recent_session_user_count}}
       </div>
       {{#if app_state.feature_flags.goals}}
-        {{#if user_counts}}
+        {{#if model.user_counts}}
           <div class="col-sm-3" style="padding: 0;">
-            {{stats/recent-goals total=user_counts.total_users tracked=user_counts.goal_set untracked=user_counts.goal_recently_logged}}
+            {{stats/recent-goals total=model.user_counts.total_users tracked=model.user_counts.goal_set untracked=model.user_counts.goal_recently_logged}}
           </div>
         {{/if}}
       {{/if}}
@@ -68,41 +99,23 @@
   {{/if}}
   <h3>{{t "Supervisors" key='supervisors'}}</h3>
   {{#if model.supervisors}}
-    <table class="table table-hover" style="width: 600px;">
-      <tbody>
-        {{#each model.supervisors as |user|}}
-          <tr>
-            <td style='font-size: 20px;'>
-              {{#link-to 'user' user.user_name}}
-                <img src={{user.avatar_url}} style="height: 30px;"/>
-                {{user.user_name}}
-              {{/link-to}}
-            </td>
-            <td style='font-size: 14px;'>
-              {{#each user.org_supervisees as |sup|}}
-                {{#link-to 'user' sup.user_name}}{{sup.user_name}}{{/link-to}}<br/>
-              {{/each}}
-            </td>
-          </tr>
-        {{/each}}
-      </tbody>
-    </table>
+    {{stats/user-weeks unit=model user_type='supervisor' users=model.supervisors weeks=model.supervisor_weeks delete_user='delete_unit_user' deletable=model.permissions.edit}}
   {{else}}
     <p style="margin-bottom: 30px;">{{t "None found" key='none_found'}}</p>
   {{/if}}
 
   <h3>{{t "Communicators" key='communicators'}}</h3>
   {{#if model.communicators}}
-    {{stats/user-weeks users=model.communicators weeks=user_weeks}}
+    {{stats/user-weeks unit=model user_type='communicator' users=model.communicators weeks=model.user_weeks delete_user='delete_unit_user' deletable=model.permissions.edit}}
   {{else}}
     <p style="margin-bottom: 30px;">{{t "None found" key='none_found'}}</p>
   {{/if}}
 
   {{#if model.permissions.view_stats}}
     <h3 style='margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;'>{{t "Recent Sessions" key='recent_sessions'}}</h3>
-    {{#if logs.data}}
+    {{#if model.logs.data}}
       <ul class="list-unstyled">
-      {{#each logs.data as |log|}}
+      {{#each model.logs.data as |log|}}
         <li>
           <p>
             {{#link-to 'user' log.user.user_name}}{{log.user.user_name}}{{/link-to}} -

@@ -31,6 +31,7 @@ class Api::UnitsController < ApplicationController
 
     user_ids = UserLink.links_for(unit).select{|l| l['type'] == 'org_unit_communicator' }.map{|l| l['user_id'] }
     approved_users = User.find_all_by_global_id(user_ids)
+    supervisor_ids = UserLink.links_for(unit).select{|l| l['type'] == 'org_unit_supervisor' }.map{|l| l['user_id'] }.compact.uniq
     res = Organization.usage_stats(approved_users, false)
 
     res['user_weeks'] = {}
@@ -45,6 +46,29 @@ class Api::UnitsController < ApplicationController
             'count' => obj.attributes['count'] || 0,
             'goals' => obj.attributes['goals'] || 0
           }
+        end
+      end
+    end
+    
+    LogSession.where(log_type: 'daily_use', user_id: User.local_ids(supervisor_ids))
+    res['supervisor_weeks'] = {}
+    cutoff = 12.weeks.ago.to_date.iso8601
+    sessions.each do |session|
+      user_id = session.related_global_id(session.user_id)
+      session.data['days'].each do |str, day|
+        if str > cutoff
+          week = Date.parse(str).beginning_of_week
+          ts = week.to_time.to_i
+          res['supervisor_weeks'][user_id] ||= {}
+          res['supervisor_weeks'][user_id][ts] ||= {
+            'actives' => 0,
+            'total_levels' => 0,
+            'days' => 0
+          }
+          res['supervisor_weeks'][user_id][ts]['actives'] += 1 if day['active']
+          res['supervisor_weeks'][user_id][ts]['total_levels'] += (day['activity_level'] ? day['activity_level'] : (day['active'] ? 4 : 0))
+          res['supervisor_weeks'][user_id][ts]['days'] += 1 if day['active'] || day['activity_level']
+          res['supervisor_weeks'][user_id][ts]['average_level'] = res['supervisor_weeks'][user_id][ts]['total_levels'].to_f / [5.0, res['supervisor_weeks'][user_id][ts]['days'].to_f].max
         end
       end
     end
@@ -76,6 +100,7 @@ class Api::UnitsController < ApplicationController
     return unless exists?(@unit, params['id'])
     return unless allowed?(@unit, 'edit')
     if @unit.process(params['unit'])
+      @unit.reload
       render json: JsonApi::Unit.as_json(@unit, :wrapper => true, :permissions => @api_user).to_json
     else
       api_error(400, {error: "unit update failed", errors: @unit.processing_errors})

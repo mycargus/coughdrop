@@ -11,9 +11,10 @@ export default Ember.Component.extend({
     $elem.find(".week").tooltip({container: 'body'});
   },
   communicators_with_stats: function() {
-    var res = this.get('users') || [];
-    if(this.get('weeks')) {
-      var user_weeks = this.get('weeks');
+    var res = [];
+    var _this = this;
+    if(this.get('weeks') || true) {
+      var user_weeks = this.get('weeks') || {};
 
       var max_count = 1;
       for(var user_id in user_weeks) {
@@ -24,45 +25,108 @@ export default Ember.Component.extend({
 
       var populated_stamps = this.get('populated_stamps');
 
-      res.forEach(function(user) {
+      var users = this.get('users') || [];
+      if(this.get('more_users')) {
+        users = users.concat(this.get('more_users'));
+      }
+      var totals = {
+      };
+      users.forEach(function(user) {
+        user = Ember.$.extend({}, user);
         var weeks = user_weeks[user.id];
         user.week_stats = [];
         populated_stamps.forEach(function(stamp) {
           console.log(weeks && weeks[stamp]);
-          var count = (weeks && weeks[stamp] && weeks[stamp].count) || 0;
-          var goals = (weeks && weeks[stamp] && weeks[stamp].goals) || 0;
-          var level = Math.round(count / max_count * 10);
-          var str = i18n.t('n_sessions', "session", {count: count});
-          if(goals > 0) {
-            str = str + i18n.t('comma', ", ");
-            str = str + i18n.t('n_goals', "goal event", {count: goals});
+          if(_this.get('user_type') == 'total') {
+            var user_level = 0;
+            if(weeks && weeks[stamp]) {
+              // scale of 0-5, average supervisor activity level
+              user_level = weeks[stamp].average_level || 0;
+              if(weeks[stamp].count) {
+                // # of communicator sessions for the week
+                user_level = Math.min(5, Math.round(weeks[stamp].count / 10));
+              }
+            }
+            user.week_stats.push({
+              level: user_level
+            });
+          } else if(_this.get('user_type') == 'communicator') {
+            var count = (weeks && weeks[stamp] && weeks[stamp].count) || 0;
+            var goals = (weeks && weeks[stamp] && weeks[stamp].goals) || 0;
+            var level = Math.round(count / max_count * 10);
+            var str = i18n.t('n_sessions', "session", {count: count});
+            if(goals > 0) {
+              str = str + i18n.t('comma', ", ");
+              str = str + i18n.t('n_goals', "goal event", {count: goals});
+            }
+            user.week_stats.push({
+              count: count,
+              tooltip: str,
+              goals: goals,
+              class: 'week level_' + level
+            });
+          } else {
+            var level = weeks && weeks[stamp] && (Math.round(weeks[stamp].average_level * 10) / 10);
+            level = level || 0;
+            var str = i18n.t('activity_level', "week's activity level: ") + level;
+            user.week_stats.push({
+              count: level,
+              tooltip: str,
+              class: 'week level_' + Math.round(level * 2)
+            });
           }
-          user.week_stats.push({
-            count: count,
-            tooltip: str,
-            goals: goals,
-            class: 'week level_' + level
+        });
+        res.push(user);
+      });
+      if(_this.get('user_type') == 'total' && res.length > 0) {
+        var total_users = res.length;
+        var u = res[0];
+        var new_res = [{
+          user_name: 'totals',
+          totals: true,
+          week_stats: []
+        }];
+        u.week_stats.forEach(function(week, idx) {
+          var stats = {};
+          var tally = 0;
+          res.forEach(function(user) {
+            tally = tally + user.week_stats[idx].level;
+            console.log(tally);
+          });
+          var avg = Math.round(tally / total_users * 10) / 10;
+          new_res[0].week_stats.push({
+            count: avg,
+            tooltip: i18n.t('activity_level', "activity level: ") + avg,
+            class: 'week level_' + Math.round(avg * 2)
           });
         });
-      });
+        res = new_res;
+      }
     }
     var _this = this;
     Ember.run.later(function() {
       _this.draw();
     });
     return res;
-  }.property('users', 'weeks', 'populated_stamps'),
+  }.property('users', 'weeks', 'more_weeks', 'more_users', 'populated_stamps'),
   labeled_weeks: function() {
     return this.get('populated_stamps').map(function(s) { return window.moment(s * 1000).format('MMM DD, \'YY'); });
   }.property('populated_stamps'),
   populated_stamps: function() {
-    if(this.get('weeks')) {
-      var weeks = this.get('weeks');
-      var max_count = 0;
+    var all_weeks = {};
+    var weeks = this.get('weeks');
+    var more_weeks = this.get('more_weeks');
+    for(var user_id in (weeks || {})) {
+      all_weeks[user_id] = weeks[user_id];
+    }
+    for(var user_id in (more_weeks || {})) {
+      all_weeks[user_id] = more_weeks[user_id];
+    }
+    if(weeks) {
+      var weeks = all_weeks;
       var all_stamps = [];
       for(var user_id in weeks) {
         for(var week_stamp in weeks[user_id]) {
-          max_count = Math.max(max_count, weeks[user_id][week_stamp]);
           if(all_stamps.indexOf(week_stamp) == -1) {
             all_stamps.push(week_stamp);
           }
@@ -93,10 +157,14 @@ export default Ember.Component.extend({
         }
       }
       populated_stamps = populated_stamps.slice(-10);
-      console.log(populated_stamps.map(function(s) { return new Date(s * 1000); }));
       return populated_stamps;
     }
     return [];
-  }.property('weeks')
+  }.property('weeks', 'more_weeks'),
+  actions: {
+    delete_action: function(id) {
+      this.sendAction('delete_user', this.get('unit'), this.get('user_type'), id);
+    }
+  }
 });
 

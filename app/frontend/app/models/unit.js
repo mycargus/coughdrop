@@ -18,7 +18,44 @@ CoughDrop.Unit = DS.Model.extend({
   }.property('supervisors'),
   communicator_count: function() {
     return (this.get('communicators') || []).length;
-  }.property('communicators')
+  }.property('communicators'),
+  load_data: function() {
+    if(this.get('weekly_stats') && !this.get('weekly_stats.error')) {
+      return;
+    }
+    this.refresh_stats();
+    this.refresh_logs();
+  },
+  refresh_stats: function() {
+    var _this = this;
+    _this.set('weekly_stats', {loading: true});
+    _this.set('user_counts', null);
+    _this.set('user_weeks', null);
+    _this.set('supervisor_weeks', null);
+    persistence.ajax('/api/v1/units/' + _this.get('id') + '/stats', {type: 'GET'}).then(function(stats) {
+      _this.set('weekly_stats', stats.weeks);
+      _this.set('user_counts', stats.user_counts);
+      stats.user_weeks.populated = true;
+      stats.user_weeks.ts = Math.random();
+      _this.set('user_weeks', stats.user_weeks);
+      stats.supervisor_weeks.populated = true;
+      stats.supervisor_weeks.ts = Math.random();
+      _this.set('supervisor_weeks', stats.supervisor_weeks);
+    }, function() {
+      _this.set('weekly_stats', {error: true});
+    });
+  },
+  refresh_logs: function() {
+    var _this = this;
+    _this.set('logs', {loading: true});
+    persistence.ajax('/api/v1/units/' + _this.get('id') + '/logs', {type: 'GET'}).then(function(data) {
+      _this.set('logs.loading', null);
+      _this.set('logs.data', data.log);
+    }, function() {
+      _this.set('logs.loading', null);
+      _this.set('logs.data', null);
+    });
+  }
 });
 
 export default CoughDrop.Unit;

@@ -10,104 +10,75 @@
         <tr>
           <td style='padding: 10px 10px 30px;'>
             <h4 style='margin-top: 0;'>
-              {{unit.name}}
               {{#link-to 'organization.room' unit.id}}
-                {{t "(stats)" key='stats_paren'}}
+                {{unit.name}}
+                {{t "(more details)" key='more_details'}}
               {{/link-to}}
             </h4>
-            <table style="width: 100%; margin-left: 30px;">
-              <thead>
-                <tr>
-                  <td style="width: 50%;">
-                    <strong>{{t "Supervisors" key='supervisors'}}</strong>
-                  </td>
-                  <td style="width: 50%;">
-                    <strong>{{t "Communicators" key='communicators'}}</strong>
-                  </td>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 50%; vertical-align: top;">
-                    <div class='btn-group-vertical' style='width: 80%;'>
-                      {{#each unit.supervisors as |supervisor|}}
-                        <span class='btn btn-default' style='text-align: left; border-width: 0; border-bottom-width: 1px; border-radius: 0; background: transparent; cursor: default; border-color: #eee;'>
-                          {{#link-to 'user' supervisor.user_name}}
-                            <img src={{supervisor.avatar_url}} style="height: 30px;"/>
-                            {{supervisor.user_name}}
-                          {{/link-to}}
 
-                          {{#if supervisor.org_unit_edit_permission}}
-                            {{t "(can edit)" key='can_edit_paren'}}
-                          {{/if}}
-                          <div style='float: right; padding-top: 5px;'>
-                            {{#if model.permissions.edit}}
-                              <a href="#" {{action 'delete_unit_user' unit 'supervisor' supervisor.id}}>
-                                <span class='glyphicon glyphicon-remove'></span>
-                                <span class='sr-only'>{{t "Remove User" key='remove_user'}}</span>
-                              </a>
-                            {{/if}}
-                          </div>
-                          <div style='clear: right;'></div>
-                        </span>
-                      {{/each}}
-                    </div>
-                  </td>
-                  <td style="width: 50%; vertical-align: top;">
-                    <div class='btn-group-vertical' style='width: 80%;'>
-                      {{#each unit.communicators as |communicator|}}
-                        <span class='btn btn-default' style='text-align: left; border-width: 0; border-bottom-width: 1px; border-radius: 0; background: transparent; cursor: default; border-color: #eee;'>
-                          {{#link-to 'user' communicator.user_name}}
-                            <img src={{communicator.avatar_url}} style="height: 30px;"/>
-                            {{communicator.user_name}}
-                          {{/link-to}}
+            {{#if unit.adding_users}}
+              <div class='row' style='margin-bottom: 20px;'>
+                <div class='col-sm-6'>
+                  <span style="display: inline-block; width: 150px;">
+                    {{bound-select select_class="form-control" content=model.supervisor_options selection=unit.supervisor_user_name action=(action (mut unit.supervisor_user_name)) }}
+                  </span>
+                  <div class="btn-group dropdown">
+                    <button class='btn btn-default dropdown-toggle' data-toggle="dropdown" aria-expanded="false">
+                      {{t "Add Supervisor" key='add_supervisor'}} <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu">
+                      <li><a href="#" {{action 'add_unit_user' unit 'edit_supervisor'}}>{{t "Add With Edit Permission" key='add_with_edit_permission'}}</a></li>
+                      <li><a href="#" {{action 'add_unit_user' unit 'supervisor'}}>{{t "Add As View Only" key='add_as_read_only'}}</a></li>
+                    </ul>
+                  </div>
+                </div>
+                <div class='col-sm-6'>
+                  <span style="display: inline-block; width: 150px;">
+                    {{bound-select select_class="form-control" content=model.communicator_options selection=unit.communicator_user_name action=(action (mut unit.communicator_user_name)) }}
+                  </span>
+                  <button class='btn btn-default' {{action 'add_unit_user' unit 'communicator'}}>{{t "Add Communicator" key='add_communicator'}}</button>
+                </div>
+              </div>
+            {{/if}}
 
-                          <div style='float: right; padding-top: 5px;'>
-                            {{#if model.permissions.edit}}
-                              <a href="#" {{action 'delete_unit_user' unit 'communicator' communicator.id}}>
-                                <span class='glyphicon glyphicon-remove'></span>
-                                <span class='sr-only'>{{t "Remove User" key='remove_user'}}</span>
-                              </a>
-                            {{/if}}
-                          </div>
-                          <div style='clear: right;'></div>
-                        </span>
-                      {{/each}}
-                    </div>
-                  </td>
-                </tr>
-                {{#if unit.adding_users}}
-                  <tr>
-                    <td style="width: 50%;">
-                      <span style="display: inline-block; width: 150px;">
-                        {{bound-select select_class="form-control" content=supervisor_options selection=unit.supervisor_user_name action=(action (mut unit.supervisor_user_name)) }}
-                      </span>
-                      <div class="btn-group dropdown">
-                        <button class='btn btn-default dropdown-toggle' data-toggle="dropdown" aria-expanded="false">
-                          {{t "Add Supervisor" key='add_supervisor'}} <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu" role="menu">
-                          <li><a href="#" {{action 'add_unit_user' unit 'edit_supervisor'}}>{{t "Add With Edit Permission" key='add_with_edit_permission'}}</a></li>
-                          <li><a href="#" {{action 'add_unit_user' unit 'supervisor'}}>{{t "Add As View Only" key='add_as_read_only'}}</a></li>
-                        </ul>
-                      </div>
-                    </td>
-                    <td style="width: 50%;">
-                      <span style="display: inline-block; width: 150px;">
-                        {{bound-select select_class="form-control" content=communicator_options selection=unit.communicator_user_name action=(action (mut unit.communicator_user_name)) }}
-                      </span>
-                      <button class='btn btn-default' {{action 'add_unit_user' unit 'communicator'}}>{{t "Add Communicator" key='add_communicator'}}</button>
-                    </td>
-                  </tr>
+            {{#if unit.weekly_stats.loading}}
+              {{t "Loading activity data..." key='loading_activity_data'}}
+            {{else if unit.weekly_stats.error}}
+              {{t "Error loading activity data" key='error_loading_activity_data'}}
+            {{else}}
+              {{stats/user-weeks unit=unit user_type='total' users=unit.supervisors more_users=unit.communicators weeks=unit.supervisor_weeks more_weeks=unit.user_weeks}}
+              <a href="#" class='btn btn-default' {{action 'toggle_details' unit}} style='font-size: 15px; display: inline-block; margin-top: -10px;'>
+                {{#if unit.expanded}}
+                  <span class='glyphicon glyphicon-triangle-bottom' style='vertical-align: middle; margin-right: -3px; margin-top: -3px;'></span>
+                  {{t "collapse report" key='collapse_report'}}
+                {{else}}
+                  <span class='glyphicon glyphicon-triangle-right' style='vertical-align: middle; margin-right: -3px; margin-top: -3px;'></span>
+                  {{t "expand report" key='expand_report'}}
                 {{/if}}
-              </tbody>
-            </table>
+              </a>
+            {{/if}}
+            {{#if unit.expanded}}
+              <div style='margin-top: 20px; margin-left: 30px;'>
+                <strong>{{t "Supervisors" key='supervisors'}}</strong>
+                {{stats/user-weeks unit=unit user_type='supervisor' users=unit.supervisors weeks=unit.supervisor_weeks delete_user='delete_unit_user' deletable=model.permissions.edit}}
+              </div>
+              <div style='margin-top: 20px; margin-left: 30px;'>
+                <strong>{{t "Communicators" key='communicators'}}</strong>
+                {{stats/user-weeks unit=unit user_type='communicator' users=unit.communicators weeks=unit.user_weeks delete_user='delete_unit_user' deletable=model.permissions.edit}}
+              </div>
+            {{else}}
+              <div style='margin-top: 20px; margin-left: 30px;'>
+                <span class='text-muted'>{{t "Supervisors" key='supervisors'}} ({{unit.supervisors.length}})</span>
+                {{#each unit.supervisors as |user index|}}{{if index ", "}}{{#link-to 'user' user.user_name}}{{user.user_name}}{{/link-to}}{{/each}}<br/>
+                <span class='text-muted'>{{t "Communicators" key='communicators'}} ({{unit.communicators.length}})</span>
+                {{#each unit.communicators as |user index|}}{{if index ", "}}{{#link-to 'user' user.user_name}}{{user.user_name}}{{/link-to}}{{/each}}<br/>
+              </div>
+            {{/if}}
           </td>
           {{#if model.permissions.edit}}
-            <td style='width: 150px; padding: 10px 0 30px;'>
+            <td style='width: 100px; padding: 10px 0 30px;'>
               <div>
                 <button class='btn btn-default' {{action 'add_users' unit}}><span class='glyphicon glyphicon-plus'></span><span class='sr-only'>{{t "Add Users" key='add_users'}}</span></button>
-                <button class='btn btn-default' {{action 'edit_unit' unit}}><span class='glyphicon glyphicon-pencil'></span><span class='sr-only'>{{t "Edit" key='edit'}}</span></button>
                 <button class='btn btn-default' {{action 'delete_unit' unit}}><span class='glyphicon glyphicon-trash'></span><span class='sr-only'>{{t "Delete" key='delete'}}</span></button>
               </div>
             </td>
