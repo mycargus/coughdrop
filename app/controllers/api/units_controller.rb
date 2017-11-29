@@ -55,7 +55,7 @@ class Api::UnitsController < ApplicationController
     cutoff = 12.weeks.ago.to_date.iso8601
     sessions.each do |session|
       user_id = session.related_global_id(session.user_id)
-      session.data['days'].each do |str, day|
+      (session.data['days'] || []).each do |str, day|
         if str > cutoff
           week = Date.parse(str).beginning_of_week
           ts = week.to_time.to_i
