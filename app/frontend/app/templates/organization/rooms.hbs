@@ -46,7 +46,7 @@
             {{else if unit.weekly_stats.error}}
               {{t "Error loading activity data" key='error_loading_activity_data'}}
             {{else}}
-              {{stats/user-weeks unit=unit user_type='total' users=unit.supervisors more_users=unit.communicators weeks=unit.supervisor_weeks more_weeks=unit.user_weeks}}
+              {{stats/user-weeks unit=unit user_type='total' users=unit.supervisors more_users=unit.communicators weeks=unit.supervisor_weeks more_weeks=unit.user_weeks max_session_count=max_session_count}}
               <a href="#" class='btn btn-default' {{action 'toggle_details' unit}} style='font-size: 15px; display: inline-block; margin-top: -10px;'>
                 {{#if unit.expanded}}
                   <span class='glyphicon glyphicon-triangle-bottom' style='vertical-align: middle; margin-right: -3px; margin-top: -3px;'></span>

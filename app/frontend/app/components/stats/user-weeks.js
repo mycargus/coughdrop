@@ -32,6 +32,7 @@ export default Ember.Component.extend({
       }
 
       var populated_stamps = this.get('populated_stamps');
+      var max_session_count = (this.get('max_session_count') || 50) * 0.75;
 
       var users = this.get('users') || [];
       if(this.get('more_users')) {
@@ -52,7 +53,7 @@ export default Ember.Component.extend({
               user_level = weeks[stamp].average_level || 0;
               if(weeks[stamp].count) {
                 // # of communicator sessions for the week
-                user_level = Math.min(5, Math.round(weeks[stamp].count / 5));
+                user_level = Math.min(5, Math.round(weeks[stamp].count / (max_session_count / 5)));
               }
             }
             user.week_stats.push({
@@ -156,7 +157,7 @@ export default Ember.Component.extend({
       if(this.get('user_type') == 'total') {
         cutoff = -10;
       }
-      var three_weeks_ago = window.moment().add(-3, 'week').unix();
+      var three_weeks_ago = window.moment().add(cutoff, 'week').unix();
       if(all_stamps.length === 0 || all_stamps[0] > three_weeks_ago) {
         all_stamps.unshift(three_weeks_ago);
       }

@@ -21,6 +21,11 @@ export default Ember.Controller.extend({
   },
   reorder_units: function(unit_ids) {
   },
+  max_session_count: function() {
+    var counts = (this.get('units') || []).map(function(u) { return u.get('max_session_count'); });
+    console.log("max session count", Math.max.apply(null, counts));
+    return Math.max.apply(null, counts);
+  }.property('units.@each.max_session_count'),
   actions: {
     add_unit: function() {
       var name = this.get('new_unit_name');
