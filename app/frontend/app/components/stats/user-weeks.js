@@ -96,16 +96,26 @@ export default Ember.Component.extend({
         }];
         u.week_stats.forEach(function(week, idx) {
           var stats = {};
+          var total_with_any_usage = 0;
           var tally = 0;
           res.forEach(function(user) {
             tally = tally + user.week_stats[idx].level;
+            if(user.week_stats[idx].level > 0) {
+              total_with_any_usage++;
+            }
             console.log(tally);
           });
           var avg = Math.round(tally / total_users * 10) / 10;
+          // if any users have usage, it will be at least level 1
+          var level = Math.ceil(avg * 2);
+          // if at least 1/5 users have activity, it will be at least level 2
+          if(total_with_any_usage > total_users / 5) {
+            level = Math.max(level, 2);
+          }
           new_res[0].week_stats.push({
             count: avg,
             tooltip: i18n.t('activity_level', "activity level: ") + avg,
-            class: 'week level_' + Math.round(avg * 2)
+            class: 'week level_' + Math.min(level, 10)
           });
         });
         res = new_res;
@@ -142,6 +152,10 @@ export default Ember.Component.extend({
       }
       all_stamps = all_stamps.sort();
       var populated_stamps = [];
+      var cutoff = -3;
+      if(this.get('user_type') == 'total') {
+        cutoff = -10;
+      }
       var three_weeks_ago = window.moment().add(-3, 'week').unix();
       if(all_stamps.length === 0 || all_stamps[0] > three_weeks_ago) {
         all_stamps.unshift(three_weeks_ago);
@@ -168,7 +182,7 @@ export default Ember.Component.extend({
       return populated_stamps;
     }
     return [];
-  }.property('weeks', 'more_weeks'),
+  }.property('weeks', 'more_weeks', 'user_type'),
   actions: {
     delete_action: function(id) {
       this.sendAction('delete_user', this.get('unit'), this.get('user_type'), id);
