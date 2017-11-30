@@ -63,8 +63,12 @@
           }
         };
         function onYouTubeIframeAPIReady() {
+          var controls = <%= params['testing'] == 'true' ? '1' : '0' %>;
+          var autoplay = <%= params['testing'] == 'true' ? '0' : '1' %>;
+          var start = <%= params['start'].to_i > 0 ? params['start'].to_i : 'null' %>;
+          var end = <%= params['end'].to_i > 0 ? params['end'].to_i : 'null' %>;
           player = new YT.Player('player', {
-            playerVars: { 'autoplay': 1, 'controls': 0, 'showinfo': 0, 'origin': 'http://localhost:3000', 'rel': 0 },
+            playerVars: { 'autoplay': autoplay, 'controls': controls, 'showinfo': 0, 'origin': 'http://localhost:3000', 'rel': 0, 'start': start, 'end': end},
             height: window.innerHeight,
             width: window.innerWidth,
             videoId: '<%= params['id'] %>',
