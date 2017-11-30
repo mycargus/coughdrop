@@ -78,6 +78,10 @@ var session = Ember.Object.extend({
       if(data.authenticated === false) {
         session.set('invalid_token', true);
         if(allow_invalidate) {
+          if(capabilities.installed_app && capabilities.system == 'iOS') {
+            alert('This session is no longer valid, please log back in');
+          }
+
           session.invalidate(true);
         }
       } else {
@@ -86,6 +90,11 @@ var session = Ember.Object.extend({
       if(data.user_name) {
         session.set('user_name', data.user_name);
         session.set('user_id', data.user_id);
+        if(app_state.get('sessionUser.id') != data.user_id) {
+          Ember.run.later(function() {
+            app_state.refresh_session_user();
+          });
+        }
       }
       if(data.sale !== undefined) {
         CoughDrop.sale = parseInt(data.sale, 10) || false;
@@ -126,6 +135,9 @@ var session = Ember.Object.extend({
       session.set('user_id', store_data.user_id);
       session.set('as_user_id', store_data.as_user_id);
     } else if(!store_data.access_token) {
+      if(capabilities.installed_app && capabilities.system == 'iOS') {
+        alert('Session data has been lost, please log back in');
+      }
       session.invalidate();
     }
     if(force_check_for_token || (persistence.tokens[key] == null && !Ember.testing && persistence.get('online'))) {

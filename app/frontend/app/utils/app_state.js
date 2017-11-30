@@ -100,9 +100,12 @@ var app_state = Ember.Object.extend({
         find.then(function(user) {
           console.log("user initialization working..");
           var valid_user = Ember.RSVP.resolve(user);
-          if(session.get('user_id') && session.get('user_id') != user.get('id')) {
+          if(!session.get('as_user_id') && session.get('user_id') && session.get('user_id') != user.get('id')) {
             // mismatch due to a user being renamed
             valid_user = CoughDrop.store.findRecord('user', session.get('user_id'));
+          } else if(session.get('as_user_id') && user.get('user_name') && session.get('as_user_id') != user.get('user_name')) {
+            // mismatch due to a user being renamed
+            valid_user = CoughDrop.store.findRecord('user', session.get('as_user_id'));
           }
           valid_user.then(function(user) {
             if(!user.get('fresh') && stashes.get('online')) {
@@ -135,8 +138,12 @@ var app_state = Ember.Object.extend({
           console.log("will log out: " + (do_logout || last_try));
           console.error("user initialization failed");
           if(do_logout || last_try) {
-            if(session.get('user_name') && session.get('user_name').match(/wahl/)) {
-              alert("Hi! You found the logout error! Please take a screenshot! " + err.status + " " + JSON.stringify(err));
+            if(capabilities.installed_app && capabilities.system == 'iOS') {
+              if(last_try) {
+                alert('We couldn\'t retrieve your user account, please try logging back in');
+              } else {
+                alert('This session has expired, please log back in');
+              }
             }
             session.invalidate(true);
           } else {
