@@ -248,10 +248,10 @@
         <div class="form-group">
           <div class="col-sm-10 col-sm-offset-2">
             <div class="video_box">
-              <iframe src={{model.video.test_url}} id="link_video_preview" frameborder="0"></iframe>
+              <iframe src={{video_test_url}} id="link_video_preview" frameborder="0"></iframe>
             </div>
             {{#unless image_matches_video_thumbnail}}
-              <a href="#" {{action 'set_as_button_image' model.video.thumbnail_url model.video.thumbnail_content_type}}>{{t "set as button image" key='set_as_button_image'}}</a>
+              <a href="#" {{action 'set_as_button_image' model.video.thumbnail_url model.video.thumbnail_content_type}}>{{t "set thumbnail as button image" key='set_as_button_image'}}</a>
             {{/unless}}
 
             {{#if player}}
