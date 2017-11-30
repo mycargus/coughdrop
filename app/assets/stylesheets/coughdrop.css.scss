@@ -2874,16 +2874,28 @@ table>tbody>tr.voice_pad>td {
     margin-bottom: -1px;
     margin-top: -1px;
     padding: 5px;
+
+
     &.level_0 {
       background: #fff;
     }
     &.level_1, &.level_2 {
       background: #D1E1EE;
     }
-    &.level_3, &.level_4 {
+    &.level_2 {
+      background: #b9d1e5;
+    }
+    &.level_3 {
       background: #A4C5E1;
     }
-    &.level_5, &.level_6, &.level_7 {
+    &.level_4 {
+      background: #7ca7cc;
+    }
+    &.level_5 {
+      background: #6a9ac4;
+      color: #fff;
+    }
+    &.level_6, &.level_7 {
       background: #6195C2;
       color: #fff;
     }
