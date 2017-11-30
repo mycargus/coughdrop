@@ -2880,26 +2880,29 @@ table>tbody>tr.voice_pad>td {
       background: #fff;
     }
     &.level_1, &.level_2 {
-      background: #D1E1EE;
+      background: #dee8ef;
     }
     &.level_2 {
-      background: #b9d1e5;
+      background: #D1E1EE;
     }
     &.level_3 {
-      background: #A4C5E1;
+      background: #b9d1e5;
     }
     &.level_4 {
-      background: #7ca7cc;
+      background: #A4C5E1;
     }
     &.level_5 {
+      background: #7ca7cc;
+    }
+    &.level_6 {
       background: #6a9ac4;
       color: #fff;
     }
-    &.level_6, &.level_7 {
+    &.level_7, &.level_8 {
       background: #6195C2;
       color: #fff;
     }
-    &.level_8, &.level_9, &.level_10 {
+    &.level_9, &.level_10 {
       background: #337AB7;
       color: #fff;
     }
