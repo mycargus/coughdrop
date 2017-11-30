@@ -5,6 +5,7 @@ import i18n from '../utils/i18n';
 import persistence from '../utils/persistence';
 import app_state from '../utils/app_state';
 import stashes from '../utils/_stashes';
+import word_suggestions from '../utils/word_suggestions';
 import Utils from '../utils/misc';
 
 CoughDrop.Buttonset = DS.Model.extend({
@@ -57,7 +58,10 @@ CoughDrop.Buttonset = DS.Model.extend({
     buttons.forEach(function(button, idx) {
       // TODO: optionally show buttons on link-disabled boards
       if(!button.hidden || all_buttons_enabled) {
-        if((button.label && button.label.match(re)) || (button.vocalization && button.vocalization.match(re))) {
+        var match_level = (button.label && button.label.match(re) && 3);
+        match_level = match_level || (button.vocalization && button.vocalization.match(re) && 2)
+        match_level = match_level || (button.label && word_suggestions.edit_distance(str, button.label) < Math.max(str.length, button.label.length) * 0.5 && 1);
+        if(match_level) {
           button = Ember.$.extend({}, button);
           if(button.image) {
             button.image = CoughDrop.Image.personalize_url(button.image, app_state.get('currentUser.user_token'));

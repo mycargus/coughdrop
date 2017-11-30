@@ -52,17 +52,18 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
   
   def buttons_starting_from(board_id)
     boards_to_include = {}
-    boards_to_include[board_id] = true
+    boards_to_include[board_id] = 0
     res = []
     (self.data['buttons'] || []).each do |button|
-      if boards_to_include[button['board_id']]
+      if boards_to_include[button['board_id']] != nil
         if button['linked_board_id']
-          boards_to_include[button['linked_board_id']] = true
+          boards_to_include[button['linked_board_id']] = boards_to_include[button['board_id']] + 1
         end
       end
     end
     (self.data['buttons'] || []).each do |button|
       if boards_to_include[button['board_id']]
+        button['depth'] = boards_to_include[button['board_id']] if boards_to_include[button['board_id']]
         res << button
       end
     end
