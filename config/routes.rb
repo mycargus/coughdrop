@@ -203,6 +203,7 @@ Coughdrop::Application.routes.draw do
     
     resources :organizations do
       get 'managers'
+      get 'evals'
       get 'users'
       get 'supervisors'
       get 'logs'

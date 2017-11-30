@@ -34,6 +34,7 @@ export default modal.ModalController.extend({
     res.push({id: 'add_supervisor', name: i18n.t('add_supervisor', "Add this User As a Supervisor")});
     res.push({id: 'add_manager', name: i18n.t('add_manager', "Add this User As a Full Manager")});
     res.push({id: 'add_assistant', name: i18n.t('add_assistant', "Add this User As a Management Assistant")});
+    res.push({id: 'add_eval', name: i18n.t('add_eval', "Add this User As a Paid Eval Account")});
     return res;
   }.property('model.no_licenses'),
   actions: {

@@ -1,0 +1,44 @@
+{{#modal-dialog action="close" opening='opening' closing='closing'}}
+  <div class="modal-header">
+    <button type="button" class="close" {{action 'close'}}>&times;</button>
+    <h3>{{t "Edit Organization Details" key='edit_org_details'}}</h3>
+  </div>
+  <div class="modal-body">
+    <form class="form-horizontal" {{action "save" on="submit"}}>
+      <div class="form-group">
+        <label for="name" class="col-sm-3 control-label">{{t "Name" key='name'}}</label>
+        <div class="col-sm-7">
+          {{#if model.org.permissions.update_licenses}}
+            {{input value=model.org.name class="form-control" id="name" placeholder="Recording Name"}}
+          {{else}}
+            <p class='form-control-static'>{{model.org.name}}</p>
+          {{/if}}
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="name" class="col-sm-3 control-label">{{t "Home Board" key='home_board'}}</label>
+        <div class="col-sm-7">
+          {{input value=model.org.home_board_key class="form-control" id="name" placeholder="board key or URL"}}
+          <div class='text-muted'>
+            <em>{{t "any users you add that don't have a home board set will be automatically set with this board" key='default_home_board_explainer'}}</em>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-sm-9 col-sm-offset-3">
+          <button class='btn btn-primary' type='submit' disabled={{status.saving}}>
+            {{#if status.saving}}
+              {{t "Updating Organization..." key='updating_org'}}
+            {{else}}
+              {{t "Update Organization" key='update_org'}}
+            {{/if}}
+          </button>
+          <button class='btn btn-default' {{action 'close'}}>{{t "Cancel" key='cancel'}}</button>
+          {{#if error}}
+            <p class='text-danger'>{{t "There was an unexpected error while updating the organization" key='error_updating_org'}}</p>
+          {{/if}}
+        </div>
+      </div>
+    </form>
+  </div>
+{{/modal-dialog}}

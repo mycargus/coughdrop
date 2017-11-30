@@ -9,11 +9,13 @@ export default Ember.Controller.extend({
     var _this = this;
     this.set('orgs', {});
     this.set('users', {});
+    this.set('evals', {});
     this.set('logs', {});
     this.set('managers', {});
     this.set('supervisors', {});
     this.set('selected_view', null);
     this.refresh_users();
+    this.refresh_evals();
     this.refresh_managers();
     this.refresh_supervisors();
     this.refresh_orgs();
@@ -68,6 +70,9 @@ export default Ember.Controller.extend({
   show_communicators: function() {
     return this.get('shown_view') == 'communicators';
   }.property('shown_view'),
+  show_evals: function() {
+    return this.get('shown_view') == 'evals';
+  }.property('shown_view'),
   show_supervisors: function() {
     return this.get('shown_view') == 'supervisors';
   }.property('shown_view'),
@@ -83,6 +88,9 @@ export default Ember.Controller.extend({
   no_licenses: function() {
     return !this.get('model.licenses_available');
   }.property('model.licenses_available'),
+  no_eval_licenses: function() {
+    return !this.get('model.eval_licenses_available');
+  }.property('model.eval_licenses_available'),
   refresh_stats: function() {
     var _this = this;
     _this.set('weekly_stats', null);
@@ -120,6 +128,19 @@ export default Ember.Controller.extend({
       _this.set('users.data', null);
     });
   },
+  refresh_evals: function() {
+    var _this = this;
+    this.set('evals.loading', true);
+    var id = this.get('model.id');
+    persistence.ajax('/api/v1/organizations/' + id + '/evals', {type: 'GET', data: {recent: true}}).then(function(data) {
+      _this.set('evals.loading', null);
+      _this.set('evals.data', data.user);
+      _this.set('more_evals', data.meta && data.meta.next_url);
+    }, function() {
+      _this.set('evals.loading', null);
+      _this.set('evals.data', null);
+    });
+  },
   refresh_managers: function() {
     var _this = this;
     _this.set('managers.loading', true);
@@ -154,6 +175,9 @@ export default Ember.Controller.extend({
   suggest_creating_communicator: function() {
     return this.get('missing_user_name') && this.get('missing_user_name') == this.get('user_user_name');
   }.property('user_user_name', 'missing_user_name'),
+  suggest_creating_eval: function() {
+    return this.get('missing_user_name') && this.get('missing_user_name') == this.get('eval_user_name');
+  }.property('eval_user_name', 'missing_user_name'),
   actions: {
     pick: function(view) {
       this.set('selected_view', view);
@@ -167,12 +191,12 @@ export default Ember.Controller.extend({
             // because of the way we hash all user/org settings, this doesn't always get
             // updated reliably, so we repeat ourselves rather than risk losing the result.
             _this.send('management_action', res.user.get('org_management_action'), res.user.get('user_name'));
-            Ember.run.later(function() {
-              _this.send('management_action', res.user.get('org_management_action'), res.user.get('user_name'));
-            }, 1000);
-            Ember.run.later(function() {
-              _this.send('management_action', res.user.get('org_management_action'), res.user.get('user_name'));
-            }, 5000);
+//             Ember.run.later(function() {
+//               _this.send('management_action', res.user.get('org_management_action'), res.user.get('user_name'));
+//             }, 1000);
+//             Ember.run.later(function() {
+//               _this.send('management_action', res.user.get('org_management_action'), res.user.get('user_name'));
+//             }, 5000);
           }
         }
       });
@@ -192,6 +216,9 @@ export default Ember.Controller.extend({
         } else if(action == 'add_user' || action == 'add_unsponsored_user') {
           user_name = this.get('user_user_name');
           cleanup = function() { _this.set('user_user_name', ''); };
+        } else if(action == 'add_eval') {
+          user_name = this.get('eval_user_name');
+          cleanup = function() { _this.set('eval_user_name', ''); };
         }
       }
       if(!user_name) { return; }
@@ -199,6 +226,8 @@ export default Ember.Controller.extend({
       model.save().then(function() {
         if(action.match(/user/)) {
           _this.refresh_users();
+        } else if(action.match(/eval/)) {
+          _this.refresh_evals();
         } else if(action.match(/manager/) || action.match(/assistant/)) {
           _this.refresh_managers();
         } else if(action.match(/supervisor/)) {
@@ -254,6 +283,9 @@ export default Ember.Controller.extend({
           modal.error(i18n.t('remove_org_failed', 'Removing organization failed unexpectedly'));
         });
       }
+    },
+    edit_org: function() {
+      modal.open('edit-org', {org: this.get('model')});
     }
   }
 });

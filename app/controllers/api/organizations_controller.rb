@@ -42,6 +42,13 @@ class Api::OrganizationsController < ApplicationController
     render json: JsonApi::User.paginate(params, users, {:limited_identity => true, :include_email => true, :organization => @org, :prefix => prefix})
   end
   
+  def evals
+    return unless allowed?(@org, 'edit')
+    users = @org.evals.order('user_name')
+    prefix = "/organizations/#{@org.global_id}/evals"
+    render json: JsonApi::User.paginate(params, users, {:limited_identity => true, :include_email => true, :organization => @org, :prefix => prefix})
+  end
+  
   def stats
     org = Organization.find_by_path(params['organization_id'])
     return unless allowed?(org, 'edit')

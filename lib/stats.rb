@@ -600,6 +600,10 @@ module Stats
     end_time = (options[:end_at].to_date + 1).to_time
     options[:end_at] = (end_time + end_time.utc_offset - 1).utc
     options[:start_at] ||= (options[:end_at]).to_date << 2 # limit by date range
+    # eval accounts are limited to 60-day windows
+    if user && user.eval_account?
+      options[:start_at] = [options[:start_at], 60.days.ago].max
+    end
     options[:start_at] = options[:start_at].to_time.utc
     if options[:end_at].to_time - options[:start_at].to_time > 6.months.to_i
       raise(StatsError, "time window cannot be greater than 6 months")

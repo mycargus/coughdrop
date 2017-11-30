@@ -183,6 +183,7 @@ module Subscription
           self.settings['subscription']['started'] = nil if args['plan_id'] == 'monthly_free' || args['plan_id'] == 'slp_monthly_free'
           self.settings['subscription']['token_summary'] = args['token_summary']
           self.settings['subscription']['plan_id'] = args['plan_id']
+          self.settings['subscription']['eval_account'] = args['plan_id'] == 'eval_monthly_free'
           self.settings['subscription']['free_premium'] = args['plan_id'] == 'slp_monthly_free'
           self.settings['preferences']['role'] = role
           self.settings['pending'] = false unless self.settings['subscription']['free_premium']
@@ -364,6 +365,56 @@ module Subscription
     !!(self.premium? && !self.free_premium? && !self.grace_period?)
   end
   
+  def eval_account?
+    !!(self.settings && self.settings['subscription'] && self.settings['subscription']['eval_account'])
+  end
+  
+  def reset_eval(current_device)
+    duration = self.eval_duration
+    self.settings['subscription']['eval_account'] = true
+    # reset the eval expiration clock
+    self.settings['subscription']['eval_started'] = Time.now.iso8601
+    self.settings['subscription']['eval_expires'] = duration.days.from_now.iso8601
+    # clear/reset preferences (remember them so they can be transferred
+    self.settings['last_preferences'] = self.settings['preferences'] || {}
+    self.settings['preferences'] = nil
+    self.generate_defaults
+    # keep the last home board, in case it's a default (can be changed easily)
+    self.settings['preferences']['home_board'] = self.settings['last_preferences']['home_board']
+    # log out of all other devices (and remove them for privacy)
+    self.devices.select{|d| d != current_device}.each{|d| d.destroy }
+    # enable logging by default
+    self.settings['preferences']['logging'] = true
+    # flush all old logs
+    progress = Progress.schedule(Flusher, :flush_user_logs, self.global_id, self.user_name)
+    self.save
+  end
+  
+  def transfer_eval_to(destination_user, current_device)
+    device_key = current_device.unique_device_key
+    devices = destination_user.preferences['devices'] || {}
+    devices[device_key] = self.preferences['devices'][device_key] if self.preferences['devices'][device_key]
+    destination_user.preferences = self.preferences
+    destination_user.preferences['devices'] = devices
+    destination_user.save
+    # transfer usage logs to the new user
+    eval_start = Time.parse(self.settings['subscription']['eval_expires'] || 60.days.ago)
+    LogSession.where(user_id: self.global_id, log_type: ['session', 'note', 'assessment']).where(['started_at > ?', eval_start]).each do |session|
+      session.user_id = destination_user.id
+      session.save
+    end
+    # TODO: transfer daily_use data across as well
+    self.reset_eval(current_device)
+  end
+  
+  def eval_duration
+    self.settings['eval_duration'] || self.class.default_eval_duration
+  end
+  
+  def self.default_eval_duration
+    60
+  end
+  
   def org_sponsored?
     Organization.sponsored?(self)
   end
@@ -423,6 +474,7 @@ module Subscription
       json['active'] = true
     elsif self.org_sponsored?
       json['active'] = true
+      json['eval_account'] = self.eval_account?
     else
       json['expires'] = self.expires_at && self.expires_at.iso8601
       json['grace_period'] = self.grace_period?
@@ -431,6 +483,7 @@ module Subscription
         json['started'] = self.settings['subscription']['started']
         json['plan_id'] = self.settings['subscription']['plan_id']
         json['free_premium'] = self.settings['subscription']['free_premium'] if self.free_premium?
+        json['eval_account'] = self.eval_account?
       elsif self.long_term_purchase?
         json['active'] = true
         json['purchased'] = self.settings['subscription']['customer_id'] != 'free'
@@ -442,15 +495,6 @@ module Subscription
         json['plan_id'] = self.settings['subscription']['plan_id']
       end
     end
-    # TODO: remove in later API revision, after like July 2016
-#     if Organization.managed?(self)
-#       json['is_managed'] = true
-#       org = self.managing_organization
-#       json['org_pending'] = org.pending_user?(self)
-#       json['org_sponsored'] = org.sponsored_user?(self)
-#       json['managing_org_name'] = (org && org.settings['name']) || "unknown organization"
-#       json['added_to_organization'] = self.settings['subscription']['added_to_organization'] if self.settings['subscription']['added_to_organization']
-#     end
     json
   end
   

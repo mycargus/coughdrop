@@ -105,15 +105,22 @@ class User < ActiveRecord::Base
   end
   
   def default_premium_voices
-    User.default_premium_voices(self.full_premium?)
+    User.default_premium_voices(self.full_premium?, self.eval_account?)
   end
   
-  def self.default_premium_voices(communicator=true)
+  def self.default_premium_voices(communicator=true, eval_account=false)
     if communicator
-      {
-        'claimed' => [],
-        'allowed' => 2
-      }
+      if eval_account
+        {
+          'claimed' => [],
+          'allowed' => 1
+        }
+      else
+        {
+          'claimed' => [],
+          'allowed' => 2
+        }
+      end
     else
       {
         'claimed' => [],
@@ -214,6 +221,11 @@ class User < ActiveRecord::Base
       self.settings['all_home_boards'] ||= []
       self.settings['all_home_boards'] << self.settings['preferences']['home_board']
       self.settings['all_home_boards'] = self.settings['all_home_boards'].uniq
+      # once a home board is set, start the timer
+      if !self.settings['subscription']['eval_expires']
+        self.settings['subscription']['eval_expires'] = self.duration.days.from_now if self.eval_account?
+        self.settings['subscription']['eval_started'] = Time.now.iso8601
+      end
     end
     self.settings['edit_key'] = Time.now.to_f.to_s + "-" + rand(9999).to_s
     self.settings['preferences']['devices'] ||= {}

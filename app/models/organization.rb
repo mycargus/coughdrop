@@ -428,7 +428,7 @@ class Organization < ActiveRecord::Base
   def attached_users(user_type)
     links = UserLink.links_for(self)
     if user_type == 'user'
-      links = links.select{|l| l['type'] == 'org_user' }
+      links = links.select{|l| l['type'] == 'org_user' && !l['state']['eval'] }
     elsif user_type == 'manager'
       links = links.select{|l| l['type'] == 'org_manager' }
     elsif user_type == 'supervisor'
@@ -464,7 +464,7 @@ class Organization < ActiveRecord::Base
   
   def eval_users(chainable=true)
     # TODO: get rid of this double-lookup
-    users = self.attached_users('user').select{|u| self.eval_user?(u) }
+    users = self.attached_users('eval')
     if chainable
       User.where(:id => users.map(&:id))
     else
@@ -484,6 +484,10 @@ class Organization < ActiveRecord::Base
   
   def managers
     self.attached_users('manager')
+  end
+  
+  def evals
+    self.attached_users('eval')
   end
   
   def supervisors
@@ -682,6 +686,8 @@ class Organization < ActiveRecord::Base
           self.add_user(key, true, true, false)
         elsif action == 'add_unsponsored_user'
           self.add_user(key, true, false, false)
+        elsif action == 'add_eval'
+          self.add_user(key, true, true, true)
         elsif action == 'add_supervisor'
           self.add_supervisor(key, true)
         elsif action == 'add_assistant' || action == 'add_manager'

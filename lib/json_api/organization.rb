@@ -17,8 +17,10 @@ module JsonApi::Organization
     
     if json['permissions'] && json['permissions']['edit']
       json['allotted_licenses'] = org.settings['total_licenses'] || 0
+      json['allotted_eval_licenses'] = org.settings['total_eval_licenses'] || 0
       org.sponsored_users(false)
       json['used_licenses'] = org.sponsored_users(false).count
+      json['used_evals'] = org.eval_users(false).count
       json['total_users'] = org.users.count
       json['total_managers'] = org.managers.count
       json['licenses_expire'] = org.settings['licenses_expire'] if org.settings['licenses_expire']

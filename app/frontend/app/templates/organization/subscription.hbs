@@ -3,19 +3,25 @@
   {{#if model.permissions.manage_subscription}}
     <form class="form-horizontal" {{action "update_org" on="submit"}}>
       <div class="form-group">
-        <label for="allotted_licenses" class="col-sm-1 control-label">{{t "Licenses" key='licenses'}}</label>
+        <label for="allotted_licenses" class="col-sm-2 control-label">{{t "Purchased Licenses" key='licenses'}}</label>
         <div class="col-sm-1">
           {{input value=model.allotted_licenses class="form-control" id="allotted_licenses" placeholder="0"}}
         </div>
       </div>
       <div class="form-group">
-        <label for="licenses_expire" class="col-sm-1 control-label">{{t "Expires" key='expires'}}</label>
+        <label for="allotted_eval_licenses" class="col-sm-2 control-label">{{t "Eval Accounts" key='eval_accounts'}}</label>
+        <div class="col-sm-1">
+          {{input value=model.allotted_eval_licenses class="form-control" id="allotted_eval_licenses" placeholder="0"}}
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="licenses_expire" class="col-sm-2 control-label">{{t "Expires" key='expires'}}</label>
         <div class="col-sm-3">
           {{input type='date' value=model.licenses_expire class="form-control" id="licenses_expire" placeholder="YYYY-MM-DD"}}
         </div>
       </div>
       <div class="form-group">
-        <div class="col-sm-offset-1 col-sm-4">
+        <div class="col-sm-offset-2 col-sm-4">
           <button type="submit" class="btn btn-default">{{t "Update" key='update'}}</button>
         </div>
       </div>
@@ -70,6 +76,11 @@
         {{#if event.update_license_count}}
           <li class="list-group-item">
             {{t "License count was updated to %{num} - " key='license_count_updated' num=event.count}}
+            <span class='text-muted'>{{date_ago event.logged_at}}</span>
+          </li>
+        {{else if event.update_eval_license_count}}
+          <li class="list-group-item">
+            {{t "Eval account total was updated to %{num} - " key='license_count_updated' num=event.count}}
             <span class='text-muted'>{{date_ago event.logged_at}}</span>
           </li>
         {{else if event.add_subscription}}
