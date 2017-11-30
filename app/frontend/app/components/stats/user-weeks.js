@@ -109,8 +109,10 @@ export default Ember.Component.extend({
             }
           });
           var avg = Math.round(tally / total_users * 10) / 10;
-          // if any users have usage, it will be at least level 1
-          var level = Math.ceil(avg * 2);
+          var level = Math.round(avg * 2);
+          if(total_with_any_usage > 1) {
+            level = Math.max(level, 1);
+          }
           // if at least 1/5 users have activity, it will be at least level 2
           if(total_with_any_usage > total_users / 5) {
             level = Math.max(level, 2);
