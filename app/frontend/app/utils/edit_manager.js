@@ -248,6 +248,8 @@ var editManager = Ember.Object.extend({
     });
     var button = this.find_button(id);
     if(button) {
+      Ember.set(button, 'local_image_url', null);
+      Ember.set(button, 'local_sound_url', null);
       for(var key in options) {
         Ember.set(button, key, options[key]);
       }
