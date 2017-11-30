@@ -87,6 +87,13 @@ module Subscription
       self.settings['subscription']['eval_account'] = true if eval_account
       self.settings['preferences'] ||= {}
       self.settings['preferences']['role'] = 'communicator'
+      
+      # Organizations can define a default home board for their users
+      if new_org.settings['default_home_board'] && !self.settings['preferences']['home_board']
+        home_board = Board.find_by_path(new_org.settings['default_home_board']['id'])
+        self.process_home_board({'id' => home_board.global_id}, {'updater' => home_board.user}) if home_board
+      end
+      
       self.settings['pending'] = false
       if new_org
         link = UserLink.generate(self, new_org, 'org_user')

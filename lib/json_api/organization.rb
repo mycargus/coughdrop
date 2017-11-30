@@ -42,6 +42,10 @@ module JsonApi::Organization
     if json['permissions'] && json['permissions']['edit']
       json['org_subscriptions'] = org.subscriptions.map{|u| JsonApi::User.as_json(u, limited_identity: true, subscription: true) }
     end
+    if json['permissions'] && json['permissions']['view']
+      json['default_home_board'] = org.settings['default_home_board']
+      json['home_board_key'] = org.settings['default_home_board'] && org.settings['default_home_board']['key']
+    end
     if json['permissions'] && json['permissions']['manage_subscription']
       json['purchase_history'] = org.purchase_history
     end

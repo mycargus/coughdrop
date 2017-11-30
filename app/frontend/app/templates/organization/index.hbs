@@ -50,6 +50,20 @@
           </div>
         </div>
       </div>
+      <div class='col-sm-12' style='margin-top: -10px; margin-bottom: 10px;'>
+        {{#if model.permissions.edit}}
+          <div style='float: right;'>
+            <button class='btn btn-default' {{action 'edit_org'}}>{{t "Settings" key='settings'}}</button>
+          </div>
+        {{/if}}
+        {{#if model.default_home_board}}
+          <div class='text-muted'>
+            {{t "default home board:" key='default_home_board'}}
+            {{#link-to 'board' model.default_home_board.key}}{{model.default_home_board.key}}{{/link-to}}
+          </div>
+        {{/if}}
+        <div style='clear: right;'></div>
+      </div>
       <div class="col-sm-6" style="padding: 0;">
         {{#if weekly_stats.error}}
           {{t "There was a problem loading this report" key='problem_loading_report'}}
@@ -78,6 +92,7 @@
     <li class={{if show_managers 'active'}}><a href="#" {{action 'pick' 'managers'}}>{{t "Managers" key='managers'}}</a></li>
     <li class={{if show_supervisors 'active'}}><a href="#" {{action 'pick' 'supervisors'}}>{{t "Supervisors" key='supervisors'}}</a></li>
     <li class={{if show_communicators 'active'}}><a href="#" {{action 'pick' 'communicators'}}>{{t "Communicators" key='communicators'}}</a></li>
+    <li class={{if show_evals 'active'}}><a href="#" {{action 'pick' 'evals'}}>{{t "Evals" key='evals'}}</a></li>
   </ul>
   {{#if show_managers}}
     {{#if managers.data}}
@@ -234,6 +249,60 @@
           {{t "The user name %{user_name} doesn't exist." key='no_user_suggest_create' user_name=user_user_name}}
         </p>
       {{/if}}
+    </div>
+  {{/if}}
+
+  {{#if show_evals}}
+    {{#if model.permissions}}
+      <p>
+        {{model.used_evals}} {{t "out of" key='out_of' }}
+        {{model.allotted_eval_licenses}} {{t "eval accounts used" key='evals_used' }}
+      </p>
+    {{/if}}
+    {{#if evals.data}}
+      <table class="table table-hover" style="width: 400px;">
+        <tbody>
+          {{#each evals.data as |user|}}
+            <tr>
+              <td>
+                {{#link-to 'user' user.user_name}}
+                  <img src={{user.avatar_url}} style="height: 30px;"/>
+                  {{user.user_name}}
+                {{/link-to}}
+                {{#if user.org_pending}}
+                  <span style="vertical-align: middle;" class="text-muted">{{t "(pending)" key='pending'}}</span>
+                {{/if}}
+              </td>
+              <td>
+                <a href='#' {{action "management_action" 'remove_user' user.user_name}} class="glyphicon glyphicon-remove"><span class='text-hide'>remove</span></a>
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+      {{#if more_evals}}
+        <p style="margin-bottom: 30px;">
+          {{#link-to 'organization.reports' (query-params current_report='all_evals')}}
+            {{t "See all eval accounts" key='see_all_evals'}}
+          {{/link-to}}
+        </p>
+      {{/if}}
+    {{else if users.loading}}
+      <p style="margin-bottom: 30px;">{{t "Loading users..." key='loading_users'}}</p>
+    {{else}}
+      <p style="margin-bottom: 30px;">{{t "None found" key='none_found'}}</p>
+    {{/if}}
+    <div style='margin-top: -15px;'>
+      {{input value=eval_user_name placeholder="user name" class="form-control inline inline-masquerade input-sm"}}
+      <button disabled={{no_eval_licenses}} class="btn btn-default btn-sm" {{action "management_action" 'add_eval'}}>{{t "Add Eval Account" key='add_eval'}}</button>
+      {{#unless no_eval_licenses}}
+        <a href="#" {{action "new_user" 'add_eval'}} style='padding-left: 10px;'>{{t "New Eval Account" key='new_eval'}}</a>
+        {{#if suggest_creating_eval}}
+          <p class='text-danger'>
+            {{t "The user name %{user_name} doesn't exist." key='no_user_suggest_create' user_name=eval_user_name}}
+          </p>
+        {{/if}}
+      {{/unless}}
     </div>
   {{/if}}
 

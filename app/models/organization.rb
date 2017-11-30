@@ -674,6 +674,31 @@ class Organization < ActiveRecord::Base
       time = Time.parse(params[:licenses_expire])
       self.settings['licenses_expire'] = time.iso8601
     end
+    
+    if params[:home_board_key]
+      key = params[:home_board_key]
+      if key.match(/^https?:\/\/[^\/]+\//)
+        key = key.sub(/^https?:\/\/[^\/]+\//, '')
+      end
+    
+      board = Board.find_by_path(key)
+      if board && board.public
+        self.settings['default_home_board'] = {
+          'id' => board.global_id,
+          'key' => board.key
+        }
+      elsif board
+        management_ids = self.managers.map(&:global_id) + self.supervisors.map(&:global_id)
+        # if any of the managers or supervisors own the board, then it's ok
+        if management_ids.include?(board.user.global_id)
+          self.settings['default_home_board'] = {
+            'id' => board.global_id,
+            'key' => board.key
+          }
+        end
+      end
+    end
+    
     if params[:management_action]
       if !self.id
         add_processing_error("can't manage users on create") 

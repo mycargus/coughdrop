@@ -20,6 +20,11 @@ module Flusher
     locations.each do |location|
       flush_record(location)
     end
+    
+    summaries = WeeklyStatsSummary.where(user_id: user.id)
+    summaries.each do |summary|
+      flush_record(summary)
+    end
   end
   
   def self.flush_record(record, record_db_id=nil, record_class=nil)

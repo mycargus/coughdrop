@@ -10,8 +10,11 @@
         {{/if}}
       </h2>
       <div>
-        {{t "user" key='user_count' count=model.total_users }},
-        {{t "manager" key='manager_count' count=model.total_managers }}
+        {{t "user" key='user_count' count=model.total_users }}{{#if model.total_supervisors}},
+          {{t "supervisor" key='supervisor_count' count=model.total_supervisors}}{{/if}},
+        {{t "manager" key='manager_count' count=model.total_managers }}{{#if model.used_evals}},
+          {{t "eval" key='eval_count' count=model.used_evals}}
+        {{/if}}
       </div>
       {{#if model.created}}
         <div title={{date model.created}}>{{t "created" key='created'}} {{date_ago model.created}}</div>
@@ -30,9 +33,13 @@
           {{#link-to 'organization.subscription' model.id class='btn btn-default'}}{{t "Billing" key='billing'}}{{/link-to}}
         {{/if}}
         {{#if model.permissions.update_licenses}}
-            <span class="btn btn-default">
-              {{input value=model.allotted_licenses class="form-control inline inline-licenses"}}
-              {{t "licenses" key='licenses'}}
+            <span class="btn btn-default" style='text-align: left; display: none;'>
+              <div style='margin-bottom: 4px;'>
+                {{input value=model.allotted_licenses class="form-control inline inline-licenses"}}
+                {{t "purchased licenses" key='licenses'}}
+              </div>
+              {{input value=model.allotted_eval_licenses class="form-control inline inline-licenses"}}
+              {{t "eval accounts" key='eval_accounts'}}
               <button class="btn btn-default" {{action "update_org"}}>{{t "update" key='update'}}</button>
             </span>
         {{/if}}
