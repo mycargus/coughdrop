@@ -50,7 +50,7 @@ class Api::UnitsController < ApplicationController
       end
     end
     
-    LogSession.where(log_type: 'daily_use', user_id: User.local_ids(supervisor_ids))
+    sessions = LogSession.where(log_type: 'daily_use', user_id: User.local_ids(supervisor_ids))
     res['supervisor_weeks'] = {}
     cutoff = 12.weeks.ago.to_date.iso8601
     sessions.each do |session|
