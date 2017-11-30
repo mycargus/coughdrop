@@ -1081,7 +1081,7 @@ var app_state = Ember.Object.extend({
   fenced_sidebar_board: function() {
     var _this = this;
     var loose_tolerance = 1000; // 1000 ft
-    var boards = this.get('currentUser.sidebar_boards_with_fallbacks') || [];
+    var boards = this.get('current_sidebar_boards') || [];
     var all_matches = [];
     var now_time_string = _this.time_string((new Date()).getTime());
     var any_places = false;
@@ -1198,16 +1198,23 @@ var app_state = Ember.Object.extend({
       res = _this.get('last_fenced_board');
     }
     return res;
-  }.property('last_fenced_board', 'medium_refresh_stamp', 'current_ssid', 'stashes.geo.latest', 'nearby_places', 'currentUser', 'currentUser.sidebar_boards_with_fallbacks'),
+  }.property('last_fenced_board', 'medium_refresh_stamp', 'current_ssid', 'stashes.geo.latest', 'nearby_places', 'currentUser', 'current_sidebar_boards'),
+  current_sidebar_boards: function() {
+    var res = this.get('currentUser.sidebar_boards_with_fallbacks');
+    if(this.get('modeling_for_user') && this.get('referenced_speak_mode_user')) {
+      res = this.get('referenced_speak_mode_user.sidebar_boards_with_fallbacks');
+    }
+    return res;
+  }.property('modeling_for_user', 'currentUser.sidebar_boards_with_fallbacks', 'referenced_speak_mode_user.sidebar_boards_with_fallback'),
   check_locations: function() {
-    var boards = this.get('currentUser.sidebar_boards_with_fallbacks') || [];
+    var boards = this.get('current_sidebar_boards') || [];
     if(!boards.find(function(b) { return b.places; })) { return Ember.RSVP.reject(); }
     var res = geolocation.check_locations();
     res.then(null, function() { });
     return res;
-  }.observes('persistence.online', 'stashes.geo.latest', 'currentUser.sidebar_boards_with_fallbacks'),
+  }.observes('persistence.online', 'stashes.geo.latest', 'current_sidebar_boards'),
   sidebar_boards: function() {
-    var res = this.get('currentUser.sidebar_boards_with_fallbacks');
+    var res = this.get('current_sidebar_boards');
     if(!res && window.user_preferences && window.user_preferences.any_user && window.user_preferences.any_user.default_sidebar_boards) {
       res = window.user_preferences.any_user.default_sidebar_boards;
     }
@@ -1217,7 +1224,7 @@ var app_state = Ember.Object.extend({
     res = res.filter(function(b) { return b.key != sb.key; });
     res.unshift(sb);
     return res;
-  }.property('fenced_sidebar_board', 'currentUser', 'currentUser.sidebar_boards_with_fallbacks'),
+  }.property('fenced_sidebar_board', 'currentUser', 'current_sidebar_boards'),
   sidebar_pinned: function() {
     return this.get('speak_mode') && this.get('currentUser.preferences.quick_sidebar');
   }.property('speak_mode', 'currentUser', 'currentUser.preferences.quick_sidebar'),
