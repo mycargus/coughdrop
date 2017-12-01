@@ -2,6 +2,7 @@ import Ember from 'ember';
 import CoughDrop from '../app';
 import modal from '../utils/modal';
 import app_state from '../utils/app_state';
+import persistence from '../utils/persistence';
 
 export default Ember.Component.extend({
   willInsertElement: function() {
@@ -62,9 +63,7 @@ export default Ember.Component.extend({
         var image_width = button_width - pad - pad - border_size - border_size;
         context.font = text_height + "px Arial";
         context.textAlign = 'center';
-        for(var idx = 0; idx < rows; idx++) {
-          for(var jdx = 0; jdx < columns; jdx++) {
-            var button_id = ((board.get('grid.order') || [])[idx] || [])[jdx];
+        var handle_button = function(button_id) {
             if(button_id && buttons[button_id]) {
               var button = buttons[button_id];
               if(!button.hidden) {
@@ -117,7 +116,7 @@ export default Ember.Component.extend({
                         var width = image_width;
                         var height = image_height;
                         var image_x = x + border_size + pad;
-                        var image_y = y + border_size + pad + text_height
+                        var image_y = y + border_size + pad + text_height;
                         if(image_ratio > button_ratio) {
                           // wider than the space
                           var diff = (1 - (button_ratio / image_ratio)) * height;
@@ -142,6 +141,11 @@ export default Ember.Component.extend({
                 }
               }
             }
+        };
+        for(var idx = 0; idx < rows; idx++) {
+          for(var jdx = 0; jdx < columns; jdx++) {
+            var button_id = ((board.get('grid.order') || [])[idx] || [])[jdx];
+            handle_button(button_id);
           }
         }
       }

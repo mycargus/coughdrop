@@ -198,10 +198,12 @@ var modal = Ember.Object.extend({
     modal.route.render('board-preview', { into: 'application', outlet: 'board-preview', model: {board: board, option: board.preview_option, callback: callback}});
   },
   close_board_preview: function() {
-    modal.route.disconnectOutlet({
-      outlet: 'board-preview',
-      parentView: 'application'
-    });
+    if(modal.route) {
+      modal.route.disconnectOutlet({
+        outlet: 'board-preview',
+        parentView: 'application'
+      });
+    }
   }
 }).create();
 

@@ -611,10 +611,10 @@ describe("i18n", function() {
       expect(Ember.templateHelpers.seconds_ago(691800)).toEqual("192.2 hours");
       expect(Ember.templateHelpers.seconds_ago(1382990)).toEqual("384.2 hours");
       expect(Ember.templateHelpers.seconds_ago(2851200)).toEqual("792 hours");
-      expect(Ember.templateHelpers.seconds_ago(8553600)).toEqual("2376 hours");
-      expect(Ember.templateHelpers.seconds_ago(17280000)).toEqual("4800 hours");
-      expect(Ember.templateHelpers.seconds_ago(3801999)).toEqual("1056.1 hours");
-      expect(Ember.templateHelpers.seconds_ago(3801500)).toEqual("1056 hours");
+      expect(Ember.templateHelpers.seconds_ago(8553600)).toEqual("2,376 hours");
+      expect(Ember.templateHelpers.seconds_ago(17280000)).toEqual("4,800 hours");
+      expect(Ember.templateHelpers.seconds_ago(3801999)).toEqual("1,056 hours");
+      expect(Ember.templateHelpers.seconds_ago(3801500)).toEqual("1,056 hours");
       expect(Ember.templateHelpers.seconds_ago(86400)).toEqual("24 hours");
       expect(Ember.templateHelpers.seconds_ago(86401)).toEqual("24 hours");
       expect(Ember.templateHelpers.seconds_ago(86399)).toEqual("24 hours");

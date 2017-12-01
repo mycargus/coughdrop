@@ -49,7 +49,12 @@ describe('Buttonset', function() {
         expect(res[0].label).toEqual('hat');
       });
 
-      queue_promise(bs.find_buttons('hats')).then(function(res) {
+      queue_promise(bs.find_buttons('ht')).then(function(res) {
+        expect(res.length).toEqual(1);
+        expect(res[0].label).toEqual('hat');
+      });
+
+      queue_promise(bs.find_buttons('xchats')).then(function(res) {
         expect(res.length).toEqual(0);
       });
 
@@ -847,8 +852,9 @@ describe('Buttonset', function() {
       });
 
       queue_promise(bs.find_buttons('quart', null, user, true)).then(function(res) {
-        expect(res.length).toEqual(1);
+        expect(res.length).toEqual(2);
         expect(res[0].label).toEqual('quart');
+        expect(res[1].label).toEqual('quarx');
         expect(res[0].current_depth).toEqual(1);
         expect(res[0].pre_buttons).toEqual([{
           board_id: 'home',
@@ -900,6 +906,51 @@ describe('Buttonset', function() {
         expect(res[0].label).toEqual('hat');
         expect(res[0].current_depth).toEqual(3);
         expect(res[0].pre_buttons.length).toEqual(3);
+      });
+    });
+
+    it('should allow for misspellings', function() {
+      var bs = CoughDrop.store.createRecord('buttonset', {
+        buttons: [
+          {'label': 'hat', 'depth': 0},
+          {'label': 'box', 'depth': 0},
+          {'label': 'nasty', 'depth': 0},
+          {'label': 'nail', 'depth': 0}
+        ]
+      });
+      queue_promise(bs.find_buttons('h')).then(function(res) {
+        expect(res.length).toEqual(1);
+        expect(res[0].label).toEqual('hat');
+      });
+
+      queue_promise(bs.find_buttons('hat')).then(function(res) {
+        expect(res.length).toEqual(1);
+        expect(res[0].label).toEqual('hat');
+      });
+
+      queue_promise(bs.find_buttons('haf')).then(function(res) {
+        expect(res.length).toEqual(1);
+        expect(res[0].label).toEqual('hat');
+      });
+
+      queue_promise(bs.find_buttons('ht')).then(function(res) {
+        expect(res.length).toEqual(1);
+        expect(res[0].label).toEqual('hat');
+      });
+
+      queue_promise(bs.find_buttons('xchats')).then(function(res) {
+        expect(res.length).toEqual(0);
+      });
+
+      queue_promise(bs.find_buttons('bo')).then(function(res) {
+        expect(res.length).toEqual(1);
+        expect(res[0].label).toEqual('box');
+      });
+
+      queue_promise(bs.find_buttons('na')).then(function(res) {
+        expect(res.length).toEqual(2);
+        expect(res[0].label).toEqual('nail');
+        expect(res[1].label).toEqual('nasty');
       });
     });
 

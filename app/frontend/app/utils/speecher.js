@@ -353,7 +353,7 @@ var speecher = Ember.Object.extend({
           callback();
         }, function(err) {
           speak_utterance();
-        })
+        });
       } else {
         var delay = (capabilities.installed_app && capabilities.system == 'Windows') ? 300 : 0;
         var _this = this;

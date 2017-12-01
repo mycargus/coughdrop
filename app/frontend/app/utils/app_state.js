@@ -67,6 +67,7 @@ var app_state = Ember.Object.extend({
     this.set('currentUser', null);
     this.set('sessionUser', null);
     this.set('speakModeUser', null);
+    this.set('referenced_speak_mode_user', null);
     stashes.set('current_mode', 'default');
     stashes.set('root_board_state', null);
     stashes.set('boardHistory', []);
@@ -503,7 +504,7 @@ var app_state = Ember.Object.extend({
       });
       return;
     } else if(decision == null && !app_state.get('edit_mode') && this.controller && this.controller.get('board').get('model').get('could_be_in_use')) {
-      modal.open('confirm-edit-board', {board: this.controller.get('board').get('model')}).then(function(res) {
+      modal.open('confirm-edit-board', {board: this.controller.get('board.model')}).then(function(res) {
         if(res == 'tweak') {
           _this.controller.send('tweakBoard');
         }
@@ -1205,14 +1206,15 @@ var app_state = Ember.Object.extend({
       res = this.get('referenced_speak_mode_user.sidebar_boards_with_fallbacks');
     }
     return res;
-  }.property('modeling_for_user', 'currentUser.sidebar_boards_with_fallbacks', 'referenced_speak_mode_user.sidebar_boards_with_fallback'),
+  }.property('modeling_for_user', 'currentUser', 'currentUser.sidebar_boards_with_fallbacks', 'referenced_speak_mode_user', 'referenced_speak_mode_user.sidebar_boards_with_fallback'),
   check_locations: function() {
+    if(!this.get('speak_mode')) { return Ember.RSVP.resolve([]); }
     var boards = this.get('current_sidebar_boards') || [];
     if(!boards.find(function(b) { return b.places; })) { return Ember.RSVP.reject(); }
     var res = geolocation.check_locations();
     res.then(null, function() { });
     return res;
-  }.observes('persistence.online', 'stashes.geo.latest', 'current_sidebar_boards'),
+  }.observes('speak_mode', 'persistence.online', 'stashes.geo.latest', 'modeling_for_user', 'currentUser', 'currentUser.sidebar_boards_with_fallbacks', 'referenced_speak_mode_user', 'referenced_speak_mode_user.sidebar_boards_with_fallback'),
   sidebar_boards: function() {
     var res = this.get('current_sidebar_boards');
     if(!res && window.user_preferences && window.user_preferences.any_user && window.user_preferences.any_user.default_sidebar_boards) {

@@ -149,7 +149,7 @@ describe('scanner', function() {
       });
       var stopped = false;
       stub(scanner, 'stop', function() { stopped = true; });
-      scanner.start();
+      scanner.start({});
       expect(stopped).toEqual(true);
     });
 
@@ -163,7 +163,7 @@ describe('scanner', function() {
         if(str == 'highlight') { return false; }
         return true;
       });
-      scanner.start();
+      scanner.start({});
       expect(header_search).toEqual(false);
     });
 
@@ -195,11 +195,11 @@ describe('scanner', function() {
           order: [[]]
         };
       });
-      scanner.start();
+      scanner.start({});
       expect(scan_called).toEqual(true);
       expect(scanner.scanning).toEqual(true);
       expect(rows).toEqual([{children: [], dom: {length: 0}, label: "Menu"}]);
-      expect(options).toEqual({scan_mode: 'row', interval: 1000});
+      expect(options).toEqual({scan_mode: 'row', interval: 1000, all_elements: []});
     });
 
     it('should support scanning the header row', function() {
@@ -246,7 +246,7 @@ describe('scanner', function() {
       });
       stub(modal, 'is_open', function(str) { return true; });
       expect(!!scanner.scanning).toEqual(false);
-      scanner.start();
+      scanner.start({});
       expect(scan_called).toEqual(true);
       expect(scanner.scanning).toEqual(true);
       expect(rows.length).toEqual(5);
@@ -267,7 +267,7 @@ describe('scanner', function() {
       expect(rows[4].children[1].children).toEqual(undefined);
       expect(rows[4].children[2].label).toEqual('splat');
       expect(rows[4].children[2].children).toEqual(undefined);
-      expect(options).toEqual({scan_mode: 'row', interval: 1000});
+      expect(options).toEqual({scan_mode: 'row', interval: 1000, all_elements: []});
     });
 
     it('should support scanning the word suggestion row if it exists', function() {
@@ -331,7 +331,7 @@ describe('scanner', function() {
       });
       stub(modal, 'is_open', function(str) { return true; });
       expect(!!scanner.scanning).toEqual(false);
-      scanner.start();
+      scanner.start({});
       expect(scan_called).toEqual(true);
       expect(scanner.scanning).toEqual(true);
       expect(rows.length).toEqual(2);
@@ -421,7 +421,7 @@ describe('scanner', function() {
       expect(rows[3].children[1].label).toEqual('e');
       expect(rows[3].children[1].sound).toEqual(undefined);
       expect(rows[3].children[1].children).toEqual(undefined);
-      expect(options).toEqual({interval: 1000, scan_mode: 'row'});
+      expect(options).toEqual({interval: 1000, scan_mode: 'row', all_elements: []});
     });
 
     it('should support column-based scanning', function() {
@@ -473,7 +473,7 @@ describe('scanner', function() {
       expect(rows[2].children[1].children).toEqual(undefined);
       expect(rows[3].label).toEqual('e');
       expect(rows[3].children).toEqual(undefined);
-      expect(options).toEqual({interval: 1000, scan_mode: 'column'});
+      expect(options).toEqual({interval: 1000, scan_mode: 'column', all_elements: []});
     });
 
     it('should support region-based scanning', function() {
@@ -501,7 +501,7 @@ describe('scanner', function() {
           ]
         };
       });
-      scanner.start({scan_mode: 'region', vertical_chunks: 2, horizontal_chunks: 2});
+      scanner.start({scan_mode: 'region', vertical_chunks: 2, horizontal_chunks: 2, all_elements: []});
       expect(scan_called).toEqual(true);
       expect(scanner.scanning).toEqual(true);
       expect(rows.length).toEqual(5);
@@ -523,7 +523,7 @@ describe('scanner', function() {
       expect(rows[4].children[0].children).toEqual(undefined);
       expect(rows[4].children[1].label).toEqual('e');
       expect(rows[4].children[1].children).toEqual(undefined);
-      expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 2, vertical_chunks: 2});
+      expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 2, vertical_chunks: 2, all_elements: []});
     });
 
     it('should skip empty regions', function() {
@@ -571,7 +571,7 @@ describe('scanner', function() {
       expect(rows[3].children[0].children).toEqual(undefined);
       expect(rows[3].children[1].label).toEqual('e');
       expect(rows[3].children[1].children).toEqual(undefined);
-      expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 2, vertical_chunks: 2});
+      expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 2, vertical_chunks: 2, all_elements: []});
     });
 
     describe('non-matching grid sizes for row-based scanning', function() {
@@ -625,7 +625,7 @@ describe('scanner', function() {
         expect((rows[3].children || []).mapBy('label')).toEqual(['c', 'g', 'd', 'h']);
         expect( rows[4].label).toEqual('Region 4');
         expect((rows[4].children || []).mapBy('label')).toEqual(['k', 'o', 'l', 'p']);
-        expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 2, vertical_chunks: 2});
+        expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 2, vertical_chunks: 2, all_elements: []});
       });
 
       it('should support 4x4 grid with 3 horizontal chunks and 3 vertical chunks', function() {
@@ -652,7 +652,7 @@ describe('scanner', function() {
         expect((rows[8].children || []).mapBy('label')).toEqual(['g', 'h']);
         expect( rows[9].label).toEqual('Region 9');
         expect((rows[9].children || []).mapBy('label')).toEqual(['k', 'o', 'l', 'p']);
-        expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 3, vertical_chunks: 3});
+        expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 3, vertical_chunks: 3, all_elements: []});
       });
 
       it('should support 4x4 grid with 3 horizontal chunks and 2 vertical chunks', function() {
@@ -673,7 +673,7 @@ describe('scanner', function() {
         expect((rows[5].children || []).mapBy('label')).toEqual(['c', 'g', 'd', 'h']);
         expect( rows[6].label).toEqual('Region 6');
         expect((rows[6].children || []).mapBy('label')).toEqual(['k', 'o', 'l', 'p']);
-        expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 3, vertical_chunks: 2});
+        expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 3, vertical_chunks: 2, all_elements: []});
       });
 
       it('should support 4x4 grid with 2 horizontal chunks and 3 vertical chunks', function() {
@@ -694,7 +694,7 @@ describe('scanner', function() {
         expect((rows[5].children || []).mapBy('label')).toEqual(['g', 'h']);
         expect( rows[6].label).toEqual('Region 6');
         expect((rows[6].children || []).mapBy('label')).toEqual(['k', 'o', 'l', 'p']);
-        expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 2, vertical_chunks: 3});
+        expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 2, vertical_chunks: 3, all_elements: []});
       });
 
       it('should support 4x4 grid with 5 horizontal chunks and 7 vertical chunks', function() {
@@ -735,7 +735,7 @@ describe('scanner', function() {
         expect((rows[15].children || []).mapBy('label')).toEqual([]);
         expect( rows[16].label).toEqual('p');
         expect((rows[16].children || []).mapBy('label')).toEqual([]);
-        expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 5, vertical_chunks: 7});
+        expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 5, vertical_chunks: 7, all_elements: []});
       });
 
       it('should support 4x4 grid with 1 horizontal chunks and 1 vertical chunks', function() {
@@ -746,7 +746,7 @@ describe('scanner', function() {
         expect(rows.length).toEqual(2);
         expect( rows[1].label).toEqual('Region 1');
         expect((rows[1].children || []).mapBy('label')).toEqual(['a', 'e', 'i', 'm', 'b', 'f', 'j', 'n', 'c', 'g', 'k', 'o', 'd', 'h', 'l', 'p']);
-        expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 1, vertical_chunks: 1});
+        expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 1, vertical_chunks: 1, all_elements: []});
       });
 
       it('should support 4x4 grid with 1 horizontal chunks and 2 vertical chunks', function() {
@@ -759,7 +759,7 @@ describe('scanner', function() {
         expect((rows[1].children || []).mapBy('label')).toEqual(['a', 'e', 'b', 'f', 'c', 'g', 'd', 'h']);
         expect( rows[2].label).toEqual('Region 2');
         expect((rows[2].children || []).mapBy('label')).toEqual(['i', 'm', 'j', 'n', 'k', 'o', 'l', 'p']);
-        expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 1, vertical_chunks: 2});
+        expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 1, vertical_chunks: 2, all_elements: []});
       });
 
       it('should support 4x4 grid with 3 horizontal chunks and 1 vertical chunks', function() {
@@ -774,7 +774,7 @@ describe('scanner', function() {
         expect((rows[2].children || []).mapBy('label')).toEqual(['b', 'f', 'j', 'n']);
         expect( rows[3].label).toEqual('Region 3');
         expect((rows[3].children || []).mapBy('label')).toEqual(['c', 'g', 'k', 'o', 'd', 'h', 'l', 'p']);
-        expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 3, vertical_chunks: 1});
+        expect(options).toEqual({interval: 1000, scan_mode: 'region', horizontal_chunks: 3, vertical_chunks: 1, all_elements: []});
       });
     });
 
@@ -817,7 +817,7 @@ describe('scanner', function() {
       expect(rows[4].children).toEqual(undefined);
       expect(rows[5].label).toEqual('e');
       expect(rows[5].children).toEqual(undefined);
-      expect(options).toEqual({interval: 1000, scan_mode: 'button'});
+      expect(options).toEqual({interval: 1000, scan_mode: 'button', all_elements: []});
     });
   });
 
@@ -828,7 +828,7 @@ describe('scanner', function() {
         scanner.interval = interval;
         var passed_interval = null;
         stub(Ember.run, 'cancel', function(arg) {
-          passed_interval = arg;
+          passed_interval = passed_interval || arg;
         });
         scanner.reset();
         waitsFor(function() { return passed_interval; });
@@ -1311,16 +1311,6 @@ describe('scanner', function() {
   });
 
   describe("listen_for_input", function() {
-    it('should call hide_input', function() {
-      stub(scanner, 'find_elem', function(str) {
-        return [];
-      });
-      var called = false;
-      stub(scanner, 'hide_input', function() { called = true; });
-      scanner.listen_for_input();
-      expect(called).toEqual(true);
-    });
-
     it('should focus on the keyboard at first', function() {
       var obj = null;
       var selected = false;

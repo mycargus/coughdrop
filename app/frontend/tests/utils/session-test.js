@@ -431,11 +431,11 @@ describe('session', function() {
       stub(session, 'restore', function() {
         return {a: 1};
       });
-      session.override({user_name: "broccoli", access_token: "123456"});
+      session.override({user_name: "broccoli", user_id: '1_1', access_token: "123456"});
       expect(reloaded).toEqual(true);
       expect(flushed).toEqual(true);
       expect(setup).toEqual(true);
-      expect(data).toEqual({a: 1, user_name: "broccoli", access_token: "123456"});
+      expect(data).toEqual({a: 1, user_name: "broccoli", user_id: '1_1', access_token: "123456"});
     });
   });
 

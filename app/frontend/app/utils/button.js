@@ -633,7 +633,7 @@ Button.broken_image = function(image) {
 
 var youtube_regex = (/(?:https?:\/\/)?(?:www\.)?youtu(?:be\.com\/watch\?(?:.*?&(?:amp;)?)?v=|\.be\/)([\w \-]+)(?:&(?:amp;)?[\w\?=]*)?/);
 var tarheel_reader_regex = (/(?:https?:\/\/)?(?:www\.)?tarheelreader\.org\/\d+\/\d+\/\d+\/([\w-]+)\/?/);
-var book_regex = (/^book:(https?:\/\/.+)$/)
+var book_regex = (/^book:(https?:\/\/.+)$/);
 Button.resource_from_url = function(url) {
   var youtube_match = url && url.match(youtube_regex);
   var tarheel_match = url && url.match(tarheel_reader_regex);

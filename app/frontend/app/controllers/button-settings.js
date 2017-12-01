@@ -6,6 +6,7 @@ import stashes from '../utils/_stashes';
 import i18n from '../utils/i18n';
 import CoughDrop from '../app';
 import utterance from '../utils/utterance';
+import capabilities from '../utils/capabilities';
 import app_state from '../utils/app_state';
 import persistence from '../utils/persistence';
 import boundClasses from '../utils/bound_classes';
