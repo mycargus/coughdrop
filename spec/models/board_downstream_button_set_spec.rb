@@ -651,7 +651,7 @@ describe BoardDownstreamButtonSet, :type => :model do
       bs2 = BoardDownstreamButtonSet.create(board_id: 2)
       bs2 = BoardDownstreamButtonSet.find(bs2.id)
       bs2.data['source_id'] = bs.global_id
-      expect(bs2.buttons).to eq([{'id' => 2, 'board_id' => '1_2'}])
+      expect(bs2.buttons).to eq([{'id' => 2, 'board_id' => '1_2', 'depth' => 0}])
     end
   end
   
@@ -680,6 +680,35 @@ describe BoardDownstreamButtonSet, :type => :model do
       expect(bs.buttons_starting_from(b.global_id).length).to eq(6)
       expect(bs.buttons_starting_from(b2.global_id).length).to eq(4)
       expect(bs.buttons_starting_from(b3.global_id).length).to eq(2)
+    end
+    
+    it "should update buttons with the correct depth value" do
+      u = User.create
+      b = Board.create(user: u)
+      b2 = Board.create(user: u)
+      b3 = Board.create(user: u)
+      b.process({'buttons' => [
+        {'id' => 1, 'label' => 'hat', 'load_board' => {'id' => b2.global_id, 'key' => b2.key}},
+        {'id' => 2, 'label' => 'car'}
+      ]}, {:user => u})
+      b2.process({'buttons' => [
+        {'id' => 3, 'label' => 'har'},
+        {'id' => 4, 'label' => 'cap', 'load_board' => {'id' => b3.global_id, 'key' => b3.key}}
+      ]}, {:user => u})
+      b3.process({'buttons' => [
+        {'id' => 3, 'label' => 'hax'},
+        {'id' => 4, 'label' => 'cax'}
+      ]}, {:user => u})
+      Worker.process_queues
+      Worker.process_queues
+      
+      bs = b.reload.board_downstream_button_set
+      expect(bs.buttons_starting_from(b.global_id).length).to eq(6)
+      expect(bs.buttons_starting_from(b.global_id).map{|b| b['depth']}).to eq([0, 0, 1, 1, 2, 2])
+      expect(bs.buttons_starting_from(b2.global_id).length).to eq(4)
+      expect(bs.buttons_starting_from(b2.global_id).map{|b| b['depth']}).to eq([0, 0, 1, 1])
+      expect(bs.buttons_starting_from(b3.global_id).length).to eq(2)
+      expect(bs.buttons_starting_from(b3.global_id).map{|b| b['depth']}).to eq([0, 0])
     end
   end
 end

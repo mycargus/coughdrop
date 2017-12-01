@@ -5,6 +5,7 @@ module Stats
   def self.cached_daily_use(user_id, options)
     user = User.find_by_global_id(user_id)
     if !user || WeeklyStatsSummary.where(:user_id => user.id).count == 0
+      sanitize_find_options!(options, user) if user.eval_account?
       return daily_use(user_id, options)
     end
     sanitize_find_options!(options, user)
@@ -603,6 +604,7 @@ module Stats
     # eval accounts are limited to 60-day windows
     if user && user.eval_account?
       options[:start_at] = [options[:start_at], 60.days.ago].max
+      options[:end_at] = [options[:end_at], 60.days.ago, options[:start_at] + 7.days].max
     end
     options[:start_at] = options[:start_at].to_time.utc
     if options[:end_at].to_time - options[:start_at].to_time > 6.months.to_i

@@ -73,8 +73,6 @@ describe Flusher do
         {'user_id' => u.global_id, 'geo' => ['1', '2'], 'timestamp' => 94.minutes.ago.to_i, 'type' => 'button', 'button' => {'label' => 'cow', 'board' => {'id' => '1_1'}}}
       ]
       s2.save
-#       expect(PaperTrail::Version.where(:item_type => 'LogSession', :item_id => s.id).count).to eq(1)
-#       expect(PaperTrail::Version.where(:item_type => 'LogSession', :item_id => s2.id).count).to eq(1)
       
       Flusher.flush_user_logs(u.global_id, u.user_name)
       expect(LogSession.where(:id => s.id).count).to eq(0)
@@ -82,6 +80,36 @@ describe Flusher do
       expect(PaperTrail::Version.where(:item_type => 'LogSession').count).to eq(0)
       expect(LogSession.where(:id => s2.id).count).to eq(0)
       expect(PaperTrail::Version.where(:item_type => 'LogSession', :item_id => s2.id).count).to eq(0)
+    end
+    
+    it "should remove weekly stats summaries" do
+      PaperTrail.whodunnit = 'user:jane'
+      u = User.create
+      d = Device.create(:user => u)
+      s = LogSession.new(:device => d, :user => u, :author => u)
+      s.data = {}
+      s.data['events'] = [
+        {'user_id' => u.global_id, 'geo' => ['2', '3'], 'timestamp' => 10.minutes.ago.to_i, 'type' => 'button', 'button' => {'label' => 'hat', 'board' => {'id' => '1_1'}}},
+        {'user_id' => u.global_id, 'geo' => ['1', '2'], 'timestamp' => 8.minutes.ago.to_i, 'type' => 'button', 'button' => {'label' => 'cow', 'board' => {'id' => '1_1'}}}
+      ]
+      s.save
+      s2 = LogSession.new(:device => d, :user => u, :author => u)
+      s2.data = {}
+      s2.data['events'] = [
+        {'user_id' => u.global_id, 'geo' => ['2', '3'], 'timestamp' => 90.minutes.ago.to_i, 'type' => 'button', 'button' => {'label' => 'hat', 'board' => {'id' => '1_1'}}},
+        {'user_id' => u.global_id, 'geo' => ['1', '2'], 'timestamp' => 94.minutes.ago.to_i, 'type' => 'button', 'button' => {'label' => 'cow', 'board' => {'id' => '1_1'}}}
+      ]
+      s2.save
+      Worker.process_queues
+      expect(WeeklyStatsSummary.where(user_id: u.id).count).to eq(1)
+      
+      Flusher.flush_user_logs(u.global_id, u.user_name)
+      expect(LogSession.where(:id => s.id).count).to eq(0)
+      expect(PaperTrail::Version.where(:item_type => 'LogSession', :item_id => s.id).count).to eq(0)
+      expect(PaperTrail::Version.where(:item_type => 'LogSession').count).to eq(0)
+      expect(LogSession.where(:id => s2.id).count).to eq(0)
+      expect(PaperTrail::Version.where(:item_type => 'LogSession', :item_id => s2.id).count).to eq(0)
+      expect(WeeklyStatsSummary.where(user_id: u.id).count).to eq(0)
     end
   end
   
@@ -104,9 +132,6 @@ describe Flusher do
       BoardButtonSound.create(:board_id => b.id, :button_sound_id => s.id)
       expect(ButtonImage.count).to eq(2)
       expect(ButtonSound.count).to eq(1)
-#       expect(PaperTrail::Version.where(:item_type => 'ButtonImage', :item_id => i.id).count).to be > 0
-#       expect(PaperTrail::Version.where(:item_type => 'ButtonImage', :item_id => i2.id).count).to be > 0
-#       expect(PaperTrail::Version.where(:item_type => 'ButtonSound', :item_id => s.id).count).to be > 0
 
       Flusher.flush_board(b.global_id, b.key)
       expect(ButtonImage.count).to eq(0)

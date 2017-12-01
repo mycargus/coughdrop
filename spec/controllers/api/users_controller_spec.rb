@@ -757,7 +757,15 @@ describe Api::UsersController, :type => :controller do
     
     it "should error if user_name is not provided correctly" do
       token_user
-      post :flush_logs, params: {:user_id => @user.global_id}
+      post :flush_logs, params: {:user_id => @user.global_id, :confirm_user_id => @user.global_id}
+      expect(response).not_to be_success
+      json = JSON.parse(response.body)
+      expect(json['flushed']).to eq("false")
+    end
+    
+    it "should error if confirm_user_id is not provided correctly" do
+      token_user
+      post :flush_logs, params: {:user_id => @user.global_id, :user_name => @user.user_name, :confirm_user_id => 'asdf'}
       expect(response).not_to be_success
       json = JSON.parse(response.body)
       expect(json['flushed']).to eq("false")
@@ -765,7 +773,7 @@ describe Api::UsersController, :type => :controller do
     
     it "should return a progress object" do
       token_user
-      post :flush_logs, params: {:user_id => @user.global_id, :user_name => @user.user_name}
+      post :flush_logs, params: {:user_id => @user.global_id, :confirm_user_id => @user.global_id, :user_name => @user.user_name}
       expect(response).to be_success
       json = JSON.parse(response.body)
       progress = Progress.find_by_global_id(json['progress']['id'])
@@ -850,6 +858,20 @@ describe Api::UsersController, :type => :controller do
       expect(response).not_to be_success
       json = JSON.parse(response.body)
       expect(json['error']).to eq('time window cannot be greater than 6 months')
+    end
+    
+    it "should not allow eval accounts to see too far back in history" do
+      token_user
+      @user.settings['subscription'] ||= {}
+      @user.settings['subscription']['eval_account'] = true
+      @user.save
+      expect(@user.reload.eval_account?).to eq(true)
+      get 'daily_stats', params: {:user_id => @user.global_id, :start => '2014-01-01', :end => '2014-03-01'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['start_at'][0, 10]).to be > 3.months.ago.to_date.iso8601
+      expect(json['end_at'][0, 10]).to be > 3.months.ago.to_date.iso8601
+      expect(json['total_utterances']).to eq(0)
     end
   end  
 

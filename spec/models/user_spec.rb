@@ -792,6 +792,17 @@ describe User, :type => :model do
       expect(u.settings['premium_voices']['allowed']).to eq(2)
     end
     
+    it "should allow eval accounts only a single voice" do
+      u = User.create
+      u.subscription_override('never_expires')
+      u.settings['subscription']['eval_account'] = true
+      u.save
+      res = u.add_premium_voice('abcd', 'Android')
+      expect(res).to eq(true)
+      expect(u.settings['premium_voices']['claimed']).to eq(['abcd'])
+      expect(u.settings['premium_voices']['allowed']).to eq(1)
+    end
+    
     it "should error if too many voices have been claimed" do
       u = User.create
       u.subscription_override('never_expires')
