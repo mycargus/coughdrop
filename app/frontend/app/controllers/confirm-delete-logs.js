@@ -4,9 +4,10 @@ import persistence from '../utils/persistence';
 
 export default modal.ModalController.extend({
   opening: function() {
-    var user = this.get('user');
+    var user = this.get('model.user');
     this.set('model', {});
     this.set('user', user);
+    this.set('error', null);
   },
   actions: {
     delete_logs: function() {
@@ -17,7 +18,7 @@ export default modal.ModalController.extend({
         persistence.ajax('/api/v1/users/' + this.get('user_name') + '/flush/logs', {
           type: 'POST',
           data: {
-            id: this.get('id'),
+            confirm_user_id: this.get('user.id'),
             user_name: this.get('user_name')
           }
         }).then(function(res) {

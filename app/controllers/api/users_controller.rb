@@ -169,7 +169,7 @@ class Api::UsersController < ApplicationController
   def flush_logs
     user = User.find_by_path(params['user_id'])
     return unless allowed?(user, 'delete')
-    return api_error(400, {'flushed' => 'false'}) unless user.user_name == params['user_name'] && user.global_id == params['user_id']
+    return api_error(400, {'flushed' => 'false', 'user_name_math' => (user.user_name == params['user_name']), 'user_id_match' => (user.global_id == params['confirm_user_id'])}) unless user.user_name == params['user_name'] && user.global_id == params['confirm_user_id']
     progress = Progress.schedule(Flusher, :flush_user_logs, user.global_id, user.user_name)
     render json: JsonApi::Progress.as_json(progress, :wrapper => true)
   end
