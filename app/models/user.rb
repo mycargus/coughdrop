@@ -637,7 +637,11 @@ class User < ActiveRecord::Base
         'key' => board.key
       }
     elsif board && non_user_params['updater'] && board.allows?(non_user_params['updater'], 'share')
-      board.share_with(self, true)
+      if non_user_params['async']
+        board.schedule(:process_share, "add_deep-#{self.global_id}")
+      else
+        board.share_with(self, true)
+      end
       self.settings['preferences']['home_board'] = {
         'id' => board.global_id,
         'key' => board.key

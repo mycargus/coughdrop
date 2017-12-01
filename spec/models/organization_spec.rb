@@ -515,6 +515,18 @@ describe Organization, :type => :model do
       expect(u2.reload.supervisor_user_ids).to eq([])
       expect(u2.reload.supervised_user_ids).to eq([])
     end
+    
+    it "should share a private home board if default and the user doesn't have one set" do
+      u = User.create
+      b = Board.create(user: u)
+      u2 = User.create
+      o = Organization.create(settings: {'total_licenses' => 1, 'default_home_board' => {'key' => b.key, 'id' => b.global_id}})
+      u2.reload
+      o.add_user(u2.user_name, false, true)
+      Worker.process_queues
+      expect(u2.reload.settings['preferences']['home_board']).to eq({'key' => b.key, 'id' => b.global_id})
+      expect(b.shared_with?(u2)).to eq(true)
+    end
   end
   
   describe "permissions" do
@@ -865,6 +877,40 @@ describe Organization, :type => :model do
         }
       }])
       expect(links[0]['state']['added']).to_not eq(nil)
+    end
+    
+    it "should allow setting a public home board" do
+      u = User.create
+      b = Board.create(user: u, public: true)
+      o = Organization.create
+      o.process({:home_board_key => b.key}, {updater: u})
+      expect(o.settings['default_home_board']).to eq({'key' => b.key, 'id' => b.global_id})
+    end
+    
+    it "should not allow setting a private home board" do
+      u = User.create
+      b = Board.create(user: u)
+      o = Organization.create
+      o.process({:home_board_key => b.key}, {updater: u})
+      expect(o.settings['default_home_board']).to eq(nil)
+    end
+    
+    it "should allow setting a private home board if owned by a manager" do
+      u = User.create
+      b = Board.create(user: u)
+      o = Organization.create
+      o.add_manager(u.user_name, true)
+      o.process({:home_board_key => b.key}, {updater: u})
+      expect(o.settings['default_home_board']).to eq({'key' => b.key, 'id' => b.global_id})
+    end
+    
+    it "should allow setting a private home board if owned by a supervisor" do
+      u = User.create
+      b = Board.create(user: u)
+      o = Organization.create
+      o.add_supervisor(u.user_name, false)
+      o.process({:home_board_key => b.key}, {updater: u})
+      expect(o.settings['default_home_board']).to eq({'key' => b.key, 'id' => b.global_id})
     end
   end
   

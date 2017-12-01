@@ -89,9 +89,10 @@ module Subscription
       self.settings['preferences']['role'] = 'communicator'
       
       # Organizations can define a default home board for their users
-      if new_org.settings['default_home_board'] && !self.settings['preferences']['home_board']
+      if new_org && new_org.settings['default_home_board'] && !self.settings['preferences']['home_board']
         home_board = Board.find_by_path(new_org.settings['default_home_board']['id'])
-        self.process_home_board({'id' => home_board.global_id}, {'updater' => home_board.user}) if home_board
+      self.assert_current_record!
+        self.process_home_board({'id' => home_board.global_id}, {'updater' => home_board.user, 'async' => true}) if home_board
       end
       
       self.settings['pending'] = false

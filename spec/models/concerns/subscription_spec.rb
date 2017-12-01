@@ -533,6 +533,26 @@ describe Subscription, :type => :model do
         'arguments' => ['token', 'unsubscribe']
       })).to eq(false)
     end
+    
+    it "should set the user's home board if not already set but defined for the org" do
+      u = User.create
+      b = Board.create(user: u, public: true)
+      o = Organization.create
+      o.settings['default_home_board'] = {'id' => b.global_id, 'key' => b.key}
+      o.save
+      
+      expect(UserMailer).to receive(:schedule_delivery).with(:organization_assigned, u.global_id, o.global_id)
+      u.update_subscription_organization(o.global_id)
+      expect(u.settings['subscription']['added_to_organization']).to eql(Time.now.iso8601)
+      expect(u.settings['preferences']['home_board']).to eq({'key' => b.key, 'id' => b.global_id})
+    end
+    
+    it "should set eval accounts as eval users" do
+      u = User.create
+      o = Organization.create(settings => {'total_eval_licenses' => 1})
+      o.add_user(u.user_name, false, true, true)
+      expect(u.reload.eval_account?).to eq(true)
+    end
   end
   
   describe "update_subscription" do

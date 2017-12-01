@@ -214,6 +214,7 @@ describe JsonApi::User do
         json = JsonApi::User.build_json(u, permissions: u)
         expect(json['subscription']).to eq({
           'active' => true,
+          'eval_account' => false
         })
         
         o.remove_user(u.user_name)
@@ -223,6 +224,7 @@ describe JsonApi::User do
         json = JsonApi::User.build_json(u, permissions: u)
         expect(json['subscription']).to eq({
           'grace_period' => false,
+          'eval_account' => false,
           'active' => true,
           'expires' => u.expires_at.iso8601,
           'started' => u.settings['subscription']['started'],
