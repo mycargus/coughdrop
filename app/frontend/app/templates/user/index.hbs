@@ -74,7 +74,7 @@
     {{#if app_state.currentUser.preferences.new_index}}
       <div class='col-sm-3 col-xs-6 big_button_holder'>
         {{#if model.preferences.home_board.key}}
-          <div style='position: absolute; z-index: 2; margin: 12px;'><span class='glyphicon glyphicon-home'></span> {{t "Home Board:" key='home_board'}}</div>
+          <div style='position: absolute; z-index: 2; margin: 6px 12px;'><span class='glyphicon glyphicon-home'></span> {{t "Home Board:" key='home_board'}}</div>
           {{board-icon board=model.preferences.home_board}}
         {{else}}
           {{#link-to 'home-boards' class='btn big_button btn-default'}}
@@ -98,7 +98,13 @@
       <div class='col-sm-3 col-xs-6 big_button_holder'>
         <button class='btn big_button btn-default middle_row' {{action "supervision_settings"}}>
           <span class='glyphicon glyphicon-user'></span>
-          {{t "Supervisors" key='manage_supervisors'}}
+          {{#if model.supporter_role}}
+            {{t "Supervision" key='manage_supervision'}}
+            <div style='font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>{{model.supervisee_names}}</div>
+          {{else}}
+            {{t "Supervisors" key='manage_supervisors'}}
+            <div style='font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>{{model.supervisor_names}}</div>
+          {{/if}}
         </button>
       </div>
       {{#if model.permissions.supervise}}
