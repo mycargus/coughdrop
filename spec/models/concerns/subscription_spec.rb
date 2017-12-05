@@ -549,7 +549,7 @@ describe Subscription, :type => :model do
     
     it "should set eval accounts as eval users" do
       u = User.create
-      o = Organization.create(settings => {'total_eval_licenses' => 1})
+      o = Organization.create(:settings => {'total_eval_licenses' => 1})
       o.add_user(u.user_name, false, true, true)
       expect(u.reload.eval_account?).to eq(true)
     end
@@ -1512,6 +1512,108 @@ describe Subscription, :type => :model do
         'never_expires' => true, 
         'transferred_from' => [u1.global_id]
       })
+    end
+  end
+  
+  describe "reset_eval" do
+    it "should clear and store old preferences" do
+      u = User.create
+      u.settings['preferences'] = {'a' => 1, 'b' => 2}
+      u.save
+      expect(u.settings['last_preferences']).to eq(nil)
+      u.reset_eval(nil)
+      u.reload
+      expect(u.settings['preferences']['a']).to eq(nil)
+      expect(u.settings['preferences']['b']).to eq(nil)
+      expect(u.settings['last_preferences']).to_not eq(nil)
+      expect(u.settings['last_preferences']['a']).to eq(1)
+      expect(u.settings['last_preferences']['b']).to eq(2)
+    end
+    
+    it "should set as an eval account" do
+      u = User.create
+      expect(u.eval_account?).to eq(false)
+      u.reset_eval(nil)
+      expect(u.eval_account?).to eq(true)
+    end
+    
+    it "should restart the eval clock" do
+      u = User.create
+      u.settings['subscription'] = {'eval_started' => 2.weeks.ago.iso8601, 'eval_expires' => 1.week.ago.iso8601}
+      u.save
+      u.reset_eval(nil)
+      expect(u.settings['subscription']['eval_started']).to be > 1.day.ago.iso8601
+      expect(u.settings['subscription']['eval_expires']).to be > 1.week.from_now.iso8601
+    end
+    
+    it "should revert to the org default home board if set" do
+      o = Organization.create
+      u = User.create
+      b = Board.create(user: u, public: true)
+      o.settings['default_home_board'] = {'key' => b.key, 'id' => b.global_id}
+      o.save
+      o.add_user(u.user_name, false, false, true)
+      u.reset_eval(nil)
+      expect(u.settings['preferences']['home_board']).to eq({'key' => b.key, 'id' => b.global_id})
+    end
+
+    it "should delete all devices but the current device" do
+      u = User.create
+      d = Device.create(user: u)
+      10.times{|i| Device.create(user: u) }
+      expect(u.devices.count).to eq(11)
+      u.reset_eval(d)
+      expect(u.reload.devices.count).to eq(1)
+      expect(u.devices[0]).to eq(d)
+    end
+    
+    it "should enable logging" do
+      u = User.create
+      expect(u.settings['preferences']['logging']).to eq(false)
+      u.reset_eval(nil)
+      expect(u.settings['preferences']['logging']).to eq(true)
+    end
+    
+    it "should flush existing logs" do
+      u = User.create
+      d = Device.create(user: u)
+      5.times{|i| LogSession.create!(user: u, device: d, author: u) }
+      expect(u.reload.log_sessions.count).to eq(5)
+      u.reset_eval(nil)
+      expect(u.reload.log_sessions.count).to eq(5)
+      Worker.process_queues
+      expect(u.reload.log_sessions.count).to eq(0)
+    end
+    
+    it "should clear user-generated boards"
+    it "should clear earned badges"
+    it "should clear user goals"
+    it "should clear user integrations"
+    it "should clear user recordings"
+    it "should clear user videos"
+    it "should clear user utterances"
+  end  
+
+  describe "transfer_eval_to" do
+    it "should transfer logs to the new user" do
+      write_this_test
+    end
+    
+    it "should transfer preferences to the new user" do
+    end
+    
+    it "should transfer copied boards to the new user"
+    it "should transfer earned badges"
+    it "should transfer user goals"
+    it "should transfer user integrations"
+    it "should transfer user recordings"
+    it "should transfer user videos"
+    it "should transfer user utterances"
+    
+    it "should keep any device preferences already set for the new user" do
+    end
+    
+    it "should call reset_eval" do
     end
   end
 end

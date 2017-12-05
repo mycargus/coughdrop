@@ -379,6 +379,7 @@ module Subscription
   
   def reset_eval(current_device)
     duration = self.eval_duration
+    self.settings['subscription'] ||= {}
     self.settings['subscription']['eval_account'] = true
     # reset the eval expiration clock
     self.settings['subscription']['eval_started'] = Time.now.iso8601
@@ -419,9 +420,6 @@ module Subscription
     self.settings['eval_duration'] || self.class.default_eval_duration
   end
   
-  def self.default_eval_duration
-    60
-  end
   
   def org_sponsored?
     Organization.sponsored?(self)
@@ -614,6 +612,10 @@ module Subscription
         end
       end
       alerts
+    end
+
+    def default_eval_duration
+      60
     end
     
     def subscription_event(args)
