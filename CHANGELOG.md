@@ -2,6 +2,16 @@
 
 ## Master
 
+### 2017-12-05
+- optional simpler dashboard
+- fixes issues with scanning
+- fixes issues with pdf printing non-Roman characters
+- stricter expired user policies
+- setting as home defaults to making a new copy of the board set
+- improved support for renaming users and boards
+- better mechanism for tracking user connections/links
+- improved organization room interface
+
 ### 2017-10-11
 - fixes for media playback in speak mode
 - support for CDNs for cached images
