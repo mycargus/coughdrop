@@ -116,6 +116,9 @@
             <div class="list-group">
               {{#each home_boards as |board|}}
                 {{#link-to 'board' board.key class='list-group-item'}}{{board.key}}{{/link-to}}
+                {{#if showing_private_info}}
+                  <span class='text-muted'>({{board.pct}}%)</span>
+                {{/if}}
               {{/each}}
             </div>
           </div>
@@ -125,6 +128,24 @@
       </div>
 
       {{stats/modeling-frequency trends=trends}}
+
+      <div class='col-sm-6' style='margin-bottom: 50px;'>
+        <h4>{{t "Most-Commonly-Used Boards" key='most_common_boards'}}</h4>
+        {{#if common_boards}}
+          <div style='max-height: 300px; overflow: auto;'>
+            <div class="list-group">
+              {{#each common_boards as |board|}}
+                {{#link-to 'board' board.key class='list-group-item'}}{{board.key}}{{/link-to}}
+                {{#if showing_private_info}}
+                  <span class='text-muted'>({{board.pct}})</span>
+                {{/if}}
+              {{/each}}
+            </div>
+          </div>
+        {{else}}
+          {{t "None available" key='none_available'}}
+        {{/if}}
+      </div>
 
       <div class='col-sm-6'>
         <p>{{t "Isn't data great? Usually when we see a little bit, it makes us think of more questions to ask, and we want to dig in deeper. There's always more to learn, more research we can do to help communicators succeed." key='data_summary_1'}}</p>

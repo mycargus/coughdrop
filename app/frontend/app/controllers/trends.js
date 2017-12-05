@@ -32,13 +32,30 @@ export default Ember.Controller.extend({
     if(hash) {
       var res = [];
       for(var idx in hash) {
-        res.push({key: idx, pct: hash[idx]});
+        res.push({key: idx, pct: hash[idx] * 100});
       }
       return res.sort(function(a, b) {
         return b.pct - a.pct;
       });
     }
   }.property('trends.home_boards'),
+  common_boards: function() {
+    var hash = this.get('trends.board_usages');
+    if(hash) {
+      var res = [];
+      for(var idx in hash) {
+        res.push({key: idx, pct: hash[idx]});
+      }
+      res = res.sort(function(a, b) {
+        return b.pct - a.pct;
+      });
+      if(this.get('showing_private_info')) {
+        res = res.slice(0, 200);
+      } else {
+        res = res.slice(0, 25);
+      }
+    }
+  }.property('trends.board_usages', 'showing_private_info'),
   actions: {
     show_private_info: function() {
       this.set('showing_private_info', true);
