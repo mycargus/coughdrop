@@ -54,6 +54,7 @@ export default Ember.Controller.extend({
       } else {
         res = res.slice(0, 25);
       }
+      return res;
     }
   }.property('trends.board_usages', 'showing_private_info'),
   actions: {
