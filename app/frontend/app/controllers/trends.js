@@ -32,7 +32,7 @@ export default Ember.Controller.extend({
     if(hash) {
       var res = [];
       for(var idx in hash) {
-        res.push({key: idx, pct: hash[idx] * 100});
+        res.push({key: idx, pct: Math.round(hash[idx] * 100 * 10) / 10});
       }
       return res.sort(function(a, b) {
         return b.pct - a.pct;
