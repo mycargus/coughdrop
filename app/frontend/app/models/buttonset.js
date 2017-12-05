@@ -122,7 +122,9 @@ CoughDrop.Buttonset = DS.Model.extend({
     var other_find_buttons = [];
     // TODO: include additional buttons if they are accessible from "home" or
     // the "sidebar" button sets.
-    if(include_home_and_sidebar && user && user.get('preferences.home_board.id')) {
+    var home_board_id = stashes.get('temporary_root_board_state.id') || stashes.get('root_board_state.id') || (user && user.get('preferences.home_board.id'));
+
+    if(include_home_and_sidebar && home_board_id) {
       other_lookups = new Ember.RSVP.Promise(function(lookup_resolve, lookup_reject) {
         var root_button_set_lookups = [];
         var button_sets = [];
@@ -140,10 +142,10 @@ CoughDrop.Buttonset = DS.Model.extend({
           } else {
           }
         };
-        if(user.get('preferences.home_board.id')) {
-          lookup(user.get('preferences.home_board.id'));
+        if(home_board_id) {
+          lookup(home_board_id);
         }
-        (user.get('preferences.sidebar_boards') || []).forEach(function(brd) {
+        (app_state.get('sidebar_boards') || []).forEach(function(brd) {
           lookup(brd.id, brd.home_lock);
         });
         Ember.RSVP.all_wait(root_button_set_lookups).then(function() {

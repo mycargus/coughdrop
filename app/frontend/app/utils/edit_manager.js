@@ -521,6 +521,7 @@ var editManager = Ember.Object.extend({
       controller.update_button_symbol_class();
       if(board.get('fast_html') && board.get('fast_html.width') == controller.get('width') && board.get('fast_html.height') == controller.get('height') && board.get('current_revision') == board.get('fast_html.revision')) {
         CoughDrop.log.track('already have fast render');
+        resume_scanning();
         return;
       } else {
         board.set('fast_html', null);

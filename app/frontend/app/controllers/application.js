@@ -419,6 +419,7 @@ export default Ember.Controller.extend({
     highlight_button: function() {
       // TODO: this and activateButton belong somewhere more testable
       var buttons = this.get('button_highlights');
+
       var _this = this;
       if(buttons && buttons.length > 0) {
         var button = buttons[0];

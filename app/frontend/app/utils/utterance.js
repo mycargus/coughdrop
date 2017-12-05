@@ -87,7 +87,7 @@ var utterance = Ember.Object.extend({
 
     app_state.set('button_list', visualButtonList);
     stashes.persist('working_vocalization', buttonList);
-  }.observes('rawButtonList', 'rawButtonList.[]', 'rawButtonList.length'),
+  }.observes('rawButtonList', 'rawButtonList.[]', 'rawButtonList.length', 'rawButtonList.@each.image'),
   modifiers: [':plural', ':singular', ':comparative', ':er', ':superlative',
     ':est', ':possessive', ':\'s', ':past', ':ed', ':present-participle', ':ing', ':space', ':complete'],
   modify_button: function(original, addition) {
@@ -171,9 +171,11 @@ var utterance = Ember.Object.extend({
     var b = Ember.$.extend({}, button);
     if(original_button && original_button.load_image) {
       original_button.load_image().then(function() {
+        Ember.set(b, 'image', original_button.get('image.best_url'));
         Ember.set(b, 'image_license', original_button.get('image.license'));
       });
       original_button.load_sound().then(function() {
+        Ember.set(b, 'sound', original_button.get('sound.best_url'));
         Ember.set(b, 'sound_license', original_button.get('sound.license'));
       });
     }

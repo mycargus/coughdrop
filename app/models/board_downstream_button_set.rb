@@ -36,9 +36,12 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
   
   def buttons
     return @buttons if @buttons
-    if self.data['source_id']
-      bs = BoardDownstreamButtonSet.find_by_global_id(self.data['source_id'])
-      if bs
+    brd = self
+    visited_sources = []
+    while brd.data['source_id'] && !visited_sources.include?(brd.global_id)
+      visited_sources << brd.global_id
+      bs = BoardDownstreamButtonSet.find_by_global_id(brd.data['source_id'])
+      if bs && !bs.data['source_id']
         @buttons = bs.buttons_starting_from(self.related_global_id(self.board_id))
         return @buttons
       end
@@ -77,25 +80,31 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
       set ||= BoardDownstreamButtonSet.find_or_create_by(:board_id => board.id)
       
       existing_board_ids = (set.data || {})['linked_board_ids'] || []
-      
       Board.find_all_by_global_id(board.settings['immediately_upstream_board_ids'] || []).each do |brd|
         set.data['found_upstream_board'] = true
         bs = brd.board_downstream_button_set
-        set.data['found_upstream_set'] = !!bs
+        set.data['found_upstream_set'] = true if bs
         linked_board_ids = bs && (bs.data['linked_board_ids'] || bs.buttons.map{|b| b['linked_board_id'] }.compact.uniq)
         if bs && bs.data['buttons'] && linked_board_ids.include?(board.global_id)
-          set.data['source_id'] = bs.global_id
-          set.data['buttons'] = nil
-          set.save
-          return set
+          # legacy lists don't correctly filter linked board ids
+          valid_button = bs.buttons.detect{|b| b['linked_board_id'] == board.global_id && !b['hidden'] && !b['link_disabled'] }
+          if valid_button
+            set.data['source_id'] = bs.global_id
+            set.data['buttons'] = nil
+            set.save
+            return set
+          end
         elsif bs && bs.data['source_id'] && linked_board_ids.include?(board.global_id)
-          set.data['source_id'] = bs.data['source_id']
-          set.data['buttons'] = nil
-          set.save
-          return set
+          # legacy lists don't correctly filter linked board ids
+          valid_button = bs.buttons.detect{|b| b['linked_board_id'] == board.global_id && !b['hidden'] && !b['link_disabled'] }
+          if valid_button
+            set.data['source_id'] = bs.data['source_id']
+            set.data['buttons'] = nil
+            set.save
+            return set
+          end
         end
       end
-      
       boards_hash = {}
       Board.find_all_by_global_id(board.settings['downstream_board_ids'] || []).each do |brd|
         boards_hash[brd.global_id] = brd
@@ -135,7 +144,8 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
           if button['load_board'] && button['load_board']['id']
             linked_board = boards_hash[button['load_board']['id']]
             linked_board ||= Board.find_by_global_id(button['load_board']['id'])
-            if linked_board
+            # hidden or disabled links shouldn't be tracked
+            if linked_board && !button['hidden'] && !button['link_disabled']
               button_data['linked_board_id'] = linked_board.global_id
               button_data['linked_board_key'] = linked_board.key
             end

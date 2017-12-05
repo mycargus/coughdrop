@@ -192,8 +192,8 @@ class UserLink < ApplicationRecord
       (record.settings['attached_user_ids'] || {}).each do |type, ids|
         ids.each do |user_id|
           if type == 'user'
-            sponsored = !!record.settings['attached_user_ids']['sponsored_user'].detect{|id| id == user_id }
-            approved = !!record.settings['attached_user_ids']['approved_user'].detect{|id| id == user_id }
+            sponsored = !!((record.settings['attached_user_ids'] || {})['sponsored_user'] || []).detect{|id| id == user_id }
+            approved = !!((record.settings['attached_user_ids'] || {})['approved_user'] || []).detect{|id| id == user_id }
             res << {
               'user_id' => user_id,
               'record_code' => record_code,
@@ -274,9 +274,9 @@ class UserLink < ApplicationRecord
               'board_key' => record.key,
               'sharer_id' => author.global_id,
               'sharer_user_name' => author.user_name,
-              'include_downstream' => share['include_downstream'],
-              'allow_editing' => share['allow_editing'],
-              'pending' => share['pending'],
+              'include_downstream' => !!share['include_downstream'],
+              'allow_editing' => !!share['allow_editing'],
+              'pending' => !!share['pending'],
               'user_name' => share['user_name']
             }
           }
@@ -296,7 +296,7 @@ class UserLink < ApplicationRecord
       link_user = User.find_by_global_id(link['user_id'])
       if link_user && link_record
         generated = UserLink.generate(link_user, link_record, link['type'])
-        generated['state'] ||= link['state']
+        generated.data['state'] = link['state'] if generated.data['state'].blank?
         generated.save!
       end
       if record.is_a?(User)

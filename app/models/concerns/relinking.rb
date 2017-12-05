@@ -1,10 +1,14 @@
 module Relinking
   extend ActiveSupport::Concern
   
-  def links_to?(board)
+  def links_to?(board, skip_disabled_links=false)
     (self.settings['buttons'] || []).each do |button|
       if button['load_board'] && button['load_board']['id'] == board.global_id
-        return true
+        if skip_disabled_links
+          return !button['hidden'] && !button['link_disabled']
+        else
+          return true
+        end
       end
     end
     false

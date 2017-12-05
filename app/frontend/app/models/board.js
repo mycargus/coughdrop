@@ -687,8 +687,8 @@ CoughDrop.Board = DS.Model.extend({
     var button_html = function(button, pos) {
       var res = "";
       // TODO: sanitize all these for safety?
-      var local_image_url = persistence.url_cache[_this.get('image_urls')[button.image_id] || 'none'] || _this.get('image_urls')[button.image_id] || 'none';
-      var local_sound_url = persistence.url_cache[_this.get('sound_urls')[button.sound_id] || 'none'] || _this.get('sound_urls')[button.sound_id] || 'none';
+      var local_image_url = persistence.url_cache[(_this.get('image_urls') || {})[button.image_id] || 'none'] || (_this.get('image_urls') || {})[button.image_id] || 'none';
+      var local_sound_url = persistence.url_cache[(_this.get('sound_urls') || {})[button.sound_id] || 'none'] || (_this.get('sound_urls') || {})[button.sound_id] || 'none';
       var opts = Button.button_styling(button, _this, pos);
 
       res = res + "<div style='" + opts.button_style + "' class='" + opts.button_class + "' data-id='" + button.id + "' tabindex='0'>";
