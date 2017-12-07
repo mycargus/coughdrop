@@ -39,12 +39,28 @@ export default Ember.Controller.extend({
       });
     }
   }.property('trends.home_boards'),
-  common_boards: function() {
-    var hash = this.get('trends.board_usages');
+  board_locales: function() {
+    var hash = this.get('trends.board_locales');
+    var tally = this.get('trends.max_board_locales_count') || 1000;
     if(hash) {
       var res = [];
       for(var idx in hash) {
-        res.push({key: idx, pct: hash[idx]});
+        res.push({key: idx, pct: (hash[idx] * tally)});
+      }
+      res = res.sort(function(a, b) {
+        return b.pct - a.pct;
+      });
+      res = res.slice(0, 50);
+      return res;
+    }
+  }.property('trends.board_locales', 'showing_private_info'),
+  common_boards: function() {
+    var hash = this.get('trends.board_usages');
+    var tally = this.get('trends.max_board_usage_count') || 1000;
+    if(hash) {
+      var res = [];
+      for(var idx in hash) {
+        res.push({key: idx, pct: (hash[idx] * tally)});
       }
       res = res.sort(function(a, b) {
         return b.pct - a.pct;
