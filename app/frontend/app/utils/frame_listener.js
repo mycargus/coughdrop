@@ -90,6 +90,7 @@ var frame_listener = Ember.Object.extend({
       status: 'ready',
       session_id: session_id,
       code: $elem.attr('data-code'),
+      system_token: 'CoughDropAAC',
       user_token: $elem.attr('data-user_token')
     });
   },
