@@ -419,4 +419,30 @@ describe UserIntegration, :type => :model do
       expect(UserIntegration.global_integrations).to eq({'asdf' => ui1.global_id})
     end
   end
+  
+  describe "user_token" do
+    it "should generate a token" do
+      ui = UserIntegration.create
+      u = User.create
+      token = ui.user_token(u)
+      expect(token).to_not eq(nil)
+      expect(token.length).to be > 50
+    end
+    
+    it "should generate the same token on repeat requests" do
+      ui = UserIntegration.create
+      u = User.create
+      token = ui.user_token(u)
+      expect(token).to_not eq(nil)
+      expect(token).to eq(ui.user_token(u))
+      expect(token).to eq(ui.user_token(u))
+      expect(token).to eq(ui.user_token(u))
+      expect(token).to eq(ui.user_token(u))
+    end
+    
+    it "should return nil for no user" do
+      ui = UserIntegration.create
+      expect(ui.user_token(nil)).to eq(nil)
+    end
+  end
 end

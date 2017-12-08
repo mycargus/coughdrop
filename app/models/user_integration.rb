@@ -44,13 +44,14 @@ class UserIntegration < ActiveRecord::Base
   end
   
   def user_token(user)
-    salt = GoSecure.nonce('user_integration_confirmation_token_nonce')[0, 20]
-    sig = self.class.user_token(user.global_id, self.global_id, salt)
-    "#{user.global_id}:#{self.global_id}:#{salt}:#{sig}"
+    return nil unless user && user.global_id
+    # user token must be consistent across repeated launches
+    sig = self.class.user_token(user.global_id, self.global_id)
+    "#{user.global_id}:#{self.global_id}:#{sig}"
   end
   
-  def self.user_token(user_id, integration_id, salt)
-    sig = GoSecure.sha512("user_integration_confirmation_token_#{user_id}_#{integration_id}", salt)
+  def self.user_token(user_id, integration_id)
+    sig = GoSecure.sha512("user_integration_confirmation_token_#{user_id}_#{integration_id}", 'user_integration_confirmation_token_nonce')
   end
   
   def assert_device
