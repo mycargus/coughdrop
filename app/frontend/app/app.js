@@ -90,7 +90,7 @@ if(capabilities.wait_for_deviceready) {
       var kv = window.cordova.plugins.iCloudKV;
       // iOS key value store
       kv.sync(function(dict) {
-        CoughDrop.kvstash = {
+        window.kvstash = {
           values: dict,
           store: function(key, value) {
             kv.save(key, value.toString(), function() { });
@@ -106,7 +106,7 @@ if(capabilities.wait_for_deviceready) {
       // Android key value store
       kv.getSharedPreferences('coughdrop_prefs', 'MODE_PRIVATE', function() {
         var make_stash = function(user_name) {
-          CoughDrop.kvstash = {
+          window.kvstash = {
             values: {user_name: user_name},
             store: function(key, value) {
               kv.putString(key, value.toString(), function() { }, function() { });

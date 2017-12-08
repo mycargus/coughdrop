@@ -153,11 +153,15 @@ var app_state = Ember.Object.extend({
           }
         });
       };
-      find_user();
+      if(session.get('access_token')) {
+        find_user();
+      }
     }
     session.addObserver('access_token', function() {
       Ember.run.later(function() {
-        app_state.refresh_session_user();
+        if(session.get('access_token')) {
+          app_state.refresh_session_user();
+        }
       }, 10);
     });
     // TODO: this is a dumb way to do this (remove the "loading..." message)...

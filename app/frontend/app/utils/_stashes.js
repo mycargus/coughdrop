@@ -30,6 +30,7 @@ var stashes = Ember.Object.extend({
       console.debug('COUGHDROP: restoring stashes from db, ' + count + ' values');
     }, function(err) {
       console.debug('COUGHDROP: db storage stashes not found');
+      return Ember.RSVP.resolve();
     });
   },
   setup: function() {
@@ -153,7 +154,7 @@ var stashes = Ember.Object.extend({
   },
   persist_object: function(key, obj, include_prefix) {
     var _this = this;
-    // Why aren't we using client-side encryption?
+    // Why aren't we using client-side encryption, you ask?
     // http://matasano.com/articles/javascript-cryptography/
     // Since the encryption key would have to be stored in either localStorage
     // or IndexedDB, anyone who has access to the datastores also has
@@ -162,15 +163,15 @@ var stashes = Ember.Object.extend({
 
     if(key == 'auth_settings' && obj.user_name) {
       document.cookie = "authDBID=" + obj.user_name;
-      if(CoughDrop.kvstash && CoughDrop.kvstash.store) {
-        CoughDrop.kvstash.store('user_name', obj.user_name);
+      if(window.kvstash && window.kvstash.store) {
+        window.kvstash.store('user_name', obj.user_name);
       }
     }
   },
   flush_db_id: function() {
     document.cookie = 'authDBID=';
-    if(CoughDrop.kvstash && CoughDrop.kvstash.remove) {
-      CoughDrop.kvstash.remove('user_name');
+    if(window.kvstash && window.kvstash.remove) {
+      window.kvstash.remove('user_name');
     }
   },
   persist_raw: function(key, obj, include_prefix) {
@@ -196,12 +197,20 @@ var stashes = Ember.Object.extend({
       var user_name = key && key.replace(/^authDBID=/, '');
       if(user_name) {
         return user_name;
-      } else if(cap && CoughDrop.kvstash && CoughDrop.kvstash.values) {
-        return CoughDrop.kvstash.values.user_name || null;
+      } else if(cap && window.kvstash && window.kvstash.values) {
+        return window.kvstash.values.user_name || null;
       } else {
         return null;
       }
     }
+  },
+  get_db_key: function(persist) {
+    var key = stashes.get_raw('cd_db_key');
+    if(persist) {
+      key = key || ("db2_" + Math.random().toString() + "_" + (new Date()).getTime().toString());
+      stashes.persist_raw('cd_db_key', key);
+    }
+    return key
   },
   get_raw: function(key, include_prefix) {
     if(include_prefix) { key = stashes.prefix + key; }

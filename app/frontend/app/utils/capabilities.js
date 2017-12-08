@@ -113,8 +113,7 @@ var capabilities;
         if(capabilities.api_host) {
           console_debug("COUGHDROP: extension connected, pointing requests to " + capabilities.api_host);
         }
-        stashes.persist_raw('cd_db_key', stashes.get_raw('cd_db_key') || ("db_" + Math.random().toString() + "_" + (new Date()).getTime().toString()));
-        capabilities.db_key = stashes.get_raw('cd_db_key');
+        capabilities.db_key = stashes.get_db_key();
         var res = true;
         if(indexedDBSafe) {
           res = capabilities.setup_database();
@@ -140,6 +139,7 @@ var capabilities;
       },
       encrypt: function(obj) {
         if(capabilities.encryption_enabled) {
+          alert('encryption not supported');
           return window.CryptoJS.AES.encrypt(JSON.stringify(obj), capabilities.db_key).toString();
         } else {
           return JSON.stringify(obj);
@@ -147,6 +147,7 @@ var capabilities;
       },
       decrypt: function(obj) {
         if(capabilities.encryption_enabled) {
+          alert('encryption not supported');
           return JSON.parse(window.CryptoJS.AES.decrypt(obj, capabilities.db_key).toString(window.CryptoJS.enc.Utf8));
         } else {
           return JSON.parse(obj);
@@ -1236,14 +1237,19 @@ var capabilities;
   capabilities.setup_database = function() {
     delete capabilities['db'];
     var user_name = stashes.get_db_id(capabilities);
-    var key = "coughDropStorage::" + (user_name || "__") + "===" + capabilities.db_key;
+    var db_key = stashes.get_db_key(true);
+    // keep using legacy db ids, but for new dbs don't worry about the key anymore
+    if(!db_key || db_key.match(/^db2/)) {
+      db_key = "db";
+    }
+    var key = "coughDropStorage::" + (user_name || "__") + "===" + db_key;
     capabilities.db_name = key;
 
     var promise = capabilities.mini_promise();
 
     var setup = capabilities.dbman.setup_database(key, 2);
     setup.then(function(db) {
-      var connect = stashes.db_connect(capabilities).then(null, function() { return Ember.RSVP.resolve(); })
+      var connect = stashes.db_connect(capabilities);
       connect.then(function() {
         (capabilities.queued_db_actions || []).forEach(function(m) {
           m[0](m[1]).then(function(res) {
@@ -1254,6 +1260,8 @@ var capabilities;
         });
         capabilities.queued_db_actions = [];
         promise.resolve();
+      }, function(err) {
+        promise.reject(err);
       });
     }, function(err) {
       promise.reject(err);
@@ -1262,7 +1270,10 @@ var capabilities;
     return promise;
   };
   capabilities.delete_database = function() {
-    return capabilities.dbman.delete_database(capabilities.db_name);
+    return capabilities.dbman.delete_database(capabilities.db_name).then(function() {
+      stashes.persist_raw('cd_db_key', '');
+      stashes.get_db_key();
+    });
   };
   capabilities.idb = indexedDBSafe;
 
