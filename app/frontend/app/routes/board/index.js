@@ -15,7 +15,7 @@ export default Ember.Route.extend({
     if(res.get('should_reload')) {
       res.set('should_reload', false);
       CoughDrop.log.track('reloading');
-      res.reload();
+      res.reload(!app_state.get('speak_mode'));
     }
     return res;
   },
@@ -70,6 +70,7 @@ export default Ember.Route.extend({
     contentGrabbers.board_controller = controller;
     var prior_revision = model.get('current_revision');
     CoughDrop.log.track('processing buttons without lookups');
+    _this.set('load_state', {retrieved: true});
     model.without_lookups(function() {
       controller.processButtons();
     });
@@ -84,6 +85,7 @@ export default Ember.Route.extend({
     if(!model.get('valid_id')) {
     } else if(persistence.get('online') || insufficient_data) {
       CoughDrop.log.track('considering reload');
+      _this.set('load_state', {not_local: true});
       var reload = Ember.RSVP.resolve();
       // if we're online then we should reload, but do it softly if we're in speak mode
       if(persistence.get('online')) {
@@ -94,12 +96,16 @@ export default Ember.Route.extend({
         // yet loaded into ember-data
         var force_fetch = !app_state.get('speak_mode');
         if(persistence.get('syncing') && !insufficient_data) { force_fetch = false; }
+        _this.set('load_state', {remote_reload: true});
         reload = model.reload(force_fetch).then(null, function(err) {
+          _this.set('load_state', {remote_reload_local_reload: true});
           return model.reload(false);
         });
       // if we're offline, then we should only reload if we absolutely have to (i.e. ordered_buttons isn't set)
       } else if(!controller.get('ordered_buttons')) {
+        _this.set('load_state', {local_reload: true});
         reload = model.reload(false).then(null, function(err) {
+          _this.set('load_state', {local_reload_local_reload: true});
           return model.reload(false);
         });
       }
@@ -116,6 +122,57 @@ export default Ember.Route.extend({
       });
     }
   },
+  error_message: function() {
+    if(this.get('model.id')) {
+      return i18n.t('unexpected_error', "This board should have loaded, but there was an unexpected problem");
+    } else {
+      var error = this.get('load_state.error');
+      if(error && error.errors) {
+        error = error.errors[0];
+      }
+      if(persistence.get('online')) {
+        // retrieved, not_local, remote_reload, remote_reload_local_reload, local_reload, local_reload_remote_reload
+        if(error && error.unauthorized) {
+          return i18n.t('error_unauthorized', "You don't have permission to access this board.");
+        } else if(error && error.never_existed) {
+          return i18n.t('error_nonexistent', "This board doesn't exist.");
+        } else if(error && error.status >= 400) {
+          return i18n.t('error_bad_status', "There was an unexpected error retrieving this board.");
+        } else if(this.get('load_state.retrieved')) {
+          return i18n.t('error_retrieved_only', "The resources for this board could not be retrieved.");
+        } else if(this.get('load_state.not_local')) {
+          return i18n.t('error_not_local', "The resources for this board were not available locally, so it could not be loaded.");
+        } else if(this.get('load_state.remote_reload')) {
+          return i18n.t('error_no_remote', "This board could not be retrieved from the cloud.");
+        } else if(this.get('load_state.remote_reload_local_reload')) {
+          return i18n.t('error_no_remote_or_local', "This board could not be retrieved from the cloud and hasn't been synced for offline use.");
+        } else if(this.get('load_state.local_reload')) {
+          return i18n.t('error_no_local', "This board is not available offline.");
+        } else if(this.get('load_state.local_reload_remote_reload')) {
+          return i18n.t('error_really_no_local', "This board has not been synced and is not available currently.");
+        } else {
+          return i18n.t('error_not_available', "This board is not currently available.");
+        }
+      } else {
+        if(this.get('load_state.retrieved')) {
+          return i18n.t('error_retrieved_only_offline', "The resources for this board could not be retrieved while offline.");
+        } else if(this.get('load_state.not_local')) {
+          return i18n.t('error_not_local_offline', "The resources for this board were not available locally while offline, so it could not be loaded.");
+        } else if(this.get('load_state.remote_reload')) {
+          return i18n.t('error_no_remote_offline', "This board could not be retrieved while offline.");
+        } else if(this.get('load_state.remote_reload_local_reload')) {
+          return i18n.t('error_not_anywhere_offline', "This board could not be retrieved while offline and hasn't been synced for offline use.");
+        } else if(this.get('load_state.local_reload')) {
+          return i18n.t('error_no_local_offline', "This board is not available while offline.");
+        } else if(this.get('load_state.local_reload_remote_reload')) {
+          return i18n.t('error_really_no_local_offline', "This board has not been synced and is not available while offline.");
+        } else {
+          return i18n.t('error_not_available_offline', "This board is not currently available while offline.");
+        }
+      }
+      return i18n.t('error_with_board', "There was a problem retrieving this board.");
+    }
+  }.property('load_state', 'load_state.has_permissions', 'model.id'),
   actions: {
     willTransition: function(transition) {
       if(app_state.get('edit_mode')) {
@@ -125,6 +182,10 @@ export default Ember.Route.extend({
       return true;
     },
     error: function(error, transition) {
+      if(this.get('load_state')) {
+        this.set('load_state.has_permissions', !!this.get('model.permissions'));
+        this.set('load_state.error', error);
+      }
       this.get('controller').set('model', CoughDrop.store.createRecord('board', {}));
     },
   }

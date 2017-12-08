@@ -13,7 +13,7 @@
       {{else if model.error.never_existed}}
         <p>{{t "It looks like this board doesn't exist. Please check the link that brought you here to make sure it's correct." key='board_doesnt_exist'}}</p>
       {{else}}
-        <p>{{t "You don't have permission to access this board, or it doesn't exist." key='no_permissions'}}</p>
+        <p>{{t "You don't have permission to access this board, or it isn't currently available." key='no_permissions'}}</p>
       {{/if}}
     {{else}}
       <p>{{t "This board isn't available, or hasn't been synced for offline use." key='board_not_synced'}}</p>
@@ -22,6 +22,12 @@
       <div style="margin: 50px 15px;">
         {{login-form left=true prompt=true return=true restore=false}}
       </div>
+    {{else}}
+      {{#if model.retrying}}
+        {{t "Trying again..." key='trying_again'}}
+      {{else}}
+        <a href="#" {{action 're_transition'}}>{{t "Try again." key='try_again'}}</a>
+      {{/if}}
     {{/unless}}
   </div>
 {{/if}}

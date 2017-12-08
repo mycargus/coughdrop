@@ -12,7 +12,7 @@ export default Ember.Component.extend({
     if(_this.get('key')) {
       CoughDrop.store.findRecord('board', _this.get('key')).then(function(board) {
         if(!board.get('permissions')) {
-          board.reload().then(function(board) {
+          board.reload(false).then(function(board) {
             _this.set('model', board);
           });
         } else {

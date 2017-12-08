@@ -117,10 +117,11 @@
   </div>
   {{/with}}
 {{else}}
-  {{#if persistence.online}}
-    <p>{{t "You don't have access to this board right now, or it doesn't exist." key='no_permissions'}}</p>
+  <p>{{error_message}}</p>
+  {{#if model.retrying}}
+    {{t "Trying again..." key='trying_again'}}
   {{else}}
-    <p>{{t "This board isn't available, or hasn't been synced for offline use." key='board_not_synced'}}</p>
+    <a href="#" {{action 're_transition'}}>{{t "Try again." key='try_again'}}</a>
   {{/if}}
 {{/if}}
 {{/button-listener}}

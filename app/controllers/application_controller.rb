@@ -107,7 +107,7 @@ class ApplicationController < ActionController::Base
       scopes = @api_user.permission_scopes || []
     end
     if !obj || !obj.allows?(@api_user, permission, scopes)
-      res = {error: "Not authorized"}
+      res = {error: "Not authorized", unauthorized: true}
       if permission.instance_variable_get('@scope_rejected')
         res[:scope_limited] = true
       end

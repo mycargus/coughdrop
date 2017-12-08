@@ -69,11 +69,20 @@ export default Ember.Route.extend({
             var res = CoughDrop.store.createRecord('board', {id: 'bad', key: params.key});
             res.set('lookup_key', params.key);
             res.set('error', error);
+            _this.set('error_record', res);
             return Ember.RSVP.resolve(res);
           }
         });
       };
       return find_board(true);
     }
+  },
+  actions: {
+    re_transition: function() {
+      if(this.get('error_record')) {
+        this.set('error_record.retrying', true);
+      }
+      this.refresh();
+    },
   }
 });
