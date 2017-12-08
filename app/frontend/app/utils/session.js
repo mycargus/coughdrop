@@ -5,7 +5,8 @@ import capabilities from './capabilities';
 import persistence from './persistence';
 import coughDropExtras from './extras';
 import app_state from './app_state';
-
+import i18n from './i18n';
+import modal from './modal';
 
 var session = Ember.Object.extend({
   setup: function(application) {
@@ -78,11 +79,7 @@ var session = Ember.Object.extend({
       if(data.authenticated === false) {
         session.set('invalid_token', true);
         if(allow_invalidate) {
-          if(capabilities.installed_app && capabilities.system == 'iOS') {
-            alert('This session is no longer valid, please log back in');
-          }
-
-          session.invalidate(true);
+          session.force_logout(i18n.t('session_token_invalid', "This session is no longer valid, please log back in"));
         }
       } else {
         session.set('invalid_token', false);
@@ -125,6 +122,7 @@ var session = Ember.Object.extend({
   },
   restore: function(force_check_for_token) {
     if(!stashes.get('enabled')) { return {}; }
+    console.debug('COUGHDROP: restoring session data');
     var store_data = stashes.get_object('auth_settings', true) || {};
     var key = store_data.access_token || "none";
     persistence.tokens = persistence.tokens || {};
@@ -135,10 +133,7 @@ var session = Ember.Object.extend({
       session.set('user_id', store_data.user_id);
       session.set('as_user_id', store_data.as_user_id);
     } else if(!store_data.access_token) {
-      if(capabilities.installed_app && capabilities.system == 'iOS') {
-        alert('Session data has been lost, please log back in');
-      }
-      session.invalidate();
+      session.force_logout(i18n.t('session_lost', "Session data has been lost, please log back in"));
     }
     if(force_check_for_token || (persistence.tokens[key] == null && !Ember.testing && persistence.get('online'))) {
       if(store_data.access_token || force_check_for_token) { // || !persistence.get('browserToken')) {
@@ -177,10 +172,22 @@ var session = Ember.Object.extend({
       location.reload();
     }
   },
-  invalidate: function() {
-    if(session.get('user_name') && session.get('user_name').match(/wahl/)) {
-      console.error('session invalidated for wahly');
+  force_logout: function(message) {
+    var full_invalidate = !!(app_state.get('currentUser') || stashes.get_object('auth_settings', true));
+    if(full_invalidate) {
+      if(!modal.route) {
+        if(!Ember.testing) {
+          alert(message);
+        }
+        session.invalidate();
+      } else {
+        modal.open('force-logout', {message: message});
+      }
+    } else {
+      session.invalidate();
     }
+  },
+  invalidate: function() {
     var full_invalidate = !!(app_state.get('currentUser') || stashes.get_object('auth_settings', true));
     stashes.flush();
     stashes.setup();

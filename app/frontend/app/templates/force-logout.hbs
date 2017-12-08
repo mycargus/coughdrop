@@ -1,0 +1,20 @@
+{{#modal-dialog opening='opening' closing='closing'}}
+  <div class="modal-header">
+    <h3>{{t "Please Log Back In" key='please_log_back_in'}}</h3>
+  </div>
+  <div class="modal-body">
+    <h4>
+      {{model.message}}
+    </h4>
+  </div>
+  <div class="modal-footer">
+    <button class='btn btn-primary btn-lg' {{action 'logout'}}>
+      {{#if logging_out}}
+        {{t "Logging Out..." key='logging_out'}}
+      {{else}}
+        {{t "Log Back In" key='log_back_in'}}
+      {{/if}}
+    </button>
+  </div>
+{{/modal-dialog}}
+

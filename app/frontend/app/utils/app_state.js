@@ -139,14 +139,13 @@ var app_state = Ember.Object.extend({
           console.log("will log out: " + (do_logout || last_try));
           console.error("user initialization failed");
           if(do_logout || last_try) {
-            if(capabilities.installed_app && capabilities.system == 'iOS') {
-              if(last_try) {
-                alert('We couldn\'t retrieve your user account, please try logging back in');
-              } else {
-                alert('This session has expired, please log back in');
-              }
+            var error = null;
+            if(last_try) {
+              error = i18n.t('error_logging_in', "We couldn't retrieve your user account, please try logging back in");
+            } else {
+              error = i18n.t('session_expired', "This session has expired, please log back in");
             }
-            session.invalidate(true);
+            session.force_logout(error);
           } else {
             Ember.run.later(function() {
               find_user(true);
