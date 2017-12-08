@@ -86,7 +86,7 @@ if(capabilities.wait_for_deviceready) {
     };
     // Look up the stashed user name, which is needed for bootstrapping session and user data
     // and possibly is getting lost being set just in a cookie and localStorage
-    if(window.cordova && window.cordova.plugins && window.cordova.plugins.iCloudKV) {
+    if(capabilities.system == 'iOS' && window.cordova && window.cordova.plugins && window.cordova.plugins.iCloudKV) {
       var kv = window.cordova.plugins.iCloudKV;
       // iOS key value store
       kv.sync(function(dict) {
@@ -101,7 +101,7 @@ if(capabilities.wait_for_deviceready) {
         };
         done();
       }, done);
-    } else if(window.cordova && window.cordova.plugins && window.cordova.plugins.SharedPreferences) {
+    } else if(capabilities.system == 'Android' && window.cordova && window.cordova.plugins && window.cordova.plugins.SharedPreferences) {
       var kv = window.cordova.plugins.SharedPreferences;
       // Android key value store
       kv.getSharedPreferences('coughdrop_prefs', 'MODE_PRIVATE', function() {
