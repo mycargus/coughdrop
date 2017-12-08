@@ -6,6 +6,8 @@ export default {
     if(!window.cough_drop_readiness) {
       window.CoughDrop.app = app;
       app.deferReadiness();
+    } else {
+      session.restore();
     }
     extras.advance('init');
   }

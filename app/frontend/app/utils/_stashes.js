@@ -17,14 +17,17 @@ var stashes = Ember.Object.extend({
   },
   db_connect: function(cap) {
     stash_capabilities = cap;
-    if(!cap.dbman) { return; }
-    stash_capabilities.storage_find({store: 'settings', key: 'stash'}).then(function(stash) {
+    if(!cap.dbman) { return Ember.RSVP.resolve(); }
+    return stash_capabilities.storage_find({store: 'settings', key: 'stash'}).then(function(stash) {
+      var count = 0;
       for(var idx in stash) {
         if(idx != 'raw' && idx != 'storageId' && idx != 'changed' && stash[idx] !== undefined) {
           memory_stash[idx] = JSON.parse(stash[idx]);
+          count++;
           stashes.set(idx, JSON.parse(stash[idx]));
         }
       }
+      console.debug('COUGHDROP: restoring stashes from db, ' + count + ' values');
     }, function(err) {
       console.debug('COUGHDROP: db storage stashes not found');
     });
@@ -159,10 +162,16 @@ var stashes = Ember.Object.extend({
 
     if(key == 'auth_settings' && obj.user_name) {
       document.cookie = "authDBID=" + obj.user_name;
+      if(CoughDrop.kvstash && CoughDrop.kvstash.store) {
+        CoughDrop.kvstash.store('user_name', obj.user_name);
+      }
     }
   },
   flush_db_id: function() {
     document.cookie = 'authDBID=';
+    if(CoughDrop.kvstash && CoughDrop.kvstash.remove) {
+      CoughDrop.kvstash.remove('user_name');
+    }
   },
   persist_raw: function(key, obj, include_prefix) {
     if(include_prefix) { key = stashes.prefix + key; }
@@ -177,14 +186,21 @@ var stashes = Ember.Object.extend({
     } catch(e) { }
     return res;
   },
-  get_db_id: function() {
+  get_db_id: function(cap) {
     var auth_settings = stashes.get_object('auth_settings', true);
     if(auth_settings) {
       return auth_settings.user_name;
     } else {
       var keys = (document.cookie || "").split(/\s*;\s*/);
       var key = keys.find(function(k) { return k.match(/^authDBID=/); });
-      return key && key.replace(/^authDBID=/, '');
+      var user_name = key && key.replace(/^authDBID=/, '');
+      if(user_name) {
+        return user_name;
+      } else if(cap && CoughDrop.kvstash && CoughDrop.kvstash.values) {
+        return CoughDrop.kvstash.values.user_name || null;
+      } else {
+        return null;
+      }
     }
   },
   get_raw: function(key, include_prefix) {

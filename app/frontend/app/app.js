@@ -78,7 +78,54 @@ CoughDrop.referrer = document.referrer;
 
 if(capabilities.wait_for_deviceready) {
   document.addEventListener('deviceready', function() {
-    coughDropExtras.advance('device');
+    var done = function() {
+      if(CoughDrop.kvstash) {
+        console.debug('COUGHDROP: found native key value store');
+      }
+      coughDropExtras.advance('device');
+    };
+    // Look up the stashed user name, which is needed for bootstrapping session and user data
+    // and possibly is getting lost being set just in a cookie and localStorage
+    if(window.cordova && window.cordova.plugins && window.cordova.plugins.iCloudKV) {
+      var kv = window.cordova.plugins.iCloudKV;
+      // iOS key value store
+      kv.sync(function(dict) {
+        CoughDrop.kvstash = {
+          values: dict,
+          store: function(key, value) {
+            kv.save(key, value.toString(), function() { });
+          },
+          remove: function(key) {
+            kv.remove(key, function() { });
+          }
+        };
+        done();
+      }, done);
+    } else if(window.cordova && window.cordova.plugins && window.cordova.plugins.SharedPreferences) {
+      var kv = window.cordova.plugins.SharedPreferences;
+      // Android key value store
+      kv.getSharedPreferences('coughdrop_prefs', 'MODE_PRIVATE', function() {
+        var make_stash = function(user_name) {
+          CoughDrop.kvstash = {
+            values: {user_name: user_name},
+            store: function(key, value) {
+              kv.putString(key, value.toString(), function() { }, function() { });
+            },
+            remove: function(key) {
+              kv.remove(key, function() { }, function() { });
+            }
+          };
+          done();
+        };
+        kv.getString('user_name', function(res) {
+          make_stash(res);
+        }, function(err) {
+          make_stash(null);
+        });
+      }, done);
+    } else {
+      done();
+    }
   });
 } else {
   coughDropExtras.advance('device');

@@ -1235,7 +1235,7 @@ var capabilities;
 
   capabilities.setup_database = function() {
     delete capabilities['db'];
-    var user_name = stashes.get_db_id();
+    var user_name = stashes.get_db_id(capabilities);
     var key = "coughDropStorage::" + (user_name || "__") + "===" + capabilities.db_key;
     capabilities.db_name = key;
 
@@ -1243,8 +1243,8 @@ var capabilities;
 
     var setup = capabilities.dbman.setup_database(key, 2);
     setup.then(function(db) {
-      stashes.db_connect(capabilities);
-      setTimeout(function() {
+      var connect = stashes.db_connect(capabilities).then(null, function() { return Ember.RSVP.resolve(); })
+      connect.then(function() {
         (capabilities.queued_db_actions || []).forEach(function(m) {
           m[0](m[1]).then(function(res) {
             m[2].resolve(res);
@@ -1254,7 +1254,7 @@ var capabilities;
         });
         capabilities.queued_db_actions = [];
         promise.resolve();
-      }, 100);
+      });
     }, function(err) {
       promise.reject(err);
     });

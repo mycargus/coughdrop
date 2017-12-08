@@ -25,6 +25,7 @@ import capabilities from './capabilities';
       ready.done = true;
       ready('all');
       CoughDrop.app.advanceReadiness();
+      session.restore();
     }
   };
   ready.watch = function(type, callback) {

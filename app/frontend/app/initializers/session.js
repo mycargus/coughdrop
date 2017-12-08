@@ -11,7 +11,6 @@ export default {
   initialize: function(app) {
     window.CoughDrop.app = app;
     session.setup(app);
-    session.restore();
     persistence.setup(app);
     stashes.connect(app);
     coughDropExtras.setup(app);
