@@ -66,6 +66,7 @@ describe JsonApi::Organization do
         :device => d
       })
 
+      expect(UserLink.links_for(o.reload).length).to eq(3)
       res = JsonApi::Organization.build_json(o.reload, :permissions => u)
       expect(res['total_users']).to eq(2)
       expect(res['total_supervisors']).to eq(0)
