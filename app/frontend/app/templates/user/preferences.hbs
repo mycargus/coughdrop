@@ -7,6 +7,16 @@
       {{bound-select select_class="form-control" select_id="role" content=dashboardViewList selection=model.preferences.role action=(action (mut model.preferences.role)) }}
     </div>
   </div>
+  <div class="form-group">
+    <div class="col-sm-5 col-sm-offset-3">
+      <div class="checkbox">
+        <label>
+          {{input type="checkbox" checked=model.preferences.new_index}}
+          {{t "Try the New Dashboard Layout (beta)" key='new_index'}}
+        </label>
+      </div>
+    </div>
+  </div>
   {{#unless non_communicator}}
     <div class="form-group">
       <label for="role" class="col-sm-3 control-label">{{t "On Launch" key='on_launch'}}</label>
@@ -17,8 +27,8 @@
             {{t "Start app in Speak Mode on launch" key='start_in_speak_mode_on_launch'}}
           </label>
         </div>
+      </div>
     </div>
-  </div>
   {{/unless}}
   <div class="form-group">
     <label for="require_speak_mode_pin" class="col-sm-3 control-label">{{t "Exiting" key='editing'}}</label>
