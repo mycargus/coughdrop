@@ -140,7 +140,7 @@
                 {{#link-to 'board' board.key class='list-group-item'}}
                   {{board.key}}
                   {{#if showing_private_info}}
-                    <span class='text-muted'>({{board.pct}})</span>
+                    <span class='text-muted'>({{delimit board.pct}})</span>
                   {{/if}}
                 {{/link-to}}
               {{/each}}
