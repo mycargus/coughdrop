@@ -1,9 +1,9 @@
 <div class={{if left_nav_expanded "col col-sm-4 col-md-3 expanded" "col col-sm-4 col-md-3"}} id='new_left' >
   <div class="">
     <button class='expand btn btn-default' style='float: right; margin-right: 5px;' {{action 'expand_left_nav'}}><span class={{if left_nav_expanded 'caret' 'caret-right'}}></span></button>
-  <h2>
+  <h2 style='padding-left: 5px;'>
     {{#link-to 'user' app_state.currentUser.user_name class='hidden_link'}}
-      <img src={{app_state.currentUser.avatar_url_with_fallback}} style="height: 40px;"/>
+      <img src={{app_state.currentUser.avatar_url_with_fallback}} class='fit_image' style="height: 45px; width: 45px; margin-bottom: -5px; border: 1px solid #444; border-radius: 100%; padding: 1px;"/>
       {{app_state.currentUser.user_name}}
     {{/link-to}}
   </h2>

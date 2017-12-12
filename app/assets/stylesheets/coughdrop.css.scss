@@ -3635,6 +3635,9 @@ body:-ms-fullscreen {
     right: -webkit-calc(100% / 20); 
     right: calc(100% / 20); 
   }
+  .big_buttons .big_button {
+    font-size: 18px;
+  }
   
 }
 
