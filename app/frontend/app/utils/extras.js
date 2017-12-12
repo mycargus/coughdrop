@@ -146,20 +146,32 @@ import capabilities from './capabilities';
     var _this = this;
     var args = [];
     var options = arguments[0];
-    var clean_options = {};
+//     var clean_options = {};
     if(typeof(arguments[0]) == 'string') {
       options = arguments[1];
       options.url = options.url || arguments[0];
     }
+    var original_options = {}
+    for(var key in options) {
+      original_options[key] = options[key];
+    }
+    original_options.attempt = (original_options.attempt || 1);
     if(options.url && options.url.match(/\/api\/v\d+\/boards\/.+%2F.+/)) {
       options.url = options.url.replace(/%2F/, '/');
     }
-    ['async', 'cache', 'contentType', 'context', 'crossDomain', 'data', 'dataType', 'error', 'global', 'headers', 'ifModified', 'isLocal', 'mimeType', 'processData', 'success', 'timeout', 'type', 'url'].forEach(function(key) {
-      if(options[key]) {
-        clean_options[key] = options[key];
+    if(!options.timeout) {
+      if(original_options.attempt <= 1 && options.type == 'GET') {
+        options.timeout = 10000;
+      } else {
+        options.timeout = 20000;
       }
-    });
-    args.push(clean_options);
+    }
+//     ['async', 'cache', 'contentType', 'context', 'crossDomain', 'data', 'dataType', 'error', 'global', 'headers', 'ifModified', 'isLocal', 'mimeType', 'processData', 'success', 'timeout', 'type', 'url'].forEach(function(key) {
+//       if(options[key]) {
+//         clean_options[key] = options[key];
+//       }
+//     });
+//     args.push(clean_options);
 
     return Ember.RSVP.resolve().then(function() {
       var prefix = location.protocol + "//" + location.host;
@@ -240,6 +252,21 @@ import capabilities from './capabilities';
           return data;
         }
       }, function(xhr, message, result) {
+        if((result == 'timeout' || result == '') && xhr.status === 0 && xhr.readyState === 0) {
+          if((original_options.attempt <= 2 && original_options.type == 'GET') || original_options.attempt <= 1) {
+            // try failed GET requests twice, POST/PUT requests once
+            original_options.attempt = (original_options.attempt || 1) + 1
+            return new Ember.RSVP.Promise(function(res, rej) {
+              Ember.run.later(function() {
+                Ember.$.ajax(original_options).then(function(r) {
+                  res(r);
+                }, function(e) {
+                  rej(e);
+                });
+              }, 500);
+            });
+          }
+        }
         if(xhr.responseJSON && xhr.responseJSON.error) {
           result = xhr.responseJSON.error;
         }
