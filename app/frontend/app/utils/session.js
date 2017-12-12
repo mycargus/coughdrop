@@ -133,6 +133,8 @@ var session = Ember.Object.extend({
       session.set('user_id', store_data.user_id);
       session.set('as_user_id', store_data.as_user_id);
     } else if(!store_data.access_token) {
+      // This should not run until stashes.db_connect has completed, to stashes has its
+      // best chance to be populated.
       session.force_logout(i18n.t('session_lost', "Session data has been lost, please log back in"));
     }
     if(force_check_for_token || (persistence.tokens[key] == null && !Ember.testing && persistence.get('online'))) {

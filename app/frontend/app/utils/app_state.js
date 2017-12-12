@@ -95,6 +95,9 @@ var app_state = Ember.Object.extend({
     CoughDrop.session = route.get('session');
     modal.close();
     if(session.get('access_token')) {
+      // this shouldn't run until the db is initialized, otherwise if the user is offline
+      // or has a spotty connection, then looking up the user will not succeed, and
+      // the app will force a logout unexpectedly.
       var find_user = function(last_try) {
         var find = CoughDrop.store.findRecord('user', 'self');
 
@@ -110,6 +113,7 @@ var app_state = Ember.Object.extend({
           }
           valid_user.then(function(user) {
             if(!user.get('fresh') && stashes.get('online')) {
+              // if online, try reloading, but it's ok if you can't
               user.reload().then(function(user) {
                 app_state.set('sessionUser', user);
               }, function() { });

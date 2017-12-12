@@ -2069,6 +2069,7 @@ persistence.DSExtend = {
     var _this = this;
     var _super = this._super;
 
+    // first, try looking up the record locally
     var original_find = persistence.find(type.modelName, id, true);
     var find = original_find;
 
@@ -2078,6 +2079,8 @@ persistence.DSExtend = {
     // private browsing mode gets really messed up when you try to query local db, so just don't.
     else if(!stashes.get('enabled')) { find.then(null, function() { }); find = Ember.RSVP.reject(); original_find = Ember.RSVP.reject(); }
 
+    // this method will be called if a local result is found, or a force reload
+    // is called but there wasn't a result available from the remote system
     var local_processed = function(data) {
       data.meta = data.meta || {};
       data.meta.local_result = true;
@@ -2095,10 +2098,11 @@ persistence.DSExtend = {
 
 
     return find.then(local_processed, function() {
-      // TODO: records created locally but not remotely should have a tmp_* id
+      // if nothing found locally and system is online (and it's not a local-only id), make a remote request
       if(persistence.get('online') && !id.match(/^tmp[_\/]/)) {
         persistence.remember_access('find', type.modelName, id);
         return _super.call(_this, store, type, id).then(function(record) {
+          // mark the retrieved timestamp for freshness checks
           if(record[type.modelName]) {
             delete record[type.modelName].local_result;
             var now = (new Date()).getTime();
@@ -2114,6 +2118,7 @@ persistence.DSExtend = {
           if(type.modelName == 'user' && id == 'self') {
             ref_id = 'self';
           }
+          // store the result locally for future offline access
           return persistence.store_eventually(type.modelName, record, ref_id).then(function() {
             return Ember.RSVP.resolve(record);
           }, function() {
@@ -2122,18 +2127,20 @@ persistence.DSExtend = {
         }, function(err) {
           var local_fallback = false;
           if(err && (err.invalid_token || (err.result && err.result.invalid_token))) {
+            // for expired tokens, allow local results as a fallback
             local_fallback = true;
           } else if(err && err.errors && err.errors[0] && err.errors[0].status && err.errors[0].status.substring(0, 1) == '5') {
+            // for server errors, allow local results as a fallback
             local_fallback = true;
           } else if(err && err.fakeXHR && err.fakeXHR.status === 0) {
+            // for connection errors, allow local results as a fallback
             local_fallback = true;
           } else if(err && err.fakeXHR && err.fakeXHR.status && err.fakeXHR.status.toString().substring(0, 1) == '5') {
+            // for other 500 errors, allow local results as a fallback
             local_fallback = true;
           } else {
-            // for 500 errors and 0 status errors it's probably ok too
-            // debugger;
+            // any other exceptions?
           }
-           // TODO: only do this when the error is for an expired token, not any invalid token
           if(local_fallback) {
             return original_find.then(local_processed, function() { return Ember.RSVP.reject(err); });
           } else {

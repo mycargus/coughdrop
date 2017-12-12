@@ -1249,6 +1249,8 @@ var capabilities;
 
     var setup = capabilities.dbman.setup_database(key, 2);
     setup.then(function(db) {
+      // Don't proceed with app initialization until db_connect completes, ensuring
+      // stashes is populated with whatever data is available.
       var connect = stashes.db_connect(capabilities);
       connect.then(function() {
         (capabilities.queued_db_actions || []).forEach(function(m) {
