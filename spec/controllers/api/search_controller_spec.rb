@@ -249,10 +249,11 @@ describe Api::SearchController, :type => :controller do
   
   describe "get_url_in_chunks" do
     class FakeRequest
-      def initialize(header_ok=true, content_type="text/text", body_size=100)
+      def initialize(header_ok=true, content_type="text/text", body_size=100, headers=nil)
         @header_ok = header_ok
         @content_type = content_type
         @body_size = body_size
+        @headers = headers
       end
       def on_headers(&block)
         @header_block = block
@@ -267,8 +268,18 @@ describe Api::SearchController, :type => :controller do
       end
       
       def run
-        res = OpenStruct.new(:success? => @header_ok, :code => (@header_ok ? 200 : 400), :headers => {'Content-Type' => @content_type})
-        if @body_size > 0
+        code = 200 if @header_ok == true
+        code = 400 if @header_ok == false
+        code = @header_ok if @header_ok.is_a?(Numeric)
+        code = code.to_i
+        res = OpenStruct.new(:success? => (code <= 200), :code => code, :headers => {'Content-Type' => @content_type})
+        if @headers
+          @headers.each{|k, v| res.headers[k] = v }
+        end
+        if @body_size.is_a?(String)
+          @header_block.call(res)
+          @body_block.call(@body_size)
+        elsif @body_size > 0
           @header_block.call(res)
           so_far = 0
           while so_far < @body_size
@@ -304,6 +315,18 @@ describe Api::SearchController, :type => :controller do
     it "should return content_type and binary data on success" do
       req = FakeRequest.new(true, "image/png", 100)
       expect(controller.get_url_in_chunks(req)).to eq(['image/png', '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789'])
+    end
+    
+    it "should redirect with a Location header" do
+      url = "http://www.example.com/pic.png:"
+      req = FakeRequest.new(301, "image/png", url, {'Location' => url})
+      expect(controller.get_url_in_chunks(req)).to eq(['redirect', url])
+    end
+    
+    it "should not redirect with  a Location header AND a valid body" do
+      url = "http://www.example.com/pic.png:"
+      req = FakeRequest.new(200, "image/png", url * 2, {'Location' => url})
+      expect(controller.get_url_in_chunks(req)).to eq(['image/png', url * 2])
     end
   end
   

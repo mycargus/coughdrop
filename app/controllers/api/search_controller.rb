@@ -132,7 +132,8 @@ class Api::SearchController < ApplicationController
     so_far = 0
     done = false
     request.on_headers do |response|
-      if response.headers['Location']
+      # Some services (ahem, flickr) are returning a Location header, along with the response body
+      if response.headers['Location'] && (response.code >= 300 || (response.headers['Content-Length'] && response.headers['Content-Length'].to_i <= response.headers['Location'].length))
         return ['redirect', URI.escape(response.headers['Location'])]
       end
       if response.success? || response.code == 200
