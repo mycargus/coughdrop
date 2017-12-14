@@ -27,13 +27,13 @@ module Converters::Utils
     font = nil
     if opts['font']
       if opts['font'] == 'default'
-        font = File.expand_path('../../../public/fonts/TimesNewRoman.ttf')
+        font = File.expand_path('../../../public/fonts/TimesNewRoman.ttf', __FILE__)
       elsif opts['font'] == 'comic_sans'
-        font = File.expand_path('../../../public/fonts/ComicSans.ttf')
+        font = File.expand_path('../../../public/fonts/ComicSans.ttf', __FILE__)
       elsif opts['font'] == 'open_dyslexic'
-        font = File.expand_path('../../../public/fonts/OpenDyslexicAlta-Regular.otf')
+        font = File.expand_path('../../../public/fonts/OpenDyslexicAlta-Regular.otf', __FILE__)
       elsif opts['font'] == 'architects_daughter'
-        font = File.expand_path('../../../public/fonts/ArchitectsDaughter.ttf')
+        font = File.expand_path('../../../public/fonts/ArchitectsDaughter.ttf', __FILE__)
       end
     end
     Progress.update_current_progress(0.2, :converting_file)

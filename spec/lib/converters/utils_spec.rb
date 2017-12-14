@@ -56,6 +56,29 @@ describe Converters::Utils do
       expect(Uploader).to receive(:remote_upload).and_return(nil)
       expect { Converters::Utils.board_to_remote(b, u.global_id, {'file_type' => 'obf', 'include' => 'this'}) }.to raise_error("File not uploaded")
     end
+    
+    it "should specify a font if set" do
+      u = User.create()
+      b = Board.create(:user => u)
+      expect(Uploader).to receive(:remote_upload).and_return("http://www.example.com/file.obf")
+      expect(Converters::CoughDrop).to receive(:to_pdf){|board, path, opts|
+        expect(board).to eq(b)
+        expect(path).to_not eq(nil)
+        expect(opts).to eq({
+          'font' => File.expand_path('../../../../public/fonts/ComicSans.ttf', __FILE__),
+          'headerless' => false,
+          'packet' => false,
+          'text_case' => 'default',
+          'text_on_top' => false,
+          'text_only' => false,
+          'transparent_background' => false,
+          'user' => u.global_id
+        })
+        expect(File.exists?(opts['font'])).to eq(true)
+      }
+      res = Converters::Utils.board_to_remote(b, u.global_id, {'file_type' => 'pdf', 'font' => 'comic_sans', 'include' => 'this'})
+      expect(res).to eq("http://www.example.com/file.obf")
+    end
   end
 
   describe "remote_to_boards" do
