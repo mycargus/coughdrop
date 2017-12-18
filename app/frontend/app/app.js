@@ -79,7 +79,7 @@ CoughDrop.referrer = document.referrer;
 if(capabilities.wait_for_deviceready) {
   document.addEventListener('deviceready', function() {
     var done = function() {
-      if(CoughDrop.kvstash) {
+      if(window.kvstash) {
         console.debug('COUGHDROP: found native key value store');
       }
       coughDropExtras.advance('device');
@@ -101,28 +101,29 @@ if(capabilities.wait_for_deviceready) {
         };
         done();
       }, done);
-    } else if(capabilities.system == 'Android' && window.cordova && window.cordova.plugins && window.cordova.plugins.SharedPreferences) {
-      var kv = window.cordova.plugins.SharedPreferences;
+    } else if(capabilities.system == 'Android' && capabilities.installed_app) {
+      var klass = 'SharedPreferences';
       // Android key value store
-      kv.getSharedPreferences('coughdrop_prefs', 'MODE_PRIVATE', function() {
+      cordova.exec(function() {
         var make_stash = function(user_name) {
           window.kvstash = {
             values: {user_name: user_name},
             store: function(key, value) {
-              kv.putString(key, value.toString(), function() { }, function() { });
+              cordova.exec(function() { }, function() { }, klass, 'putString', [key.toString(), value.toString()]);
             },
             remove: function(key) {
+              cordova.exec(function() { }, function() { }, klass, 'remove', [key.toString()]);
               kv.remove(key, function() { }, function() { });
             }
           };
           done();
         };
-        kv.getString('user_name', function(res) {
+        cordova.exec(function(res) {
           make_stash(res);
         }, function(err) {
           make_stash(null);
-        });
-      }, done);
+        }, klass, 'getString', ['user_name']);
+      }, done, klass, 'getSharedPreferences', ['coughdrop_prefs', 'MODE_PRIVATE']);
     } else {
       done();
     }
