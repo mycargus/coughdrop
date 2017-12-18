@@ -494,7 +494,7 @@ module Purchasing
         puts "\tcustomer is #{sub['status']} but user is #{user_active ? 'subscribed' : 'expired'}" if user_active != customer_active
       end
     end
-    puts "TOTALS: checked #{total}, paying customers #{customer_actives}, paying users #{user_actives}"
+    puts "TOTALS: checked #{total}, paying customers (not trialing, not duplicates) #{customer_actives}, subscription users #{user_actives}"
     cancel_months.each{|k, a| 
       res = []
       res << (cancel_months[k].sum / cancel_months[k].length.to_f).round(1) 
