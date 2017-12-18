@@ -92,14 +92,14 @@ class Api::BoardsController < ApplicationController
       if user && user.settings['public']
         exclude_board_ids = user.settings['starred_board_ids'] || []
       end
-      boards = boards.select{|b| !exclude_board_ids.include?(b.global_id) }
+      boards = boards.limit(100)[0, 100].select{|b| !exclude_board_ids.include?(b.global_id) }
     end
     
     self.class.trace_execution_scoped(['boards/category']) do
       if params['category']
-        boards = boards[0, 100].select{|b| (b.settings['categories'] || []).include?(params['category']) }
+        boards = boards.limit(100)[0, 100].select{|b| (b.settings['categories'] || []).include?(params['category']) }
       elsif params['copies'] == false || params['copies'] == 'false'
-        boards = boards[0, 500].select{|b| !b.settings['copy_id'] || b.settings['copy_id'] == b.global_id }[0, 100]
+        boards = boards.limit(500)[0, 500].select{|b| !b.settings['copy_id'] || b.settings['copy_id'] == b.global_id }[0, 100]
       end
     end
     
