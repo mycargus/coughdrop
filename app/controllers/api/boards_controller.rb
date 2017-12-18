@@ -86,6 +86,15 @@ class Api::BoardsController < ApplicationController
       end
     end
     
+    if params['exclude_starred']
+      user = User.find_by_path(params['exclude_starred'])
+      exclude_board_ids = []
+      if user && user.settings['public']
+        exclude_board_ids = user.settings['starred_board_ids'] || []
+      end
+      boards = boards.select{|b| !exclude_board_ids.include?(b.global_id) }
+    end
+    
     self.class.trace_execution_scoped(['boards/category']) do
       if params['category']
         boards = boards[0, 100].select{|b| (b.settings['categories'] || []).include?(params['category']) }

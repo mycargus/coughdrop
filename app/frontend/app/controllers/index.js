@@ -169,43 +169,26 @@ export default Ember.Controller.extend({
             }
             _this.set('recentOfflineBoards', boards);
           });
-        } else if(key == 'suggested') {
-          if(!(_this.get('homeBoards') || {}).length) {
-            _this.set('homeBoards', {loading: true});
+        } else {
+          var list = 'homeBoards';
+          var opts = {public: true, starred: true, user_id: 'example', sort: 'custom_order', per_page: 12};
+          if(key == 'personal') {
+            list = 'personalBoards';
+            opts = {user_id: 'self', copies: false, per_page: 12};
+          } else if(key == 'popular') {
+            list = 'popularBoards';
+            opts = {sort: 'home_popularity', per_page: 12, exclude_starred: 'example'};
           }
-          _this.store.query('board', {public: true, starred: true, user_id: 'example', sort: 'custom_order', per_page: 12}).then(function(data) {
-            _this.set('homeBoards', data);
+          if(!(_this.get(list) || {}).length) {
+            _this.set(list, {loading: true});
+          }
+          _this.store.query('board', opts).then(function(data) {
+            _this.set(list, data);
             _this.checkForBlankSlate();
           }, function() {
-            if(!(_this.get('homeBoards') || {}).length) {
-              _this.set('homeBoards', {error: true});
-            }
-            _this.checkForBlankSlate();
+            _this.set(list, {error: true});
           });
-        } else if(key == 'personal') {
-          if(!(_this.get('personalBoards') || {}).length) {
-            _this.set('personalBoards', {loading: true});
-          }
-          _this.store.query('board', {user_id: 'self', copies: false, per_page: 12}).then(function(boards) {
-            _this.set('personalBoards', boards);
-          }, function() {
-            if(!(_this.get('personalBoards') || {}).length) {
-              _this.set('personalBoards', {error: true});
-            }
-          });
-        } else if(key == 'popular') {
-          if(!(_this.get('popularBoards') || {}).length) {
-            _this.set('popularBoards', {loading: true});
-          }
-          _this.store.query('board', {sort: 'home_popularity', per_page: 12}).then(function(data) {
-            _this.set('popularBoards', data);
-            _this.checkForBlankSlate();
-          }, function() {
-            if(!(_this.get('popularBoards') || {}).length) {
-              _this.set('popularBoards', {error: true});
-            }
-            _this.checkForBlankSlate();
-          });
+          _this.checkForBlankSlate();
         }
       } else {
         _this.set(key + '_selected', false);
