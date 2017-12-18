@@ -3625,6 +3625,18 @@ body:-ms-fullscreen {
     > .big_buttons {
       height: auto;
     }
+    .big_button_holder .big_button {
+      height: 175px;
+      line-height: 20px;
+      img {
+        height: 110px;
+      }
+      > .glyphicon {
+        margin-bottom: 0px;
+      }
+      
+      
+    }
     .main, .main.short_list {
       margin-top: 10px;
     }
