@@ -12,13 +12,13 @@ module Worker
     size = Resque.size(queue)
     if queue == :slow
       Resque.enqueue(SlowWorker, klass.to_s, method_name, *args)
-      if size > 1000 && !RedistInit.default.get("queue_warning_#{queue}")
+      if size > 1000 && !RedisInit.default.get("queue_warning_#{queue}")
         RedisInit.default.setex("queue_warning_#{queue}", 5.minutes.to_i, "true")
         Rails.logger.error("job queue full: #{queue}, #{size} entries")
       end
     else
       Resque.enqueue(Worker, klass.to_s, method_name, *args)
-      if size > 5000 && !RedistInit.default.get("queue_warning_#{queue}")
+      if size > 5000 && !RedisInit.default.get("queue_warning_#{queue}")
         RedisInit.default.setex("queue_warning_#{queue}", 5.minutes.to_i, "true")
         Rails.logger.error("job queue full: #{queue}, #{size} entries")
       end
