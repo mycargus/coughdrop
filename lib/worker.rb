@@ -188,4 +188,26 @@ module Worker
     end
     RedisInit.default.del('hashed_jobs')
   end
+  
+  def self.transfer_backlog(queue)
+    saves = []
+    dos = []
+    while Resque.size(queue) > 0 && (saves.length + dos.length) < 10000
+      job = Resque.pop(queue)
+      if job['args'] && job['args'][2] && job['args'][2]['method'] == 'track_downstream_boards!'
+        saves.push(job)
+      else
+        dos.push(job)
+      end
+    end
+    dos.each{|j| Resque.enqueue(Worker, job['args'][0], job['args'][1], job['args'][2]) }; dos.length
+    hash = saves.group_by{|j| j['args'][2]['id'] }; hash.length
+    hash.each do |id, jobs|
+      list = []
+      jobs.each{|j| list += j['args'][2]['arguments'][0] }
+      Resque.enqueue(SlowWorker, job['args'][0], job['args'][1], list.uniq)
+    end; hash.keys.length
+    Resque.size(queue)
+  end
 end
+
