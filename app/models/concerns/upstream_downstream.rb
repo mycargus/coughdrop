@@ -1,11 +1,13 @@
 module UpstreamDownstream
   extend ActiveSupport::Concern
   
-  def track_downstream_boards!(already_visited_ids=[], buttons_changed=false)
+  def track_downstream_boards!(already_visited_ids=[], buttons_changed=false, trigger_stamp=nil)
+    # short-circuit if board has been tracked by another process since this was originally scheduled
+    return if self.class.last_scheduled_stamp && self.settings['last_tracked'] && self.settings['last_tracked'] > self.class.last_scheduled_stamp
     @track_downstream_boards = true
     Rails.logger.info("touching downstreams #{self.global_id}")
     self.touch_downstreams(already_visited_ids)
-    self.track_downstream_boards(already_visited_ids, buttons_changed)
+    self.track_downstream_boards(already_visited_ids, buttons_changed, trigger_stamp)
     Rails.logger.info("touching downstreams again #{self.global_id}")
     self.touch_downstreams(already_visited_ids)
     @track_downstream_boards = false
@@ -20,10 +22,11 @@ module UpstreamDownstream
     }
   end
   
-  def track_downstream_boards(already_visited_ids=[], buttons_changed=false)
+  def track_downstream_boards(already_visited_ids=[], buttons_changed=false, trigger_stamp=nil)
     return unless @track_downstream_boards
     return if already_visited_ids.include?(self.global_id)
     already_visited_ids << self.global_id
+    trigger_stamp ||= Time.now.to_i
 
     top_board = self
     # step 1: travel downstream, for every board id get its immediate children
@@ -126,8 +129,9 @@ module UpstreamDownstream
       end
       updates = {}
       changes.each{|k, vals| updates[k] = vals[1] }
+      updates['last_tracked'] = Time.now.to_i
       board.update_setting(updates, nil, :save_without_post_processing)
-      board.complete_stream_checks(already_visited_ids)
+      board.complete_stream_checks(already_visited_ids, trigger_stamp)
     end
     
     # step 4: update any authors whose list of visible/editable private boards may have changed
@@ -165,7 +169,7 @@ module UpstreamDownstream
     end
   end
     
-  def complete_stream_checks(notify_upstream_with_visited_ids)
+  def complete_stream_checks(notify_upstream_with_visited_ids, trigger_stamp)
     # TODO: as-is this won't unlink from boards when a linked button is removed or modified
     # TODO: this is way too eager
     # Step 1: reach in and add to immediately_upstream_board_ids without triggering any background processes
@@ -180,7 +184,13 @@ module UpstreamDownstream
       ups = Board.find_all_by_global_id(self.settings['immediately_upstream_board_ids'] || [])
       ups.each do |board|
         if board && !notify_upstream_with_visited_ids.include?(board.global_id)
-          board.schedule_once(:track_downstream_boards!, notify_upstream_with_visited_ids)
+          if trigger_stamp && board.settings['last_tracked'] && board.settings['last_tracked'] > trigger_stamp
+            # if the board has been updated more recently than the current tracking sequence started, then
+            # it is already up-to-date as far as this sequence is concerned, and doesn't need
+            # to be re-scheduled
+          else
+            board.schedule_once(:track_downstream_boards!, notify_upstream_with_visited_ids, trigger_stamp)
+          end
         end
       end
     end
@@ -211,7 +221,7 @@ module UpstreamDownstream
   
   def schedule_downstream_checks
     if @track_downstream_boards || @buttons_affecting_upstream_changed
-      self.schedule(:track_downstream_boards!, [], @buttons_affecting_upstream_changed)
+      self.schedule(:track_downstream_boards!, [], @buttons_affecting_upstream_changed, Time.now.to_i)
       @buttons_affecting_upstream_changed = nil
       @track_downstream_boards = nil
     end

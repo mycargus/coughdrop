@@ -7,6 +7,7 @@ module Async
     settings = {
       'id' => id,
       'method' => method,
+      'scheduled' => self.class.scheduled_stamp,
       'arguments' => args
     }
     Worker.schedule(self.class, :perform_action, settings)
@@ -17,6 +18,7 @@ module Async
     already_scheduled = Worker.scheduled?(self.class, :perform_action, {
       'id' => id,
       'method' => method,
+      'scheduled' => self.class.scheduled_stamp,
       'arguments' => args
     })
     if !already_scheduled
@@ -27,10 +29,15 @@ module Async
   end
 
   module ClassMethods
+    def scheduled_stamp
+      Time.now.to_i
+    end
+    
     def schedule(method, *args)
       return nil unless method
       settings = {
         'method' => method,
+        'scheduled' => self.scheduled_stamp,
         'arguments' => args
       }
       Worker.schedule(self, :perform_action, settings)
@@ -40,6 +47,7 @@ module Async
       return nil unless method
       already_scheduled = Worker.scheduled?(self, :perform_action, {
         'method' => method,
+        'scheduled' => self.scheduled_stamp,
         'arguments' => args
       })
       if !already_scheduled
@@ -66,5 +74,9 @@ module Async
         raise "method not found: #{self.to_s}:#{id}#{settings['method']}"
       end
     end
+  end
+
+  included do
+    cattr_accessor :last_scheduled_stamp
   end
 end

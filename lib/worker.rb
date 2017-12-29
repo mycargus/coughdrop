@@ -72,6 +72,7 @@ module Worker
     PaperTrail.whodunnit = "job:#{action}"
     Rails.logger.info("performing #{action}")
     start = self.ts
+    klass.last_scheduled_stamp = hash['scheduled'] if klass.respond_to?('last_scheduled_stamp=')
     klass.send(method_name, *args_copy)
     diff = self.ts - start
     Rails.logger.info("done performing #{action}, finished in #{diff}s")
@@ -125,7 +126,17 @@ module Worker
         start += items.length > 0 ? items.length : 1
         items.each do |schedule|
           if schedule && schedule['class'] == queue_class && schedule['args'][0] == klass.to_s && schedule['args'][1] == method_name.to_s
-            if args.to_json == schedule['args'][2..-1].to_json
+            a1 = args
+            if a1.length == 1 && a1[0].is_a?(Hash)
+              a1 = [a1[0].dup]
+              a1[0].delete('scheduled')
+            end
+            a2 = schedule['args'][2..-1]
+            if a2.length == 1 && a2[0].is_a?(Hash)
+              a2 = [a2[0].dup]
+              a2[0].delete('scheduled')
+            end
+            if a1.to_json == a2.to_json
               return true
             end
           end
@@ -194,18 +205,22 @@ module Worker
     dos = []
     while Resque.size(queue) > 0 && (saves.length + dos.length) < 10000
       job = Resque.pop(queue)
-      if job['args'] && job['args'][2] && job['args'][2]['method'] == 'track_downstream_boards!'
-        saves.push(job)
-      else
-        dos.push(job)
+      if job
+        if job['args'] && job['args'][2] && job['args'][2]['method'] == 'track_downstream_boards!'
+          saves.push(job)
+        else
+          dos.push(job)
+        end
       end
     end
-    dos.each{|j| Resque.enqueue(Worker, job['args'][0], job['args'][1], job['args'][2]) }; dos.length
+    dos.each{|j| Resque.enqueue(Worker, job['args'][0], job['args'][1], *job['args'][2]) }; dos.length
     hash = saves.group_by{|j| j['args'][2]['id'] }; hash.length
     hash.each do |id, jobs|
       list = []
       jobs.each{|j| list += j['args'][2]['arguments'][0] }
-      Resque.enqueue(SlowWorker, job['args'][0], job['args'][1], list.uniq)
+      args = jobs[0]['args'][2]
+      args['arguments'] = [list.uniq]
+      Resque.enqueue(SlowWorker, job['args'][0], job['args'][1], args)
     end; hash.keys.length
     Resque.size(queue)
   end
