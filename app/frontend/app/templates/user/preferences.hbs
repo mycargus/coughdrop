@@ -202,6 +202,19 @@
       </div>
     </div>
   </div>
+  {{#if app_state.feature_flags.enable_all_buttons}}
+    <div class="form-group">
+      <label for="allow_enable_all_buttons" class="col-sm-3 control-label">{{t "Hidden Buttons" key='hidden_buttons'}}</label>
+      <div class="col-sm-5">
+        <div class="checkbox">
+          <label>
+            {{input type="checkbox" checked=model.preferences.allow_enable_all_buttons id="allow_enable_all_buttons"}}
+            {{t "Add an icon to Speak Mode that allows showing all hidden buttons" key='allow_enable_all_buttons'}}
+          </label>
+        </div>
+      </div>
+    </div>
+  {{/if}}
   <div class="form-group">
     <label for="folder_icons" class="col-sm-3 control-label">{{t "Folder Icons" key='folder_icons'}}</label>
     <div class="col-sm-5">
