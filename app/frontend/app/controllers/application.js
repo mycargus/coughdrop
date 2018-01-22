@@ -626,6 +626,9 @@ export default Ember.Controller.extend({
   swatches: function() {
     return [].concat(CoughDrop.keyed_colors);
   }.property('app_state.colored_keys'),
+  show_back: function() {
+    return (!this.get('app_state.empty_board_history') || this.get('app_state.currentUser.preferences.device.always_show_back'));
+  }.property('app_state.empty_board_history', 'app_state.currentUser.preferences.device.always_show_back'),
   button_list_class: function() {
     var res = "button_list ";
     if(stashes.get('ghost_utterance')) {
@@ -634,7 +637,7 @@ export default Ember.Controller.extend({
     if(this.get('extras.eye_gaze_state')) {
       res = res + "with_eyes ";
     }
-    if(!this.get('app_state.empty_board_history')) {
+    if(this.get('show_back')) {
       res = res + "with_back ";
     }
     if(speecher.text_direction() == 'rtl' || stashes.get('root_board_state.text_direction') == 'rtl') {
@@ -645,8 +648,8 @@ export default Ember.Controller.extend({
       res = res + "text_only ";
     }
 
-    return res;
-  }.property('stashes.ghost_utterance', 'stashes.root_board_state.text_direction', 'extras.eye_gaze_state', 'app_state.empty_board_history', 'app_state.currentUser.preferences.device.button_text_position'),
+    return Ember.String.htmlSafe(res);
+  }.property('stashes.ghost_utterance', 'stashes.root_board_state.text_direction', 'extras.eye_gaze_state', 'show_back', 'app_state.currentUser.preferences.device.button_text_position'),
   no_paint_mode_class: function() {
     var res = "btn ";
     if(this.get('board.paint_mode')) {

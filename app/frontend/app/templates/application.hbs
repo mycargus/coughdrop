@@ -13,12 +13,12 @@
           <span class="glyphicon glyphicon-lock" style="float: left; width: 0; height: 0; color: #aaa; margin-top: 15px; margin-left: -5px;" title={{t "Board Lock Set" key='board_lock_set'}}></span>
         {{/if}}
       </button>
-      {{#unless app_state.empty_board_history}}
+      {{#if show_back}}
         <button class="btn btn-default access skinnier" id="back_button" {{action "back"}}>
           <span class="sr-only">{{t "Back" key="back"}}</span>
           <span class="glyphicon glyphicon-arrow-left button_icon"></span>
         </button>
-      {{/unless}}
+      {{/if}}
       <div tabindex="0" id="button_list" class={{button_list_class}} {{ action "vocalize" on="select"}} data-placement="bottom" data-trigger="manual">
         {{#unless app_state.button_list}}
           {{#if app_state.embedded}}

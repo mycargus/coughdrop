@@ -525,6 +525,17 @@
     </div>
   </div>
   <div class="form-group">
+    <label for="always_show_back" class="col-sm-3 control-label">{{t "Back Button" key='always_show_back'}}</label>
+    <div class="col-sm-5">
+      <div class="checkbox">
+        <label>
+          {{input type="checkbox" checked=model.preferences.device.always_show_back id="always_show_back"}}
+          {{t "Always show the Back button in the header (recommended for users with key guards)" key='always_show_back'}}
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
     <label for="button_spacing" class="col-sm-3 control-label">{{t "Button Spacing" key='button_spacing'}}</label>
     <div class="col-sm-5">
       {{bound-select select_class="form-control" select_id="button_spacing" content=buttonSpacingList selection=model.preferences.device.button_spacing action=(action (mut model.preferences.device.button_spacing)) }}
