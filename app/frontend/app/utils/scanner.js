@@ -19,6 +19,7 @@ var scanner = Ember.Object.extend({
     return Ember.$(tag, opts);
   },
   start: function(options) {
+    scanner.current_element = null;
     if(scanner.find_elem("header #speak").length === 0) {
       console.debug("scanning currently only works in speak mode...");
       scanner.stop();
@@ -36,56 +37,62 @@ var scanner = Ember.Object.extend({
     if(modal.is_open() && !modal.is_open('highlight')) {
       return;
     } else {
-      var row = {
-        children: [],
-        dom: Ember.$("header"),
-        label: i18n.t('header', "Header")
-      };
-      scanner.find_elem("header #speak").find("button:visible,#button_list,a.btn").each(function() {
-        var id_labels = {
-          'home_button': i18n.t('home', "Home"),
-          'back_button': i18n.t('back', "Back"),
-          'button_list': i18n.t('speak', "Speak"),
-          'speak_options': i18n.t('options', "Speak Options"),
-          'backspace_button': i18n.t('backspace', "Backspace"),
-          'clear_button': i18n.t('clear', "Clear")
+      var row = {};
+      if(!options.skip_header) {
+        row = {
+          children: [],
+          dom: Ember.$("header"),
+          header: true,
+          label: i18n.t('header', "Header")
         };
-        var $elem = scanner.find_elem(this);
-        if($elem.attr('id') != 'speak_options') {
-          var label = id_labels[$elem.attr('id')] || "";
-          row.children.push({
-            dom: $elem,
-            label: label
-          });
-        }
-      });
-
-      var menu = {
-        dom: scanner.find_elem("#identity a.btn"),
-        label: i18n.t('menu', "Menu"),
-        children: []
-      };
-      scanner.find_elem("#identity .dropdown-menu a").each(function() {
-        var $option = scanner.find_elem(this);
-        menu.children.push({
-          dom: $option,
-          label: $option.text()
+        scanner.find_elem("header #speak").find("button:visible,#button_list,a.btn").each(function() {
+          var id_labels = {
+            'home_button': i18n.t('home', "Home"),
+            'back_button': i18n.t('back', "Back"),
+            'button_list': i18n.t('speak', "Speak"),
+            'speak_options': i18n.t('options', "Speak Options"),
+            'backspace_button': i18n.t('backspace', "Backspace"),
+            'clear_button': i18n.t('clear', "Clear")
+          };
+          var $elem = scanner.find_elem(this);
+          if($elem.attr('id') != 'speak_options') {
+            var label = id_labels[$elem.attr('id')] || "";
+            row.children.push({
+              dom: $elem,
+              label: label
+            });
+          }
         });
-      });
-      row.children.push(menu);
 
-      // TODO: figure out sidebar, when teaser is visible and also when the
-      // whole sidebar is visible, including toggling between the two
-  //     if(scanner.find_elem("#sidebar_tease:visible").length) {
-  //       row.children.push({
-  //         dom: scanner.find_elem("#sidebar_tease")
-  //       });
-  //     }
-      rows.push(row);
+        var menu = {
+          dom: scanner.find_elem("#identity a.btn"),
+          label: i18n.t('menu', "Menu"),
+          children: []
+        };
+        scanner.find_elem("#identity .dropdown-menu a").each(function() {
+          var $option = scanner.find_elem(this);
+          menu.children.push({
+            dom: $option,
+            label: $option.text()
+          });
+        });
+        row.children.push(menu);
+
+        // TODO: figure out sidebar, when teaser is visible and also when the
+        // whole sidebar is visible, including toggling between the two
+    //     if(scanner.find_elem("#sidebar_tease:visible").length) {
+    //       row.children.push({
+    //         dom: scanner.find_elem("#sidebar_tease")
+    //       });
+    //     }
+        rows.push(row);
+      }
+
       if(scanner.find_elem("#word_suggestions").length) {
         var row = {
           children: [],
           dom: scanner.find_elem("#word_suggestions"),
+          header: true,
           label: i18n.t('suggestions', "Suggestions"),
           reload_children: function() {
             var res = [];
@@ -258,7 +265,7 @@ var scanner = Ember.Object.extend({
       if(options.scan_mode == 'button') {
         var new_rows = [];
         rows.forEach(function(row) {
-          if(row.children) {
+          if(row.children && !row.header) {
             row.children.forEach(function(elem) {
               new_rows.push(elem);
             });
@@ -308,6 +315,7 @@ var scanner = Ember.Object.extend({
   reset: function() {
     Ember.run.cancel(scanner.interval);
     scanner.interval = null;
+    modal.close_highlight();
     this.start();
     this.listen_for_input();
   },
@@ -345,22 +353,33 @@ var scanner = Ember.Object.extend({
     }
     if(!retry) {
       this.elements = elements;
-      this.element_index = 0;
     }
     this.options = options;
-    this.next_element(retry);
+    if(options && options.auto_start) {
+      if(options && options.auto_scan) {
+        this.element_index = 0;
+      }
+      this.next_element(retry);
+    }
   },
   pick: function() {
     var elem = scanner.current_element;
+    if(!scanner.current_element && scanner.options && !scanner.options.auto_start) {
+      scanner.next();
+      return;
+    }
     if(!modal.highlight_controller || !elem) { return; }
+    var now = (new Date()).getTime();
+    if(scanner.ignore_until && now < scanner.ignore_until) { return; }
     if(!elem.higher_level && elem.children && elem.children.length == 1) {
       elem = elem.children[0];
     }
 
-    buttonTracker.track_selection({
+    var track = buttonTracker.track_selection({
       event_type: 'click',
       selection_type: 'scanner'
     });
+    if(!track.proceed) { return; }
 
     if(elem.dom && elem.dom.hasClass('integration_target')) {
       frame_listener.trigger_target_event(elem.dom[0], 'scanselect', 'select');
@@ -404,6 +423,9 @@ var scanner = Ember.Object.extend({
       Ember.run.later(function() {
         scanner.reset();
       });
+    }
+    if(scanner.options && scanner.options.debounce) {
+      scanner.ignore_until = now + scanner.options.debounce;
     }
   },
   hide_input: function() {
@@ -450,6 +472,8 @@ var scanner = Ember.Object.extend({
     });
   },
   next: function() {
+    var now = (new Date()).getTime();
+    if(scanner.ignore_until && now < scanner.ignore_until) { return; }
     Ember.run.cancel(scanner.interval);
     scanner.interval = null;
     scanner.element_index = scanner.element_index + 1;
@@ -457,6 +481,9 @@ var scanner = Ember.Object.extend({
       scanner.element_index = 0;
     }
     scanner.next_element();
+    if(scanner.options && scanner.options.debounce) {
+      scanner.ignore_until = now + scanner.options.debounce;
+    }
   },
   next_element: function(retry) {
     var elem = this.elements[this.element_index];
@@ -476,6 +503,9 @@ var scanner = Ember.Object.extend({
     options.prevent_close = true;
     options.overlay = false;
     options.select_anywhere = true;
+    // Only prevent auto-start at the first iteration, after that
+    // go ahead and resume whenever it stops
+    options.auto_start = true;
     if(scanner.options && scanner.options.focus_overlay) {
       options.overlay = true;
       options.clear_overlay = false;
@@ -506,15 +536,17 @@ var scanner = Ember.Object.extend({
     }, function() { });
     // Don't repeat
     if(!retry || !scanner.interval) {
-      scanner.interval = Ember.run.later(function() {
-        if(scanner.current_element == elem) {
-          if(scanner.options && scanner.options.scanning_auto_select) {
-            scanner.pick();
-          } else {
-            scanner.next();
+      if(options.auto_scan !== false) {
+        scanner.interval = Ember.run.later(function() {
+          if(scanner.current_element == elem) {
+            if(scanner.options && scanner.options.scanning_auto_select) {
+              scanner.pick();
+            } else {
+              scanner.next();
+            }
           }
-        }
-      }, options.interval || 1000);
+        }, Math.max(options.interval || 1000, 500));
+      }
     }
   }
 }).create();

@@ -128,7 +128,7 @@ var modal = Ember.Object.extend({
       Ember.run.later(function() {
         if(!modal.is_open()) {
           _this.resume_scanning = false;
-          scanner.start();
+          scanner.start(scanner.options);
         }
       });
     }

@@ -606,11 +606,16 @@ var app_state = Ember.Object.extend({
           modal.warning(i18n.t('keyboard_may_jump', "NOTE: if you don't have a bluetooth switch installed, the keyboard may keep popping up while trying to scan."));
         }
         modal.close();
+        var interval = parseInt(_this.get('currentUser.preferences.device.scanning_interval'), 10);
         scanner.start({
           scan_mode: _this.get('currentUser.preferences.device.scanning_mode'),
-          interval: _this.get('currentUser.preferences.device.scanning_interval'),
+          interval: interval,
+          auto_scan: interval !== 0,
+          auto_start: !_this.get('currentUser.preferences.device.scanning_wait_for_input'),
           vertical_chunks: _this.get('currentUser.preferences.device.scanning_region_rows'),
+          debounce: _this.get('currentUser.preferences.debounce'),
           horizontal_chunks: _this.get('currentUser.preferences.device.scanning_region_columns'),
+          skip_header: _this.get('currentUser.preferences.device.scanning_skip_header'),
           scanning_auto_select: _this.get('currentUser.preferences.device.scanning_auto_select'),
           audio: _this.get('currentUser.preferences.device.scanning_prompt')
         });
@@ -790,13 +795,21 @@ var app_state = Ember.Object.extend({
     }
   }.observes('currentBoardState'),
   update_button_tracker: function() {
-    buttonTracker.minimum_press = this.get('currentUser.preferences.activation_minimum');
-    buttonTracker.activation_location = this.get('currentUser.preferences.activation_location');
-    buttonTracker.short_press_delay = this.get('currentUser.preferences.activation_cutoff');
-    if(this.get('currentUser.preferences.activation_on_start')) {
-      buttonTracker.short_press_delay = 50;
+    if(app_state.get('speak_mode')) {
+      buttonTracker.minimum_press = this.get('currentUser.preferences.activation_minimum');
+      buttonTracker.activation_location = this.get('currentUser.preferences.activation_location');
+      buttonTracker.short_press_delay = this.get('currentUser.preferences.activation_cutoff');
+      if(this.get('currentUser.preferences.activation_on_start')) {
+        buttonTracker.short_press_delay = 50;
+      }
+      buttonTracker.debounce = this.get('currentUser.preferences.debounce');
+    } else if (window.user_preferences) {
+      buttonTracker.minimum_press = null;
+      buttonTracker.activation_location = null;
+      buttonTracker.short_press_delay = null;
+      buttonTracker.debounce = null;
     }
-  }.observes('currentUser.preferences.activation_location', 'currentUser.preferences.activation_minimum', 'currentUser.preferences.activation_cutoff', 'currentUser.preferences.activation_on_start'),
+  }.observes('speak_mode', 'currentUser.preferences.activation_location', 'currentUser.preferences.activation_minimum', 'currentUser.preferences.activation_cutoff', 'currentUser.preferences.activation_on_start', 'currentUser.preferences.debounce'),
   align_button_list: function() {
     Ember.run.later(function() {
       Ember.$("#button_list").scrollTop(9999999);

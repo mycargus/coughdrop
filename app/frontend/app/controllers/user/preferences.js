@@ -335,6 +335,11 @@ export default Ember.Controller.extend({
         min = 1;
         max = 10;
         step = 1;
+      } else if(attribute == 'model.preferences.debounce') {
+        min = 0;
+        max = 5000;
+        step = 100;
+        default_value = 100;
       }
       var value = parseFloat(this.get(attribute), 10) || default_value;
       if(direction == 'minus') {
@@ -357,6 +362,14 @@ export default Ember.Controller.extend({
       if(isNaN(volume)) { volume = 1.0; }
       this.set('model.preferences.device.voice.pitch', pitch);
       this.set('model.preferences.device.voice.volume', volume);
+      var _this = this;
+      ['debounce', 'device.dwell_release_distance', 'device.scanning_next_keycode', 'device.scanning_region_columns', 'device.scanning_region_rows', 'device.scanning_select_keycode', 'device.scanning_interval'].forEach(function(key) {
+        var val = _this.get('model.preferences.' + key);
+        if(val && val.match && val.match(/\d/)) {
+          var num = parseInt(val, 10);
+          _this.set('model.preferences.' + key, num);
+        }
+      });
 
       var user = this.get('model');
       user.set('preferences.progress.preferences_edited', true);

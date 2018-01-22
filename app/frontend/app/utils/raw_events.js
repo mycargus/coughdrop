@@ -23,6 +23,10 @@ import frame_listener from './frame_listener';
 // - too-fast click should not work
 // - painting should work
 // - gaze_linger events should work
+// - debounce should be honored
+// - debounce should not apply for triple-click on clear
+// - click/touch events should still work when in scanning mode
+// - click/touch events should still work when in dwell tracking mode
 
 var $board_canvas = null;
 
@@ -561,54 +565,58 @@ var buttonTracker = Ember.Object.extend({
         var event_type = 'mouse';
         if(event.type && event.type.match(/touch/)) { event_type = 'touch'; }
         if(event.dwell_linger) { event_type = 'dwell'; }
-        buttonTracker.track_selection({
+        var track = buttonTracker.track_selection({
           event_type: event.type,
           selection_type: event_type,
           total_events: buttonTracker.multi_touch.total,
           multi_touch_events: buttonTracker.multi_touch.multis
         });
 
-        // different elements have different selection styles
-        // TODO: standardize this more
-        if(elem_wrap.dom.id == 'identity') {
-          console.log('prevented because on identity');
-          event.preventDefault();
-          // click events are eaten by our listener above, unless you
-          // explicitly tell it to pass them through
-          var e = Ember.$.Event( "click" );
-          e.clientX = event.clientX;
-          e.clientY = event.clientY;
-          e.pass_through = true;
-          Ember.$(elem_wrap.dom).trigger(e);
-        } else if(elem_wrap.dom.id == 'button_list') {
-          console.log('prevented because on button_list');
-          event.preventDefault();
-          var $elem = Ember.$(elem_wrap.dom);
-          $elem.addClass('focus');
-          Ember.run.later(function() {
-            $elem.removeClass('focus');
-          }, 500);
-          $elem.trigger('select');
-        } else if(elem_wrap.dom.tagName == 'A' && Ember.$(elem_wrap.dom).closest('#pin').length > 0) {
-          console.log('prevented because on pin');
-          event.preventDefault();
-          Ember.$(elem_wrap.dom).trigger('select');
-        } else if((elem_wrap.dom.className || "").match(/button/) || elem_wrap.virtual_button) {
-          buttonTracker.button_release(elem_wrap, event);
-        } else if(elem_wrap.dom.classList.contains('integration_target')) {
-          frame_listener.trigger_target(elem_wrap.dom);
-        } else {
-          console.log('prevented because on catchall');
-          event.preventDefault();
-          // click events are eaten by our listener above, unless you
-          // explicitly tell it to pass them through
-          var e = Ember.$.Event( "click" );
-          e.clientX = event.clientX;
-          e.clientY = event.clientY;
-          e.pass_through = true;
-          Ember.$(elem_wrap.dom).trigger(e);
+        // selection events can be prevented by a debounce setting
+        if(track.proceed) {
+          // different elements have different selection styles
+          // TODO: standardize this more
+          if(elem_wrap.dom.id == 'identity') {
+            console.log('prevented because on identity');
+            event.preventDefault();
+            // click events are eaten by our listener above, unless you
+            // explicitly tell it to pass them through
+            var e = Ember.$.Event( "click" );
+            e.clientX = event.clientX;
+            e.clientY = event.clientY;
+            e.pass_through = true;
+            Ember.$(elem_wrap.dom).trigger(e);
+          } else if(elem_wrap.dom.id == 'button_list') {
+            console.log('prevented because on button_list');
+            event.preventDefault();
+            var $elem = Ember.$(elem_wrap.dom);
+            $elem.addClass('focus');
+            Ember.run.later(function() {
+              $elem.removeClass('focus');
+            }, 500);
+            $elem.trigger('select');
+          } else if(elem_wrap.dom.tagName == 'A' && Ember.$(elem_wrap.dom).closest('#pin').length > 0) {
+            console.log('prevented because on pin');
+            event.preventDefault();
+            Ember.$(elem_wrap.dom).trigger('select');
+          } else if((elem_wrap.dom.className || "").match(/button/) || elem_wrap.virtual_button) {
+            buttonTracker.button_release(elem_wrap, event);
+          } else if(elem_wrap.dom.classList.contains('integration_target')) {
+            frame_listener.trigger_target(elem_wrap.dom);
+          } else {
+            console.log('prevented because on catchall');
+            event.preventDefault();
+            // click events are eaten by our listener above, unless you
+            // explicitly tell it to pass them through
+            var e = Ember.$.Event( "click" );
+            e.clientX = event.clientX;
+            e.clientY = event.clientY;
+            e.pass_through = true;
+            Ember.$(elem_wrap.dom).trigger(e);
+          }
         }
 
+        // clear multi-touch for modeling can ignore debounces
         if(elem_wrap.dom.id == 'clear_button' && event.type != 'gazelinger') {
           buttonTracker.clear_hits = (buttonTracker.clear_hits || 0) + 1;
           Ember.run.cancel(buttonTracker.clear_hits_timeout);
@@ -617,7 +625,6 @@ var buttonTracker = Ember.Object.extend({
           }, 1500);
           if(buttonTracker.clear_hits >= 3) {
             buttonTracker.clear_hits = 0;
-            console.log("triple!");
             var e = Ember.$.Event('tripleclick');
             e.clientX = event.clientX;
             e.clientY = event.clientY;
@@ -673,6 +680,14 @@ var buttonTracker = Ember.Object.extend({
       var diffY = Math.abs(event.clientY - last.clientY);
       if(diffX < needed_distance && diffY < needed_distance) {
         return;
+      }
+    } else if(buttonTracker.debounce) {
+      // ignore linger events until the debounce has passed
+      if(buttonTracker.last_selection && buttonTracker.last_selection.ts) {
+        var now = (new Date()).getTime();
+        if(now - buttonTracker.last_selection.ts < buttonTracker.debounce) {
+          return;
+        }
       }
     }
     buttonTracker.last_triggering_dwell_event = null;
@@ -791,8 +806,7 @@ var buttonTracker = Ember.Object.extend({
     } else if(elem_wrap) {
       buttonTracker.last_dwell_linger = elem_wrap;
     }
-//    console.log(buttonTracker.last_dwell_linger);
-//    if(!buttonTracker.last_dwell_linger) { console.log(elem_wrap); }
+
     if(buttonTracker.last_dwell_linger) {
       // place the dwell icon in the center of the current linger
       if(!buttonTracker.last_dwell_linger.started) {
@@ -921,7 +935,7 @@ var buttonTracker = Ember.Object.extend({
       buttonTracker.dwell_icon_elem.style.left = icon_left;
     }
 
-    var $target = Ember.$(elem).closest('.button');
+    var $target = Ember.$(elem).closest('.button:not(.hidden_button)');
     if($target.length > 0) {
       return buttonTracker.element_wrap($target[0]);
     } else if(app_state.get('speak_mode')) {
@@ -1191,6 +1205,12 @@ var buttonTracker = Ember.Object.extend({
     }
   },
   track_selection: function(opts) {
+    if(buttonTracker.last_selection && buttonTracker.last_selection.ts) {
+      var now = (new Date()).getTime();
+      if(buttonTracker.debounce && now - buttonTracker.last_selection.ts < buttonTracker.debounce) {
+        return { proceed: false, debounced: true};
+      }
+    }
     var ls = {
       event_type: opts.event_type,
       selection_type: opts.selection_type,
@@ -1208,6 +1228,7 @@ var buttonTracker = Ember.Object.extend({
     }
     stashes.last_selection = ls;
     buttonTracker.last_selection = ls;
+    return { proceed: true };
   },
   frame_event: function(event, event_type) {
     if(!event || event.triggered_for == event_type) {

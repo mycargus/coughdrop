@@ -197,16 +197,18 @@ class User < ActiveRecord::Base
         'blank_status' => false,
         'word_suggestion_images' => true,
         'hidden_buttons' => 'grid',
-        'symbol_background' => 'clear'
+        'symbol_background' => 'clear',
+        'allow_enable_all_buttons' => true
       },
       'authenticated_user' => {
-        'long_press_edit' => true,
+        'long_press_edit' => false,
         'require_speak_mode_pin' => false,
         'logging' => false,
         'geo_logging' => false,
         'role' => 'communicator',
         'auto_open_speak_mode' => true,
-        'share_notifications' => 'email'
+        'share_notifications' => 'email',
+        'allow_enable_all_buttons' => true
       }
     }
   end
@@ -458,7 +460,7 @@ class User < ActiveRecord::Base
       'goal_notifications', 'word_suggestion_images', 'hidden_buttons',
       'speak_on_speak_mode', 'ever_synced', 'folder_icons', 'allow_log_reports',
       'symbol_background', 'disable_button_help', 'click_buttons', 'prevent_hide_buttons',
-      'new_index']
+      'new_index', 'debounce', 'allow_enable_all_buttons']
 
   PROGRESS_PARAMS = ['setup_done', 'intro_watched', 'profile_edited', 'preferences_edited', 'home_board_set', 'app_added', 'skipped_subscribe_modal']
   def process_params(params, non_user_params)
