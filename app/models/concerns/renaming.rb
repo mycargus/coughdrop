@@ -39,7 +39,12 @@ module Renaming
     end
     self.save
     # - schedule an update to any references
-    schedule(:rename_deep_links, from_key)
+    Worker.schedule_for(:slow, self.class, :perform_action, {
+      'id' => self.id,
+      'method' => 'rename_deep_links',
+      'arguments' => [from_key]
+    })
+#    schedule(:rename_deep_links, from_key)
     OldKey.where(:type => record_type, :key => from_key).update_all(:record_id => record.global_id)
     if !OldKey.find_by(:type => record_type, :key => from_key)
       OldKey.create(:type => record_type, :key => from_key, :record_id => record.global_id)
