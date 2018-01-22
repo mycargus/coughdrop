@@ -150,15 +150,19 @@ module Subscription
         self.settings['subscription'].delete(key)
       end
     end
+    user.expires_at = self.expires_at
+    self.expires_at = Date.today + 60
     if did_change && !skip_remote_update
       Purchasing.change_user_id(user.settings['subscription']['customer_id'], self.global_id, user.global_id)
     end
     from_list = (user.settings['subscription']['transferred_from'] || []) + [self.global_id]
     user.update_setting({
+      'expires_at' => user.expires_at,
       'subscription' => {'transferred_from' => from_list}
     })
     to_list = (self.settings['subscription']['transferred_to'] || []) + [user.global_id]
     self.update_setting({
+      'expires_at' => self.expires_at,
       'subscription' => {'transferred_to' => to_list}
     })
   end
