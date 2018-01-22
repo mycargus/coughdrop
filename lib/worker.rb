@@ -213,7 +213,7 @@ module Worker
         end
       end
     end
-    dos.each{|j| Resque.enqueue(Worker, job['args'][0], job['args'][1], *job['args'][2]) }; dos.length
+    dos.each{|job| Resque.enqueue(Worker, *job['args']) }; dos.length
     hash = saves.group_by{|j| j['args'][2]['id'] }; hash.length
     hash.each do |id, jobs|
       list = []
