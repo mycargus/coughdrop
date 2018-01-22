@@ -79,6 +79,8 @@ CoughDrop.referrer = document.referrer;
 if(capabilities.wait_for_deviceready) {
   document.addEventListener('deviceready', function() {
     var done = function() {
+      if(done.completed) { return; }
+      done.completed = true;
       if(window.kvstash) {
         console.debug('COUGHDROP: found native key value store');
       }
@@ -86,21 +88,21 @@ if(capabilities.wait_for_deviceready) {
     };
     // Look up the stashed user name, which is needed for bootstrapping session and user data
     // and possibly is getting lost being set just in a cookie and localStorage
-    if(capabilities.system == 'iOS' && window.cordova && window.cordova.plugins && window.cordova.plugins.iCloudKV) {
-      var kv = window.cordova.plugins.iCloudKV;
-      // iOS key value store
-      kv.sync(function(dict) {
+    if(capabilities.system == 'iOS' && capabilities.installed_app) {
+      var klass = 'iCloudKV';
+      cordova.exec(function(dict) {
         window.kvstash = {
           values: dict,
           store: function(key, value) {
-            kv.save(key, value.toString(), function() { });
+            cordova.exec(function() { }, function() { }, klass, 'save', [key.toString(), value.toString()]);
           },
           remove: function(key) {
-            kv.remove(key, function() { });
+            cordova.exec(function() { }, function() { }, klass, 'remove', [key.toString()]);
           }
         };
         done();
-      }, done);
+      }, done, klass, 'sync', []);
+      Ember.run.later(done, 500);
     } else if(capabilities.system == 'Android' && capabilities.installed_app) {
       var klass = 'SharedPreferences';
       // Android key value store
@@ -113,7 +115,6 @@ if(capabilities.wait_for_deviceready) {
             },
             remove: function(key) {
               cordova.exec(function() { }, function() { }, klass, 'remove', [key.toString()]);
-              kv.remove(key, function() { }, function() { });
             }
           };
           done();
@@ -124,6 +125,7 @@ if(capabilities.wait_for_deviceready) {
           make_stash(null);
         }, klass, 'getString', ['user_name']);
       }, done, klass, 'getSharedPreferences', ['coughdrop_prefs', 'MODE_PRIVATE']);
+      Ember.run.later(done, 500);
     } else {
       done();
     }
