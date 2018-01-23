@@ -70,6 +70,33 @@ describe UserMailer, :type => :mailer do
       expect(text).to match(/password reset/)
       expect(text).to match(/\"#{u.user_name}\"/)
     end
+    
+    it "should send to email with multiple users, each with their own reset link" do
+      u1 = User.create
+      u1.settings['email'] = 'bob@example.com'
+      u1.save!
+      u2 = User.create
+      u2.settings['email'] = 'bob@example.com'
+      u2.save!
+      u1.generate_password_reset
+      u1.save
+      u2.generate_password_reset
+      u2.save
+      m = UserMailer.forgot_password([u1.global_id, u2.global_id])
+      expect(m.to).to eq(["bob@example.com"])
+      html = message_body(m, :html)
+      expect(html).to match(/password reset/)
+      expect(html).to match(/<b>#{u1.user_name}<\/b>/)
+      expect(html).to match(/<b>#{u2.user_name}<\/b>/)
+      expect(html).to match(/#{u1.password_reset_code}/)
+      expect(html).to match(/#{u2.password_reset_code}/)
+      text = message_body(m, :text)
+      expect(text).to match(/password reset/)
+      expect(text).to match(/\"#{u1.user_name}\"/)
+      expect(text).to match(/\"#{u2.user_name}\"/)
+      expect(text).to match(/#{u1.password_reset_code}/)
+      expect(text).to match(/#{u2.password_reset_code}/)
+    end
   end
   
   describe "login_no_user" do
