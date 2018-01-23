@@ -639,21 +639,21 @@ describe Board, :type => :model do
       u = User.create
       b = Board.new(:user => u)
       b.save
-      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil]})).to eq(true)
+      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil, Time.now.to_i]})).to eq(true)
       Worker.flush_queues
       b.instance_variable_set('@track_downstream_boards', false)
       b.save
-      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil]})).to eq(false)
+      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil, Time.now.to_i]})).to eq(false)
       Worker.flush_queues
       b.instance_variable_set('@buttons_changed', true)
       b.instance_variable_set('@button_links_changed', true)
       b.save
-      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], true]})).to eq(true)
+      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], true, Time.now.to_i]})).to eq(true)
       Worker.flush_queues
       
       b.instance_variable_set('@track_downstream_boards', true)
       b.save
-      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil]})).to eq(true)
+      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil, Time.now.to_i]})).to eq(true)
     end
   end
   

@@ -2,6 +2,7 @@ module UpstreamDownstream
   extend ActiveSupport::Concern
   
   def track_downstream_boards!(already_visited_ids=[], buttons_changed=false, trigger_stamp=nil)
+    already_visited_ids ||= []
     # short-circuit if board has been tracked by another process since this was originally scheduled
     return if self.class.last_scheduled_stamp && self.settings['last_tracked'] && self.settings['last_tracked'] > self.class.last_scheduled_stamp
     @track_downstream_boards = true
@@ -189,7 +190,7 @@ module UpstreamDownstream
             # it is already up-to-date as far as this sequence is concerned, and doesn't need
             # to be re-scheduled
           else
-            board.schedule_once(:track_downstream_boards!, notify_upstream_with_visited_ids, trigger_stamp)
+            board.schedule_once(:track_downstream_boards!, notify_upstream_with_visited_ids, nil, trigger_stamp)
           end
         end
       end

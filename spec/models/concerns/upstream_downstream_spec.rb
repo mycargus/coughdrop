@@ -42,7 +42,7 @@ describe UpstreamDownstream, :type => :model do
         {'id' => 1, 'load_board' => {'id' => b2.global_id}}
       ]
       b.save
-      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil]})).to eq(true)
+      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil, Time.now.to_i]})).to eq(true)
       Worker.process_queues
       expect(b.reload.settings['downstream_board_ids']).to eq([b2.global_id, b3.global_id])
     end
@@ -50,30 +50,53 @@ describe UpstreamDownstream, :type => :model do
     it "should not track downstream boards unless there was a change or it is called manually" do
       u = User.create
       b = Board.create(:user => u)
-      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil]})).to eq(true)
+      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil, Time.now.to_i]})).to eq(true)
       Worker.process_queues
       b.save
-      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil]})).to eq(false)
+      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil, Time.now.to_i]})).to eq(false)
       b.settings['name'] = "Cool Board"
       b.save
-      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil]})).to eq(false)
+      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil, Time.now.to_i]})).to eq(false)
       b.settings['buttons'] = [
         {'id' => 1, 'load_board' => {'id' => '123'}},
         {'id' => 2, 'load_board' => {'id' => '234'}}
       ]
       b.instance_variable_set('@buttons_changed', true)
       b.save
-      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], true]})).to eq(true)
+      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], true, Time.now.to_i]})).to eq(true)
       Worker.flush_queues
       b.save
-      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil]})).to eq(false)
+      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil, Time.now.to_i]})).to eq(false)
       b.settings['buttons'] = [
         {'id' => 1},
         {'id' => 2, 'load_board' => {'id' => '234'}},
         {'id' => 3, 'load_board' => {'id' => '123'}}
       ]
       b.save
-      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil]})).to eq(false)
+      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil, Time.now.to_i]})).to eq(false)
+    end
+    
+    it "should not run through tracking if the board has been tracked since the tracking was scheduled" do
+      u = User.create
+      b1 = Board.create(:user => u)
+      b2 = Board.create(:user => u)
+      Worker.process_queues
+
+      b1.settings['buttons'] = [
+        {'id' => 1, 'load_board' => {'id' => b2.global_id, 'key' => b2.key}},
+        {'id' => 2, 'load_board' => {'id' => '234'}}
+      ]
+      b1.instance_variable_set('@buttons_changed', true)
+      b1.save
+      Worker.process_queues
+      expect(b2.reload.settings['immediately_upstream_board_ids']).to eq([b1.global_id])
+      
+      b1.settings['last_tracked'] = Time.now.to_i - 100
+      b1.save
+      b2.complete_stream_checks([], Time.now.to_i - 200)
+      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b1.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil, Time.now.to_i]})).to eq(false)
+      b2.complete_stream_checks([], Time.now.to_i)
+      expect(Worker.scheduled?(Board, 'perform_action', {'id' => b1.id, 'method' => 'track_downstream_boards!', 'arguments' => [[], nil, Time.now.to_i]})).to eq(true)      
     end
     
     it "should push correct list up through all affected boards when there is a change" do

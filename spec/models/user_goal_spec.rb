@@ -656,7 +656,7 @@ describe UserGoal, type: :model do
       UserGoal.advance_goals
       expect(Worker.scheduled_actions).to eq([{
         'class' => 'Worker',
-        'args' => ['UserGoal', 'perform_action', {'id' => g.id, 'method' => 'advance!', 'arguments' => []}]
+        'args' => ['UserGoal', 'perform_action', {'id' => g.id, 'method' => 'advance!', 'scheduled' => Time.now.to_i, 'arguments' => []}]
       }])
     end
     

@@ -65,7 +65,7 @@ describe Renaming, :type => :model do
         old_key = b.key
         res = b.rename_to("#{u.user_name}/wilma")
         expect(res).to eq(true)
-        expect(Worker.scheduled?(Board, :perform_action, {'id' => b.id, 'method' => 'rename_deep_links', 'arguments' => [old_key]})).to eq(true)
+        expect(Worker.scheduled_for?(:slow, Board, :perform_action, {'id' => b.id, 'method' => 'rename_deep_links', 'arguments' => [old_key]})).to eq(true)
       end
     
       it "should create an old_key reference if one doesn't already exist" do
