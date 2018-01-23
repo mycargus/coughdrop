@@ -504,6 +504,41 @@ module Purchasing
     puts "CANCELS: #{cancel_months.to_a.sort_by(&:first).reverse.to_json}"
   end
   
+  def self.cancel_subscription(user_id, customer_id, subscription_id)
+    user = User.find_by_global_id(user_id)
+    return false unless user
+    Stripe.api_key = ENV['STRIPE_SECRET_KEY']
+    begin
+      customer = Stripe::Customer.retrieve(customer_id)
+    rescue => e
+      user.log_subscription_event({:log => 'subscription canceling error', :detail => 'error retrieving customer', :error => e.to_s, :trace => e.backtrace})
+    end
+    
+    if customer
+      if !customer.metadata || customer.metadata['user_id'] != user_id
+        return false
+      end
+      
+      begin
+        customer_subs = customer.subscriptions.all.to_a
+        sub = customer_subs.detect{|s| s['id'] == subscription_id}
+      rescue => e
+        user.log_subscription_event({:log => 'subscription canceling error', :detail => 'error retrieving subscriptions', :error => e.to_s, :trace => e.backtrace})
+      end
+      
+      if sub && sub['status'] != 'canceled' && sub['status'] != 'past_due'
+        begin
+          sub.delete
+          user.log_subscription_event({:log => 'subscription canceling success', id: sub['id'], reason: subscription_id})
+          return true
+        rescue => e
+          user.log_subscription_event({:log => 'subscription canceling error', :detail => 'error canceling subscription', :error => e.to_s, :trace => e.backtrace})
+        end
+      end
+    end
+    false
+  end
+  
   def self.cancel_other_subscriptions(user, except_subscription_id)
     return false unless user && user.settings && user.settings['subscription']
     Stripe.api_key = ENV['STRIPE_SECRET_KEY']

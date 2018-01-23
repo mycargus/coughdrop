@@ -1477,4 +1477,139 @@ describe Purchasing do
     expect(u.subscription_hash['plan_id']).to eq('long_term_200')
     expect(u.subscription_hash['expires']).to_not eq(nil)
   end
+  
+    describe "cancel_subscription" do
+      it "should return false if no customer found" do
+        u = User.create
+        res = Purchasing.cancel_other_subscriptions(u, '2345')
+        expect(res).to eq(false)
+      
+        expect(Stripe::Customer).to receive(:retrieve).with('1234').and_return(nil)
+        res = Purchasing.cancel_subscription(u.global_id, '1234', '2345')
+        expect(res).to eq(false)
+      end
+    
+      it "should return false on error" do
+        u = User.create
+        expect(Stripe::Customer).to receive(:retrieve).with('1234') { raise "no" }
+        res = Purchasing.cancel_subscription(u.global_id, '1234', '2345')
+        expect(res).to eq(false)
+      end
+    
+      it "should retrieve the customer record" do
+        u = User.create
+        expect(Stripe::Customer).to receive(:retrieve).with('1234').and_return(OpenStruct.new({
+          subscriptions: OpenStruct.new({all: []})
+        }))
+        res = Purchasing.cancel_subscription(u.global_id, '1234', '2345')
+        expect(res).to eq(false)
+      end
+      
+      it "should not do anything if the customer metadata doesn't match the user" do
+        u = User.create
+        expect(Stripe::Customer).to receive(:retrieve).with('1234').and_return(OpenStruct.new({
+          subscriptions: OpenStruct.new({all: []})
+        }))
+        res = Purchasing.cancel_subscription(u.global_id, '1234', '2345')
+        expect(res).to eq(false)
+      end
+    
+      it "should cancel matching active subscriptions" do
+        u = User.create
+        a = {'id' => '3456'}
+        b = {'id' => '6789', 'status' => 'active'}
+        c = {'id' => '4567', 'status' => 'active'}
+        all = [a, b, c]
+        expect(a).not_to receive(:delete)
+        expect(b).to receive(:delete)
+        expect(c).not_to receive(:delete)
+        expect(Stripe::Customer).to receive(:retrieve).with('2345').and_return(OpenStruct.new({
+          metadata: {'user_id' => u.global_id},
+          subscriptions: OpenStruct.new({all: all})
+        }))
+        res = Purchasing.cancel_subscription(u.global_id, '2345', '6789')
+        expect(res).to eq(true)
+      end
+    
+      it "should not cancel on matching inactive subscriptions" do
+        u = User.create
+        a = {'id' => '3456'}
+        b = {'id' => '6789', 'status' => 'canceled'}
+        all = [a, b]
+        expect(a).not_to receive(:delete)
+        expect(b).not_to receive(:delete)
+        expect(Stripe::Customer).to receive(:retrieve).with('2345').and_return(OpenStruct.new({
+          metadata: {'user_id' => u.global_id},
+          subscriptions: OpenStruct.new({all: all})
+        }))
+        res = Purchasing.cancel_subscription(u.global_id, '2345', '6789')
+        expect(res).to eq(false)
+      end
+    
+      it "should log subscription cancellations" do
+        u = User.create
+        a = {'id' => '3456'}
+        b = {'id' => '6789'}
+        c = {'id' => '4567', 'status' => 'active'}
+        all = [a, b, c]
+        expect(a).not_to receive(:delete)
+        expect(b).not_to receive(:delete)
+        expect(c).to receive(:delete)
+        expect(Stripe::Customer).to receive(:retrieve).with('2345').and_return(OpenStruct.new({
+          metadata: {'user_id' => u.global_id},
+          subscriptions: OpenStruct.new({all: all})
+        }))
+        res = Purchasing.cancel_subscription(u.global_id, '2345', '4567')
+        expect(res).to eq(true)
+        Worker.process_queues
+        u.reload
+        expect(u.subscription_events).to_not eq(nil)
+        expect(u.subscription_events[-1]['log']).to eq('subscription canceling success')
+        expect(u.subscription_events[-1]['reason']).to eq('4567')
+      end
+    
+      it "should log errors on failed cancellations" do
+        u = User.create
+        res = Purchasing.cancel_subscription(u, '1234', '1234')
+        expect(res).to eq(false)
+        expect(u.subscription_events.length).to eq(0)
+      
+        u = User.create({'settings' => {'subscription' => {'customer_id' => '1234'}}})
+        expect(Stripe::Customer).to receive(:retrieve).with('1234').and_raise("no dice")
+        res = Purchasing.cancel_subscription(u.global_id, '1234', '1234')
+        expect(res).to eq(false)
+        expect(u.subscription_events.length).to eq(1)
+        expect(u.subscription_events.map{|e| e['log'] }).to eq(['subscription canceling error'])
+        expect(u.subscription_events[0]['error']).to eq('no dice')
+
+        u = User.create({'settings' => {'subscription' => {'customer_id' => '2345'}}})
+        subscr = OpenStruct.new
+        expect(subscr).to receive(:all).and_raise('naughty')
+        expect(Stripe::Customer).to receive(:retrieve).with('2345').and_return(OpenStruct.new({
+          metadata: {'user_id' => u.global_id},
+          subscriptions: subscr
+        }))
+        res = Purchasing.cancel_subscription(u.global_id, '2345', '2345')
+        expect(res).to eq(false)
+        expect(u.subscription_events.length).to eq(1)
+        expect(u.subscription_events.map{|e| e['log'] }).to eq(['subscription canceling error'])
+        expect(u.subscription_events[0]['error']).to eq('naughty')
+      
+        u = User.create({'settings' => {'subscription' => {'customer_id' => '3456'}}})
+        a = {'id' => '3456'}
+        b = {'id' => '4567'}
+        all = [a, b]
+        subscr = OpenStruct.new
+        expect(a).to receive(:delete).and_raise('yipe')
+        expect(Stripe::Customer).to receive(:retrieve).with('3456').and_return(OpenStruct.new({
+          metadata: {'user_id' => u.global_id},
+          subscriptions: OpenStruct.new({all: all})
+        }))
+        res = Purchasing.cancel_subscription(u.global_id, '3456', '3456')
+        expect(res).to eq(false)
+        expect(u.subscription_events.length).to eq(1)
+        expect(u.subscription_events.map{|e| e['log'] }).to eq(['subscription canceling error'])
+        expect(u.subscription_events[0]['error']).to eq('yipe')
+      end
+    end
 end

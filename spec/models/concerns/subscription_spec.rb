@@ -1462,6 +1462,51 @@ describe Subscription, :type => :model do
       expect(d.reload.settings['keys']).to eq([])
       expect(d2.reload.settings['keys']).to eq([])
     end
+    
+    it "should cancel existing subscription when setting to eval account" do
+      u = User.create
+      res = u.update_subscription({
+        'subscribe' => true,
+        'customer_id' => '1234',
+        'subscription_id' => '12345',
+        'plan_id' => 'monthly_6'
+      })
+      expect(u.recurring_subscription?).to eq(true)
+      
+      expect(u.subscription_override('eval')).to eq(true)
+
+      expect(Worker.scheduled?(Purchasing, :cancel_subscription, u.global_id, '1234', '12345')).to eq(true)
+    end
+    
+    it "should cancel existing subscription when setting to communicator trial" do
+      u = User.create
+      res = u.update_subscription({
+        'subscribe' => true,
+        'customer_id' => '1234',
+        'subscription_id' => '12345',
+        'plan_id' => 'monthly_6'
+      })
+      expect(u.recurring_subscription?).to eq(true)
+      
+      expect(u.subscription_override('communicator_trial')).to eq(true)
+
+      expect(Worker.scheduled?(Purchasing, :cancel_subscription, u.global_id, '1234', '12345')).to eq(true)
+    end
+    
+    it "should cancel existing subscription when setting to manual supporter" do
+      u = User.create
+      res = u.update_subscription({
+        'subscribe' => true,
+        'customer_id' => '1234',
+        'subscription_id' => '12345',
+        'plan_id' => 'monthly_6'
+      })
+      expect(u.recurring_subscription?).to eq(true)
+      
+      expect(u.subscription_override('manual_supporter')).to eq(true)
+
+      expect(Worker.scheduled?(Purchasing, :cancel_subscription, u.global_id, '1234', '12345')).to eq(true)
+    end
   end
   
   describe "transfer_subscription_to" do

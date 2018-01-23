@@ -23,6 +23,10 @@ module Subscription
         self.settings['past_purchase_durations'] ||= []
         self.settings['past_purchase_durations'] << {type: 'recurring', started: self.settings['subscription']['started'], duration: (Time.now.to_i - started.to_i)}
       end
+      if self.settings['subscription']['subscription_id'] && self.settings['subscription']['customer_id']
+        # If there is an existing subscription, schedule the API call to cancel it
+        Worker.schedule(Purchasing, :cancel_subscription, self.global_id, self.settings['subscription']['customer_id'], self.settings['subscription']['subscription_id'])
+      end
       ['subscription_id', 'token_summary', 'started', 'plan_id', 'free_premium', 'never_expires'].each do |key|
         self.settings['subscription']['canceled'] ||= {}
         self.settings['subscription']['canceled'][key] = self.settings['subscription'][key]
