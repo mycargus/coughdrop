@@ -1298,12 +1298,12 @@ footer .wide_links {
 .button.hidden_button, .button.empty {
   visibility: hidden;
 }
-.board:not(.edit) .button.hidden_button {
+.board:not(.edit):not(.show_all_buttons) .button.hidden_button {
   .action_container {
     visibility: hidden;
   }
 }
-.board.grid_hidden_buttons:not(.edit) .button.hidden_button {
+.board.grid_hidden_buttons:not(.edit):not(.show_all_buttons) .button.hidden_button {
   visibility: visible;
   * {
     visibility: hidden;
@@ -1311,7 +1311,7 @@ footer .wide_links {
   background: #fff;
   border-color: #aaa;
 }
-.board.grid_hidden_buttons:not(.edit) .button.empty {
+.board.grid_hidden_buttons:not(.edit):not(.show_all_buttons) .button.empty {
   visibility: visible;
   * {
     visibility: hidden;
@@ -1319,7 +1319,7 @@ footer .wide_links {
   background: #fff;
   border-color: #aaa;
 }
-.board.hint_hidden_buttons:not(.edit) .button.hidden_button {
+.board.hint_hidden_buttons:not(.edit):not(.show_all_buttons) .button.hidden_button {
   visibility: visible;
   opacity: 0.2;
   .action_container {

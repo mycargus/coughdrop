@@ -1279,7 +1279,9 @@ var app_state = Ember.Object.extend({
   activate_button: function(button, obj) {
     CoughDrop.log.start();
     if((button.hidden || button.empty) && !this.get('edit_mode') && this.get('currentUser.preferences.hidden_buttons') == 'grid') {
-      return false;
+      if(!stashes.get('all_buttons_enabled')) {
+        return false;
+      }
     }
     var now = (new Date()).getTime();
     if(app_state.get('modeling')) {

@@ -936,10 +936,13 @@ var buttonTracker = Ember.Object.extend({
     }
 
     var $target = Ember.$(elem).closest('.button');
-    // If the target is hidden, don't allow it (unless Show Hidden Buttons is on)
+    // If the target is hidden, but the empty grid is showing (not a hint,
+    // and not Show Hidden Buttons)
     if($target.hasClass('hidden_button')) {
       if($target.closest('.board.show_all_buttons').length == 0) {
-        $target = null;
+        if($target.closest('.board.speak.grid_hidden_buttons').length > 0) {
+          $target = $target.filter("none");
+        }
       }
     }
     if($target.length > 0) {
