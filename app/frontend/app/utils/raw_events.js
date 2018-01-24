@@ -935,7 +935,13 @@ var buttonTracker = Ember.Object.extend({
       buttonTracker.dwell_icon_elem.style.left = icon_left;
     }
 
-    var $target = Ember.$(elem).closest('.button:not(.hidden_button)');
+    var $target = Ember.$(elem).closest('.button');
+    // If the target is hidden, don't allow it (unless Show Hidden Buttons is on)
+    if($target.hasClass('hidden_button')) {
+      if($target.closest('.board.show_all_buttons').length == 0) {
+        $target = null;
+      }
+    }
     if($target.length > 0) {
       return buttonTracker.element_wrap($target[0]);
     } else if(app_state.get('speak_mode')) {
