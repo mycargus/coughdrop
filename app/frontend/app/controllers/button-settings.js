@@ -139,6 +139,42 @@ export default modal.ModalController.extend({
       {name: i18n.t('render_page', "Load a tool-rendered page"), id: 'render'}
     ];
   }.property(),
+  tool_types: function() {
+    var res = [];
+    res.push({name: i18n.t('select_tool', "[Select Tool]"), id: null});
+    (this.get('user_integrations') || []).forEach(function(tool) {
+      res.push({name: tool.get('name'), id: tool.get('id')});
+    });
+    return res;
+  }.property('user_integrations'),
+  update_integration: function() {
+    var _this = this;
+    if(!this.get('user_integrations.length')) { return; }
+    if(this.get('integration_id')) {
+      var tool = (_this.get('user_integrations') || []).find(function(t) { return t.get('id') == _this.get('integration_id'); });
+      if(tool) {
+        var action_type = (!tool.get('has_multiple_actions') && tool.get('render')) ? 'render' : 'webhook';
+        var local_url = null;
+        if(tool.get('button_webhook_local') && tool.get('button_webhook_url')) {
+          local_url = tool.get('button_webhook_url');
+        }
+        _this.set('model.integration', {
+          user_integration_id: tool.id,
+          local_url: local_url,
+          action_type: action_type
+        });
+        _this.set('selected_integration', tool);
+      }
+    } else {
+      _this.set('selected_integration', null);
+      _this.set('model.integration', null);
+    }
+  }.observes('integration_id', 'user_integrations'),
+  update_integration_id: function() {
+    if(!this.get('integration_id') && this.get('model.integration.user_integration_id')) {
+      this.set('integration_id', this.get('model.integration.user_integration_id'));
+    }
+  }.observes('model.integration.user_integration_id'),
   missing_library: function() {
     return this.get('image_library') == 'lessonpix_required';
   }.property('image_library'),
@@ -182,13 +218,15 @@ export default modal.ModalController.extend({
     var user_id = this.get('model.integration_user_id') || 'self';
     var _this = this;
     if(this.get('model.integrationOrWebhookAction')) {
-      _this.set('user_integrations', {loading: true});
-      Utils.all_pages('integration', {user_id: user_id, for_button: true}, function() {
-      }).then(function(res) {
-        _this.set('user_integrations', res);
-      }, function(err) {
-        _this.set('user_integrations', {error: true});
-      });
+      if(!this.get('user_integrations.length')) {
+        _this.set('user_integrations', {loading: true});
+        Utils.all_pages('integration', {user_id: user_id, for_button: true}, function() {
+        }).then(function(res) {
+          _this.set('user_integrations', res);
+        }, function(err) {
+          _this.set('user_integrations', {error: true});
+        });
+      }
     } else {
       _this.set('user_integrations', []);
     }
@@ -561,18 +599,6 @@ export default modal.ModalController.extend({
         'video.start': '',
         'video.end': ''
       });
-    },
-    select_integration: function(tool) {
-      (this.get('user_integrations') || []).forEach(function(i) {
-        Ember.set(i, 'selected', false);
-      });
-      var action_type = (!tool.get('has_multiple_actions') && tool.get('render')) ? 'render' : 'webhook';
-      this.set('model.integration', {
-        user_integration_id: tool.id,
-        action_type: action_type
-      });
-      this.set('selected_integration', tool);
-      Ember.set(tool, 'selected', true);
     },
     browse_audio: function() {
       contentGrabbers.soundGrabber.browse_audio();

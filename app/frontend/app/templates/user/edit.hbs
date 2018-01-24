@@ -185,8 +185,10 @@
                       </td>
                       <td>
                         {{#if integration.custom_integration}}
-                          {{t "API: %{token}" token=integration.truncated_access_token key='displayable_access_token'}}<br/>
-                          {{t "Webhooks: %{token}" token=integration.truncated_token key='displayable_token'}}
+                          {{#if integration.truncated_access_token}}
+                            {{t "API: %{token}" token=integration.truncated_access_token key='displayable_access_token'}}<br/>
+                            {{t "Webhooks: %{token}" token=integration.truncated_token key='displayable_token'}}
+                          {{/if}}
                         {{else}}
                           {{t "recognized tool" key='known_tool'}}
                         {{/if}}

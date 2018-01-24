@@ -29,16 +29,17 @@ var Button = Ember.Object.extend({
   updateAction: function() {
     if(this.get('load_board')) {
       this.set('buttonAction', 'folder');
+    } else if(this.get('integration') != null) {
+      this.set('buttonAction', 'integration');
+      if(this.get('integration.action_type') == 'webhook') {
+        this.set('integrationAction', 'webhook');
+      } else {
+        this.set('integrationAction', 'render');
+      }
     } else if(this.get('url') != null) {
       this.set('buttonAction', 'link');
     } else if(this.get('apps') != null) {
       this.set('buttonAction', 'app');
-    } else if(this.get('integration') != null) {
-      if(this.get('integration.action_type') == 'webhook') {
-        this.set('buttonAction', 'webhook');
-      } else {
-        this.set('buttonAction', 'integration');
-      }
     } else {
       this.set('buttonAction', 'talk');
     }
@@ -50,14 +51,14 @@ var Button = Ember.Object.extend({
     return this.get('buttonAction') == 'folder';
   }.property('buttonAction'),
   integrationAction: function() {
+    return this.get('buttonAction') == 'integration' && this.get('integrationAction') == 'render';
+  }.property('buttonAction', 'integrationAction'),
+  integrationOrWebhookAction: function() {
     return this.get('buttonAction') == 'integration';
   }.property('buttonAction'),
-  integrationOrWebhookAction: function() {
-    return this.get('buttonAction') == 'integration' || this.get('buttonAction') == 'webhook';
-  }.property('buttonAction'),
   webhookAction: function() {
-    return this.get('buttonAction') == 'webhook';
-  }.property('buttonAction'),
+    return this.get('buttonAction') == 'integration' && this.get('integrationAction') == 'webhook';
+  }.property('buttonAction', 'integrationAction'),
   action_styling: function() {
     return Button.action_styling(this.get('buttonAction'), this);
   }.property('buttonAction', 'home_lock', 'book.popup', 'video.popup', 'action_status', 'action_status.pending', 'action_status.errored', 'action_status.completed', 'integration.action_type'),
@@ -498,6 +499,8 @@ Button.action_styling = function(action, button) {
     } else {
       action = 'talk';
     }
+  } else if(action == 'integration' && button.integration && button.integration.action_type == 'webhook') {
+    action = 'webhook'
   }
   var res = {};
   res.action_class = 'action_container ';
@@ -665,93 +668,147 @@ Button.resource_from_url = function(url) {
 
 Button.extra_actions = function(button) {
   if(button && button.integration && button.integration.action_type == 'webhook') {
-    var user_id = app_state.get('currentUser.id') || 'nobody';
-    var board_id = app_state.get('currentBoardState.id');
-    if(user_id && board_id) {
-      var action_state_id = Math.random();
-      var update_state = function(obj) {
-       if(!button.get('action_status') || button.get('action_status.state') == action_state_id) {
-          if(obj) {
-            obj.state = action_state_id;
-          }
-          button.set('action_status', obj);
-          // Necessary to do fast-html caching
-          Ember.run.later(function() {
-            var $button = Ember.$(".board[data-id='" + board_id + "']").find(".button[data-id='" + button.get('id') + "']");
-            if($button.length) {
-              $button.find(".action_container").removeClass('pending').removeClass('errored').removeClass('succeeded');
-              if(obj && obj.pending) {
-                $button.find(".action_container").addClass('pending');
-              } else if(obj && obj.errored) {
-                $button.find(".action_container").addClass('errored');
-              } else if(obj && obj.completed) {
-                $button.find(".action_container").addClass('succeeded');
-              }
-            }
-          }, 100);
-          if(obj && (obj.errored || obj.completed)) {
-            Ember.run.later(function() {
-              update_state(null);
-            }, 10000);
-          }
-       }
-      };
-      if(!persistence.get('online')) {
-        console.log("button failed because offline");
-        update_state({errored: true});
-      } else {
-        update_state(null);
-        update_state({pending: true});
+    var action_state_id = Math.random();
+    var update_state = function(obj) {
+     if(!button.get('action_status') || button.get('action_status.state') == action_state_id) {
+        if(obj) {
+          obj.state = action_state_id;
+        }
+        button.set('action_status', obj);
+        // Necessary to do fast-html caching
         Ember.run.later(function() {
-          persistence.ajax('/api/v1/users/' + user_id + '/activate_button', {
-            type: 'POST',
-            data: {
-              board_id: board_id,
-              button_id: button.get('id'),
-              associated_user_id: app_state.get('referenced_speak_mode_user.id')
+          var $button = Ember.$(".board[data-id='" + board_id + "']").find(".button[data-id='" + button.get('id') + "']");
+          if($button.length) {
+            $button.find(".action_container").removeClass('pending').removeClass('errored').removeClass('succeeded');
+            if(obj && obj.pending) {
+              $button.find(".action_container").addClass('pending');
+            } else if(obj && obj.errored) {
+              $button.find(".action_container").addClass('errored');
+            } else if(obj && obj.completed) {
+              $button.find(".action_container").addClass('succeeded');
             }
-          }).then(function(res) {
-            if(!res.progress) {
-              console.log("button failed because didn't get a progress object");
-              update_state({errored: true});
-            } else {
-              progress_tracker.track(res.progress, function(event) {
-                if(event.status == 'errored') {
-                  console.log("button failed because of progress result error");
-                  update_state({errored: true});
-                } else if(event.status == 'finished') {
-                  if(event.result && event.result.length > 0) {
-                    var all_valid = true;
-                    var any_code = false;
-                    event.result.forEach(function(result) {
-                      if(result && result.response_code) {
-                        any_code = true;
-                        if(result.response_code < 200 || result.response_code >= 300) {
-                          all_valid = false;
-                        }
-                      }
-                    });
-                    if(!all_valid) {
-                      console.log("button failed with error response from notification");
-                      update_state({errored: true});
-                    } else if(!any_code) {
-                      console.log("button failed with no webhook responses recorded");
-                      update_state({errored: true});
-                    } else {
-                      update_state({completed: true});
-                    }
-                  } else {
-                    console.log("button failed with notification failure");
+          }
+        }, 100);
+        if(obj && (obj.errored || obj.completed)) {
+          Ember.run.later(function() {
+            update_state(null);
+          }, 10000);
+        }
+     }
+    };
+
+    if(button.integration.local_url) {
+      // Local URLs can be requested by the device, instead of as a webhook
+      update_state(null);
+      update_state({pending: true});
+      var url = button.integration.local_url || "https://www.yahoo.com";
+      persistence.ajax(url, {
+        type: 'POST',
+        data: {
+          action: button.integration.action
+        }
+      }).then(function(res) {
+        update_state({completed: true});
+      }, function(err) {
+        if(err && err._result) { err = err._result; }
+        if(err && err.fakeXHR && err.fakeXHR.status === 0) {
+          // TODO: create an iframe to do a local form post
+          if(!document.getElementById('button_action_post_frame')) {
+            var frame = document.createElement('iframe');
+            frame.style.position = 'absolute';
+            frame.style.left = '-1000px';
+            frame.style.top = '10px';
+            frame.style.width = '100px';
+            frame.sandbox = '';
+            frame.id = 'button_action_post_frame';
+            frame.name = frame.id;
+            document.body.appendChild(frame);
+          }
+          var form = document.createElement('form');
+          form.style.position = 'absolute';
+          form.style.left = '-1000px';
+          form.action = url;
+          form.method = 'POST';
+          form.target = 'button_action_post_frame';
+          form.id = 'button_action_post';
+          var input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = 'action';
+          input.value = button.integration.action;
+          form.appendChild(input);
+          var btn = document.createElement('button');
+          btn.type = 'submit';
+          form.appendChild(btn);
+          document.body.appendChild(form);
+          Ember.run.later(function() {
+            form.submit();
+            update_state({completed: true});
+          }, 500);
+        } else {
+          update_state({errored: true});
+        }
+      });
+    } else {
+      var user_id = app_state.get('currentUser.id') || 'nobody';
+      var board_id = app_state.get('currentBoardState.id');
+      if(user_id && board_id) {
+        if(!persistence.get('online')) {
+          console.log("button failed because offline");
+          update_state({errored: true});
+        } else {
+          update_state(null);
+          update_state({pending: true});
+          Ember.run.later(function() {
+            persistence.ajax('/api/v1/users/' + user_id + '/activate_button', {
+              type: 'POST',
+              data: {
+                board_id: board_id,
+                button_id: button.get('id'),
+                associated_user_id: app_state.get('referenced_speak_mode_user.id')
+              }
+            }).then(function(res) {
+              if(!res.progress) {
+                console.log("button failed because didn't get a progress object");
+                update_state({errored: true});
+              } else {
+                progress_tracker.track(res.progress, function(event) {
+                  if(event.status == 'errored') {
+                    console.log("button failed because of progress result error");
                     update_state({errored: true});
+                  } else if(event.status == 'finished') {
+                    if(event.result && event.result.length > 0) {
+                      var all_valid = true;
+                      var any_code = false;
+                      event.result.forEach(function(result) {
+                        if(result && result.response_code) {
+                          any_code = true;
+                          if(result.response_code < 200 || result.response_code >= 300) {
+                            all_valid = false;
+                          }
+                        }
+                      });
+                      if(!all_valid) {
+                        console.log("button failed with error response from notification");
+                        update_state({errored: true});
+                      } else if(!any_code) {
+                        console.log("button failed with no webhook responses recorded");
+                        update_state({errored: true});
+                      } else {
+                        update_state({completed: true});
+                      }
+                    } else {
+                      console.log("button failed with notification failure");
+                      update_state({errored: true});
+                    }
                   }
-                }
-              }, {success_wait: 500, error_wait: 1000});
-            }
-          }, function(err) {
-            console.log("button failed because of ajax error");
-            update_state({errored: true});
+                }, {success_wait: 500, error_wait: 1000});
+              }
+            }, function(err) {
+              console.log("button failed because of ajax error");
+              update_state({errored: true});
+            });
           });
-        });
+        }
       }
     }
   }

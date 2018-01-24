@@ -45,10 +45,12 @@
         <p>{{t "Error loading tools" key='error_loading_tools'}}</p>
       {{else if tools}}
         {{#each tools as |tool|}}
-          <div class='well' {{action 'select_tool' tool}}>
-            <img src={{tool.icon_url}} style='height: 30px; max-width: 50px;'/>
-            {{tool.name}}<br/><br/>
-            {{safe tool.description}}
+          <div class='well' {{action 'select_tool' tool}} style='cursor: pointer;'>
+            <div>
+              <img src={{tool.icon_url}} style='height: 30px; max-width: 50px;'/>
+              <span style='font-weight: bold; font-size: 20px; vertical-align: middle; padding-left: 5px;'>{{tool.name}}</span>
+            </div>
+            <div style='max-height: 43px; overflow: hidden;'>{{safe tool.description}}</div>
           </div>
         {{/each}}
       {{else}}

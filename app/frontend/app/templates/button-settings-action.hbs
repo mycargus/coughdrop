@@ -182,11 +182,7 @@
           <p class='form-control-static'>{{t "Error loading tools" key='error_loading_tools'}}</p>
         {{else if user_integrations}}
           <p class='form-control-static'>
-            {{#each user_integrations as |tool|}}
-              <a href="#" class={{if tool.selected 'active' ''}} {{action 'select_integration' tool}}>
-                {{tool.name}}{{#if tool.selected}}*{{/if}}
-              </a>
-            {{/each}}
+            {{bound-select select_class='form-control' select_id='tools' content=tool_types selection=integration_id action=(action (mut integration_id)) }}
           </p>
         {{else}}
           <p class="form-control-static">

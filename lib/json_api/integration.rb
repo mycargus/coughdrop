@@ -13,6 +13,10 @@ module JsonApi::Integration
     json['name'] = obj.settings['name']
     json['custom_integration'] = !!obj.settings['custom_integration']
     json['webhook'] = !!obj.settings['button_webhook_url']
+    if json['webhook'] && obj.settings['button_webhook_local']
+      json['button_webhook_local'] = true
+      json['button_webhook_url'] = obj.settings['button_webhook_url']
+    end
     json['render'] = !!obj.settings['board_render_url']
     
 
@@ -58,16 +62,16 @@ module JsonApi::Integration
           json['user_settings'] = settings
         end
       end
-
-      if obj.settings['custom_integration'] && json['permissions'] && json['permissions']['edit']
-        device_token = obj.device.token
-        if obj.created_at > 24.hours.ago && obj.device
-          json['access_token'] = device_token
-          json['token'] = obj.settings['token']
-        end
-        json['truncated_access_token'] = "...#{device_token[-5, 5]}"
-        json['truncated_token'] = "...#{obj.settings['token'][-5, 5]}"
+    end
+    if obj.settings['custom_integration']
+      json['asdf'] = 'asdf'
+      device_token = obj.device.token
+      if obj.created_at > 24.hours.ago && obj.device && json['permissions'] && json['permissions']['edit']
+        json['access_token'] = device_token
+        json['token'] = obj.settings['token']
       end
+      json['truncated_access_token'] = "...#{device_token[-5, 5]}"
+      json['truncated_token'] = "...#{obj.settings['token'][-5, 5]}"
     end
     
     ['icon_url', 'description'].each do |key|

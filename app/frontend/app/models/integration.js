@@ -20,11 +20,12 @@ CoughDrop.Integration = DS.Model.extend({
   description: DS.attr('string'),
   user_token: DS.attr('string'),
   button_webhook_url: DS.attr('string'),
+  button_webhook_local: DS.attr('boolean'),
   board_render_url: DS.attr('string'),
   insecure_button_webhook_url: function() {
     var url = this.get('button_webhook_url');
-    return url && url.match(/^http:/);
-  }.property('button_webhook_url'),
+    return url && url.match(/^http:/) && !this.get('button_webhook_local');
+  }.property('button_webhook_url', 'button_webhook_local'),
   insecure_board_render_url: function() {
     var url = this.get('board_render_url');
     return url && url.match(/^http:/);

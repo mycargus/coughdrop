@@ -109,6 +109,7 @@ class UserIntegration < ActiveRecord::Base
     self.settings['name'] = process_string(params['name']) if params['name']
     self.settings['custom_integration'] = params['custom_integration'] if params['custom_integration'] != nil
     self.settings['button_webhook_url'] = params['button_webhook_url'] if params['button_webhook_url']
+    self.settings['button_webhook_local'] = params['button_webhook_local'] if params['button_webhook_local']
     self.settings['board_render_url'] = params['board_render_url'] if params['board_render_url']
     self.settings['description'] = process_html(params['description']) if params['description']
     if params['integration_key']
