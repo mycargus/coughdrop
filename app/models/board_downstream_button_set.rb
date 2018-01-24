@@ -60,7 +60,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
     (self.data['buttons'] || []).each do |button|
       if boards_to_include[button['board_id']] != nil
         if button['linked_board_id']
-          boards_to_include[button['linked_board_id']] = boards_to_include[button['board_id']] + 1
+          boards_to_include[button['linked_board_id']] = [boards_to_include[button['linked_board_id']], boards_to_include[button['board_id']] + 1].compact.min
         end
       end
     end
