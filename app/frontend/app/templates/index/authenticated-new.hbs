@@ -3,8 +3,8 @@
     <button class='expand btn btn-default' style='float: right; margin-right: 5px;' {{action 'expand_left_nav'}}><span class={{if left_nav_expanded 'caret' 'caret-right'}}></span></button>
   <h2 style='padding-left: 5px;'>
     {{#link-to 'user' app_state.currentUser.user_name class='hidden_link'}}
-      <img src={{app_state.currentUser.avatar_url_with_fallback}} class='fit_image' style="height: 45px; width: 45px; margin-bottom: -5px; border: 1px solid #444; border-radius: 100%; padding: 1px;"/>
-      {{app_state.currentUser.user_name}}
+      <img src={{app_state.currentUser.avatar_url_with_fallback}} class='fit_image' style="height: 45px; width: 45px; margin-bottom: -5px; border: 1px solid rgba(0, 0, 0, 0.5); border-radius: 100%; padding: 1px; background: #fff; box-shadow: 0px 0px 3px;"/>
+      <span style='vertical-align: middle'>{{app_state.currentUser.user_name}}</span>
     {{/link-to}}
   </h2>
   <div class="left_links list-group no_curve">
