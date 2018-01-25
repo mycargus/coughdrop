@@ -103,6 +103,20 @@ export default Ember.Controller.extend({
     // before, but with all the local caching it's more likely to
     // happen more often.
   },
+  check_for_updated_board: function() {
+    // When you exit out of speak mode, go ahead and try to reload the board, that
+    // will give people a consistent, reliable way to check for updates in case
+    // their board got out of sync.
+    if(persistence.get('online') && this.get('ordered_buttons') && this.get('app_state.currentBoardState.reload_token') && !this.get('app_state.speak_mode')) {
+      this.set('app_state.currentBoardState.reload_token', null);
+      this.get('model').reload().then(function(brd) {
+        if(brd && brd.get('permissions.view')) {
+          this.set('model.fast_html', null);
+          editManager.process_for_displaying();
+        }
+      }, function() { });
+    }
+  }.observes('app_state.currentBoardState.reload_token', 'ordered_buttons', 'app_state.speak_mode'),
   update_current_board_state: function() {
     if(this.get('model.id') && app_state.get('currentBoardState.id') == this.get('model.id')) {
       app_state.setProperties({
