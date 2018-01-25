@@ -1924,7 +1924,7 @@ body.pretty_loader #loading_box {
     margin-top: 5px;
   }
   .main.short_list {
-    margin-top: calc((100vh - 150px) / 2 - 125px - 75px);
+    margin-top: 50px;
   }
 }
 .new_pills {
@@ -2084,6 +2084,8 @@ body.pretty_loader #loading_box {
     &.middle_row {
       border-color: #9b962e;
       background: #fffbbc;
+      border-color: #692693; 
+      background: rgb(234, 200, 255);
     }
     &.bottom_row {
       border-color: #ad7332;
@@ -3749,5 +3751,30 @@ body:-ms-fullscreen {
       margin-left: 10px;
     }
   }
-
+  @media (min-height: 550px) {
+    #new_right {
+      .main.short_list {
+        margin-top: 75px;
+        .big_button {
+          height: calc((100vh - 150px) - 150px - 25px);
+          img {
+            margin-bottom: 20px;
+          }
+          > .glyphicon {
+            margin-bottom: 40px;
+          }
+        }
+      }
+    }
+  }
+  @media (min-height: 750px) {
+    #new_right {
+      .main.short_list {
+        margin-top: calc((100vh - 150px - 435px - 25px) / 2);
+        .big_button {
+          height: 435px;
+        }
+      }
+    }
+  }
 }

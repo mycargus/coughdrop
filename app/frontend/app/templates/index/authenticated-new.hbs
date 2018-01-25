@@ -351,21 +351,21 @@
           </button>
         </div>
         <div class='col-md-3 col-xs-4 big_button_holder'>
-          <button class='btn big_button btn-default' {{action 'stats'}} style='border-color: rgb(232, 96, 96); background: rgb(255, 155, 155);'>
+          <button class='btn big_button btn-default' {{action 'stats'}} style='border-color: #9b962e; background: #fffbbc;'>
             <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/Line%20Graph-2c932e7f91.svg'>
             {{t "Reports" key='reports'}}
           </button>
         </div>
         {{#if app_state.currentUser.preferences.progress.intro_watched}}
           <div class='col-md-3 col-xs-4 big_button_holder'>
-            <button class='btn big_button btn-default' {{action "newBoard"}}>
+            <button class='btn big_button btn-default' {{action "newBoard"}} style='background: #d1efbc; border-color: #56b700;'>
               <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/New-ea00c9e5b0.svg'>
               {{t "New Board" key='new_board'}}
             </button>
           </div>
         {{else}}
           <div class='col-md-3 col-xs-4 big_button_holder'>
-            <button class='btn big_button btn-default middle_row' {{action "intro"}}>
+            <button class='btn big_button btn-default middle_row' {{action "intro"}} style='background: #d1efbc; border-color: #56b700;'>
               <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/arasaac/have%20an%20idea.png'>
               {{t "Learn<br/>and Setup" key='learn_and_setup'}}
             </button>
