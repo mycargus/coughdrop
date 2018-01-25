@@ -181,7 +181,7 @@ var session = Ember.Object.extend({
         if(!Ember.testing) {
           alert(message);
         }
-        session.invalidate();
+        session.invalidate(true);
       } else {
         modal.open('force-logout', {message: message});
       }
@@ -189,8 +189,8 @@ var session = Ember.Object.extend({
       session.invalidate();
     }
   },
-  invalidate: function() {
-    var full_invalidate = !!(app_state.get('currentUser') || stashes.get_object('auth_settings', true));
+  invalidate: function(force) {
+    var full_invalidate = force || !!(app_state.get('currentUser') || stashes.get_object('auth_settings', true));
     stashes.flush();
     stashes.setup();
     if(full_invalidate) {
