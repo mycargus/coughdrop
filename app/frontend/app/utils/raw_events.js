@@ -68,6 +68,12 @@ Ember.$(document).on('mousedown touchstart', function(event) {
   if(event.keyCode == 13 || event.keyCode == 32) {
     frame_listener.trigger_target(Ember.$(event.target).closest(".integration_target")[0]);
   }
+}).on('keypress', function(event) {
+  if(buttonTracker.check('keyboard_listen')) {
+    if(event.key && event.key != 'Enter') {
+      // add letter to the sentence box
+    }
+  }
 }).on('keydown', function(event) {
   if(event.keyCode == 9) {
     $board_canvas = Ember.$("#board_canvas");
@@ -94,8 +100,23 @@ Ember.$(document).on('mousedown touchstart', function(event) {
     if(modal.is_open() && modal.is_closeable()) {// && (event.target.tagName == 'INPUT' || event.target.tagName == 'BUTTON' || event.target.tagName == 'TEXTAREA' || event.target.tagName == 'A')) {
       modal.close();
     }
+  } else if([37, 38, 39, 40].indexOf(event.keyCode) != -1) {
+    buttonTracker.direction_event(event);
+  }
+}).on('keyup', function(event) {
+  if([37, 38, 39, 40].indexOf(event.keyCode) != -1) {
+    buttonTracker.direction_event(event);
   }
 }).on('keydown', function(event) {
+  if(buttonTracker.check('dwell_enabled') && buttonTracker.check('select_keycode') && buttonTracker.check('dwell_selection') == 'button') {
+    if(event.keyCode && event.keyCode == buttonTracker.check('select_keycode')) {
+      if(buttonTracker.last_dwell_linger) {
+        var events = buttonTracker.last_dwell_linger.events;
+        var e = events[events.length - 1];
+        buttonTracker.element_release(buttonTracker.last_dwell_linger, e);
+      }
+    }
+  }
   if(!buttonTracker.check('scanning_enabled')) { return; }
   if(event.keyCode && event.keyCode == buttonTracker.check('select_keycode')) { // spacebar key
     scanner.pick();
@@ -665,14 +686,179 @@ var buttonTracker = Ember.Object.extend({
       }
     }
   },
+  update_gamepads: function() {
+    var gamepads = navigator.getGamepads ? navigator.getGamepads() : (navigator.webkitGetGamepads ? navigator.webkitGetGamepads : []);
+    buttonTracker.gamepads = {};
+    for (var i = 0; i < gamepads.length; i++) {
+      var gp = gamepads[i];
+      if (gp) {
+        buttonTracker.gamepads[gp.id] = gp;
+      }
+    }
+  },
+  direction_event: function(event) {
+    buttonTracker.direction_keys = buttonTracker.direction_keys || {};
+    buttonTracker.gamepad_down_buttons = buttonTracker.gamepad_down_buttons || {};
+    if(event.type == 'keydown' && event.keyCode) {
+      buttonTracker.direction_keys[event.keyCode] = (new Date()).getTime();
+    } else if(event.type == 'keyup' && event.keyCode) {
+      buttonTracker.direction_keys[event.keyCode] = false;
+    }
+    if(buttonTracker.check('dwell_type') != 'arrow_dwell') {
+      return;
+    }
+    if(!buttonTracker.handle_direction) {
+      // workaround for cordova plugin using older version of button api
+      var pressed = function(button) {
+        if(button && (typeof button['value'] !== 'undefined')) {
+          return button.value == 1.0;
+        } else {
+          return button == 1.0;
+        }
+      };
+      buttonTracker.handle_direction = function() {
+        // up:    key 38, buttons[12], axes[1] == -1, axes[3] == -1
+        // down:  key 40, buttons[13], axes[1] == 1, axes[3] == 1
+        // left:  key 37, buttons[14], axes[0] == -1, axes[2] == -1
+        // right: key 39, buttons[15], axes[0] == 1, axes[2] == 1
+        // select: buttons[0-3] (abxy), buttons[4,6] (L), buttons[5,7] (R), buttons[9] (start), buttons[10,11] (joysticks)
+        var x = buttonTracker.direction_x || (window.innerWidth / 2);
+        var y = buttonTracker.direction_y || (window.innerHeight / 2);
+        var update = false;
+        var pad_actions = {};
+        if (!('ongamepadconnected' in window)) {
+          buttonTracker.update_gamepads();
+        }
+        var gamepads = buttonTracker.gamepads || {};
+        var codes = [0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11];
+        for(var id in gamepads) {
+          var pad = gamepads[id];
+          if(pad.connected) {
+            if(pad.axes[0] > 0.9 || pad.axes[2] > 0.9 || pressed(pad.buttons[15])) {
+              pad_actions.right = 2.0;
+            } else if(pad.axes[0] > 0.7 || pad.axes[2] > 0.7) {
+              pad_actions.right = 1.0;
+            } else if(pad.axes[0] > 0.5 || pad.axes[2] > 0.5) {
+              pad_actions.right = 0.5;
+            }
+            if(pad.axes[0] < -0.9 || pad.axes[2] < -0.9 || pressed(pad.buttons[14])) {
+              pad_actions.left = 2.0;
+            } else if(pad.axes[0] < -0.7 || pad.axes[2] < -0.7) {
+              pad_actions.left = 1.0;
+            } else if(pad.axes[0] < -0.5 || pad.axes[2] < -0.5) {
+              pad_actions.left = 0.5;
+            }
+            var up_axis_2 = (pad.axes.length > 4) ? 5 : 3;
+            if(pad.axes[1] < -0.9 || pad.axes[up_axis_2] < -0.9 || pressed(pad.buttons[12])) {
+              pad_actions.up = 2.0;
+            } else if(pad.axes[1] < -0.7 || pad.axes[up_axis_2] < -0.7) {
+              pad_actions.up = 1.0;
+            } else if(pad.axes[1] < -0.5 || pad.axes[up_axis_2] < -0.5) {
+              pad_actions.up = 0.5;
+            }
+            if(pad.axes[1] > 0.9 || pad.axes[up_axis_2] > 0.9 || pressed(pad.buttons[13])) {
+              pad_actions.down = 2.0;
+            } else if(pad.axes[1] > 0.7 || pad.axes[up_axis_2] > 0.7) {
+              pad_actions.down = 1.0;
+            } else if(pad.axes[1] > 0.5 || pad.axes[up_axis_2] > 0.5) {
+              pad_actions.down = 0.5;
+            }
+            for(var idx = 0; idx < codes.length; idx++) {
+              var code = codes[idx];
+              var ref = pad.id.toString() + ":" + code;
+              if(pressed(pad.buttons[code])) {
+                if(!buttonTracker.gamepad_down_buttons[ref]) {
+                  buttonTracker.gamepad_down_buttons[ref] = true;
+                  pad_actions.select = true;
+                }
+              } else {
+                buttonTracker.gamepad_down_buttons[ref] = false;
+              }
+
+            }
+          }
+        }
+        var rate = 1.0;
+        if(buttonTracker.dwell_arrow_speed == 'moderate') {
+          rate = 2.5;
+        } else if(buttonTracker.dwell_arrow_speed == 'quick') {
+          rate = 4.0;
+        } else if(buttonTracker.dwell_arrow_speed == 'speedy') {
+          rate = 6.0;
+        } else if(buttonTracker.dwell_arrow_speed == 'really_slow') {
+          rate = 0.5;
+        }
+        if(buttonTracker.direction_keys[37] || pad_actions.left) {
+          if(buttonTracker.direction_keys[39] && buttonTracker.direction_keys[39] > buttonTracker.direction_keys[37]) {
+            // if right was pressed more recently than left, ignore left
+          } else if(x > 0) {
+            x = x - ((pad_actions.left || 2.0) * rate);
+            update = true;
+          }
+        }
+        if(buttonTracker.direction_keys[39] || pad_actions.right) {
+          if(buttonTracker.direction_keys[37] && buttonTracker.direction_keys[37] > buttonTracker.direction_keys[39]) {
+            // if left was pressed more recently than right, ignore right
+          } else if(x < window.innerWidth) {
+            x = x + ((pad_actions.right || 2.0) * rate);
+            update = true;
+          }
+        }
+        if(buttonTracker.direction_keys[38] || pad_actions.up) {
+          if(buttonTracker.direction_keys[40] && buttonTracker.direction_keys[40] > buttonTracker.direction_keys[38]) {
+            // if down was pressed more recently than up, ignore up
+          } else if(y > 0) {
+            y = y - ((pad_actions.up || 2.0) * rate);
+            update = true;
+          }
+        }
+        if(buttonTracker.direction_keys[40] || pad_actions.down) {
+          if(buttonTracker.direction_keys[38] && buttonTracker.direction_keys[38] > buttonTracker.direction_keys[40]) {
+            // if up was pressed more recently than down, ignore down
+          } else if(y < window.innerHeight) {
+            y = y + ((pad_actions.down || 2.0) * rate);
+            update = true;
+          }
+        }
+        if(pad_actions.select) {
+          // Only if this is a new button pressed (and one that happened after
+          // a directional movement of some kind) should we count it as a selection
+          if(buttonTracker.direction_x !== undefined && buttonTracker.direction_y !== undefined) {
+            // trigger a select action
+            if(buttonTracker.last_dwell_linger && buttonTracker.last_dwell_linger.events) {
+              var events = buttonTracker.last_dwell_linger.events;
+              var e = events[events.length - 1];
+              buttonTracker.element_release(buttonTracker.last_dwell_linger, e);
+            }
+          }
+        }
+        if(update) {
+          buttonTracker.direction_x = x;
+          buttonTracker.direction_y = y;
+          var e = Ember.$.Event( 'gazelinger' );
+          e.clientX = x;
+          e.clientY = y;
+          Ember.$(document).trigger(e);
+        }
+        if(Object.keys(gamepads).length > 0 || Object.keys(buttonTracker.direction_keys).length > 0) {
+          window.requestAnimationFrame(buttonTracker.handle_direction);
+        } else {
+          buttonTracker.handle_direction = null;
+        }
+      };
+      window.requestAnimationFrame(buttonTracker.handle_direction);
+    }
+  },
   dwell_linger: function(event) {
+    // debounce, waiting for clearance
     if(buttonTracker.dwell_wait) { return; }
+    var dwell_selection = buttonTracker.dwell_selection != 'button';
     // cursor-based trackers can throw the cursor up against the edges of the screen causing
     // inaccurate lingers for the buttons along the edges
     if(event.type == 'mousemove' && (event.clientX === 0 || event.clientY === 0 || event.clientX >= (window.innerWidth - 1) || event.clientY >= (window.innerHeight - 1))) {
       return;
     }
-    if(buttonTracker.last_triggering_dwell_event) {
+    if(buttonTracker.last_triggering_dwell_event && dwell_selection) {
       // after a selection, require a little bit of movement before recognizing input
       var last = buttonTracker.last_triggering_dwell_event;
       var needed_distance = buttonTracker.check('dwell_release_distance') || 30;
@@ -721,8 +907,11 @@ var buttonTracker = Ember.Object.extend({
       icon.className = 'dwell_icon';
       document.body.appendChild(icon);
       buttonTracker.dwell_icon_elem = icon;
+      if(!dwell_selection) {
+        buttonTracker.dwell_elem.classList.add('cursor');
+      }
     }
-    if(buttonTracker.check('dwell_cursor')) {
+    if(buttonTracker.check('dwell_cursor') || !dwell_selection) {
       buttonTracker.dwell_icon_elem.style.left = (event.clientX - 5) + "px";
       buttonTracker.dwell_icon_elem.style.top = (event.clientY - 5) + "px";
     }
@@ -779,7 +968,7 @@ var buttonTracker = Ember.Object.extend({
     if(elem_wrap && buttonTracker.last_dwell_linger && elem_wrap.dom == buttonTracker.last_dwell_linger.dom) {
       // if still lingering on the same element, we're rockin'
       buttonTracker.buttonDown = true;
-    } else if(buttonTracker.dwell_gravity && elem_wrap && buttonTracker.last_dwell_linger && elem_wrap.dom != buttonTracker.last_dwell_linger.dom) {
+    } else if(dwell_selection && buttonTracker.dwell_gravity && elem_wrap && buttonTracker.last_dwell_linger && elem_wrap.dom != buttonTracker.last_dwell_linger.dom) {
       // if there's a valid existing linger for a different element, decide between it and the new linger
       var old_bounds = buttonTracker.last_dwell_linger.loose_bounds();
       var new_bounds = elem_wrap.loose_bounds();
@@ -809,7 +998,7 @@ var buttonTracker = Ember.Object.extend({
 
     if(buttonTracker.last_dwell_linger) {
       // place the dwell icon in the center of the current linger
-      if(!buttonTracker.last_dwell_linger.started) {
+      if(dwell_selection && !buttonTracker.last_dwell_linger.started) {
         // restart the excited doing-something animation
         buttonTracker.last_dwell_linger.started = now;
         var bounds = buttonTracker.last_dwell_linger.loose_bounds();
@@ -829,29 +1018,35 @@ var buttonTracker = Ember.Object.extend({
       buttonTracker.last_dwell_linger.updated = now;
       buttonTracker.last_dwell_linger.events = buttonTracker.last_dwell_linger.events || [];
       buttonTracker.last_dwell_linger.events.push(event);
-      // trigger selection if dwell has been for long enough
-      if(now - buttonTracker.last_dwell_linger.started > buttonTracker.dwell_timeout) {
-        event.dwell_linger = true;
-        buttonTracker.element_release(buttonTracker.last_dwell_linger, event);
-        buttonTracker.last_triggering_dwell_event = event;
-        buttonTracker.last_dwell_linger = null;
-        if(buttonTracker.dwell_delay) {
-          buttonTracker.dwell_wait = true;
-          Ember.run.later(function() {
-            buttonTracker.dwell_wait = false;
-          }, buttonTracker.dwell_delay);
+      if(dwell_selection) {
+        // trigger selection if dwell has been for long enough
+        if(now - buttonTracker.last_dwell_linger.started > buttonTracker.dwell_timeout) {
+          event.dwell_linger = true;
+          buttonTracker.element_release(buttonTracker.last_dwell_linger, event);
+          buttonTracker.last_triggering_dwell_event = event;
+          buttonTracker.last_dwell_linger = null;
+          if(buttonTracker.dwell_delay) {
+            buttonTracker.dwell_wait = true;
+            Ember.run.later(function() {
+              buttonTracker.dwell_wait = false;
+            }, buttonTracker.dwell_delay);
+          }
+        } else {
+          // if we're getting close to the dwell timeout, schedule a listener to trigger
+          // it in case we don't get a follow-on event in time
+          var will_trigger_at = buttonTracker.last_dwell_linger.started + buttonTracker.dwell_timeout;
+          var ms_since_start = now - buttonTracker.last_dwell_linger.started;
+          var ms_until_trigger = will_trigger_at - now;
+          if((event.type == 'mousemove' && buttonTracker.dwell_no_cutoff && ms_since_start > minimum_interaction_window) || (ms_until_trigger < allowed_delay_between_events * 3 / 4)) {
+            buttonTracker.linger_close_enough_later = Ember.run.later(function() {
+              buttonTracker.dwell_linger(event);
+            }, ms_until_trigger - 50);
+          }
         }
       } else {
-        // if we're getting close to the dwell timeout, schedule a listener to trigger
-        // it in case we don't get a follow-on event in time
-        var will_trigger_at = buttonTracker.last_dwell_linger.started + buttonTracker.dwell_timeout;
-        var ms_since_start = now - buttonTracker.last_dwell_linger.started;
-        var ms_until_trigger = will_trigger_at - now;
-        if((event.type == 'mousemove' && buttonTracker.dwell_no_cutoff && ms_since_start > minimum_interaction_window) || (ms_until_trigger < allowed_delay_between_events * 3 / 4)) {
-          buttonTracker.linger_close_enough_later = Ember.run.later(function() {
-            buttonTracker.dwell_linger(event);
-          }, ms_until_trigger - 50);
-        }
+        buttonTracker.dwell_elem.classList.remove('targeting');
+        buttonTracker.dwell_elem.style.left = (event.clientX - 25) + "px";
+        buttonTracker.dwell_elem.style.top = (event.clientY - 25) + "px";
       }
     } else {
       // stick the dwell icon wherever it goes, with a sad nothing-here styling
@@ -1127,9 +1322,16 @@ var buttonTracker = Ember.Object.extend({
         }, 500);
       }
 
-      buttonTracker.dwell_elem.classList.remove('targeting');
-      buttonTracker.dwell_elem.style.left = '-1000px';
-      buttonTracker.last_dwell_linger = null;
+      buttonTracker.dwell_elem.parentNode.removeChild(buttonTracker.dwell_elem);
+      buttonTracker.dwell_elem = document.getElementById('linger');
+      if(buttonTracker.check('dwell_selection') == 'button') {
+        if(buttonTracker.last_dwell_linger && buttonTracker.last_dwell_linger.events && buttonTracker.last_dwell_linger.events.length) {
+          var events = buttonTracker.last_dwell_linger.events;
+          buttonTracker.last_dwell_linger.events = [events[events.length - 1]];
+        }
+      } else {
+        buttonTracker.last_dwell_linger = null;
+      }
     }
     if(buttonTracker.dwell_icon_elem) {
       buttonTracker.dwell_icon_elem.style.left = '-1000px';
@@ -1295,6 +1497,47 @@ var buttonTracker = Ember.Object.extend({
   drag_distance: 20,
   buttons: []
 }).create();
+
+window.addEventListener('gamepadconnected', function(e) {
+  buttonTracker.gamepads = buttonTracker.gamepads || {};
+  var pad = e.gamepad;
+  var buttons = [];
+  if(pad.buttons) {
+    for(var idx = 0; idx < pad.buttons.length; idx++) {
+      if(pad.buttons[idx].value !== undefined) {
+        buttons.push(pad.buttons[idx].value);
+      } else {
+        buttons.push(pad.buttons[idx].pressed ? 1.0 : 0.0);
+      }
+      buttons.push(pad.buttons[idx]);
+    }
+  }
+  var axes = [];
+  if(pad.axes) {
+    for(var idx = 0; idx < pad.axes.length; idx++) {
+      axes.push(pad.axes[idx]);
+    }
+  }
+  buttonTracker.gamepads[e.gamepad.id] = pad;
+  buttonTracker.direction_event('gamepads');
+});
+window.addEventListener('gamepaddisconnected', function(e) {
+  buttonTracker.gamepads = buttonTracker.gamepads || {};
+  delete buttonTracker.gamepads[e.gamepad.id];
+});
+if (!('ongamepadconnected' in window)) {
+  // No gamepad events available, poll instead.
+  buttonTracker.gamepad_check_interval = setInterval(function() {
+    if(app_state.get('speak_mode')) {
+      buttonTracker.update_gamepads();
+      if(Object.keys(buttonTracker.gamepads).length > 0) {
+        buttonTracker.direction_event('gamepads');
+      }
+    }
+  }, 2000);
+}
+
+
 window.buttons = buttonTracker;
 
 export default buttonTracker;

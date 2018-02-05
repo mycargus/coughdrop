@@ -1845,6 +1845,27 @@ body.pretty_loader #loading_box {
   }
 }
 
+#scanner_axis_vertical {
+  width: 3px;
+  background: #f00;
+  height: 100vh;
+  left: -1000px;
+  position: absolute;
+  top: 0;
+  z-index: 99;
+  box-shadow: 2px 2px 10px rgba(60, 60, 60, 0.7), -2px -2px 10px rgba(60, 60, 60, 0.7), -2px 2px 10px rgba(60, 60, 60, 0.7), 2px -2px 10px rgba(60, 60, 60, 0.7);
+}
+#scanner_axis_horizontal {
+  height: 3px;
+  background: #f00;
+  width: 100vw;
+  top: -1000px;
+  position: absolute;
+  left: 0;
+  z-index: 99;
+  box-shadow: 2px 2px 10px rgba(60, 60, 60, 0.7), -2px -2px 10px rgba(60, 60, 60, 0.7), -2px 2px 10px rgba(60, 60, 60, 0.7), 2px -2px 10px rgba(60, 60, 60, 0.7);
+}
+
 .board_with_action {
   .board_action {
     position: absolute; 
@@ -2522,6 +2543,9 @@ video.button_image {
   &.temp_hide {
     display: none;
     left: -100px;
+  }
+  &.cursor {
+    border: 3px solid rgba(0, 0, 0, 0.5);
   }
   &.targeting.shrink {
     -webkit-animation-name: target;

@@ -614,6 +614,7 @@ var app_state = Ember.Object.extend({
         scanner.start({
           scan_mode: _this.get('currentUser.preferences.device.scanning_mode'),
           interval: interval,
+          sweep: _this.get('currentUser.preferences.device.scanning_sweep_speed'),
           auto_scan: interval !== 0,
           auto_start: !_this.get('currentUser.preferences.device.scanning_wait_for_input'),
           vertical_chunks: _this.get('currentUser.preferences.device.scanning_region_rows'),
@@ -626,7 +627,7 @@ var app_state = Ember.Object.extend({
       } else {
         buttonTracker.scanning_enabled = false;
         // this was breaking the "find button" interface when you get to the second board
-        if(scanner.interval) {
+        if(scanner.interval || (scanner.options || {}).scan_mode == 'axes') {
           scanner.stop();
         }
       }
@@ -639,6 +640,9 @@ var app_state = Ember.Object.extend({
         buttonTracker.dwell_timeout = _this.get('currentUser.preferences.device.dwell_timeout');
         buttonTracker.dwell_delay = _this.get('currentUser.preferences.device.dwell_delay');
         buttonTracker.dwell_type = _this.get('currentUser.preferences.device.dwell_type');
+        buttonTracker.dwell_selection = _this.get('currentUser.preferences.device.dwell_selection') || 'dwell';
+        buttonTracker.select_keycode = _this.get('currentUser.preferences.device.scanning_select_keycode');
+        buttonTracker.dwell_arrow_speed = _this.get('currentUser.preferences.device.dwell_arrow_speed');
         buttonTracker.dwell_animation = _this.get('currentUser.preferences.device.dwell_targeting');
         buttonTracker.dwell_release_distance = _this.get('currentUser.preferences.device.dwell_release_distance');
         buttonTracker.dwell_no_cutoff = _this.get('currentUser.preferences.device.dwell_no_cutoff');

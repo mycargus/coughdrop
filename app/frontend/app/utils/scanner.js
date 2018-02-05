@@ -36,6 +36,7 @@ var scanner = Ember.Object.extend({
 
     if(modal.is_open() && !modal.is_open('highlight')) {
       return;
+    } else if(options.scan_mode == 'axes') {
     } else {
       var row = {};
       if(!options.skip_header) {
@@ -316,8 +317,9 @@ var scanner = Ember.Object.extend({
     Ember.run.cancel(scanner.interval);
     scanner.interval = null;
     modal.close_highlight();
-    this.start();
-    this.listen_for_input();
+    scanner.scan_axes('clear');
+    scanner.start();
+    scanner.listen_for_input();
   },
   stop: function()  {
     Ember.run.cancel(scanner.interval);
@@ -326,6 +328,7 @@ var scanner = Ember.Object.extend({
     this.keyboard_tried_to_show = false;
     this.last_options = null;
     modal.close_highlight();
+    scanner.scan_axes('clear');
   },
   same_elements: function(a, b) {
     if(!a || !b || a.length != b.length) {
@@ -364,15 +367,14 @@ var scanner = Ember.Object.extend({
   },
   pick: function() {
     var elem = scanner.current_element;
-    if(!scanner.current_element && scanner.options && !scanner.options.auto_start) {
-      scanner.next();
-      return;
-    }
-    if(!modal.highlight_controller || !elem) { return; }
-    var now = (new Date()).getTime();
-    if(scanner.ignore_until && now < scanner.ignore_until) { return; }
-    if(!elem.higher_level && elem.children && elem.children.length == 1) {
-      elem = elem.children[0];
+    if(scanner.options && scanner.options.scan_mode != 'axes') {
+      if(!scanner.current_element && scanner.options && !scanner.options.auto_start) {
+        scanner.next();
+        return;
+      }
+      if(!modal.highlight_controller || !elem) { return; }
+      var now = (new Date()).getTime();
+      if(scanner.ignore_until && now < scanner.ignore_until) { return; }
     }
 
     var track = buttonTracker.track_selection({
@@ -381,52 +383,67 @@ var scanner = Ember.Object.extend({
     });
     if(!track.proceed) { return; }
 
-    if(elem.dom && elem.dom.hasClass('integration_target')) {
-      frame_listener.trigger_target_event(elem.dom[0], 'scanselect', 'select');
-    }
+    if(scanner.options.scan_mode == 'axes') {
+      // progress to next scanning mode, or trigger select event at the coords
+      scanner.scan_axes('next');
+    } else {
+      if(!elem.higher_level && elem.children && elem.children.length == 1) {
+        elem = elem.children[0];
+      }
 
-    if(elem.dom && elem.dom.hasClass('btn') && elem.dom.closest("#identity").length > 0) {
-      var e = Ember.$.Event( "click" );
-      e.pass_through = true;
-      e.switch_activated = true;
-      scanner.find_elem(elem.dom).trigger(e);
-      setTimeout(function() {
-        scanner.find_elem("#home_button").focus().select();
-      }, 100);
-    }
+      if(elem.dom && elem.dom.hasClass('integration_target')) {
+        frame_listener.trigger_target_event(elem.dom[0], 'scanselect', 'select');
+      }
 
-    if(elem.higher_level) {
-      scanner.elements = elem.higher_level;
-      scanner.element_index = elem.higher_level_index;
-      Ember.run.cancel(scanner.interval);
-      scanner.interval = Ember.run.later(function() {
-        scanner.next_element();
-      });
-    } else if(elem.children) {
-      scanner.load_children(elem, scanner.elements, scanner.element_index);
-    } else if(elem.dom) {
-      if(elem.dom.hasClass('button') && elem.dom.attr('data-id')) {
-        var id = elem.dom.attr('data-id');
-        var button = editManager.find_button(id);
-        var app = app_state.controller;
-        var board = app.get('board.model');
-        app.activateButton(button, {image: button.get('image'), sound: button.get('sound'), board: board});
-      } else if(elem.dom.hasClass('integration_target')) {
-        frame_listener.trigger_target(elem.dom[0]);
-      } else if(elem.dom.hasClass('button_list')) {
-        elem.dom.select();
-      } else {
+      if(elem.dom && elem.dom.hasClass('btn') && elem.dom.closest("#identity").length > 0) {
         var e = Ember.$.Event( "click" );
         e.pass_through = true;
+        e.switch_activated = true;
         scanner.find_elem(elem.dom).trigger(e);
+        setTimeout(function() {
+          scanner.find_elem("#home_button").focus().select();
+        }, 100);
       }
-      Ember.run.later(function() {
-        scanner.reset();
-      });
+
+      if(elem.higher_level) {
+        scanner.elements = elem.higher_level;
+        scanner.element_index = elem.higher_level_index;
+        Ember.run.cancel(scanner.interval);
+        scanner.interval = Ember.run.later(function() {
+          scanner.next_element();
+        });
+      } else if(elem.children) {
+        scanner.load_children(elem, scanner.elements, scanner.element_index);
+      } else if(elem.dom) {
+        scanner.pick_elem(elem.dom);
+      }
     }
     if(scanner.options && scanner.options.debounce) {
       scanner.ignore_until = now + scanner.options.debounce;
     }
+  },
+  pick_elem: function(dom) {
+    var $closest = Ember.$(dom).closest('.button,.integration_target,.button_list');
+    if($closest.length > 0) { dom = $closest; }
+    if(dom.hasClass('button') && dom.attr('data-id')) {
+      var id = dom.attr('data-id');
+      var button = editManager.find_button(id);
+      var app = app_state.controller;
+      var board = app.get('board.model');
+      // TODO: not picking up the sound record on the first load
+      app.activateButton(button, {board: board});
+    } else if(dom.hasClass('integration_target')) {
+      frame_listener.trigger_target(dom[0]);
+    } else if(dom.hasClass('button_list')) {
+      dom.select();
+    } else {
+      var e = Ember.$.Event( "click" );
+      e.pass_through = true;
+      scanner.find_elem(dom).trigger(e);
+    }
+    Ember.run.later(function() {
+      scanner.reset();
+    });
   },
   hide_input: function() {
     if(window.Keyboard && window.Keyboard.hide && app_state.get('speak_mode') && scanner.scanning) {
@@ -459,6 +476,123 @@ var scanner = Ember.Object.extend({
     }
 //    scanner.hide_input();
   },
+  axes_advance: function() {
+    var do_continue = false;
+    var rate = 100 / 3 / 60;
+    if(scanner.options.sweep == 'quick') {
+      rate = 100 / 2 / 60;
+    } else if(scanner.options.sweep == 'speedy') {
+      rate = 100 / 1 / 60;
+    } else if(scanner.options.sweep == 'slow') {
+      rate = 100 / 5 / 60;
+    } else if(scanner.options.sweep == 'really_slow') {
+      rate = 100 / 8 / 60;
+    }
+
+    if(scanner.axes.x == 'scanning-forward' || scanner.axes.x == 'scanning-backward') {
+      var x = parseFloat(scanner.axes.vertical.style.left) || 0;
+      if(scanner.axes.vertical.style.left == '-1000px') { x = 0; }
+      if(scanner.axes.x.match(/forward/)) {
+        x = x + rate;
+      } else {
+        x = x - rate;
+      }
+      if(x >= 100) {
+        x = 100;
+        scanner.axes.x = 'scanning-backward';
+      } else if(x <= 0) {
+        x = 0;
+        scanner.axes.x = 'scanning-forward';
+      }
+      scanner.axes.vertical.style.left = x + 'vw';
+      do_continue = true;
+    }
+    if(scanner.axes.y == 'scanning-forward' || scanner.axes.y == 'scanning-backward') {
+      var min = 0;
+      if(scanner.options.skip_header) {
+        min = (document.getElementsByTagName('HEADER')[0].getBoundingClientRect().height / window.innerHeight) * 100;
+      }
+      var y = parseFloat(scanner.axes.horizontal.style.top) || min;
+      if(scanner.axes.horizontal.style.top == '-1000px') { y = min; }
+      if(scanner.axes.y.match(/forward/)) {
+        y = y + rate;
+      } else {
+        y = y - rate;
+      }
+      if(y >= 100) {
+        y = 100;
+        scanner.axes.y = 'scanning-backward';
+      } else if(y <= min) {
+        y = min;
+        scanner.axes.y = 'scanning-forward';
+      }
+      scanner.axes.horizontal.style.top = y + 'vh';
+      do_continue = true;
+    }
+    if(do_continue) {
+      scanner.axes.handling = true;
+      window.requestAnimationFrame(scanner.axes_advance);
+    } else {
+      scanner.axes.handling = false;
+    }
+  },
+  scan_axes: function(action) {
+    if(!scanner.axes) {
+      var vert = document.createElement('div');
+      vert.id = 'scanner_axis_vertical';
+      document.body.appendChild(vert);
+      var horiz = document.createElement('div');
+      horiz.id = 'scanner_axis_horizontal';
+      document.body.appendChild(horiz);
+      scanner.axes = {
+        vertical: vert,
+        horizontal: horiz
+      };
+    }
+    if(action == 'start' && (scanner.axes.x || scanner.axes.y) && (!scanner.axes.x || !scanner.axes.y)) {
+      // if already on the first type of scanning, ignore any restarts
+    } else if(action == 'clear' || action == 'start') {
+      // clear both axes
+      scanner.axes.vertical.style.left = '-1000px';
+      scanner.axes.horizontal.style.top = '-1000px';
+      scanner.axes.x = null;
+      scanner.axes.y = null;
+    }
+    if(!scanner.axes.x && !scanner.axes.y && (action == 'start' || action == 'next')) {
+      // if neither is visible, go ahead and start one
+      if(scanner.options && scanner.options.start_axis == 'y') {
+        scanner.axes.y = 'scanning-forward';
+        scanner.axes.x = null;
+      } else {
+        scanner.axes.x = 'scanning-forward';
+        scanner.axes.y = null;
+      }
+      if(!scanner.axes.handling) { scanner.axes_advance(); }
+    } else if((scanner.axes.x || scanner.axes.y) && (!scanner.axes.x || !scanner.axes.y) && action == 'next') {
+      // if the other axis is visible, lock it in place and start the specified axis
+      if(scanner.axes.x) {
+        scanner.axes.x = 'fixed';
+        scanner.axes.y = 'scanning-forward';
+      } else {
+        scanner.axes.y = 'fixed';
+        scanner.axes.x = 'scanning-forward';
+      }
+      if(!scanner.axes.handling) { scanner.axes_advance(); }
+    } else if(scanner.axes.x && scanner.axes.y && action == 'next') {
+      // select what's under the axes
+      var rect = scanner.axes.vertical.getBoundingClientRect();
+      var x = rect.left + (rect.width / 2);
+      rect = scanner.axes.horizontal.getBoundingClientRect();
+      var y = rect.top + (rect.height / 2);
+      scanner.options.auto_start = true;
+      scanner.last_options.auto_start = true;
+      scanner.scan_axes('clear');
+      // simulate selection event at the current location
+      var target = document.elementFromPoint(x, y);
+      scanner.pick_elem(Ember.$(target));
+      Ember.run.later(scanner.reset);
+    }
+  },
   load_children: function(elem, elements, index) {
     var parent = Ember.$.extend({higher_level: elements, higher_level_index: index}, elem);
     if(elem.reload_children) {
@@ -476,17 +610,25 @@ var scanner = Ember.Object.extend({
     if(scanner.ignore_until && now < scanner.ignore_until) { return; }
     Ember.run.cancel(scanner.interval);
     scanner.interval = null;
-    scanner.element_index = scanner.element_index + 1;
-    if(scanner.element_index >= scanner.elements.length) {
-      scanner.element_index = 0;
-    }
-    scanner.next_element();
-    if(scanner.options && scanner.options.debounce) {
-      scanner.ignore_until = now + scanner.options.debounce;
+    if(scanner.options.scan_mode == 'axes') {
+      // ignore
+    } else {
+      scanner.element_index = scanner.element_index + 1;
+      if(scanner.element_index >= scanner.elements.length) {
+        scanner.element_index = 0;
+      }
+      scanner.next_element();
+      if(scanner.options && scanner.options.debounce) {
+        scanner.ignore_until = now + scanner.options.debounce;
+      }
     }
   },
   next_element: function(retry) {
     var elem = this.elements[this.element_index];
+    if(scanner.options && scanner.options.scan_mode == 'axes') {
+      scanner.scan_axes('start');
+      return;
+    }
     if(!elem) {
       elem = elem || this.elements[0];
       this.element_index = 0;

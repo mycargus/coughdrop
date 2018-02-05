@@ -98,11 +98,31 @@ export default Ember.Controller.extend({
     {name: i18n.t('row_based', "Row-Based Scanning"), id: "row"},
     {name: i18n.t('column_based', "Column-Based Scanning"), id: "column"},
     {name: i18n.t('button_based', "Button-Based Scanning"), id: "button"},
-    {name: i18n.t('region_based', "Region-Based Scanning"), id: "region"}
+    {name: i18n.t('region_based', "Region-Based Scanning"), id: "region"},
+    {name: i18n.t('axis_based', "Axis-Based Scanning"), id: 'axes'}
+  ],
+  scanningAxisSpeedList: [
+    {name: i18n.t('moderate', "Moderate (3-second sweep)"), id: 'moderate'},
+    {name: i18n.t('quick', "Quick (2-second sweep)"), id: 'quick'},
+    {name: i18n.t('Speedy', "Speedy (1-second sweep)"), id: 'speedy'},
+    {name: i18n.t('slow', "Slow (5-second sweep)"), id: 'slow'},
+    {name: i18n.t('really_slow', "Really Slow (8-second sweep)"), id: 'really_slow'},
   ],
   dwellList: [
     {name: i18n.t('eye_gaze', "Eye Gaze Tracking"), id: 'eyegaze'},
-    {name: i18n.t('mouse_dwell', "Cursor-Based Dwell Tracking"), id: 'mouse_dwell'}
+    {name: i18n.t('mouse_dwell', "Cursor-Based Dwell Tracking"), id: 'mouse_dwell'},
+    {name: i18n.t('arrow_dwell', "Joystick/Key-Based Dwell Tracking"), id: 'arrow_dwell'}
+  ],
+  arrowSpeedList: [
+    {name: i18n.t('slow', "Slow"), id: 'slow'},
+    {name: i18n.t('moderate', "Moderate"), id: 'moderate'},
+    {name: i18n.t('quick', "Quick"), id: 'quick'},
+    {name: i18n.t('Speedy', "Speedy"), id: 'speedy'},
+    {name: i18n.t('really_slow', "Really Slow"), id: 'really_slow'},
+  ],
+  dwellSelectList: [
+    {name: i18n.t('time_on_target', "Select by Looking at a Target"), id: 'dwell'},
+    {name: i18n.t('button_select', "Select by Hitting a Switch or Button"), id: 'button'}
   ],
   dwellReleaseDistanceList: [
     {name: i18n.t('small', "Small (10px)"), id: 10},
@@ -179,6 +199,15 @@ export default Ember.Controller.extend({
   region_scanning: function() {
     return this.get('model.preferences.device.scanning_mode') == 'region';
   }.property('model.preferences.device.scanning_mode'),
+  axes_scanning: function() {
+    return this.get('model.preferences.device.scanning_mode') == 'axes';
+  }.property('model.preferences.device.scanning_mode'),
+  arrow_dwell: function() {
+    return this.get('model.preferences.device.dwell_type') == 'arrow_dwell';
+  }.property('model.preferences.device.dwell_type'),
+  button_dwell: function() {
+    return this.get('model.preferences.device.dwell_selection') == 'button';
+  }.property('model.preferences.device.dwell_selection'),
   select_keycode_string: function() {
     if(this.get('model.preferences.device.scanning_select_keycode')) {
       return (i18n.key_string(this.get('model.preferences.device.scanning_select_keycode')) || 'unknown') + ' key';
