@@ -57,7 +57,7 @@
                     <audio id={{sound.id}} src={{sound.url}}></audio>
                     <div style='clear: right;'></div>
                   </td>
-                  <td>
+                  <td style='width: 150px;'>
                     <a href={{sound.url}} class='btn btn-default' title={{t "download" key='download'}}><span class='glyphicon glyphicon-cloud-download'></span></a>
                     {{#if model.permissions.edit}}
                       <button {{action 'edit_sound' sound}} class='btn btn-default' title={{t "edit" key='edit'}}><span class='glyphicon glyphicon-pencil'></span></button>
