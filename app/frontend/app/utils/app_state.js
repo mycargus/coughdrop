@@ -1628,6 +1628,15 @@ if(!app_state.get('testing')) {
   }, 500);
 }
 
+document.addEventListener('selectionchange', function() {
+  if(app_state.get('speak_mode')) {
+    var sel = window.getSelection();
+    if(sel && sel.type == 'Range' && sel.empty) {
+      sel.empty();
+    }
+  }
+});
+
 app_state.ScrollTopRoute = Ember.Route.extend({
   activate: function() {
     this._super();
