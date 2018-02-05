@@ -450,7 +450,7 @@ export default Ember.Controller.extend({
                 modal.highlight($button).then(function() {
                   var found_button = editManager.find_button(button.id);
                   var board = _this.get('board.model');
-                  _this.activateButton(found_button, {image: found_button.get('image'), sound: found_button.get('sound'), board: board});
+                  _this.activateButton(found_button, {board: board});
                 });
               } else {
                 // TODO: really? is this the best you can figure out?
@@ -530,39 +530,41 @@ export default Ember.Controller.extend({
     return (order.indexOf(current) || 0) + 1;
   }.property('setup_order', 'setup_page'),
   activateButton: function(button, options) {
-    options = options || {};
-    var image = options.image;
-    var sound = options.sound;
-    var board = options.board;
+    button.findContentLocally().then(function() {
+      options = options || {};
+      var image = options.image || button.get('image');
+      var sound = options.sound || button.get('sound');
+      var board = options.board;
 
-    var oldState = {
-      id: board.get('id'),
-      key: board.get('key')
-    };
-    var image_url = button.image;
-    if(image && image.get('personalized_url')) {
-      image_url = image.get('personalized_url');
-    } else if(button.get('original_image_url')) {
-      image_url = CoughDropImage.personalize_url(button.get('original_image_url'), app_state.get('currentUser.user_token'));
-    }
-    var obj = {
-      label: button.label,
-      vocalization: button.vocalization,
-      image: image_url,
-      button_id: button.id,
-      sound: (sound && sound.get('url')) || button.get('original_sound_url'),
-      board: oldState,
-      completion: button.completion,
-      blocking_speech: button.blocking_speech,
-      type: 'speak'
-    };
-    var location = buttonTracker.locate_button_on_board(button.id, options.event);
-    if(location) {
-      obj.percent_x = location.percent_x;
-      obj.percent_y = location.percent_y;
-    }
+      var oldState = {
+        id: board.get('id'),
+        key: board.get('key')
+      };
+      var image_url = button.image;
+      if(image && image.get('personalized_url')) {
+        image_url = image.get('personalized_url');
+      } else if(button.get('original_image_url')) {
+        image_url = CoughDropImage.personalize_url(button.get('original_image_url'), app_state.get('currentUser.user_token'));
+      }
+      var obj = {
+        label: button.label,
+        vocalization: button.vocalization,
+        image: image_url,
+        button_id: button.id,
+        sound: (sound && sound.get('url')) || button.get('original_sound_url'),
+        board: oldState,
+        completion: button.completion,
+        blocking_speech: button.blocking_speech,
+        type: 'speak'
+      };
+      var location = buttonTracker.locate_button_on_board(button.id, options.event);
+      if(location) {
+        obj.percent_x = location.percent_x;
+        obj.percent_y = location.percent_y;
+      }
 
-    app_state.activate_button(button, obj);
+      app_state.activate_button(button, obj);
+    }, function() { });
   },
   background_class: function() {
     if(app_state.get('speak_mode')) {

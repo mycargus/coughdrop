@@ -108,10 +108,11 @@ export default Ember.Controller.extend({
     // will give people a consistent, reliable way to check for updates in case
     // their board got out of sync.
     if(persistence.get('online') && this.get('ordered_buttons') && this.get('app_state.currentBoardState.reload_token') && !this.get('app_state.speak_mode')) {
-      this.set('app_state.currentBoardState.reload_token', null);
-      this.get('model').reload().then(function(brd) {
+      var _this = this;
+      _this.set('app_state.currentBoardState.reload_token', null);
+      _this.get('model').reload().then(function(brd) {
         if(brd && brd.get('permissions.view')) {
-          this.set('model.fast_html', null);
+          _this.set('model.fast_html', null);
           editManager.process_for_displaying();
         }
       }, function() { });
@@ -733,9 +734,7 @@ export default Ember.Controller.extend({
         var button = editManager.find_button(id); //(board.get('buttons') || []).find(function(b) { return b.id == id; });
         if(!button) { return; }
         var app = app_state.controller;
-        button.findContentLocally().then(function() {
-          app.activateButton(button, {image: button.get('image'), sound: button.get('sound'), board: board, event: event});
-        }, function() { });
+        app.activateButton(button, {board: board, event: event});
       }
     },
     buttonPaint: function(id) {

@@ -67,7 +67,7 @@ export default modal.ModalController.extend({
         modal.highlight($button).then(function() {
           var button = editManager.find_button(result.id);
           var board = editManager.controller.get('model');
-          app_state.controller.activateButton(button, {image: button.get('image'), sound: button.get('sound'), board: board});
+          app_state.controller.activateButton(button, {board: board});
         }, function() { });
       } else {
         var buttons = result.pre_buttons || [];
