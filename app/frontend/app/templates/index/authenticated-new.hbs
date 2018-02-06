@@ -315,13 +315,13 @@
                 {{t "Model for" key='model_for'}}<br/>{{supervisee.user_name}}
               </div>
             </button>
-            <button class='btn btn-default' style='overflow: hidden; width: 88px; border-width: 2px; border-color: #ddd; color: #888;' {{action 'homeInSpeakMode' supervisee.id}}>
+            <button class='btn btn-default' style='overflow: hidden; width: 88px; border-width: 2px; background-color: #cce7ff; border-color: #337ab7; color: #666;' {{action 'homeInSpeakMode' supervisee.id}}>
               <span class='glyphicon glyphicon-volume-up' style='font-size: 30px;'></span><br/>
               <div style='line-height: 14px;'>
                 {{t "Speak as" key='speak_as'}}<br/>{{supervisee.user_name}}
               </div>
             </button>
-            <button class='btn btn-default' style='width: 85px; border-width: 2px; border-color: #ddd; color: #888;' {{action 'stats' supervisee.user_name}}>
+            <button class='btn btn-default' style='width: 85px; border-width: 2px; color: #888; border-color: #9b962e; background: #fffbbc;' {{action 'stats' supervisee.user_name}}>
               <span class='glyphicon glyphicon-stats' style='font-size: 30px;'></span><br/>
               <div style='line-height: 14px;'>
                 {{t "Usage" key='usage'}}<br/>{{t "Reports" key='reports'}}
