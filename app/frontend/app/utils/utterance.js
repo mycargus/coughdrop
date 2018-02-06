@@ -84,8 +84,19 @@ var utterance = Ember.Object.extend({
         }, function() { });
       }
     });
+    var last_spoken_button = visualButtonList[visualButtonList.length - 1];
+    if(last_spoken_button && (last_spoken_button.vocalization || last_spoken_button.label).match(/[\.\?\,\!]/)) {
+      var prior = utterance.sentence(visualButtonList.slice(0, -1));
+      var parts = prior.split(/[\.\?\!]/);
+      var last_part = parts[parts.length - 1];
+      var str = last_part + " " + (last_spoken_button.vocalization || last_spoken_button.label);
+      last_spoken_button = {
+        label: str
+      };
+    }
 
     app_state.set('button_list', visualButtonList);
+    utterance.set('last_spoken_button', last_spoken_button);
     stashes.persist('working_vocalization', buttonList);
   }.observes('rawButtonList', 'rawButtonList.[]', 'rawButtonList.length', 'rawButtonList.@each.image'),
   modifiers: [':plural', ':singular', ':comparative', ':er', ':superlative',
@@ -160,14 +171,19 @@ var utterance = Ember.Object.extend({
   },
   specialty_button: function(button) {
     if(button.vocalization == ":beep" || button.vocalization == ":home" || button.vocalization == ":back" || button.vocalization == ":clear" || button.vocalization == ":speak" || button.vocalization == ":backspace") {
+      if(button.vocalization == ':beep' || button.vocalization == ':speak') {
+        button.has_sound = true;
+      }
       return button;
     }
     return null;
   },
   add_button: function(button, original_button) {
+    // clear if the sentence box was already spoken and auto-clear is enabled
     if(this.get('clear_on_vocalize') && this.get('list_vocalized')) {
       this.clear(true);
     }
+    // append button attributes as needed
     var b = Ember.$.extend({}, button);
     if(original_button && original_button.load_image) {
       original_button.load_image().then(function() {
@@ -179,10 +195,13 @@ var utterance = Ember.Object.extend({
         Ember.set(b, 'sound_license', original_button.get('sound.license'));
       });
     }
+    // add button to the raw button list
     var list = this.get('rawButtonList');
     list.pushObject(b);
     this.set('list_vocalized', false);
-    return app_state.get('button_list')[app_state.get('button_list').length - 1];
+    // retrieve the correct result from the now-updated button list
+    // should return whatever it is the vocalization is supposed to say
+    return utterance.get('last_spoken_button');
   },
   speak_button: function(button) {
     if(button.sound) {

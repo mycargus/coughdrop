@@ -1286,17 +1286,22 @@ var app_state = Ember.Object.extend({
   }.observes('short_refresh_stamp', 'sessionUser'),
   activate_button: function(button, obj) {
     CoughDrop.log.start();
+    // skip hidden buttons
     if((button.hidden || button.empty) && !this.get('edit_mode') && this.get('currentUser.preferences.hidden_buttons') == 'grid') {
       if(!stashes.get('all_buttons_enabled')) {
         return false;
       }
     }
+
+    // track modeling events correctly
     var now = (new Date()).getTime();
     if(app_state.get('modeling')) {
       obj.modeling = true;
     } else if(stashes.last_selection && stashes.last_selection.modeling && stashes.last_selection.ts > (now - 500)) {
       obj.modeling = true;
     }
+
+    // update button attributes preemptively
     app_state.set('last_activation', now);
     if(button.link_disabled) {
       button.apps = null;
@@ -1317,19 +1322,29 @@ var app_state = Ember.Object.extend({
       obj.type = 'link';
     }
 
+    // only certain buttons should be added to the sentence box
     var button_to_speak = obj;
     var specialty = utterance.specialty_button(obj);
     var skip_speaking_by_default = !!(button.load_board || specialty || button_to_speak.special || button.url || button.apps || (button.integration && button.integration.action_type == 'render'));
-    if(skip_speaking_by_default && !button.add_to_vocalization) {
-    } else if(specialty) {
+    if(specialty) {
       button_to_speak = Ember.$.extend({}, specialty);
       button_to_speak.special = true;
+    } else if(skip_speaking_by_default && !button.add_to_vocalization) {
     } else {
       button_to_speak = utterance.add_button(obj, button);
     }
 //     Ember.$(".hover_button").remove();
 
+    // speak or make a sound to show the button was selected
     if(obj.label) {
+      var click_sound = function() {
+        if(app_state.get('currentUser.preferences.click_buttons')) {
+          if(button_to_speak.vocalization == ':beep' || button_to_speak.vocalization == ':speak') {
+          } else {
+            speecher.click();
+          }
+        }
+      };
       if(app_state.get('speak_mode')) {
         if(!skip_speaking_by_default) {
           obj.for_speaking = true;
@@ -1338,36 +1353,32 @@ var app_state = Ember.Object.extend({
         if(app_state.get('currentUser.preferences.vocalize_buttons') || (!app_state.get('currentUser') && window.user_preferences.any_user.vocalize_buttons)) {
           if(skip_speaking_by_default && !app_state.get('currentUser.preferences.vocalize_linked_buttons') && !button.add_to_vocalization) {
             // don't say it...
-            if(app_state.get('currentUser.preferences.click_buttons')) {
-              speecher.click();
-            }
+            click_sound();
           } else if(button_to_speak.in_progress && app_state.get('currentUser.preferences.silence_spelling_buttons')) {
             // don't say it...
-            if(app_state.get('currentUser.preferences.click_buttons')) {
-              speecher.click();
-            }
+            click_sound();
           } else {
             obj.spoken = true;
             obj.for_speaking = true;
             utterance.speak_button(button_to_speak);
           }
-        } else if(app_state.get('currentUser.preferences.click_buttons')) {
-          speecher.click();
+        } else {
+          click_sound();
         }
       } else {
         utterance.silent_speak_button(button_to_speak);
       }
     }
 
-//     console.log(obj.label);
+    // record the button activation in the usage logs
     if(button_to_speak.modified && !button_to_speak.in_progress) {
       obj.completion = obj.completion || button_to_speak.label;
     }
-//    console.log(obj);
     obj.depth = (stashes.get('boardHistory') || []).length;
     stashes.log(obj);
     var _this = this;
 
+    // additional actions (besides just speaking) will be necessary for some buttons
     if(button.load_board && button.load_board.key) {
       if(stashes.get('sticky_board') && app_state.get('speak_mode')) {
         modal.warning(i18n.t('sticky_board_notice', "Board lock is enabled, disable to leave this board."), true);
@@ -1435,7 +1446,6 @@ var app_state = Ember.Object.extend({
               home_lock: button.home_lock
             }, obj.board);
           }, 100);
-//           modal.open('inline-book', button);
         } else {
           if((!app_state.get('currentUser') && window.user_preferences.any_user.confirm_external_links) || app_state.get('currentUser.preferences.confirm_external_links')) {
             modal.open('confirm-external-link', {url: button.url, real_url: real_url});
