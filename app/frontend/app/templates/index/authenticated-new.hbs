@@ -345,34 +345,34 @@
     {{else if index_nav.main}}
       <div class={{if show_main_extras 'main' 'main short_list'}}>
         <div class='col-md-3 col-xs-4 big_button_holder'>
-          <button class='btn big_button btn-primary' {{action 'homeInSpeakMode'}}>
+          <button id='nav_primary' class='btn big_button btn-primary' {{action 'homeInSpeakMode'}}>
             <span class='glyphicon glyphicon-volume-up'></span>
             {{t "Speak Mode" key='speak_mode'}}
           </button>
         </div>
         <div class='col-md-3 col-xs-4 big_button_holder'>
-          <button class='btn big_button btn-default' {{action 'stats'}} style='border-color: #9b962e; background: #fffbbc;'>
+          <button id='nav_secondary' class='btn big_button btn-default' {{action 'stats'}}>
             <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/Line%20Graph-2c932e7f91.svg'>
             {{t "Reports" key='reports'}}
           </button>
         </div>
         {{#if app_state.currentUser.preferences.progress.intro_watched}}
           <div class='col-md-3 col-xs-4 big_button_holder'>
-            <button class='btn big_button btn-default' {{action "newBoard"}} style='background: #d1efbc; border-color: #56b700;'>
+            <button id='nav_tertiary' class='btn big_button btn-default' {{action "newBoard"}}>
               <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/New-ea00c9e5b0.svg'>
               {{t "New Board" key='new_board'}}
             </button>
           </div>
         {{else}}
           <div class='col-md-3 col-xs-4 big_button_holder'>
-            <button class='btn big_button btn-default middle_row' {{action "intro"}} style='background: #d1efbc; border-color: #56b700;'>
+            <button id='nav_tertiary' class='btn big_button btn-default middle_row' {{action "intro"}}>
               <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/arasaac/have%20an%20idea.png'>
               {{t "Learn<br/>and Setup" key='learn_and_setup'}}
             </button>
           </div>
         {{/if}}
         <div class='col-md-3 col-xs-4 big_button_holder'>
-          <button class='btn big_button btn-default' style='background: #eee;' {{action 'toggle_extras'}}>
+          <button id='nav_extras' class='btn big_button btn-default' {{action 'toggle_extras'}}>
             <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/extra_455_g.svg'>
             {{t "Extras" key='new_board'}} <span class={{if show_main_extras 'caret' 'caret-right'}}></span>
           </button>

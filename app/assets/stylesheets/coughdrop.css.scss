@@ -1927,6 +1927,11 @@ body.pretty_loader #loading_box {
     display: none;
   }
 }
+
+$nav_primary: #337ab7;
+$nav_secondary: #fffbbc;
+$nav_tertiary: #d1efbc;
+$nav_extras: #eee;
 #new_right {
   background: #fff; 
 /*  overflow: auto; */
@@ -1946,6 +1951,19 @@ body.pretty_loader #loading_box {
   }
   .main.short_list {
     margin-top: 50px;
+  }
+  #nav_primary {
+  }
+  #nav_secondary {
+    border-color: #9b962e; 
+    background: #fffbbc;
+  }
+  #nav_tertiary {
+    background: #d1efbc; 
+    border-color: #56b700;
+  }
+  #nav_extras {
+    background: #eee;
   }
 }
 .new_pills {
@@ -3781,11 +3799,30 @@ body:-ms-fullscreen {
         margin-top: 75px;
         .big_button {
           height: calc((100vh - 150px) - 150px - 25px);
+          box-shadow: inset 0 0 20px #000000;
+          &#nav_primary {
+            background: linear-gradient(63deg, $nav_primary 23%, transparent 23%) 7px 0, linear-gradient(63deg, transparent 74%, $nav_primary 78%), linear-gradient(63deg, transparent 34%, $nav_primary 38%, $nav_primary 58%, transparent 62%), darken($nav_primary, 5);
+            background-size: 8px 24px;
+          }
+          &#nav_secondary {
+            background: linear-gradient(63deg, $nav_secondary 23%, transparent 23%) 7px 0, linear-gradient(63deg, transparent 74%, $nav_secondary 78%), linear-gradient(63deg, transparent 34%, $nav_secondary 38%, $nav_secondary 58%, transparent 62%), darken($nav_secondary, 10);
+            background-size: 8px 24px;
+          }
+          &#nav_tertiary {
+            background: linear-gradient(63deg, $nav_tertiary 23%, transparent 23%) 7px 0, linear-gradient(63deg, transparent 74%, $nav_tertiary 78%), linear-gradient(63deg, transparent 34%, $nav_tertiary 38%, $nav_tertiary 58%, transparent 62%), darken($nav_tertiary, 7);
+            background-size: 8px 24px;
+          }
+          &#nav_extras {
+            background: linear-gradient(63deg, $nav_extras 23%, transparent 23%) 7px 0, linear-gradient(63deg, transparent 74%, $nav_extras 78%), linear-gradient(63deg, transparent 34%, $nav_extras 38%, $nav_extras 58%, transparent 62%), darken($nav_extras, 5);
+            background-size: 8px 24px;
+          }
           img {
             margin-bottom: 20px;
+            height: 150px;
           }
           > .glyphicon {
             margin-bottom: 40px;
+            font-size: 120px;
           }
         }
       }
@@ -3797,6 +3834,14 @@ body:-ms-fullscreen {
         margin-top: calc((100vh - 150px - 435px - 25px) / 2);
         .big_button {
           height: 435px;
+          img {
+            margin-bottom: 20px;
+            height: 180px;
+          }
+          > .glyphicon {
+            margin-bottom: 40px;
+            font-size: 150px;
+          }
         }
       }
     }
