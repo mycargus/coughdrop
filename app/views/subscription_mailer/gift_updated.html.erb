@@ -1,5 +1,5 @@
 <% if @gift.bulk_purchase? %>
-The bulk purchase for <b><%= @gift.settings['organization'] || 'Unnamed Org' %></b> was just purchased.<br/><br/>
+The bulk purchase for <b><%= @gift.settings['organization'] || 'Unnamed Org' %></b> was just finalized.<br/><br/>
 
 <% if @gift.settings['email'] %>
 Email: <%= @gift.settings['email'] %><br/>

@@ -19,6 +19,18 @@ class SubscriptionMailer < ActionMailer::Base
 
   def new_subscription(user_id)
     @user = User.find_by_global_id(user_id)
+    d = @user.devices[0]
+    ip = d && d.settings['ip_address']
+    @location = nil
+    if ip
+      url = "http://freegeoip.net/json/#{ip}"
+      begin
+        res = Typhoeus.get(url)
+        json = JSON.parse(res.body)
+        @location = json && "#{json['city']}, #{json['region_name']}, #{json['country_code']}"
+      rescue => e
+      end
+    end
     @subscription = @user.subscription_hash
     if ENV['NEW_REGISTRATION_EMAIL']
       mail(to: ENV['NEW_REGISTRATION_EMAIL'], subject: "CoughDrop - New Subscription")
