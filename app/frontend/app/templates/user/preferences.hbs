@@ -941,7 +941,14 @@
         {{#if eyegaze_type}}
           <div class="form-group">
             <div class="col-sm-5 col-sm-offset-3">
-              <p class="form-control-static"><em>{{t "Many eye trackers will work in CoughDrop using cursor control mode. We have built-in integrations for some, including EyeX and EyeTribe trackers, and hope to add more devices soon." key='supported_eye_trackers'}}</em></p>
+              <p class="form-control-static"><em>{{t "Many eye trackers will work in CoughDrop using cursor control mode. We have built-in integrations for some, including EyeX and Eyegaze Edge trackers, and hope to add more devices soon." key='supported_eye_trackers'}}</em></p>
+              {{#unless eyegaze_capable}}
+                <p class='form-control-static text-danger'>
+                  {{t "Integrated eye trackers will only work in the" key='eyegaze_windows_only_1'}}
+                  {{#link-to 'download'}}Windows app{{/link-to}}.
+                  {{t "If your eye tracker can control the mouse cursor, you can try dwell tracking instead." key='eyegaze_windows_only_2'}}
+                </p>
+              {{/unless}}
             </div>
           </div>
         {{/if}}

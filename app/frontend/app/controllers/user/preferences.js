@@ -225,6 +225,9 @@ export default Ember.Controller.extend({
   fullscreen_capable: function() {
     return capabilities.fullscreen_capable();
   }.property(),
+  eyegaze_capable: function() {
+    return capabilities.eye_gaze.available;
+  }.property(),
   eyegaze_or_dwell_capable: function() {
     return capabilities.eye_gaze.available || buttonTracker.mouse_used;
   }.property(),
