@@ -31,7 +31,7 @@ module Worker
       cutoff = 6.hours.ago.to_i
       timestamps = timestamps.select{|ts| ts > cutoff }
       timestamps.push(Time.now.to_i)
-      RedisInit.default.hset('hashed_jobs', hash, timestamps.to_json)
+#      RedisInit.default.hset('hashed_jobs', hash, timestamps.to_json)
     end
   end
   
@@ -39,7 +39,7 @@ module Worker
     if RedisInit.default
       timestamps = JSON.parse(RedisInit.default.hget('hashed_jobs', hash) || "[]")
       timestamps.shift
-      RedisInit.default.hset('hashed_jobs', hash, timestamps.to_json)
+#      RedisInit.default.hset('hashed_jobs', hash, timestamps.to_json)
     end
   end
   
