@@ -624,6 +624,17 @@
       </div>
     </div>
   </div>
+  <div class="form-group">
+    <label for="external_keyboard" class="col-sm-3 control-label">{{t "External Keyboard" key='external_keyboard'}}</label>
+    <div class="col-sm-5">
+      <div class="checkbox">
+        <label>
+          {{input type="checkbox" checked=model.preferences.device.external_keyboard id="external_keyboard"}}
+          {{t "Allow adding to the vocalization box from an external keyboard" key='allow_external_keyboard'}}
+        </label>
+      </div>
+    </div>
+  </div>
 
   {{#if wakelock_capable}}
     <div class="form-group">

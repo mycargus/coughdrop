@@ -70,12 +70,20 @@ Ember.$(document).on('mousedown touchstart', function(event) {
   }
 }).on('keypress', function(event) {
   if(buttonTracker.check('keyboard_listen')) {
-    if(event.key && event.key != 'Enter') {
-      // add letter to the sentence box
-    }
+    // add letter to the sentence box
+    var key = "+" + event.key;
+    if(event.key == ' ' || event.key == 'Enter') { key = ':space'; }
+    app_state.activate_button({}, {
+      label: event.key,
+      vocalization: key,
+      prevent_return: true,
+      button_id: null,
+      board: {id: 'external_keyboard', key: 'core/external_keyboard'},
+      type: 'speak'
+    });
   }
 }).on('keydown', function(event) {
-  if(event.keyCode == 9) {
+  if(event.keyCode == 9) { // tab
     $board_canvas = Ember.$("#board_canvas");
     if(!$board_canvas.data('focus_listener_set')) {
       $board_canvas.data('focus_listener_set', true);
@@ -92,13 +100,33 @@ Ember.$(document).on('mousedown touchstart', function(event) {
     } else {
       buttonTracker.clear_tab();
     }
-  } else if(event.keyCode == 13 || event.keyCode == 32) {
+  } else if(event.keyCode == 13 || event.keyCode == 32) { // return
     if(event.target.tagName == 'CANVAS') {
       buttonTracker.select_tab();
     }
-  } else if(event.keyCode == 27) {
+  } else if(event.keyCode == 27) { // esc
     if(modal.is_open() && modal.is_closeable()) {// && (event.target.tagName == 'INPUT' || event.target.tagName == 'BUTTON' || event.target.tagName == 'TEXTAREA' || event.target.tagName == 'A')) {
       modal.close();
+    } else if(buttonTracker.check('keyboard_listen')) {
+      app_state.activate_button({vocalization: ':clear'}, {
+        label: 'escape',
+        vocalization: ':clear',
+        prevent_return: true,
+        button_id: null,
+        board: {id: 'external_keyboard', key: 'core/external_keyboard'},
+        type: 'speak'
+      });
+    }
+  } else if(event.keyCode == 8) { // backspace
+    if(buttonTracker.check('keyboard_listen')) {
+      app_state.activate_button({vocalization: ':backspace'}, {
+        label: 'escape',
+        vocalization: ':backspace',
+        prevent_return: true,
+        button_id: null,
+        board: {id: 'external_keyboard', key: 'core/external_keyboard'},
+        type: 'speak'
+      });
     }
   } else if([37, 38, 39, 40].indexOf(event.keyCode) != -1) {
     buttonTracker.direction_event(event);

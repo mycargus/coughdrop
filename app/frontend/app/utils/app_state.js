@@ -632,6 +632,7 @@ var app_state = Ember.Object.extend({
         }
       }
       buttonTracker.multi_touch_modeling = _this.get('currentUser.preferences.multi_touch_modeling');
+      buttonTracker.keyboard_listen = _this.get('currentUser.preferences.device.external_keyboard');
       buttonTracker.dwell_modeling = false;
       buttonTracker.dwell_enabled = false;
 
