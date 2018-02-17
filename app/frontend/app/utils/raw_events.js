@@ -27,6 +27,8 @@ import frame_listener from './frame_listener';
 // - debounce should not apply for triple-click on clear
 // - click/touch events should still work when in scanning mode
 // - click/touch events should still work when in dwell tracking mode
+// - keyboard events can add to the vocalization box
+// - mouse cursor/joystick and control the dwell target
 
 var $board_canvas = null;
 
