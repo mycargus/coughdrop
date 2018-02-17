@@ -473,6 +473,9 @@
             {{#if app_state.embedded}}
               <li class="divider"></li>
               <li role="presentation">
+                <a href="#" {{action 'printBoard'}}>{{t "Print this Board" key="print_this_board"}}</a>
+              </li>
+              <li role="presentation">
                 <a href="#" {{action 'launch_board'}}>{{t "Open in CoughDrop" key="open_in_coughdrop"}}</a>
               </li>
               {{#if app_state.full_screen_capable}}
