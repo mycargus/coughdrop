@@ -246,6 +246,9 @@ class User < ActiveRecord::Base
     if !FeatureFlags.user_created_after?(self, 'symbol_background')
       self.settings['preferences']['symbol_background'] = 'white' if self.settings['preferences']['symbol_background'] == nil
     end
+    if !FeatureFlags.user_created_after?(self, 'new_index')
+      self.settings['preferences']['new_index'] = true if self.settings['preferences']['new_index'] == nil
+    end
     User.preference_defaults['any_user'].each do |attr, val|
       self.settings['preferences'][attr] = val if self.settings['preferences'][attr] == nil
     end
