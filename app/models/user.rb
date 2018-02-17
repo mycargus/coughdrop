@@ -766,6 +766,7 @@ class User < ActiveRecord::Base
       {name: "Yes/No", key: 'example/yesno', image: 'https://s3.amazonaws.com/opensymbols/libraries/arasaac/yes_2.png', home_lock: false},
       {name: "Inflections", key: 'example/inflections', image: 'https://s3.amazonaws.com/opensymbols/libraries/arasaac/verb.png', home_lock: false},
       {name: "Keyboard", key: 'example/keyboard', image: 'https://s3.amazonaws.com/opensymbols/libraries/noun-project/Computer%20Keyboard-19d40c3f5a.svg', home_lock: false},
+      {name: 'Social', key: 'mbaud12/senner-baud-greetings', image: 'https://s3.amazonaws.com/opensymbols/libraries/arasaac/greet_2.png', home_lock: false},
       {name: "Alert", alert: true, image: 'https://s3.amazonaws.com/opensymbols/libraries/arasaac/to%20sound.png'}
     ]
   end
