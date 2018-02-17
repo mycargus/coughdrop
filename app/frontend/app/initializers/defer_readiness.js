@@ -1,4 +1,5 @@
 import extras from '../utils/extras';
+import session from '../utils/session';
 
 export default {
   name: 'defer_readiness',
