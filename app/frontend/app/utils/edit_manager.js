@@ -519,7 +519,7 @@ var editManager = Ember.Object.extend({
 
     if(app_state.get('speak_mode') && app_state.get('feature_flags.fast_render')) {
       controller.update_button_symbol_class();
-      if(board.get('fast_html') && board.get('fast_html.width') == controller.get('width') && board.get('fast_html.height') == controller.get('height') && board.get('current_revision') == board.get('fast_html.revision')) {
+      if(board.get('fast_html') && board.get('fast_html.width') == controller.get('width') && board.get('fast_html.height') == controller.get('height') && board.get('current_revision') == board.get('fast_html.revision') && board.get('fast_html.label_locale') == app_state.get('label_locale')) {
         CoughDrop.log.track('already have fast render');
         resume_scanning();
         return;
@@ -528,6 +528,7 @@ var editManager = Ember.Object.extend({
         board.add_classes();
         CoughDrop.log.track('trying fast render');
         var fast = board.render_fast_html({
+          label_locale: app_state.get('label_locale'),
           height: controller.get('height'),
           width: controller.get('width'),
           extra_pad: controller.get('extra_pad'),
