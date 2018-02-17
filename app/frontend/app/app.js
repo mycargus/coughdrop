@@ -90,14 +90,14 @@ if(capabilities.wait_for_deviceready) {
     // and possibly is getting lost being set just in a cookie and localStorage
     if(capabilities.system == 'iOS' && capabilities.installed_app) {
       var klass = 'iCloudKV';
-      cordova.exec(function(dict) {
+      window.cordova.exec(function(dict) {
         window.kvstash = {
           values: dict,
           store: function(key, value) {
-            cordova.exec(function() { }, function() { }, klass, 'save', [key.toString(), value.toString()]);
+            window.cordova.exec(function() { }, function() { }, klass, 'save', [key.toString(), value.toString()]);
           },
           remove: function(key) {
-            cordova.exec(function() { }, function() { }, klass, 'remove', [key.toString()]);
+            window.cordova.exec(function() { }, function() { }, klass, 'remove', [key.toString()]);
           }
         };
         done();
@@ -106,20 +106,20 @@ if(capabilities.wait_for_deviceready) {
     } else if(capabilities.system == 'Android' && capabilities.installed_app) {
       var klass = 'SharedPreferences';
       // Android key value store
-      cordova.exec(function() {
+      window.cordova.exec(function() {
         var make_stash = function(user_name) {
           window.kvstash = {
             values: {user_name: user_name},
             store: function(key, value) {
-              cordova.exec(function() { }, function() { }, klass, 'putString', [key.toString(), value.toString()]);
+              window.cordova.exec(function() { }, function() { }, klass, 'putString', [key.toString(), value.toString()]);
             },
             remove: function(key) {
-              cordova.exec(function() { }, function() { }, klass, 'remove', [key.toString()]);
+              window.cordova.exec(function() { }, function() { }, klass, 'remove', [key.toString()]);
             }
           };
           done();
         };
-        cordova.exec(function(res) {
+        window.cordova.exec(function(res) {
           make_stash(res);
         }, function(err) {
           make_stash(null);
