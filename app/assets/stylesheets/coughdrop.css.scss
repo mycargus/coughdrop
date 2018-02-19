@@ -565,6 +565,15 @@ footer .wide_links {
   float: right;
 }
 
+#setup_container {
+  margin-bottom: 60px; 
+  margin-top: 0px; 
+  font-size: 18px;
+  p {
+    margin-bottom: 30px;
+  }
+}
+
 .button {
   border: 1px solid #ccc; 
   padding: 0px; 

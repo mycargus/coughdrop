@@ -84,6 +84,7 @@ export default Ember.Route.extend({
     }
     controller.update_selected();
     controller.checkForBlankSlate();
+    controller.subscription_check();
     if(app_state.get('show_intro')) {
       modal.open('intro');
     }
