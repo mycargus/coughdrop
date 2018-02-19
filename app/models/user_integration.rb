@@ -192,6 +192,12 @@ class UserIntegration < ActiveRecord::Base
     GoSecure.sha512(args.join(","), 'user integration placement code')
   end
   
+  def self.integration_keys_for(user)
+    return [] unless user
+    # TODO: sharding
+    UserIntegration.where(user_id: user.id).map(&:integration_key).compact.uniq
+  end
+  
   def self.global_integrations
     expires ||= 30.minutes.to_i
 

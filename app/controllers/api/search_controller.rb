@@ -42,6 +42,7 @@ class Api::SearchController < ApplicationController
         'external_id' => item['external_id'],
         'finding_user_name' => @api_user.user_name,
         'protected' => !!item['protected'],
+        'protected_source' => params['library'],
         'public' => false,
         'license' => item['license']['type'],
         'author' => item['license']['author_name'],

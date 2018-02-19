@@ -66,6 +66,48 @@ describe Sharing, :type => :model do
       end
       b.process({'sharing_key' => "remove-#{u2.global_id}"})
     end
+    
+    it "should not allow sharing protected material" do
+      u = User.create
+      u2 = User.create
+      bi = ButtonImage.create(:settings => {'protected' => true, 'protected_source' => 'lessonpix'})
+      b = Board.create(:user => u)
+      expect(b.protected_material?).to eq(false)
+      b.process({
+        'buttons' => [
+          {'id' => 12, 'label' => 'course', 'image_id' => bi.global_id}
+        ]
+      })
+      expect(b.protected_material?).to eq(true)
+      expect(b.settings['protected']['media']).to eq(true)
+      expect(b.settings['protected']['media_sources']).to eq(['lessonpix'])
+      expect(UserIntegration.integration_keys_for(u2)).to eq([])
+      res = b.process({'sharing_key' => "add_deep-#{u2.user_name}"})
+      expect(res).to eq(false)
+      expect(b.processing_errors).to eq(["user #{u2.user_name} does not have access to the protected material on this board"])
+      expect(b.reload.shared_with?(u2.reload)).to eq(false)
+    end
+    
+    it "should allow sharing protected material if both users have access" do
+      u = User.create
+      u2 = User.create
+      UserIntegration.create(user: u2, integration_key: 'lessonpix')
+      bi = ButtonImage.create(:settings => {'protected' => true, 'protected_source' => 'lessonpix'})
+      b = Board.create(:user => u)
+      expect(b.protected_material?).to eq(false)
+      b.process({
+        'buttons' => [
+          {'id' => 12, 'label' => 'course', 'image_id' => bi.global_id}
+        ]
+      })
+      expect(b.protected_material?).to eq(true)
+      expect(b.settings['protected']['media']).to eq(true)
+      expect(b.settings['protected']['media_sources']).to eq(['lessonpix'])
+      expect(UserIntegration.integration_keys_for(u2)).to eq(['lessonpix'])
+      res = b.process({'sharing_key' => "add_deep-#{u2.user_name}"})
+      expect(res).to eq(true)
+      expect(b.reload.shared_with?(u2.reload)).to eq(true)
+    end
   end
   
   describe "share_with" do

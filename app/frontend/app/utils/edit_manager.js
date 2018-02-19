@@ -773,6 +773,7 @@ var editManager = Ember.Object.extend({
               content_type: image.content_type,
               suggestion: button.label,
               protected: image.protected,
+              protected_source: image.protected_source,
               finding_user_name: image.finding_user_name,
               external_id: image.id,
               license: license

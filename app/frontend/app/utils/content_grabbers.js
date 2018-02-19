@@ -601,6 +601,7 @@ var pictureGrabber = Ember.Object.extend({
       search_term: this.controller.get('image_search.term'),
       external_id: preview.id,
       protected: preview.protected,
+      protected_source: preview.protected_source,
       finding_user_name: preview.finding_user_name,
       content_type: preview.content_type,
       license: license
@@ -968,6 +969,7 @@ var pictureGrabber = Ember.Object.extend({
         search_term: preview.search_term,
         license: preview.license,
         protected: preview.protected,
+        protected_source: preview.protected_source,
         finding_user_name: preview.finding_user_name
       });
       var _this = this;

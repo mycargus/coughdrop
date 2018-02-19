@@ -591,6 +591,21 @@ CoughDrop.Board = DS.Model.extend({
     });
     return !!protect;
   }.property('protected', 'local_images_with_license', 'local_sounds_with_license'),
+  protected_sources: function() {
+    var res = {};
+    if(this.get('protected_material')) {
+      if(this.get('protected_settings.media')) {
+        (this.get('protected_settings.media_sources') || ['lessonpix']).forEach(function(key) {
+          res[key] = true;
+        });
+      }
+      if(this.get('protected_settings.vocabulary')) {
+        res.board = true;
+      }
+    }
+    res.list = Object.keys(res);
+    return res;
+  }.property('protected_material', 'protected_settings'),
   load_button_set: function(force) {
     var _this = this;
     if(this.get('button_set') && !force) {

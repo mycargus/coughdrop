@@ -7,12 +7,18 @@ module Sharing
     if !user
       add_processing_error("user #{user_name} not found while trying to share")
       return false
+    elsif self.protected_material?
+      sources = self.settings['protected']['media_sources'] || ['lessonpix']
+      user_integration_keys = UserIntegration.integration_keys_for(user)
+      if (user_integration_keys & sources) != sources
+        add_processing_error("user #{user_name} does not have access to the protected material on this board")
+        return false
+      end
     end
     if action == 'add_deep'
       return self.share_with(user, true)
     elsif action == 'add_shallow'
-      res = self.share_with(user, false)
-      return res
+      return self.share_with(user, false)
     elsif action == 'add_edit_deep'
       return self.share_with(user, true, true)
     elsif action == 'add_edit_shallow'

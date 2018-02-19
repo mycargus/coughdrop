@@ -319,11 +319,7 @@ export default Ember.Controller.extend({
       }
     },
     shareBoard: function() {
-      if(this.get('board.model.protected_material')) {
-        modal.error(i18n.t('cant_share_protected_boards', "This board contains purchased content, and can't be shared."));
-        return;
-      }
-      modal.open('share-board', {board: this.get('board').get('model')});
+      modal.open('share-board', {board: this.get('board.model')});
     },
     copy_and_edit_board: function() {
       var _this = this;

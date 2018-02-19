@@ -255,6 +255,7 @@ class ButtonSound < ActiveRecord::Base
       # TODO: raise a stink if content_type or duration are not provided
       process_license(params['license']) if params['license']
       self.settings['protected'] = params['protected'] if params['protected'] != nil
+      self.settings['protected_source'] = params['protected_source'] if params['protected_source'] != nil
       self.settings['protected'] = params['ext_coughdrop_protected'] if params['ext_coughdrop_protected'] != nil
       self.settings['suggestion'] = params['suggestion'] if params['suggestion']
       self.public = params['public'] if params['public'] != nil

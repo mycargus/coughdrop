@@ -36,7 +36,9 @@
       </div>
     {{else}}
       <p>{{t "This board is private, only shared users, supervisors and admins can see it." key='board_is_private_limited_users'}}</p>
-      {{#if board.permissions.edit}}
+      {{#if board.protected_material}}
+        <p>{{t "This board contains protected material, and can't be made public. However, you can share it with other users who have purchased access to the same content." key='protected_material_shareable'}}</p>
+      {{else if board.permissions.edit}}
         {{#if error_confirming_public_board}}
           <p class='text-danger'>{{t "There was an unexpected error while trying to update the board" key='board_update_error'}}</p>
         {{/if}}

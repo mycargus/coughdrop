@@ -279,7 +279,7 @@ class Board < ActiveRecord::Base
     end
     false
   end
-  
+
   def labels
     return @labels if @labels
     list = []
@@ -477,14 +477,17 @@ class Board < ActiveRecord::Base
       self.settings ||= {}
       if (protected_images + protected_sounds).length > 0 && (self.settings['protected'] || {})['media'] != true
         # TODO: race condition?
+        sources = protected_images.map{|i| i.settings['protected_source'] || 'lessonpix' }
+        sources += protected_sounds.map{|s| s.settings['protected_source'] }
+        sources = sources.compact.uniq
         self.update_setting({
-          'protected' => {'media' => true}
+          'protected' => {'media' => true, 'media_sources' => sources}
         }, nil, :save_without_post_processing)
       elsif (protected_images + protected_sounds).length == 0 && self.settings['protected'] && self.settings['protected']['media'] == true
         # TODO: race condition?
         if self.settings['protected']
           self.update_setting({
-            'protected' => {'media' => false}
+            'protected' => {'media' => false, 'media_sources' => []}
           }, nil, :save_without_post_processing)
         end
       end
