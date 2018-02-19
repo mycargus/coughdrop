@@ -66,12 +66,14 @@ module JsonApi::Integration
     if obj.settings['custom_integration']
       json['asdf'] = 'asdf'
       device_token = obj.device.token
-      if obj.created_at > 24.hours.ago && obj.device && json['permissions'] && json['permissions']['edit']
-        json['access_token'] = device_token
-        json['token'] = obj.settings['token']
+      if obj.device && json['permissions'] && json['permissions']['edit']
+        if obj.created_at > 24.hours.ago 
+          json['access_token'] = device_token
+          json['token'] = obj.settings['token']
+        end
+        json['truncated_access_token'] = "...#{device_token[-5, 5]}"
+        json['truncated_token'] = "...#{obj.settings['token'][-5, 5]}"
       end
-      json['truncated_access_token'] = "...#{device_token[-5, 5]}"
-      json['truncated_token'] = "...#{obj.settings['token'][-5, 5]}"
     end
     
     ['icon_url', 'description'].each do |key|
