@@ -6,14 +6,14 @@ import i18n from '../utils/i18n';
 
 export default modal.ModalController.extend({
   opening: function() {
-    this.set('no_research', false);
-    this.set('model.user.preferences.allow_log_reports', true);
+    this.set('research', false);
+    this.set('model.user.preferences.allow_log_reports', false);
   },
   closing: function() {
-    if(this.get('no_research')) {
-      this.set('model.user.preferences.allow_log_reports', false);
-    } else {
+    if(this.get('research')) {
       this.set('model.user.preferences.allow_log_reports', true);
+    } else {
+      this.set('model.user.preferences.allow_log_reports', false);
     }
     if(this.get('model.save')) {
       this.get('model.user').save();
