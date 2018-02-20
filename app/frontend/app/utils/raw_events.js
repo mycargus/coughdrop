@@ -71,7 +71,7 @@ Ember.$(document).on('mousedown touchstart', function(event) {
     frame_listener.trigger_target(Ember.$(event.target).closest(".integration_target")[0]);
   }
 }).on('keypress', function(event) {
-  if(buttonTracker.check('keyboard_listen')) {
+  if(buttonTracker.check('keyboard_listen') && !buttonTracker.check('scanning_enabled') && !buttonTracker.check('dwell_enabled')) {
     // add letter to the sentence box
     var key = "+" + event.key;
     if(event.key == ' ' || event.key == 'Enter') { key = ':space'; }
@@ -615,7 +615,7 @@ var buttonTracker = Ember.Object.extend({
         }
         var event_type = 'mouse';
         if(event.type && event.type.match(/touch/)) { event_type = 'touch'; }
-        if(event.dwell_linger) { event_type = 'dwell'; }
+        if(event.dwell_linger || (event.type && event.type.match(/gaze/))) { event_type = 'dwell'; }
         var track = buttonTracker.track_selection({
           event_type: event.type,
           selection_type: event_type,
