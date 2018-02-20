@@ -314,6 +314,14 @@ CoughDrop.User = DS.Model.extend({
       this.set('preferences.speak_mode_pin', new_pin);
     }
   }.observes('preferences.speak_mode_pin'),
+  needs_speak_mode_intro: function() {
+    var joined = window.moment(this.get('joined'));
+    var cutoff = window.moment('2018-02-20');
+    if(joined >= cutoff) {
+      return true;
+    }
+    return false;
+  }.property('joined'),
   auto_sync: function() {
     var ever_synced = this.get('preferences.device.ever_synced');
     var auto_sync = this.get('preferences.device.auto_sync');

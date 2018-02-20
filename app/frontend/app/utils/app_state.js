@@ -906,7 +906,6 @@ var app_state = Ember.Object.extend({
   }.observes('currentUser'),
   speak_mode_handlers: function() {
     if(this.get('speak_mode')) {
-
       stashes.set('logging_enabled', !!(this.get('speak_mode') && this.get('currentUser.preferences.logging')));
       stashes.set('geo_logging_enabled', !!(this.get('speak_mode') && this.get('currentUser.preferences.geo_logging')));
       stashes.set('speaking_user_id', this.get('currentUser.id'));
@@ -973,6 +972,9 @@ var app_state = Ember.Object.extend({
       this.set('eye_gaze', capabilities.eye_gaze);
       this.set('embedded', !!(CoughDrop.embedded));
       this.set('full_screen_capable', capabilities.fullscreen_capable());
+      if(this.get('currentUser.needs_speak_mode_intro') && !this.get('currentUser.preferences.progress.speak_mode_intro_done')) {
+        modal.open('speak-mode-intro');
+      }
     } else if(!this.get('speak_mode') && this.get('last_speak_mode') !== undefined) {
       capabilities.wakelock('speak!', false);
       capabilities.fullscreen(false);
