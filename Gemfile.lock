@@ -68,6 +68,7 @@ GEM
       mime-types
       xml-simple
     aws-sigv4 (1.0.0)
+    boy_band (0.1.1)
     bugsnag (5.0.1)
     builder (3.2.2)
     childprocess (0.5.9)
@@ -343,6 +344,7 @@ DEPENDENCIES
   ar-octopus!
   aws-sdk
   aws-ses
+  boy_band
   bugsnag
   coffee-rails
   dotenv
