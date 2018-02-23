@@ -1,5 +1,7 @@
 import Ember from 'ember';
 import DS from 'ember-data';
+import RSVP from 'rsvp';
+import $ from 'jquery';
 import CoughDrop from '../app';
 import i18n from '../utils/i18n';
 import Utils from '../utils/misc';
@@ -279,7 +281,7 @@ CoughDrop.Goal = DS.Model.extend({
       next_template.set('summary', this.get('new_next_template_summary'));
       return next_template.save();
     } else {
-      return Ember.RSVP.resolve(null);
+      return RSVP.resolve(null);
     }
   },
   new_next_template_id: function() {
@@ -301,7 +303,7 @@ CoughDrop.Goal = DS.Model.extend({
     var badges = this.get('badges') || [];
     var badge = {};
     if(badges.length > 0) {
-      badge = Ember.$.extend({}, badges[badges.length - 1]);
+      badge = $.extend({}, badges[badges.length - 1]);
     }
     badge.level = null;
     badge.image_url = badge.image_url || "https://coughdrop-usercontent.s3.amazonaws.com/images/6/8/8/5/1_6885_5781b0671b2b65ad0b53f2fe-980af0f90c67ef293e98f871270e4bc0096493b2863245a3cff541792acf01050e534135fb96262c22d691132e2721b37b047a02ccaf6931549278719ec8fa08.png";

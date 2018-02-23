@@ -1,11 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { fakeRecorder, fakeMediaRecorder, fakeCanvas, queryLog, easyPromise, queue_promise } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import contentGrabbers from '../../utils/content_grabbers';
 import editManager from '../../utils/edit_manager';
 import persistence from '../../utils/persistence';
 import app_state from '../../utils/app_state';
 import stashes from '../../utils/_stashes';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import $ from 'jquery';
 
 describe('videoGrabber', function() {
   var videoGrabber = contentGrabbers.videoGrabber;
@@ -15,16 +18,16 @@ describe('videoGrabber', function() {
   beforeEach(function() {
     contentGrabbers.unlink();
 
-    var user = Ember.Object.create({user_name: 'bob', profile_url: 'http://www.bob.com/bob'});
+    var user = EmberObject.create({user_name: 'bob', profile_url: 'http://www.bob.com/bob'});
     app_state.set('currentUser', user);
-    controller = Ember.Object.extend({
+    controller = EmberObject.extend({
       send: function(message) {
         this.sentMessages[message] = arguments;
       },
       sendAction: function(action) {
         this.sentMessages[action] = arguments;
       },
-      model: Ember.Object.create({id: '456'})
+      model: EmberObject.create({id: '456'})
     }).create({
       sentMessages: {},
       licenseOptions: [],
@@ -101,13 +104,13 @@ describe('videoGrabber', function() {
     });
     it('should create a new video record correctly', function() {
       videoGrabber.setup(controller);
-      stub(videoGrabber, 'measure_duration', function() { return Ember.RSVP.resolve({duration: 12}); });
+      stub(videoGrabber, 'measure_duration', function() { return RSVP.resolve({duration: 12}); });
       controller.set('video_preview', {url: '/video.mp4'});
       queryLog.defineFixture({
         method: 'POST',
         type: 'video',
         compare: function(s) { return s.get('url') == '/video.mp4'; },
-        response: Ember.RSVP.resolve({video: {id: '123', url: '/video.mp4'}})
+        response: RSVP.resolve({video: {id: '123', url: '/video.mp4'}})
       });
       videoGrabber.select_video_preview();
       waitsFor(function() { return controller.get('video'); });
@@ -130,13 +133,13 @@ describe('videoGrabber', function() {
         method: 'POST',
         type: 'video',
         compare: function(s) { return s.get('data_url') == 'data:video/mp4;base64,MA=='; },
-        response: Ember.RSVP.resolve({image: {id: '123', url: null, pending: true}})
+        response: RSVP.resolve({image: {id: '123', url: null, pending: true}})
       });
-      stub(Ember.$, 'ajax', function(args) {
+      stub($, 'ajax', function(args) {
         if(args.url == "http://upload.com/") {
-          return Ember.RSVP.resolve("");
+          return RSVP.resolve("");
         } else if(args.url == "/success") {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             confirmed: true,
             url: "http://vids.com/viddy.mp4"
           });
@@ -154,17 +157,17 @@ describe('videoGrabber', function() {
       var message = null;
       stub(window, 'alert', function(msg) { message = msg; alerted = true; });
       videoGrabber.setup(controller);
-      stub(videoGrabber, 'measure_duration', function() { return Ember.RSVP.resolve({duration: 12}); });
+      stub(videoGrabber, 'measure_duration', function() { return RSVP.resolve({duration: 12}); });
       controller.set('video_preview', {url: 'data:video/mp4;base64,MA=='});
       queryLog.defineFixture({
         method: 'POST',
         type: 'video',
         compare: function(s) { return s.get('data_url') == 'data:video/mp4;base64,MA=='; },
-        response: Ember.RSVP.resolve({video: {id: '123', url: null, pending: true}, meta: {remote_upload: {data_url: "/api", upload_url: "http://upload.com/", success_url: "/success", upload_params: {a: "1", b: "2"}}}})
+        response: RSVP.resolve({video: {id: '123', url: null, pending: true}, meta: {remote_upload: {data_url: "/api", upload_url: "http://upload.com/", success_url: "/success", upload_params: {a: "1", b: "2"}}}})
       });
-      stub(Ember.$, 'ajax', function(args) {
+      stub($, 'ajax', function(args) {
         if(args.url == "http://upload.com/") {
-          return Ember.RSVP.reject("");
+          return RSVP.reject("");
         }
       });
       videoGrabber.select_video_preview();
@@ -179,19 +182,19 @@ describe('videoGrabber', function() {
       var message = null;
       stub(window, 'alert', function(msg) { message = msg; alerted = true; });
       videoGrabber.setup(controller);
-      stub(videoGrabber, 'measure_duration', function() { return Ember.RSVP.resolve({duration: 12}); });
+      stub(videoGrabber, 'measure_duration', function() { return RSVP.resolve({duration: 12}); });
       controller.set('video_preview', {url: 'data:video/mp4;base64,MA=='});
       queryLog.defineFixture({
         method: 'POST',
         type: 'video',
         compare: function(s) { return s.get('data_url') == 'data:video/mp4;base64,MA=='; },
-        response: Ember.RSVP.resolve({video: {id: '123', url: null, pending: true}, meta: {remote_upload: {data_url: "/api", upload_url: "http://upload.com/", success_url: "/success", upload_params: {a: "1", b: "2"}}}})
+        response: RSVP.resolve({video: {id: '123', url: null, pending: true}, meta: {remote_upload: {data_url: "/api", upload_url: "http://upload.com/", success_url: "/success", upload_params: {a: "1", b: "2"}}}})
       });
-      stub(Ember.$, 'ajax', function(args) {
+      stub($, 'ajax', function(args) {
         if(args.url == "http://upload.com/") {
-          return Ember.RSVP.resolve("");
+          return RSVP.resolve("");
         } else if(args.url == "/success") {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             confirmed: false
           });
         }
@@ -206,18 +209,18 @@ describe('videoGrabber', function() {
     it('should send a pending video to the remote file storage', function() {
       videoGrabber.setup(controller);
       controller.set('video_preview', {url: 'data:video/mp4;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=='});
-      stub(videoGrabber, 'measure_duration', function() { return Ember.RSVP.resolve({duration: 12}); });
+      stub(videoGrabber, 'measure_duration', function() { return RSVP.resolve({duration: 12}); });
       queryLog.defineFixture({
         method: 'POST',
         type: 'video',
         compare: function(s) { return s.get('data_url') == 'data:video/mp4;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=='; },
-        response: Ember.RSVP.resolve({video: {id: '123', url: null, pending: true}, meta: {remote_upload: {data_url: "/api", upload_url: "http://upload.com/", success_url: "/success", upload_params: {a: "1", b: "2"}}}})
+        response: RSVP.resolve({video: {id: '123', url: null, pending: true}, meta: {remote_upload: {data_url: "/api", upload_url: "http://upload.com/", success_url: "/success", upload_params: {a: "1", b: "2"}}}})
       });
-      stub(Ember.$, 'ajax', function(args) {
+      stub($, 'ajax', function(args) {
         if(args.url == "http://upload.com/") {
-          return Ember.RSVP.resolve("");
+          return RSVP.resolve("");
         } else if(args.url == "/success") {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             confirmed: true,
             url: "http://vids.com/viddy.png"
           });
@@ -235,7 +238,7 @@ describe('videoGrabber', function() {
     it('should use license provided on preview if specified', function() {
       videoGrabber.setup(controller);
       controller.set('video_preview', {url: '/video.mp4', license: {type: 'Uncool', author_name: 'Bob'}});
-      stub(videoGrabber, 'measure_duration', function() { return Ember.RSVP.resolve({duration: 12}); });
+      stub(videoGrabber, 'measure_duration', function() { return RSVP.resolve({duration: 12}); });
       var correct_license = false;
       queryLog.defineFixture({
         method: 'POST',
@@ -244,7 +247,7 @@ describe('videoGrabber', function() {
           correct_license = s.get('license.type') == 'Uncool' && s.get('license.author_name') == "Bob";
           return s.get('url') == '/video.mp4';
         },
-        response: Ember.RSVP.resolve({video: {id: '123', url: '/video.mp4'}})
+        response: RSVP.resolve({video: {id: '123', url: '/video.mp4'}})
       });
       videoGrabber.select_video_preview();
       waitsFor(function() { return correct_license; });
@@ -253,7 +256,7 @@ describe('videoGrabber', function() {
 
     it('should use license defined by user if none specified on the preview', function() {
       videoGrabber.setup(controller);
-      stub(videoGrabber, 'measure_duration', function() { return Ember.RSVP.resolve({duration: 12}); });
+      stub(videoGrabber, 'measure_duration', function() { return RSVP.resolve({duration: 12}); });
       controller.set('video_preview', {url: '/video.mp4'});
       var correct_license = false;
       queryLog.defineFixture({
@@ -263,7 +266,7 @@ describe('videoGrabber', function() {
           correct_license = s.get('license.type') == 'private' && s.get('license.author_name') == 'bob';
           return s.get('url') == '/video.mp4';
         },
-        response: Ember.RSVP.resolve({video: {id: '123', url: '/video.mp4'}})
+        response: RSVP.resolve({video: {id: '123', url: '/video.mp4'}})
       });
       videoGrabber.select_video_preview();
       waitsFor(function() { return correct_license; });
@@ -289,7 +292,7 @@ describe('videoGrabber', function() {
       stub(window, 'URL', {
         createObjectURL: function() { return 'stuff://cool'; }
       });
-      stub(window, 'enumerateMediaDevices', function() { return Ember.RSVP.resolve([]); });
+      stub(window, 'enumerateMediaDevices', function() { return RSVP.resolve([]); });
       mediaCallback(stream);
       expect(controller.get('video_recording.stream')).toEqual(stream);
     });
@@ -312,14 +315,14 @@ describe('videoGrabber', function() {
       stub(window, 'URL', {
         createObjectURL: function() { return 'stuff://cool'; }
       });
-      stub(window, 'enumerateMediaDevices', function() { return Ember.RSVP.resolve([]); });
+      stub(window, 'enumerateMediaDevices', function() { return RSVP.resolve([]); });
       mediaCallback(stream);
       expect(controller.get('video_recording.stream')).toEqual(stream);
     });
 
     it("should correctly swap between streams", function() {
       stub(window, 'enumerateMediaDevices', function() {
-        return Ember.RSVP.resolve([
+        return RSVP.resolve([
           {kind: 'videoinput', id: 'aaa', label: 'cam 1'},
           {kind: 'audioinput', id: 'bbb', label: 'mic 1'},
           {kind: 'videoinput', id: 'ccc', label: 'cam 2'},
@@ -377,7 +380,7 @@ describe('videoGrabber', function() {
 
     it("should correctly swap between streams even when starting on a different-than-first stream", function() {
       stub(window, 'enumerateMediaDevices', function() {
-        return Ember.RSVP.resolve([
+        return RSVP.resolve([
           {kind: 'videoinput', id: 'aaa', label: 'cam 1'},
           {kind: 'audioinput', id: 'bbb', label: 'mic 1'},
           {kind: 'videoinput', id: 'ccc', label: 'cam 2'},

@@ -1,12 +1,14 @@
 import Ember from 'ember';
+import Component from '@ember/component';
+import { later as runLater } from '@ember/runloop';
 import contentGrabbers from '../utils/content_grabbers';
 import app_state from '../utils/app_state';
 
-export default Ember.Component.extend({
+export default Component.extend({
   tagName: 'div',
   willInsertElement: function() {
     var _this = this;
-    Ember.run.later(function() {
+    runLater(function() {
       _this.sendAction('video_not_ready');
       contentGrabbers.videoGrabber.setup(_this);
       _this.set('app_state', app_state);

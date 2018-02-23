@@ -1,8 +1,9 @@
 import Ember from 'ember';
+import Component from '@ember/component';
 import $ from 'jquery';
 import editManager from '../utils/edit_manager';
 
-export default Ember.Component.extend({
+export default Component.extend({
   tagName: 'input',
   type: 'text',
   attributeBindings: ['placeholder', 'value'],
@@ -33,5 +34,5 @@ export default Ember.Component.extend({
     var id = $(this.get('element')).closest('.button').attr('data-id');
     editManager.lucky_symbol(id);
   }
-  
+
 });

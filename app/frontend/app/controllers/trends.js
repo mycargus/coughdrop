@@ -1,10 +1,13 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
+import EmberObject from '@ember/object';
+import { later as runLater } from '@ember/runloop';
 import i18n from '../utils/i18n';
 import persistence from '../utils/persistence';
 import app_state from '../utils/app_state';
 import modal from '../utils/modal';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   load_trends: function() {
     var _this = this;
     _this.set('trends', {loading: true});
@@ -13,12 +16,12 @@ export default Ember.Controller.extend({
     }, function(err) {
       _this.set('trends', {error: true});
     });
-    Ember.run.later(function() {
+    runLater(function() {
       _this.set('word_cloud_id', Math.random());
     }, 2000);
   },
   word_cloud_stats: function() {
-    var res = Ember.Object.create({
+    var res = EmberObject.create({
       words_by_frequency: []
     });
     var counts = this.get('trends.word_counts') || {};

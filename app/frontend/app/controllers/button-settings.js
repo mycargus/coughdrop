@@ -1,4 +1,8 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
 import modal from '../utils/modal';
 import editManager from '../utils/edit_manager';
 import contentGrabbers from '../utils/content_grabbers';
@@ -31,8 +35,8 @@ export default modal.ModalController.extend({
       this.set('auto_help', true);
     }
     this.set('state', state);
-    this.set('original_image_license', Ember.$.extend({}, button.get('image.license')));
-    this.set('original_sound_license', Ember.$.extend({}, button.get('sound.license')));
+    this.set('original_image_license', $.extend({}, button.get('image.license')));
+    this.set('original_sound_license', $.extend({}, button.get('sound.license')));
     this.set('board_search_type', stashes.get('last_board_search_type') || "personal");
     if(!(stashes.get('last_image_library') || "").match(/required/)) {
       this.set('image_library', stashes.get('last_image_library'));
@@ -54,7 +58,7 @@ export default modal.ModalController.extend({
     find_integration.then(function(res) {
       _this.set('lessonpix_enabled', true);
       if(stashes.get('last_image_library') == 'lessonpix') {
-        Ember.run.later(function() {
+        runLater(function() {
           _this.set('image_library', 'lessonpix');
         });
       }
@@ -284,8 +288,8 @@ export default modal.ModalController.extend({
   }.observes('model.background_color', 'model.border_color'),
   focus_on_state_change: function() {
     var _this = this;
-    Ember.run.later(function() {
-      var $elem = Ember.$(".modal-body:visible .content :input:visible:not(button):not(.skip_select):first");
+    runLater(function() {
+      var $elem = $(".modal-body:visible .content :input:visible:not(button):not(.skip_select):first");
       $elem.focus().select();
     });
   }.observes('state'),
@@ -333,7 +337,7 @@ export default modal.ModalController.extend({
     return null;
   }.property('model.vocalization'),
   modifier: function() {
-    var str = Ember.get(this, 'model.vocalization') || Ember.get(this, 'model.label') || "";
+    var str = emberGet(this, 'model.vocalization') || emberGet(this, 'model.label') || "";
     return str.match(/^\+|:/) && str;
   }.property('model.label', 'model.vocalization'),
   ios_search: function() {
@@ -417,7 +421,7 @@ export default modal.ModalController.extend({
       // fields..
     },
     toggle_color: function(type) {
-      var $elem = Ember.$("#" + type);
+      var $elem = $("#" + type);
 
       if(!$elem.hasClass('minicolors-input')) {
         $elem.minicolors();
@@ -519,8 +523,8 @@ export default modal.ModalController.extend({
         image.set('source_url', url);
         var button = editManager.find_button(id);
         if(_this.get('model.id') == id && button) {
-          Ember.set(button, 'image_id', image.id);
-          Ember.set(button, 'image', image);
+          emberSet(button, 'image_id', image.id);
+          emberSet(button, 'image', image);
         }
       }, function() {
         alert('nope');
@@ -611,7 +615,7 @@ export default modal.ModalController.extend({
       var _this = this;
       if(action == 'picture') {
         _this.set('state', 'picture');
-        Ember.run.later(function() {
+        runLater(function() {
           _this.send('find_picture');
         }, 200);
       } else if(action == 'label') {

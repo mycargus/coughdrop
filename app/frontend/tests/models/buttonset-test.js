@@ -1,4 +1,5 @@
 import DS from 'ember-data';
+import RSVP from 'rsvp';
 import Ember from 'ember';
 import { test, moduleForModel } from 'ember-qunit';
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
@@ -6,6 +7,7 @@ import { queryLog, db_wait, queue_promise } from 'frontend/tests/helpers/ember_h
 import CoughDrop from '../../app';
 import persistence from '../../utils/persistence';
 import modal from '../../utils/modal';
+import { run as emberRun } from '@ember/runloop';
 
 describe('Buttonset', function() {
   describe("find_button", function() {
@@ -280,7 +282,7 @@ describe('Buttonset', function() {
         var stored = false;
         persistence.primed = true;
         stub(persistence, 'ajax', function (options) {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             content_type: 'image/png',
             data: 'data:image/png;0'
           });
@@ -297,7 +299,7 @@ describe('Buttonset', function() {
               {label: 'hat', depth: 0, board_id: '1', image: 'http://www.example.com'}
             ]
           });
-          Ember.run.later(function() {
+          emberRun.later(function() {
             bs.find_buttons('h').then(function(r) {
               results = r;
             });
@@ -486,7 +488,7 @@ describe('Buttonset', function() {
         method: 'GET',
         type: 'buttonset',
         id: '123',
-        response: Ember.RSVP.resolve({
+        response: RSVP.resolve({
           buttonset: {
             id: '123',
             key: 'a/a',
@@ -501,7 +503,7 @@ describe('Buttonset', function() {
         method: 'GET',
         type: 'buttonset',
         id: '124',
-        response: Ember.RSVP.resolve({
+        response: RSVP.resolve({
           buttonset: {
             id: '124',
             key: 'a/b',
@@ -514,7 +516,7 @@ describe('Buttonset', function() {
         method: 'GET',
         type: 'buttonset',
         id: '125',
-        response: Ember.RSVP.resolve({
+        response: RSVP.resolve({
           buttonset: {
             id: '125',
             key: 'a/c',
@@ -589,7 +591,7 @@ describe('Buttonset', function() {
         method: 'GET',
         type: 'buttonset',
         id: '123',
-        response: Ember.RSVP.resolve({
+        response: RSVP.resolve({
           buttonset: {
             id: '123',
             key: 'a/a',
@@ -602,7 +604,7 @@ describe('Buttonset', function() {
         method: 'GET',
         type: 'buttonset',
         id: '124',
-        response: Ember.RSVP.resolve({
+        response: RSVP.resolve({
           buttonset: {
             id: '124',
             key: 'a/b',
@@ -618,7 +620,7 @@ describe('Buttonset', function() {
         method: 'GET',
         type: 'buttonset',
         id: '125',
-        response: Ember.RSVP.resolve({
+        response: RSVP.resolve({
           buttonset: {
             id: '125',
             key: 'a/c',
@@ -694,7 +696,7 @@ describe('Buttonset', function() {
         method: 'GET',
         type: 'buttonset',
         id: '123',
-        response: Ember.RSVP.resolve({
+        response: RSVP.resolve({
           buttonset: {
             id: '123',
             key: 'a/a',
@@ -709,7 +711,7 @@ describe('Buttonset', function() {
         method: 'GET',
         type: 'buttonset',
         id: '124',
-        response: Ember.RSVP.resolve({
+        response: RSVP.resolve({
           buttonset: {
             id: '124',
             key: 'a/b',
@@ -725,7 +727,7 @@ describe('Buttonset', function() {
         method: 'GET',
         type: 'buttonset',
         id: '125',
-        response: Ember.RSVP.resolve({
+        response: RSVP.resolve({
           buttonset: {
             id: '125',
             key: 'a/c',
@@ -803,7 +805,7 @@ describe('Buttonset', function() {
         method: 'GET',
         type: 'buttonset',
         id: '123',
-        response: Ember.RSVP.resolve({
+        response: RSVP.resolve({
           buttonset: {
             id: '123',
             key: 'a/a',
@@ -818,7 +820,7 @@ describe('Buttonset', function() {
         method: 'GET',
         type: 'buttonset',
         id: '124',
-        response: Ember.RSVP.resolve({
+        response: RSVP.resolve({
           buttonset: {
             id: '124',
             key: 'a/b',

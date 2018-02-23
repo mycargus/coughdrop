@@ -1,11 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { db_wait } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import capabilities from '../../utils/capabilities';
 import persistence from '../../utils/persistence';
 import stashes from '../../utils/_stashes';
 import coughDropExtras from '../../utils/extras';
 import Ember from 'ember';
 import CoughDrop from '../../app';
+import { run as emberRun } from '@ember/runloop';
 
 describe("filesystem", function() {
   var make_file = function(name) {
@@ -838,13 +840,13 @@ describe("filesystem", function() {
       };
       stub(persistence, 'find', function(key, id) {
         if(key == 'dataCache' && id == 'http://opensymbols.s3.amazonaws.com/remote/picture.png') {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             url: 'http://opensymbols.s3.amazonaws.com/remote/picture.png',
             content_type: 'image/png',
             data_uri: 'data:image/png;base64,abcdefg'
           });
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       var url = 'http://opensymbols.s3.amazonaws.com/remote/picture.png';
@@ -883,14 +885,14 @@ describe("filesystem", function() {
       };
       stub(persistence, 'find', function(key, id) {
         if(key == 'dataCache' && id == 'http://opensymbols.s3.amazonaws.com/remote/picture.png') {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             url: 'http://opensymbols.s3.amazonaws.com/remote/picture.png',
             content_type: 'image/png',
             local_filename: 'whatever.png',
             data_uri: 'data:image/png;base64,abcdefg'
           });
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       var url = 'http://opensymbols.s3.amazonaws.com/remote/picture.png';
@@ -929,12 +931,12 @@ describe("filesystem", function() {
       };
       stub(persistence, 'find', function(key, id) {
         if(key == 'dataCache' && id == 'http://opensymbols.s3.amazonaws.com/remote/picture.png') {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             url: 'http://opensymbols.s3.amazonaws.com/remote/picture.png',
             content_type: 'image/png'
           });
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       var url = 'http://opensymbols.s3.amazonaws.com/remote/picture.png';
@@ -964,13 +966,13 @@ describe("filesystem", function() {
       };
       stub(persistence, 'find', function(key, id) {
         if(key == 'dataCache' && id == 'http://opensymbols.s3.amazonaws.com/remote/picture.png') {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             url: 'http://opensymbols.s3.amazonaws.com/remote/picture.png',
             content_type: 'image/png',
             data_uri: 'data:image/png;base64,abcdefg'
           });
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       var url = 'http://opensymbols.s3.amazonaws.com/remote/picture.png';
@@ -1014,14 +1016,14 @@ describe("filesystem", function() {
       CoughDrop.quota_settings.root_dir = root;
       stub(coughDropExtras.storage, 'find_all', function(key) {
         if(key == 'dataCache') {
-          return Ember.RSVP.resolve([
+          return RSVP.resolve([
             {data: {raw: {url: "http://www.example.com/remote/a.png", type: 'image', local_filename: 'chicken.png', local_url: 'http://www.example.com/local/a.png'}}},
             {data: {raw: {url: "http://www.example.com/remote/b.png", type: 'image', local_filename: 'chicadee.gif'}}},
             {data: {raw: {url: "http://www.example.com/remote/c.mp3", type: 'sound', local_filename: 'water.wav', local_url: 'http://www.example.com/local/c.mp3'}}},
             {data: {raw: {url: "http://www.example.com/remote/d.mp3", type: 'sound', local_filename: 'whatever.mp3'}}}
           ]);
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
 
@@ -1060,14 +1062,14 @@ describe("filesystem", function() {
       CoughDrop.quota_settings.root_dir = root;
       stub(coughDropExtras.storage, 'find_all', function(key) {
         if(key == 'dataCache') {
-          return Ember.RSVP.resolve([
+          return RSVP.resolve([
             {data: {raw: {url: "http://www.example.com/remote/a.png", type: 'image', local_filename: 'chicken.png', local_url: 'http://www.example.com/local/a.png'}}},
             {data: {raw: {url: "http://www.example.com/remote/b.png", type: 'image', local_filename: 'chicadee.gif'}}},
             {data: {raw: {url: "http://www.example.com/remote/c.mp3", type: 'sound', local_filename: 'water.wav', local_url: 'http://www.example.com/local/c.mp3'}}},
             {data: {raw: {url: "http://www.example.com/remote/d.mp3", type: 'sound', local_filename: 'whatever.mp3'}}}
           ]);
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
 
@@ -1123,17 +1125,17 @@ describe("filesystem", function() {
       };
       stub(persistence, 'find', function(key, id) {
         if(key == 'dataCache' && id == 'http://www.example.com/remote/pic.png') {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             local_url: 'http://www.example.com/local/pic.png',
             local_filename: 'bacon.png'
           });
         } else if(key == 'dataCache' && id == 'http://www.example.com/remote/water.mp3') {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             local_url: 'http://www.example.com/local/water.mp3',
             local_filename: 'water.mp3'
           });
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       var result1 = null, result2 = null;
@@ -1162,17 +1164,17 @@ describe("filesystem", function() {
 
       stub(persistence, 'find', function(key, id) {
         if(key == 'dataCache' && id == 'http://www.example.com/remote/picture.png') {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             local_url: 'http://www.example.com/local/picture.png',
             local_filename: 'picture.png'
           });
         } else if(key == 'dataCache' && id == 'http://www.example.com/remote/water.mp3') {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             local_url: 'http://www.example.com/local/water.mp3',
             local_filename: 'water.mp3'
           });
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       var result1 = null, result2 = null;
@@ -1203,18 +1205,18 @@ describe("filesystem", function() {
 
       stub(persistence, 'find', function(key, id) {
         if(key == 'dataCache' && id == 'http://www.example.com/remote/picture.png') {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
 //            local_url: 'http://www.example.com/local/picture.png',
             local_filename: 'picture.png',
             data_uri: 'abcdefg'
           });
         } else if(key == 'dataCache' && id == 'http://www.example.com/remote/water.mp3') {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             local_url: 'http://www.example.com/local/water.mp3',
             local_filename: 'water.mp3'
           });
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       var result1 = null, result2 = null;
@@ -1259,10 +1261,10 @@ describe("filesystem", function() {
       var primed = false;
       stub(persistence, 'prime_caches', function() {
         primed = true;
-        return Ember.RSVP.resolve();
+        return RSVP.resolve();
       });
       var timeout = null;
-      stub(Ember.run, 'later', function(callback, t) {
+      stub(emberRun, 'later', function(callback, t) {
         if(t == 100) {
           callback();
           timeout = t;
@@ -1299,10 +1301,10 @@ describe("filesystem", function() {
       var primed = false;
       stub(persistence, 'prime_caches', function() {
         primed = true;
-        return Ember.RSVP.resolve();
+        return RSVP.resolve();
       });
       var timeout = null;
-      stub(Ember.run, 'later', function(callback, t) {
+      stub(emberRun, 'later', function(callback, t) {
         if(t == 100) {
           callback();
           timeout = t;

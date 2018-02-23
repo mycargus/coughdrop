@@ -1,11 +1,13 @@
 import Ember from 'ember';
+import Component from '@ember/component';
 import CoughDrop from '../app';
+import { reads } from '@ember/object/computed';
 
-export default Ember.Component.extend({
+export default Component.extend({
   tagName: 'div',
   content: null,
-  action: Ember.K, // action to fire on change
-  _selection: Ember.computed.reads('selection'),
+  action: function() { return this; },
+  _selection: reads('selection'),
   init: function() {
     this._super(...arguments);
   },

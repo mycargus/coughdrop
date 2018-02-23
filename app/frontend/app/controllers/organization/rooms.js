@@ -1,10 +1,11 @@
 import Ember from 'ember';
 import i18n from '../../utils/i18n';
+import Controller from '@ember/controller';
 import Utils from '../../utils/misc';
 import persistence from '../../utils/persistence';
 import modal from '../../utils/modal';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   refresh_units: function() {
     var _this = this;
     this.set('units', {loading: true});

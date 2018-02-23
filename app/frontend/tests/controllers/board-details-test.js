@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { queryLog } from 'frontend/tests/helpers/ember_helper';
+import EmberObject from '@ember/object';
 import startApp from '../helpers/start-app';
 
 describe('BoardDetailsController', 'controller:board-details', function() {
@@ -10,8 +11,8 @@ describe('BoardDetailsController', 'controller:board-details', function() {
 });
 // import Ember from 'ember';
 // import modal from '../utils/modal';
-// 
-// export default Ember.ObjectController.extend({
+//
+// export default EmberObjectController.extend({
 //   needs: 'board',
 //   images_with_license: function() {
 //     return this.get('local_images_with_license');

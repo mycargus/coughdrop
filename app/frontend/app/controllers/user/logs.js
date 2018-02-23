@@ -1,8 +1,11 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
 import modal from '../../utils/modal';
 import app_state from '../../utils/app_state';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   queryParams: ['type', 'start', 'end', 'device_id', 'location_id'],
   reset_params: function() {
     var _this = this;
@@ -64,8 +67,8 @@ export default Ember.Controller.extend({
       this.set('logs', {loading: true});
 
       this.store.query('log', args).then(function(list) {
-        controller.set('logs', list.content.mapBy('record'));
-        var meta = Ember.$.extend({}, list.meta);
+        controller.set('logs', list.map(function(i) { return i; }));
+        var meta = $.extend({}, list.meta);
         controller.set('meta', meta);
         // weird things happen if we try to observe meta.next_url, it stops
         // updating on subsequent requests.. hence this setter.
@@ -77,7 +80,7 @@ export default Ember.Controller.extend({
           if(log && log.get('time_id') && user.get('last_message_read') != log.get('time_id')) {
             // TODO: there's a reloadRecord error happening here without the timeout,
             // you should probably figure out the root issue
-            Ember.run.later(function() {
+            runLater(function() {
               user.set('last_message_read', log.get('time_id'));
               user.save().then(null, function() { });
             }, 1000);
@@ -101,8 +104,8 @@ export default Ember.Controller.extend({
         if(this.get('location_id')) { args.location_id = this.get('location_id'); }
         var find = this.store.query('log', args);
         find.then(function(list) {
-          _this.set('logs', _this.get('logs').concat(list.content.mapBy('record')));
-          var meta = Ember.$.extend({}, list.meta);
+          _this.set('logs', _this.get('logs').concat(list.map(function(i) { return i; })));
+          var meta = $.extend({}, list.meta);
           _this.set('meta', meta);
           _this.set('more_available', !!meta.next_url);
         }, function() { });

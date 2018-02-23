@@ -1,6 +1,9 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
 import DS from 'ember-data';
 import CoughDrop from '../app';
+import { htmlSafe } from '@ember/string';
 
 export default DS.Model.extend({
   type: DS.attr('string'),
@@ -72,32 +75,32 @@ export default DS.Model.extend({
     if(max_id < 0) { max_id = 0; }
     var shown_ids = this.get('toggled_event_ids') || [];
     (this.get('events') || []).forEach(function(event, idx) {
-      Ember.set(event, 'id', event['id'] || ++max_id);
-      Ember.set(event, event.type + "_type", true);
+      emberSet(event, 'id', event['id'] || ++max_id);
+      emberSet(event, event.type + "_type", true);
       if(event.action_type) {
-        Ember.set(event, 'type_icon', 'glyphicon-flash');
+        emberSet(event, 'type_icon', 'glyphicon-flash');
       } else if(event.utterance_type) {
-        Ember.set(event, 'type_icon', 'glyphicon-comment');
+        emberSet(event, 'type_icon', 'glyphicon-comment');
       } else {
-        Ember.set(event, 'type_icon', 'glyphicon-stop');
+        emberSet(event, 'type_icon', 'glyphicon-stop');
       }
       if(event.timestamp && last_ts) {
-        Ember.set(event, 'delay', event.timestamp - last_ts);
-        Ember.set(event, 'long_delay', event.delay > 60);
+        emberSet(event, 'delay', event.timestamp - last_ts);
+        emberSet(event, 'long_delay', event.delay > 60);
       }
       if(event.button_type) {
-        Ember.set(event, 'part_of_speech', ((event.parts_of_speech || {}).types || [])[0] || 'unknown');
+        emberSet(event, 'part_of_speech', ((event.parts_of_speech || {}).types || [])[0] || 'unknown');
       }
-      Ember.set(event, 'show_notes', event.id && shown_ids.indexOf(event.id) >= 0);
-      Ember.set(event, 'processed_summary', event.summary);
+      emberSet(event, 'show_notes', event.id && shown_ids.indexOf(event.id) >= 0);
+      emberSet(event, 'processed_summary', event.summary);
       if(event.type == 'utterance' && event.utterance_text) {
-        Ember.set(event, 'processed_summary', event.summary + " \"" + event.utterance_text + "\"");
+        emberSet(event, 'processed_summary', event.summary + " \"" + event.utterance_text + "\"");
       }
 
-      Ember.set(event, 'note_count', (event.notes || []).length);
+      emberSet(event, 'note_count', (event.notes || []).length);
       last_ts = event.timestamp;
-      Ember.set(event, 'type_class', "glyphicon " + Ember.get(event, 'type_icon'));
-      Ember.set(event, 'part_of_speech_class', "part_of_speech_box " + Ember.get(event, 'part_of_speech'));
+      emberSet(event, 'type_class', "glyphicon " + emberGet(event, 'type_icon'));
+      emberSet(event, 'part_of_speech_class', "part_of_speech_box " + emberGet(event, 'part_of_speech'));
       result.push(event);
     });
     return result;
@@ -110,13 +113,13 @@ export default DS.Model.extend({
     var running_total = 0;
     (this.get('assessment.tallies') || []).forEach(function(tally, idx) {
       if(tally.timestamp && last_ts) {
-        Ember.set(tally, 'delay', tally.timestamp - last_ts);
+        emberSet(tally, 'delay', tally.timestamp - last_ts);
       }
       running_total++;
-      Ember.set(tally, 'running_total', running_total);
+      emberSet(tally, 'running_total', running_total);
       if(tally.correct) {
         running_correct_total++;
-        Ember.set(tally, 'running_correct_total', running_correct_total);
+        emberSet(tally, 'running_correct_total', running_correct_total);
       }
       last_ts = tally.timestamp;
       result.push(tally);
@@ -134,28 +137,28 @@ export default DS.Model.extend({
     while(date <= today) {
       var str = date.format('YYYY-MM-DD');
       var day = daily.find(finder);
-      day = day || {date: str, activity: Ember.String.htmlSafe('none')};
+      day = day || {date: str, activity: htmlSafe('none')};
       if(day.activity_level == 1) {
-        day.activity = Ember.String.htmlSafe('light');
+        day.activity = htmlSafe('light');
       } else if(day.activity_level == 2) {
-        day.activity = Ember.String.htmlSafe('light-moderate');
+        day.activity = htmlSafe('light-moderate');
       } else if(day.activity_level == 3) {
-        day.activity = Ember.String.htmlSafe('moderate');
+        day.activity = htmlSafe('moderate');
       } else if(day.activity_level == 4) {
-        day.activity = Ember.String.htmlSafe('moderate-active');
+        day.activity = htmlSafe('moderate-active');
       } else if(day.activity_level == 5) {
-        day.activity = Ember.String.htmlSafe('active');
+        day.activity = htmlSafe('active');
       } else if(day.active === false) {
-        day.activity = Ember.String.htmlSafe('light');
+        day.activity = htmlSafe('light');
       } else if(day.active === true) {
-        day.activity = Ember.String.htmlSafe('active');
+        day.activity = htmlSafe('active');
       }
       res.push(day);
       date = date.add(1, 'day');
     }
     var pct = Math.round(1 / res.length * 1000) / 10;
     res.forEach(function(d) {
-      d.display_style = Ember.String.htmlSafe('width: ' + pct + '%;');
+      d.display_style = htmlSafe('width: ' + pct + '%;');
     });
     return res;
   }.property('daily_use'),

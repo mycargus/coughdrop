@@ -15,7 +15,7 @@ describe('UserStatsController', 'controller:user-stats', function() {
 // import app_state from '../../utils/app_state';
 // import Stats from '../../utils/stats';
 // 
-// export default Ember.ObjectController.extend({
+// export default EmberObjectController.extend({
 //   title: function() {
 //     return "Usage Reports for " + this.get('user_name');
 //   }.property('user_name'),
@@ -50,7 +50,7 @@ describe('UserStatsController', 'controller:user-stats', function() {
 //   }.property('location_id', 'usage_stats'),
 //   refresh_on_type_change: function() {
 //     var _this = this;
-//     Ember.run.scheduleOnce('actions', this, this.load_charts);
+//     emberRun.scheduleOnce('actions', this, this.load_charts);
 //   }.observes('start', 'end', 'location_id', 'device_id'),
 //   draw_charts: function() {
 //     var stats = this.get('usage_stats');
@@ -156,8 +156,8 @@ describe('UserStatsController', 'controller:user-stats', function() {
 //       graph();
 //     }
 // 
-//     Ember.run.later(function() {
-//       var $canvas = Ember.$("#touch_locations");
+//     emberRun.later(function() {
+//       var $canvas = $("#touch_locations");
 //       var touch_locations = {};
 //       var max = 0;
 //       for(var key in stats.touch_locations) { 
@@ -227,7 +227,7 @@ describe('UserStatsController', 'controller:user-stats', function() {
 //     }
 //     if(this.get('start') || this.get('end') || this.get('device_id') || this.get('location_id')) {
 //       if(this.get('start') == this.get('last_start') && this.get('end') == this.get('last_end') && this.get('device_id') == this.get('last_device_id') && this.get('location_id') == this.get('last_location_id')) {
-//         Ember.run.later(this, this.draw_charts);
+//         emberRun.later(this, this.draw_charts);
 //         return;
 //       }
 //     }

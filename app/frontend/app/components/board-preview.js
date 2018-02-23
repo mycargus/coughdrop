@@ -1,10 +1,11 @@
 import Ember from 'ember';
+import Component from '@ember/component';
 import CoughDrop from '../app';
 import modal from '../utils/modal';
 import app_state from '../utils/app_state';
 import persistence from '../utils/persistence';
 
-export default Ember.Component.extend({
+export default Component.extend({
   willInsertElement: function() {
     this.set('include_canvas', window.outerWidth > 800);
     this.set('model', {loading: true});

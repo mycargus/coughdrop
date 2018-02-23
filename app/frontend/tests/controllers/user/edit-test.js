@@ -12,7 +12,7 @@ describe('UserEditController', 'controller:user-edit', function() {
 // import modal from '../../utils/modal';
 // import i18n from '../../utils/i18n';
 // 
-// export default Ember.ObjectController.extend({
+// export default EmberObjectController.extend({
 //   title: function() {
 //     return "Edit " + this.get('user_name');
 //   }.property('user_name'),

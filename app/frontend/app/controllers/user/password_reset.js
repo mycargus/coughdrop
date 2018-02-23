@@ -1,7 +1,8 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import persistence from '../../utils/persistence';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   title: "Reset Password",
   checkPassword: function() {
     var pw = this.get('model.password');

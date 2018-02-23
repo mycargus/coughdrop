@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import RSVP from 'rsvp';
 import CoughDrop from '../app';
 import modal from '../utils/modal';
 import i18n from '../utils/i18n';
@@ -34,14 +35,14 @@ export default modal.ModalController.extend({
     add: function() {
       var controller = this;
       controller.set('linking', true);
-      var get_user_name = Ember.RSVP.resolve(this.get('supervisor_key'));
+      var get_user_name = RSVP.resolve(this.get('supervisor_key'));
       if(this.get('new_user')) {
         var supervisor = this.get('model.supervisor');
         supervisor.set('watch_user_name', false);
         get_user_name = supervisor.save().then(function(user) {
           return user.get('user_name');
         }, function() {
-          return Ember.RSVP.reject(i18n.t('creating_supervisor_failed', "Failed to create a new user with the given settings"));
+          return RSVP.reject(i18n.t('creating_supervisor_failed', "Failed to create a new user with the given settings"));
         });
       }
       get_user_name.then(function(user_name) {

@@ -1,8 +1,9 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 import CoughDrop from '../app';
 import i18n from './i18n';
 
-CoughDrop.Stats = Ember.Object.extend({
+CoughDrop.Stats = EmberObject.extend({
   no_data: function() {
     return this.get('total_sessions') === undefined || this.get('total_sessions') === 0;
   }.property('total_sessions'),

@@ -4,6 +4,7 @@ import CoughDrop from '../app';
 import app_state from '../utils/app_state';
 import i18n from '../utils/i18n';
 import editManager from '../utils/edit_manager';
+import { htmlSafe } from '@ember/string';
 
 export default modal.ModalController.extend({
   opening: function() {
@@ -13,7 +14,7 @@ export default modal.ModalController.extend({
     var list = [];
     for(var idx = 0; idx < 80; idx++) {
       list.push({
-        style: Ember.String.htmlSafe("top: " + (Math.random() * 200) + "px; left: " + (Math.random() *100) + "%;"),
+        style: htmlSafe("top: " + (Math.random() * 200) + "px; left: " + (Math.random() *100) + "%;"),
       });
     }
     this.set('confettis', list);

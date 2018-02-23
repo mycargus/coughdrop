@@ -1,5 +1,8 @@
 import Ember from 'ember';
-
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import { htmlSafe } from '@ember/string';
+import { assign as emberAssign } from '@ember/polyfills';
 Ember.templateHelpers = Ember.templateHelpers || {};
 Ember.templateHelpers.date = function(date, precision) {
   if(arguments.length == 1) {
@@ -143,7 +146,7 @@ Ember.templateHelpers.round = function(number) {
 Ember.templateHelpers.t = function(str, options) {
   // TODO: options values are NOT bound, so this doesn't work for our purposes
   // prolly needs to be rewritten as a custom view or something
-  return new Ember.String.htmlSafe(i18n.t(options.key, str, options));
+  return htmlSafe(i18n.t(options.key, str, options));
 };
 
 Ember.templateHelpers.safe = function(str, type) {
@@ -151,13 +154,13 @@ Ember.templateHelpers.safe = function(str, type) {
   if(type == 'stripped') {
     var div = document.createElement('div');
     div.innerHTML = str;
-    return new Ember.String.htmlSafe(div.textContent);
+    return htmlSafe(div.textContent);
   } else {
-    return new Ember.String.htmlSafe(str);
+    return htmlSafe(str);
   }
 };
 
-var i18n = Ember.Object.extend({
+var i18n = EmberObject.extend({
   init: function() {
     this._super();
     for(var idx in this.substitutions) {
@@ -173,7 +176,7 @@ var i18n = Ember.Object.extend({
   t: function(key, str, options) {
     var terms = str.match(/%{(\w+)}/g);
     var value;
-    options = Ember.assign({}, options);
+    options = emberAssign({}, options);
     if(options && !options.hash) { options.hash = options; }
     for(var idx = 0; terms && idx < terms.length; idx++) {
       var word = terms[idx].match(/%{(\w+)}/)[1];
@@ -187,7 +190,7 @@ var i18n = Ember.Object.extend({
         if(options.hashTypes) {
           // TODO: pretty sure this isn't used anymore
           if(options.hashTypes[word] == 'ID') {
-            value = Ember.get(options.hashContexts[word], options.hash[word].toString());
+            value = emberGet(options.hashContexts[word], options.hash[word].toString());
             value = value || options.hash[word];
           }
         }

@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
 import modal from '../utils/modal';
 
 export default modal.ModalController.extend({
@@ -10,13 +12,13 @@ export default modal.ModalController.extend({
     rename_device: function(id) {
       var list = [];
       this.get('model.devices').forEach(function(d) {
-        Ember.set(d, 'renaming', false);
+        emberSet(d, 'renaming', false);
         if(d.new_name) {
-          Ember.set(d, 'name', d.new_name);
+          emberSet(d, 'name', d.new_name);
         }
         if(d.id == id) {
-          Ember.set(d, 'renaming', true);
-          Ember.set(d, 'new_name', d.name);
+          emberSet(d, 'renaming', true);
+          emberSet(d, 'new_name', d.name);
         }
         list.push(d);
       });

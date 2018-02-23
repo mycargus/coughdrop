@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { queryLog } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 import app_state from '../../utils/app_state';
 import persistence from '../../utils/persistence';
 import boundClasses from '../../utils/bound_classes';
@@ -15,6 +17,7 @@ import utterance from '../../utils/utterance';
 import geo from '../../utils/geo';
 import speecher from '../../utils/speecher';
 import CoughDrop from '../../app';
+import { run as emberRun } from '@ember/runloop';
 
 describe('app_state', function() {
   var navigator = window.navigator;
@@ -33,10 +36,10 @@ describe('app_state', function() {
       },
       injections: []
     };
-    route = Ember.Object.extend({
+    route = EmberObject.extend({
       disconnectOutlet: function() { }
     }).create({
-      session: Ember.Object.create(),
+      session: EmberObject.create(),
       router: {
         router: {
           recognizer: {
@@ -45,7 +48,7 @@ describe('app_state', function() {
         }
       }
     });
-    controller = Ember.Object.extend({
+    controller = EmberObject.extend({
       transitionToRoute: function(a, b) { app_state.routed_to = [a, b]; },
       updateTitle: function() { },
       send: function(message) {
@@ -86,9 +89,9 @@ describe('app_state', function() {
       var bound_classes_setup = false;
       var utterance_setup = false;
 
-      var controller = Ember.Object.create({controller: 'controlleyness'});
-      var session = Ember.Object.create();
-      var route = Ember.Object.create({route: 'routeyness', session: session});
+      var controller = EmberObject.create({controller: 'controlleyness'});
+      var session = EmberObject.create();
+      var route = EmberObject.create({route: 'routeyness', session: session});
       stub(modal, 'close', function() {
         modal_closed = true;
       });
@@ -129,11 +132,11 @@ describe('app_state', function() {
       stub(capabilities, 'volume_check', function() {
         checks++;
         if(checks == 1) {
-          return Ember.RSVP.resolve(0);
+          return RSVP.resolve(0);
         } else if(checks == 2) {
-          return Ember.RSVP.resolve(0.1);
+          return RSVP.resolve(0.1);
         } else {
-          return Ember.RSVP.resolve(1.0);
+          return RSVP.resolve(1.0);
         }
       });
       stub(modal, 'warning', function(message) {
@@ -176,7 +179,7 @@ describe('app_state', function() {
       stub(capabilities, 'system', 'iOS');
       stub(capabilities, 'silent_mode', function() {
         checks++;
-        return Ember.RSVP.resolve(false);
+        return RSVP.resolve(false);
       });
       stub(modal, 'warning', function(message) {
         warnings++;
@@ -207,7 +210,7 @@ describe('app_state', function() {
       stub(capabilities, 'system', 'iOS');
       stub(capabilities, 'silent_mode', function() {
         checks++;
-        return Ember.RSVP.resolve(true);
+        return RSVP.resolve(true);
       });
       stub(modal, 'warning', function(message) {
         warnings++;
@@ -233,14 +236,14 @@ describe('app_state', function() {
         polling = true;
       });
       stashes.set('current_mode', 'speak');
-      app_state.set('currentUser', Ember.Object.create({preferences: {geo_logging: true}}));
+      app_state.set('currentUser', EmberObject.create({preferences: {geo_logging: true}}));
       app_state.set('currentBoardState', {key: 'trade', id: '1_1'});
       waitsFor(function() { return polling; });
       runs();
     });
 
 //         if(this.get('currentUser.preferences.speak_on_speak_mode')) {
-//           Ember.run.later(function() {
+//           emberRun.later(function() {
 //             speecher.speak_text(i18n.t('here_we_go', "here we go"), null, {volume: 0.1});
 //           }, 200);
 //         }
@@ -252,7 +255,7 @@ describe('app_state', function() {
       });
       var done = false;
       stashes.set('current_mode', 'speak');
-      app_state.set('currentUser', Ember.Object.create({}));
+      app_state.set('currentUser', EmberObject.create({}));
       app_state.set('currentBoardState', {key: 'trade', id: '1_1'});
       setTimeout(function() { done = true; }, 500);
       waitsFor(function() { return done; });
@@ -270,7 +273,7 @@ describe('app_state', function() {
       });
       var done = false;
       stashes.set('current_mode', 'speak');
-      app_state.set('currentUser', Ember.Object.create({preferences: {speak_on_speak_mode: true}}));
+      app_state.set('currentUser', EmberObject.create({preferences: {speak_on_speak_mode: true}}));
       app_state.set('currentBoardState', {key: 'trade', id: '1_1'});
       setTimeout(function() { done = true; }, 500);
       waitsFor(function() { return called; });
@@ -282,7 +285,7 @@ describe('app_state', function() {
     it("should cancel an existing refresh", function() {
       app_state.refreshing_user = {a: 1};
       var cancel_event = null;
-      stub(Ember.run, 'cancel', function(event) {
+      stub(emberRun, 'cancel', function(event) {
         cancel_event = event;
       });
       app_state.refresh_user();
@@ -292,14 +295,14 @@ describe('app_state', function() {
     it("should call reload on the current user", function() {
       app_state.refresh_user();
       var reloaded = false;
-      app_state.set('currentUser', Ember.Object.extend({
+      app_state.set('currentUser', EmberObject.extend({
         reload: function() {
           reloaded = true;
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       }).create());
       expect(app_state.refreshing_user).not.toEqual(undefined);
-      Ember.run.cancel(app_state.refreshing_user);
+      emberRun.cancel(app_state.refreshing_user);
     });
   });
 
@@ -443,7 +446,7 @@ describe('app_state', function() {
         called = mode == 'speak';
       });
       app_state.set('currentBoardState', {key: 'hat'});
-      app_state.set('sessionUser', Ember.Object.create({
+      app_state.set('sessionUser', EmberObject.create({
         preferences: {
           require_speak_mode_pin: true,
           speak_mode_pin: '1234'
@@ -469,7 +472,7 @@ describe('app_state', function() {
         called = mode == 'speak';
       });
       app_state.set('currentBoardState', {key: 'hat'});
-      app_state.set('sessionUser', Ember.Object.create({
+      app_state.set('sessionUser', EmberObject.create({
         preferences: {
           require_speak_mode_pin: true,
           speak_mode_pin: '1234'
@@ -501,7 +504,7 @@ describe('app_state', function() {
     it("should remember the preferred home board, but temp to current board as home, if 'currentAsHome' is the decision and not on the home board", function() {
       var mode = null;
       app_state.set('currentBoardState', {id: '2345', key: 'scarf'});
-      app_state.set('sessionUser', Ember.Object.create({
+      app_state.set('sessionUser', EmberObject.create({
         preferences: {
           home_board: {id: '1234', key: 'shawl'}
         }
@@ -515,7 +518,7 @@ describe('app_state', function() {
     it("should not temp to current board as home if already on the home board", function() {
       var mode = null;
       app_state.set('currentBoardState', {id: '1234', key: 'shawl'});
-      app_state.set('sessionUser', Ember.Object.create({
+      app_state.set('sessionUser', EmberObject.create({
         preferences: {
           home_board: {id: '1234', key: 'shawl'}
         }
@@ -530,7 +533,7 @@ describe('app_state', function() {
       stub(app_state, 'toggle_mode', function(m) {
         mode = m;
       });
-      app_state.set('sessionUser', Ember.Object.create({
+      app_state.set('sessionUser', EmberObject.create({
         preferences: {
           home_board: null
         }
@@ -546,7 +549,7 @@ describe('app_state', function() {
       stub(app_state, 'toggle_mode', function(m) {
         mode = m;
       });
-      app_state.set('sessionUser', Ember.Object.create({
+      app_state.set('sessionUser', EmberObject.create({
         preferences: {
           home_board: {
             key: 'scarf',
@@ -571,7 +574,7 @@ describe('app_state', function() {
         mode = m;
         options = o;
       });
-      app_state.set('sessionUser', Ember.Object.create({
+      app_state.set('sessionUser', EmberObject.create({
         preferences: {
           home_board: {
             key: 'scarf',
@@ -593,7 +596,7 @@ describe('app_state', function() {
         mode = m;
         options = o;
       });
-      app_state.set('sessionUser', Ember.Object.create({
+      app_state.set('sessionUser', EmberObject.create({
         preferences: {
           home_board: {
             key: 'scarf',
@@ -657,15 +660,15 @@ describe('app_state', function() {
     });
 
     it("should confirm if necessary and no decision made", function() {
-      app_state.controller.set('board', Ember.Object.create({
-        model: Ember.Object.create({could_be_in_use: true})
+      app_state.controller.set('board', EmberObject.create({
+        model: EmberObject.create({could_be_in_use: true})
       }));
       var found_template = null;
       var found_settings = null;
       stub(modal, 'open', function(template, settings) {
         found_template = template;
         found_settings = settings;
-        return Ember.RSVP.resolve();
+        return RSVP.resolve();
       });
       stashes.set('current_mode', 'default');
       stub(app_state, 'toggle_mode', function(arg) { });
@@ -676,8 +679,8 @@ describe('app_state', function() {
     });
 
     it("should not confirm if necessary and decision made", function() {
-      app_state.controller.set('board', Ember.Object.create({
-        model: Ember.Object.create({could_be_in_use: true})
+      app_state.controller.set('board', EmberObject.create({
+        model: EmberObject.create({could_be_in_use: true})
       }));
       var found_template = null;
       var found_settings = null;
@@ -756,7 +759,7 @@ describe('app_state', function() {
       stub(stashes.geo, 'poll', function() {
         polling = true;
       });
-      var u = Ember.Object.create({
+      var u = EmberObject.create({
         preferences: {geo_logging: true}
       });
       u.set('premium_enabled', true);
@@ -786,7 +789,7 @@ describe('app_state', function() {
       stub(modal, 'notice', function(message) {
         notice = message;
       });
-      var u = Ember.Object.create({
+      var u = EmberObject.create({
         preferences: {logging: true}
       });
       u.set('full_premium', true);
@@ -860,7 +863,7 @@ describe('app_state', function() {
       });
       var route = null;
       var key = null;
-      app_state.set('sessionUser', Ember.Object.create({
+      app_state.set('sessionUser', EmberObject.create({
         preferences: {
           home_board: {key: 'example/inflections'}
         }
@@ -901,7 +904,7 @@ describe('app_state', function() {
     it("should start scanning if state is correct", function() {
       stashes.set('current_mode', 'speak');
       app_state.set('currentBoardState', {key: 'handle'});
-      app_state.set('sessionUser', Ember.Object.create({
+      app_state.set('sessionUser', EmberObject.create({
         preferences: {
           device: {
             scanning: true,
@@ -945,7 +948,7 @@ describe('app_state', function() {
 
   describe('refresh_session_user', function() {
     it("should try to find the specified user", function() {
-      var promise = Ember.RSVP.resolve({user: {
+      var promise = RSVP.resolve({user: {
         id: '1',
         user_name: 'fred'
       }});
@@ -985,8 +988,8 @@ describe('app_state', function() {
       app_state.set_speak_mode_user('self');
       expect(app_state.get('speakModeUser')).toEqual(null);
 
-      app_state.set('speakModeUser', Ember.Object.create({id: '3456'}));
-      var u = Ember.Object.create({id: '1234'});
+      app_state.set('speakModeUser', EmberObject.create({id: '3456'}));
+      var u = EmberObject.create({id: '1234'});
       u.set('full_premium', true);
       app_state.set('sessionUser', u);
       app_state.set_speak_mode_user('1234');
@@ -995,7 +998,7 @@ describe('app_state', function() {
     });
 
     it("should find specified user if not set to self", function() {
-      var promise = Ember.RSVP.resolve({user: {
+      var promise = RSVP.resolve({user: {
         id: '1234',
         user_name: 'fred'
       }});
@@ -1017,7 +1020,7 @@ describe('app_state', function() {
       });
     });
     it("should alert on failed user retrieval", function() {
-      var promise = Ember.RSVP.reject({stub: true});
+      var promise = RSVP.reject({stub: true});
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
@@ -1041,7 +1044,7 @@ describe('app_state', function() {
     });
 
     it("should jump to the current user's home board if requested", function() {
-      var promise = Ember.RSVP.resolve({user: {
+      var promise = RSVP.resolve({user: {
         id: '1234',
         user_name: 'fred',
         preferences: {
@@ -1067,7 +1070,7 @@ describe('app_state', function() {
     });
 
     it("should not jump to the user's home board if not requested", function() {
-      var promise = Ember.RSVP.resolve({user: {
+      var promise = RSVP.resolve({user: {
         id: '1234',
         user_name: 'fred',
         preferences: {
@@ -1093,7 +1096,7 @@ describe('app_state', function() {
     });
 
     it("should jump to the session user's home board if the current user has no home board and jumping is requested", function() {
-      var promise = Ember.RSVP.resolve({user: {
+      var promise = RSVP.resolve({user: {
         id: '1234',
         user_name: 'fred',
         preferences: {
@@ -1107,7 +1110,7 @@ describe('app_state', function() {
         response: promise,
         id: "1234"
       });
-      app_state.set('sessionUser', Ember.Object.create({id: '234', preferences: {home_board: {key: 'c/d'}}}));
+      app_state.set('sessionUser', EmberObject.create({id: '234', preferences: {home_board: {key: 'c/d'}}}));
 
       stashes.set('current_mode', 'default');
       var home_args = null;
@@ -1123,7 +1126,7 @@ describe('app_state', function() {
     });
 
     it("should jump to the found user's home board but keep as self if found and requested", function() {
-      var promise = Ember.RSVP.resolve({user: {
+      var promise = RSVP.resolve({user: {
         id: '1234',
         user_name: 'fred',
         preferences: {
@@ -1148,7 +1151,7 @@ describe('app_state', function() {
     });
 
     it("should remember the found user for reuse after reload", function() {
-      var promise = Ember.RSVP.resolve({user: {
+      var promise = RSVP.resolve({user: {
         id: '1234',
         user_name: 'fred'
       }});
@@ -1175,7 +1178,7 @@ describe('app_state', function() {
 //  set_speak_mode_user: function(board_user_id, jump_home, keep_as_self) {
 
     it('should set the current board to temporary home and remember the real home if not jumping', function() {
-      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      var session_user = EmberObject.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
       app_state.set('sessionUser', session_user);
       app_state.set_speak_mode_user('self', false, true);
       expect(stashes.get('root_board_state')).toEqual({id: '111', key: 'home/one'});
@@ -1186,7 +1189,7 @@ describe('app_state', function() {
     });
 
     it('should set the current board to temporary home and remember the real home if not jumping and user it matches session user', function() {
-      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      var session_user = EmberObject.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
       app_state.set('sessionUser', session_user);
       app_state.set_speak_mode_user('234', false, true);
       expect(stashes.get('root_board_state')).toEqual({id: '111', key: 'home/one'});
@@ -1198,11 +1201,11 @@ describe('app_state', function() {
     });
 
     it('should mark as the modeled user if entering in modeling mode', function() {
-      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      var session_user = EmberObject.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '2345',
           user_name: 'modeling_user',
           preferences: {
@@ -1226,12 +1229,12 @@ describe('app_state', function() {
     });
 
     it('should mark the current board as temporary home if already in speak mode and switching without jumping', function() {
-      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      var session_user = EmberObject.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
       stashes.set('current_mode', 'speak');
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '2345',
           user_name: 'modeling_user',
           preferences: {
@@ -1256,7 +1259,7 @@ describe('app_state', function() {
     });
 
     it('should remember the session user real home if not modeling and not jumping', function() {
-      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      var session_user = EmberObject.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
       stashes.persist('root_board_state', null);
       app_state.set('sessionUser', session_user);
       app_state.set_speak_mode_user('self', false, true);
@@ -1273,12 +1276,12 @@ describe('app_state', function() {
     });
 
     it('should remember the specified user real home if modeling and not jumping', function() {
-      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      var session_user = EmberObject.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
       stashes.set('current_mode', 'speak');
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '2345',
           user_name: 'modeling_user',
           preferences: {
@@ -1302,11 +1305,11 @@ describe('app_state', function() {
     });
 
     it('should remember the specified user real home if entering as the user and not jumping', function() {
-      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      var session_user = EmberObject.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '2345',
           user_name: 'modeling_user',
           preferences: {
@@ -1332,11 +1335,11 @@ describe('app_state', function() {
     });
 
     it('should not mark as temporary home if jumping to the actual home', function() {
-      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      var session_user = EmberObject.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '2345',
           user_name: 'modeling_user',
           preferences: {
@@ -1346,8 +1349,8 @@ describe('app_state', function() {
         id: '2345'
       });
       stub(modal, 'open', function(type) {
-        if(type == 'premium-required') { return Ember.RSVP.resolve(); }
-        return Ember.RSVP.reject();
+        if(type == 'premium-required') { return RSVP.resolve(); }
+        return RSVP.reject();
       });
       expect(app_state.get('speak_mode')).toEqual(false);
       app_state.set('sessionUser', session_user);
@@ -1366,7 +1369,7 @@ describe('app_state', function() {
     });
 
     it('should jump to the session user home if not modeling and not entering as the user', function() {
-      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      var session_user = EmberObject.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
       expect(app_state.get('speak_mode')).toEqual(false);
       app_state.set('sessionUser', session_user);
       app_state.set_speak_mode_user('234', true, true);
@@ -1384,11 +1387,11 @@ describe('app_state', function() {
     });
 
     it('should jump to the modeled user home if modeling', function() {
-      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      var session_user = EmberObject.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '2345',
           user_name: 'modeling_user',
           preferences: {
@@ -1398,8 +1401,8 @@ describe('app_state', function() {
         id: '2345'
       });
       stub(modal, 'open', function(type) {
-        if(type == 'premium-required') { return Ember.RSVP.resolve(); }
-        return Ember.RSVP.reject();
+        if(type == 'premium-required') { return RSVP.resolve(); }
+        return RSVP.reject();
       });
       expect(app_state.get('speak_mode')).toEqual(false);
       app_state.set('sessionUser', session_user);
@@ -1418,11 +1421,11 @@ describe('app_state', function() {
     });
 
     it('should jump to the modeling user home if entering as the user', function() {
-      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      var session_user = EmberObject.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '2345',
           user_name: 'modeling_user',
           preferences: {
@@ -1432,8 +1435,8 @@ describe('app_state', function() {
         id: '2345'
       });
       stub(modal, 'open', function(type) {
-        if(type == 'premium-required') { return Ember.RSVP.resolve(); }
-        return Ember.RSVP.reject();
+        if(type == 'premium-required') { return RSVP.resolve(); }
+        return RSVP.reject();
       });
       expect(app_state.get('speak_mode')).toEqual(false);
       app_state.set('sessionUser', session_user);
@@ -1452,11 +1455,11 @@ describe('app_state', function() {
     });
 
     it('should mark as modeling mode if keeping as self for different user', function() {
-      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      var session_user = EmberObject.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '2345',
           user_name: 'modeling_user',
           preferences: {
@@ -1482,11 +1485,11 @@ describe('app_state', function() {
     });
 
     it('should not mark as modeling mode if entering as self', function() {
-      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      var session_user = EmberObject.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '2345',
           user_name: 'modeling_user',
           preferences: {
@@ -1512,11 +1515,11 @@ describe('app_state', function() {
     });
 
     it('should not mark as modeling mode if entering as another user', function() {
-      var session_user = Ember.Object.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
+      var session_user = EmberObject.create({id: '234', preferences: {home_board: {id: '111', key: 'home/one'}}});
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '2345',
           user_name: 'modeling_user',
           preferences: {
@@ -1526,8 +1529,8 @@ describe('app_state', function() {
         id: '2345'
       });
       stub(modal, 'open', function(type) {
-        if(type == 'premium-required') { return Ember.RSVP.resolve(); }
-        return Ember.RSVP.reject();
+        if(type == 'premium-required') { return RSVP.resolve(); }
+        return RSVP.reject();
       });
       expect(app_state.get('speak_mode')).toEqual(false);
       app_state.set('sessionUser', session_user);
@@ -1572,7 +1575,7 @@ describe('app_state', function() {
         level = 1;
 
         app_state.did_set_current_user = false;
-        app_state.set('speakModeUser', Ember.Object.create({id: '123'}));
+        app_state.set('speakModeUser', EmberObject.create({id: '123'}));
       });
 
       waitsFor(function() { return level == 1 && app_state.did_set_current_user; });
@@ -1603,7 +1606,7 @@ describe('app_state', function() {
       runs(function() {
         level = 5;
         app_state.did_set_current_user = false;
-        app_state.set('sessionUser', Ember.Object.create({id: '234'}));
+        app_state.set('sessionUser', EmberObject.create({id: '234'}));
       });
 
       waitsFor(function() { return level == 5 && app_state.did_set_current_user; });
@@ -1623,7 +1626,7 @@ describe('app_state', function() {
     it("should update user preferences for app_added if necessary", function() {
       var standalone = navigator.standalone;
       navigator.standalone = true;
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         preferences: {
           progress: {}
         }
@@ -1631,7 +1634,7 @@ describe('app_state', function() {
       var saved = false;
       stub(user, 'save', function() {
         saved = true;
-        return Ember.RSVP.resolve();
+        return RSVP.resolve();
       });
       app_state.set('speakModeUser', null);
       stashes.set('current_mode', 'default');
@@ -1752,7 +1755,7 @@ describe('app_state', function() {
     it("should properly compute limited_speak_mode_options", function() {
       stashes.set('current_mode', 'speak');
       app_state.set('currentBoardState', {key: 'olive'});
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         preferences: {
           require_speak_mode_pin: true
         }
@@ -1794,7 +1797,7 @@ describe('app_state', function() {
 
     it("should properly compute current_board_is_home", function() {
       app_state.set('currentBoardState', {key: 'example/monkey', id: '1_1'});
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         preferences: {
           home_board: {id: '1_1'}
         }
@@ -1813,7 +1816,7 @@ describe('app_state', function() {
     });
 
     it("should properly compute current_board_not_home_or_supervising", function() {
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         preferences: {
           home_board: {id: '1_1'}
         }
@@ -1851,7 +1854,7 @@ describe('app_state', function() {
     });
 
     it("should properly compute current_board_in_board_set", function() {
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         stats: {
           board_set_ids: ['1_2', '1_3', '1_4']
         }
@@ -1867,7 +1870,7 @@ describe('app_state', function() {
 
 
     it("should properly compute current_board_in_extended_board_set", function() {
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         stats: {
           board_set_ids_including_supervisees: ['1_2', '1_3', '1_4']
         }
@@ -1883,7 +1886,7 @@ describe('app_state', function() {
 
     it("should properly compute speak_mode_possible", function() {
       app_state.set('currentBoardState', {key: 'xylo'});
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         preferences: {
           home_board: {key: 'xylo'}
         }
@@ -1900,7 +1903,7 @@ describe('app_state', function() {
 
     it("should properly compute board_in_current_user_set", function() {
       app_state.set('currentBoardState', {id: '1_1'});
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         stats: {
           board_set_ids: ['1_2', '1_3', '1_1']
         }
@@ -1938,7 +1941,7 @@ describe('app_state', function() {
       stashes.set('current_mode', 'speak');
       app_state.set('currentBoardState', {key: 'cannery'});
       stashes.set('sidebarEnabled', true);
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         preferences: {
           quick_sidebar: true
         }
@@ -2083,7 +2086,7 @@ describe('app_state', function() {
       expect(event).toEqual(null);
 
       app_state.set('currentBoardState', {key: 'oink'});
-      app_state.set('sessionUser', Ember.Object.create({
+      app_state.set('sessionUser', EmberObject.create({
         preferences: {
           home_board: {key: 'oink'}
         }
@@ -2098,7 +2101,7 @@ describe('app_state', function() {
         event = e;
       });
       app_state.set('currentBoardState', {key: 'yodel'});
-      app_state.set('sessionUser', Ember.Object.create({
+      app_state.set('sessionUser', EmberObject.create({
         preferences: {
           home_board: {key: 'igneous'}
         }
@@ -2113,7 +2116,7 @@ describe('app_state', function() {
         event = e;
       });
       app_state.set('currentBoardState', {key: 'yodel'});
-      app_state.set('sessionUser', Ember.Object.create({
+      app_state.set('sessionUser', EmberObject.create({
         preferences: {
           home_board: {key: 'igneous'}
         }
@@ -2124,7 +2127,7 @@ describe('app_state', function() {
 
     it("should transition to root_board_state if defined", function() {
       stashes.set('root_board_state', {key: 'under'});
-      app_state.set('sessionUser', Ember.Object.create({
+      app_state.set('sessionUser', EmberObject.create({
         preferences: {
           home_board: {key: 'halo'}
         }
@@ -2149,7 +2152,7 @@ describe('app_state', function() {
 
     it("should transition to user's home board if no root_board_state", function() {
       stashes.set('root_board_state', null);
-      app_state.set('sessionUser', Ember.Object.create({
+      app_state.set('sessionUser', EmberObject.create({
         preferences: {
           home_board: {key: 'halo'}
         }
@@ -2175,7 +2178,7 @@ describe('app_state', function() {
 
     it("should transition to the temporary root board if temporary_root_board_state is set", function() {
       stashes.set('root_board_state', {key: 'under'});
-      app_state.set('sessionUser', Ember.Object.create({
+      app_state.set('sessionUser', EmberObject.create({
         preferences: {
           home_board: {key: 'halo'}
         }
@@ -2202,7 +2205,7 @@ describe('app_state', function() {
     it("should transition to the index page if no user or root_board_state defined and index_as_fallback is allowed", function() {
       stashes.set('root_board_state', null);
       stashes.set('temporary_root_board_state', null);
-      app_state.set('sessionUser', Ember.Object.create({
+      app_state.set('sessionUser', EmberObject.create({
         preferences: {
           home_board: {}
         }
@@ -2237,7 +2240,7 @@ describe('app_state', function() {
     });
 
     it("should return the user's settings if set", function() {
-      app_state.set('sessionUser', Ember.Object.create({}));
+      app_state.set('sessionUser', EmberObject.create({}));
       app_state.set('sessionUser.sidebar_boards_with_fallbacks', [1, 2]);
       stub(window, 'user_preferences', {
         any_user: {
@@ -2250,19 +2253,19 @@ describe('app_state', function() {
 
   describe("check_for_user_updated", function() {
     it("should set last_sync_stamp when sessionUser changes", function() {
-      var o = Ember.Object.create();
+      var o = EmberObject.create();
       stub(window, 'persistence', o);
       stub(o, 'check_for_needs_sync', function() { });
-      app_state.set('sessionUser', Ember.Object.create({sync_stamp: 'asdf'}));
+      app_state.set('sessionUser', EmberObject.create({sync_stamp: 'asdf'}));
       waitsFor(function() { return o.get('last_sync_stamp') == 'asdf'; });
       runs();
     });
 
     it("should set last_sync_stamp_interval", function() {
-      var o = Ember.Object.create();
+      var o = EmberObject.create();
       stub(window, 'persistence', o);
       stub(o, 'check_for_needs_sync', function() { });
-      app_state.set('sessionUser', Ember.Object.create({sync_stamp: 'asdf'}));
+      app_state.set('sessionUser', EmberObject.create({sync_stamp: 'asdf'}));
       waitsFor(function() { return o.get('last_sync_stamp') == 'asdf'; });
       runs(function() {
         expect(o.get('last_sync_stamp_interval')).toEqual(15 * 60 * 1000);
@@ -2270,8 +2273,8 @@ describe('app_state', function() {
     });
 
     it("should use the user's interval preference if defined", function() {
-      var o = Ember.Object.create();
-      app_state.set('sessionUser', Ember.Object.create({sync_stamp: 'asdf', preferences: {'sync_refresh_interval': 10}}));
+      var o = EmberObject.create();
+      app_state.set('sessionUser', EmberObject.create({sync_stamp: 'asdf', preferences: {'sync_refresh_interval': 10}}));
       waitsFor(function() { return window.persistence.get('last_sync_stamp') == 'asdf'; });
       runs(function() {
         expect(window.persistence.get('last_sync_stamp_interval')).toEqual(10000);
@@ -2290,7 +2293,7 @@ describe('app_state', function() {
 
     it("should return the closest geolocated board", function() {
       stashes.set('geo.latest', {coords: {latitude: 1, longitude: 1}});
-      app_state.set('currentUser', Ember.Object.extend({
+      app_state.set('currentUser', EmberObject.extend({
         sidebar_boards_with_fallbacks: function() {
           return [
             {key: 'a', highlight_type: 'locations', geos: [[1.0001, 1.0001]]},
@@ -2308,7 +2311,7 @@ describe('app_state', function() {
       var now = (new Date()).getTime();
       var str1 = app_state.time_string(now - (5*60*1000));
       var str2 = app_state.time_string(now + (5*60*1000));
-      app_state.set('currentUser', Ember.Object.extend({
+      app_state.set('currentUser', EmberObject.extend({
         sidebar_boards_with_fallbacks: function() {
           return [
             {key: 'a', highlight_type: 'locations', geos: [[1.1, 1.1]]},
@@ -2325,7 +2328,7 @@ describe('app_state', function() {
       stashes.set('geo.latest', {coords: {latitude: 1, longitude: 1}});
       var now = (new Date()).getTime();
       app_state.set('current_ssid', 'asdfqwer');
-      app_state.set('currentUser', Ember.Object.extend({
+      app_state.set('currentUser', EmberObject.extend({
         sidebar_boards_with_fallbacks: function() {
           return [
             {key: 'a', highlight_type: 'locations', geos: [[1.1, 1.1]]},
@@ -2345,7 +2348,7 @@ describe('app_state', function() {
         {name: 'slammer', latitude: 1.0001, longitude: 1.0001, types: ['dungeon']},
         {name: 'zen', latitude: 1.0002, longitude: 1.0002, types: ['heaven']}
       ]);
-      app_state.set('currentUser', Ember.Object.extend({
+      app_state.set('currentUser', EmberObject.extend({
         sidebar_boards_with_fallbacks: function() {
           return [
             {key: 'a', highlight_type: 'places', places: ['dungeon', 'prison']},
@@ -2388,10 +2391,10 @@ describe('app_state', function() {
       var checked = false;
       stub(geo, 'check_locations', function() {
         checked = true;
-        return Ember.RSVP.resolve();
+        return RSVP.resolve();
       });
       stashes.set('geo.latest', {});
-      app_state.set('currentUser', Ember.Object.extend({
+      app_state.set('currentUser', EmberObject.extend({
         sidebar_boards_with_fallbacks: function() {
           return [{places: [1, 2, 3]}];
         }.property()
@@ -2407,7 +2410,7 @@ describe('app_state', function() {
 
       var checked = false;
       stashes.set('geo.latest', {});
-      app_state.set('currentUser', Ember.Object.extend({
+      app_state.set('currentUser', EmberObject.extend({
         sidebar_boards_with_fallbacks: function() {
           return [{}];
         }.property()
@@ -2420,7 +2423,7 @@ describe('app_state', function() {
 
   describe('activate_button', function() {
     it('should return immediately for a hidden button when preferences are set to grid', function() {
-      app_state.set('currentUser', Ember.Object.create({preferences: {hidden_buttons: 'grid'}}));
+      app_state.set('currentUser', EmberObject.create({preferences: {hidden_buttons: 'grid'}}));
       expect(app_state.get('edit_mode')).toEqual(false);
       var res = app_state.activate_button({hidden: true});
       expect(res).toEqual(false);
@@ -2437,10 +2440,10 @@ describe('app_state', function() {
     it('should flag the user as protected in the right spots', function() {
       CoughDrop.protected_user = null;
       expect(CoughDrop.protected_user == null).toEqual(true);
-      app_state.set('currentUser', Ember.Object.create({preferences: {protected_usage: false}}));
+      app_state.set('currentUser', EmberObject.create({preferences: {protected_usage: false}}));
       expect(CoughDrop.protected_user).toEqual(false);
       expect(stashes.get('protected_user')).toEqual(false);
-      app_state.set('currentUser', Ember.Object.create({preferences: {protected_usage: true}}));
+      app_state.set('currentUser', EmberObject.create({preferences: {protected_usage: true}}));
       expect(CoughDrop.protected_user).toEqual(true);
       expect(stashes.get('protected_user')).toEqual(true);
     });
@@ -2517,7 +2520,7 @@ describe('app_state', function() {
 
     it('should auto-exit speak mode and post a notice if for the current user, who is a limited supervisor', function() {
       var stamp = (new Date()).getTime() - (20 * 60 *1000);
-      app_state.set('sessionUser', Ember.Object.create({id: '12345', limited_supervisor: true}));
+      app_state.set('sessionUser', EmberObject.create({id: '12345', limited_supervisor: true}));
       stashes.set('current_mode', 'speak');
       app_state.set('currentBoardState', {key: 'trade', id: '1_1'});
       expect(app_state.get('currentUser')).toEqual(app_state.get('sessionUser'));
@@ -2541,10 +2544,10 @@ describe('app_state', function() {
 
     it('should auto-exit speak mode and post a notice if supporting a communicator who is expired', function() {
       var stamp = (new Date()).getTime() - (20 * 60 *1000);
-      app_state.set('sessionUser', Ember.Object.create({id: '12345'}));
+      app_state.set('sessionUser', EmberObject.create({id: '12345'}));
       stashes.set('current_mode', 'speak');
       app_state.set('currentBoardState', {key: 'trade', id: '1_1'});
-      app_state.set('referenced_speak_mode_user', Ember.Object.create({id: '23456', expired: true}));
+      app_state.set('referenced_speak_mode_user', EmberObject.create({id: '23456', expired: true}));
       expect(app_state.get('currentUser')).toEqual(app_state.get('sessionUser'));
       expect(app_state.get('speak_mode')).toEqual(true);
       var noticed = false;
@@ -2566,7 +2569,7 @@ describe('app_state', function() {
 
     it('should auto-exit if for a really really expired communicator', function() {
       var stamp = (new Date()).getTime() - (40 * 60 *1000);
-      app_state.set('sessionUser', Ember.Object.create({id: '12345', expired: true, really_really_expired: true}));
+      app_state.set('sessionUser', EmberObject.create({id: '12345', expired: true, really_really_expired: true}));
       stashes.set('current_mode', 'speak');
       app_state.set('currentBoardState', {key: 'trade', id: '1_1'});
       expect(app_state.get('currentUser')).toEqual(app_state.get('sessionUser'));
@@ -2590,7 +2593,7 @@ describe('app_state', function() {
 
     it('should auto-exit speak mode if for an expired communicator', function() {
       var stamp = (new Date()).getTime() - (40 * 60 *1000);
-      app_state.set('sessionUser', Ember.Object.create({id: '12345', expired: true}));
+      app_state.set('sessionUser', EmberObject.create({id: '12345', expired: true}));
       stashes.set('current_mode', 'speak');
       app_state.set('currentBoardState', {key: 'trade', id: '1_1'});
       expect(app_state.get('currentUser')).toEqual(app_state.get('sessionUser'));
@@ -2603,7 +2606,7 @@ describe('app_state', function() {
       app_state.set('speak_mode_started', stamp);
       app_state.set('medium_refresh_stamp', 1234);
       var waited = false;
-      Ember.run.later(function() {
+      emberRun.later(function() {
         waited = true;
       }, 500);
       waitsFor(function() { return waited; });

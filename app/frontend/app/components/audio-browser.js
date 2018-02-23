@@ -1,10 +1,12 @@
 import Ember from 'ember';
+import Component from '@ember/component';
 import contentGrabbers from '../utils/content_grabbers';
 import app_state from '../utils/app_state';
 import word_suggestions from '../utils/word_suggestions';
 import Utils from '../utils/misc';
 
-export default Ember.Component.extend({
+
+export default Component.extend({
   tagName: 'span',
   willInsertElement: function() {
     var controller = this;

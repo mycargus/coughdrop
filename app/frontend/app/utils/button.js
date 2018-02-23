@@ -1,4 +1,9 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
+import RSVP from 'rsvp';
 import CoughDrop from '../app';
 import boundClasses from './bound_classes';
 import app_state from './app_state';
@@ -6,6 +11,7 @@ import persistence from './persistence';
 import i18n from './i18n';
 import stashes from './_stashes';
 import progress_tracker from './progress_tracker';
+import { htmlSafe } from '@ember/string';
 
 var clean_url = function(str) {
   str = str || "";
@@ -17,7 +23,7 @@ var clean_text = function(str) {
   return dom.innerHTML;
 };
 
-var Button = Ember.Object.extend({
+var Button = EmberObject.extend({
   init: function() {
     this.updateAction();
     this.add_classes();
@@ -63,7 +69,7 @@ var Button = Ember.Object.extend({
     return Button.action_styling(this.get('buttonAction'), this);
   }.property('buttonAction', 'home_lock', 'book.popup', 'video.popup', 'action_status', 'action_status.pending', 'action_status.errored', 'action_status.completed', 'integration.action_type'),
   action_class: function() {
-    return Ember.String.htmlSafe(this.get('action_styling.action_class'));
+    return htmlSafe(this.get('action_styling.action_class'));
   }.property('action_styling'),
   action_image: function() {
     return this.get('action_styling.action_image');
@@ -210,19 +216,19 @@ var Button = Ember.Object.extend({
     res = res + "</div>";
 
     res = res + "</div>";
-    return new Ember.String.htmlSafe(res);
+    return htmlSafe(res);
   }.property('refresh_token', 'positioning', 'computed_style', 'computed_class', 'label', 'action_class', 'action_image', 'action_alt', 'image_holder_style', 'local_image_url', 'image_style', 'local_sound_url', 'sound.url', 'hide_label'),
   image_holder_style: function() {
     var pos = this.get('positioning');
-    return new Ember.String.htmlSafe(Button.image_holder_style(pos));
+    return htmlSafe(Button.image_holder_style(pos));
   }.property('positioning', 'positioning.image_height', 'positioning.image_top_margin', 'positioning.image_square'),
   image_style: function() {
     var pos = this.get('positioning');
-    return new Ember.String.htmlSafe(Button.image_style(pos));
+    return htmlSafe(Button.image_style(pos));
   }.property('positioning', 'positioning.image_height', 'positioning.image_square'),
   computed_style: function() {
     var pos = this.get('positioning');
-    if(!pos) { return new Ember.String.htmlSafe(""); }
+    if(!pos) { return htmlSafe(""); }
     return Button.computed_style(pos);
   }.property('positioning', 'positioning.height', 'positioning.width', 'positioning.left', 'positioning.top'),
   computed_class: function() {
@@ -253,24 +259,24 @@ var Button = Ember.Object.extend({
   },
   load_image: function() {
     var _this = this;
-    if(!_this.image_id) { return Ember.RSVP.resolve(); }
+    if(!_this.image_id) { return RSVP.resolve(); }
     var image = CoughDrop.store.peekRecord('image', _this.image_id);
     if(image && (!image.get('isLoaded') || !image.get('best_url'))) { image = null; }
     _this.set('image', image);
     if(!image) {
       if(_this.get('no_lookups')) {
-        return Ember.RSVP.reject('no image lookups');
+        return RSVP.reject('no image lookups');
       } else {
         return CoughDrop.store.findRecord('image', _this.image_id).then(function(image) {
-          // There was a Ember.run.later of 100ms here, I have no idea why but
+          // There was a runLater of 100ms here, I have no idea why but
           // it seemed like a bad idea so I removed it.
           _this.set('image', image);
           return image.checkForDataURL().then(function() {
             _this.set('local_image_url', image.get('best_url'));
-            return Ember.RSVP.resolve(image);
+            return RSVP.resolve(image);
           }, function() {
             _this.set('local_image_url', image.get('best_url'));
-            return Ember.RSVP.resolve(image);
+            return RSVP.resolve(image);
           });
         });
       }
@@ -278,7 +284,7 @@ var Button = Ember.Object.extend({
       _this.set('local_image_url', image.get('best_url'));
       return image.checkForDataURL().then(function() {
         _this.set('local_image_url', image.get('best_url'));
-      }, function() { return Ember.RSVP.resolve(image); });
+      }, function() { return RSVP.resolve(image); });
     }
   },
   update_local_image_url: function() {
@@ -288,22 +294,22 @@ var Button = Ember.Object.extend({
   }.observes('image.best_url'),
   load_sound: function() {
     var _this = this;
-    if(!_this.sound_id) { return Ember.RSVP.resolve(); }
+    if(!_this.sound_id) { return RSVP.resolve(); }
     var sound = CoughDrop.store.peekRecord('sound', _this.sound_id);
     if(sound && (!sound.get('isLoaded') || !sound.get('best_url'))) { sound = null; }
     _this.set('sound', sound);
     if(!sound) {
       if(_this.get('no_lookups')) {
-        return Ember.RSVP.reject('no sound lookups');
+        return RSVP.reject('no sound lookups');
       } else {
         return CoughDrop.store.findRecord('sound', _this.sound_id).then(function(sound) {
           _this.set('sound', sound);
           return sound.checkForDataURL().then(function() {
             _this.set('local_sound_url', sound.get('best_url'));
-            return Ember.RSVP.resolve(sound);
+            return RSVP.resolve(sound);
           }, function() {
             _this.set('local_sound_url', sound.get('best_url'));
-            return Ember.RSVP.resolve(sound);
+            return RSVP.resolve(sound);
           });
         });
       }
@@ -311,7 +317,7 @@ var Button = Ember.Object.extend({
       _this.set('local_sound_url', sound.get('best_url'));
       return sound.checkForDataURL().then(function() {
         _this.set('local_sound_url', sound.get('best_url'));
-      }, function() { return Ember.RSVP.resolve(sound); });
+      }, function() { return RSVP.resolve(sound); });
     }
   },
   update_local_sound_url: function() {
@@ -332,8 +338,8 @@ var Button = Ember.Object.extend({
       var vocalization = hash[code].vocalization;
       if(vocalization_locale == code) { vocalization = _this.get('vocalization'); }
       if(res[idx]) {
-        Ember.set(res[idx], 'label', label);
-        Ember.set(res[idx], 'vocalization', vocalization);
+        emberSet(res[idx], 'label', label);
+        emberSet(res[idx], 'vocalization', vocalization);
       } else {
         res.push({
           code: code,
@@ -363,27 +369,27 @@ var Button = Ember.Object.extend({
     var _this = this;
     if((!this.image_id || this.get('local_image_url')) && (!this.sound_id || this.get('local_sound_url'))) {
       _this.set('content_status', 'ready');
-      return Ember.RSVP.resolve(true);
+      return RSVP.resolve(true);
     }
     this.set('content_status', 'pending');
-    return new Ember.RSVP.Promise(function(resolve, reject) {
+    return new RSVP.Promise(function(resolve, reject) {
       var promises = [];
       if(_this.image_id && _this.image_url && persistence.url_cache && persistence.url_cache[_this.image_url] && (!persistence.url_uncache || !persistence.url_uncache[_this.image_url])) {
         _this.set('local_image_url', persistence.url_cache[_this.image_url]);
         _this.set('original_image_url', _this.image_url);
-        promises.push(Ember.RSVP.resolve());
+        promises.push(RSVP.resolve());
       } else if(_this.image_id) {
         promises.push(_this.load_image());
       }
       if(_this.sound_id && _this.sound_url && persistence.url_cache && persistence.url_cache[_this.sound_url] && (!persistence.url_uncache || !persistence.url_uncache[_this.sound_url])) {
         _this.set('local_sound_url', persistence.url_cache[_this.sound_url]);
         _this.set('original_sound_url', _this.sound_url);
-        promises.push(Ember.RSVP.resolve());
+        promises.push(RSVP.resolve());
       } else if(_this.sound_id) {
         promises.push(_this.load_sound());
       }
 
-      Ember.RSVP.all(promises).then(function() {
+      RSVP.all(promises).then(function() {
         _this.set('content_status', 'ready');
         resolve(true);
       }, function(err) {
@@ -393,7 +399,7 @@ var Button = Ember.Object.extend({
           _this.set('content_status', 'errored');
         }
         resolve(false);
-        return Ember.RSVP.resolve();
+        return RSVP.resolve();
       });
 
       promises.forEach(function(p) { p.then(null, function() { }); });
@@ -480,7 +486,7 @@ Button.computed_style = function(pos) {
     if(pos.height) {
       str = str + "height: " + Math.max(pos.height, 20) + "px;";
     }
-    return new Ember.String.htmlSafe(str);
+    return htmlSafe(str);
 };
 Button.action_styling = function(action, button) {
   if(!action) {
@@ -581,7 +587,7 @@ Button.clean_url = function(str) { return clean_url(str); };
 
 Button.button_styling = function(button, board, pos) {
   var res = {};
-  res.button_class = Ember.get(button, 'display_class');
+  res.button_class = emberGet(button, 'display_class');
   if(board.get('text_size')) {
     res.button_class = res.button_class + " " + board.get('text_size') + " ";
   }
@@ -676,8 +682,8 @@ Button.extra_actions = function(button) {
         }
         button.set('action_status', obj);
         // Necessary to do fast-html caching
-        Ember.run.later(function() {
-          var $button = Ember.$(".board[data-id='" + board_id + "']").find(".button[data-id='" + button.get('id') + "']");
+        runLater(function() {
+          var $button = $(".board[data-id='" + board_id + "']").find(".button[data-id='" + button.get('id') + "']");
           if($button.length) {
             $button.find(".action_container").removeClass('pending').removeClass('errored').removeClass('succeeded');
             if(obj && obj.pending) {
@@ -690,7 +696,7 @@ Button.extra_actions = function(button) {
           }
         }, 100);
         if(obj && (obj.errored || obj.completed)) {
-          Ember.run.later(function() {
+          runLater(function() {
             update_state(null);
           }, 10000);
         }
@@ -740,7 +746,7 @@ Button.extra_actions = function(button) {
           btn.type = 'submit';
           form.appendChild(btn);
           document.body.appendChild(form);
-          Ember.run.later(function() {
+          runLater(function() {
             form.submit();
             update_state({completed: true});
           }, 500);
@@ -758,7 +764,7 @@ Button.extra_actions = function(button) {
         } else {
           update_state(null);
           update_state({pending: true});
-          Ember.run.later(function() {
+          runLater(function() {
             persistence.ajax('/api/v1/users/' + user_id + '/activate_button', {
               type: 'POST',
               data: {

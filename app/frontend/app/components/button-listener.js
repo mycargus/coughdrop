@@ -1,15 +1,18 @@
 import Ember from 'ember';
+import Component from '@ember/component';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
 import buttonTracker from '../utils/raw_events';
 import app_state from '../utils/app_state';
 import editManager from '../utils/edit_manager';
 import capabilities from '../utils/capabilities';
 
 var board_ids = {};
-export default Ember.Component.extend({
+export default Component.extend({
   didInsertElement: function() {
     var _this = this;
-    Ember.$(window).on('resize orientationchange', function() {
-      Ember.run.later(function() {
+    $(window).on('resize orientationchange', function() {
+      runLater(function() {
         // on mobile devices, keyboard popup shouldn't trigger a redraw
         if(app_state.get('window_inner_width') && capabilities.mobile && window.innerWidth == app_state.get('window_inner_width')) {
           // TODO: do we need to force scrolltop to 0?
@@ -21,7 +24,7 @@ export default Ember.Component.extend({
     _this.sendAction('compute_height');
   },
   buttonId: function(event) {
-    var $button = Ember.$(event.target).closest('.button');
+    var $button = $(event.target).closest('.button');
     return $button.attr('data-id');
   },
   buttonSelect: function(event) {
@@ -78,8 +81,8 @@ export default Ember.Component.extend({
   },
   rearrange: function(event) {
     if(app_state.get('edit_mode')) {
-      var dragId = Ember.$(event.target).data('drag_id');
-      var dropId = Ember.$(event.target).data('drop_id');
+      var dragId = $(event.target).data('drag_id');
+      var dropId = $(event.target).data('drop_id');
       this.sendAction('button_event', 'rearrangeButtons', dragId, dropId);
     }
   },

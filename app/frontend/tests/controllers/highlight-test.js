@@ -12,7 +12,7 @@ describe('HighlightController', 'controller:highlight', function() {
 // import modal from '../utils/modal';
 // import scanner from '../utils/scanner';
 // 
-// export default Ember.ObjectController.extend({
+// export default EmberObjectController.extend({
 //   needs: ['application', 'board'],
 //   opening: function() {
 //     modal.highlight_controller = this;

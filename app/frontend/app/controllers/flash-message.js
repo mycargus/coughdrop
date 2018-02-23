@@ -1,9 +1,11 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import modal from '../utils/modal';
 import app_state from '../utils/app_state';
 import capabilities from '../utils/capabilities';
+import { htmlSafe } from '@ember/string';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   display_class: function() {
     var res = "alert alert-dismissable ";
     if(this.get('alert_type')) {
@@ -25,7 +27,7 @@ export default Ember.Controller.extend({
       if(settings.type == 'success') { class_name = 'alert-success'; }
       if(settings.below_header) { class_name = class_name + ' below_header'; }
       var top = app_state.get('header_height');
-      this.set('extra_styles', new Ember.String.htmlSafe(settings.below_header ? 'top: ' + top + 'px;' : ''));
+      this.set('extra_styles', htmlSafe(settings.below_header ? 'top: ' + top + 'px;' : ''));
       this.set('alert_type', class_name);
     },
     closing: function() {

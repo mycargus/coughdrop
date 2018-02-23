@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 import CoughDrop from '../app';
 import modal from '../utils/modal';
 import app_state from '../utils/app_state';
@@ -14,7 +15,7 @@ export default modal.ModalController.extend({
     if(app_state.get('sessionUser.supervisees')) {
       var selected_user_id = null;
       app_state.get('sessionUser.supervisees').forEach(function(supervisee) {
-        var res = Ember.Object.create(supervisee);
+        var res = EmberObject.create(supervisee);
         res.set('currently_speaking', app_state.get('currentUser.id') == supervisee.id);
         res.set('disabled', !supervisee.edit_permission);
         if(user_name && supervisee.user_name == user_name && supervisee.edit_permission) {

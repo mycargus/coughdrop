@@ -1,6 +1,12 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
+import RSVP from 'rsvp';
 import CoughDrop from '../app';
 import stashes from './_stashes';
+import session from './session';
 import capabilities from './capabilities';
 
 (function() {
@@ -39,10 +45,10 @@ import capabilities from './capabilities';
     }
   };
 
-  var extras = Ember.Object.extend({
+  var extras = EmberObject.extend({
     setup: function(application) {
       application.register('cough_drop:extras', extras, { instantiate: false, singleton: true });
-      Ember.$.each(['model', 'controller', 'view', 'route'], function(i, component) {
+      $.each(['model', 'controller', 'view', 'route'], function(i, component) {
         application.inject(component, 'extras', 'cough_drop:extras');
       });
     },
@@ -62,7 +68,7 @@ import capabilities from './capabilities';
     },
     storage: {
       find: function(store, key) {
-        var defer = Ember.RSVP.defer();
+        var defer = RSVP.defer();
         capabilities.invoke({type: 'coughDropExtras', method: 'storage_find', options: {store: store, key: key}}).then(function(res) {
           defer.resolve(res);
         }, function(err) {
@@ -71,7 +77,7 @@ import capabilities from './capabilities';
         return defer.promise;
       },
       find_all: function(store, ids) {
-        var defer = Ember.RSVP.defer();
+        var defer = RSVP.defer();
         capabilities.invoke({type: 'coughDropExtras', method: 'storage_find_all', options: {store: store, ids: ids}}).then(function(res) {
           defer.resolve(res);
         }, function(err) {
@@ -80,7 +86,7 @@ import capabilities from './capabilities';
         return defer.promise;
       },
       find_changed: function() {
-        var defer = Ember.RSVP.defer();
+        var defer = RSVP.defer();
         capabilities.invoke({type: 'coughDropExtras', method: 'storage_find_changed', options: {}}).then(function(res) {
           defer.resolve(res);
         }, function(err) {
@@ -89,7 +95,7 @@ import capabilities from './capabilities';
         return defer.promise;
       },
       store: function(store, obj, key) {
-        var defer = Ember.RSVP.defer();
+        var defer = RSVP.defer();
         capabilities.invoke({type: 'coughDropExtras', method: 'storage_store', options: {store: store, record: obj}}).then(function(res) {
           defer.resolve(res);
         }, function(err) {
@@ -98,7 +104,7 @@ import capabilities from './capabilities';
         return defer.promise;
       },
       remove: function(store, id) {
-        var defer = Ember.RSVP.defer();
+        var defer = RSVP.defer();
         capabilities.invoke({type: 'coughDropExtras', method: 'storage_remove', options: {store: store, record_id: id}}).then(function(res) {
           defer.resolve(res);
         }, function(err) {
@@ -123,7 +129,7 @@ import capabilities from './capabilities';
   stashes.persist_raw('coughDropDeviceId', device_id);
   capabilities.device_id = device_id;
 
-  Ember.$.realAjax = Ember.$.ajax;
+  $.realAjax = $.ajax;
   function fakeXHR(xhr) {
     var res = {status: 0};
     if(xhr && xhr.status) {
@@ -142,7 +148,7 @@ import capabilities from './capabilities';
     return res;
   }
 
-  Ember.$.ajax = function(opts) {
+  $.ajax = function(opts) {
     var _this = this;
     var args = [];
     var options = arguments[0];
@@ -173,7 +179,7 @@ import capabilities from './capabilities';
 //     });
 //     args.push(clean_options);
 
-    return Ember.RSVP.resolve().then(function() {
+    return RSVP.resolve().then(function() {
       var prefix = location.protocol + "//" + location.host;
       if(capabilities.installed_app && capabilities.api_host) {
         prefix = capabilities.api_host;
@@ -210,7 +216,7 @@ import capabilities from './capabilities';
       options.success = null;
       options.error = null;
       options.timeout = options.timeout || 20000;
-      var res = Ember.$.realAjax(options).then(function(data, message, xhr) {
+      var res = $.realAjax(options).then(function(data, message, xhr) {
         if(typeof(data) == 'string') {
           data = {text: data};
         }
@@ -218,16 +224,16 @@ import capabilities from './capabilities';
           console.log("ember ajax error: " + data.status + ": " + data.error + " (" + options.url + ")");
           if(error) {
             error.call(this, xhr, message, data);
-            // The bowels of ember aren't expecting Ember.$.ajax to return a real
+            // The bowels of ember aren't expecting $.ajax to return a real
             // promise and so they don't catch the rejection properly, which
             // potentially causes all sorts of unexpected uncaught errors.
             // NOTE: this means that any CoughDrop code should not use the error parameter
             // if it expects to receive a proper promise.
             // TODO: raise an error somehow if the caller provides an error function
             // and expects a proper promise in response.
-            return Ember.RSVP.resolve(null);
+            return RSVP.resolve(null);
           } else {
-            var rej = Ember.RSVP.reject({
+            var rej = RSVP.reject({
               stack: data.status + ": " + data.error + " (" + options.url + ")",
               fakeXHR: fakeXHR(xhr),
               message: message,
@@ -245,7 +251,7 @@ import capabilities from './capabilities';
           data.meta = (data.meta || {});
           data.meta.fakeXHR = fakeXHR(xhr);
           delete data.meta.fakeXHR['responseJSON'];
-          Ember.$.ajax.meta_push({url: options.url, method: options.type, meta: data.meta});
+          $.ajax.meta_push({url: options.url, method: options.type, meta: data.meta});
           if(success) {
             success.call(this, data, message, xhr);
           }
@@ -256,9 +262,9 @@ import capabilities from './capabilities';
           if((original_options.attempt <= 2 && original_options.type == 'GET') || original_options.attempt <= 1) {
             // try failed GET requests twice, POST/PUT requests once
             original_options.attempt = (original_options.attempt || 1) + 1
-            return new Ember.RSVP.Promise(function(res, rej) {
-              Ember.run.later(function() {
-                Ember.$.ajax(original_options).then(function(r) {
+            return new RSVP.Promise(function(res, rej) {
+              runLater(function() {
+                $.ajax(original_options).then(function(r) {
                   res(r);
                 }, function(e) {
                   rej(e);
@@ -274,7 +280,7 @@ import capabilities from './capabilities';
         if(error) {
           error.call(this, xhr, message, result);
         }
-        var rej = Ember.RSVP.reject({
+        var rej = RSVP.reject({
           fakeXHR: fakeXHR(xhr),
           message: message,
           result: result
@@ -286,12 +292,12 @@ import capabilities from './capabilities';
       return res;
     });
   };
-  Ember.$.ajax.metas = [];
-  Ember.$.ajax.meta_push = function(opts) {
+  $.ajax.metas = [];
+  $.ajax.meta_push = function(opts) {
     var now = (new Date()).getTime();
     opts.ts = now;
 
-    var metas = Ember.$.ajax.metas || [];
+    var metas = $.ajax.metas || [];
     var new_list = [];
     var res = null;
     metas.forEach(function(meta) {
@@ -300,11 +306,11 @@ import capabilities from './capabilities';
       }
     });
     new_list.push(opts);
-    Ember.$.ajax.metas = new_list;
+    $.ajax.metas = new_list;
   };
-  Ember.$.ajax.meta = function(method, store, id) {
+  $.ajax.meta = function(method, store, id) {
     var res = null;
-    var metas = Ember.$.ajax.metas || [];
+    var metas = $.ajax.metas || [];
     // TODO: pluralize correctly using same ember library
     var url = "/api/v1/" + store + "s";
     if(capabilities.installed_app && capabilities.api_host) {
@@ -318,8 +324,8 @@ import capabilities from './capabilities';
     });
     return res;
   };
-  extras.meta = Ember.$.ajax.meta;
-  extras.meta_push = Ember.$.ajax.meta_push;
+  extras.meta = $.ajax.meta;
+  extras.meta_push = $.ajax.meta_push;
 
   window.coughDropExtras = extras;
   extras.advance.watch('device', function() {
@@ -376,10 +382,10 @@ import capabilities from './capabilities';
         });
       }
     }
-    Ember.set(capabilities.eye_gaze, 'statuses', list);
+    emberSet(capabilities.eye_gaze, 'statuses', list);
   };
   extras.set('status_listener', status_listener);
-  Ember.$(document).on('eye-gaze-status', status_listener);
+  $(document).on('eye-gaze-status', status_listener);
 })();
 
 window.time_log = function(str) {

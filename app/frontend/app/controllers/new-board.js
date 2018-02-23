@@ -1,4 +1,7 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import $ from 'jquery';
 import modal from '../utils/modal';
 import CoughDrop from '../app';
 import stashes from '../utils/_stashes';
@@ -40,7 +43,7 @@ export default modal.ModalController.extend({
     var res = [];
     var _this = this;
     CoughDrop.board_categories.forEach(function(c) {
-      var cat = Ember.$.extend({}, c);
+      var cat = $.extend({}, c);
       res.push(cat);
     });
     this.set('board_categories', res);
@@ -227,14 +230,14 @@ export default modal.ModalController.extend({
       var disable_word = null;
       for(var idx = 0; idx < words.length; idx++) {
         if(words[idx].id == id) {
-          if(Ember.get(words[idx], 'active')) {
-            Ember.set(words[idx], 'active', false);
+          if(emberGet(words[idx], 'active')) {
+            emberSet(words[idx], 'active', false);
             disable_word = words[idx].label;
           } else {
-            Ember.set(words[idx], 'active', true);
+            emberSet(words[idx], 'active', true);
           }
         }
-        if(Ember.get(words[idx], 'active')) {
+        if(emberGet(words[idx], 'active')) {
           enabled_words.push(words[idx].label);
         }
       }

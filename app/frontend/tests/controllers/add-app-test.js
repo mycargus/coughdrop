@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { queryLog } from 'frontend/tests/helpers/ember_helper';
+import EmberObject from '@ember/object';
 import startApp from '../helpers/start-app';
 
 describe('AddAppController', 'controller:add-app', function() {
@@ -8,7 +9,7 @@ describe('AddAppController', 'controller:add-app', function() {
     expect(this).not.toEqual(window);
   });
 });
-// export default Ember.ObjectController.extend({
+// export default EmberObjectController.extend({
 //   device: function() {
 //     return {
 //       standalone: navigator.standalone,

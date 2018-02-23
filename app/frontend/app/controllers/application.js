@@ -1,4 +1,10 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import { later as runLater } from '@ember/runloop';
+import RSVP from 'rsvp';
+import $ from 'jquery';
 import CoughDrop from '../app';
 import CoughDropImage from '../models/image';
 import app_state from '../utils/app_state';
@@ -13,8 +19,11 @@ import capabilities from '../utils/capabilities';
 import speecher from '../utils/speecher';
 import session from '../utils/session';
 import Button from '../utils/button';
-export default Ember.Controller.extend({
-  board: Ember.inject.controller('board.index'),
+import { htmlSafe } from '@ember/string';
+import { inject } from '@ember/controller';
+
+export default Controller.extend({
+  board: inject('board.index'),
   updateTitle: function(str) {
     if(!Ember.testing) {
       if(str) {
@@ -28,11 +37,11 @@ export default Ember.Controller.extend({
     var oldBoard = this.get('board').get('model');
     if(!persistence.get('online')) {
       modal.error(i18n.t('need_online_for_copying', "You must be connected to the Internet to make copies of boards."));
-      return Ember.RSVP.reject();
+      return RSVP.reject();
     }
     if(oldBoard.get('protected_material')) {
       modal.error(i18n.t('cant_copy_protected_boards', "This board contains purchased content, and can't be copied."));
-      return Ember.RSVP.reject();
+      return RSVP.reject();
     }
     // If a board has any sub-boards or if the current user has any supervisees,
     // or if the board is in the current user's board set,
@@ -161,7 +170,7 @@ export default Ember.Controller.extend({
       if(option == 'starting') {
         board = stashes.get('root_board_state') || this.get('board').get('model');
       }
-      var board_user_name = Ember.get(board, 'key').split(/\//)[1];
+      var board_user_name = emberGet(board, 'key').split(/\//)[1];
       var needs_confirmation = app_state.get('currentUser.supervisees') || board_user_name != app_state.get('currentUser.user_name');
       if(needs_confirmation && !option) {
         modal.open('set-as-home', {board: board});
@@ -171,7 +180,7 @@ export default Ember.Controller.extend({
         if(user) {
           var done = function() {
             if(persistence.get('online') && persistence.get('auto_sync')) {
-              Ember.run.later(function() {
+              runLater(function() {
               console.debug('syncing because home board changes');
                 persistence.sync('self').then(null, function() { });
               }, 1000);
@@ -180,8 +189,8 @@ export default Ember.Controller.extend({
           };
           if(option == 'starting') {
             // TODO: make a personal copy of the board for the user
-            user.set('home_board_pending', Ember.get(board, 'key'));
-            CoughDrop.store.findRecord('board', Ember.get(board, 'id')).then(function(board) {
+            user.set('home_board_pending', emberGet(board, 'key'));
+            CoughDrop.store.findRecord('board', emberGet(board, 'id')).then(function(board) {
               editManager.copy_board(board, 'links_copy_as_home', user, false).then(function() {
                 user.set('home_board_pending', false);
                 done();
@@ -196,8 +205,8 @@ export default Ember.Controller.extend({
             });
           } else {
             user.set('preferences.home_board', {
-              id: Ember.get(board, 'id'),
-              key: Ember.get(board, 'key')
+              id: emberGet(board, 'id'),
+              key: emberGet(board, 'key')
             });
             var _this = this;
             user.save().then(function() {
@@ -289,7 +298,7 @@ export default Ember.Controller.extend({
       stashes.persist('logging_paused_at', ts);
     },
     switch_communicators: function(opts) {
-      var ready = Ember.RSVP.resolve({correct_pin: true});
+      var ready = RSVP.resolve({correct_pin: true});
       if(app_state.get('currentUser.preferences.require_speak_mode_pin') && app_state.get('currentUser.preferences.speak_mode_pin')) {
         ready = modal.open('speak-mode-pin', {actual_pin: app_state.get('currentUser.preferences.speak_mode_pin'), action: 'none'});
       }
@@ -330,7 +339,7 @@ export default Ember.Controller.extend({
               id: board.id,
               key: board.key
             });
-            Ember.run.later(function() {
+            runLater(function() {
               app_state.toggle_edit_mode();
             });
           }
@@ -422,9 +431,9 @@ export default Ember.Controller.extend({
         if(button.pre == 'home' || button.pre == 'sidebar') {
           buttons.shift();
           this.set('button_highlights', buttons);
-          var $button = Ember.$("#speak > button:first");
+          var $button = $("#speak > button:first");
           if(button.pre == 'sidebar') {
-            $button = Ember.$("#sidebar a[data-key='" + button.linked_board_key + "']");
+            $button = $("#sidebar a[data-key='" + button.linked_board_key + "']");
           }
           modal.highlight($button).then(function() {
             if(button.pre == 'home') {
@@ -439,7 +448,7 @@ export default Ember.Controller.extend({
         } else if(button && button.board_id == this.get('board.model').get('id')) {
           var findButtonElem = function() {
             if(button.board_id == _this.get('board.model').get('id')) {
-              var $button = Ember.$(".button[data-id='" + button.id + "']");
+              var $button = $(".button[data-id='" + button.id + "']");
               if($button[0]) {
                 buttons.shift();
                 _this.set('button_highlights', buttons);
@@ -450,7 +459,7 @@ export default Ember.Controller.extend({
                 });
               } else {
                 // TODO: really? is this the best you can figure out?
-                Ember.run.later(findButtonElem, 100);
+                runLater(findButtonElem, 100);
               }
             }
           };
@@ -646,7 +655,7 @@ export default Ember.Controller.extend({
       res = res + "text_only ";
     }
 
-    return Ember.String.htmlSafe(res);
+    return htmlSafe(res);
   }.property('stashes.ghost_utterance', 'stashes.root_board_state.text_direction', 'extras.eye_gaze_state', 'show_back', 'app_state.currentUser.preferences.device.button_text_position'),
   no_paint_mode_class: function() {
     var res = "btn ";

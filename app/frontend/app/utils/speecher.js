@@ -1,11 +1,15 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import { later as runLater } from '@ember/runloop';
+import RSVP from 'rsvp';
+import $ from 'jquery';
 import capabilities from './capabilities';
 import persistence from './persistence';
 import tts_voices from './tts_voices';
 import app_state from './app_state';
 import i18n from './i18n';
 
-var speecher = Ember.Object.extend({
+var speecher = EmberObject.extend({
   beep_url: "https://opensymbols.s3.amazonaws.com/beep.mp3",
   chimes_url: "https://opensymbols.s3.amazonaws.com/chimes.mp3",
   click_url: "https://opensymbols.s3.amazonaws.com/click.mp3",
@@ -118,7 +122,7 @@ var speecher = Ember.Object.extend({
       } catch(e) { }
     };
     if(capabilities.system == 'iOS') {
-//       Ember.run.later(ios, 1000);
+//       runLater(ios, 1000);
     }
 //     this.ready = !!(!speecher.scope.speechSynthesis.voiceList || speecher.scope.speechSynthesis.voiceList.length > 0);
   },
@@ -200,7 +204,7 @@ var speecher = Ember.Object.extend({
           _this.speak_end_handler(speak_id);
         }
       } else if(piece_text.length === 0 || piece_text.match(/^\s+$/)) {
-        Ember.run.later(function() {
+        runLater(function() {
           if(_this.last_speak_id == speak_id) {
             next_piece();
           }
@@ -208,7 +212,7 @@ var speecher = Ember.Object.extend({
       } else {
         _this.speak_raw_text(piece_text, collection_id, opts, function() {
           if(pieces.length > 0) {
-            Ember.run.later(function() {
+            runLater(function() {
               if(_this.last_speak_id == speak_id) {
                 next_piece();
               }
@@ -223,7 +227,7 @@ var speecher = Ember.Object.extend({
     };
     var delay = 0;
     if(capabilities.system == 'Windows' && interrupted) { console.log("waiting for last speak to wrap up..."); delay = 300; }
-    Ember.run.later(function() {
+    runLater(function() {
       next_piece();
     }, delay);
   },
@@ -318,7 +322,7 @@ var speecher = Ember.Object.extend({
         speecher.scope.speechSynthesis.speak(utterance);
         // assuming 15 characters per second, if the utterance hasn't completed after
         // 4 times the estimated duration, go ahead and assume there was a problem and mark completion
-        Ember.run.later(function() {
+        runLater(function() {
           if(!utterance.handled) {
             handle_callback();
           }
@@ -327,7 +331,7 @@ var speecher = Ember.Object.extend({
 
       if(voice && voice.voiceURI && voice.voiceURI.match(/^extra:/)) {
         var voice_id = voice.voiceURI.replace(/^extra:/, '');
-        Ember.run.later(function() {
+        runLater(function() {
           capabilities.tts.speak_text(text, {
             voice_id: voice_id,
             pitch: utterance.pitch,
@@ -359,7 +363,7 @@ var speecher = Ember.Object.extend({
         var _this = this;
         // TODO: this delay may no longer be needed when we update chromium/electron, but right
         // now it only speaks every other text string unless you wait an extra half-second or so.
-        Ember.run.later(function() {
+        runLater(function() {
           speak_utterance.call(_this);
         }, delay);
       }
@@ -400,12 +404,12 @@ var speecher = Ember.Object.extend({
     var p1 = this.load_sound('beep_url');
     var p2 = this.load_sound('chimes_url');
     var p3 = this.load_sound('click_url');
-    return Ember.RSVP.all_wait([p1, p2, p3]);
+    return RSVP.all_wait([p1, p2, p3]);
   },
   load_sound: function(attr) {
     if(speecher[attr]) {
-      if(speecher[attr].match(/^data:/)) { return Ember.RSVP.resolve(true); }
-      else if(!speecher[attr].match(/^http/)) { return Ember.RSVP.resolve(true); }
+      if(speecher[attr].match(/^data:/)) { return RSVP.resolve(true); }
+      else if(!speecher[attr].match(/^http/)) { return RSVP.resolve(true); }
       var find = persistence.find_url(speecher[attr], 'sound').then(function(data_uri) {
         if(data_uri) {
           speecher[attr] = data_uri;
@@ -424,10 +428,10 @@ var speecher = Ember.Object.extend({
       });
       return find.then(null, function(err) {
         console.log(err);
-        return Ember.RSVP.reject(err);
+        return RSVP.reject(err);
       });
     } else {
-      return Ember.RSVP.reject({error: "beep sound not saved"});
+      return RSVP.reject({error: "beep sound not saved"});
     }
   },
   play_audio: function(elem) {
@@ -505,7 +509,7 @@ var speecher = Ember.Object.extend({
       elem.addEventListener('pause', handler);
       elem.addEventListener('abort', handler);
       elem.addEventListener('error', handler);
-      Ember.run.later(function() {
+      runLater(function() {
         var promise = elem.play();
         if(promise && promise.then) {
           promise.then(function(res) {
@@ -548,7 +552,7 @@ var speecher = Ember.Object.extend({
             handler();
           } else {
             // otherwise, keep polling during audio playback
-            Ember.run.later(check_status, 100);
+            runLater(check_status, 100);
           }
         };
         if(elem.media) {
@@ -571,11 +575,11 @@ var speecher = Ember.Object.extend({
         }
       }
     };
-    Ember.run.later(check_status, 100);
+    runLater(check_status, 100);
     return elem;
   },
   beep: function() {
-    var beep = Ember.$("#beep")[0];
+    var beep = $("#beep")[0];
     if(!beep) {
       var audio = document.createElement('audio');
       audio.style.display = "none";
@@ -592,7 +596,7 @@ var speecher = Ember.Object.extend({
     }
   },
   click: function() {
-    var click = Ember.$("#click")[0];
+    var click = $("#click")[0];
     if(!click) {
       var audio = document.createElement('audio');
       audio.style.display = "none";
@@ -644,13 +648,13 @@ var speecher = Ember.Object.extend({
     }
   },
   find_or_create_element: function(url) {
-    var $res = Ember.$("audio[src='" + url + "']");
+    var $res = $("audio[src='" + url + "']");
     if($res.length === 0) {
-      $res = Ember.$("audio[rel='" + url + "']");
+      $res = $("audio[rel='" + url + "']");
     }
     if($res.length === 0 && url) {
       var new_url = persistence.url_cache[url] || url;
-      $res = Ember.$("<audio>", {preload: 'auto', src: new_url, rel: url}).appendTo(Ember.$(".board"));
+      $res = $("<audio>", {preload: 'auto', src: new_url, rel: url}).appendTo($(".board"));
     }
     return $res;
   },
@@ -668,7 +672,7 @@ var speecher = Ember.Object.extend({
   stop: function(type) {
     this.audio = this.audio || {};
     type = type || 'all';
-    Ember.$("audio.throwaway").remove();
+    $("audio.throwaway").remove();
     if(type == 'text' || type == 'all') {
       this.speaking = false;
       this.speaking_from_collection = false;

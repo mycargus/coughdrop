@@ -1,9 +1,13 @@
 import Ember from 'ember';
+import Component from '@ember/component';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
 import frame_listener from '../utils/frame_listener';
 import i18n from '../utils/i18n';
 import persistence from '../utils/persistence';
+import { htmlSafe } from '@ember/string';
 
-export default Ember.Component.extend({
+export default Component.extend({
   tagName: 'div',
   classNames: ['integration_container'],
   didInsertElement: function() {
@@ -30,17 +34,17 @@ export default Ember.Component.extend({
 //         });
       }
     });
-    Ember.run.later(function() {
-      if(Ember.$(elem).find("#integration_overlay.pending").length > 0) {
-        Ember.$(elem).find("#integration_overlay .status").text(i18n.t('loading_integration', "Loading Integration..."));
+    runLater(function() {
+      if($(elem).find("#integration_overlay.pending").length > 0) {
+        $(elem).find("#integration_overlay .status").text(i18n.t('loading_integration', "Loading Integration..."));
       }
     }, 750);
-    Ember.run.later(function() {
-      if(Ember.$(elem).find("#integration_overlay.pending").length > 0) {
+    runLater(function() {
+      if($(elem).find("#integration_overlay.pending").length > 0) {
         if(!persistence.get('online')) {
-          Ember.$(elem).find("#integration_overlay .status").text(i18n.t('loading_integration_failed_offline', "Integrations cannot load when offline"));
+          $(elem).find("#integration_overlay .status").text(i18n.t('loading_integration_failed_offline', "Integrations cannot load when offline"));
         } else {
-          Ember.$(elem).find("#integration_overlay .status").text(i18n.t('loading_integration_failed', "Integration hasn't loaded, please check your settings and Internet Connection"));
+          $(elem).find("#integration_overlay .status").text(i18n.t('loading_integration_failed', "Integration hasn't loaded, please check your settings and Internet Connection"));
         }
       }
     }, 5000);
@@ -51,7 +55,7 @@ export default Ember.Component.extend({
     if(res && res.replace) {
       res = res.replace(/position:\s*relative/, 'position: absolute');
     }
-    return Ember.String.htmlSafe(res);
+    return htmlSafe(res);
   }.property('board_style'),
   actions: {
   }

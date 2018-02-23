@@ -1,19 +1,23 @@
 import Ember from 'ember';
+import Component from '@ember/component';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
 import CoughDrop from '../../app';
 import i18n from '../../utils/i18n';
 
-export default Ember.Component.extend({
+export default Component.extend({
   didInsertElement: function() {
     this.draw();
   },
   draw: function() {
-    var $elem = Ember.$(this.get('element'));
+    var $elem = $(this.get('element'));
     $elem.find(".week").tooltip({container: 'body'});
   },
   communicators_with_stats: function() {
     var res = [];
     var _this = this;
-    if(this.get('weeks') || true) {
+    var always_proceed = true;
+    if(this.get('weeks') || always_proceed) {
       var user_weeks = {};
       var weeks = this.get('weeks') || {};
       for(var user_id in weeks) {
@@ -45,7 +49,7 @@ export default Ember.Component.extend({
       var totals = {
       };
       users.forEach(function(user) {
-        user = Ember.$.extend({}, user);
+        user = $.extend({}, user);
         var weeks = user_weeks[user.id];
         user.week_stats = [];
         populated_stamps.forEach(function(stamp) {
@@ -131,7 +135,7 @@ export default Ember.Component.extend({
       }
     }
     var _this = this;
-    Ember.run.later(function() {
+    runLater(function() {
       _this.draw();
     });
     return res;

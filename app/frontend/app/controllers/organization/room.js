@@ -1,10 +1,11 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import i18n from '../../utils/i18n';
 import Utils from '../../utils/misc';
 import persistence from '../../utils/persistence';
 import modal from '../../utils/modal';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   first_log: function() {
     return (this.get('model.logs.data') || [])[0];
   }.property('model.logs.data'),

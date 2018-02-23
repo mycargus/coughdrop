@@ -1,11 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { fakeAudio } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import stashes from '../../utils/_stashes';
 import capabilities from '../../utils/capabilities';
 import speecher from '../../utils/speecher';
 import app_state from '../../utils/app_state';
 import persistence from '../../utils/persistence';
 import Ember from 'ember';
+import { run as emberRun } from '@ember/runloop';
 
 describe('speecher', function() {
   beforeEach(function() {
@@ -375,9 +377,9 @@ describe('speecher', function() {
       stub(speecher, 'beep_url', 'http://www.pic.com/pic.png');
       stub(persistence, 'find_url', function(url) {
         if(url === 'http://www.pic.com/pic.png') {
-          return Ember.RSVP.resolve("abc");
+          return RSVP.resolve("abc");
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       var resolved = false;
@@ -524,7 +526,7 @@ describe('speecher', function() {
     it('should progress on failed promise from .play()', function() {
       audio_elem.play = function() {
         audio_elem.played = true;
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       };
       speecher.play_audio(audio_elem);
       var ended = false;
@@ -564,7 +566,7 @@ describe('speecher', function() {
         var go_again = function() {
           if(window.keep_going) {
             audio_elem.currentTime++;
-            Ember.run.later(function() {
+            emberRun.later(function() {
               go_again();
             }, 25);
           }
@@ -579,7 +581,7 @@ describe('speecher', function() {
     it('should only progress once, even with repeated events', function() {
       audio_elem.play = function() {
         audio_elem.played = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       };
       speecher.play_audio(audio_elem);
       var ended = false;
@@ -748,7 +750,7 @@ describe('speecher', function() {
         audio_elem.dispatchEvent(new window.Event('abort'));
       });
       var not_ended = false;
-      Ember.run.later(function() {
+      emberRun.later(function() {
         if(!ended) { not_ended = true; }
       }, 500);
       waitsFor(function() { return not_ended; });

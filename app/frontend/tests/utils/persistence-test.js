@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { queryLog, db_wait, fake_dbman } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 import persistence from '../../utils/persistence';
 import speecher from '../../utils/speecher';
 import coughDropExtras from '../../utils/extras';
@@ -12,6 +14,8 @@ import editManager from '../../utils/edit_manager';
 import capabilities from '../../utils/capabilities';
 import contentGrabbers from '../../utils/content_grabbers';
 import CoughDrop from '../../app';
+import { run as emberRun } from '@ember/runloop';
+import $ from 'jquery';
 
 describe("persistence", function() {
   var app = null;
@@ -36,7 +40,7 @@ describe("persistence", function() {
     stashes.set('current_mode', 'default');
     app_state.set('currentBoardState', null);
     app_state.set('sessionUser', null);
-    stub(speecher, 'load_beep', function() { return Ember.RSVP.resolve({}); });
+    stub(speecher, 'load_beep', function() { return RSVP.resolve({}); });
     dbman = capabilities.dbman;
     capabilities.dbman = fake_dbman();
   });
@@ -59,7 +63,7 @@ describe("persistence", function() {
       waitsFor(function() { return record; });
       runs(function() {
         board = record;
-        Ember.run(_this, callback);
+        emberRun(_this, callback);
       });
     });
   }
@@ -263,7 +267,7 @@ describe("persistence", function() {
           board = CoughDrop.store.createRecord('board', record);
           expect(record.hat).toEqual(rnd);
           expect(board.get('fresh')).toEqual(true);
-          Ember.run.later(function() {
+          emberRun.later(function() {
             app_state.set('refresh_stamp', 1234);
             refreshed = true;
           }, 500);
@@ -303,14 +307,14 @@ describe("persistence", function() {
         var record = null;
 
         queryLog.real_lookup = true;
-        stub(Ember.$, 'realAjax', function(options) {
+        stub($, 'realAjax', function(options) {
           if(options.url === '/api/v1/boards/1234') {
-            return Ember.RSVP.resolve({board: {
+            return RSVP.resolve({board: {
               id: '1234',
               name: 'Cool Board'
             }});
           } else {
-            return Ember.RSVP.reject({});
+            return RSVP.reject({});
           }
         });
         CoughDrop.store.findRecord('board', '1234').then(function(res) {
@@ -329,9 +333,9 @@ describe("persistence", function() {
         var record = null;
 
         queryLog.real_lookup = true;
-        stub(Ember.$, 'realAjax', function(options) {
+        stub($, 'realAjax', function(options) {
           if(options.url === '/api/v1/boards/1234') {
-            return Ember.RSVP.resolve({board: {
+            return RSVP.resolve({board: {
               id: '1234',
               name: 'Cool Board'
             },
@@ -339,7 +343,7 @@ describe("persistence", function() {
               {id: '1111', url: 'http://www.image.com'}
             ]});
           } else {
-            return Ember.RSVP.reject({});
+            return RSVP.reject({});
           }
         });
         CoughDrop.store.findRecord('board', '1234').then(function(res) {
@@ -380,7 +384,7 @@ describe("persistence", function() {
           found.push(key);
           res.push({data: {id: key, raw: {id: key}}});
         });
-        return Ember.RSVP.resolve(res);
+        return RSVP.resolve(res);
       });
       stub(CoughDrop.store, 'push', function(obj) {
         stored.push(obj);
@@ -496,7 +500,7 @@ describe("persistence", function() {
     it("should not reject (but log an error) on a failed storage attempt", function() {
       db_wait(function() {
         stub(coughDropExtras.storage, 'store', function(store, record, key) {
-          return Ember.RSVP.reject({});
+          return RSVP.reject({});
         });
         var rnd = Math.random() + "_" + (new Date()).toString();
         var found = null;
@@ -600,7 +604,7 @@ describe("persistence", function() {
 
     it("should make an API call to proxy the URL", function() {
       stub(persistence, 'ajax', function(options) {
-        return Ember.RSVP.resolve({
+        return RSVP.resolve({
           content_type: 'image/png',
           data: 'data:nunya'
         });
@@ -623,7 +627,7 @@ describe("persistence", function() {
     it("should store the API results in the dataCache table", function() {
       db_wait(function() {
         stub(persistence, 'ajax', function(options) {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             content_type: 'image/png',
             data: 'data:nunya'
           });
@@ -650,7 +654,7 @@ describe("persistence", function() {
     it("should error on a failed API call", function() {
       db_wait(function() {
         stub(persistence, 'ajax', function(options) {
-          return Ember.RSVP.reject({error: "bacon"});
+          return RSVP.reject({error: "bacon"});
         });
         var result = null;
         persistence.store_url("http://www.example.com/pic.png", 'image').then(function() { dbg(); }, function(res) {
@@ -664,13 +668,13 @@ describe("persistence", function() {
     });
     it("should error on a failed data storage", function() {
       stub(persistence, 'ajax', function(options) {
-        return Ember.RSVP.resolve({
+        return RSVP.resolve({
           content_type: 'image/png',
           data: 'data:nunya'
         });
       });
       stub(persistence, 'store', function() {
-        return Ember.RSVP.reject({error: "no no"});
+        return RSVP.reject({error: "no no"});
       });
       var result = null;
       persistence.store_url("http://www.example.com/pic.png", 'image').then(null, function(res) {
@@ -686,7 +690,7 @@ describe("persistence", function() {
       var url = "http://localhost/api/v1/users/123/protected_image/lessonpix/12345?user_token=asdfasdf";
       db_wait(function() {
         stub(persistence, 'ajax', function(options) {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             content_type: 'image/png',
             data: 'data:nunya'
           });
@@ -796,8 +800,8 @@ describe("persistence", function() {
 
   describe("ajax", function() {
     it("should resolve on 200 response", function() {
-      stub(Ember.$, 'realAjax', function(options) {
-        return Ember.RSVP.resolve({});
+      stub($, 'realAjax', function(options) {
+        return RSVP.resolve({});
       });
       var resolved = false;
       persistence.ajax({}).then(function() {
@@ -808,8 +812,8 @@ describe("persistence", function() {
       runs();
     });
     it("should reject on non-2xx response", function() {
-      stub(Ember.$, 'realAjax', function(options) {
-        return Ember.RSVP.reject({status: 300});
+      stub($, 'realAjax', function(options) {
+        return RSVP.reject({status: 300});
       });
       var rejected = false;
       persistence.ajax({}).then(function() {
@@ -820,8 +824,8 @@ describe("persistence", function() {
       runs();
     });
     it("should reject on 200 response with error and status attributes", function() {
-      stub(Ember.$, 'realAjax', function(options) {
-        return Ember.RSVP.reject({error: "bad things", status: 400});
+      stub($, 'realAjax', function(options) {
+        return RSVP.reject({error: "bad things", status: 400});
       });
       var rejected = false;
       persistence.ajax({}).then(function() {
@@ -839,15 +843,15 @@ describe("persistence", function() {
     });
 //     it("should set to offline on event", function() {
 //       var online = persistence.get('online');
-//       Ember.$(document).trigger('offline');
+//       $(document).trigger('offline');
 //       expect(persistence.get('online')).toEqual(false);
 //       persistence.set('online', online);
 //     });
 //     it("should set to online on event", function() {
 //       var online = persistence.get('online');
-//       Ember.$(document).trigger('offline');
+//       $(document).trigger('offline');
 //       expect(persistence.get('online')).toEqual(false);
-//       Ember.$(document).trigger('online');
+//       $(document).trigger('online');
 //       expect(persistence.get('online')).toEqual(true);
 //       persistence.set('online', online);
 //     });
@@ -860,7 +864,7 @@ describe("persistence", function() {
         expect(res.then).not.toEqual(null);
       });
       it("should make an ajax query and find the record", function() {
-        var promise = Ember.RSVP.resolve({board: {
+        var promise = RSVP.resolve({board: {
           id: '987',
           name: 'Cool Board'
         }});
@@ -882,20 +886,20 @@ describe("persistence", function() {
       it("should persist the record to the local db", function() {
         db_wait(function() {
           queryLog.real_lookup = true;
-          stub(Ember.$, 'realAjax', function(options) {
+          stub($, 'realAjax', function(options) {
             if(options.url === '/api/v1/boards/9876') {
-              return Ember.RSVP.resolve({board: {
+              return RSVP.resolve({board: {
                 id: '9876',
                 name: 'Cool Board'
               }});
             } else {
-              return Ember.RSVP.reject({});
+              return RSVP.reject({});
             }
           });
           var local = null;
           stub(persistence, 'store_eventually', function(store, obj) {
             local = obj;
-            return Ember.RSVP.resolve(obj);
+            return RSVP.resolve(obj);
           });
 
           var result = null;
@@ -915,12 +919,12 @@ describe("persistence", function() {
           queryLog.real_lookup = true;
           persistence.set('online', false);
           var ajax_called = null;
-          stub(Ember.$, 'realAjax', function(options) {
+          stub($, 'realAjax', function(options) {
             ajax_called = true;
-            return Ember.RSVP.reject({});
+            return RSVP.reject({});
           });
           stub(persistence, 'find', function(store, key) {
-            return Ember.RSVP.resolve({board: {
+            return RSVP.resolve({board: {
                 id: '9876',
                 name: 'Cool Board'
             }});
@@ -945,13 +949,13 @@ describe("persistence", function() {
           persistence.set('online', true);
           var ajax_called = null;
           var defer = null;
-          stub(Ember.$, 'realAjax', function(options) {
+          stub($, 'realAjax', function(options) {
             ajax_called = true;
-            defer = Ember.RSVP.defer();
+            defer = RSVP.defer();
             return defer.promise;
           });
           stub(persistence, 'find', function(store, key) {
-            return Ember.RSVP.resolve({board: {
+            return RSVP.resolve({board: {
                 id: '9876',
                 name: 'Cool Board'
             }});
@@ -996,12 +1000,12 @@ describe("persistence", function() {
           queryLog.real_lookup = true;
           persistence.set('online', true);
           var ajax_called = null;
-          stub(Ember.$, 'realAjax', function(options) {
+          stub($, 'realAjax', function(options) {
             ajax_called = true;
-            return Ember.RSVP.reject({responseJSON: {invalid_token: true, error: {invalid_token: true, error: 'invalid token'}}});
+            return RSVP.reject({responseJSON: {invalid_token: true, error: {invalid_token: true, error: 'invalid token'}}});
           });
           stub(persistence, 'find', function(store, key) {
-            return Ember.RSVP.resolve({board: {
+            return RSVP.resolve({board: {
                 id: '9876',
                 name: 'Cool Board'
             }});
@@ -1033,12 +1037,12 @@ describe("persistence", function() {
         db_wait(function() {
           queryLog.real_lookup = true;
           var ajax_called = null;
-          stub(Ember.$, 'realAjax', function(options) {
+          stub($, 'realAjax', function(options) {
             ajax_called = true;
-            return Ember.RSVP.reject({});
+            return RSVP.reject({});
           });
           stub(persistence, 'find', function(store, key) {
-            return Ember.RSVP.resolve({board: {
+            return RSVP.resolve({board: {
                 id: 'tmp_abcd',
                 name: 'Cool Board'
             }});
@@ -1062,12 +1066,12 @@ describe("persistence", function() {
           queryLog.real_lookup = true;
           persistence.set('online', false);
           var ajax_called = null;
-          stub(Ember.$, 'realAjax', function(options) {
+          stub($, 'realAjax', function(options) {
             ajax_called = true;
-            return Ember.RSVP.reject({});
+            return RSVP.reject({});
           });
           stub(persistence, 'find', function(store, key) {
-            return Ember.RSVP.reject({});
+            return RSVP.reject({});
           });
 
           var result = null;
@@ -1112,8 +1116,8 @@ describe("persistence", function() {
       it("should make an ajax call if online", function() {
         db_wait(function() {
           queryLog.real_lookup = true;
-          stub(Ember.$, 'realAjax', function(options) {
-            return Ember.RSVP.reject({});
+          stub($, 'realAjax', function(options) {
+            return RSVP.reject({});
           });
           var result = null;
           var board = CoughDrop.store.createRecord('board', {key: 'ok/cool', name: "My Awesome Board"});
@@ -1129,8 +1133,8 @@ describe("persistence", function() {
         db_wait(function() {
           queryLog.real_lookup = true;
           var rnd = Math.random().toString();
-          stub(Ember.$, 'realAjax', function(options) {
-            return Ember.RSVP.resolve({
+          stub($, 'realAjax', function(options) {
+            return RSVP.resolve({
               board: {id: '1', key: 'ok/cool', name: "My Awesome Board" + rnd}
             });
           });
@@ -1222,23 +1226,23 @@ describe("persistence", function() {
         db_wait(function() {
           queryLog.real_lookup = true;
           persistence.set('online', false);
-          var obj = Ember.Object.create({
+          var obj = EmberObject.create({
           });
-          var controller = Ember.Object.extend({
+          var controller = EmberObject.extend({
             send: function(message) {
               this.sentMessages[message] = arguments;
             },
-            model: Ember.Object.create({id: '456'})
+            model: EmberObject.create({id: '456'})
           }).create({
-            'currentUser': Ember.Object.create({user_name: 'bob', profile_url: 'http://www.bob.com/bob'}),
+            'currentUser': EmberObject.create({user_name: 'bob', profile_url: 'http://www.bob.com/bob'}),
             sentMessages: {},
             licenseOptions: [],
             'board': {model: obj}
           });
-          var button = Ember.Object.extend({
+          var button = EmberObject.extend({
             findContentLocally: function() {
               this.foundContentLocally = true;
-              return Ember.RSVP.resolve(true);
+              return RSVP.resolve(true);
             }
           }).create();
           pictureGrabber.setup(button, controller);
@@ -1274,8 +1278,8 @@ describe("persistence", function() {
       it("should make an ajax call if online", function() {
         push_board(function() {
           queryLog.real_lookup = true;
-          stub(Ember.$, 'realAjax', function(options) {
-            return Ember.RSVP.reject({});
+          stub($, 'realAjax', function(options) {
+            return RSVP.reject({});
           });
           var result = null;
           board.set('name', 'Cool Board');
@@ -1290,8 +1294,8 @@ describe("persistence", function() {
       it("should persist an updated record to the local db", function() {
         push_board(function() {
           queryLog.real_lookup = true;
-          stub(Ember.$, 'realAjax', function(options) {
-            return Ember.RSVP.resolve({ board: {
+          stub($, 'realAjax', function(options) {
+            return RSVP.resolve({ board: {
               id: '1234',
               name: 'Righteous Board'
             }});
@@ -1335,7 +1339,7 @@ describe("persistence", function() {
             expect(!!record.get('id').match(/^tmp_/)).toEqual(true);
             expect(!!record.get('key').match(/^tmp_.+\/cool/)).toEqual(true);
             expect(record.get('name')).toEqual("My Awesome Board");
-            Ember.run.later(function() {
+            emberRun.later(function() {
               record.set('name', 'My Gnarly Board');
               record.save().then(function(res) {
                 expect(res.id).toEqual(record.id);
@@ -1372,7 +1376,7 @@ describe("persistence", function() {
             expect(!!record.get('id').match(/^tmp_/)).toEqual(true);
             expect(!!record.get('key').match(/^tmp_.+\/cool/)).toEqual(true);
             expect(record.get('name')).toEqual("My Awesome Board");
-            Ember.run.later(function() {
+            emberRun.later(function() {
               record.set('name', 'My Gnarly Board');
               record.save().then(function(res) {
                 setTimeout(function() {
@@ -1403,16 +1407,16 @@ describe("persistence", function() {
           board.save().then(function(res) {
             record = res;
           });
-          stub(Ember.$, 'realAjax', function(options) {
+          stub($, 'realAjax', function(options) {
             if(options.type === 'POST' && options.url === "/api/v1/boards") {
               if(options.data.board.name === "My Gnarly Board") {
-                return Ember.RSVP.resolve({ board: {
+                return RSVP.resolve({ board: {
                   id: '1234',
                   name: 'Righteous Board'
                 }});
               }
             }
-            return Ember.RSVP.reject({});
+            return RSVP.reject({});
           });
 
           waitsFor(function() { return record; });
@@ -1421,7 +1425,7 @@ describe("persistence", function() {
             expect(!!record.get('key').match(/^tmp_.+\/cool/)).toEqual(true);
             expect(record.get('name')).toEqual("My Awesome Board");
             var tmp_id = record.get('id');
-            Ember.run.later(function() {
+            emberRun.later(function() {
               persistence.set('online', true);
               record.set('name', 'My Gnarly Board');
               record.save().then(function(res) {
@@ -1451,28 +1455,28 @@ describe("persistence", function() {
           board.save().then(function(res) {
             record = res;
           });
-          stub(Ember.$, 'realAjax', function(options) {
+          stub($, 'realAjax', function(options) {
             if(options.type === 'POST' && options.url === "/api/v1/boards") {
               if(options.data.board.name === "My Awesome Board") {
-                return Ember.RSVP.resolve({ board: {
+                return RSVP.resolve({ board: {
                   id: '1234',
                   name: 'Righteous Board'
                 }});
               }
             } else if(options.type === 'PUT' && options.url === "/api/v1/boards/1234") {
               if(options.data.board.name === "Super Board") {
-                return Ember.RSVP.resolve({ board: {
+                return RSVP.resolve({ board: {
                   id: '1234',
                   name: 'Stellar Board'
                 }});
               }
             }
-            return Ember.RSVP.reject({});
+            return RSVP.reject({});
           });
 
           waitsFor(function() { return record; });
           runs(function() {
-            Ember.run.later(function() {
+            emberRun.later(function() {
               expect(record.get('id')).toEqual("1234");
               expect(record.get('name')).toEqual("Righteous Board");
               persistence.set('online', false);
@@ -1484,7 +1488,7 @@ describe("persistence", function() {
           });
           waitsFor(function() { return updated_record; });
           runs(function() {
-            Ember.run(function() {
+            emberRun(function() {
               expect(updated_record.get('id')).toEqual("1234");
               expect(updated_record.get('name')).toEqual("My Gnarly Board");
               persistence.set('online', true);
@@ -1514,16 +1518,16 @@ describe("persistence", function() {
           board.save().then(function(res) {
             record = res;
           });
-          stub(Ember.$, 'realAjax', function(options) {
+          stub($, 'realAjax', function(options) {
             if(options.type === 'POST' && options.url === "/api/v1/boards") {
               if(options.data.board.name === "My Gnarly Board") {
-                return Ember.RSVP.resolve({ board: {
+                return RSVP.resolve({ board: {
                   id: '1234',
                   name: 'Righteous Board'
                 }});
               }
             }
-            return Ember.RSVP.reject({});
+            return RSVP.reject({});
           });
           persistence.removals = [];
           var tmp_id = null;
@@ -1535,7 +1539,7 @@ describe("persistence", function() {
             tmp_id = record.get('id');
             expect(!!record.get('key').match(/^tmp_.+\/cool/)).toEqual(true);
             expect(record.get('name')).toEqual("My Awesome Board");
-            Ember.run.later(function() {
+            emberRun.later(function() {
               persistence.set('online', true);
               record.set('name', 'My Gnarly Board');
               record.save().then(function(res) {
@@ -1577,16 +1581,16 @@ describe("persistence", function() {
           board.save().then(function(res) {
             record = res;
           });
-          stub(Ember.$, 'realAjax', function(options) {
+          stub($, 'realAjax', function(options) {
             if(options.type === 'POST' && options.url === "/api/v1/boards") {
               if(options.data.board.name === "My Gnarly Board") {
-                return Ember.RSVP.resolve({ board: {
+                return RSVP.resolve({ board: {
                   id: '1234',
                   name: 'Righteous Board'
                 }});
               }
             }
-            return Ember.RSVP.reject({});
+            return RSVP.reject({});
           });
 
           waitsFor(function() { return record; });
@@ -1598,7 +1602,7 @@ describe("persistence", function() {
             tmp_id = record.get('id');
             expect(!!record.get('key').match(/^tmp_.+\/cool/)).toEqual(true);
             expect(record.get('name')).toEqual("My Awesome Board");
-            Ember.run.later(function() {
+            emberRun.later(function() {
               persistence.set('online', true);
               record.set('name', 'My Gnarly Board');
               record.save().then(function(res) {
@@ -1633,11 +1637,11 @@ describe("persistence", function() {
         push_board(function() {
           queryLog.real_lookup = true;
           var called = false;
-          stub(Ember.$, 'realAjax', function(options) {
+          stub($, 'realAjax', function(options) {
             if(options.type === 'DELETE' && options.url === '/api/v1/boards/1234') {
               called = true;
             }
-            return Ember.RSVP.reject({});
+            return RSVP.reject({});
           });
           var result = null;
           board.deleteRecord();
@@ -1653,11 +1657,11 @@ describe("persistence", function() {
         push_board(function() {
           queryLog.real_lookup = true;
           var called = false;
-          stub(Ember.$, 'realAjax', function(options) {
+          stub($, 'realAjax', function(options) {
             if(options.type === 'DELETE' && options.url === '/api/v1/boards/1234') {
               called = true;
             }
-            return Ember.RSVP.resolve({board: {id: '1234'}});
+            return RSVP.resolve({board: {id: '1234'}});
           });
           var deleted = null;
           persistence.removals = [];
@@ -1696,7 +1700,7 @@ describe("persistence", function() {
             expect(!!record.get('id').match(/^tmp_/)).toEqual(true);
             expect(!!record.get('key').match(/^tmp_.+\/cool/)).toEqual(true);
             expect(record.get('name')).toEqual("My Awesome Board");
-            Ember.run.later(function() {
+            emberRun.later(function() {
               record_id = record.id;
               record.deleteRecord();
               record.save().then(function(res) {
@@ -1721,7 +1725,7 @@ describe("persistence", function() {
           persistence.removals = [];
           board.deleteRecord();
           board.save().then(function(res) {
-            Ember.run.later(function() {
+            emberRun.later(function() {
               persistence.find('board', '1234').then(function() { dbg(); }, function() {
                 deleted = true;
               });
@@ -1730,7 +1734,7 @@ describe("persistence", function() {
           var found_deletion = null;
           waitsFor(function() { return deleted && persistence.removals.length > 0; });
           runs(function() {
-            Ember.run.later(function() {
+            emberRun.later(function() {
               coughDropExtras.storage.find('deletion', 'board_1234').then(function() {
                 found_deletion = true;
               });
@@ -1776,29 +1780,29 @@ describe("persistence", function() {
           });
 
           var remotely_deleted = false;
-          stub(Ember.$, 'realAjax', function(options) {
+          stub($, 'realAjax', function(options) {
             if(options.url === '/api/v1/users/1256') {
-              return Ember.RSVP.resolve({user: {
+              return RSVP.resolve({user: {
                 id: '1256',
                 user_name: 'fred'
               }});
             } else if(options.url === '/api/v1/boards/1234') {
               if(options.type === 'GET') {
-                return Ember.RSVP.resolve({board: {
+                return RSVP.resolve({board: {
                   id: '1234',
                   key: 'fred/cool'
                 }});
               } else if(options.type === 'DELETE') {
                 remotely_deleted = true;
-                return Ember.RSVP.resolve({board: {id: '1234'}});
+                return RSVP.resolve({board: {id: '1234'}});
               }
             }
-            return Ember.RSVP.reject({});
+            return RSVP.reject({});
           });
           waitsFor(function() { return found_deletion; });
 
           runs(function() {
-            Ember.run.later(function() {
+            emberRun.later(function() {
               persistence.set('online', true);
               persistence.sync(1256).then(null, function() { });
             }, 50);
@@ -1819,8 +1823,8 @@ describe("persistence", function() {
         queryLog.real_lookup = true;
 
         var done = false;
-        stub(Ember.$, 'realAjax', function(options) {
-          return Ember.RSVP.resolve({board: [
+        stub($, 'realAjax', function(options) {
+          return RSVP.resolve({board: [
             {id: '134'}
           ]});
         });
@@ -1836,8 +1840,8 @@ describe("persistence", function() {
         queryLog.real_lookup = true;
 
         var done = false;
-        stub(Ember.$, 'realAjax', function(options) {
-          return Ember.RSVP.reject({});
+        stub($, 'realAjax', function(options) {
+          return RSVP.reject({});
         });
         CoughDrop.store.query('board', {user_id: 'example', starred: true, public: true}).then(function(res) {
           dbg();
@@ -1854,7 +1858,7 @@ describe("persistence", function() {
 
         var ajaxed = false;
         var rejected = false;
-        stub(Ember.$, 'realAjax', function(options) {
+        stub($, 'realAjax', function(options) {
           ajaxed = true;
         });
         var done;
@@ -1876,7 +1880,7 @@ describe("persistence", function() {
       var called = false;
       stub(coughDropExtras.storage, 'find_all', function() {
         called = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       persistence.push_records('image', ['a', 'b']).then(function(res) {
         records = res;
@@ -1898,7 +1902,7 @@ describe("persistence", function() {
       var called = false;
       stub(coughDropExtras.storage, 'find_all', function() {
         called = true;
-        return Ember.RSVP.resolve([
+        return RSVP.resolve([
           {data: {id: 'c', raw: {id: 'c', url: 'http://www.example.com/c.png'}}},
           {data: {id: 'd', raw: {id: 'd', url: 'http://www.example.com/d.png'}}}
         ]);
@@ -1925,7 +1929,7 @@ describe("persistence", function() {
       stub(coughDropExtras.storage, 'find_all', function(store, keys) {
         called = true;
         called_keys = keys;
-        return Ember.RSVP.resolve([
+        return RSVP.resolve([
           {data: {id: 'c', raw: {id: 'c', url: 'http://www.example.com/c.png'}}},
           {data: {id: 'd', raw: {id: 'd', url: 'http://www.example.com/d.png'}}}
         ]);
@@ -1950,7 +1954,7 @@ describe("persistence", function() {
       var called_keys = null;
       stub(coughDropExtras.storage, 'find_all', function(store, keys) {
         called_keys = keys;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       var errored = false;
       persistence.push_records('image', ['a', 'b', 'c', 'e']).then(null, function(err) {
@@ -1969,7 +1973,7 @@ describe("persistence", function() {
       var called = false;
       stub(coughDropExtras.storage, 'find_all', function() {
         called = true;
-        return Ember.RSVP.resolve([
+        return RSVP.resolve([
           {data: {id: 'c', raw: {id: 'c', url: 'http://www.example.com/c.png'}}},
           {data: {id: 'd', raw: {id: 'd', url: 'http://www.example.com/d.png'}}}
         ]);
@@ -2020,7 +2024,7 @@ describe("persistence", function() {
         if(store == 'image' && id == 'asdf') {
           queried = true;
         }
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       persistence.find('image', 'asdf').then(null, function() { done = true; });
       waitsFor(function() { return done; });
@@ -2080,10 +2084,10 @@ describe("persistence", function() {
       stub(session, 'restore', function() { });
       persistence.set('online');
       stub(persistence, 'sync', function() {
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(persistence, 'ajax', function(url, opts) {
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(Ember, 'testing', false);
       stashes.set('auth_settings', {});
@@ -2099,10 +2103,10 @@ describe("persistence", function() {
       stub(session, 'restore', function() { });
       persistence.set('online');
       stub(persistence, 'sync', function() {
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(persistence, 'ajax', function(url, opts) {
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(Ember, 'testing', false);
       stashes.set('auth_settings', {});
@@ -2115,10 +2119,10 @@ describe("persistence", function() {
 
     it("should not sync if offline", function() {
       stub(persistence, 'sync', function() {
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(persistence, 'ajax', function(url, opts) {
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(Ember, 'testing', false);
       stashes.set('auth_settings', {});
@@ -2132,10 +2136,10 @@ describe("persistence", function() {
 
     it("should not sync if already syncing", function() {
       stub(persistence, 'sync', function() {
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(persistence, 'ajax', function(url, opts) {
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(Ember, 'testing', false);
       stashes.set('auth_settings', {});
@@ -2151,10 +2155,10 @@ describe("persistence", function() {
       var called = false;
       stub(persistence, 'sync', function() {
         called = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(persistence, 'ajax', function(url, opts) {
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(Ember, 'testing', false);
       stashes.set('auth_settings', {});
@@ -2169,11 +2173,11 @@ describe("persistence", function() {
     it("should sync if force is called and there's a last_sync_stamp", function() {
       var called = false;
       stub(persistence, 'sync', function() {
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(persistence, 'ajax', function(url, opts) {
         called = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(Ember, 'testing', false);
       stashes.set('auth_settings', {});
@@ -2190,11 +2194,11 @@ describe("persistence", function() {
     it("should not sync if there's not last_sync_stamp", function() {
       var called = false;
       stub(persistence, 'sync', function() {
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(persistence, 'ajax', function(url, opts) {
         called = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(Ember, 'testing', false);
       stashes.set('auth_settings', {});
@@ -2209,12 +2213,12 @@ describe("persistence", function() {
       var called = false;
       var url = null;
       stub(persistence, 'sync', function() {
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(persistence, 'ajax', function(u, opts) {
         url = u;
         called = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(Ember, 'testing', false);
       stashes.set('auth_settings', {});
@@ -2234,14 +2238,14 @@ describe("persistence", function() {
       var sync_called = false;
       stub(persistence, 'sync', function() {
         sync_called = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(persistence, 'ajax', function(u, opts) {
         called = true;
         if(u == '/api/v1/users/self/sync_stamp') {
-          return Ember.RSVP.resolve({sync_stamp: 'asdf'});
+          return RSVP.resolve({sync_stamp: 'asdf'});
         }
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(Ember, 'testing', false);
       stashes.set('auth_settings', {});
@@ -2266,14 +2270,14 @@ describe("persistence", function() {
       var sync_called = false;
       stub(persistence, 'sync', function() {
         sync_called = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(persistence, 'ajax', function(u, opts) {
         called = true;
         if(u == '/api/v1/users/self/sync_stamp') {
-          return Ember.RSVP.resolve({sync_stamp: 'jkl'});
+          return RSVP.resolve({sync_stamp: 'jkl'});
         }
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(Ember, 'testing', false);
       stashes.set('auth_settings', {});
@@ -2294,7 +2298,7 @@ describe("persistence", function() {
       var sync_called = false;
       stub(persistence, 'sync', function() {
         sync_called = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
 
       stub(Ember, 'testing', false);

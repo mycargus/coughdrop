@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { queryLog, db_wait } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import Ember from 'ember';
 import app_state from '../../utils/app_state';
 import boundClasses from '../../utils/bound_classes';
@@ -15,6 +16,7 @@ import geo from '../../utils/geo';
 import speecher from '../../utils/speecher';
 import CoughDrop from '../../app';
 import coughDropExtras from '../../utils/extras';
+import $ from 'jquery';
 
 describe('extras', function() {
   describe('track_error', function() {
@@ -33,19 +35,19 @@ describe('extras', function() {
   describe('realAjax', function() {
     it('should set the correct headers', function() {
       db_wait(function() {
-        Ember.$.something = 'asdf';
+        $.something = 'asdf';
         stub(capabilities, 'access_token', 'asdfasdf');
         var called = false;
-        stub(Ember.$, 'realAjax', function(opts) {
+        stub($, 'realAjax', function(opts) {
           expect(opts.url).toEqual('/api/v1/something/cool');
           expect(opts.headers['X-Has-AppCache']).toEqual("true");
           expect(opts.headers['Authorization']).toEqual('Bearer asdfasdf');
           expect(opts.headers['X-Device-Id']).toNotEqual(undefined);
           expect(opts.headers['X-SILENCE-LOGGER']).toEqual(undefined);
           called = true;
-          return Ember.RSVP.reject({});
+          return RSVP.reject({});
         });
-        Ember.$.ajax('/api/v1/something/cool', {
+        $.ajax('/api/v1/something/cool', {
         }).then(null, function() { });
         waitsFor(function() { return called; });
         runs();
@@ -57,16 +59,16 @@ describe('extras', function() {
         stub(capabilities, 'access_token', 'asdfasdf');
         stub(CoughDrop, 'protected_user', true);
         var called = false;
-        stub(Ember.$, 'realAjax', function(opts) {
+        stub($, 'realAjax', function(opts) {
           expect(opts.url).toEqual('/api/v1/boards/bob/home');
           expect(opts.headers['X-Has-AppCache']).toEqual("true");
           expect(opts.headers['Authorization']).toEqual('Bearer asdfasdf');
           expect(opts.headers['X-Device-Id']).toNotEqual(undefined);
           expect(opts.headers['X-SILENCE-LOGGER']).toEqual('true');
           called = true;
-          return Ember.RSVP.reject({});
+          return RSVP.reject({});
         });
-        Ember.$.ajax({url: '/api/v1/boards/bob%2Fhome'}).then(null, function() { });
+        $.ajax({url: '/api/v1/boards/bob%2Fhome'}).then(null, function() { });
         waitsFor(function() { return called; });
         runs();
       });
@@ -80,7 +82,7 @@ describe('extras', function() {
 //       }
 //     }
 
-//   Ember.$.ajax = function(opts) {
+//   $.ajax = function(opts) {
 //     var _this = this;
 //     var args = [];
 //     var options = arguments[0];
@@ -99,7 +101,7 @@ describe('extras', function() {
 //     });
 //     args.push(clean_options);
 //
-//     return Ember.RSVP.resolve().then(function() {
+//     return RSVP.resolve().then(function() {
 //       var prefix = location.protocol + "//" + location.host;
 //       if(capabilities.installed_app && capabilities.api_host) {
 //         prefix = capabilities.api_host;
@@ -135,7 +137,7 @@ describe('extras', function() {
 //       var error = options.error;
 //       options.success = null;
 //       options.error = null;
-//       var res = Ember.$.realAjax(options).then(function(data, message, xhr) {
+//       var res = $.realAjax(options).then(function(data, message, xhr) {
 //         if(typeof(data) == 'string') {
 //           data = {text: data};
 //         }
@@ -143,16 +145,16 @@ describe('extras', function() {
 //           console.log("ember ajax error: " + data.status + ": " + data.error + " (" + options.url + ")");
 //           if(error) {
 //             error.call(this, xhr, message, data);
-//             // The bowels of ember aren't expecting Ember.$.ajax to return a real
+//             // The bowels of ember aren't expecting $.ajax to return a real
 //             // promise and so they don't catch the rejection properly, which
 //             // potentially causes all sorts of unexpected uncaught errors.
 //             // NOTE: this means that any CoughDrop code should not use the error parameter
 //             // if it expects to receive a proper promise.
 //             // TODO: raise an error somehow if the caller provides an error function
 //             // and expects a proper promise in response.
-//             return Ember.RSVP.resolve(null);
+//             return RSVP.resolve(null);
 //           } else {
-//             var rej = Ember.RSVP.reject({
+//             var rej = RSVP.reject({
 //               stack: data.status + ": " + data.error + " (" + options.url + ")",
 //               fakeXHR: fakeXHR(xhr),
 //               message: message,
@@ -170,7 +172,7 @@ describe('extras', function() {
 //           data.meta = (data.meta || {});
 //           data.meta.fakeXHR = fakeXHR(xhr);
 //           delete data.meta.fakeXHR['responseJSON'];
-//           Ember.$.ajax.meta_push({url: options.url, method: options.type, meta: data.meta});
+//           $.ajax.meta_push({url: options.url, method: options.type, meta: data.meta});
 //           if(success) {
 //             success.call(this, data, message, xhr);
 //           }
@@ -184,7 +186,7 @@ describe('extras', function() {
 //         if(error) {
 //           error.call(this, xhr, message, result);
 //         }
-//         var rej = Ember.RSVP.reject({
+//         var rej = RSVP.reject({
 //           fakeXHR: fakeXHR(xhr),
 //           message: message,
 //           result: result

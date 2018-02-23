@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import $ from 'jquery';
 import modal from '../utils/modal';
 import Utils from '../utils/misc';
 import CoughDrop from '../app';
@@ -30,7 +32,7 @@ export default modal.ModalController.extend({
   set_user_parameters: function() {
     var res = [];
     (this.get('selected_tool.user_parameters') || []).forEach(function(param) {
-      res.push(Ember.Object.create({
+      res.push(EmberObject.create({
         name: param.name,
         label: param.label,
         type: param.type || 'text',
@@ -50,7 +52,7 @@ export default modal.ModalController.extend({
       integration.set('integration_key', _this.get('selected_tool.integration_key'));
       var params = [];
       _this.get('user_parameters').forEach(function(param) {
-        params.push(Ember.$.extend({}, param));
+        params.push($.extend({}, param));
       });
       integration.set('user_parameters', params);
       integration.save().then(function(res) {

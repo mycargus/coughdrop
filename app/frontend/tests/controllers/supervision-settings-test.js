@@ -11,7 +11,7 @@ describe('SupervisionSettingsController', 'controller:supervision-settings', fun
 // import Ember from 'ember';
 // import modal from '../utils/modal';
 // 
-// export default Ember.ObjectController.extend({
+// export default EmberObjectController.extend({
 //   needs: 'user',
 //   actions: {
 //     close: function() {

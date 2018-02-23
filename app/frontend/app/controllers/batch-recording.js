@@ -1,4 +1,8 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
 import modal from '../utils/modal';
 import app_state from '../utils/app_state';
 import i18n from '../utils/i18n';
@@ -65,7 +69,7 @@ export default modal.ModalController.extend({
         });
         _this.set('repository.loading', false);
       }, function() {
-        Ember.set(repo, 'error', true);
+        emberSet(repo, 'error', true);
       });
       this.set('repository', repo);
     } else {
@@ -103,34 +107,34 @@ export default modal.ModalController.extend({
       var rep = this.get('repository');
       // iterate through categories
       (rep.categories || []).forEach(function(cat) {
-        Ember.set(cat, 'pending_sound', false);
+        emberSet(cat, 'pending_sound', false);
         // check existing categories for matching sounds
         (cat.phrases || []).forEach(function(phrase) {
-          if(Ember.get(phrase, 'pending_sound')) {
-            Ember.set(phrase, 'sound', false);
-            Ember.set(phrase, 'pending_sound', false);
+          if(emberGet(phrase, 'pending_sound')) {
+            emberSet(phrase, 'sound', false);
+            emberSet(phrase, 'pending_sound', false);
           }
           var tag = rep.id + ":" + cat.id + ":" + phrase.id;
           if(sounds_hash[tag]) {
-            Ember.set(phrase, 'sound', sounds_hash[tag]);
-          } else if(!Ember.get(phrase, 'sound')) {
+            emberSet(phrase, 'sound', sounds_hash[tag]);
+          } else if(!emberGet(phrase, 'sound')) {
             // try to fuzzy-match based on transcription
             var match_distance = phrase.text.length + 10;
             sounds.forEach(function(s) {
               var trans = s.get('transcription') && s.get('transcription').toLowerCase();
               if(trans) {
                 if(trans == phrase.text.toLowerCase()) {
-                  Ember.set(phrase, 'sound', s);
-                  Ember.set(phrase, 'pending_sound', true);
-                  Ember.set(cat, 'pending_sound', true);
+                  emberSet(phrase, 'sound', s);
+                  emberSet(phrase, 'pending_sound', true);
+                  emberSet(cat, 'pending_sound', true);
                   match_distance = 0;
                 } else if(match_distance !== 0) {
                   var dist = word_suggestions.edit_distance(trans, phrase.text.toLowerCase());
                   if(dist < match_distance && dist < (Math.max(phrase.text.length, trans.length) * 0.15)) {
                     if((s.get('tags') || []).indexOf("not:" + tag) == -1) {
-                      Ember.set(phrase, 'sound', s);
-                      Ember.set(phrase, 'pending_sound', true);
-                      Ember.set(cat, 'pending_sound', true);
+                      emberSet(phrase, 'sound', s);
+                      emberSet(phrase, 'pending_sound', true);
+                      emberSet(cat, 'pending_sound', true);
                     }
                   }
                 }
@@ -163,16 +167,16 @@ export default modal.ModalController.extend({
         // remove any custom-added recordings that the user cleared
         var list = [];
         (cat.phrases || []).forEach(function(phrase) {
-          if(!Ember.get(phrase, 'custom') || Ember.get(phrase, 'sound') || Ember.get(phrase, 'pending_sound')) {
+          if(!emberGet(phrase, 'custom') || emberGet(phrase, 'sound') || emberGet(phrase, 'pending_sound')) {
             list.push(phrase);
             // also tally while you're iterating
-            if(Ember.get(phrase, 'sound') && !Ember.get(phrase, 'pending_sound')) {
+            if(emberGet(phrase, 'sound') && !emberGet(phrase, 'pending_sound')) {
               cat_sounds++;
             }
           }
         });
-        Ember.set(cat, 'phrases', list);
-        Ember.set(cat, 'recordings', cat_sounds);
+        emberSet(cat, 'phrases', list);
+        emberSet(cat, 'recordings', cat_sounds);
         total = total + list.length;
         recorded = recorded + cat_sounds;
       });
@@ -261,8 +265,8 @@ export default modal.ModalController.extend({
       this.set('next_category', next_category);
       this.set('phrase', null);
       this.set('custom_phrase', null);
-      Ember.run.later(function() {
-        Ember.$(".modal-content").scrollTop(0);
+      runLater(function() {
+        $(".modal-content").scrollTop(0);
       });
     },
     select_phrase: function(id) {
@@ -288,8 +292,8 @@ export default modal.ModalController.extend({
           _this.set('phrase.sound.errored', true);
         });
       }
-      Ember.run.later(function() {
-        Ember.$(".modal-content").scrollTop(0);
+      runLater(function() {
+        $(".modal-content").scrollTop(0);
       });
     },
     audio_ready: function(sound) {
@@ -323,8 +327,8 @@ export default modal.ModalController.extend({
         this.set('custom_phrase', null);
       } else {
         this.set('custom_phrase', {});
-        Ember.run.later(function() {
-          Ember.$("#custom_phrase_text").focus();
+        runLater(function() {
+          $("#custom_phrase_text").focus();
         }, 50);
       }
     },

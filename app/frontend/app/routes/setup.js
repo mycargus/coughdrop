@@ -1,7 +1,8 @@
 import Ember from 'ember';
+import Route from '@ember/routing/route';
 import app_state from '../utils/app_state';
 
-export default Ember.Route.extend({
+export default Route.extend({
   setupController: function(controller) {
     app_state.controller.set('setup_footer', true);
     app_state.controller.set('footer_status', null);

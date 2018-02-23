@@ -1,10 +1,12 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
+import { later as runLater } from '@ember/runloop';
 import persistence from '../../utils/persistence';
 import modal from '../../utils/modal';
 import Utils from '../../utils/misc';
 import i18n from '../../utils/i18n';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   refresh_lists: function() {
     var _this = this;
     this.set('orgs', {});
@@ -191,10 +193,10 @@ export default Ember.Controller.extend({
             // because of the way we hash all user/org settings, this doesn't always get
             // updated reliably, so we repeat ourselves rather than risk losing the result.
             _this.send('management_action', res.user.get('org_management_action'), res.user.get('user_name'));
-//             Ember.run.later(function() {
+//             runLater(function() {
 //               _this.send('management_action', res.user.get('org_management_action'), res.user.get('user_name'));
 //             }, 1000);
-//             Ember.run.later(function() {
+//             runLater(function() {
 //               _this.send('management_action', res.user.get('org_management_action'), res.user.get('user_name'));
 //             }, 5000);
           }

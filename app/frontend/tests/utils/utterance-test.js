@@ -4,13 +4,14 @@ import stashes from '../../utils/_stashes';
 import app_state from '../../utils/app_state';
 import speecher from '../../utils/speecher';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 
 describe('utterance', function() {
   var controller = null;
   beforeEach(function() {
     stashes.flush();
     stashes.setup();
-    controller = Ember.Object.extend({
+    controller = EmberObject.extend({
       vocalize: function() {
         this.vocalized = true;
       }
@@ -33,7 +34,7 @@ describe('utterance', function() {
       expect(utterance.get('rawButtonList')).toEqual(stashes.get('working_vocalization'));
     });
     it("should keep observe currentUser and keep speecher's voice settings up-to-date", function() {
-      var user = Ember.Object.extend({
+      var user = EmberObject.extend({
         update_voice_uri: function() { }
       }).create({
         preferences: {device: {voice: {pitch: 2.0, volume: 3.0}}}

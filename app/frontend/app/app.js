@@ -1,4 +1,10 @@
 import Ember from 'ember';
+import EmberApplication from '@ember/application';
+import $ from 'jquery';
+import { later as RunLater } from '@ember/runloop';
+import Route from '@ember/routing/route';
+import EmberObject from '@ember/object';
+import RSVP from 'rsvp';
 import DS from 'ember-data';
 import Resolver from 'ember-resolver';
 import loadInitializers from 'ember-load-initializers';
@@ -7,10 +13,6 @@ import capabilities from './utils/capabilities';
 import i18n from './utils/i18n';
 import persistence from './utils/persistence';
 import coughDropExtras from './utils/extras';
-import misc from './utils/misc';
-import session from './utils/session';
-
-Ember.MODEL_FACTORY_INJECTIONS = true;
 
 Ember.onerror = function(err) {
   if(err.stack) {
@@ -30,7 +32,7 @@ Ember.onerror = function(err) {
 
 // TODO: nice for catching unexpected errors, but it seems like
 // it also triggers anytime a reject isn't caught.
-// Ember.RSVP.on('error', function(err) {
+// RSVP.on('error', function(err) {
 //   Ember.Logger.assert(false, err);
 //   debugger
 // });
@@ -47,7 +49,7 @@ var customEvents = {
     'select': 'select'
 };
 
-var CoughDrop = Ember.Application.extend({
+var CoughDrop = EmberApplication.extend({
   modulePrefix: config.modulePrefix,
   podModulePrefix: config.podModulePrefix,
   Resolver: Resolver,
@@ -56,24 +58,24 @@ var CoughDrop = Ember.Application.extend({
     // remove the splash screen if showing
     if(capabilities.installed_app || (navigator && navigator.splashscreen && navigator.splashscreen.hide)) {
       var checkForFooter = function() {
-        if(Ember.$("footer").length > 0) {
+        if($("footer").length > 0) {
           if(navigator && navigator.splashscreen && navigator.splashscreen.hide) {
             window.splash_hidden = true;
-            Ember.run.later(navigator.splashscreen.hide, 500);
+            RunLater(navigator.splashscreen.hide, 500);
           } else {
             console.log("splash screen expected but not found");
           }
         } else {
-          Ember.run.later(checkForFooter, 200);
+          RunLater(checkForFooter, 200);
         }
       };
-      Ember.run.later(checkForFooter, 200);
+      RunLater(checkForFooter, 200);
     }
   }
 });
 
 CoughDrop.embedded = !!location.href.match(/embed=1/);
-CoughDrop.ad_referrer = (location.href.match(/\?ref=([^\#]+)/) || [])[1];
+CoughDrop.ad_referrer = (location.href.match(/\?ref=([^#]+)/) || [])[1];
 CoughDrop.referrer = document.referrer;
 
 if(capabilities.wait_for_deviceready) {
@@ -88,8 +90,9 @@ if(capabilities.wait_for_deviceready) {
     };
     // Look up the stashed user name, which is needed for bootstrapping session and user data
     // and possibly is getting lost being set just in a cookie and localStorage
+    var klass;
     if(capabilities.system == 'iOS' && capabilities.installed_app) {
-      var klass = 'iCloudKV';
+      klass = 'iCloudKV';
       window.cordova.exec(function(dict) {
         window.kvstash = {
           values: dict,
@@ -102,9 +105,9 @@ if(capabilities.wait_for_deviceready) {
         };
         done();
       }, done, klass, 'sync', []);
-      Ember.run.later(done, 500);
+      RunLater(done, 500);
     } else if(capabilities.system == 'Android' && capabilities.installed_app) {
-      var klass = 'SharedPreferences';
+      klass = 'SharedPreferences';
       // Android key value store
       window.cordova.exec(function() {
         var make_stash = function(user_name) {
@@ -125,7 +128,7 @@ if(capabilities.wait_for_deviceready) {
           make_stash(null);
         }, klass, 'getString', ['user_name']);
       }, done, klass, 'getSharedPreferences', ['coughdrop_prefs', 'MODE_PRIVATE']);
-      Ember.run.later(done, 500);
+      RunLater(done, 500);
     } else {
       done();
     }
@@ -163,7 +166,7 @@ DS.Model.reopen({
     // the record object changed. It's not ideal, but we have to do something because DS gets
     // mad now if the server returns a different id, and we use a temporary id when persisted
     // locally.
-    if(this.id && this.id.match(/^tmp[_\/]/) && persistence.get('online')) {
+    if(this.id && this.id.match(/^tmp[_/]/) && persistence.get('online')) {
       var tmp_id = this.id;
       var tmp_key = this.get('key');
       var type = this._internalModel.modelName;
@@ -172,9 +175,9 @@ DS.Model.reopen({
       rec.tmp_key = tmp_key;
       return rec.save().then(function(result) {
         return persistence.remove(type, {}, tmp_id).then(function() {
-          return Ember.RSVP.resolve(result);
+          return RSVP.resolve(result);
         }, function() {
-          return Ember.RSVP.reject({error: "failed to remove temporary record"});
+          return RSVP.reject({error: "failed to remove temporary record"});
         });
       });
     }
@@ -182,7 +185,7 @@ DS.Model.reopen({
   }
 });
 
-Ember.Route.reopen({
+Route.reopen({
   update_title_if_present: function() {
     var controller = this.controllerFor(this.routeName);
     var title = this.get('title') || (controller && controller.get('title'));
@@ -363,7 +366,7 @@ CoughDrop.avatarUrls = [
 CoughDrop.Videos = {
   players: {},
   track: function(dom_id, callback) {
-    return new Ember.RSVP.Promise(function(resolve, reject) {
+    return new RSVP.Promise(function(resolve, reject) {
       CoughDrop.Videos.waiting = CoughDrop.Videos.waiting || {};
       CoughDrop.Videos.waiting[dom_id] = CoughDrop.Videos.waiting[dom_id] || [];
       var found = false;
@@ -389,7 +392,7 @@ CoughDrop.Videos = {
     if(CoughDrop.Videos.players[dom.id]) {
       CoughDrop.Videos.players[dom.id].cleanup();
     }
-    var player = Ember.Object.extend({
+    var player = EmberObject.extend({
       _target_window: window,
       _dom: dom,
       current_time: function() {
@@ -456,7 +459,7 @@ window.addEventListener('message', function(event) {
 
 // CoughDrop.YT = {
 //   track: function(player_id, callback) {
-//     return new Ember.RSVP.Promise(function(resolve, reject) {
+//     return new RSVP.Promise(function(resolve, reject) {
 //       if(!CoughDrop.YT.ready) {
 //         var tag = document.createElement('script');
 //         tag.src = "https://www.youtube.com/iframe_api";
@@ -470,7 +473,7 @@ window.addEventListener('message', function(event) {
 //         };
 //       } else {
 //         setTimeout(function() {
-//           var player = Ember.Object.extend({
+//           var player = EmberObject.extend({
 //             current_time: function() {
 //               var p = this.get('_player');
 //               return p && p.getCurrentTime && p.getCurrentTime();
@@ -554,11 +557,11 @@ window.addEventListener('message', function(event) {
 //         }
 //       }
 //     });
-//     Ember.run.later(CoughDrop.YT.poll, 100);
+//     RunLater(CoughDrop.YT.poll, 100);
 //   }
 // };
 // if(!Ember.testing) {
-//   Ember.run.later(CoughDrop.YT.poll, 500);
+//   RunLater(CoughDrop.YT.poll, 500);
 // }
 
 CoughDrop.Visualizations = {
@@ -608,14 +611,14 @@ CoughDrop.Visualizations = {
       window.ready_to_do_maps = function() {
         one_done('maps');
       };
-      var script = document.createElement('script');
+      script = document.createElement('script');
       script.type = 'text/javascript';
       // TODO: pull api keys out into config file?
       script.src = 'https://maps.googleapis.com/maps/api/js?v=3.exp&' +
           'callback=ready_to_do_maps&key=AIzaSyBofHMEAGEILQkXWAgO6fAbsLjw6fNJQwM';
       document.body.appendChild(script);
     } else {
-      Ember.run.later(CoughDrop.Visualizations.handle_callbacks);
+      RunLater(CoughDrop.Visualizations.handle_callbacks);
     }
 
   }

@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import RSVP from 'rsvp';
 import DS from 'ember-data';
 import CoughDrop from '../app';
 import speecher from '../utils/speecher';
@@ -282,7 +284,7 @@ CoughDrop.User = DS.Model.extend({
     var boards = this.get('preferences.sidebar_boards') || [];
     var res = [];
     boards.forEach(function(board) {
-      var board_object = Ember.Object.create(board);
+      var board_object = EmberObject.create(board);
       persistence.find_url(board.image, 'image').then(function(data_uri) {
         board_object.set('image', data_uri);
       }, function() { });
@@ -300,9 +302,9 @@ CoughDrop.User = DS.Model.extend({
         return _this;
       });
     } else if(url && url.match(/^data/)) {
-      return Ember.RSVP.resolve(this);
+      return RSVP.resolve(this);
     }
-    return Ember.RSVP.reject('no user data url');
+    return RSVP.reject('no user data url');
   },
   checkForDataURLOnChange: function() {
     this.checkForDataURL().then(null, function() { });
@@ -381,7 +383,7 @@ CoughDrop.User = DS.Model.extend({
   load_active_goals: function() {
     var _this = this;
     this.store.query('goal', {active: true, user_id: this.get('id')}).then(function(list) {
-      _this.set('active_goals', list.content.mapBy('record').sort(function(a, b) {
+      _this.set('active_goals', list.map(function(i) { return i; }).sort(function(a, b) {
         if(a.get('primary')) {
           return -1;
         } else if(b.get('primary')) {
@@ -406,11 +408,11 @@ CoughDrop.User = DS.Model.extend({
           });
         }));
       });
-      return Ember.RSVP.all_wait(promises).then(function() {
+      return RSVP.all_wait(promises).then(function() {
         if(best) {
           return best;
         } else {
-          return Ember.RSVP.reject({error: 'no exact matches found'});
+          return RSVP.reject({error: 'no exact matches found'});
         }
       });
     });
@@ -432,7 +434,7 @@ CoughDrop.User = DS.Model.extend({
         list[idx] = bs;
       }));
     });
-    return Ember.RSVP.all_wait(promises).then(function() {
+    return RSVP.all_wait(promises).then(function() {
       var res = [];
       list.forEach(function(i) { if(i) { res.push(i); } });
       return res;
@@ -445,7 +447,7 @@ CoughDrop.User = DS.Model.extend({
       _this.set('integrations', {loading: true});
       res = CoughDrop.User.check_integrations(this.get('id'), reload);
     } else {
-      res = Ember.RSVP.reject({error: 'not allowed'});
+      res = RSVP.reject({error: 'not allowed'});
     }
     if(res && res.then) {
       res.then(function(ints) {
@@ -475,7 +477,7 @@ CoughDrop.User = DS.Model.extend({
           if(user_name == _this.get('user_name')) {
            _this.set('user_name_check', {exists: false});
           }
-          return Ember.RSVP.resolve();
+          return RSVP.resolve();
         });
       }
     }
@@ -487,7 +489,7 @@ CoughDrop.User.find_integration = function(user_name, key) {
   var loading = integrations_for[user_name] && integrations_for[user_name].promise;
   if(!loading) {
     if(integrations_for[user_name] && integrations_for[user_name].length) {
-      loading = Ember.RSVP.resolve(integrations_for[user_name]);
+      loading = RSVP.resolve(integrations_for[user_name]);
     } else {
       loading = CoughDrop.User.check_integrations(user_name);
     }
@@ -498,10 +500,10 @@ CoughDrop.User.find_integration = function(user_name, key) {
       if(res) {
         return res;
       } else {
-        return Ember.RSVP.reject({error: 'no matching integration found'});
+        return RSVP.reject({error: 'no matching integration found'});
       }
     } else {
-      return Ember.RSVP.reject({error: 'no matching integration found'});
+      return RSVP.reject({error: 'no matching integration found'});
     }
   });
 };
@@ -512,7 +514,7 @@ CoughDrop.User.check_integrations = function(user_name, reload) {
   }
   if(reload === true) { integrations_for[user_name] = null; }
   if(integrations_for[user_name]) {
-    return Ember.RSVP.resolve(integrations_for[user_name]);
+    return RSVP.resolve(integrations_for[user_name]);
   }
   var promise = Utils.all_pages('integration', {user_id: user_name}, function(partial) {
   }).then(function(res) {
@@ -520,7 +522,7 @@ CoughDrop.User.check_integrations = function(user_name, reload) {
     return res;
   }, function(err) {
     CoughDrop.User.integrations_for[user_name] = {error: true};
-    return Ember.RSVP.reject({error: 'error retrieving integrations'});
+    return RSVP.reject({error: 'error retrieving integrations'});
   });
   promise.then(null, function() { });
   CoughDrop.User.integrations_for[user_name] = {loading: true, promise: promise};

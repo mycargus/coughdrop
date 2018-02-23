@@ -1,18 +1,20 @@
 import Ember from 'ember';
+import Component from '@ember/component';
 import CoughDrop from '../../app';
 import i18n from '../../utils/i18n';
+import { htmlSafe } from '@ember/string';
 
-export default Ember.Component.extend({
+export default Component.extend({
   didInsertElement: function() {
     this.draw();
   },
   canvas_style: function() {
     var res = 'width: 100%; height: 400px;';
     if(this.get('short')) { res = "width: 100%; height: 300px;"; }
-    return Ember.String.htmlSafe(res);
+    return htmlSafe(res);
   }.property('short'),
   canvas_height: function() {
-    return Ember.String.htmlSafe(this.get('short') ? (768 * 2 / 3) : 768);
+    return htmlSafe(this.get('short') ? (768 * 2 / 3) : 768);
   }.property('short'),
   draw: function() {
     var elem = this.get('element').getElementsByClassName('word_cloud')[0];

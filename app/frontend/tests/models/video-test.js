@@ -1,4 +1,5 @@
 import DS from 'ember-data';
+import RSVP from 'rsvp';
 import Ember from 'ember';
 import { test, moduleForModel } from 'ember-qunit';
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
@@ -75,7 +76,7 @@ describe('Video', function() {
       stub(persistence, 'online', false);
       stub(persistence, 'find_url', function(url, type) {
         searched = true;
-        return Ember.RSVP.resolve('data:stuff');
+        return RSVP.resolve('data:stuff');
       });
       var video = CoughDrop.store.createRecord('video');
       expect(searched).toEqual(false);

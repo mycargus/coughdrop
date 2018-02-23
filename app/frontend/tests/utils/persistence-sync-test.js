@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { queryLog, db_wait, fake_dbman } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 import persistence from '../../utils/persistence';
 import speecher from '../../utils/speecher';
 import coughDropExtras from '../../utils/extras';
@@ -11,6 +13,8 @@ import editManager from '../../utils/edit_manager';
 import capabilities from '../../utils/capabilities';
 import contentGrabbers from '../../utils/content_grabbers';
 import CoughDrop from '../../app';
+import { run as emberRun } from '@ember/runloop';
+import $ from 'jquery';
 
 describe("persistence-sync", function() {
   var app = null;
@@ -36,11 +40,11 @@ describe("persistence-sync", function() {
     app_state.set('currentBoardState', null);
     app_state.set('sessionUser', null);
     persistence.set('sync_log', null);
-    stub(speecher, 'load_beep', function() { return Ember.RSVP.resolve({}); });
+    stub(speecher, 'load_beep', function() { return RSVP.resolve({}); });
     var pajax = persistence.ajax;
     stub(persistence, 'ajax', function(url, opts) {
       if(url.match(/board_revisions$/)) {
-        var rej = Ember.RSVP.reject({});
+        var rej = RSVP.reject({});
         rej.then(null, function() { });
         return rej;
       } else {
@@ -69,7 +73,7 @@ describe("persistence-sync", function() {
       waitsFor(function() { return record; });
       runs(function() {
         board = record;
-        Ember.run(_this, callback);
+        emberRun(_this, callback);
       });
     });
   }
@@ -92,7 +96,7 @@ describe("persistence-sync", function() {
       var db = capabilities.db;
       capabilities.db = null;
       var called = false;
-      var promise = new Ember.RSVP.Promise(function(resolve, reject) {
+      var promise = new RSVP.Promise(function(resolve, reject) {
         called = true;
         resolve({user: {id: '134', user_name: 'fred'}});
       });
@@ -120,7 +124,7 @@ describe("persistence-sync", function() {
 
   it("should try to find the specified user, which should then persist that user to the local db", function() {
     var called = false;
-    var promise = new Ember.RSVP.Promise(function(resolve, reject) {
+    var promise = new RSVP.Promise(function(resolve, reject) {
       called = true;
       resolve({user: {id: '134', user_name: 'fred'}});
     });
@@ -140,12 +144,12 @@ describe("persistence-sync", function() {
     var called = false;
     stub(persistence, 'find_changed', function() {
       called = true;
-      return Ember.RSVP.resolve([]);
+      return RSVP.resolve([]);
     });
     queryLog.defineFixture({
       method: 'GET',
       type: 'user',
-      response: Ember.RSVP.resolve({user: {id: '134', user_name: 'fred'}}),
+      response: RSVP.resolve({user: {id: '134', user_name: 'fred'}}),
       id: "134"
     });
     var done = false;
@@ -160,13 +164,13 @@ describe("persistence-sync", function() {
     var called = false;
     stub(persistence, 'store_url', function(url, type) {
       called = (url === "http://example.com/pic.png" && type === 'image');
-      return Ember.RSVP.resolve({url: "http://example.com/pic.png"});
+      return RSVP.resolve({url: "http://example.com/pic.png"});
     });
-    stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
+    stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
     queryLog.defineFixture({
       method: 'GET',
       type: 'user',
-      response: Ember.RSVP.resolve({user: {id: '134', user_name: 'fred', avatar_url: 'http://example.com/pic.png'}}),
+      response: RSVP.resolve({user: {id: '134', user_name: 'fred', avatar_url: 'http://example.com/pic.png'}}),
       id: "134"
     });
     var done = false;
@@ -180,13 +184,13 @@ describe("persistence-sync", function() {
     stub(persistence, 'store_url', function(url, type) {
       stores.push(url);
       console.log(url);
-      return Ember.RSVP.resolve({url: url});
+      return RSVP.resolve({url: url});
     });
-    stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
+    stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
     queryLog.defineFixture({
       method: 'GET',
       type: 'user',
-      response: Ember.RSVP.resolve({user: {
+      response: RSVP.resolve({user: {
         id: '134',
         user_name: 'fred',
         avatar_url: 'http://example.com/pic.png',
@@ -197,7 +201,7 @@ describe("persistence-sync", function() {
     queryLog.defineFixture({
       method: 'GET',
       type: 'board',
-      response: Ember.RSVP.resolve({board: {
+      response: RSVP.resolve({board: {
         id: '145',
         image_url: 'http://example.com/board.png',
         buttons: [
@@ -221,7 +225,7 @@ describe("persistence-sync", function() {
     queryLog.defineFixture({
       method: 'GET',
       type: 'board',
-      response: Ember.RSVP.resolve({board: {
+      response: RSVP.resolve({board: {
         id: '167',
         image_url: 'http://example.com/board.png',
         buttons: [
@@ -256,13 +260,13 @@ describe("persistence-sync", function() {
     stub(persistence, 'store_url', function(url, type) {
       stores.push(url);
       console.log(url);
-      return Ember.RSVP.resolve({url: url});
+      return RSVP.resolve({url: url});
     });
-    stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
+    stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
     queryLog.defineFixture({
       method: 'GET',
       type: 'user',
-      response: Ember.RSVP.resolve({user: {
+      response: RSVP.resolve({user: {
         id: '134',
         user_name: 'fred',
         avatar_url: 'http://example.com/pic.png',
@@ -273,7 +277,7 @@ describe("persistence-sync", function() {
     queryLog.defineFixture({
       method: 'GET',
       type: 'board',
-      response: Ember.RSVP.resolve({board: {
+      response: RSVP.resolve({board: {
         id: '145',
         image_url: 'http://example.com/board.png',
         buttons: [
@@ -297,7 +301,7 @@ describe("persistence-sync", function() {
     queryLog.defineFixture({
       method: 'GET',
       type: 'board',
-      response: Ember.RSVP.resolve({board: {
+      response: RSVP.resolve({board: {
         id: '167',
         image_url: 'http://example.com/board.png',
         buttons: [
@@ -333,14 +337,14 @@ describe("persistence-sync", function() {
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
-      stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
+      stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
 
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '1340',
           user_name: 'fred',
           avatar_url: 'http://example.com/pic.png',
@@ -351,7 +355,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '145',
           image_url: 'http://example.com/board.png',
           buttons: [
@@ -375,7 +379,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '167',
           image_url: 'http://example.com/board.png',
           buttons: [
@@ -395,7 +399,7 @@ describe("persistence-sync", function() {
       });
       var ids = null;
 
-      Ember.run.later(function() {
+      emberRun.later(function() {
         persistence.sync(1340).then(function() {
           setTimeout(function() {
             persistence.find('settings', 'importantIds').then(function(res) {
@@ -427,13 +431,13 @@ describe("persistence-sync", function() {
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
-      stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
+      stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '1340',
           user_name: 'fred',
           avatar_url: 'http://example.com/pic.png',
@@ -444,7 +448,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '145',
           image_url: 'http://example.com/board.png',
           buttons: [
@@ -468,7 +472,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '167',
           image_url: 'http://example.com/board.png',
           buttons: [
@@ -508,13 +512,13 @@ describe("persistence-sync", function() {
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
-      stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
+      stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '1340',
           user_name: 'fred',
           avatar_url: 'http://example.com/pic.png',
@@ -525,7 +529,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '145',
           image_url: 'http://example.com/board.png',
           buttons: [
@@ -549,7 +553,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '167',
           image_url: 'http://example.com/board.png',
           buttons: [
@@ -570,7 +574,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '178',
           image_url: 'http://example.com/board.png',
           buttons: [
@@ -603,13 +607,13 @@ describe("persistence-sync", function() {
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
-      stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
+      stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '1340',
           user_name: 'fred',
           avatar_url: 'http://example.com/pic.png',
@@ -620,7 +624,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '145',
           image_url: 'http://example.com/board.png',
           buttons: [
@@ -644,7 +648,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '167',
           image_url: 'http://example.com/board.png',
           buttons: [
@@ -666,7 +670,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '178',
           image_url: 'http://example.com/board.png',
           buttons: [
@@ -708,13 +712,13 @@ describe("persistence-sync", function() {
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
-      stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
+      stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '1340',
           user_name: 'fred',
           avatar_url: 'http://example.com/pic.png',
@@ -725,7 +729,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '145',
           image_url: 'http://example.com/board.png',
           buttons: [
@@ -749,7 +753,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '167',
           image_url: 'http://example.com/board.png',
           buttons: [
@@ -771,7 +775,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '178',
           image_url: 'http://example.com/board.png',
           buttons: [
@@ -817,14 +821,14 @@ describe("persistence-sync", function() {
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
       stub(modal, 'error', function() { });
-      stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
+      stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.reject({user: {
+        response: RSVP.reject({user: {
           id: '1340',
           user_name: 'fred',
           avatar_url: 'http://example.com/pic.png',
@@ -856,14 +860,14 @@ describe("persistence-sync", function() {
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
       stub(modal, 'error', function() { });
-      stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
+      stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '1340',
           user_name: 'fred',
           avatar_url: 'http://example.com/pic.png',
@@ -874,7 +878,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '145',
           image_url: 'http://example.com/board.png',
           buttons: [
@@ -896,7 +900,7 @@ describe("persistence-sync", function() {
         id: '145'
       });
 
-      var r = Ember.RSVP.reject({error: "Not authorized"});
+      var r = RSVP.reject({error: "Not authorized"});
       r.then(null, function() { });
       queryLog.defineFixture({
         method: 'GET',
@@ -908,7 +912,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '178',
           image_url: 'http://example.com/board.png',
           buttons: [
@@ -957,7 +961,7 @@ describe("persistence-sync", function() {
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
       var b1 = {
         id: '145',
@@ -1039,8 +1043,8 @@ describe("persistence-sync", function() {
 
 
       var stored = false;
-      Ember.RSVP.all_wait(store_promises).then(function() {
-        Ember.run.later(function() {
+      RSVP.all_wait(store_promises).then(function() {
+        emberRun.later(function() {
           stored = true;
         }, 50);
       }, function() {
@@ -1057,29 +1061,29 @@ describe("persistence-sync", function() {
         b2.full_set_revision = 'current';
         b3.full_set_revision = 'current';
         b4.full_set_revision = 'current';
-        stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
-        stub(Ember.$, 'realAjax', function(options) {
+        stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
+        stub($, 'realAjax', function(options) {
           if(options.url === '/api/v1/users/1340') {
-            return Ember.RSVP.resolve({user: {
+            return RSVP.resolve({user: {
               id: '1340',
               user_name: 'fred',
               avatar_url: 'http://example.com/pic.png',
               preferences: {home_board: {id: '145'}}
             }});
           } else if(options.url == '/api/v1/boards/145') {
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b1
             });
           } else if(options.url == '/api/v1/boards/167') {
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b2
             });
           } else if(options.url == '/api/v1/boards/178') {
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b3
             });
           }
-          return Ember.RSVP.reject({});
+          return RSVP.reject({});
         });
 
         persistence.sync(1340).then(function() {
@@ -1097,7 +1101,7 @@ describe("persistence-sync", function() {
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
       var now = (new Date()).getTime();
       var b1 = {
@@ -1165,18 +1169,18 @@ describe("persistence-sync", function() {
       persistence.url_uncache = {};
       stub(coughDropExtras, 'find_all', function(type) {
         if(type == 'image') {
-          return Ember.RSVP.resolve([
+          return RSVP.resolve([
             {id: '1', url: 'http://www.example.com/pic1.png'},
             {id: '2', url: 'http://www.example.com/pic2.png'}
           ]);
         } else {
-          return Ember.RSVP.resolve([]);
+          return RSVP.resolve([]);
         }
       });
 
       var stored = false;
-      Ember.RSVP.all_wait(store_promises).then(function() {
-        Ember.run.later(function() {
+      RSVP.all_wait(store_promises).then(function() {
+        emberRun.later(function() {
           coughDropExtras.storage.find_all('board').then(function(r) {
             expect(r.length).toEqual(3);
             stored = true;
@@ -1198,10 +1202,10 @@ describe("persistence-sync", function() {
         CoughDrop.all_wait = true;
         queryLog.real_lookup = true;
 
-        stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
-        stub(Ember.$, 'realAjax', function(options) {
+        stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
+        stub($, 'realAjax', function(options) {
           if(options.url === '/api/v1/users/1340') {
-            return Ember.RSVP.resolve({user: {
+            return RSVP.resolve({user: {
               id: '1340',
               user_name: 'fred',
               avatar_url: 'http://example.com/pic.png',
@@ -1209,23 +1213,23 @@ describe("persistence-sync", function() {
             }});
           } else if(options.url == '/api/v1/boards/145') {
             remote_checked_b1 = true;
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b1
             });
           } else if(options.url == '/api/v1/boards/167') {
             remote_checked_b2 = true;
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b2
             });
           } else if(options.url == '/api/v1/boards/168') {
             remote_checked_b3 = true;
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b3
             });
           }
-          return Ember.RSVP.reject({});
+          return RSVP.reject({});
         });
-        Ember.run.later(function() {
+        emberRun.later(function() {
           persistence.known_missing = null;
           persistence.sync(1340).then(function() {
             done = true;
@@ -1248,7 +1252,7 @@ describe("persistence-sync", function() {
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
       var now = (new Date()).getTime();
       var b1 = {
@@ -1315,17 +1319,17 @@ describe("persistence-sync", function() {
       store_promises.push(persistence.store('settings', revisions, 'synced_full_set_revisions'));
       stub(coughDropExtras, 'find_all', function(type) {
         if(type == 'image') {
-          return Ember.RSVP.resolve([
+          return RSVP.resolve([
             {id: '1', url: 'http://www.example.com/pic1.png'}
           ]);
         } else {
-          return Ember.RSVP.resolve([]);
+          return RSVP.resolve([]);
         }
       });
 
       var stored = false;
-      Ember.RSVP.all_wait(store_promises).then(function() {
-        Ember.run.later(function() {
+      RSVP.all_wait(store_promises).then(function() {
+        emberRun.later(function() {
           stored = true;
         }, 100);
       }, function() {
@@ -1343,10 +1347,10 @@ describe("persistence-sync", function() {
         queryLog.real_lookup = true;
 
 
-        stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
-        stub(Ember.$, 'realAjax', function(options) {
+        stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
+        stub($, 'realAjax', function(options) {
           if(options.url === '/api/v1/users/1340') {
-            return Ember.RSVP.resolve({user: {
+            return RSVP.resolve({user: {
               id: '1340',
               user_name: 'fred',
               avatar_url: 'http://example.com/pic.png',
@@ -1354,24 +1358,24 @@ describe("persistence-sync", function() {
             }});
           } else if(options.url == '/api/v1/boards/145') {
             remote_checked_b1 = true;
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b1
             });
           } else if(options.url == '/api/v1/boards/167') {
             remote_checked_b2 = true;
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b2
             });
           } else if(options.url == '/api/v1/boards/168') {
             remote_checked_b3 = true;
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b3
             });
           }
-          return Ember.RSVP.reject({});
+          return RSVP.reject({});
         });
 
-        Ember.run.later(function() {
+        emberRun.later(function() {
           persistence.sync(1340).then(function() {
             done = true;
           }, function() {
@@ -1393,7 +1397,7 @@ describe("persistence-sync", function() {
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
       var now = (new Date()).getTime();
       var b1 = {
@@ -1459,17 +1463,17 @@ describe("persistence-sync", function() {
       store_promises.push(persistence.store('settings', revisions, 'synced_full_set_revisions'));
       stub(coughDropExtras, 'find_all', function(type) {
         if(type == 'image') {
-          return Ember.RSVP.resolve([
+          return RSVP.resolve([
             {id: '1', url: 'http://www.example.com/pic1.png'}
           ]);
         } else {
-          return Ember.RSVP.resolve([]);
+          return RSVP.resolve([]);
         }
       });
 
       var stored = false;
-      Ember.RSVP.all_wait(store_promises).then(function() {
-        Ember.run.later(function() {
+      RSVP.all_wait(store_promises).then(function() {
+        emberRun.later(function() {
           stored = true;
         }, 100);
       }, function() {
@@ -1487,10 +1491,10 @@ describe("persistence-sync", function() {
         queryLog.real_lookup = true;
 
 
-        stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
-        stub(Ember.$, 'realAjax', function(options) {
+        stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
+        stub($, 'realAjax', function(options) {
           if(options.url === '/api/v1/users/1340') {
-            return Ember.RSVP.resolve({user: {
+            return RSVP.resolve({user: {
               id: '1340',
               user_name: 'fred',
               avatar_url: 'http://example.com/pic.png',
@@ -1498,24 +1502,24 @@ describe("persistence-sync", function() {
             }});
           } else if(options.url == '/api/v1/boards/145') {
             remote_checked_b1 = true;
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b1
             });
           } else if(options.url == '/api/v1/boards/167') {
             remote_checked_b2 = true;
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b2
             });
           } else if(options.url == '/api/v1/boards/168') {
             remote_checked_b3 = true;
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b3
             });
           }
-          return Ember.RSVP.reject({});
+          return RSVP.reject({});
         });
 
-        Ember.run.later(function() {
+        emberRun.later(function() {
           persistence.sync(1340).then(function() {
             done = true;
           }, function() {
@@ -1537,14 +1541,14 @@ describe("persistence-sync", function() {
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
       stub(modal, 'error', function() { });
-      stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
+      stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '1340',
           user_name: 'fred',
           avatar_url: 'http://example.com/pic.png',
@@ -1555,7 +1559,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '145',
           key: 'aa/bb',
           image_url: 'http://example.com/board.png',
@@ -1579,7 +1583,7 @@ describe("persistence-sync", function() {
         id: '145'
       });
 
-      var r = Ember.RSVP.reject({error: "Not authorized"});
+      var r = RSVP.reject({error: "Not authorized"});
       r.then(null, function() { });
       queryLog.defineFixture({
         method: 'GET',
@@ -1591,7 +1595,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '178',
           image_url: 'http://example.com/board.png',
           permissions: {},
@@ -1641,13 +1645,13 @@ describe("persistence-sync", function() {
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
-      stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
+      stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '1340',
           user_name: 'fred',
           avatar_url: 'http://example.com/pic.png',
@@ -1658,7 +1662,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '145',
           image_url: 'http://example.com/board.png',
           permissions: {},
@@ -1681,7 +1685,7 @@ describe("persistence-sync", function() {
         id: '145'
       });
 
-      var r = Ember.RSVP.reject({error: "Not authorized"});
+      var r = RSVP.reject({error: "Not authorized"});
       r.then(null, function() { });
       queryLog.defineFixture({
         method: 'GET',
@@ -1713,22 +1717,22 @@ describe("persistence-sync", function() {
       var found_record = null;
       var created = null;
 
-      stub(Ember.$, 'realAjax', function(options) {
+      stub($, 'realAjax', function(options) {
         if(options.url === '/api/v1/users/1340') {
-          return Ember.RSVP.resolve({user: {
+          return RSVP.resolve({user: {
             id: '1340',
             user_name: 'fred'
           }});
         } else if(options.type === 'POST' && options.url === '/api/v1/boards') {
           if(options.data.board.key === found_record.key) {
             created = true;
-            return Ember.RSVP.resolve({board: {
+            return RSVP.resolve({board: {
               id: '1998',
               key: 'fred/cool'
             }});
           }
         }
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       });
 
       var board = CoughDrop.store.createRecord('board', {key: 'ok/cool', name: "My Awesome Board"});
@@ -1751,7 +1755,7 @@ describe("persistence-sync", function() {
         expect(!!found_record.id.match(/^tmp_/)).toEqual(true);
         expect(!!found_record.key.match(/^tmp_.+\/cool/)).toEqual(true);
         expect(found_record.name).toEqual("My Awesome Board");
-        Ember.run.later(function() {
+        emberRun.later(function() {
           found_record_id = found_record.id;
           persistence.set('online', true);
           persistence.sync(1340).then(null, function() {
@@ -1787,15 +1791,15 @@ describe("persistence-sync", function() {
       board.save().then(function(res) {
         record = res;
       });
-      stub(Ember.$, 'realAjax', function(options) {
+      stub($, 'realAjax', function(options) {
         if(options.type === 'GET' && options.url === "/api/v1/users/1567") {
-          return Ember.RSVP.resolve({ user: {
+          return RSVP.resolve({ user: {
             id: '1567',
             user_name: 'freddy'
           }});
         } else if(options.type === 'POST' && options.url === "/api/v1/boards") {
           if(options.data.board.name === "My Awesome Board") {
-            return Ember.RSVP.resolve({ board: {
+            return RSVP.resolve({ board: {
               id: '1234',
               name: 'Righteous Board'
             }});
@@ -1803,18 +1807,18 @@ describe("persistence-sync", function() {
         } else if(options.type === 'PUT' && options.url === "/api/v1/boards/1234") {
           if(options.data.board.name === "My Gnarly Board") {
             remote_updated = true;
-            return Ember.RSVP.resolve({ board: {
+            return RSVP.resolve({ board: {
               id: '1234',
               name: 'Stellar Board'
             }});
           }
         }
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       });
 
       waitsFor(function() { return record; });
       runs(function() {
-        Ember.run.later(function() {
+        emberRun.later(function() {
           expect(record.get('id')).toEqual("1234");
           expect(record.get('name')).toEqual("Righteous Board");
           persistence.set('online', false);
@@ -1831,7 +1835,7 @@ describe("persistence-sync", function() {
       var done = false;
       waitsFor(function() { return updated_record; });
       runs(function() {
-        Ember.run.later(function() {
+        emberRun.later(function() {
           expect(updated_record.raw.id).toEqual("1234");
           expect(updated_record.raw.name).toEqual("My Gnarly Board");
           expect(updated_record.changed).toEqual(true);
@@ -1887,29 +1891,29 @@ describe("persistence-sync", function() {
       });
 
       var remotely_deleted = false;
-      stub(Ember.$, 'realAjax', function(options) {
+      stub($, 'realAjax', function(options) {
         if(options.url === '/api/v1/users/1256') {
-          return Ember.RSVP.resolve({user: {
+          return RSVP.resolve({user: {
             id: '1256',
             user_name: 'fred'
           }});
         } else if(options.url === '/api/v1/boards/1234') {
           if(options.type === 'GET') {
-            return Ember.RSVP.resolve({board: {
+            return RSVP.resolve({board: {
               id: '1234',
               key: 'fred/cool'
             }});
           } else if(options.type === 'DELETE') {
             remotely_deleted = true;
-            return Ember.RSVP.resolve({board: {id: '1234'}});
+            return RSVP.resolve({board: {id: '1234'}});
           }
         } else {
-          return Ember.RSVP.reject({});
+          return RSVP.reject({});
         }
       });
       waitsFor(function() { return found_deletion; });
       runs(function() {
-        Ember.run.later(function() {
+        emberRun.later(function() {
           persistence.set('online', true);
           persistence.sync(1256).then(null, function() { });
         });
@@ -1931,21 +1935,21 @@ describe("persistence-sync", function() {
       board.save().then(function(res) {
         record = res;
       });
-      stub(Ember.$, 'realAjax', function(options) {
+      stub($, 'realAjax', function(options) {
         if(options.type === 'GET' && options.url === "/api/v1/users/1567") {
-          return Ember.RSVP.resolve({ user: {
+          return RSVP.resolve({ user: {
             id: '1567',
             user_name: 'freddy',
             avatar_url: 'data:image/png;base64,a0a'
           }});
         } else if(options.type === 'GET' && options.url === "/api/v1/board/1234") {
-          return Ember.RSVP.resolve({ board: {
+          return RSVP.resolve({ board: {
             id: '1234',
             name: 'Righteous Board'
           }});
         } else if(options.type === 'POST' && options.url === "/api/v1/boards") {
           if(options.data.board.name === "My Awesome Board") {
-            return Ember.RSVP.resolve({ board: {
+            return RSVP.resolve({ board: {
               id: '1234',
               name: 'Righteous Board'
             }});
@@ -1953,15 +1957,15 @@ describe("persistence-sync", function() {
         } else if(options.type === 'PUT' && options.url === "/api/v1/boards/1234") {
           if(options.data.board.name === "Yodeling Board") {
             remote_updated = true;
-            return Ember.RSVP.reject({});
+            return RSVP.reject({});
           }
         }
         dbg();
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       });
 
       stub(persistence, 'find_changed', function() {
-        return Ember.RSVP.resolve([
+        return RSVP.resolve([
           {store: 'board', data: { raw: { id: '1234', name: 'Yodeling Board' } }}
         ]);
       });
@@ -1969,7 +1973,7 @@ describe("persistence-sync", function() {
 
       waitsFor(function() { return record; });
       runs(function() {
-        Ember.run.later(function() {
+        emberRun.later(function() {
           expect(record.get('id')).toEqual("1234");
           expect(record.get('name')).toEqual("Righteous Board");
           persistence.set('online', false);
@@ -1986,7 +1990,7 @@ describe("persistence-sync", function() {
       var error = null;
       waitsFor(function() { return updated_record; });
       runs(function() {
-        Ember.run.later(function() {
+        emberRun.later(function() {
           expect(updated_record.raw.id).toEqual("1234");
           expect(updated_record.raw.name).toEqual("My Gnarly Board");
           expect(updated_record.changed).toEqual(true);
@@ -2022,9 +2026,9 @@ describe("persistence-sync", function() {
       var found_record = null;
       var created = null;
 
-      stub(Ember.$, 'realAjax', function(options) {
+      stub($, 'realAjax', function(options) {
         if(options.url === '/api/v1/users/1340') {
-          return Ember.RSVP.resolve({user: {
+          return RSVP.resolve({user: {
             id: '1340',
             user_name: 'fred',
             avatar_url: 'data:image/png;base64,a0a'
@@ -2032,14 +2036,14 @@ describe("persistence-sync", function() {
         } else if(options.type === 'POST' && options.url === '/api/v1/boards') {
           if(options.data.board.key === found_record.key) {
             created = true;
-            return Ember.RSVP.reject({});
+            return RSVP.reject({});
           }
         }
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       });
       stub(modal, 'error', function() { });
       stub(persistence, 'find_changed', function() {
-        return Ember.RSVP.resolve([
+        return RSVP.resolve([
           {store: 'board', data: {raw: {id: found_record.id, key: found_record.key} }}
         ]);
       });
@@ -2063,7 +2067,7 @@ describe("persistence-sync", function() {
         expect(!!found_record.id.match(/^tmp_/)).toEqual(true);
         expect(!!found_record.key.match(/^tmp_.+\/cool/)).toEqual(true);
         expect(found_record.name).toEqual("My Awesome Board");
-        Ember.run.later(function() {
+        emberRun.later(function() {
           persistence.set('online', true);
           persistence.sync(1340).then(null, function(err) {
             error = err;
@@ -2082,15 +2086,15 @@ describe("persistence-sync", function() {
     db_wait(function() {
       queryLog.real_lookup = true;
       persistence.set('online', false);
-      var obj = Ember.Object.create({
+      var obj = EmberObject.create({
       });
-      var controller = Ember.Object.extend({
+      var controller = EmberObject.extend({
         send: function(message) {
           this.sentMessages[message] = arguments;
         },
-        model: Ember.Object.create()
+        model: EmberObject.create()
       }).create({
-        'currentUser': Ember.Object.create({user_name: 'bob', profile_url: 'http://www.bob.com/bob'}),
+        'currentUser': EmberObject.create({user_name: 'bob', profile_url: 'http://www.bob.com/bob'}),
         sentMessages: {},
         id: '456',
         licenseOptions: [],
@@ -2098,10 +2102,10 @@ describe("persistence-sync", function() {
       });
       stub(editManager, 'controller', controller.get('board'));
       stub(app_state, 'controller', controller);
-      var button = Ember.Object.extend({
+      var button = EmberObject.extend({
         findContentLocally: function() {
           this.foundContentLocally = true;
-          return Ember.RSVP.resolve(true);
+          return RSVP.resolve(true);
         }
       }).create();
       pictureGrabber.setup(button, controller);
@@ -2125,28 +2129,28 @@ describe("persistence-sync", function() {
         }, 50);
       });
 
-      stub(Ember.$, 'realAjax', function(options) {
+      stub($, 'realAjax', function(options) {
         if(options.url === '/api/v1/users/1340') {
-          return Ember.RSVP.resolve({user: {
+          return RSVP.resolve({user: {
             id: '1340',
             user_name: 'fred',
             avatar_url: 'data:image/png;base64,a0a'
           }});
         } else if(options.type === 'POST' && options.url === '/api/v1/images') {
-          return Ember.RSVP.resolve({image: {
+          return RSVP.resolve({image: {
             id: '1432',
             url: 'http://example.com/pic.png'
           }});
         } else if(options.type === 'GET' && options.url === '/api/v1/images/1432') {
-          return Ember.RSVP.resolve({image: {
+          return RSVP.resolve({image: {
             id: '1432',
             url: 'http://example.com/pic.png'
           }});
         }
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       });
       stub(persistence, 'find_changed', function() {
-        return Ember.RSVP.resolve([
+        return RSVP.resolve([
           {store: 'image', data: {raw: record }}
         ]);
       });
@@ -2154,7 +2158,7 @@ describe("persistence-sync", function() {
       var done = false;
       waitsFor(function() { return record; });
       runs(function() {
-        Ember.run.later(function() {
+        emberRun.later(function() {
           expect(!!record.id.match(/^tmp_/)).toEqual(true);
           expect(record.url).toEqual('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==');
           persistence.set('online', true);
@@ -2172,15 +2176,15 @@ describe("persistence-sync", function() {
     db_wait(function() {
       queryLog.real_lookup = true;
       persistence.set('online', false);
-      var obj = Ember.Object.create({
+      var obj = EmberObject.create({
       });
-      var controller = Ember.Object.extend({
+      var controller = EmberObject.extend({
         send: function(message) {
           this.sentMessages[message] = arguments;
         },
-        model: Ember.Object.create()
+        model: EmberObject.create()
       }).create({
-        'currentUser': Ember.Object.create({user_name: 'bob', profile_url: 'http://www.bob.com/bob'}),
+        'currentUser': EmberObject.create({user_name: 'bob', profile_url: 'http://www.bob.com/bob'}),
         sentMessages: {},
         id: '456',
         licenseOptions: [],
@@ -2188,10 +2192,10 @@ describe("persistence-sync", function() {
       });
       stub(app_state, 'controller', controller);
       stub(editManager, 'controller', controller.get('board'));
-      var button = Ember.Object.extend({
+      var button = EmberObject.extend({
         findContentLocally: function() {
           this.foundContentLocally = true;
-          return Ember.RSVP.resolve(true);
+          return RSVP.resolve(true);
         }
       }).create();
       soundGrabber.setup(button, controller);
@@ -2227,28 +2231,28 @@ describe("persistence-sync", function() {
         }, 50);
       });
 
-      stub(Ember.$, 'realAjax', function(options) {
+      stub($, 'realAjax', function(options) {
         if(options.url === '/api/v1/users/1340') {
-          return Ember.RSVP.resolve({user: {
+          return RSVP.resolve({user: {
             id: '1340',
             user_name: 'fred',
             avatar_url: 'data:image/png;base64,a0a'
           }});
         } else if(options.type === 'POST' && options.url === '/api/v1/sounds') {
-          return Ember.RSVP.resolve({sound: {
+          return RSVP.resolve({sound: {
             id: '1432',
             url: 'http://example.com/pic.png'
           }});
         } else if(options.type === 'GET' && options.url === '/api/v1/sounds/1432') {
-          return Ember.RSVP.resolve({sound: {
+          return RSVP.resolve({sound: {
             id: '1432',
             url: 'http://example.com/pic.png'
           }});
         }
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       });
       stub(persistence, 'find_changed', function() {
-        return Ember.RSVP.resolve([
+        return RSVP.resolve([
           {store: 'sound', data: {raw: record }}
         ]);
       });
@@ -2256,7 +2260,7 @@ describe("persistence-sync", function() {
       var done = false;
       waitsFor(function() { return record; });
       runs(function() {
-        Ember.run.later(function() {
+        emberRun.later(function() {
           expect(!!record.id.match(/^tmp_/)).toEqual(true);
           expect(record.url).toEqual('data:audio/mp3;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==');
           persistence.set('online', true);
@@ -2282,15 +2286,15 @@ describe("persistence-sync", function() {
       board.save().then(function(res) {
         record = res;
       });
-      stub(Ember.$, 'realAjax', function(options) {
+      stub($, 'realAjax', function(options) {
         if(options.type === 'GET' && options.url === "/api/v1/users/1567") {
-          return Ember.RSVP.resolve({ user: {
+          return RSVP.resolve({ user: {
             id: '1567',
             user_name: 'freddy'
           }});
         } else if(options.type === 'POST' && options.url === "/api/v1/boards") {
           if(options.data.board.name === "My Awesome Board") {
-            return Ember.RSVP.resolve({ board: {
+            return RSVP.resolve({ board: {
               id: '1234',
               name: 'Righteous Board'
             }});
@@ -2298,18 +2302,18 @@ describe("persistence-sync", function() {
         } else if(options.type === 'PUT' && options.url === "/api/v1/boards/1234") {
           if(options.data.board.name === "My Gnarly Board") {
             remote_updated = true;
-            return Ember.RSVP.resolve({ board: {
+            return RSVP.resolve({ board: {
               id: '1234',
               name: 'Stellar Board'
             }});
           }
         }
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       });
 
       waitsFor(function() { return record; });
       runs(function() {
-        Ember.run.later(function() {
+        emberRun.later(function() {
           expect(record.get('id')).toEqual("1234");
           expect(record.get('name')).toEqual("Righteous Board");
           persistence.set('online', false);
@@ -2326,7 +2330,7 @@ describe("persistence-sync", function() {
       var done = false;
       waitsFor(function() { return updated_record; });
       runs(function() {
-        Ember.run.later(function() {
+        emberRun.later(function() {
           expect(updated_record.raw.id).toEqual("1234");
           expect(updated_record.raw.name).toEqual("My Gnarly Board");
           expect(updated_record.changed).toEqual(true);
@@ -2358,9 +2362,9 @@ describe("persistence-sync", function() {
       CoughDrop.all_wait = true;
       queryLog.real_lookup = true;
 
-      stub(Ember.$, 'realAjax', function(options) {
+      stub($, 'realAjax', function(options) {
         if(options.type == 'GET' && options.url == "/api/v1/users/1567") {
-          return Ember.RSVP.resolve({ user: {
+          return RSVP.resolve({ user: {
             id: '1567',
             user_name: 'freddy',
             avatar_url: 'data:image/png;base64,a000'
@@ -2368,14 +2372,14 @@ describe("persistence-sync", function() {
         } else if(options.type == 'POST' && options.url == "/api/v1/boards") {
           var board = options.data.board;
           if(board.name == "My Awesome Board") {
-            return Ember.RSVP.resolve({ board: {
+            return RSVP.resolve({ board: {
               id: '1234',
               name: 'Righteous Board',
               buttons: board.buttons,
               order: board.order
             }});
           } else if(options.data.board.name == "Temp Board") {
-            return Ember.RSVP.resolve({ board: {
+            return RSVP.resolve({ board: {
               id: '1235',
               name: 'Previously-Temp Board',
               buttons: board.buttons,
@@ -2385,30 +2389,30 @@ describe("persistence-sync", function() {
         } else if(options.type == 'PUT' && options.url == '/api/v1/boards/1234') {
           var res = options.data.board;
           res.id = '1234';
-          return Ember.RSVP.resolve({ board: res });
+          return RSVP.resolve({ board: res });
         } else if(options.type == 'PUT' && options.url == '/api/v1/boards/1235') {
           var res = options.data.board;
           res.id = '1235';
-          return Ember.RSVP.resolve({ board: res });
+          return RSVP.resolve({ board: res });
         } else if(options.type == 'POST' && options.url == '/api/v1/images') {
-          return Ember.RSVP.resolve({ image: {
+          return RSVP.resolve({ image: {
             id: '1236'
           }});
         } else if(options.type == 'POST' && options.url == '/api/v1/sounds') {
-          return Ember.RSVP.resolve({ sound: {
+          return RSVP.resolve({ sound: {
             id: '1237'
           }});
         } else if(options.type == 'GET' && options.url == '/api/v1/images/1236') {
-          return Ember.RSVP.resolve({ image: {
+          return RSVP.resolve({ image: {
             id: '1236'
           }});
         } else if(options.type == 'GET' && options.url == '/api/v1/sounds/1237') {
-          return Ember.RSVP.resolve({ sound: {
+          return RSVP.resolve({ sound: {
             id: '1237'
           }});
         }
         dbg();
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       });
 
       var server_board, tmp_board, tmp_image, tmp_sound;
@@ -2423,7 +2427,7 @@ describe("persistence-sync", function() {
       waitsFor(function() { return server_board; });
       runs(function() {
         persistence.set('online', false);
-        Ember.run.later(function() {
+        emberRun.later(function() {
           // create a temporary image
           // create a temporary sound
           // create a temporary board
@@ -2461,7 +2465,7 @@ describe("persistence-sync", function() {
       runs(function() {
         // update the server-side board with links to all three temporary records
         // update the temporary board with links to all three temporary records
-        Ember.run(function() {
+        emberRun(function() {
           var buttons = [
             {
               id: 1,
@@ -2516,14 +2520,14 @@ describe("persistence-sync", function() {
         persistence.set('online', true);
         // stub find_changed to return the records with the server-side board first
         stub(persistence, 'find_changed', function() {
-          return Ember.RSVP.resolve([
+          return RSVP.resolve([
             {store: 'board', data: { raw: server_board }},
             {store: 'board', data: { raw: tmp_board }},
             {store: 'image', data: { raw: tmp_image }},
             {store: 'sound', data: { raw: tmp_sound }}
           ]);
         });
-        Ember.run.later(function() {
+        emberRun.later(function() {
           // call sync
           persistence.known_missing = null;
           persistence.sync(1567).then(function() {
@@ -2608,13 +2612,13 @@ describe("persistence-sync", function() {
       });
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
-      stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
+      stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '1340',
           user_name: 'fred',
           avatar_url: 'http://example.com/pic.png',
@@ -2629,7 +2633,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '1',
           user_name: 'fiona',
           avatar_url: 'http://example.com/pic2.png',
@@ -2644,7 +2648,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '2',
           user_name: 'alastar',
           avatar_url: 'http://example.com/pic3.png',
@@ -2656,7 +2660,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '3',
           user_name: 'dwight',
           avatar_url: 'http://example.com/pic4.png',
@@ -2668,7 +2672,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '145',
           image_url: 'http://example.com/board.png',
           permissions: {},
@@ -2693,7 +2697,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '167',
           image_url: 'http://example.com/board2.png',
           permissions: {},
@@ -2715,7 +2719,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '178',
           image_url: 'http://example.com/board3.png',
           permissions: {},
@@ -2737,7 +2741,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '177',
           image_url: 'http://example.com/board4.png',
           permissions: {},
@@ -2759,7 +2763,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '179',
           image_url: 'http://example.com/board5.png',
           permissions: {},
@@ -2813,13 +2817,13 @@ describe("persistence-sync", function() {
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
-      stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
+      stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '1340',
           user_name: 'fred',
           avatar_url: 'http://example.com/pic.png',
@@ -2834,7 +2838,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '1',
           user_name: 'fiona',
           avatar_url: 'http://example.com/pic2.png',
@@ -2848,7 +2852,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '145',
           image_url: 'http://example.com/board.png',
           permissions: {},
@@ -2873,7 +2877,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '167',
           image_url: 'http://example.com/board.png',
           permissions: {},
@@ -2895,7 +2899,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '178',
           image_url: 'http://example.com/board.png',
           permissions: {},
@@ -2942,13 +2946,13 @@ describe("persistence-sync", function() {
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
-      stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
+      stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: Ember.RSVP.resolve({user: {
+        response: RSVP.resolve({user: {
           id: '1340',
           user_name: 'fred',
           avatar_url: 'http://example.com/pic.png',
@@ -2960,7 +2964,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: new Ember.RSVP.Promise(function(resolve) {
+        response: new RSVP.Promise(function(resolve) {
           found1 = true;
           return {board: {}};
         }),
@@ -2970,7 +2974,7 @@ describe("persistence-sync", function() {
       queryLog.defineFixture({
         method: 'GET',
         type: 'user',
-        response: new Ember.RSVP.Promise(function(resolve) {
+        response: new RSVP.Promise(function(resolve) {
           found2 = true;
           return {board: {}};
         }),
@@ -2994,17 +2998,17 @@ describe("persistence-sync", function() {
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/users/1340/board_revisions') {
           revisions_called = true;
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
           });
         }
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
 
       var stores = [];
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
       var b1 = {
         id: '145',
@@ -3086,8 +3090,8 @@ describe("persistence-sync", function() {
 
 
       var stored = false;
-      Ember.RSVP.all_wait(store_promises).then(function() {
-        Ember.run.later(function() {
+      RSVP.all_wait(store_promises).then(function() {
+        emberRun.later(function() {
           stored = true;
         }, 100);
       }, function() {
@@ -3104,29 +3108,29 @@ describe("persistence-sync", function() {
         b2.full_set_revision = 'current';
         b3.full_set_revision = 'current';
         b4.full_set_revision = 'current';
-        stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
-        stub(Ember.$, 'realAjax', function(options) {
+        stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
+        stub($, 'realAjax', function(options) {
           if(options.url === '/api/v1/users/1340') {
-            return Ember.RSVP.resolve({user: {
+            return RSVP.resolve({user: {
               id: '1340',
               user_name: 'fred',
               avatar_url: 'http://example.com/pic.png',
               preferences: {home_board: {id: '145'}}
             }});
           } else if(options.url == '/api/v1/boards/145') {
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b1
             });
           } else if(options.url == '/api/v1/boards/167') {
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b2
             });
           } else if(options.url == '/api/v1/boards/178') {
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b3
             });
           }
-          return Ember.RSVP.reject({});
+          return RSVP.reject({});
         });
 
         persistence.sync(1340).then(function() {
@@ -3146,21 +3150,21 @@ describe("persistence-sync", function() {
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/users/1340/board_revisions') {
           revisions_called = true;
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             '145': 'current',
             '167': 'current',
             '178': 'current',
             '179': 'current'
           });
         }
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       });
 
       var stores = [];
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
       var b1 = {
         id: '145',
@@ -3246,8 +3250,8 @@ describe("persistence-sync", function() {
 
 
       var stored = false;
-      Ember.RSVP.all_wait(store_promises).then(function() {
-        Ember.run.later(function() {
+      RSVP.all_wait(store_promises).then(function() {
+        emberRun.later(function() {
           stored = true;
         }, 100);
       }, function() {
@@ -3265,10 +3269,10 @@ describe("persistence-sync", function() {
         b2.full_set_revision = 'current';
         b3.full_set_revision = 'current';
         b4.full_set_revision = 'current';
-        stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
-        stub(Ember.$, 'realAjax', function(options) {
+        stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
+        stub($, 'realAjax', function(options) {
           if(options.url === '/api/v1/users/1340') {
-            return Ember.RSVP.resolve({user: {
+            return RSVP.resolve({user: {
               id: '1340',
               user_name: 'fred',
               avatar_url: 'http://example.com/pic.png',
@@ -3276,26 +3280,26 @@ describe("persistence-sync", function() {
             }});
           } else if(options.url == '/api/v1/boards/145') {
             reloads['145'] = true;
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b1
             });
           } else if(options.url == '/api/v1/boards/167') {
             reloads['167'] = true;
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b2
             });
           } else if(options.url == '/api/v1/boards/178') {
             reloads['178'] = true;
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b3
             });
           } else if(options.url == '/api/v1/boards/179') {
             reloads['179'] = true;
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b4
             });
           }
-          return Ember.RSVP.reject({});
+          return RSVP.reject({});
         });
 
         persistence.sync(1340).then(function() {
@@ -3318,21 +3322,21 @@ describe("persistence-sync", function() {
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/users/1340/board_revisions') {
           revisions_called = true;
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             '145': 'current',
             '167': 'current',
             '178': 'current',
             '179': 'current'
           });
         }
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       });
 
       var stores = [];
       stub(persistence, 'store_url', function(url, type) {
         stores.push(url);
         console.log(url);
-        return Ember.RSVP.resolve({url: url});
+        return RSVP.resolve({url: url});
       });
       var b1 = {
         id: '145',
@@ -3414,8 +3418,8 @@ describe("persistence-sync", function() {
 
 
       var stored = false;
-      Ember.RSVP.all_wait(store_promises).then(function() {
-        Ember.run.later(function() {
+      RSVP.all_wait(store_promises).then(function() {
+        emberRun.later(function() {
           stored = true;
         }, 100);
       }, function() {
@@ -3433,10 +3437,10 @@ describe("persistence-sync", function() {
         b2.full_set_revision = 'current';
         b3.full_set_revision = 'current';
         b4.full_set_revision = 'current';
-        stub(persistence, 'find_changed', function() { return Ember.RSVP.resolve([]); });
-        stub(Ember.$, 'realAjax', function(options) {
+        stub(persistence, 'find_changed', function() { return RSVP.resolve([]); });
+        stub($, 'realAjax', function(options) {
           if(options.url === '/api/v1/users/1340') {
-            return Ember.RSVP.resolve({user: {
+            return RSVP.resolve({user: {
               id: '1340',
               user_name: 'fred',
               avatar_url: 'http://example.com/pic.png',
@@ -3444,26 +3448,26 @@ describe("persistence-sync", function() {
             }});
           } else if(options.url == '/api/v1/boards/145') {
             reloads['145'] = true;
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b1
             });
           } else if(options.url == '/api/v1/boards/167') {
             reloads['167'] = true;
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b2
             });
           } else if(options.url == '/api/v1/boards/178') {
             reloads['178'] = true;
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b3
             });
           } else if(options.url == '/api/v1/boards/179') {
             reloads['179'] = true;
-            return Ember.RSVP.resolve({
+            return RSVP.resolve({
               board: b4
             });
           }
-          return Ember.RSVP.reject({});
+          return RSVP.reject({});
         });
 
         persistence.sync(1340).then(function() {
@@ -3503,12 +3507,12 @@ describe("persistence-sync", function() {
       stub(CoughDrop.store, 'findRecord', function(type, id) {
         if(type == 'board' && id == '1_00') {
           lookups++;
-          var obj = Ember.Object.create({
+          var obj = EmberObject.create({
             fresh: true,
             permissions: {},
           });
-          obj.reload = function() { return Ember.RSVP.resolve(obj); };
-          return Ember.RSVP.resolve(obj);
+          obj.reload = function() { return RSVP.resolve(obj); };
+          return RSVP.resolve(obj);
         }
       });
       var dones = 0;
@@ -3530,12 +3534,12 @@ describe("persistence-sync", function() {
 
     it("should reload if peeked", function() {
       persistence.set('sync_progress', {});
-      var rec = Ember.Object.create({
+      var rec = EmberObject.create({
         fresh: true
       });
       stub(rec, 'reload', function() {
         rec.reloaded = true;
-        return Ember.RSVP.resolve(rec);
+        return RSVP.resolve(rec);
       });
       stub(CoughDrop.store, 'peekRecord', function(type, id) {
         if(type == 'board' && id == '1_00') {
@@ -3545,7 +3549,7 @@ describe("persistence-sync", function() {
       stub(CoughDrop.store, 'findRecord', function(type, id) {
         if(type == 'board' && id == '1_00') {
           rec.set('permissions', {});
-          return Ember.RSVP.resolve(rec);
+          return RSVP.resolve(rec);
         }
       });
       var done = false;
@@ -3564,19 +3568,19 @@ describe("persistence-sync", function() {
 
     it("should reload if a key passed as id", function() {
       persistence.set('sync_progress', {});
-      var rec = Ember.Object.create({
+      var rec = EmberObject.create({
         fresh: true,
         key: 'as/df'
       });
       rec.set('id', '1_00');
       stub(rec, 'reload', function() {
         rec.reloaded = true;
-        return Ember.RSVP.resolve(rec);
+        return RSVP.resolve(rec);
       });
       stub(CoughDrop.store, 'findRecord', function(type, id) {
         if(type == 'board' && id == 'as/df') {
           rec.set('permissions', {});
-          return Ember.RSVP.resolve(rec);
+          return RSVP.resolve(rec);
         }
       });
       var done = false;
@@ -3596,17 +3600,17 @@ describe("persistence-sync", function() {
 
     it("should reload if not fresh", function() {
       persistence.set('sync_progress', {});
-      var rec = Ember.Object.create({
+      var rec = EmberObject.create({
         fresh: false
       });
       stub(rec, 'reload', function() {
         rec.reloaded = true;
-        return Ember.RSVP.resolve(rec);
+        return RSVP.resolve(rec);
       });
       stub(CoughDrop.store, 'findRecord', function(type, id) {
         if(type == 'board' && id == '1_00') {
           rec.set('permissions', {});
-          return Ember.RSVP.resolve(rec);
+          return RSVP.resolve(rec);
         }
       });
       var done = false;
@@ -3625,18 +3629,18 @@ describe("persistence-sync", function() {
 
     it("should not reload if fresh, numerical id and not peeked", function() {
       persistence.set('sync_progress', {});
-      var rec = Ember.Object.create({
+      var rec = EmberObject.create({
         fresh: true,
         current_revision: 'asdf'
       });
       stub(rec, 'reload', function() {
         rec.reloaded = true;
-        return Ember.RSVP.resolve(rec);
+        return RSVP.resolve(rec);
       });
       stub(CoughDrop.store, 'findRecord', function(type, id) {
         if(type == 'board' && id == '1_00') {
           rec.set('permissions', {});
-          return Ember.RSVP.resolve(rec);
+          return RSVP.resolve(rec);
         }
       });
       var done = false;
@@ -3655,18 +3659,18 @@ describe("persistence-sync", function() {
 
     it("should not reload if safely_cached without cache mismatch", function() {
       persistence.set('sync_progress', {});
-      var rec = Ember.Object.create({
+      var rec = EmberObject.create({
         fresh: false
       });
       stub(rec, 'reload', function() {
         rec.reloaded = true;
-        return Ember.RSVP.resolve(rec);
+        return RSVP.resolve(rec);
       });
       stub(CoughDrop.store, 'findRecord', function(type, id) {
         if(type == 'board' && id == '1_00') {
           rec.set('permissions', {});
           rec.set('image_urls', ['http://www.example.com/pic.png']);
-          return Ember.RSVP.resolve(rec);
+          return RSVP.resolve(rec);
         }
       });
       var done = false;
@@ -3685,17 +3689,17 @@ describe("persistence-sync", function() {
 
     it("should reload if safely_cached with cache mismatch", function() {
       persistence.set('sync_progress', {});
-      var rec = Ember.Object.create({
+      var rec = EmberObject.create({
         fresh: false
       });
       stub(rec, 'reload', function() {
         rec.reloaded = true;
-        return Ember.RSVP.resolve(rec);
+        return RSVP.resolve(rec);
       });
       stub(CoughDrop.store, 'findRecord', function(type, id) {
         if(type == 'board' && id == '1_00') {
           rec.set('permissions', {});
-          return Ember.RSVP.resolve(rec);
+          return RSVP.resolve(rec);
         }
       });
       var done = false;
@@ -3714,18 +3718,18 @@ describe("persistence-sync", function() {
 
     it("should not reload if not safely_cached but has a cache match", function() {
       persistence.set('sync_progress', {});
-      var rec = Ember.Object.create({
+      var rec = EmberObject.create({
         fresh: false,
         current_revision: 'asdf'
       });
       stub(rec, 'reload', function() {
         rec.reloaded = true;
-        return Ember.RSVP.resolve(rec);
+        return RSVP.resolve(rec);
       });
       stub(CoughDrop.store, 'findRecord', function(type, id) {
         if(type == 'board' && id == '1_00') {
           rec.set('permissions', {});
-          return Ember.RSVP.resolve(rec);
+          return RSVP.resolve(rec);
         }
       });
       var done = false;
@@ -3744,18 +3748,18 @@ describe("persistence-sync", function() {
 
     it("should store board status on result", function() {
       persistence.set('sync_progress', {});
-      var rec = Ember.Object.create({
+      var rec = EmberObject.create({
         fresh: false,
         current_revision: 'asdf'
       });
       stub(rec, 'reload', function() {
         rec.reloaded = true;
-        return Ember.RSVP.resolve(rec);
+        return RSVP.resolve(rec);
       });
       stub(CoughDrop.store, 'findRecord', function(type, id) {
         if(type == 'board' && id == '1_00') {
           rec.set('permissions', {});
-          return Ember.RSVP.resolve(rec);
+          return RSVP.resolve(rec);
         }
       });
       var done = false;

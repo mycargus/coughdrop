@@ -1,4 +1,8 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import { later as runLater, debounce as runDebounce } from '@ember/runloop';
+import RSVP from 'rsvp';
+import $ from 'jquery';
 import CoughDrop from '../app';
 // import i18n from './i18n';
 // import modal from './modal';
@@ -8,16 +12,16 @@ import CoughDrop from '../app';
 // break anything, or affect any other value.
 var memory_stash = {};
 var stash_capabilities = null;
-var stashes = Ember.Object.extend({
+var stashes = EmberObject.extend({
   connect: function(application) {
     application.register('cough_drop:stashes', stashes, { instantiate: false, singleton: true });
-    Ember.$.each(['model', 'controller', 'view', 'route'], function(i, component) {
+    $.each(['model', 'controller', 'view', 'route'], function(i, component) {
       application.inject(component, 'stashes', 'cough_drop:stashes');
     });
   },
   db_connect: function(cap) {
     stash_capabilities = cap;
-    if(!cap.dbman) { return Ember.RSVP.resolve(); }
+    if(!cap.dbman) { return RSVP.resolve(); }
     return stash_capabilities.storage_find({store: 'settings', key: 'stash'}).then(function(stash) {
       var count = 0;
       for(var idx in stash) {
@@ -30,7 +34,7 @@ var stashes = Ember.Object.extend({
       console.debug('COUGHDROP: restoring stashes from db, ' + count + ' values');
     }, function(err) {
       console.debug('COUGHDROP: db storage stashes not found');
-      return Ember.RSVP.resolve();
+      return RSVP.resolve();
     });
   },
   setup: function() {
@@ -96,7 +100,7 @@ var stashes = Ember.Object.extend({
     if(stashes.get('global_integrations') && window.user_preferences) {
       window.user_preferences.global_integrations = stashes.get('global_integrations');
     } else if(!Ember.testing) {
-      Ember.run.later(function() {
+      runLater(function() {
         if(CoughDrop && CoughDrop.session) {
           CoughDrop.session.check_token();
         }
@@ -149,7 +153,7 @@ var stashes = Ember.Object.extend({
 
     if(memory_stash[key] != obj) {
       memory_stash[key] = obj;
-      Ember.run.debounce(this, this.db_persist, 500);
+      runDebounce(this, this.db_persist, 500);
     }
   },
   persist_object: function(key, obj, include_prefix) {
@@ -464,7 +468,7 @@ var stashes = Ember.Object.extend({
         log.save().then(function() {
           stashes.errored_at = null;
           if(for_later.length > 0) {
-            Ember.run.later(function() {
+            runLater(function() {
               stashes.push_log();
             });
           }
@@ -485,7 +489,7 @@ var stashes = Ember.Object.extend({
       }
     }
     if(!stashes.timer) {
-      stashes.timer = Ember.run.later(function() {
+      stashes.timer = runLater(function() {
         stashes.timer = null;
         stashes.push_log(only_if_convenient);
       }, 30 * 60 * 1000);

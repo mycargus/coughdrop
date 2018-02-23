@@ -1,8 +1,11 @@
 import Ember from 'ember';
+import Component from '@ember/component';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
 import contentGrabbers from '../utils/content_grabbers';
 import app_state from '../utils/app_state';
 
-export default Ember.Component.extend({
+export default Component.extend({
   tagName: 'div',
   willInsertElement: function() {
     var _this = this;
@@ -16,7 +19,7 @@ export default Ember.Component.extend({
   check_status: function() {
     var _this = this;
     if(!_this.get('sound')) {
-      Ember.run.later(function() {
+      runLater(function() {
         _this.sendAction('audio_not_ready');
         _this.send('record_sound');
       });
@@ -45,8 +48,8 @@ export default Ember.Component.extend({
     },
     record_sound: function() {
       contentGrabbers.soundGrabber.record_sound(true);
-      Ember.run.later(function() {
-        Ember.$("#recording_status").focus();
+      runLater(function() {
+        $("#recording_status").focus();
       }, 100);
     },
     toggle_recording_sound: function(action) {

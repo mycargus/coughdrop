@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import { later as runLater } from '@ember/runloop';
 import DS from 'ember-data';
 import CoughDrop from '../app';
 
@@ -18,7 +19,7 @@ CoughDrop.Utterance = DS.Model.extend({
     var attempt = this.get('large_image_attempt') || 1;
     var _this = this;
     if(_this.get('permissions.edit') && !_this.get('large_image_url') && attempt < 15) {
-      Ember.run.later(function() {
+      runLater(function() {
         _this.set('large_image_attempt', attempt + 1);
         _this.reload().then(function(u) {
           _this.check_for_large_image_url();

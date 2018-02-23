@@ -15,7 +15,7 @@ describe('UtteranceController', 'controller:utterance', function() {
 // import coughDropExtras from '../utils/extras';
 // import modal from '../utils/modal';
 // 
-// export default Ember.ObjectController.extend({
+// export default EmberObjectController.extend({
 //   title: function() {
 //     var sentence = this.get('sentence') || "something";
 //     return "Someone Said: " + sentence;

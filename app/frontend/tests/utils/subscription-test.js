@@ -3,6 +3,7 @@ import { db_wait } from 'frontend/tests/helpers/ember_helper';
 import CoughDrop from 'frontend/app';
 import Subscription from '../../utils/subscription';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 
 describe('subscription', function() {
   it("should initialize with reasonable values", function() {
@@ -17,7 +18,7 @@ describe('subscription', function() {
 
   it("should initialize with the user object if provided", function() {
     db_wait(function() {
-      var u = Ember.Object.create({
+      var u = EmberObject.create({
         subscription: {
           plan_id: 'monthly_6',
           expires: new Date(0)
@@ -35,7 +36,7 @@ describe('subscription', function() {
 
   it("should initialize subscription_amount correctly", function() {
     db_wait(function() {
-      var u = Ember.Object.create({
+      var u = EmberObject.create({
         subscription: {
           plan_id: 'monthly_4_plus_trial',
           expires: new Date(0)
@@ -200,7 +201,7 @@ describe('subscription', function() {
   describe("cheaper_offer", function() {
     it("should return cheaper_offer if there's a sale", function() {
       db_wait(function() {
-        var u = Ember.Object.create({
+        var u = EmberObject.create({
           subscription: {
             plan_id: 'monthly_6',
             expires: new Date(0)
@@ -217,7 +218,7 @@ describe('subscription', function() {
     });
     it("should return much_cheaper_offer if there's a sale", function() {
       db_wait(function() {
-        var u = Ember.Object.create({
+        var u = EmberObject.create({
           subscription: {
             plan_id: 'monthly_6',
             expires: new Date(0)
@@ -234,7 +235,7 @@ describe('subscription', function() {
     });
     it("should return cheaper_offer if the user is still in the discount period", function() {
       db_wait(function() {
-        var u = Ember.Object.create({
+        var u = EmberObject.create({
           subscription: {
             plan_id: 'monthly_6',
             expires: new Date(0)
@@ -254,7 +255,7 @@ describe('subscription', function() {
     });
     it("should not return cheaper offer if no sale and not in the discount period", function() {
       db_wait(function() {
-        var u = Ember.Object.create({
+        var u = EmberObject.create({
           subscription: {
             plan_id: 'monthly_6',
             expires: new Date(0)
@@ -270,7 +271,7 @@ describe('subscription', function() {
     });
     it("should return cheaper_offer if the user is already subscribed with cheaper_offer", function() {
       db_wait(function() {
-        var u = Ember.Object.create({
+        var u = EmberObject.create({
           subscription: {
             plan_id: 'monthly_4',
             expires: new Date(0)
@@ -291,7 +292,7 @@ describe('subscription', function() {
     });
     it("should return cheaper_offer if the user is already subscribed with much_cheaper_offer", function() {
       db_wait(function() {
-        var u = Ember.Object.create({
+        var u = EmberObject.create({
           subscription: {
             plan_id: 'monthly_3',
             expires: new Date(0)
@@ -312,7 +313,7 @@ describe('subscription', function() {
     });
     it("should return much_cheaper_offer if the user is already subscribed with much_cheaper_offer", function() {
       db_wait(function() {
-        var u = Ember.Object.create({
+        var u = EmberObject.create({
           subscription: {
             plan_id: 'monthly_3',
             expires: new Date(0)

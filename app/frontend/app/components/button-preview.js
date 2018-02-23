@@ -1,16 +1,20 @@
 import Ember from 'ember';
+import Component from '@ember/component';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import $ from 'jquery';
 import buttonTracker from '../utils/raw_events';
 import app_state from '../utils/app_state';
 import editManager from '../utils/edit_manager';
 import capabilities from '../utils/capabilities';
 
-export default Ember.Component.extend({
+export default Component.extend({
   didInsertElement: function() {
     this.redraw();
   },
   redraw: function() {
     var button = this.get('button');
-    var $canvas = Ember.$(this.element).find("canvas");
+    var $canvas = $(this.element).find("canvas");
     var _this = this;
     if($canvas[0]) {
       $canvas.attr('width', 500);
@@ -64,9 +68,9 @@ export default Ember.Component.extend({
       context.save();
       context.rect(pad + pad, pad + pad, width - pad - pad, height - pad - pad);
       context.clip();
-      if(Ember.get(button, 'local_image_url') || Ember.get(button, 'image_url') || Ember.get(button, 'image.url') || Ember.get(button, 'image')) {
+      if(emberGet(button, 'local_image_url') || emberGet(button, 'image_url') || emberGet(button, 'image.url') || emberGet(button, 'image')) {
         var img = new Image();
-        img.src = Ember.get(button, 'local_image_url') || Ember.get(button, 'image_url') || Ember.get(button, 'image.url') || Ember.get(button, 'image');
+        img.src = emberGet(button, 'local_image_url') || emberGet(button, 'image_url') || emberGet(button, 'image.url') || emberGet(button, 'image');
         img.onload = function() {
           if(_this.get('button.id') == button.id) {
             context.drawImage(img, 75, 125, 350, 350);

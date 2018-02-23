@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { db_wait } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import capabilities from '../../utils/capabilities';
 import Ember from 'ember';
+import { run as emberRun } from '@ember/runloop';
 
 describe("capabilities", function() {
   describe("volume_check", function() {
@@ -108,7 +110,7 @@ describe("capabilities", function() {
           var evt = {
             attempt: attempt
           };
-          Ember.run.later(function() {
+          emberRun.later(function() {
             db_req.onerror(evt);
             if(attempt == 2) {
               expect(deleted_databases).toEqual([key]);
@@ -125,7 +127,7 @@ describe("capabilities", function() {
         });
         stub(capabilities.idb, 'webkitGetDatabaseNames', function() {
           var res = {};
-          Ember.run.later(function() {
+          emberRun.later(function() {
             res.onsuccess({
               target: {
                 result: [other]
@@ -379,7 +381,7 @@ describe("capabilities", function() {
       it('should return a promise', function() {
         stub(capabilities.storage, 'assert_directory', function(name) {
           expect(name).toEqual('bacon');
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         });
         var res = capabilities.storage.list_files('bacon');
         expect(res.then).toNotEqual(undefined);
@@ -438,7 +440,7 @@ describe("capabilities", function() {
       it('should list all files in the directory', function() {
         stub(capabilities.storage, 'assert_directory', function(dirname) {
           expect(dirname).toEqual('bacon');
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             createReader: function() {
               return {
                 readEntries: function(cb) {
@@ -463,7 +465,7 @@ describe("capabilities", function() {
       it('should include file size counts if specified', function() {
         stub(capabilities.storage, 'assert_directory', function(dirname) {
           expect(dirname).toEqual('bacon');
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             createReader: function() {
               return {
                 readEntries: function(cb) {
@@ -489,7 +491,7 @@ describe("capabilities", function() {
       it('should exclude zero-size files if size is checked', function() {
         stub(capabilities.storage, 'assert_directory', function(dirname) {
           expect(dirname).toEqual('bacon');
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             createReader: function() {
               return {
                 readEntries: function(cb) {
@@ -517,7 +519,7 @@ describe("capabilities", function() {
       it('should recurse one level deeper', function() {
         stub(capabilities.storage, 'assert_directory', function(dirname) {
           expect(dirname).toEqual('bacon');
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             createReader: function() {
               return {
                 readEntries: function(cb) {
@@ -557,7 +559,7 @@ describe("capabilities", function() {
       it('should not recurse two levels deeper', function() {
         stub(capabilities.storage, 'assert_directory', function(dirname) {
           expect(dirname).toEqual('bacon');
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             createReader: function() {
               return {
                 readEntries: function(cb) {
@@ -709,13 +711,13 @@ describe("capabilities", function() {
 
     describe("clear", function() {
       it('should return a promise', function() {
-        stub(capabilities.storage, 'all_files', function() { return Ember.RSVP.reject(); });
+        stub(capabilities.storage, 'all_files', function() { return RSVP.reject(); });
         var res = capabilities.storage.clear();
         expect(res.then).toNotEqual(undefined);
       });
 
       it('should error if all_files is not available', function() {
-        stub(capabilities.storage, 'all_files', function() { return Ember.RSVP.reject(); });
+        stub(capabilities.storage, 'all_files', function() { return RSVP.reject(); });
         var error = null;
         capabilities.storage.clear().then(null, function(err) { error = true; });
         waitsFor(function() { return error; });
@@ -724,12 +726,12 @@ describe("capabilities", function() {
 
       it('should error if a file cannot be removed', function() {
         capabilities.cached_dirs = {a: 1};
-        stub(capabilities.storage, 'all_files', function() { return Ember.RSVP.resolve([
+        stub(capabilities.storage, 'all_files', function() { return RSVP.resolve([
           {name: 'a.gif', dir: 'image'},
           {name: 'b.gif', dir: 'image'}
         ]); });
         stub(capabilities.storage, 'remove_file', function(dir, name) {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         });
         var error = null;
         capabilities.storage.clear().then(null, function(err) { error = true; });
@@ -741,13 +743,13 @@ describe("capabilities", function() {
 
       it('should clear the cache if any files were deleted', function() {
         capabilities.cached_dirs = {a: 1};
-        stub(capabilities.storage, 'all_files', function() { return Ember.RSVP.resolve([
+        stub(capabilities.storage, 'all_files', function() { return RSVP.resolve([
           {name: 'a.gif', dir: 'image'},
           {name: 'b.gif', dir: 'image'}
         ]); });
         stub(capabilities.storage, 'remove_file', function(dir, name) {
-          if(name == 'a.gif') { return Ember.RSVP.resolve(); }
-          else { return Ember.RSVP.reject(); }
+          if(name == 'a.gif') { return RSVP.resolve(); }
+          else { return RSVP.reject(); }
         });
         var error = null;
         capabilities.storage.clear().then(null, function(err) { error = true; });
@@ -759,7 +761,7 @@ describe("capabilities", function() {
 
       it('should not clear the cache if no files were deleted', function() {
         capabilities.cached_dirs = {a: 1};
-        stub(capabilities.storage, 'all_files', function() { return Ember.RSVP.reject(); });
+        stub(capabilities.storage, 'all_files', function() { return RSVP.reject(); });
         var error = null;
         capabilities.storage.clear().then(null, function(err) { error = true; });
         waitsFor(function() { return error; });
@@ -770,12 +772,12 @@ describe("capabilities", function() {
 
       it('should succeed and clear the cache if all files were deleted', function() {
         capabilities.cached_dirs = {a: 1};
-        stub(capabilities.storage, 'all_files', function() { return Ember.RSVP.resolve([
+        stub(capabilities.storage, 'all_files', function() { return RSVP.resolve([
           {name: 'a.gif', dir: 'image'},
           {name: 'b.gif', dir: 'image'}
         ]); });
         stub(capabilities.storage, 'remove_file', function(dir, name) {
-          return Ember.RSVP.resolve();
+          return RSVP.resolve();
         });
         var result = null;
         capabilities.storage.clear().then(function(res) { result = res; });
@@ -789,7 +791,7 @@ describe("capabilities", function() {
     describe("all_files", function() {
       it('should return a promise', function() {
         stub(capabilities.storage, 'root_entry', function() {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         });
         var res = capabilities.storage.all_files();
         expect(res.then).toNotEqual(undefined);
@@ -797,7 +799,7 @@ describe("capabilities", function() {
 
       it('should reject on root_entry failure', function() {
         stub(capabilities.storage, 'root_entry', function() {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         });
         var error = null;
         capabilities.storage.all_files().then(null, function(err) { error = true; });
@@ -807,7 +809,7 @@ describe("capabilities", function() {
 
       it('should reject on readEntries failure for main directory', function() {
         stub(capabilities.storage, 'root_entry', function() {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             createReader: function() {
               return {
                 readEntries: function(success, err) { err(); }
@@ -823,7 +825,7 @@ describe("capabilities", function() {
 
       it('should reject on list_files error for sub directory', function() {
         stub(capabilities.storage, 'root_entry', function() {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             createReader: function() {
               return {
                 readEntries: function(success, err) {
@@ -839,7 +841,7 @@ describe("capabilities", function() {
         });
         stub(capabilities.storage, 'list_files', function(dir, include_size) {
           expect(include_size).toEqual(true);
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         });
         var error = null;
         capabilities.storage.all_files().then(null, function(err) { error = true; });
@@ -849,7 +851,7 @@ describe("capabilities", function() {
 
       it('should resolve with a list of all files, including total size', function() {
         stub(capabilities.storage, 'root_entry', function() {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             createReader: function() {
               return {
                 readEntries: function(success, err) {
@@ -868,13 +870,13 @@ describe("capabilities", function() {
           if(dir == 'image') {
             var list = ['a.gif', 'b.png'];
             list.size = 123;
-            return Ember.RSVP.resolve(list);
+            return RSVP.resolve(list);
           } else if(dir == 'sound') {
             var list = ['c.mp3', 'd.wav'];
             list.size = 765;
-            return Ember.RSVP.resolve(list);
+            return RSVP.resolve(list);
           } else {
-            return Ember.RSVP.reject();
+            return RSVP.reject();
           }
         });
         var result = null;
@@ -933,7 +935,7 @@ describe("capabilities", function() {
       it('should lookup the subdir from root if defined', function() {
         var called = false;
         stub(capabilities.storage, 'root_entry', function() {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             getDirectory: function(key, opts, success, err) {
               expect(key).toEqual('image');
               expect(opts).toEqual({create: true});
@@ -954,7 +956,7 @@ describe("capabilities", function() {
       it('should reject if the subdir is not found for the filename specified', function() {
         var called = false;
         stub(capabilities.storage, 'root_entry', function() {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             getDirectory: function(key, opts, success, err) {
               expect(key).toEqual('image');
               expect(opts).toEqual({create: true});
@@ -981,7 +983,7 @@ describe("capabilities", function() {
       it('should return the main dir if the filename is not specified', function() {
         var called = false;
         stub(capabilities.storage, 'root_entry', function() {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             getDirectory: function(key, opts, success, err) {
               expect(key).toEqual('image');
               expect(opts).toEqual({create: true});
@@ -999,7 +1001,7 @@ describe("capabilities", function() {
 
       it('should reject if root_entry fails', function() {
         stub(capabilities.storage, 'root_entry', function() {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         });
         var error = null;
         capabilities.storage.assert_directory('image', '123456.pic.png').then(null, function(res) { error = true; });
@@ -1042,13 +1044,13 @@ describe("capabilities", function() {
 
     describe("get_file_url", function() {
       it('should return a promise', function() {
-        stub(capabilities.storage, 'assert_directory', function() { return Ember.RSVP.reject(); });
+        stub(capabilities.storage, 'assert_directory', function() { return RSVP.reject(); });
         var res = capabilities.storage.get_file_url('image', 'bob.png');
         expect(res.then).toNotEqual(undefined);
       });
 
       it('should reject on failed assert_directory', function() {
-        stub(capabilities.storage, 'assert_directory', function() { return Ember.RSVP.reject(); });
+        stub(capabilities.storage, 'assert_directory', function() { return RSVP.reject(); });
         var error = null;
         capabilities.storage.get_file_url('image', 'bob.png').then(null, function() { error = true; });
         waitsFor(function() { return error; });
@@ -1058,7 +1060,7 @@ describe("capabilities", function() {
       it('should reject on failed getFile', function() {
         var called = false;
         stub(capabilities.storage, 'assert_directory', function() {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             getFile: function(filename, opts, success, err) {
               expect(filename).toEqual('bob.png');
               expect(opts).toEqual({create: false});
@@ -1078,7 +1080,7 @@ describe("capabilities", function() {
       it('should return the file URL if found', function() {
         var called = false;
         stub(capabilities.storage, 'assert_directory', function() {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             getFile: function(filename, opts, success, err) {
               expect(filename).toEqual('bob.png');
               expect(opts).toEqual({create: false});
@@ -1100,13 +1102,13 @@ describe("capabilities", function() {
 
     describe("write_file", function() {
       it('should return a promise', function() {
-        stub(capabilities.storage, 'assert_directory', function() { return Ember.RSVP.reject(); });
+        stub(capabilities.storage, 'assert_directory', function() { return RSVP.reject(); });
         var res = capabilities.storage.write_file('image', '12345.png', {a: 1});
         expect(res.then).toNotEqual(undefined);
       });
 
       it('should reject on failed assert_directory', function() {
-        stub(capabilities.storage, 'assert_directory', function() { return Ember.RSVP.reject(); });
+        stub(capabilities.storage, 'assert_directory', function() { return RSVP.reject(); });
         var error = null;
         capabilities.storage.write_file('image', '12345.png', {a: 1}).then(null, function() { error = true; });
         waitsFor(function() { return error; });
@@ -1116,7 +1118,7 @@ describe("capabilities", function() {
       it('should reject on failed getFile', function() {
         var called = false;
         stub(capabilities.storage, 'assert_directory', function() {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             getFile: function(filename, opts, success, err) {
               called = true;
               expect(filename).toEqual('12345.png');
@@ -1136,7 +1138,7 @@ describe("capabilities", function() {
       it('should reject on failed createWriter', function() {
         var called = false;
         stub(capabilities.storage, 'assert_directory', function() {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             getFile: function(filename, opts, success, err) {
               expect(filename).toEqual('12345.png');
               expect(opts).toEqual({create: true});
@@ -1161,7 +1163,7 @@ describe("capabilities", function() {
       it('should reject on failed write process - onerror event', function() {
         var called = false;
         stub(capabilities.storage, 'assert_directory', function() {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             getFile: function(filename, opts, success, err) {
               expect(filename).toEqual('12345.png');
               expect(opts).toEqual({create: true});
@@ -1192,7 +1194,7 @@ describe("capabilities", function() {
       it('should resolve on successful write', function() {
         var called = false;
         stub(capabilities.storage, 'assert_directory', function() {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             getFile: function(filename, opts, success, err) {
               expect(filename).toEqual('12345.png');
               expect(opts).toEqual({create: true});
@@ -1226,7 +1228,7 @@ describe("capabilities", function() {
         var blob = new window.Blob([1, 2, 3], {type: 'image/png'});
         stub(capabilities, 'system', 'Android');
         stub(capabilities.storage, 'assert_directory', function() {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             getFile: function(filename, opts, success, err) {
               expect(filename).toEqual('12345.png');
               expect(opts).toEqual({create: true});
@@ -1258,14 +1260,14 @@ describe("capabilities", function() {
 
     describe("remove_file", function() {
       it('should return a promise', function() {
-        stub(capabilities.storage, 'assert_directory', function() { return Ember.RSVP.reject(); });
+        stub(capabilities.storage, 'assert_directory', function() { return RSVP.reject(); });
         var res = capabilities.storage.remove_file('image', 'bob.png');
         expect(res.then).toNotEqual(undefined);
       });
 
       it('should reject on failed assert_directory', function() {
         var called = false;
-        stub(capabilities.storage, 'assert_directory', function() { called = true; return Ember.RSVP.reject(); });
+        stub(capabilities.storage, 'assert_directory', function() { called = true; return RSVP.reject(); });
         var error = null;
         capabilities.storage.remove_file('image', 'bob.png').then(null, function() { error = true; });
         waitsFor(function() { return error; });
@@ -1277,7 +1279,7 @@ describe("capabilities", function() {
       it('should reject on failed getFile', function() {
         var called = false;
         stub(capabilities.storage, 'assert_directory', function() {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             getFile: function(fn, opts, success, err) {
               called = true;
               expect(fn).toEqual('bob.png');
@@ -1297,7 +1299,7 @@ describe("capabilities", function() {
       it('should reject on failed remove', function() {
         var called = false;
         stub(capabilities.storage, 'assert_directory', function() {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             getFile: function(fn, opts, success, err) {
               expect(fn).toEqual('bob.png');
               expect(opts).toEqual({});
@@ -1322,7 +1324,7 @@ describe("capabilities", function() {
       it('should resolve with the file url on successful remove', function() {
         var called = false;
         stub(capabilities.storage, 'assert_directory', function() {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             getFile: function(fn, opts, success, err) {
               expect(fn).toEqual('bob.png');
               expect(opts).toEqual({});

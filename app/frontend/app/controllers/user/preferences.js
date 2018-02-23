@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
+import { later as runLater } from '@ember/runloop';
 import i18n from '../../utils/i18n';
 import app_state from '../../utils/app_state';
 import utterance from '../../utils/utterance';
@@ -9,7 +11,7 @@ import speecher from '../../utils/speecher';
 import persistence from '../../utils/persistence';
 import Button from '../../utils/button';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   speecher: speecher,
   buttonSpacingList: [
     {name: i18n.t('minimal', "Minimal (1px)"), id: "minimal"},
@@ -272,7 +274,7 @@ export default Ember.Controller.extend({
     var val = this.get('model.preferences.device.voice.voice_uri');
     this.set('model.preferences.device.voice.voice_uri', 'tmp_needs_changing');
     var _this = this;
-    Ember.run.later(function() {
+    runLater(function() {
       _this.set('model.preferences.device.voice.voice_uri', val);
     });
     return result;

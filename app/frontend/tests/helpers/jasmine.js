@@ -1,8 +1,12 @@
 /*jshint -W079 */
 import { test, moduleFor } from 'ember-qunit';
 import { async } from 'qunit';
+import QUnit from 'qunit';
 import testHelpers from 'ember-test-helpers';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import { run as emberRun } from '@ember/runloop';
+import {set as emberSet, get as emberGet} from '@ember/object';
 
 var names = [];
 var all_befores = [[]];
@@ -30,7 +34,7 @@ function test_wrap(name, instance, befores, afters, lookup) {
   QUnit.test(name, function(current_assert) {
     var _this = this;
     assert = current_assert;
-    Ember.run(function() {
+    emberRun(function() {
       pre.forEach(function(callback) {
         callback.call(_this);
       });
@@ -182,7 +186,7 @@ var runs = function(callback) {
   };
   var try_again = function() {
     if(wait()) {
-      Ember.run(callback);
+      emberRun(callback);
       done();
     } else if(id == current_test_id) {
       attempts++;
@@ -210,7 +214,7 @@ var afterEach = function(callback) {
 var stub = function(object, method, replacement) {
   stub.stubs = stub.stubs || [];
   var stash = object[method];
-  Ember.set(object, method, replacement);
+  emberSet(object, method, replacement);
   //console.log(stubs);
   stub.stubs.push([object, method, stash]);
 };

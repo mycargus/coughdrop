@@ -1,16 +1,19 @@
 import Ember from 'ember';
+import Component from '@ember/component';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
 import CoughDrop from '../app';
 import app_state from '../utils/app_state';
 
-export default Ember.Component.extend({
+export default Component.extend({
   didInsertElement: function() {
     var _this = this;
-    Ember.run.later(function() {
+    runLater(function() {
       _this.draw();
     });
   },
   willDestroyElement: function() {
-    Ember.$(this.get('element')).empty();
+    $(this.get('element')).empty();
     // teardown?
   },
   fit_bounds: function() {
@@ -106,7 +109,7 @@ export default Ember.Component.extend({
   click: function(event) {
     if(event.target.tagName == 'A' && event.target.className == 'ember_link') {
       event.preventDefault();
-      this.remove_marker(Ember.$(event.target).attr('id'));
+      this.remove_marker($(event.target).attr('id'));
     }
   },
   remove_marker: function(id) {

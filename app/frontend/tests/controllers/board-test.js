@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { queryLog } from 'frontend/tests/helpers/ember_helper';
+import EmberObject from '@ember/object';
 import startApp from '../helpers/start-app';
 
 describe('BoardController', 'controller:board', function() {
@@ -17,8 +18,8 @@ describe('BoardController', 'controller:board', function() {
 // import capabilities from '../utils/capabilities';
 // import i18n from '../utils/i18n';
 // import modal from '../utils/modal';
-// 
-// export default Ember.ObjectController.extend({
+//
+// export default EmberObjectController.extend({
 //   title: function() {
 //     var name = this.get('name');
 //     var title = "Board";
@@ -47,7 +48,7 @@ describe('BoardController', 'controller:board', function() {
 //   updateSuggestions: function() {
 //     if(!this.get('word_suggestions')) { return; }
 //     var _this = this;
-// 
+//
 //     var button_list = this.get('app_state.button_list');
 //     var last_button = button_list[button_list.length - 1];
 //     var current_button = null;
@@ -57,7 +58,7 @@ describe('BoardController', 'controller:board', function() {
 //     }
 //     var last_finished_word = ((last_button && (last_button.vocalization || last_button.label)) || "").toLowerCase();
 //     var word_in_progress = ((current_button && (current_button.vocalization || current_button.label)) || "").toLowerCase();
-//     
+//
 //     word_suggestions.lookup({
 //       last_finished_word: last_finished_word,
 //       word_in_progress: word_in_progress
@@ -69,18 +70,18 @@ describe('BoardController', 'controller:board', function() {
 //   }.observes('app_state.button_list', 'app_state.button_list@each'),
 //   saveButtonChanges: function() {
 //     var state = editManager.process_for_saving();
-// 
+//
 //     if(this.get('license')) {
 //       this.set('license.copyright_notice_url', CoughDrop.licenseOptions.license_url(this.get('license.type')));
 //     }
-//     
+//
 //     this.set('buttons', state.buttons);
 //     this.set('grid', state.grid);
 //     boundClasses.setup(true);
 //     this.processButtons();
 //     var board = this.get('model');
 //     board.save();
-//     
+//
 //     // TODO: on commit, only send attributes that have changed
 //     // to prevent stepping on other edits if all you're doing is
 //     // updating the name, for example. Side note: this is one
@@ -129,7 +130,7 @@ describe('BoardController', 'controller:board', function() {
 //     var inner_pad = this.get('inner_pad');
 //     var double_pad = inner_pad * 2;
 //     var radius = 4;
-//     
+//
 //     var currentLabelHeight = this.get('base_text_height') - 3;
 //     this.set('text_size', 'normal');
 //     if(starting_height < 45) {
@@ -137,8 +138,8 @@ describe('BoardController', 'controller:board', function() {
 //     } else if(starting_height < 75) {
 //       this.set('text_size', 'small_text');
 //     }
-//     
-//     var $canvas = Ember.$("#board_canvas");
+//
+//     var $canvas = $("#board_canvas");
 //     // TODO: I commented out the canvas element because, while it was a few
 //     // seconds faster rendering a large board, it also causes a lot of headaches with
 //     // things like tabindex, edit mode, switch access, etc.
@@ -173,7 +174,7 @@ describe('BoardController', 'controller:board', function() {
 //         var button_width = starting_width - (extra_pad * 2);
 //         var top = extra_pad + (i * starting_height) + inner_pad;
 //         var left = extra_pad + (j * starting_width) + inner_pad;
-//         
+//
 //         if(stretchable) {
 //           var can_go = directions(ob, i, j);
 //           var went_up = false;
@@ -194,7 +195,7 @@ describe('BoardController', 'controller:board', function() {
 //             if(stretchable == 'prefer_tall' || (can_go.downleft && can_go.downright)) {
 //               button_height = button_height + extra_pad + (button_height / 2);
 //               if(went_up) {
-//                 button_height = button_height - (starting_height / 4); 
+//                 button_height = button_height - (starting_height / 4);
 //               }
 //               var lower_can_go = directions(ob, i + 1, j);
 //               if(lower_can_go.down !== false && stretchable == 'prefer_tall' && !can_go.downright && !can_go.downleft) {
@@ -229,7 +230,7 @@ describe('BoardController', 'controller:board', function() {
 //         }
 //         var image_height = button_height - currentLabelHeight - CoughDrop.boxPad - (inner_pad * 2);
 //         var image_width = button_width - CoughDrop.boxPad - (inner_pad * 2);
-//         
+//
 //         if(_this.get('text_size') == 'really_small_text') {
 //           if(currentLabelHeight > 0) {
 //             image_height = image_height + currentLabelHeight - CoughDrop.labelHeight + 25;
@@ -239,7 +240,7 @@ describe('BoardController', 'controller:board', function() {
 //             image_height = image_height + currentLabelHeight - CoughDrop.labelHeight + 10;
 //           }
 //         }
-// 
+//
 //         button.set('positioning', {
 //           top: top,
 //           left: left - inner_pad - inner_pad - inner_pad,
@@ -250,12 +251,12 @@ describe('BoardController', 'controller:board', function() {
 //           image_square: Math.min(image_height, image_width),
 //           border: inner_pad
 //         });
-//         
+//
 //         if(context) {
 //           var image_left = (button_width - image_height) / 2 - inner_pad;
 //           var image_top = inner_pad + 2;
 //           var text_top = image_height + image_top + 3;
-//           
+//
 //           context.beginPath();
 //           var w = (button_width - double_pad) * 3;
 //           var h = (button_height - double_pad) * 3;
@@ -263,7 +264,7 @@ describe('BoardController', 'controller:board', function() {
 //           var y = top * 3;
 //           var r = radius * 3;
 //           context.lineWidth = 3;
-//         
+//
 //           context.moveTo(x + r, y);
 //           context.lineTo(x + w - r, y);
 //           context.quadraticCurveTo(x + w, y, x + w, y + r);
@@ -274,7 +275,7 @@ describe('BoardController', 'controller:board', function() {
 //           context.lineTo(x, y + r);
 //           context.quadraticCurveTo(x, y, x + r, y);
 //           context.closePath();
-// 
+//
 //   //           context.rect(left * 3, top * 3, width * 3, height * 3);
 //           context.strokeStyle = button.get('border_color') || '#ccc';
 //           context.fillStyle = button.get('background_color') || '#fff';
@@ -283,7 +284,7 @@ describe('BoardController', 'controller:board', function() {
 //           }
 //           context.fill();
 //           context.stroke();
-//         
+//
 //           context.save();
 //           context.textAlign = 'center';
 //           context.textBaseline = 'top';
@@ -293,7 +294,7 @@ describe('BoardController', 'controller:board', function() {
 //           context.fillStyle = '#000';
 //           context.fillText(button.get('label'), (left + (button_width / 2) - inner_pad) * 3, (top + text_top) * 3);
 //           context.restore();
-// 
+//
 //           var url = button.get('image.best_url');
 //           var img = new Image();
 //           img.draw_id = draw_id;
@@ -364,7 +365,7 @@ describe('BoardController', 'controller:board', function() {
 //   }.property('ordered_buttons'),
 //   extra_pad: function() {
 //     var spacing = app_state.get('currentUser.preferences.device.button_spacing') || "small";
-//     if(spacing == "extra-small") { 
+//     if(spacing == "extra-small") {
 //       return 2;
 //     } else if(spacing == "medium") {
 //       return 10;
@@ -378,7 +379,7 @@ describe('BoardController', 'controller:board', function() {
 //   }.property('app_state.currentUser.preferences.device.button_spacing'),
 //   inner_pad: function() {
 //     var spacing = app_state.get('currentUser.preferences.device.button_border') || "small";
-//     if(spacing == "none") { 
+//     if(spacing == "none") {
 //       return 0;
 //     } else if(spacing == "medium") {
 //       return 2;
@@ -392,7 +393,7 @@ describe('BoardController', 'controller:board', function() {
 //   }.property('app_state.currentUser.preferences.device.button_border'),
 //   base_text_height: function() {
 //     var spacing = app_state.get('currentUser.preferences.device.button_text') || "medium";
-//     if(spacing == "small") { 
+//     if(spacing == "small") {
 //       return 14;
 //     } else if(spacing == "none") {
 //       return 0;
@@ -421,7 +422,7 @@ describe('BoardController', 'controller:board', function() {
 //   actions: {
 //     buttonSelect: function(id, event) {
 //       var board = this;
-//       if(app_state.get('current_mode') == 'edit') { 
+//       if(app_state.get('current_mode') == 'edit') {
 //         if(editManager.finding_target()) {
 //           editManager.apply_to_target(id);
 //         } else {
@@ -443,7 +444,7 @@ describe('BoardController', 'controller:board', function() {
 //       var button = editManager.fake_button();
 //       button.label = ":complete";
 //       button.completion = text;
-//       
+//
 //       var board = this;
 //       var app = board.get('controllers.application');
 //       app.activateButton(button, {board: board});

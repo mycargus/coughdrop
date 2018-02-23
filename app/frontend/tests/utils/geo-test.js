@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { fakeRecorder, fakeMediaRecorder, fakeCanvas, queryLog, easyPromise, queue_promise } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import app_state from '../../utils/app_state';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 import geo from '../../utils/geo';
 import stashes from '../../utils/_stashes';
 import persistence from '../../utils/persistence';
@@ -27,12 +29,12 @@ describe('geo', function() {
     });
 
     it("should ping if not already pinging", function() {
-      app_state.set('currentUser', Ember.Object.create({user_name: 'bob'}));
+      app_state.set('currentUser', EmberObject.create({user_name: 'bob'}));
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/users/bob/places?latitude=1&longitude=1') {
-          return Ember.RSVP.resolve([]);
+          return RSVP.resolve([]);
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       stashes.set('geo.latest', {coords: {latitude: 1, longitude: 1}});
@@ -45,9 +47,9 @@ describe('geo', function() {
     });
 
     it("should error on failed ajax call", function() {
-      app_state.set('currentUser', Ember.Object.create({user_name: 'bob'}));
+      app_state.set('currentUser', EmberObject.create({user_name: 'bob'}));
       stub(persistence, 'ajax', function(url, opts) {
-        return Ember.RSVP.reject({error: 'bad stuff'});
+        return RSVP.reject({error: 'bad stuff'});
       });
       stashes.set('geo.latest', {coords: {latitude: 1, longitude: 1}});
       var done = false;
@@ -59,13 +61,13 @@ describe('geo', function() {
     });
 
     it("should not ping if already pinging", function() {
-      app_state.set('currentUser', Ember.Object.create({user_name: 'bob'}));
-      var defer = Ember.RSVP.defer();
+      app_state.set('currentUser', EmberObject.create({user_name: 'bob'}));
+      var defer = RSVP.defer();
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/users/bob/places?latitude=1&longitude=1') {
           return defer.promise;
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       stashes.set('geo.latest', {coords: {latitude: 1, longitude: 1}});
@@ -80,9 +82,9 @@ describe('geo', function() {
     });
 
     it("should not ping if not far enough away from the last ping", function() {
-      app_state.set('currentUser', Ember.Object.create({user_name: 'bob'}));
+      app_state.set('currentUser', EmberObject.create({user_name: 'bob'}));
       stub(persistence, 'ajax', function(url, opts) {
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stashes.set('geo.latest', {coords: {latitude: 1, longitude: 1}});
       var done = false;
@@ -96,12 +98,12 @@ describe('geo', function() {
 
     it("should update nearby_places with the result", function() {
       app_state.set('nearby_places', []);
-      app_state.set('currentUser',Ember.Object.create({user_name: 'bob'}));
+      app_state.set('currentUser',EmberObject.create({user_name: 'bob'}));
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/users/bob/places?latitude=1&longitude=1') {
-          return Ember.RSVP.resolve([1, 2, 3]);
+          return RSVP.resolve([1, 2, 3]);
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       stashes.set('geo.latest', {coords: {latitude: 1, longitude: 1}});

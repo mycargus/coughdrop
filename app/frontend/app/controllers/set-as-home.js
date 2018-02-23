@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import { later as runLater } from '@ember/runloop';
 import modal from '../utils/modal';
 import app_state from '../utils/app_state';
 import editManager from '../utils/edit_manager';
@@ -55,7 +56,7 @@ export default modal.ModalController.extend({
       _this.set('status', null);
       modal.close();
       if(persistence.get('online')) {
-        Ember.run.later(function() {
+        runLater(function() {
           console.debug('syncing because set as home');
           persistence.sync('self').then(null, function() { });
         }, 1000);

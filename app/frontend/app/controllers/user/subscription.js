@@ -1,11 +1,12 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import Subscription from '../../utils/subscription';
 import modal from '../../utils/modal';
 import i18n from '../../utils/i18n';
 import persistence from '../../utils/persistence';
 import progress_tracker from '../../utils/progress_tracker';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   queryParams: ['code', 'confirmation'],
   code: null,
   confirmation: null,

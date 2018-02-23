@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { queryLog } from 'frontend/tests/helpers/ember_helper';
+import EmberObject from '@ember/object';
 import startApp from '../../helpers/start-app';
 
 describe('BoardIndexController', 'controller:board-index', function() {
@@ -9,5 +10,5 @@ describe('BoardIndexController', 'controller:board-index', function() {
   });
 });
 // import Ember from 'ember';
-// 
-// export default Ember.ObjectController;
+//
+// export default EmberObjectController;

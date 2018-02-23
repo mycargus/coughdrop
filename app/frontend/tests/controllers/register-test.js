@@ -10,7 +10,7 @@ describe('RegisterController', 'controller:register', function() {
 });
 // import Ember from 'ember';
 // 
-// export default Ember.ObjectController.extend({
+// export default EmberObjectController.extend({
 //   title: "Register",
 //   triedToSave: false,
 //   badEmail: function() {

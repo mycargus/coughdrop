@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import RSVP from 'rsvp';
+import $ from 'jquery';
 import capabilities from './capabilities';
 import scanner from './scanner';
 import i18n from './i18n';
@@ -19,8 +21,8 @@ Ember.templateHelpers.path = function(value1, options) {
   }
 };
 
-Ember.RSVP.resolutions = function(list) {
-  return new Ember.RSVP.Promise(function(resolve, reject) {
+RSVP.resolutions = function(list) {
+  return new RSVP.Promise(function(resolve, reject) {
     var count = 0;
     var result = [];
     if(list.length === 0) { resolve(result); }
@@ -70,7 +72,7 @@ Utils.max_appearance = function(list) {
 };
 
 Utils.all_pages = function(type, initial_opts, partial_callback) {
-  return new Ember.RSVP.Promise(function(resolve, reject) {
+  return new RSVP.Promise(function(resolve, reject) {
     var all_results = [];
     var result_type = initial_opts.result_type;
     delete initial_opts['result_type'];
@@ -95,11 +97,11 @@ Utils.all_pages = function(type, initial_opts, partial_callback) {
           reject(err);
         });
       } else {
-        var args = Ember.$.extend({}, opts);
+        var args = $.extend({}, opts);
         var meta_check = persistence.meta;
         CoughDrop.store.query(type, opts).then(function(list) {
           var meta = meta_check(type, list);
-          all_results = all_results.concat(list.content.mapBy('record'));
+          all_results = all_results.concat(list.map(function(i) { return i; }));
           if(partial_callback) {
             partial_callback(all_results);
           }
@@ -119,8 +121,8 @@ Utils.all_pages = function(type, initial_opts, partial_callback) {
   });
 };
 
-Ember.RSVP.all_wait = function(promises) {
-  return new Ember.RSVP.Promise(function(resolve, reject) {
+RSVP.all_wait = function(promises) {
+  return new RSVP.Promise(function(resolve, reject) {
     if(promises.length === 0) { return resolve(); }
     var failures = [];
     var resolutions = [];
@@ -150,8 +152,8 @@ Ember.RSVP.all_wait = function(promises) {
 };
 
 // This was kind of a cool idea, but not needed where I thought I'd want it.
-// Ember.RSVP.PromiseWithProgress = function(callback) {
-//   var defer = Ember.RSVP.defer();
+// RSVP.PromiseWithProgress = function(callback) {
+//   var defer = RSVP.defer();
 //   var notice_callbacks = []
 //   defer.notice = function(callback) {
 //     notice_callbacks.push(callback);
@@ -173,11 +175,11 @@ Ember.RSVP.all_wait = function(promises) {
 //     }).then(function() {
 //       progress.sub_progresses[idx][0] = 1.0;
 //       progress.compute_current();
-//       return Ember.RSVP.resolve.apply(null, arguments);
+//       return RSVP.resolve.apply(null, arguments);
 //     }, function() {
 //       progress.sub_progresses[idx][0] = 1.0;
 //       progress.compute_current();
-//       return Ember.RSVP.reject.apply(null, arguments);
+//       return RSVP.reject.apply(null, arguments);
 //     };
 //   };
 //   progress.add = function(percent) {

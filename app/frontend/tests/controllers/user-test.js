@@ -10,4 +10,4 @@ describe('UserController', 'controller:user', function() {
 });
 // import Ember from 'ember';
 // 
-// export default Ember.ObjectController;
+// export default EmberObjectController;

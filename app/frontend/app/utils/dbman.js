@@ -633,7 +633,8 @@ var dbman = {
       var done_after_upgrade = capabilities.system && capabilities.system == 'iOS';
       console.log("COUGHDROP: db upgrade needed from " + (old_version || 0));
 
-      if(old_version < 1 || old_version > 99999 || true) {
+      var always_check = true;
+      if(old_version < 1 || old_version > 99999 || always_check) {
         try {
           var store_names = db.objectStoreNames || [];
           var index_names;

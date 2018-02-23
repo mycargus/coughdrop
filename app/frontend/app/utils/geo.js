@@ -1,9 +1,11 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import RSVP from 'rsvp';
 import stashes from './_stashes';
 import app_state from './app_state';
 import persistence from './persistence';
 
-var geo = Ember.Object.extend({
+var geo = EmberObject.extend({
   distance: function(lat1, lon1, lat2, lon2) {
     // http://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
     var p = 0.017453292519943295;    // Math.PI / 180
@@ -40,13 +42,13 @@ var geo = Ember.Object.extend({
           if(_this.get('last_location_check.id') == id) {
             _this.set('last_location_check', null);
           }
-          return Ember.RSVP.reject(err);
+          return RSVP.reject(err);
         });
       } else {
-        return Ember.RSVP.reject({error: "nothing to check"});
+        return RSVP.reject({error: "nothing to check"});
       }
     } else {
-      return Ember.RSVP.reject({error: "no coordinates found"});
+      return RSVP.reject({error: "no coordinates found"});
     }
     // When online and geo updates, do a places check to see if there are places that
     // trigger a sidebar highlight.

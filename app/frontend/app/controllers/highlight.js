@@ -1,20 +1,23 @@
 import Ember from 'ember';
+import { debounce as runDebounce, later as runLater } from '@ember/runloop';
+import $ from 'jquery';
 import modal from '../utils/modal';
 import scanner from '../utils/scanner';
+import { htmlSafe } from '@ember/string';
 
 export default modal.ModalController.extend({
   opening: function() {
     modal.highlight_controller = this;
     scanner.setup(this);
     var _this = this;
-    Ember.run.later(function() {
+    runLater(function() {
       _this.compute_styles();
     }, 500);
     if(_this.recompute) {
       window.removeEventListener(_this.recompute);
     }
     _this.recompute = function() {
-      Ember.run.debounce(_this, _this.compute_styles, 500);
+      runDebounce(_this, _this.compute_styles, 500);
     };
     window.addEventListener('resize', _this.recompute);
   },
@@ -29,9 +32,9 @@ export default modal.ModalController.extend({
     if(this.get('model.clear_overlay')) {
       opacity = "0.0";
     }
-    var header_height = Ember.$("header").outerHeight();
-    var window_height = Ember.$(window).outerHeight();
-    var window_width = Ember.$(window).outerWidth();
+    var header_height = $("header").outerHeight();
+    var window_height = $(window).outerHeight();
+    var window_width = $(window).outerWidth();
     var top = this.get('model.top');
     var left = this.get('model.left');
     var bottom = this.get('model.bottom');
@@ -57,12 +60,12 @@ export default modal.ModalController.extend({
     if(width > window_width - 8) {
       width = window_width - 8;
     }
-    this.set('model.top_style', new Ember.String.htmlSafe(display + "z-index: 9; position: absolute; top: -" + header_height + "px; left: 0; background: #000; opacity: " + opacity + "; width: 100%; height: " + (top + header_height) + "px;"));
-    this.set('model.left_style', new Ember.String.htmlSafe(display + "z-index: 9; position: absolute; top: " + (top) + "px; left: 0; background: #000; opacity: " + opacity + "; width: " + left + "px; height: " + height + "px;"));
-    this.set('model.right_style', new Ember.String.htmlSafe(display + "z-index: 9; position: absolute; top: " + (top) + "px; left: calc(" + left+ "px + " + width + "px); background: #000; opacity: " + opacity + "; width: calc(100% - " + left + "px - " + width + "px); height: " + height + "px;"));
-    this.set('model.bottom_style', new Ember.String.htmlSafe(display + "z-index: 9; position: absolute; top: " + (bottom) + "px; left: 0; background: #000; opacity: " + opacity + "; width: 100%; height: 5000px;"));
-    this.set('model.highlight_style', new Ember.String.htmlSafe("z-index: 10; position: absolute; top: " + (top - 4) + "px; left: " + (left - 4) + "px; width: " + (width + 8) + "px; height: " + (height + 8) + "px; cursor: pointer;"));
-    this.set('model.inner_highlight_style', new Ember.String.htmlSafe("z-index: 11; position: absolute; top: " + (top) + "px; left: " + left + "px; width: " + width + "px; height: " + height + "px; cursor: pointer;"));
+    this.set('model.top_style', htmlSafe(display + "z-index: 9; position: absolute; top: -" + header_height + "px; left: 0; background: #000; opacity: " + opacity + "; width: 100%; height: " + (top + header_height) + "px;"));
+    this.set('model.left_style', htmlSafe(display + "z-index: 9; position: absolute; top: " + (top) + "px; left: 0; background: #000; opacity: " + opacity + "; width: " + left + "px; height: " + height + "px;"));
+    this.set('model.right_style', htmlSafe(display + "z-index: 9; position: absolute; top: " + (top) + "px; left: calc(" + left+ "px + " + width + "px); background: #000; opacity: " + opacity + "; width: calc(100% - " + left + "px - " + width + "px); height: " + height + "px;"));
+    this.set('model.bottom_style', htmlSafe(display + "z-index: 9; position: absolute; top: " + (bottom) + "px; left: 0; background: #000; opacity: " + opacity + "; width: 100%; height: 5000px;"));
+    this.set('model.highlight_style', htmlSafe("z-index: 10; position: absolute; top: " + (top - 4) + "px; left: " + (left - 4) + "px; width: " + (width + 8) + "px; height: " + (height + 8) + "px; cursor: pointer;"));
+    this.set('model.inner_highlight_style', htmlSafe("z-index: 11; position: absolute; top: " + (top) + "px; left: " + left + "px; width: " + width + "px; height: " + height + "px; cursor: pointer;"));
   }.observes('model.left', 'model.top', 'model.width', 'model.height', 'model.bottom', 'model.right', 'model.overlay'),
   actions: {
     select: function() {

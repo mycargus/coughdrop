@@ -1,4 +1,8 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import { later as runLater, run } from '@ember/runloop';
+import RSVP from 'rsvp';
+import $ from 'jquery';
 import stashes from './_stashes';
 import CoughDrop from '../app';
 import capabilities from './capabilities';
@@ -8,10 +12,10 @@ import app_state from './app_state';
 import i18n from './i18n';
 import modal from './modal';
 
-var session = Ember.Object.extend({
+var session = EmberObject.extend({
   setup: function(application) {
     application.register('cough_drop:session', session, { instantiate: false, singleton: true });
-    Ember.$.each(['model', 'controller', 'view', 'route'], function(i, component) {
+    $.each(['model', 'controller', 'view', 'route'], function(i, component) {
       application.inject(component, 'session', 'cough_drop:session');
     });
     CoughDrop.session = session;
@@ -24,7 +28,7 @@ var session = Ember.Object.extend({
   },
   authenticate: function(credentials) {
     var _this = this;
-    var res = new Ember.RSVP.Promise(function(resolve, reject) {
+    var res = new RSVP.Promise(function(resolve, reject) {
       var data = {
         grant_type: 'password',
         client_id: 'browser',
@@ -37,7 +41,7 @@ var session = Ember.Object.extend({
       };
 
       persistence.ajax('/token', {method: 'POST', data: data}).then(function(response) {
-        Ember.run(function() {
+        run(function() {
           session.persist({
             access_token: response.access_token,
             user_name: response.user_name,
@@ -48,7 +52,7 @@ var session = Ember.Object.extend({
           // with the old user_name.
           if(response.user_id) {
             persistence.store('settings', {id: response.user_id}, 'selfUserId').then(null, function() {
-              return Ember.RSVP.reject({error: "selfUserId not persisted from login"});
+              return RSVP.reject({error: "selfUserId not persisted from login"});
             });
           }
           stashes.persist_object('just_logged_in', true, false);
@@ -56,7 +60,7 @@ var session = Ember.Object.extend({
         });
       }, function(data) {
         var xhr = data.fakeXHR || {};
-        Ember.run(function() {
+        run(function() {
           reject(xhr.responseJSON || xhr.responseText);
         });
       });
@@ -88,7 +92,7 @@ var session = Ember.Object.extend({
         session.set('user_name', data.user_name);
         session.set('user_id', data.user_id);
         if(app_state.get('sessionUser.id') != data.user_id) {
-          Ember.run.later(function() {
+          runLater(function() {
             app_state.refresh_session_user();
           });
         }
@@ -105,7 +109,7 @@ var session = Ember.Object.extend({
       if(data.meta && data.meta.fakeXHR && data.meta.fakeXHR.browserToken) {
         persistence.set('browserToken', data.meta.fakeXHR.browserToken);
       }
-      return Ember.RSVP.resolve({browserToken: persistence.get('browserToken')});
+      return RSVP.resolve({browserToken: persistence.get('browserToken')});
     }, function(data) {
       if(!persistence.get('online')) {
         return;
@@ -117,7 +121,7 @@ var session = Ember.Object.extend({
         return;
       }
       persistence.tokens[key] = false;
-      return Ember.RSVP.resolve({browserToken: persistence.get('browserToken')});
+      return RSVP.resolve({browserToken: persistence.get('browserToken')});
     });
   },
   restore: function(force_check_for_token) {
@@ -197,7 +201,7 @@ var session = Ember.Object.extend({
       session.reload('/');
     }
     var _this = this;
-    Ember.run.later(function() {
+    runLater(function() {
       session.set('isAuthenticated', false);
       session.set('access_token', null);
       session.set(' ', null);

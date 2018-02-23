@@ -1,10 +1,12 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
+import RSVP from 'rsvp';
 import modal from '../../utils/modal';
 import CoughDrop from '../../app';
 import app_state from '../../utils/app_state';
 import Utils from '../../utils/misc';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   load_goals: function() {
     var controller = this;
     controller.set('goals', {loading: true});
@@ -67,7 +69,7 @@ export default Ember.Controller.extend({
       }, function() { });
     },
     update: function(goal, attribute, action) {
-      var done = Ember.RSVP.resolve();
+      var done = RSVP.resolve();
       if(attribute == 'primary') {
         goal.set('primary', action == 'on');
         done = goal.save();

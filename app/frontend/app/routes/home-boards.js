@@ -1,7 +1,9 @@
 import Ember from 'ember';
+import Route from '@ember/routing/route';
+import RSVP from 'rsvp';
 import persistence from '../utils/persistence';
 
-export default Ember.Route.extend({
+export default Route.extend({
   setupController: function(controller) {
     var _this = this;
     function loadBoards() {
@@ -22,7 +24,7 @@ export default Ember.Route.extend({
         _this.store.query('board', {user_id: 'subjects', starred: true, public: true, per_page: 6}).then(function(boards) {
           controller.set('subject_vocabulary', boards);
         }, function() {
-          return Ember.RSVP.resolve({});
+          return RSVP.resolve({});
         });
 //         controller.set('disability_vocabulary', {loading: true});
 //         _this.store.query('board', {user_id: 'disability_boards', starred: true, public: true}).then(function(boards) {

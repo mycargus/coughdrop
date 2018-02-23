@@ -1,9 +1,10 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import persistence from '../../utils/persistence';
 import modal from '../../utils/modal';
 import i18n from '../../utils/i18n';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   refresh_lists: function() {
     this.load_blocked_emails();
     this.load_gifts();

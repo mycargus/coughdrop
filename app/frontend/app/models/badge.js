@@ -3,6 +3,7 @@ import DS from 'ember-data';
 import CoughDrop from '../app';
 import i18n from '../utils/i18n';
 import speecher from '../utils/speecher';
+import { htmlSafe } from '@ember/string';
 
 CoughDrop.Badge = DS.Model.extend({
   name: DS.attr('string'),
@@ -27,7 +28,7 @@ CoughDrop.Badge = DS.Model.extend({
     return Math.min(Math.max(this.get('progress') || 0, 0) * 100, 100);
   }.property('progress'),
   progress_style: function() {
-    return Ember.String.htmlSafe("width: " + Math.min(Math.max((this.get('progress') || 0) * 100, 0), 100) + "%");
+    return htmlSafe("width: " + Math.min(Math.max((this.get('progress') || 0) * 100, 0), 100) + "%");
   }.property('progress'),
   numbered_interval: function(interval, number) {
     var res = {multiplier: 1, unit: i18n.t('day', "day")};

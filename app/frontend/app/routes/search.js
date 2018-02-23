@@ -1,7 +1,8 @@
 import Ember from 'ember';
+import Route from '@ember/routing/route';
 import app_state from '../utils/app_state';
 
-export default Ember.Route.extend({
+export default Route.extend({
   title: "Search",
   model: function(params) {
     var q = params.q;

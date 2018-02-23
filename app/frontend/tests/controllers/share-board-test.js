@@ -17,7 +17,7 @@ describe('ShareBoardController', 'controller:share-board', function() {
 //   show_share: function() {
 //     if(this.get('board.link')) {
 //       var _this = this;
-//       Ember.run.later(function() {
+//       emberRun.later(function() {
 //         coughDropExtras.share.load({link: _this.get('board.link'), text: _this.get('board.name')});
 //       });
 //     }

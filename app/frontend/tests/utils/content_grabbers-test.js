@@ -1,12 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { fake_dbman } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import contentGrabbers from '../../utils/content_grabbers';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 import persistence from '../../utils/persistence';
 import app_state from '../../utils/app_state';
 import editManager from '../../utils/edit_manager';
 import stashes from '../../utils/_stashes';
 import progress_tracker from '../../utils/progress_tracker';
+import { run as emberRun } from '@ember/runloop';
 
 describe("contentGrabbers", function() {
   var button, controller;
@@ -17,18 +20,18 @@ describe("contentGrabbers", function() {
 
   beforeEach(function() {
     stashes.flush();
-    var obj = Ember.Object.create({
+    var obj = EmberObject.create({
       sentMessages: {},
       send: function(message) {
         this.sentMessages[message] = arguments;
       }
     });
-    controller = Ember.Object.extend({
+    controller = EmberObject.extend({
       send: function(message) {
         this.sentMessages[message] = arguments;
       }
     }).create({
-      'currentUser': Ember.Object.create({user_name: 'bob'}),
+      'currentUser': EmberObject.create({user_name: 'bob'}),
       sentMessages: {},
       id: '456',
       licenseOptions: [],
@@ -36,10 +39,10 @@ describe("contentGrabbers", function() {
     });
     stub(app_state, 'controller', controller);
     stub(editManager, 'controller', obj);
-    button = Ember.Object.extend({
+    button = EmberObject.extend({
       findContentLocally: function() {
         this.foundContentLocally = true;
-        return Ember.RSVP.resolve(true);
+        return RSVP.resolve(true);
       }
     }).create();
     contentGrabbers.setup(button, controller);
@@ -84,8 +87,8 @@ describe("contentGrabbers", function() {
 
   describe("save_record", function() {
     it("should return a promise", function() {
-      var obj = Ember.Object.extend({
-        save: function() { return Ember.RSVP.reject(); }
+      var obj = EmberObject.extend({
+        save: function() { return RSVP.reject(); }
       }).create();
       var res = contentGrabbers.save_record(obj);
       expect(res.then).not.toEqual(null);
@@ -93,8 +96,8 @@ describe("contentGrabbers", function() {
     });
 
     it("should save a data-uri attribute for later processing if set", function() {
-      var obj = Ember.Object.extend({
-        save: function() { return Ember.RSVP.defer().promise; }
+      var obj = EmberObject.extend({
+        save: function() { return RSVP.defer().promise; }
       }).create({
         url: "data:image/png;..."
       });
@@ -104,9 +107,9 @@ describe("contentGrabbers", function() {
     });
 
     it("should save the record", function() {
-      var defer = Ember.RSVP.defer();
+      var defer = RSVP.defer();
       var save_called = false;
-      var obj = Ember.Object.extend({
+      var obj = EmberObject.extend({
         save: function() { save_called = true; return defer.promise; }
       }).create({
         url: "data:image/png;..."
@@ -128,9 +131,9 @@ describe("contentGrabbers", function() {
     });
 
     it("should call upload_to_remote if returned result is pending", function() {
-      var defer = Ember.RSVP.defer();
+      var defer = RSVP.defer();
       var save_called = false;
-      var obj = Ember.Object.extend({
+      var obj = EmberObject.extend({
         save: function() { save_called = true; return defer.promise; }
       }).create({
         url: "data:image/png;...",
@@ -143,7 +146,7 @@ describe("contentGrabbers", function() {
       var uploadArgs = null;
       stub(contentGrabbers, 'upload_to_remote', function(args) {
         uploadArgs = args;
-        return Ember.RSVP.defer().promise;
+        return RSVP.defer().promise;
       });
       var res = contentGrabbers.save_record(obj);
       defer.resolve(obj);
@@ -156,9 +159,9 @@ describe("contentGrabbers", function() {
     });
 
     it("should error if no metadata (remote upload parameters) are provided", function() {
-      var defer = Ember.RSVP.defer();
+      var defer = RSVP.defer();
       var save_called = false;
-      var obj = Ember.Object.extend({
+      var obj = EmberObject.extend({
         save: function() { save_called = true; return defer.promise; }
       }).create({
         url: "data:image/png;...",
@@ -172,7 +175,7 @@ describe("contentGrabbers", function() {
       var uploadArgs = null;
       stub(contentGrabbers, 'upload_to_remote', function(args) {
         uploadArgs = args;
-        return Ember.RSVP.defer().promise;
+        return RSVP.defer().promise;
       });
       var res = contentGrabbers.save_record(obj);
       defer.resolve(obj);
@@ -185,8 +188,8 @@ describe("contentGrabbers", function() {
     });
 
     it("should error on failed save", function() {
-      var defer = Ember.RSVP.defer();
-      var obj = Ember.Object.extend({
+      var defer = RSVP.defer();
+      var obj = EmberObject.extend({
         save: function() { return defer.promise; }
       }).create({
         url: "data:image/png;...",
@@ -206,10 +209,10 @@ describe("contentGrabbers", function() {
     });
 
     it("should error on failed remote upload", function() {
-      var defer = Ember.RSVP.defer();
-      var defer2 = Ember.RSVP.defer();
+      var defer = RSVP.defer();
+      var defer2 = RSVP.defer();
       var save_called = false;
-      var obj = Ember.Object.extend({
+      var obj = EmberObject.extend({
         save: function() { save_called = true; return defer.promise; }
       }).create({
         url: "data:image/png;...",
@@ -219,7 +222,7 @@ describe("contentGrabbers", function() {
         return {remote_upload: {a: 2}};
       });
       stub(contentGrabbers, 'upload_to_remote', function(args) {
-        Ember.run.later(function() {
+        emberRun.later(function() {
           defer2.reject({
             abc: "123"
           });
@@ -239,10 +242,10 @@ describe("contentGrabbers", function() {
     });
 
     it("should resolve on successful pending upload process, returning the original object", function() {
-      var defer = Ember.RSVP.defer();
-      var defer2 = Ember.RSVP.defer();
+      var defer = RSVP.defer();
+      var defer2 = RSVP.defer();
       var save_called = false;
-      var obj = Ember.Object.extend({
+      var obj = EmberObject.extend({
         save: function() { save_called = true; return defer.promise; }
       }).create({
         url: "data:image/png;...",
@@ -271,10 +274,10 @@ describe("contentGrabbers", function() {
     });
 
     it("should request proxied data url for records with a url but no data url", function() {
-      var defer = Ember.RSVP.defer();
-      var defer2 = Ember.RSVP.defer();
+      var defer = RSVP.defer();
+      var defer2 = RSVP.defer();
       var save_called = false;
-      var obj = Ember.Object.extend({
+      var obj = EmberObject.extend({
         save: function() { save_called = true; return defer.promise; }
       }).create({
         url: "http://www.example.com/pic.png",
@@ -285,11 +288,11 @@ describe("contentGrabbers", function() {
       });
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/search/proxy?url=' + encodeURIComponent('http://www.example.com/pic.png')) {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             data: "data:image/png;..."
           });
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
 
@@ -330,7 +333,7 @@ describe("contentGrabbers", function() {
       var upload_args = null;
       stub(persistence, 'ajax', function(args) {
         upload_args = args;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       var params = {
         upload_params: {},
@@ -355,10 +358,10 @@ describe("contentGrabbers", function() {
       stub(persistence, 'ajax', function(args) {
         if(args.url == '/upload') {
           upload_args = args;
-          return Ember.RSVP.resolve();
+          return RSVP.resolve();
         } else if(args.url == '/success') {
           success_args = args;
-          return Ember.RSVP.resolve({happy: true});
+          return RSVP.resolve({happy: true});
         }
       });
       var params = {
@@ -382,7 +385,7 @@ describe("contentGrabbers", function() {
       stub(persistence, 'ajax', function(args) {
         if(args.url == '/upload') {
           upload_args = args;
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       var params = {
@@ -403,10 +406,10 @@ describe("contentGrabbers", function() {
       stub(persistence, 'ajax', function(args) {
         if(args.url == '/upload') {
           upload_args = args;
-          return Ember.RSVP.resolve();
+          return RSVP.resolve();
         } else if(args.url == '/success') {
           success_args = args;
-          return Ember.RSVP.reject({happy: true});
+          return RSVP.reject({happy: true});
         }
       });
       var params = {
@@ -661,9 +664,9 @@ describe("contentGrabbers", function() {
       var f = {name: 'file.txt', type: 'text/zip'};
       stub(contentGrabbers, 'read_file', function(file) {
         expect(file).toEqual(f);
-        return Ember.RSVP.reject({a: 1});
+        return RSVP.reject({a: 1});
       });
-      var p = contentGrabbers.upload_for_processing(f, 'api/url', {a: 2}, Ember.Object.create());
+      var p = contentGrabbers.upload_for_processing(f, 'api/url', {a: 2}, EmberObject.create());
       var result = null;
       var error = null;
       p.then(function(res) { result = res; }, function(err) { error = err; });
@@ -677,7 +680,7 @@ describe("contentGrabbers", function() {
       var f = {name: 'file.txt', type: 'text/zip'};
       stub(contentGrabbers, 'read_file', function(file) {
         expect(file).toEqual(f);
-        return Ember.RSVP.resolve({
+        return RSVP.resolve({
           target: {
             result: 'asdf'
           }
@@ -689,9 +692,9 @@ describe("contentGrabbers", function() {
           type: 'POST',
           data: {a: 2}
         });
-        return Ember.RSVP.reject({b: 1});
+        return RSVP.reject({b: 1});
       });
-      var p = contentGrabbers.upload_for_processing(f, 'api/url', {a: 2}, Ember.Object.create());
+      var p = contentGrabbers.upload_for_processing(f, 'api/url', {a: 2}, EmberObject.create());
       var result = null;
       var error = null;
       p.then(function(res) { result = res; }, function(err) { error = err; });
@@ -705,7 +708,7 @@ describe("contentGrabbers", function() {
       var f = {name: 'file.txt', type: 'text/zip'};
       stub(contentGrabbers, 'read_file', function(file) {
         expect(file).toEqual(f);
-        return Ember.RSVP.resolve({
+        return RSVP.resolve({
           target: {
             result: 'asdf'
           }
@@ -717,17 +720,17 @@ describe("contentGrabbers", function() {
           type: 'POST',
           data: {a: 2}
         });
-        return Ember.RSVP.resolve({remote_upload: {}});
+        return RSVP.resolve({remote_upload: {}});
       });
       stub(contentGrabbers, 'upload_to_remote', function(opts) {
         expect(opts).toEqual({data_url: 'asdf', success_method: 'POST'});
-        return Ember.RSVP.resolve({progress: {c: 1}});
+        return RSVP.resolve({progress: {c: 1}});
       });
       stub(progress_tracker, 'track', function(progress, callback) {
         expect(progress).toEqual({c: 1});
         callback({status: 'errored'});
       });
-      var prog = Ember.Object.create();
+      var prog = EmberObject.create();
       var p = contentGrabbers.upload_for_processing(f, 'api/url', {a: 2}, prog);
       var result = null;
       var error = null;
@@ -743,7 +746,7 @@ describe("contentGrabbers", function() {
       var f = {name: 'file.txt', type: 'text/zip'};
       stub(contentGrabbers, 'read_file', function(file) {
         expect(file).toEqual(f);
-        return Ember.RSVP.resolve({
+        return RSVP.resolve({
           target: {
             result: 'asdf'
           }
@@ -755,17 +758,17 @@ describe("contentGrabbers", function() {
           type: 'POST',
           data: {a: 2}
         });
-        return Ember.RSVP.resolve({remote_upload: {}});
+        return RSVP.resolve({remote_upload: {}});
       });
       stub(contentGrabbers, 'upload_to_remote', function(opts) {
         expect(opts).toEqual({data_url: 'asdf', success_method: 'POST'});
-        return Ember.RSVP.resolve({progress: {c: 1}});
+        return RSVP.resolve({progress: {c: 1}});
       });
       stub(progress_tracker, 'track', function(progress, callback) {
         expect(progress).toEqual({c: 1});
         callback({status: 'finished', result: 'winning'});
       });
-      var prog = Ember.Object.create();
+      var prog = EmberObject.create();
       var p = contentGrabbers.upload_for_processing(f, 'api/url', {a: 2}, prog);
       var result = null;
       var error = null;
@@ -781,9 +784,9 @@ describe("contentGrabbers", function() {
       var f = {name: 'file.txt', type: 'text/zip'};
       stub(contentGrabbers, 'read_file', function(file) {
         expect(file).toEqual(f);
-        return Ember.RSVP.reject({a: 1});
+        return RSVP.reject({a: 1});
       });
-      var p = contentGrabbers.upload_for_processing(f, 'api/url', {a: 2}, Ember.Object.create());
+      var p = contentGrabbers.upload_for_processing(f, 'api/url', {a: 2}, EmberObject.create());
       expect(p).not.toEqual(null);
       expect(p.then).not.toEqual(null);
       p.then(null, function() { });

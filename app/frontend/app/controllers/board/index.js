@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
+import $ from 'jquery';
 import boundClasses from '../../utils/bound_classes';
 import word_suggestions from '../../utils/word_suggestions';
 import editManager from '../../utils/edit_manager';
@@ -11,11 +13,12 @@ import i18n from '../../utils/i18n';
 import modal from '../../utils/modal';
 import Button from '../../utils/button';
 import frame_listener from '../../utils/frame_listener';
+import { htmlSafe } from '@ember/string';
 
 var cached_images = {};
 var last_redraw = (new Date()).getTime();
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   title: function() {
     var name = this.get('model.name');
     var title = "Board";
@@ -171,7 +174,7 @@ export default Ember.Controller.extend({
       topHeight = topHeight + 30;
     }
     if(app_state.controller) {
-      app_state.controller.set('sidebar_style', new Ember.String.htmlSafe("height: " + (height - sidebarTopHeight + 20) + "px;"));
+      app_state.controller.set('sidebar_style', htmlSafe("height: " + (height - sidebarTopHeight + 20) + "px;"));
     }
     this.setProperties({
       'height': height - topHeight,
@@ -184,7 +187,7 @@ export default Ember.Controller.extend({
     }
   }.observes('app_state.speak_mode', 'app_state.edit_mode', 'model.word_suggestions', 'model.description', 'app_state.sidebar_pinned', 'app_state.currentUser.preferences.word_suggestion_images', 'text_position'),
   board_style: function() {
-    return new Ember.String.htmlSafe("position: relative; height: " + (this.get('height') + 5) + "px");
+    return htmlSafe("position: relative; height: " + (this.get('height') + 5) + "px");
   }.property('height'),
   redraw_if_needed: function() {
     var now = (new Date()).getTime();
@@ -219,7 +222,7 @@ export default Ember.Controller.extend({
       this.set('model.text_size', 'small_text');
     }
 
-    var $canvas = Ember.$("#board_canvas");
+    var $canvas = $("#board_canvas");
     // TODO: I commented out the canvas element because, while it was a few
     // seconds faster rendering a large board, it also causes a lot of headaches with
     // things like tabindex, edit mode, switch access, etc.
@@ -278,11 +281,11 @@ export default Ember.Controller.extend({
       row.forEach(function(button, j) {
         var button_height = starting_height - (extra_pad * 2);
         if(button_height > 30) {
-          button_height = button_height;
+//          button_height = button_height;
         }
         var button_width = starting_width - (extra_pad * 2);
         if(button_width > 30) {
-          button_width = button_width;
+//          button_width = button_width;
         }
         var top = extra_pad + (i * starting_height) + inner_pad;
         var left = extra_pad + (j * starting_width) + inner_pad;
@@ -776,7 +779,7 @@ export default Ember.Controller.extend({
     stash_button: function(id) {
       editManager.stash_button(id || editManager.stashed_button_id);
       modal.success(i18n.t('button_stashed', "Button stashed!"));
-      var $stash_hover = Ember.$("#stash_hover");
+      var $stash_hover = $("#stash_hover");
       $stash_hover.removeClass('on_button').data('button_id', null);
     },
     word_data: function(id) {
@@ -784,7 +787,7 @@ export default Ember.Controller.extend({
       if(button && (button.label || button.vocalization)) {
         modal.open('word-data', {word: (button.label || button.vocalization), button: button, usage_stats: null, user: app_state.get('currentUser')});
       }
-      var $stash_hover = Ember.$("#stash_hover");
+      var $stash_hover = $("#stash_hover");
       $stash_hover.removeClass('on_button').data('button_id', null);
     },
     toggleEditMode: function() {

@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 import modal from '../utils/modal';
 import speecher from '../utils/speecher';
 import capabilities from '../utils/capabilities';
@@ -30,7 +31,7 @@ export default modal.ModalController.extend({
     this.set('voice_error', null);
     var claimed_voices = this.get('model.user.premium_voices.claimed') || [];
     all_voices.forEach(function(voice) {
-      var v = Ember.Object.create(voice);
+      var v = EmberObject.create(voice);
       v.set('male', voice.gender == 'm');
       v.set('female', voice.gender == 'f');
       v.set('adult', voice.age == 'adult');

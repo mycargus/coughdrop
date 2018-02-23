@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import Route from '@ember/routing/route';
+import RSVP from 'rsvp';
 import editManager from '../utils/edit_manager';
 import stashes from '../utils/_stashes';
 import modal from '../utils/modal';
@@ -8,7 +10,7 @@ import CoughDrop from '../app';
 import contentGrabbers from '../utils/content_grabbers';
 import persistence from '../utils/persistence';
 
-export default Ember.Route.extend({
+export default Route.extend({
   model: function(params) {
     // TODO: when on the home screen if you have a large board and hit to open
     // it, it takes a while to change views. This does not, however, happen
@@ -31,7 +33,7 @@ export default Ember.Route.extend({
       obj.set('key', params.key);
       obj.set('id', 'i' + integration_id);
       return CoughDrop.store.findRecord('integration', integration_id).then(function(tool) {
-        var reload = Ember.RSVP.resolve(tool);
+        var reload = RSVP.resolve(tool);
         if(!tool.get('render_url')) {
           reload = tool.reload();
         }
@@ -44,12 +46,12 @@ export default Ember.Route.extend({
           obj.set('integration_name', tool.get('name') || i18n.t('external_integration', "External Integration"));
           obj.set('user_token', user_token);
           obj.set('action', action);
-          return Ember.RSVP.resolve(obj);
+          return RSVP.resolve(obj);
         }, function(err) {
-          return Ember.RSVP.resolve(obj);
+          return RSVP.resolve(obj);
         });
       }, function(err) {
-        return Ember.RSVP.resolve(obj);
+        return RSVP.resolve(obj);
       });
     } else {
       var _this = this;
@@ -57,7 +59,7 @@ export default Ember.Route.extend({
         var obj = _this.store.findRecord('board', params.key);
         return obj.then(function(data) {
           data.set('lookup_key', params.key);
-          return Ember.RSVP.resolve(data);
+          return RSVP.resolve(data);
         }, function(err) {
           var error = err;
           if(err && err.errors) {
@@ -70,7 +72,7 @@ export default Ember.Route.extend({
             res.set('lookup_key', params.key);
             res.set('error', error);
             _this.set('error_record', res);
-            return Ember.RSVP.resolve(res);
+            return RSVP.resolve(res);
           }
         });
       };

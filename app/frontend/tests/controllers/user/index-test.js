@@ -12,7 +12,7 @@ describe('UserIndexController', 'controller:user-index', function() {
 // import persistence from '../../utils/persistence';
 // import modal from '../../utils/modal';
 // 
-// export default Ember.ObjectController.extend({
+// export default EmberObjectController.extend({
 //   needs: 'application',
 //   title: function() {
 //     return "Profile for " + this.get('user_name');

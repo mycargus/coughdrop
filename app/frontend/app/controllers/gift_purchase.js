@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
+import { later as runLater } from '@ember/runloop';
 import Subscription from '../utils/subscription';
 import app_state from '../utils/app_state';
 import i18n from '../utils/i18n';
@@ -6,7 +8,7 @@ import modal from '../utils/modal';
 import persistence from '../utils/persistence';
 import progress_tracker from '../utils/progress_tracker';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   update_classes: Subscription.obs_func.observes.apply(Subscription.obs_func, Subscription.obs_properties),
   subscription: function() {
     var res;
@@ -18,7 +20,7 @@ export default Ember.Controller.extend({
     res.set('user_type', 'communicator');
     res.set('subscription_type', 'long_term_gift');
     var _this = this;
-    Ember.run.later(function() {
+    runLater(function() {
       _this.update_classes();
     });
     return res;
@@ -28,7 +30,7 @@ export default Ember.Controller.extend({
     if(amount && (amount < 150 || (amount % 50 !== 0))) {
       if(this.get('custom_amount_error') === undefined && force !== true) {
         var _this = this;
-        Ember.run.later(function() {
+        runLater(function() {
           _this.check_valid_amount(true);
         }, 2000);
       } else {

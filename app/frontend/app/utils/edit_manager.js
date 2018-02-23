@@ -1,4 +1,9 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
+import RSVP from 'rsvp';
 import CoughDrop from '../app';
 import Button from './button';
 import stashes from './_stashes';
@@ -10,7 +15,7 @@ import progress_tracker from './progress_tracker';
 import word_suggestions from './word_suggestions';
 import i18n from './i18n';
 
-var editManager = Ember.Object.extend({
+var editManager = EmberObject.extend({
   setup: function(board) {
     editManager.Button = Button;
     this.controller = board;
@@ -248,10 +253,10 @@ var editManager = Ember.Object.extend({
     });
     var button = this.find_button(id);
     if(button) {
-      Ember.set(button, 'local_image_url', null);
-      Ember.set(button, 'local_sound_url', null);
+      emberSet(button, 'local_image_url', null);
+      emberSet(button, 'local_sound_url', null);
       for(var key in options) {
-        Ember.set(button, key, options[key]);
+        emberSet(button, key, options[key]);
       }
       this.check_button(id);
     } else {
@@ -261,7 +266,7 @@ var editManager = Ember.Object.extend({
   check_button: function(id) {
     var button = this.find_button(id);
     var empty = !button.label && !button.image_id;
-    Ember.set(button, 'empty', !!empty);
+    emberSet(button, 'empty', !!empty);
   },
   stash_button: function(id) {
     var list = stashes.get_object('stashed_buttons', true) || [];
@@ -350,8 +355,8 @@ var editManager = Ember.Object.extend({
     if(button) {
       button = editManager.Button.create(button.raw());
     }
-    if(!button || !folder) { return Ember.RSVP.reject({error: "couldn't find a button"}); }
-    if(!folder.load_board || !folder.load_board.key) { return Ember.RSVP.reject({error: "not a folder!"}); }
+    if(!button || !folder) { return RSVP.reject({error: "couldn't find a button"}); }
+    if(!folder.load_board || !folder.load_board.key) { return RSVP.reject({error: "not a folder!"}); }
     this.clear_button(a);
 
     var find = CoughDrop.store.findRecord('board', folder.load_board.key).then(function(ref) {
@@ -363,7 +368,7 @@ var editManager = Ember.Object.extend({
     var _this = this;
     var ready_for_update = reload.then(function(ref) {
       if(ref.get('permissions.edit')) {
-        return Ember.RSVP.resolve(ref);
+        return RSVP.resolve(ref);
       } else if(ref.get('permissions.view')) {
         if(decision == 'copy') {
           return ref.create_copy().then(function(copy) {
@@ -373,10 +378,10 @@ var editManager = Ember.Object.extend({
             return copy;
           });
         } else {
-          return Ember.RSVP.reject({error: 'view only'});
+          return RSVP.reject({error: 'view only'});
         }
       } else {
-        return Ember.RSVP.reject({error: 'not authorized'});
+        return RSVP.reject({error: 'not authorized'});
       }
     });
 
@@ -387,7 +392,7 @@ var editManager = Ember.Object.extend({
     });
 
     return update_buttons.then(function(board) {
-      return Ember.RSVP.resolve({visible: board.button_visible(new_id), button: button});
+      return RSVP.resolve({visible: board.button_visible(new_id), button: button});
     });
   },
   paint_mode: null,
@@ -453,21 +458,21 @@ var editManager = Ember.Object.extend({
     });
     var button = this.find_button(id);
     if(this.paint_mode.border) {
-      Ember.set(button, 'border_color', this.paint_mode.border);
+      emberSet(button, 'border_color', this.paint_mode.border);
     }
     if(this.paint_mode.fill) {
-      Ember.set(button, 'background_color', this.paint_mode.fill);
+      emberSet(button, 'background_color', this.paint_mode.fill);
     }
     if(this.paint_mode.hidden != null) {
-      Ember.set(button, 'hidden', this.paint_mode.hidden);
+      emberSet(button, 'hidden', this.paint_mode.hidden);
     }
     if(this.paint_mode.close_link != null) {
-      Ember.set(button, 'link_disabled', this.paint_mode.close_link);
+      emberSet(button, 'link_disabled', this.paint_mode.close_link);
     }
     if(this.paint_mode.part_of_speech) {
-      if(!Ember.get(button, 'part_of_speech') || Ember.get(button, 'part_of_speech') == Ember.get(button, 'suggested_part_of_speech')) {
-        Ember.set(button, 'part_of_speech', this.paint_mode.part_of_speech);
-        Ember.set(button, 'painted_part_of_speech', this.paint_mode.part_of_speech);
+      if(!emberGet(button, 'part_of_speech') || emberGet(button, 'part_of_speech') == emberGet(button, 'suggested_part_of_speech')) {
+        emberSet(button, 'part_of_speech', this.paint_mode.part_of_speech);
+        emberSet(button, 'painted_part_of_speech', this.paint_mode.part_of_speech);
       }
     }
     this.check_button(id);
@@ -507,7 +512,7 @@ var editManager = Ember.Object.extend({
 
 
     var resume_scanning = function() {
-      Ember.run.later(function() {
+      runLater(function() {
         if(app_state.controller) {
           app_state.controller.send('highlight_button');
         }
@@ -549,7 +554,7 @@ var editManager = Ember.Object.extend({
     // TODO: work without ordered grid (i.e. scene displays)
     CoughDrop.log.track('finding content locally');
     var prefetch = board.find_content_locally().then(null, function(err) {
-      return Ember.RSVP.resolve();
+      return RSVP.resolve();
     });
 
 
@@ -646,7 +651,7 @@ var editManager = Ember.Object.extend({
             originalButton = priorButtons[kdx];
           }
         }
-        var newButton = Ember.$.extend({}, originalButton);
+        var newButton = $.extend({}, originalButton);
         if(currentButton.label || currentButton.image_id) {
           newButton.label = currentButton.label;
           if(currentButton.vocalization && currentButton.vocalization != newButton.label) {
@@ -786,8 +791,8 @@ var editManager = Ember.Object.extend({
               if(_this.controller.get('model.id') == board_id && button && button.label && !button.image) {
                 button.set('pending', false);
                 button.set('pending_image', false);
-                Ember.set(button, 'image_id', image.id);
-                Ember.set(button, 'image', image);
+                emberSet(button, 'image_id', image.id);
+                emberSet(button, 'image', image);
               }
             }, function() {
               button.set('pending', false);
@@ -821,14 +826,14 @@ var editManager = Ember.Object.extend({
   },
   get_edited_image: function() {
     var _this = this;
-    return new Ember.RSVP.Promise(function(resolve, reject) {
+    return new RSVP.Promise(function(resolve, reject) {
       if(_this.imageEditorSource) {
         var resolved = false;
         _this.imageEditingCallback = function(data) {
           resolved = true;
           resolve(data);
         };
-        Ember.run.later(function() {
+        runLater(function() {
           if(!resolved) {
             reject({error: 'editor response timeout'});
           }
@@ -847,14 +852,14 @@ var editManager = Ember.Object.extend({
     }
   },
   copy_board: function(old_board, decision, user, make_public) {
-    return new Ember.RSVP.Promise(function(resolve, reject) {
+    return new RSVP.Promise(function(resolve, reject) {
       var ids_to_copy = old_board.get('downstream_board_ids_to_copy') || [];
       var save = old_board.create_copy(user, make_public);
       if(decision == 'remove_links') {
         save = save.then(function(res) {
           res.get('buttons').forEach(function(b) {
-            if(Ember.get(b, 'load_board')) {
-              Ember.set(b, 'load_board', null);
+            if(emberGet(b, 'load_board')) {
+              emberSet(b, 'load_board', null);
             }
           });
           return res.save();
@@ -924,7 +929,7 @@ var editManager = Ember.Object.extend({
   },
   retrieve_badge: function() {
     var _this = this;
-    return new Ember.RSVP.Promise(function(resolve, reject) {
+    return new RSVP.Promise(function(resolve, reject) {
       var state = null, data_url = null;
       if(_this.badgeEditorSource) {
         var resolved = false;
@@ -941,7 +946,7 @@ var editManager = Ember.Object.extend({
             resolve(data_url);
           }
         };
-        Ember.run.later(function() {
+        runLater(function() {
           if(!resolved && data_url) {
             resolve(data_url);
           } else if(!resolved) {
@@ -962,7 +967,7 @@ var editManager = Ember.Object.extend({
   board: null
 });
 
-Ember.$(window).bind('message', function(event) {
+$(window).bind('message', function(event) {
   event = event.originalEvent;
   if(event.data && event.data.match && event.data.match(/^data:image/)) {
     editManager.edited_image_received(event.data);

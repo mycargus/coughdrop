@@ -10,7 +10,7 @@ describe('UserLogController', 'controller:user-log', function() {
 });
 // import Ember from 'ember';
 // 
-// export default Ember.ObjectController.extend({
+// export default EmberObjectController.extend({
 //   title: function() {
 //     return "Log Details";
 //   }.property('user_name'),
@@ -22,17 +22,17 @@ describe('UserLogController', 'controller:user-log', function() {
 //     toggle_notes: function(id, action) {
 //       this.get('model').toggle_notes(id);
 //       if(action == 'add') {
-//         Ember.run.later(function() {
-//           Ember.$("input[data-event_id='" + id + "']").focus().select();
+//         emberRun.later(function() {
+//           $("input[data-event_id='" + id + "']").focus().select();
 //         }, 200);
 //       }
 //     },
 //     add_note: function(event_id) {
-//       var val = Ember.$("input[data-event_id='" + event_id + "']").val();
+//       var val = $("input[data-event_id='" + event_id + "']").val();
 //       if(val) {
 //         this.get('model').add_note(event_id, val);
 //       }
-//       Ember.$("input[data-event_id='" + event_id + "']").val("");
+//       $("input[data-event_id='" + event_id + "']").val("");
 //     }
 //   }
 // });

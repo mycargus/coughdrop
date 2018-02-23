@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import { later as runLater } from '@ember/runloop';
+import RSVP from 'rsvp';
 import DS from 'ember-data';
 import CoughDrop from '../app';
 import i18n from '../utils/i18n';
@@ -54,17 +56,17 @@ CoughDrop.Sound = DS.Model.extend({
           timeout = 60 * 1000;
         }
         this.set('transcription_checks', attempts + 1);
-        Ember.run.later(function() {
+        runLater(function() {
           if(persistence.get('online')) {
             _this.reload().then(function(res) {
               _this.check_transcription();
             }, function(err) {
-              Ember.run.later(function() {
+              runLater(function() {
                 _this.check_transcription();
               }, 2 * 60 * 1000);
             });
           } else {
-            Ember.run.later(function() {
+            runLater(function() {
               _this.check_transcription();
             }, 2 * 60 * 1000);
           }
@@ -130,9 +132,9 @@ CoughDrop.Sound = DS.Model.extend({
         return _this;
       });
     } else if(this.get('url') && this.get('url').match(/^data/)) {
-      return Ember.RSVP.resolve(this);
+      return RSVP.resolve(this);
     }
-    return Ember.RSVP.reject('no sound data url');
+    return RSVP.reject('no sound data url');
   },
   checkForDataURLOnChange: function() {
     this.checkForDataURL().then(null, function() { });

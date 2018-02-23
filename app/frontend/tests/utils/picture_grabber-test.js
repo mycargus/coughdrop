@@ -1,12 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { fakeRecorder, fakeCanvas, queryLog, easyPromise, queue_promise } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import contentGrabbers from '../../utils/content_grabbers';
 import editManager from '../../utils/edit_manager';
 import persistence from '../../utils/persistence';
 import app_state from '../../utils/app_state';
 import stashes from '../../utils/_stashes';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 import CoughDrop from '../../app';
+import $ from 'jquery';
 
 describe('pictureGrabber', function() {
   var pictureGrabber = contentGrabbers.pictureGrabber;
@@ -16,26 +19,26 @@ describe('pictureGrabber', function() {
   beforeEach(function() {
     contentGrabbers.unlink();
 
-    var obj = Ember.Object.create({
+    var obj = EmberObject.create({
       'controllers': {'application': {
-        'currentUser': Ember.Object.create({user_name: 'bob', profile_url: 'http://www.bob.com/bob'})
+        'currentUser': EmberObject.create({user_name: 'bob', profile_url: 'http://www.bob.com/bob'})
       }}
     });
     app_state.set('currentUser', obj.get('controllers.application.currentUser'));
-    controller = Ember.Object.extend({
+    controller = EmberObject.extend({
       send: function(message) {
         this.sentMessages[message] = arguments;
       },
-      model: Ember.Object.create({id: '456'})
+      model: EmberObject.create({id: '456'})
     }).create({
       sentMessages: {},
       licenseOptions: [],
       'controllers': {'board': obj}
     });
-    button = Ember.Object.extend({
+    button = EmberObject.extend({
       findContentLocally: function() {
         this.foundContentLocally = true;
-        return Ember.RSVP.resolve(true);
+        return RSVP.resolve(true);
       }
     }).create();
   });
@@ -45,7 +48,7 @@ describe('pictureGrabber', function() {
       var checked = false;
       button.set('image', {id: 1, check_for_editable_license: function() { checked = true; }});
       stub(button, 'findContentLocally', function() {
-        return Ember.RSVP.resolve();
+        return RSVP.resolve();
       });
       pictureGrabber.setup(button, controller);
       waitsFor(function() { return checked; });
@@ -79,7 +82,7 @@ describe('pictureGrabber', function() {
     it('should set the dropped image URL on the controller', function() {
       pictureGrabber.setup(button, controller);
       var promise = easyPromise();
-      stub(Ember.$, 'ajax', function(url, args) {
+      stub($, 'ajax', function(url, args) {
         if(url == "/api/v1/search/proxy?url=http%3A%2F%2Fpics.com%2Fcow.png") {
           return promise;
         }
@@ -125,7 +128,7 @@ describe('pictureGrabber', function() {
       };
       stub(contentGrabbers, 'read_file', function(f) {
         expect(f).toEqual(file);
-        return Ember.RSVP.resolve({
+        return RSVP.resolve({
           target: {
             result: 'haha'
           }
@@ -133,7 +136,7 @@ describe('pictureGrabber', function() {
       });
       stub(pictureGrabber, 'size_image', function(str) {
         expect(str).toEqual('haha');
-        return Ember.RSVP.resolve({
+        return RSVP.resolve({
           url: 'data:image/png;000000',
           width: 200,
           height: 200
@@ -144,7 +147,7 @@ describe('pictureGrabber', function() {
         expect(rec.get('width')).toEqual(200);
         expect(rec.get('height')).toEqual(200);
         expect(rec.get('avatar')).toEqual(true);
-        return Ember.RSVP.resolve('whatever');
+        return RSVP.resolve('whatever');
       });
       pictureGrabber.file_selected(file, 'avatar');
       expect(results.length).toEqual(1);
@@ -196,7 +199,7 @@ describe('pictureGrabber', function() {
       pictureGrabber.setup(button, controller);
       controller.set('image_preview', {url: 'http://www.picture.com'});
       stub(persistence, 'ajax', function() {
-        return Ember.RSVP.resolve({content_tye: 'image/png', data: 'data:image/png'});
+        return RSVP.resolve({content_tye: 'image/png', data: 'data:image/png'});
       });
       pictureGrabber.edit_image_preview();
       waitsFor(function() { return editManager.stashedImage; });
@@ -240,7 +243,7 @@ describe('pictureGrabber', function() {
         method: 'POST',
         type: 'image',
         compare: function(s) { return s.get('url') == '/logo.png'; },
-        response: Ember.RSVP.resolve({image: {id: '123', url: '/logo.png'}})
+        response: RSVP.resolve({image: {id: '123', url: '/logo.png'}})
       });
       pictureGrabber.select_image_preview();
       waitsFor(function() { return controller.get('model.image'); });
@@ -265,13 +268,13 @@ describe('pictureGrabber', function() {
         method: 'POST',
         type: 'image',
         compare: function(s) { return s.get('data_url') == 'data:image/png;base64,MA=='; },
-        response: Ember.RSVP.resolve({image: {id: '123', url: null, pending: true}})
+        response: RSVP.resolve({image: {id: '123', url: null, pending: true}})
       });
-      stub(Ember.$, 'ajax', function(args) {
+      stub($, 'ajax', function(args) {
         if(args.url == "http://upload.com/") {
-          return Ember.RSVP.resolve("");
+          return RSVP.resolve("");
         } else if(args.url == "/success") {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             confirmed: true,
             url: "http://pics.com/piccy.png"
           });
@@ -294,11 +297,11 @@ describe('pictureGrabber', function() {
         method: 'POST',
         type: 'image',
         compare: function(s) { return s.get('data_url') == 'data:image/png;base64,MA=='; },
-        response: Ember.RSVP.resolve({image: {id: '123', url: null, pending: true}, meta: {remote_upload: {data_url: "/api", upload_url: "http://upload.com/", success_url: "/success", upload_params: {a: "1", b: "2"}}}})
+        response: RSVP.resolve({image: {id: '123', url: null, pending: true}, meta: {remote_upload: {data_url: "/api", upload_url: "http://upload.com/", success_url: "/success", upload_params: {a: "1", b: "2"}}}})
       });
-      stub(Ember.$, 'ajax', function(args) {
+      stub($, 'ajax', function(args) {
         if(args.url == "http://upload.com/") {
-          return Ember.RSVP.reject("");
+          return RSVP.reject("");
         }
       });
       pictureGrabber.select_image_preview();
@@ -318,13 +321,13 @@ describe('pictureGrabber', function() {
         method: 'POST',
         type: 'image',
         compare: function(s) { return s.get('data_url') == 'data:image/png;base64,MA=='; },
-        response: Ember.RSVP.resolve({image: {id: '123', url: null, pending: true}, meta: {remote_upload: {data_url: "/api", upload_url: "http://upload.com/", success_url: "/success", upload_params: {a: "1", b: "2"}}}})
+        response: RSVP.resolve({image: {id: '123', url: null, pending: true}, meta: {remote_upload: {data_url: "/api", upload_url: "http://upload.com/", success_url: "/success", upload_params: {a: "1", b: "2"}}}})
       });
-      stub(Ember.$, 'ajax', function(args) {
+      stub($, 'ajax', function(args) {
         if(args.url == "http://upload.com/") {
-          return Ember.RSVP.resolve("");
+          return RSVP.resolve("");
         } else if(args.url == "/success") {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             confirmed: false
           });
         }
@@ -344,13 +347,13 @@ describe('pictureGrabber', function() {
         method: 'POST',
         type: 'image',
         compare: function(s) { return s.get('data_url') == 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=='; },
-        response: Ember.RSVP.resolve({image: {id: '123', url: null, pending: true}, meta: {remote_upload: {data_url: "/api", upload_url: "http://upload.com/", success_url: "/success", upload_params: {a: "1", b: "2"}}}})
+        response: RSVP.resolve({image: {id: '123', url: null, pending: true}, meta: {remote_upload: {data_url: "/api", upload_url: "http://upload.com/", success_url: "/success", upload_params: {a: "1", b: "2"}}}})
       });
-      stub(Ember.$, 'ajax', function(args) {
+      stub($, 'ajax', function(args) {
         if(args.url == "http://upload.com/") {
-          return Ember.RSVP.resolve("");
+          return RSVP.resolve("");
         } else if(args.url == "/success") {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             confirmed: true,
             url: "http://pics.com/piccy.png"
           });
@@ -377,7 +380,7 @@ describe('pictureGrabber', function() {
           correct_license = s.get('license.type') == 'Uncool' && s.get('license.author_name') == "Bob";
           return s.get('url') == '/logo.png';
         },
-        response: Ember.RSVP.resolve({image: {id: '123', url: '/logo.png'}})
+        response: RSVP.resolve({image: {id: '123', url: '/logo.png'}})
       });
       pictureGrabber.select_image_preview();
       waitsFor(function() { return correct_license; });
@@ -395,7 +398,7 @@ describe('pictureGrabber', function() {
           correct_license = s.get('license.type') == 'private' && s.get('license.author_name') == 'bob';
           return s.get('url') == '/logo.png';
         },
-        response: Ember.RSVP.resolve({image: {id: '123', url: '/logo.png'}})
+        response: RSVP.resolve({image: {id: '123', url: '/logo.png'}})
       });
       pictureGrabber.select_image_preview();
       waitsFor(function() { return correct_license; });
@@ -413,7 +416,7 @@ describe('pictureGrabber', function() {
         var image = null;
         stub(contentGrabbers, 'save_record', function(img) {
           image = img;
-          return Ember.RSVP.resolve();
+          return RSVP.resolve();
         });
         var done = false;
         pictureGrabber.save_image_preview({
@@ -432,7 +435,7 @@ describe('pictureGrabber', function() {
         var image = null;
         stub(contentGrabbers, 'save_record', function(img) {
           image = img;
-          return Ember.RSVP.resolve();
+          return RSVP.resolve();
         });
         var done = false;
         pictureGrabber.save_image_preview({
@@ -451,7 +454,7 @@ describe('pictureGrabber', function() {
         var image = null;
         stub(contentGrabbers, 'save_record', function(img) {
           image = img;
-          return Ember.RSVP.resolve();
+          return RSVP.resolve();
         });
         var done = false;
         pictureGrabber.save_image_preview({
@@ -471,7 +474,7 @@ describe('pictureGrabber', function() {
         var image = null;
         stub(contentGrabbers, 'save_record', function(img) {
           image = img;
-          return Ember.RSVP.resolve();
+          return RSVP.resolve();
         });
         var done = false;
         pictureGrabber.save_image_preview({
@@ -498,8 +501,8 @@ describe('pictureGrabber', function() {
 
     it('should request a proxy data-URI if value is a URL', function() {
       pictureGrabber.setup(button, controller);
-      stub(Ember.$, 'ajax', function(url, args) {
-        return Ember.RSVP.resolve({
+      stub($, 'ajax', function(url, args) {
+        return RSVP.resolve({
           data: "data:image/png;aaa===",
           content_type: "image/png"
         });
@@ -513,7 +516,7 @@ describe('pictureGrabber', function() {
 
     it('should search for results with a remote call otherwise', function() {
       var promise = null;
-      stub(Ember.$, 'ajax', function(url, args) {
+      stub($, 'ajax', function(url, args) {
         promise = easyPromise();
         return promise;
       });
@@ -538,7 +541,7 @@ describe('pictureGrabber', function() {
         expect(user_name).toEqual('bob');
         expect(library).toEqual('lessonpix');
         expect(fallback).toEqual(undefined);
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       });
       pictureGrabber.find_picture('frog', 'bob');
       expect(searched).toEqual(true);
@@ -585,7 +588,7 @@ describe('pictureGrabber', function() {
 
     it("should correctly swap between streams", function() {
       stub(window, 'enumerateMediaDevices', function() {
-        return Ember.RSVP.resolve([
+        return RSVP.resolve([
           {kind: 'videoinput', id: 'aaa', label: 'cam 1'},
           {kind: 'audioinput', id: 'bbb', label: 'mic 1'},
           {kind: 'videoinput', id: 'ccc', label: 'cam 2'},
@@ -640,7 +643,7 @@ describe('pictureGrabber', function() {
 
     it("should correctly swap between streams even when starting on a different-than-first stream", function() {
       stub(window, 'enumerateMediaDevices', function() {
-        return Ember.RSVP.resolve([
+        return RSVP.resolve([
           {kind: 'videoinput', id: 'aaa', label: 'cam 1'},
           {kind: 'audioinput', id: 'bbb', label: 'mic 1'},
           {kind: 'videoinput', id: 'ccc', label: 'cam 2'},
@@ -764,10 +767,10 @@ describe('pictureGrabber', function() {
         method: 'POST',
         type: 'image',
         compare: function(s) { debugger; return s.get('data_url') == 'data:image/png;base64,MA=='; },
-        response: Ember.RSVP.resolve({image: {id: '123', url: null, pending: true}})
+        response: RSVP.resolve({image: {id: '123', url: null, pending: true}})
       });
       stub(contentGrabbers, 'save_record', function(img) {
-        return Ember.RSVP.resolve(img);
+        return RSVP.resolve(img);
       });
       var record = null;
       pictureGrabber.save_image('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==').then(function(res) {
@@ -786,7 +789,7 @@ describe('pictureGrabber', function() {
 
   describe('word_art', function() {
     it('should set the correct parameters', function() {
-      var controller = Ember.Object.create();
+      var controller = EmberObject.create();
       editManager.controller = controller;
       contentGrabbers.pictureGrabber.controller = controller;
       contentGrabbers.pictureGrabber.word_art('bacon');
@@ -821,27 +824,27 @@ describe('pictureGrabber', function() {
       var library = null;
       stub(contentGrabbers.pictureGrabber, 'open_symbols_search', function(str) {
         library = 'open_symbols';
-        return Ember.RSVP.resolve([]);
+        return RSVP.resolve([]);
       });
       stub(contentGrabbers.pictureGrabber, 'flickr_search', function(str) {
         library = 'flickr';
-        return Ember.RSVP.resolve([]);
+        return RSVP.resolve([]);
       });
       stub(contentGrabbers.pictureGrabber, 'public_domain_image_search', function(str) {
         library = 'public_domain';
-        return Ember.RSVP.resolve([]);
+        return RSVP.resolve([]);
       });
       stub(contentGrabbers.pictureGrabber, 'pixabay_search', function(str, type) {
         library = 'pixabay_' + type;
-        return Ember.RSVP.resolve([]);
+        return RSVP.resolve([]);
       });
       stub(contentGrabbers.pictureGrabber, 'protected_search', function(str, lib) {
         library = 'protected_' + lib;
-        return Ember.RSVP.resolve([]);
+        return RSVP.resolve([]);
       });
       stub(contentGrabbers.pictureGrabber, 'openclipart_search', function(str) {
         library = 'openclipart';
-        return Ember.RSVP.resolve([]);
+        return RSVP.resolve([]);
       });
       contentGrabbers.pictureGrabber.picture_search('chicken_nuggets', 'bacon');
       expect(library).toEqual('open_symbols');
@@ -884,7 +887,7 @@ describe('pictureGrabber', function() {
       app_state.set('currentUser', u);
       stub(persistence, 'ajax', function(url, opts) {
         expect(url).toEqual("/api/v1/search/protected_symbols?library=somewhere&q=hat&user_name=");
-        return Ember.RSVP.resolve([
+        return RSVP.resolve([
           {a: 1, image_url: '/api/v1/users/something/lessonpix'},
           {b: 1, image_url: '/api/v1/users/something/lessonpix2'}
         ]);
@@ -904,7 +907,7 @@ describe('pictureGrabber', function() {
 
     it('should error on error', function() {
       stub(persistence, 'ajax', function(url, opts) {
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       var error = null;
       contentGrabbers.pictureGrabber.protected_search('heart', 'chicken').then(null, function(err) {
@@ -922,7 +925,7 @@ describe('pictureGrabber', function() {
       app_state.set('currentUser', u);
       stub(persistence, 'ajax', function(url, opts) {
         expect(url).toEqual("/api/v1/search/protected_symbols?library=somewhere&q=hat&user_name=jason");
-        return Ember.RSVP.resolve([
+        return RSVP.resolve([
           {a: 1, image_url: '/api/v1/users/something/lessonpix'},
           {b: 1, image_url: '/api/v1/users/something/lessonpix2'}
         ]);
@@ -946,11 +949,11 @@ describe('pictureGrabber', function() {
       app_state.set('currentUser', u);
       stub(persistence, 'ajax', function(url, opts) {
         expect(url).toEqual("/api/v1/search/protected_symbols?library=somewhere&q=hat&user_name=jason");
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(contentGrabbers.pictureGrabber, 'open_symbols_search', function(text) {
         expect(text).toEqual('hat');
-        return Ember.RSVP.resolve([
+        return RSVP.resolve([
           {a: 1, image_url: 'http://www.example.com/pic.png'}
         ]);
       });
@@ -972,7 +975,7 @@ describe('pictureGrabber', function() {
       app_state.set('currentUser', u);
       stub(persistence, 'ajax', function(url, opts) {
         expect(url).toEqual("/api/v1/search/protected_symbols?library=somewhere&q=hat&user_name=jason");
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       var result = null;
       contentGrabbers.pictureGrabber.protected_search('hat', 'somewhere', 'jason', false).then(function(res) {

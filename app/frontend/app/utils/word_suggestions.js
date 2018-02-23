@@ -1,17 +1,22 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
+import RSVP from 'rsvp';
 import persistence from './persistence';
 import capabilities from './capabilities';
 import Utils from './misc';
 import app_state from './app_state';
 import CoughDrop from '../app';
 
-var word_suggestions = Ember.Object.extend({
+var word_suggestions = EmberObject.extend({
   load: function() {
     var _this = this;
     if(this.ngrams) {
-      return Ember.RSVP.resolve();
+      return RSVP.resolve();
     } else if(capabilities.installed_app && !this.local_failed) {
-      return Ember.$.ajax({
+      return $.ajax({
         url: 'ngrams.arpa.json',
         type: 'GET',
         dataType: 'json'
@@ -21,32 +26,32 @@ var word_suggestions = Ember.Object.extend({
       }, function() {
         _this.local_failed = true;
 //         return _this.load();
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
     } else if(this.error) {
-      return Ember.RSVP.reject();
+      return RSVP.reject();
     } else if(this.loading) {
       this.watchers = this.watchers || [];
-      var defer = Ember.RSVP.defer();
+      var defer = RSVP.defer();
       this.watchers.push(defer);
       return defer.promise;
     } else {
       _this.loading = true;
       var promises = [];
       var ngrams = {};
-      var previous = Ember.RSVP.resolve();
+      var previous = RSVP.resolve();
       var data_type = "json";
       // TODO: concurrent downloads can happen just fine as long as you
       // receive them as text instead of json, and call JSON.parse one
       // at a time.
       ['trimmed'].forEach(function(idx) {
-        var defer = Ember.RSVP.defer();
+        var defer = RSVP.defer();
         promises.push(defer.promise);
         previous.then(function() {
           var store_key = "arpa-." + idx + "." + _this.pieces + ".json";
           var remote_url = "https://s3.amazonaws.com/coughdrop/language/ngrams.arpa." + idx + "." + _this.pieces + ".json";
           var find_or_store = persistence.find('settings', store_key).then(null, function() {
-            return Ember.$.ajax({
+            return $.ajax({
               url: remote_url,
               type: "GET",
               dataType: data_type
@@ -63,7 +68,7 @@ var word_suggestions = Ember.Object.extend({
               ngrams[idx] = ngrams[idx] || [];
               ngrams[idx] = ngrams[idx].concat(res.suggestions[idx]);
             }
-            Ember.run.later(function() {
+            runLater(function() {
               defer.resolve();
             });
           }, function() {
@@ -72,7 +77,7 @@ var word_suggestions = Ember.Object.extend({
         });
         previous = defer.promise;
       });
-      var res = Ember.RSVP.all(promises).then(function() {
+      var res = RSVP.all(promises).then(function() {
         _this.loading = false;
         _this.ngrams = ngrams;
         if(_this.watchers) {
@@ -227,8 +232,8 @@ var word_suggestions = Ember.Object.extend({
         _this.last_result = result;
         _this.fallback_url().then(function(url) {
           result.forEach(function(word) {
-            if(!Ember.get(word, 'image')) {
-              Ember.set(word, 'image', url);
+            if(!emberGet(word, 'image')) {
+              emberSet(word, 'image', url);
             }
           });
         });
@@ -240,12 +245,12 @@ var word_suggestions = Ember.Object.extend({
                 result.forEach(function(word) {
                   button_set.find_buttons(word.word, board.get('id'), app_state.get('currentUser'), true).then(function(buttons) {
                     var button = buttons[0];
-                    if(!Ember.get(word, 'original_image') && button && button.label == word.word && button.image) {
-                      Ember.set(word, 'original_image', button.original_image);
-                      Ember.set(word, 'safe_image', Ember.get(word, 'image'));
-                      Ember.set(word, 'image', button.image);
+                    if(!emberGet(word, 'original_image') && button && button.label == word.word && button.image) {
+                      emberSet(word, 'original_image', button.original_image);
+                      emberSet(word, 'safe_image', emberGet(word, 'image'));
+                      emberSet(word, 'image', button.image);
                       if(button.image.match(/^data/) || !button.image.match(/^http/)) {
-                        Ember.set(word, 'safe_image', button.image);
+                        emberSet(word, 'safe_image', button.image);
                       }
                     }
                   });
@@ -254,21 +259,21 @@ var word_suggestions = Ember.Object.extend({
             }, function() { });
           });
         }
-        return Ember.RSVP.resolve(result);
+        return RSVP.resolve(result);
       } else {
-        return Ember.RSVP.resolve(_this.last_result);
+        return RSVP.resolve(_this.last_result);
       }
     });
   },
   fallback_url: function() {
     if(this.fallback_url_result) {
-      return Ember.RSVP.resolve(this.fallback_url_result);
+      return RSVP.resolve(this.fallback_url_result);
     } else {
       var _this = this;
       return persistence.find_url('https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg').then(function(url) {
         _this.fallback_url_result = url;
         return url;
-      }, function() { return Ember.RSVP.resolve('https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg'); });
+      }, function() { return RSVP.resolve('https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg'); });
     }
   },
   edit_distance: function(a, b) {

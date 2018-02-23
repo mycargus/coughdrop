@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { queryLog } from 'frontend/tests/helpers/ember_helper';
+import EmberObject from '@ember/object';
 import startApp from '../helpers/start-app';
 
 describe('ButtonStashController', 'controller:button-stash', function() {
@@ -12,8 +13,8 @@ describe('ButtonStashController', 'controller:button-stash', function() {
 // import CoughDrop from '../utils/app';
 // import editManager from '../utils/edit_manager';
 // import modal from '../utils/modal';
-// 
-// export default Ember.ObjectController.extend({
+//
+// export default EmberObjectController.extend({
 //   needs: 'board',
 //   actions: {
 //     close: function() {

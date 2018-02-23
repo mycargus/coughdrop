@@ -1,6 +1,7 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   actions: {
     check_code: function() {
       if(this.get('redeem_code')) {

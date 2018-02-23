@@ -11,7 +11,7 @@ describe('UserLogsController', 'controller:user-logs', function() {
 // import Ember from 'ember';
 // import modal from '../../utils/modal';
 // 
-// export default Ember.ObjectController.extend({
+// export default EmberObjectController.extend({
 //   queryParams: ['type'],
 //   type: null,
 //   title: function() {
@@ -51,7 +51,7 @@ describe('UserLogsController', 'controller:user-logs', function() {
 //       }
 //       this.store.find('log', args).then(function(list) {
 //         controller.set('logs', list.get('content'));
-//         var meta = Ember.$.extend({}, list.meta);
+//         var meta = $.extend({}, list.meta);
 //         controller.set('meta', meta);
 //         // weird things happen if we try to observe meta.next_url, it stops
 //         // updating on subsequent requests.. hence this setter.
@@ -63,7 +63,7 @@ describe('UserLogsController', 'controller:user-logs', function() {
 //           if(log && log.get('time_id') && user.get('last_message_read') != log.get('time_id')) {
 //             // TODO: there's a reloadRecord error happening here without the timeout,
 //             // you should probably figure out the root issue
-//             Ember.run.later(function() {
+//             emberRun.later(function() {
 //               user.set('last_message_read', log.get('time_id'));
 //               user.save();
 //             }, 1000);
@@ -82,7 +82,7 @@ describe('UserLogsController', 'controller:user-logs', function() {
 //         var find = this.store.find('log', args);
 //         find.then(function(list) {
 //           _this.set('logs', _this.get('logs').concat(list.get('content')));
-//           var meta = Ember.$.extend({}, list.meta);
+//           var meta = $.extend({}, list.meta);
 //           _this.set('meta', meta);
 //           _this.set('more_available', !!meta.next_url);
 //         }, function() { });

@@ -1,4 +1,7 @@
 import Ember from 'ember';
+import { later as runLater } from '@ember/runloop';
+import RSVP from 'rsvp';
+import $ from 'jquery';
 import DS from 'ember-data';
 import CoughDrop from '../app';
 import i18n from '../utils/i18n';
@@ -9,6 +12,7 @@ import Button from '../utils/button';
 import editManager from '../utils/edit_manager';
 import boundClasses from '../utils/bound_classes';
 import Utils from '../utils/misc';
+import { htmlSafe } from '@ember/string';
 
 CoughDrop.Board = DS.Model.extend({
   didLoad: function() {
@@ -236,7 +240,7 @@ CoughDrop.Board = DS.Model.extend({
     vocalization_locale = vocalization_locale || trans.current_vocalization || this.get('locale') || 'en';
     if(trans.current_label == label_locale && trans.current_vocalization == vocalization_locale) { return buttons; }
     buttons.forEach(function(button) {
-      var b = Ember.$.extend({}, button);
+      var b = $.extend({}, button);
       if(trans[b.id]) {
         if(trans[b.id][label_locale] && trans[b.id][label_locale].label) {
           b.label = trans[b.id][label_locale].label;
@@ -261,12 +265,12 @@ CoughDrop.Board = DS.Model.extend({
   find_content_locally: function() {
     var _this = this;
     var fetch_promise = this.get('fetch_promise');
-    if(this.get('fetched')) { return Ember.RSVP.resolve(); }
+    if(this.get('fetched')) { return RSVP.resolve(); }
     if(fetch_promise) { return fetch_promise; }
 
     if(this.get('no_lookups')) {
       // we don't need to wait on this for an aggressive local load
-      return Ember.RSVP.resolve(true);
+      return RSVP.resolve(true);
     }
 
     var promises = [];
@@ -283,7 +287,7 @@ CoughDrop.Board = DS.Model.extend({
     promises.push(persistence.push_records('image', image_ids));
     promises.push(persistence.push_records('sound', sound_ids));
 
-    fetch_promise = Ember.RSVP.all_wait(promises).then(function() {
+    fetch_promise = RSVP.all_wait(promises).then(function() {
       _this.set('fetched', true);
       fetch_promise = null;
       _this.set('fetch_promise', null);
@@ -305,7 +309,7 @@ CoughDrop.Board = DS.Model.extend({
   }.observes('pending_buttons', 'pending_buttons.[]', 'pending_buttons.@each.content_status'),
   prefetch_linked_boards: function() {
     var boards = this.get('linked_boards');
-    Ember.run.later(function() {
+    runLater(function() {
       var board_ids = [];
       boards.forEach(function(b) { if(b.id) { board_ids.push(b.id); } });
       persistence.push_records('board', board_ids).then(function(boards_hash) {
@@ -475,7 +479,7 @@ CoughDrop.Board = DS.Model.extend({
   },
   add_button: function(button) {
     var buttons = this.get('buttons') || [];
-    var new_button = Ember.$.extend({}, button.raw());
+    var new_button = $.extend({}, button.raw());
     new_button.id = button.get('id');
     var collision = false;
     var max_id = 0;
@@ -502,7 +506,7 @@ CoughDrop.Board = DS.Model.extend({
           }
         }
       }
-      this.set('grid', Ember.$.extend({}, grid));
+      this.set('grid', $.extend({}, grid));
     }
     this.set('buttons', [].concat(buttons));
     return new_button.id;
@@ -517,7 +521,7 @@ CoughDrop.Board = DS.Model.extend({
     // so if any of them are in-memory or in indexeddb, then we need to
     // reload or fetch them remotely to get the latest, updated version,
     // which will include the "my copy" information.
-    CoughDrop.store.peekAll('board').content.mapBy('record').forEach(function(brd) {
+    CoughDrop.store.peekAll('board').map(function(i) { return i; }).forEach(function(brd) {
       if(brd && affected_board_ids && affected_board_ids.indexOf(brd.get('id')) != -1) {
         if(!brd.get('isLoading') && !brd.get('isNew') && !brd.get('isDeleted')) {
           brd.reload(true);
@@ -557,9 +561,9 @@ CoughDrop.Board = DS.Model.extend({
         return _this;
       });
     } else if(url && url.match(/^data/)) {
-      return Ember.RSVP.resolve(this);
+      return RSVP.resolve(this);
     }
-    return Ember.RSVP.reject('no board data url');
+    return RSVP.reject('no board data url');
   },
   checkForDataURLOnChange: function() {
     this.checkForDataURL().then(null, function() { });
@@ -609,16 +613,16 @@ CoughDrop.Board = DS.Model.extend({
   load_button_set: function(force) {
     var _this = this;
     if(this.get('button_set') && !force) {
-      return Ember.RSVP.resolve(this.get('button_set'));
+      return RSVP.resolve(this.get('button_set'));
     }
     if(!this.get('id')) { return; }
     var button_set = CoughDrop.store.peekRecord('buttonset', this.get('id'));
     if(button_set && !force) {
       this.set('button_set', button_set);
-      return Ember.RSVP.resolve(button_set);
+      return RSVP.resolve(button_set);
     } else {
       var valid_button_set = null;
-      var button_sets = CoughDrop.store.peekAll('buttonset').content.mapBy('record').forEach(function(bs) {
+      var button_sets = CoughDrop.store.peekAll('buttonset').map(function(i) { return i; }).forEach(function(bs) {
         if(bs && (bs.get('board_ids') || []).indexOf(_this.get('id')) != -1) {
           if(bs.get('fresh') || !valid_button_set) {
             valid_button_set = bs;
@@ -628,7 +632,7 @@ CoughDrop.Board = DS.Model.extend({
       if(valid_button_set && !force) {
         if(!_this.get('fresh') || valid_button_set.get('fresh')) {
           _this.set('button_set', valid_button_set);
-          return Ember.RSVP.resolve(valid_button_set);
+          return RSVP.resolve(valid_button_set);
         } else{
         }
       }
@@ -666,7 +670,7 @@ CoughDrop.Board = DS.Model.extend({
         for(var kdx = 0; kdx < buttons.length; kdx++) {
           if(buttons[kdx] && buttons[kdx].id && buttons[kdx].id == (grid.order[idx] || [])[jdx]) {
             found = true;
-            var btn = Ember.$.extend({}, buttons[kdx]);
+            var btn = $.extend({}, buttons[kdx]);
             row.push(btn);
           }
         }
@@ -742,11 +746,11 @@ CoughDrop.Board = DS.Model.extend({
         boundClasses.add_classes(button);
         var button_height = starting_height - (extra_pad * 2);
         if(button_height > 30) {
-          button_height = button_height;
+//          button_height = button_height;
         }
         var button_width = starting_width - (extra_pad * 2);
         if(button_width > 30) {
-          button_width = button_width;
+//          button_width = button_width;
         }
         var top = extra_pad + (i * starting_height) + inner_pad;
         var left = extra_pad + (j * starting_width) + inner_pad;
@@ -794,14 +798,14 @@ CoughDrop.Board = DS.Model.extend({
       width: size.width,
       height: size.height,
       revision: _this.get('current_revision'),
-      html: Ember.String.htmlSafe(html)
+      html: htmlSafe(html)
     };
   }
 });
 
 CoughDrop.Board.reopenClass({
   clear_fast_html: function() {
-    CoughDrop.store.peekAll('board').content.mapBy('record').forEach(function(b) {
+    CoughDrop.store.peekAll('board').forEach(function(b) {
       b.set('fast_html', null);
     });
     if(app_state.get('currentBoardState.id') && editManager.controller && !editManager.controller.get('ordered_buttons')) {
@@ -817,18 +821,18 @@ CoughDrop.Board.reopenClass({
     // got persisted to the local store. This method tried to address that
     // shortcoming.
     var _this = this;
-    Ember.run.later(function() {
-      CoughDrop.store.peekAll('board').content.mapBy('record').forEach(function(i) {
+    runLater(function() {
+      CoughDrop.store.peekAll('board').map(function(i) { return i; }).forEach(function(i) {
         if(i) {
           i.checkForDataURL().then(null, function() { });
         }
       });
-      CoughDrop.store.peekAll('image').content.mapBy('record').forEach(function(i) {
+      CoughDrop.store.peekAll('image').map(function(i) { return i; }).forEach(function(i) {
         if(i) {
           i.checkForDataURL().then(null, function() { });
         }
       });
-      CoughDrop.store.peekAll('sound').content.mapBy('record').forEach(function(i) {
+      CoughDrop.store.peekAll('sound').map(function(i) { return i; }).forEach(function(i) {
         if(i) {
           i.checkForDataURL().then(null, function() { });
         }

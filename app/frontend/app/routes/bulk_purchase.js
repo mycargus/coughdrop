@@ -1,7 +1,8 @@
 import Ember from 'ember';
+import Route from '@ember/routing/route';
 import Subscription from '../utils/subscription';
 
-export default Ember.Route.extend({
+export default Route.extend({
   model: function(params) {
     this.set('gift_id', params.id);
   },

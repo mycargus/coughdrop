@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import i18n from '../../utils/i18n';
 import capabilities from '../../utils/capabilities';
 import contentGrabbers from '../../utils/content_grabbers';
@@ -6,7 +7,7 @@ import modal from '../../utils/modal';
 import Utils from '../../utils/misc';
 import CoughDrop from '../../app';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   load_recordings: function() {
     var _this = this;
     _this.set('recordings', {loading: true});

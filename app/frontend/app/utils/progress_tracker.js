@@ -1,8 +1,10 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import { later as runLater } from '@ember/runloop';
 import i18n from './i18n';
 import persistence from './persistence';
 
-var progress_tracker = Ember.Object.extend({
+var progress_tracker = EmberObject.extend({
   success_wait: 2500,
   error_wait: 1500,
   track: function(progress, status_callback, opts) {
@@ -27,7 +29,7 @@ var progress_tracker = Ember.Object.extend({
     }
   },
   run_later: function(_this, cb, delay) {
-    Ember.run.later(_this, cb, delay);
+    runLater(_this, cb, delay);
   },
   check: function(url, status_callback, error_count, track_id, opts) {
     opts = opts || {};

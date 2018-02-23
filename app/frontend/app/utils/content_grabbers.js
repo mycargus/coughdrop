@@ -1,4 +1,9 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import { later as runLater, run } from '@ember/runloop';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import RSVP from 'rsvp';
+import $ from 'jquery';
 import i18n from './i18n';
 import CoughDrop from '../app';
 import editManager from './edit_manager';
@@ -11,7 +16,7 @@ import app_state from './app_state';
 import Utils from './misc';
 import progress_tracker from './progress_tracker';
 
-var contentGrabbers = Ember.Object.extend({
+var contentGrabbers = EmberObject.extend({
   setup: function(button, controller) {
     this.controller = controller;
     pictureGrabber.setup(button, controller);
@@ -36,7 +41,7 @@ var contentGrabbers = Ember.Object.extend({
   },
   save_record: function(object) {
     var _this = this;
-    var promise = new Ember.RSVP.Promise(function(resolve, reject) {
+    var promise = new RSVP.Promise(function(resolve, reject) {
       if((object.get('url') || "").match(/^data:/)) {
         object.set('data_url', object.get('url'));
         object.set('url', null);
@@ -51,7 +56,7 @@ var contentGrabbers = Ember.Object.extend({
           var meta = persistence.meta(object.constructor.modelName, null); //object.store.metadataFor(object.constructor.modelName);
           if(!meta || !meta.remote_upload) { return reject({error: 'remote_upload parameters required'}); }
           // upload to S3
-          var get_data_url = Ember.RSVP.resolve(object.get('data_url'));
+          var get_data_url = RSVP.resolve(object.get('data_url'));
           if(!object.get('data_url') && original_url) {
             get_data_url = persistence.ajax('/api/v1/search/proxy?url=' + encodeURIComponent(original_url), { type: 'GET'
             }).then(function(data) {
@@ -84,7 +89,7 @@ var contentGrabbers = Ember.Object.extend({
   },
   upload_to_remote: function(params) {
     var _this = this;
-    var promise = new Ember.RSVP.Promise(function(resolve, reject) {
+    var promise = new RSVP.Promise(function(resolve, reject) {
       var fd = new FormData();
       for(var idx in params.upload_params) {
         fd.append(idx, params.upload_params[idx]);
@@ -138,7 +143,7 @@ var contentGrabbers = Ember.Object.extend({
 
     var progress = upload.then(function(data) {
       if(data.progress) {
-        return new Ember.RSVP.Promise(function(resolve, reject) {
+        return new RSVP.Promise(function(resolve, reject) {
           progress_tracker.track(data.progress, function(event) {
             progressor.set('progress', event);
             if(event.status == 'errored') {
@@ -151,7 +156,7 @@ var contentGrabbers = Ember.Object.extend({
           });
         });
       } else {
-        return Ember.RSVP.reject({error: 'not confirmed'});
+        return RSVP.reject({error: 'not confirmed'});
       }
     });
 
@@ -176,7 +181,7 @@ var contentGrabbers = Ember.Object.extend({
     var state = type == 'image' ? 'picture' : 'sound';
     this.board_controller.send('buttonSelect', id, state);
     var _this = this;
-    Ember.run.later(function() {
+    runLater(function() {
       _this.check_for_dropped_file();
     }, 100);
   },
@@ -274,7 +279,7 @@ var contentGrabbers = Ember.Object.extend({
       var promises = [];
       var results = {};
       var lookup_promise = function(type, item) {
-        return new Ember.RSVP.Promise(function(res, rej) {
+        return new RSVP.Promise(function(res, rej) {
           item.getAsString(function(str) {
             results[type] = str;
             res();
@@ -291,7 +296,7 @@ var contentGrabbers = Ember.Object.extend({
           promises.push(lookup_promise('html', dataTransfer.items[idx]));
         }
       }
-      Ember.RSVP.all_wait(promises).then(function(res) {
+      RSVP.all_wait(promises).then(function(res) {
         if(results.html) {
           var pieces = results.html.split(/<\s*img/);
           if(pieces.length > 1) {
@@ -313,11 +318,11 @@ var contentGrabbers = Ember.Object.extend({
     }
   },
   read_file: function(file, type) {
-    return new Ember.RSVP.Promise(function(resolve, reject) {
+    return new RSVP.Promise(function(resolve, reject) {
       var reader = new FileReader();
       var _this = this;
       reader.onloadend = function(data) {
-        Ember.run(function() {
+        run(function() {
           if(type == 'blob') {
             var blob = new Blob([new Uint8Array(data.target.result)], { type: file.type });
             resolve(blob);
@@ -345,7 +350,7 @@ var contentGrabbers = Ember.Object.extend({
     }, function() {
       pictureGrabber.edited_image_data = null;
       pictureGrabber.save_pending();
-      return Ember.RSVP.resolve({ready: true});
+      return RSVP.resolve({ready: true});
     });
   },
   capture_types: function() {
@@ -398,12 +403,12 @@ var contentGrabbers = Ember.Object.extend({
     'video/x-ms-wmv': '.wmv'
   }
 }).create();
-var pictureGrabber = Ember.Object.extend({
+var pictureGrabber = EmberObject.extend({
   setup: function(button, controller) {
     this.controller = controller;
     this.button = button;
     var _this = this;
-    Ember.run.later(function() {
+    runLater(function() {
       button.findContentLocally().then(function() {
         var image = button.get('image');
         if(image) {
@@ -416,7 +421,7 @@ var pictureGrabber = Ember.Object.extend({
   default_size: 300,
   size_image: function(data_url, stored_size) {
     var _this = this;
-    return new Ember.RSVP.Promise(function(resolve, reject) {
+    return new RSVP.Promise(function(resolve, reject) {
       if(data_url.match(/^http/)) { return resolve({url: data_url}); }
       else if(data_url.match(/image\/gif/)) { return resolve({url: data_url}); }
       if(!window.scratch_canvas) {
@@ -430,7 +435,7 @@ var pictureGrabber = Ember.Object.extend({
       var result = null;
       var canvas = window.scratch_canvas;
       img.onload = function() {
-        Ember.run(function() {
+        run(function() {
           if(img.width < _this.default_size && img.height < _this.default_size && data_url.match(/^data/)) {
             return resolve({url: data_url, width: img.width, height: img.height});
           }
@@ -461,7 +466,7 @@ var pictureGrabber = Ember.Object.extend({
       };
       img.onready = img.onload;
       img.onerror = function() {
-        Ember.run(function() {
+        run(function() {
           resolve({url: data_url});
         });
       };
@@ -486,7 +491,7 @@ var pictureGrabber = Ember.Object.extend({
     var reader = null;
     if(file && file.localURL) {
       // large data URLs seem to barf on iOS when drawing to a canvas or as an img src
-      reader = Ember.RSVP.resolve({target: {result: file.localURL}});
+      reader = RSVP.resolve({target: {result: file.localURL}});
     } else {
       reader = contentGrabbers.read_file(file);
     }
@@ -502,11 +507,11 @@ var pictureGrabber = Ember.Object.extend({
 
     var force_data_url = sizer.then(function(res) {
       if(res.url && res.url.match(/^data/)) {
-        return Ember.RSVP.resolve(res);
+        return RSVP.resolve(res);
       } else {
         return contentGrabbers.read_file(file).then(function(data) {
           res.url = data.target.result;
-          return Ember.RSVP.resolve(res);
+          return RSVP.resolve(res);
         });
       }
     });
@@ -566,8 +571,8 @@ var pictureGrabber = Ember.Object.extend({
       });
     }
     this.controller.set('webcam', null);
-    Ember.$('#webcam_video').attr('src', '');
-    Ember.$('#image_upload').val('');
+    $('#webcam_video').attr('src', '');
+    $('#image_upload').val('');
   },
   clear_image_preview: function() {
     this.controller.set('image_preview', null);
@@ -683,7 +688,7 @@ var pictureGrabber = Ember.Object.extend({
         return _this.open_symbols_search(text);
       } else {
         message = message || {error: 'invalid search'};
-        return Ember.RSVP.reject(message.error);
+        return RSVP.reject(message.error);
       }
     });
   },
@@ -696,12 +701,12 @@ var pictureGrabber = Ember.Object.extend({
       if(message && message.error == "not online") {
         error = i18n.t('not_online_image_search', "Cannot search, please connect to the Internet first.");
       }
-      return Ember.RSVP.reject(error);
+      return RSVP.reject(error);
     });
   },
   flickr_search: function(text) {
     if(!window.flickr_key) {
-      return Ember.RSVP.reject(i18n.t('flickr_not_configured', "Flickr hasn't been properly configured for CoughDrop"));
+      return RSVP.reject(i18n.t('flickr_not_configured', "Flickr hasn't been properly configured for CoughDrop"));
     }
     // https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=5b397c920edee06dafeb630957e0a99e&text=cat&safe_search=2&media=photos&extras=license%2C+owner_name&format=json&nojsoncallback=1
     return persistence.ajax('https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=' + window.flickr_key + '&text=' + text + '&safe_search=1&media=photos&license=2%2C3%2C4%2C5%2C6%2C7&extras=license%2C+owner_name&format=json&nojsoncallback=1', { type: 'GET'
@@ -766,7 +771,7 @@ var pictureGrabber = Ember.Object.extend({
   },
   pixabay_search: function(text, filter) {
     if(!window.pixabay_key) {
-      return Ember.RSVP.reject(i18n.t('pixabay_not_configured', "Pixabay hasn't been properly configured for CoughDrop"));
+      return RSVP.reject(i18n.t('pixabay_not_configured', "Pixabay hasn't been properly configured for CoughDrop"));
     }
     var type = 'photo';
     if(filter == 'vector') { type = 'vector'; }
@@ -842,7 +847,7 @@ var pictureGrabber = Ember.Object.extend({
     var preview = this.controller.get('image_preview');
     var _this = this;
 
-    (new Ember.RSVP.Promise(function(resolve, reject) {
+    (new RSVP.Promise(function(resolve, reject) {
       if(preview.url.match(/^http/)) {
         persistence.ajax('/api/v1/search/proxy?url=' + encodeURIComponent(preview.url), { type: 'GET'
         }).then(function(data) {
@@ -900,7 +905,7 @@ var pictureGrabber = Ember.Object.extend({
       content_type = data_url.split(/;/)[0].split(/:/)[1];
     }
 
-    var image_load = new Ember.RSVP.Promise(function(resolve, reject) {
+    var image_load = new RSVP.Promise(function(resolve, reject) {
       var i = new window.Image();
       i.onload = function() {
         resolve({
@@ -932,10 +937,10 @@ var pictureGrabber = Ember.Object.extend({
   save_image_preview: function(preview, force_content_type) {
     var _this = this;
     if(preview.url.match(/^data:/)) {
-      Ember.set(preview, 'content_type', force_content_type || preview.content_type || preview.url.split(/;/)[0].split(/:/)[1]);
+      emberSet(preview, 'content_type', force_content_type || preview.content_type || preview.url.split(/;/)[0].split(/:/)[1]);
     }
     if(!preview.license || !preview.license.copyright_notice_url) {
-      Ember.set(preview, 'license', preview.license || {});
+      emberSet(preview, 'license', preview.license || {});
       var license_url = null;
       var licenses = CoughDrop.licenseOptions;
       for(var idx = 0; idx < licenses.length; idx++) {
@@ -943,9 +948,9 @@ var pictureGrabber = Ember.Object.extend({
           license_url = licenses[idx].url;
         }
       }
-      Ember.set(preview, 'license.copyright_notice_url', license_url);
+      emberSet(preview, 'license.copyright_notice_url', license_url);
     }
-    var image_load = new Ember.RSVP.Promise(function(resolve, reject) {
+    var image_load = new RSVP.Promise(function(resolve, reject) {
       var i = new window.Image();
       i.onload = function() {
         resolve({
@@ -995,7 +1000,7 @@ var pictureGrabber = Ember.Object.extend({
         }
         return;
       } else {
-        Ember.set(preview, 'url', url);
+        emberSet(preview, 'url', url);
       }
     }
     var save_image = this.save_image_preview(preview, force_content_type);
@@ -1027,7 +1032,7 @@ var pictureGrabber = Ember.Object.extend({
     } else if(this.controller.get('model.image')) {
       var license = this.controller.get('model.image.license');
       var original = this.controller.get('original_image_license') || {};
-      Ember.set(license, 'type', license.type || original.type);
+      emberSet(license, 'type', license.type || original.type);
       if(license.type != original.type || license.author_name != original.author_name || license.author_url != original.author_url) {
         this.controller.set('model.pending_image', false);
         this.controller.get('model.image').save().then(function() {
@@ -1063,7 +1068,7 @@ var pictureGrabber = Ember.Object.extend({
     var enumerator = window.enumerateMediaDevices || (window.navigator && window.navigator.mediaDevices && window.navigator.mediaDevices.enumerateDevices);
     if(!enumerator && window.MediaStreamTrack && window.MediaStreamTrack.getSources) {
       enumerator = function() {
-        return new Ember.RSVP.Promise(function(resolve, reject) {
+        return new RSVP.Promise(function(resolve, reject) {
           window.MediaStreamTrack.getSources(function(sources) {
             resolve(sources);
           });
@@ -1194,7 +1199,7 @@ var pictureGrabber = Ember.Object.extend({
   }
 }).create();
 
-var videoGrabber = Ember.Object.extend({
+var videoGrabber = EmberObject.extend({
   setup: function(controller) {
     var _this = this;
     this.controller = controller;
@@ -1214,7 +1219,7 @@ var videoGrabber = Ember.Object.extend({
     this.toggle_recording_video('stop');
   },
   clear_video_work: function() {
-    Ember.$('#video_upload').val('');
+    $('#video_upload').val('');
     if(this.controller) {
       this.controller.set('video_preview', null);
     }
@@ -1241,7 +1246,7 @@ var videoGrabber = Ember.Object.extend({
     var _this = this;
     var reader = contentGrabbers.read_file(file);
     reader.then(function(data) {
-      contentGrabbers.read_file(file, 'blob').then(null, function() { return Ember.RSVP.resolve(null); }).then(function(blob) {
+      contentGrabbers.read_file(file, 'blob').then(null, function() { return RSVP.resolve(null); }).then(function(blob) {
         var res = {
           local_url: file.localURL,
           url: data.target.result,
@@ -1426,7 +1431,7 @@ var videoGrabber = Ember.Object.extend({
     var enumerator = window.enumerateMediaDevices || (window.navigator && window.navigator.mediaDevices && window.navigator.mediaDevices.enumerateDevices);
     if(!enumerator && window.MediaStreamTrack && window.MediaStreamTrack.getSources) {
       enumerator = function() {
-        return new Ember.RSVP.Promise(function(resolve, reject) {
+        return new RSVP.Promise(function(resolve, reject) {
           window.MediaStreamTrack.getSources(function(sources) {
             resolve(sources);
           });
@@ -1472,7 +1477,7 @@ var videoGrabber = Ember.Object.extend({
     }
   },
   measure_duration: function(url, fallback_duration) {
-    return new Ember.RSVP.Promise(function(resolve, reject) {
+    return new RSVP.Promise(function(resolve, reject) {
       var a = document.createElement('video');
       var done = false;
       a.preload = 'metadata';
@@ -1490,9 +1495,9 @@ var videoGrabber = Ember.Object.extend({
         done = true;
         reject({error: "video calculation failed"});
       };
-      Ember.run.later(function() {
+      runLater(function() {
         if(!done) {
-          var e = Ember.$("#video_elem")[0];
+          var e = $("#video_elem")[0];
           var duration = (e && e.duration) || 10;
           resolve({
             duration: duration
@@ -1523,7 +1528,7 @@ var videoGrabber = Ember.Object.extend({
         }
       }
       preview_license.copyright_notice_url = license_url;
-      Ember.set(preview, 'license', preview_license);
+      emberSet(preview, 'license', preview_license);
     }
 
     var video_load = _this.measure_duration(preview.local_url || preview.url, preview.duration);
@@ -1573,13 +1578,13 @@ var videoGrabber = Ember.Object.extend({
   },
 }).create();
 
-var soundGrabber = Ember.Object.extend({
+var soundGrabber = EmberObject.extend({
   setup: function(button, controller) {
     this.controller = controller;
     var _this = this;
     this.button = button;
     if(button) {
-      Ember.run.later(function() {
+      runLater(function() {
         button.findContentLocally().then(function() {
           var sound = button.get('sound');
           if(sound) {
@@ -1609,7 +1614,7 @@ var soundGrabber = Ember.Object.extend({
     this.clear();
     this.controller.set('sound_recording', null);
     this.controller.set('browse_audio', null);
-    Ember.$('#sound_upload').val('');
+    $('#sound_upload').val('');
   },
   default_sound_preview_license: function() {
     var user = app_state.get('currentUser');
@@ -1671,7 +1676,7 @@ var soundGrabber = Ember.Object.extend({
         });
       });
     } else if(type == 'zip') {
-      var progressor = Ember.Object.create();
+      var progressor = EmberObject.create();
       modal.open('importing-recordings', progressor);
       // do the hard stuff
       var progress = contentGrabbers.upload_for_processing(file, '/api/v1/sounds/imports', {}, progressor);
@@ -1749,7 +1754,7 @@ var soundGrabber = Ember.Object.extend({
           var context = new window.AudioContext();
           var source = context.createMediaStreamSource(stream);
           var analyser = context.createAnalyser();
-          var ctx = Ember.$('#sound_levels')[0].getContext('2d');
+          var ctx = $('#sound_levels')[0].getContext('2d');
           analyser.smoothingTimeConstant = 0.3;
           analyser.fftSize = 1024;
           var js = context.createScriptProcessor(2048, 1, 1);
@@ -1824,7 +1829,7 @@ var soundGrabber = Ember.Object.extend({
       if(Ember.testing) {
         start();
       } else {
-        Ember.run.later(start, 500);
+        runLater(start, 500);
       }
     } else if(action == 'stop' && mr && mr.state == 'recording') {
       this.controller.set('sound_recording.recording', false);
@@ -1852,10 +1857,10 @@ var soundGrabber = Ember.Object.extend({
         }
       }
       preview_license.copyright_notice_url = license_url;
-      Ember.set(preview, 'license', preview_license);
+      emberSet(preview, 'license', preview_license);
     }
 
-    var sound_load = new Ember.RSVP.Promise(function(resolve, reject) {
+    var sound_load = new RSVP.Promise(function(resolve, reject) {
       var a = new window.Audio();
       a.ondurationchange = function() {
         resolve({
@@ -1959,7 +1964,7 @@ var soundGrabber = Ember.Object.extend({
   }
 }).create();
 
-var boardGrabber = Ember.Object.extend({
+var boardGrabber = EmberObject.extend({
   setup: function(button, controller) {
     this.controller = controller;
     this.button = button;
@@ -1994,13 +1999,13 @@ var boardGrabber = Ember.Object.extend({
     }
     var url_prefix = new RegExp("^" + location.protocol + "//" + location.host + "/");
     var key = (this.controller.get('linkedBoardName') || "").replace(url_prefix, "");
-    var keyed_find = Ember.RSVP.resolve([]);
+    var keyed_find = RSVP.resolve([]);
     if(key.match(/^[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+|\d+_\d+$/) || key) {
       // right now this is always doing a double-lookup, first for an exact
       // match by key and then by query string. It'd be better if it were only
       // one lookup..
-      var keyed_find_args = Ember.$.extend({}, find_args, {key: key});
-      keyed_find = CoughDrop.store.query('board', keyed_find_args).then(null, function() { return Ember.RSVP.resolve([]); });
+      var keyed_find_args = $.extend({}, find_args, {key: key});
+      keyed_find = CoughDrop.store.query('board', keyed_find_args).then(null, function() { return RSVP.resolve([]); });
     }
     keyed_find.then(function(data) {
       var board = data.find(function() { return true; });
@@ -2144,7 +2149,7 @@ var boardGrabber = Ember.Object.extend({
     }
     var generate_data_uri = contentGrabbers.read_file(board);
 
-    var progressor = Ember.Object.create();
+    var progressor = EmberObject.create();
     var error = modal.error;
 
     modal.open('importing-boards', progressor);
@@ -2178,7 +2183,7 @@ var boardGrabber = Ember.Object.extend({
   }
 }).create();
 
-var linkGrabber = Ember.Object.extend({
+var linkGrabber = EmberObject.extend({
   setup: function(button, controller) {
     this.controller = controller;
     this.button = button;
@@ -2203,7 +2208,7 @@ var linkGrabber = Ember.Object.extend({
         _this.controller.set('foundApps.results', []);
       });
     } else {
-      return Ember.RSVP.resolve([]);
+      return RSVP.resolve([]);
     }
   },
   pick_app: function(app) {
@@ -2234,7 +2239,7 @@ document.addEventListener('dragover', function(event) {
     event.preventDefault();
   }
 });
-Ember.$(document).on('change', '#image_upload,#sound_upload,#board_upload,#avatar_upload,#video_upload,#badge_upload,#recording_upload', function(event) {
+$(document).on('change', '#image_upload,#sound_upload,#board_upload,#avatar_upload,#video_upload,#badge_upload,#recording_upload', function(event) {
   var type = 'image';
   if(event.target.id == 'sound_upload') { type = 'sound'; }
   if(event.target.id == 'video_upload') { type = 'video'; }
@@ -2265,23 +2270,23 @@ Ember.$(document).on('change', '#image_upload,#sound_upload,#board_upload,#avata
 }).on('drop', function(event) {
   event.preventDefault();
   event.stopPropagation();
-  if(Ember.$(event.target).closest('.button').length > 0) {
-    Ember.$('.button.drop_target').removeClass('drop_target');
-    var id = Ember.$(this).attr('data-id');
+  if($(event.target).closest('.button').length > 0) {
+    $('.button.drop_target').removeClass('drop_target');
+    var id = $(this).attr('data-id');
     contentGrabbers.content_dropped(id, event.dataTransfer);
   } else if(document.getElementById('find_picture')) {
     if(pictureGrabber.controller.get('model.id')) {
       contentGrabbers.content_dropped(pictureGrabber.controller.get('model.id'), event.dataTransfer);
     }
-  } else if(Ember.$(event.target).closest('.board_drop').length > 0) {
+  } else if($(event.target).closest('.board_drop').length > 0) {
     boardGrabber.files_dropped(event.dataTransfer.files);
   }
   event.stopPropagation();
 }).on('keydown', '.form-horizontal', function(event) {
   if(event.keyCode == 32 && event.target.tagName == 'BUTTON') {
-    if(Ember.$(event.target).closest("#button_settings").length > 0) {
-      if(Ember.$("#recording_status").length > 0) {
-        Ember.$("#recording_status").focus();
+    if($(event.target).closest("#button_settings").length > 0) {
+      if($("#recording_status").length > 0) {
+        $("#recording_status").focus();
         event.preventDefault();
         soundGrabber.toggle_recording_sound();
       }

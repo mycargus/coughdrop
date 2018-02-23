@@ -1,16 +1,17 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import persistence from '../../utils/persistence';
 import modal from '../../utils/modal';
 import i18n from '../../utils/i18n';
 import app_state from '../../utils/app_state';
 import CoughDrop from '../../app';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   load_goals: function() {
     var _this = this;
     _this.set('goals', {loading: true});
     CoughDrop.store.query('goal', {template_header: true}).then(function(data) {
-      _this.set('goals', data.content.mapBy('record'));
+      _this.set('goals', data.map(function(i) { return i; }));
       _this.set('goals.meta', data.meta);
     }, function(err) {
       _this.set('goals', {error: true});
@@ -18,7 +19,7 @@ export default Ember.Controller.extend({
     if(app_state.get('currentUser.permissions.admin_support_actions')) {
       _this.set('global_goals', {loading: true});
       CoughDrop.store.query('goal', {global: true}).then(function(data) {
-        _this.set('global_goals', data.content.mapBy('record'));
+        _this.set('global_goals', data.map(function(i) { return i; }));
         _this.set('global_goals.meta', data.meta);
       }, function(err) {
         _this.set('global_goals', {error: true});

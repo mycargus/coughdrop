@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import app_state from '../utils/app_state';
+import { htmlSafe } from '@ember/string';
 
 export default {
   name: 'color_keys',
@@ -10,7 +11,7 @@ export default {
         var border = fill.darken(30);
         r.border = border.toHexString();
       }
-      r.style = new Ember.String.htmlSafe("border-color: " + r.border + "; background: " + r.fill + ";");
+      r.style = htmlSafe("border-color: " + r.border + "; background: " + r.fill + ";");
     });
     app_state.set('colored_keys', true);
   }

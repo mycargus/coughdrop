@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import RSVP from 'rsvp';
 import CoughDrop from '../../app';
 import {context, describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub} from './jasmine';
 import app_state from '../../utils/app_state';
@@ -10,7 +12,11 @@ import session from '../../utils/session';
 import buttonTracker from '../../utils/raw_events';
 import ApplicationAdapter from 'frontend/adapters/application';
 import startApp from '../helpers/start-app';
-
+import { run as emberRun } from '@ember/runloop';
+import $ from 'jquery';
+import TestAdapter from '@ember/test/adapter';
+import { inspect } from '@ember/debug';
+import {set as emberSet, get as emberGet} from '@ember/object';
 
 window.user_preferences = {"device":{"voice":{"pitch":1,"volume":1},"button_spacing":"small","button_border":"small","button_text":"medium","vocalization_height":"small"},"any_user":{"activation_location":"end","auto_home_return":true,"vocalize_buttons":true,"confirm_external_links":true,"clear_on_vocalize":true,"sharing":true,"board_jump_delay":500},"authenticated_user":{"long_press_edit":true,"require_speak_mode_pin":false,"logging":false,"geo_logging":false,"role":"communicator","auto_open_speak_mode":true}};
 
@@ -19,7 +25,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1,"volume":1},"button_spac
   @namespace Ember.Test
   v 0.1
 */
-Ember.Test.JasmineAdapter = Ember.Test.Adapter.extend({
+Ember.Test.JasmineAdapter = TestAdapter.extend({
   asyncRunning: false,
 
   asyncStart: function() {
@@ -37,7 +43,7 @@ Ember.Test.JasmineAdapter = Ember.Test.Adapter.extend({
 
   exception: function(error) {
     if(error) { debugger; }
-    expect(Ember.inspect(error)).toBeFalsy();
+    expect(inspect(error)).toBeFalsy();
   }
 });
 
@@ -194,7 +200,7 @@ var fake_dbman = function() {
 function fakeAudio() {
   var listeners = {};
   var triggers = [];
-  return Ember.Object.extend({
+  return EmberObject.extend({
     addEventListener: function(event, callback) {
       this.listenersAdded = true;
       listeners[event] = listeners[event] || [];
@@ -223,7 +229,7 @@ function fakeAudio() {
 }
 
 function fakeRecorder() {
-  return Ember.Object.extend({
+  return EmberObject.extend({
     stop: function() {
       this.stopped = true;
     },
@@ -233,7 +239,7 @@ function fakeRecorder() {
   }).create();
 }
 function fakeMediaRecorder(stream, options) {
-  return Ember.Object.extend({
+  return EmberObject.extend({
     addEventListener: function(type, callback) {
       this.listeners = this.listeners || {};
       this.listeners[type] = this.listeners[type] || [];
@@ -269,13 +275,13 @@ function db_wait(callback) {
   });
   waitsFor(function() { return ready && coughDropExtras.ready; });
   runs(function() {
-    Ember.run(_this, callback);
+    emberRun(_this, callback);
   });
 }
 
 function queue_promise(promise) {
   var finished = false;
-  var defer = Ember.RSVP.defer();
+  var defer = RSVP.defer();
   promise.then(function(res) {
     defer.resolve(res);
     finished = true;
@@ -289,23 +295,23 @@ function queue_promise(promise) {
   return defer.promise;
 }
 function wait(callback) {
-  Ember.run.later(callback, 10);
+  emberRun.later(callback, 10);
 }
 
 function easyPromise() {
   var res = null, rej = null;
-  var promise = new Ember.RSVP.Promise(function(resolve, reject) {
+  var promise = new RSVP.Promise(function(resolve, reject) {
     res = resolve;
     rej = reject;
   });
   promise.resolve = function(data) {
-    Ember.run(function() {
+    emberRun(function() {
       promise.resolved = true; res(data);
     });
   };
   // TODO: default handler for reject trigger an exception, which is bad
   promise.reject = function() {
-    Ember.run(function() {
+    emberRun(function() {
       promise.rejected = true;
     });
   };
@@ -317,7 +323,7 @@ ApplicationAdapter.reopen({
     options = options || {};
     options.type = type;
     options.url = url;
-    return Ember.$.ajax(options);
+    return $.ajax(options);
   },
 //   findRecord: function(store, type, id, snapshot) {
 //     return this._super.apply(this, arguments);
@@ -326,7 +332,7 @@ ApplicationAdapter.reopen({
     if(queryLog.real_lookup) {
       return this._super.apply(this, arguments);
     }
-    var nothing = Ember.RSVP.reject('');
+    var nothing = RSVP.reject('');
     return queryLog.respondAndLog({
       method: 'GET',
       lookup: 'find',
@@ -339,7 +345,7 @@ ApplicationAdapter.reopen({
     if(queryLog.real_lookup) {
       return this._super.apply(this, arguments);
     }
-    var nothing = Ember.RSVP.reject('');
+    var nothing = RSVP.reject('');
     return queryLog.respondAndLog({
       method: 'POST',
       lookup: 'create',
@@ -352,7 +358,7 @@ ApplicationAdapter.reopen({
     if(queryLog.real_lookup) {
       return this._super.apply(this, arguments);
     }
-    var nothing = Ember.RSVP.reject('');
+    var nothing = RSVP.reject('');
     return queryLog.respondAndLog({
       method: 'PUT',
       lookup: 'update',
@@ -379,7 +385,7 @@ ApplicationAdapter.reopen({
     }
     var res = {};
     res[type.typeKey] = [];
-    var nothing = Ember.RSVP.resolve(res);
+    var nothing = RSVP.resolve(res);
     return queryLog.respondAndLog({
       method: 'GET',
       lookup: 'query',
@@ -424,7 +430,7 @@ afterEach(function() {
   }
   queryLog.fixtures = [];
   queryLog.real_lookup = false;
-  Ember.$.ajax.metas = [];
+  $.ajax.metas = [];
   buttonTracker.scanning_enabled = false;
   var ready = false;
   setTimeout(function() {
@@ -435,14 +441,14 @@ afterEach(function() {
   });
   runs(function() {
     if(App && App.destroy) {
-      Ember.run(App, App.destroy);
+      emberRun(App, App.destroy);
     }
   });
 });
 
 afterEach(function() {
   stub.stubs.reverse().forEach(function(list) {
-    Ember.set(list[0], list[1], list[2]);
+    emberSet(list[0], list[1], list[2]);
   });
   stub.stubs = [];
 });

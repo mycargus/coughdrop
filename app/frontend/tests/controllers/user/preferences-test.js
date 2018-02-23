@@ -14,7 +14,7 @@ describe('UserPreferencesController', 'controller:user-preferences', function() 
 // import utterance from '../../utils/utterance';
 // import modal from '../../utils/modal';
 // 
-// export default Ember.ObjectController.extend({
+// export default EmberObjectController.extend({
 //   buttonSpacingList: [
 //     {name: i18n.t('extra_small', "Extra-Small (5px)"), id: "extra-small"},
 //     {name: i18n.t('small', "Small (10px)"), id: "small"},

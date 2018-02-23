@@ -1,8 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { queryLog } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import stashes from '../../utils/_stashes';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 import CoughDrop from 'frontend/app';
+import { run as emberRun } from '@ember/runloop';
+import {set as emberSet, get as emberGet} from '@ember/object';
 
 var App;
 describe('stashes', function() {
@@ -10,7 +14,7 @@ describe('stashes', function() {
     window.localStorage.root_board_state = null;
       stashes.orientation = null;
       stashes.volume = null;
-      Ember.set(stashes.geo, 'latest', null);
+      emberSet(stashes.geo, 'latest', null);
       stashes.ambient_light = null;
       stashes.screen_brightness = null;
       stashes.set('referenced_user_id', null);
@@ -223,12 +227,12 @@ describe('stashes', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'log',
-        response: Ember.RSVP.resolve({log: {id: '134'}}),
+        response: RSVP.resolve({log: {id: '134'}}),
         compare: function(object) {
           return object.get('events').length == 2;
         }
       });
-      CoughDrop.session = Ember.Object.create({'isAuthenticated': true});
+      CoughDrop.session = EmberObject.create({'isAuthenticated': true});
       var logs = queryLog.length;
       expect(stashes.get('usage_log').length).toEqual(1);
 
@@ -254,12 +258,12 @@ describe('stashes', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'log',
-        response: Ember.RSVP.reject(''),
+        response: RSVP.reject(''),
         compare: function(object) {
           return object.get('events').length == 2;
         }
       });
-      CoughDrop.session = Ember.Object.create({'user_name': null, isAuthenticated: false});
+      CoughDrop.session = EmberObject.create({'user_name': null, isAuthenticated: false});
       var logs = queryLog.length;
       stashes.log({action: 'jump'});
       expect(stashes.get('usage_log').length).toEqual(2);
@@ -275,12 +279,12 @@ describe('stashes', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'log',
-        response: Ember.RSVP.reject(''),
+        response: RSVP.reject(''),
         compare: function(object) {
           return object.get('events').length == 2;
         }
       });
-      CoughDrop.session = Ember.Object.create({'user_name': 'bob', 'isAuthenticated': true});
+      CoughDrop.session = EmberObject.create({'user_name': 'bob', 'isAuthenticated': true});
       var logs = queryLog.length;
       expect(stashes.get('usage_log').length).toEqual(1);
       stashes.log({action: 'jump'});
@@ -308,12 +312,12 @@ describe('stashes', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'log',
-        response: Ember.RSVP.resolve({log: {id: 123}}),
+        response: RSVP.resolve({log: {id: 123}}),
         compare: function(object) {
           return object.get('events').length == 2;
         }
       });
-      CoughDrop.session = Ember.Object.create({'user_name': 'bob', 'isAuthenticated': true});
+      CoughDrop.session = EmberObject.create({'user_name': 'bob', 'isAuthenticated': true});
       var logs = queryLog.length;
       expect(stashes.get('usage_log').length).toEqual(1);
       stashes.log({action: 'jump'});
@@ -339,12 +343,12 @@ describe('stashes', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'log',
-        response: Ember.RSVP.reject(''),
+        response: RSVP.reject(''),
         compare: function(object) {
           return object.get('events').length == 2;
         }
       });
-      CoughDrop.session = Ember.Object.create({'user_name': 'bob', 'isAuthenticated': true});
+      CoughDrop.session = EmberObject.create({'user_name': 'bob', 'isAuthenticated': true});
       var logs = queryLog.length;
       expect(stashes.get('usage_log').length).toEqual(1);
       stashes.log({action: 'jump'});
@@ -375,7 +379,7 @@ describe('stashes', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'log',
-        response: Ember.RSVP.resolve({log: {id: 123}}),
+        response: RSVP.resolve({log: {id: 123}}),
         compare: function(object) {
           if(object.get('events')[0].timestamp === 0) {
             pushes++;
@@ -389,7 +393,7 @@ describe('stashes', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'log',
-        response: Ember.RSVP.resolve({log: {id: 124}}),
+        response: RSVP.resolve({log: {id: 124}}),
         compare: function(object) {
           if(object.get('events')[0].timestamp == 250) {
             pushes++;
@@ -403,7 +407,7 @@ describe('stashes', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'log',
-        response: Ember.RSVP.resolve({log: {id: 125}}),
+        response: RSVP.resolve({log: {id: 125}}),
         compare: function(object) {
           if(object.get('events')[0].timestamp > 500) {
             pushes++;
@@ -414,7 +418,7 @@ describe('stashes', function() {
           return false;
         }
       });
-      CoughDrop.session = Ember.Object.create({'user_name': 'bob', 'isAuthenticated': true});
+      CoughDrop.session = EmberObject.create({'user_name': 'bob', 'isAuthenticated': true});
       var logs = queryLog.length;
       expect(stashes.get('usage_log').length).toEqual(500);
       stashes.log({action: 'jump'});
@@ -441,12 +445,12 @@ describe('stashes', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'log',
-        response: Ember.RSVP.reject(''),
+        response: RSVP.reject(''),
         compare: function(object) {
           return object.get('events').length == 251;
         }
       });
-      CoughDrop.session = Ember.Object.create({'user_name': 'bob', 'isAuthenticated': true});
+      CoughDrop.session = EmberObject.create({'user_name': 'bob', 'isAuthenticated': true});
       var logs = queryLog.length;
       expect(stashes.get('usage_log').length).toEqual(500);
       stashes.log({action: 'jump'});
@@ -483,13 +487,13 @@ describe('stashes', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'log',
-        response: Ember.RSVP.reject(''),
+        response: RSVP.reject(''),
         compare: function(object) {
           attempts++;
           return object.get('events').length == 251;
         }
       });
-      CoughDrop.session = Ember.Object.create({'user_name': 'bob', 'isAuthenticated': true});
+      CoughDrop.session = EmberObject.create({'user_name': 'bob', 'isAuthenticated': true});
       var logs = queryLog.length;
       expect(stashes.get('usage_log').length).toEqual(500);
       stashes.push_log();
@@ -535,7 +539,7 @@ describe('stashes', function() {
         expect(req.method).toEqual('POST');
         expect(req.simple_type).toEqual('log');
         stashes.push_log();
-        Ember.run.later(function() {
+        emberRun.later(function() {
           pushed = true;
         }, 200);
       });
@@ -559,17 +563,17 @@ describe('stashes', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'log',
-        response: Ember.RSVP.resolve({log: {id: 125}}),
+        response: RSVP.resolve({log: {id: 125}}),
         compare: function(object) {
           pushes++;
           return true;
         }
       });
 
-      CoughDrop.session = Ember.Object.create({'user_name': 'bob', 'isAuthenticated': true});
+      CoughDrop.session = EmberObject.create({'user_name': 'bob', 'isAuthenticated': true});
       stashes.push_log();
       var pushed = false;
-      Ember.run.later(function() { pushed = true; }, 200);
+      emberRun.later(function() { pushed = true; }, 200);
       waitsFor(function() { return pushed; });
       runs(function() {
         expect(pushes).toEqual(0);

@@ -1,6 +1,7 @@
 import Ember from 'ember';
+import Route from '@ember/routing/route';
 
-export default Ember.Route.extend({
+export default Route.extend({
   activate: function() {
     this._super();
     window.scrollTo(0, 0);

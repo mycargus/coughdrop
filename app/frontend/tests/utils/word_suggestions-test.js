@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { fakeRecorder, fakeMediaRecorder, fakeCanvas, queryLog, easyPromise, queue_promise } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import CoughDrop from 'frontend/app';
 import app_state from '../../utils/app_state';
 import word_suggestions from '../../utils/word_suggestions';
@@ -14,7 +15,7 @@ describe('word_suggestions', function() {
   });
   describe("lookup", function() {
     it("should suggest words", function() {
-      stub(word_suggestions, 'fallback_url', function() { return Ember.RSVP.reject(); });
+      stub(word_suggestions, 'fallback_url', function() { return RSVP.reject(); });
       word_suggestions.ngrams = {
         "": [['jump', -1.5], ['friend', -1.2], ['fancy', -1.0], ['for', -2.5]]
       };
@@ -27,7 +28,7 @@ describe('word_suggestions', function() {
     });
 
     it('should provide images for words if available', function() {
-      stub(word_suggestions, 'fallback_url', function() { return Ember.RSVP.resolve('data:stuff'); });
+      stub(word_suggestions, 'fallback_url', function() { return RSVP.resolve('data:stuff'); });
       word_suggestions.ngrams = {
         "": [['jump', -1.5], ['friend', -1.2], ['fancy', -1.0], ['for', -2.5]]
       };
@@ -48,7 +49,7 @@ describe('word_suggestions', function() {
     });
 
     it("should suggest even if past a misspelling", function() {
-      stub(word_suggestions, 'fallback_url', function() { return Ember.RSVP.reject(); });
+      stub(word_suggestions, 'fallback_url', function() { return RSVP.reject(); });
       word_suggestions.ngrams = {
         "": [['jump', -1.5], ['friend', -1.2], ['fancy', -1.0], ['for', -2.5]]
       };
@@ -61,7 +62,7 @@ describe('word_suggestions', function() {
     });
 
     it("should not suggest swear words", function() {
-      stub(word_suggestions, 'fallback_url', function() { return Ember.RSVP.reject(); });
+      stub(word_suggestions, 'fallback_url', function() { return RSVP.reject(); });
       word_suggestions.ngrams = {
         "": [['fuck', -1.5], ['friend', -1.2], ['fancy', -1.0], ['for', -2.5]]
       };
@@ -74,7 +75,7 @@ describe('word_suggestions', function() {
     });
 
     it("should set the result's image to the matching button's image if found", function() {
-      stub(word_suggestions, 'fallback_url', function() { return Ember.RSVP.resolve('data:stuff'); });
+      stub(word_suggestions, 'fallback_url', function() { return RSVP.resolve('data:stuff'); });
       word_suggestions.ngrams = {
         "": [['jump', -1.5], ['friend', -1.2], ['fancy', -1.0], ['for', -2.5]]
       };
@@ -84,22 +85,22 @@ describe('word_suggestions', function() {
         find_buttons: function(word, board_id, user, include_home) {
           calls++;
           if(word == 'fancy') {
-            return Ember.RSVP.resolve([
+            return RSVP.resolve([
               {label: 'fancy', image: 'data:fancy'}
             ]);
           } else if(word == 'for') {
-            return Ember.RSVP.resolve([{label: 'ford', image: 'data:ford'}]);
+            return RSVP.resolve([{label: 'ford', image: 'data:ford'}]);
           }
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       };
       stub(CoughDrop.store, 'findRecord', function(type, id) {
         expect(type).toEqual('board');
         expect(id).toEqual('bacon');
-        return Ember.RSVP.resolve({
+        return RSVP.resolve({
           get: function() { return 'bacon'; },
           load_button_set: function() {
-            return Ember.RSVP.resolve(bs);
+            return RSVP.resolve(bs);
           }
         });
       });
@@ -145,7 +146,7 @@ describe('word_suggestions', function() {
       var url = null;
       stub(persistence, 'find_url', function(url) {
         expect(url).toEqual('https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg');
-        return Ember.RSVP.resolve('file://fallback.png');
+        return RSVP.resolve('file://fallback.png');
       });
       word_suggestions.fallback_url().then(function(res) {
         done = true;
@@ -166,7 +167,7 @@ describe('word_suggestions', function() {
       stub(persistence, 'find_url', function(url) {
         looked_up = true;
         expect(url).toEqual('https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg');
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       word_suggestions.fallback_url().then(function(res) {
         done = true;

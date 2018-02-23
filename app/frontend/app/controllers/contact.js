@@ -1,14 +1,15 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import i18n from '../utils/i18n';
 import persistence from '../utils/persistence';
 import app_state from '../utils/app_state';
 import modal from '../utils/modal';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   queryParams: ['to'],
   to: null,
   recipient_list: [
-    {name: i18n.t('general_info', "General Information"), id: "general info"}, 
+    {name: i18n.t('general_info', "General Information"), id: "general info"},
     {name: i18n.t('sales', "Sales"), id: "sales"},
     {name: i18n.t('support', "Technical Support"), id: "technical support"}
   ],
@@ -23,7 +24,7 @@ export default Ember.Controller.extend({
     this.send('reset');
   }.observes('app_state.currentUser'),
   actions: {
-    reset: function() { 
+    reset: function() {
       this.setProperties({
         name: app_state.get('currentUser.name'),
         email: app_state.get('currentUser.email'),

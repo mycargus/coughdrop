@@ -1,4 +1,7 @@
 import Ember from 'ember';
+import { later as runLater } from '@ember/runloop';
+import RSVP from 'rsvp';
+import $ from 'jquery';
 import modal from '../utils/modal';
 import persistence from '../utils/persistence';
 import i18n from '../utils/i18n';
@@ -9,8 +12,8 @@ import editManager from '../utils/edit_manager';
 export default modal.ModalController.extend({
   opening: function() {
     this.set('searchString', '');
-    Ember.run.later(function() {
-      Ember.$("#button_search_string").focus();
+    runLater(function() {
+      $("#button_search_string").focus();
     }, 100);
   },
   search: function() {
@@ -42,7 +45,7 @@ export default modal.ModalController.extend({
                 }));
               }
             });
-            Ember.RSVP.all_wait(promises).then(null, function() { return Ember.RSVP.resolve(); }).then(function() {
+            RSVP.all_wait(promises).then(null, function() { return RSVP.resolve(); }).then(function() {
               _this.set('results', new_results);
               _this.set('loading', false);
             });
@@ -62,7 +65,7 @@ export default modal.ModalController.extend({
   actions: {
     pick_result: function(result) {
       if(result.board_id == editManager.controller.get('model.id')) {
-        var $button = Ember.$(".button[data-id='" + result.id + "']");
+        var $button = $(".button[data-id='" + result.id + "']");
         var _this = this;
         modal.highlight($button).then(function() {
           var button = editManager.find_button(result.id);

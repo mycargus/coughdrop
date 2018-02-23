@@ -1,21 +1,24 @@
 import Ember from 'ember';
+import Component from '@ember/component';
+import { htmlSafe } from '@ember/string';
+import { reads } from '@ember/object/computed';
 
-export default Ember.Component.extend({
+export default Component.extend({
   tagName: 'span',
   content: null,
   prompt: null,
-  action: Ember.K, // action to fire on change
+  action: function() { return this; },
 
-  _selection: Ember.computed.reads('selection'),
+  _selection: reads('selection'),
 
   init: function() {
     this._super(...arguments);
   },
   select_style: function() {
     if(this.get('short')) {
-      return Ember.String.htmlSafe('height: 25px;');
+      return htmlSafe('height: 25px;');
     } else {
-      return Ember.String.htmlSafe('');
+      return htmlSafe('');
     }
   }.property('short'),
 

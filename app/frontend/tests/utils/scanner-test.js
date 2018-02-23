@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { db_wait, fakeAudio } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import scanner from '../../utils/scanner';
 import app_state from '../../utils/app_state';
 import speecher from '../../utils/speecher';
@@ -8,6 +9,8 @@ import frame_listener from '../../utils/frame_listener';
 import modal from '../../utils/modal';
 import buttonTracker from '../../utils/raw_events';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import { run as emberRun } from '@ember/runloop';
 
 describe('scanner', function() {
 
@@ -64,7 +67,7 @@ describe('scanner', function() {
 
     it("should return the DOM button list if frame not enabled", function() {
       stub(frame_listener, 'visible', function() { return false; });
-      stub(editManager, 'controller', Ember.Object.create({
+      stub(editManager, 'controller', EmberObject.create({
         model: {
           grid: {
             rows: 3,
@@ -75,11 +78,11 @@ describe('scanner', function() {
       }));
       stub(editManager, 'find_button', function(id) {
         if(id == 1) {
-          return Ember.Object.create({label: '1'});
+          return EmberObject.create({label: '1'});
         } else if(id == 2) {
-          return Ember.Object.create({vocalization: '2'});
+          return EmberObject.create({vocalization: '2'});
         } else if(id == 3) {
-          return Ember.Object.create({label: '3', sound: 'sound'});
+          return EmberObject.create({label: '3', sound: 'sound'});
         } else {
           return null;
         }
@@ -827,7 +830,7 @@ describe('scanner', function() {
         var interval = {a: 1};
         scanner.interval = interval;
         var passed_interval = null;
-        stub(Ember.run, 'cancel', function(arg) {
+        stub(emberRun, 'cancel', function(arg) {
           passed_interval = passed_interval || arg;
         });
         scanner.reset();
@@ -855,7 +858,7 @@ describe('scanner', function() {
         var interval = {a: 1};
         scanner.interval = interval;
         var passed_interval = null;
-        stub(Ember.run, 'cancel', function(arg) {
+        stub(emberRun, 'cancel', function(arg) {
           passed_interval = arg;
         });
         scanner.stop();
@@ -905,6 +908,10 @@ describe('scanner', function() {
         waitsFor(function() { return called; });
         runs();
       });
+    });
+
+    it("should not start scanning if auto_start is false", function() {
+      expect('test').toEqual('todo');
     });
   });
 
@@ -1001,7 +1008,7 @@ describe('scanner', function() {
       stub(modal, 'highlight_controller', {});
       stub(editManager, 'find_button', function(id) {
         if(id == 'button_id') {
-          return Ember.Object.create({
+          return EmberObject.create({
             image: 'image',
             sound: 'sound'
           });
@@ -1009,7 +1016,7 @@ describe('scanner', function() {
       });
       var picked_button = null;
       stub(app_state, 'controller',
-        Ember.Object.extend({
+        EmberObject.extend({
           activateButton: function(button, opts) {
             picked_button = button;
             expect(opts.image).toEqual('image');
@@ -1050,6 +1057,15 @@ describe('scanner', function() {
       };
       scanner.pick();
       expect(target).toEqual({target: true});
+      expect('ignore_until').toEqual('to be set');
+    });
+
+    it("should call 'next' if not yet scanning and auto_start is disabled", function() {
+      expect('test').toEqual('todo');
+    });
+
+    it("should debounce correctly", function() {
+      expect('test').toEqual('todo');
     });
   });
 
@@ -1060,7 +1076,7 @@ describe('scanner', function() {
         scanner.elements = [{}, {}];
         scanner.interval = interval;
         var passed_interval = null;
-        stub(Ember.run, 'cancel', function(arg) {
+        stub(emberRun, 'cancel', function(arg) {
           passed_interval = arg;
         });
         stub(scanner, 'next_element', function() { });
@@ -1068,6 +1084,7 @@ describe('scanner', function() {
         waitsFor(function() { return passed_interval; });
         runs(function() {
           expect(passed_interval).toEqual(interval);
+          expect('ignore_until').toEqual('to be set');
         });
       });
     });
@@ -1082,6 +1099,10 @@ describe('scanner', function() {
         scanner.next();
         expect(scanner.element_index).toEqual(0);
       });
+    });
+
+    it("should debounce correctly", function() {
+      expect('test').toEqual('todo');
     });
   });
 
@@ -1099,7 +1120,7 @@ describe('scanner', function() {
         highlighted = true;
         expect(elem.id).toEqual('b');
         expect(opts).toEqual({interval: 10, overlay: false, prevent_close: true, select_anywhere: true});
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       scanner.options = {interval: 10};
       scanner.element_index = 1;
@@ -1124,7 +1145,7 @@ describe('scanner', function() {
         highlighted = true;
         expect(elem.id).toEqual('b');
         expect(opts).toEqual({interval: 10, focus_overlay: true, overlay: true, clear_overlay: false, prevent_close: true, select_anywhere: true});
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       scanner.options = {interval: 10, focus_overlay: true};
       scanner.element_index = 1;
@@ -1149,7 +1170,7 @@ describe('scanner', function() {
         highlighted = true;
         expect(elem.id).toEqual('b');
         expect(opts).toEqual({interval: 10, audio: true, overlay: false, prevent_close: true, select_anywhere: true});
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       var sound_triggered = false;
       stub(speecher, 'speak_audio', function(url, type, id, opts) {
@@ -1183,7 +1204,7 @@ describe('scanner', function() {
         highlighted = true;
         expect(elem.id).toEqual('a');
         expect(opts).toEqual({interval: 10, audio: true, overlay: false, prevent_close: true, select_anywhere: true});
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       var sound_triggered = false;
       stub(speecher, 'speak_text', function(text, id, opts) {
@@ -1216,7 +1237,7 @@ describe('scanner', function() {
         highlighted = true;
         expect(elem.id).toEqual('b');
         expect(opts).toEqual({interval: 10, focus_overlay: true, overlay: true, clear_overlay: false, prevent_close: true, select_anywhere: true});
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       scanner.options = {interval: 10, focus_overlay: true};
       scanner.element_index = 1;
@@ -1247,7 +1268,7 @@ describe('scanner', function() {
         highlighted = true;
         expect(elem.id).toEqual('b');
         expect(opts).toEqual({interval: 10, overlay: false, prevent_close: true, select_anywhere: true});
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       scanner.options = {interval: 10};
       scanner.element_index = 1;
@@ -1273,7 +1294,7 @@ describe('scanner', function() {
         highlighted = true;
         expect(elem.id).toEqual('b');
         expect(opts).toEqual({interval: 10, overlay: false, prevent_close: true, select_anywhere: true, scanning_auto_select: true});
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       scanner.options = {interval: 10, scanning_auto_select: true};
       scanner.element_index = 1;

@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { queryLog } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import contentGrabbers from '../../utils/content_grabbers';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 import modal from '../../utils/modal';
 import editManager from '../../utils/edit_manager';
 import persistence from '../../utils/persistence';
@@ -13,8 +15,8 @@ describe('boardGrabber', function() {
 
   var controller = null;
   beforeEach(function() {
-    var model = Ember.Object.create({id: 1234});
-    controller = Ember.Object.create({model: model});
+    var model = EmberObject.create({id: 1234});
+    controller = EmberObject.create({model: model});
   });
 
   describe('setup', function() {
@@ -48,7 +50,7 @@ describe('boardGrabber', function() {
         method: 'GET',
         type: 'board',
         query: {public: true, key: "hat"},
-        response: Ember.RSVP.resolve({board: [{id: '123', key: 'hippo'}]})
+        response: RSVP.resolve({board: [{id: '123', key: 'hippo'}]})
       });
       controller.set('linkedBoardName', 'hat');
       boardGrabber.setup(null, controller);
@@ -72,7 +74,7 @@ describe('boardGrabber', function() {
         method: 'GET',
         type: 'board',
         query: {public: true, key: "hat/fat"},
-        response: Ember.RSVP.resolve({board: [{id: '123', key: 'hippo'}]})
+        response: RSVP.resolve({board: [{id: '123', key: 'hippo'}]})
       });
       controller.set('linkedBoardName', url);
       boardGrabber.setup(null, controller);
@@ -90,7 +92,7 @@ describe('boardGrabber', function() {
         method: 'GET',
         type: 'board',
         query: {public: true, q: "hat"},
-        response: Ember.RSVP.resolve({board: [{id: '123', key: 'hippo'}]})
+        response: RSVP.resolve({board: [{id: '123', key: 'hippo'}]})
       });
       controller.set('linkedBoardName', 'hat');
       boardGrabber.setup(null, controller);
@@ -116,7 +118,7 @@ describe('boardGrabber', function() {
       expect(controller.get('linkedBoardName')).toEqual('cookie');
     });
     it('should use the original board\'s dimensions on the new board', function() {
-      var model = Ember.Object.create({grid: {rows: 9, columns: 15}});
+      var model = EmberObject.create({grid: {rows: 9, columns: 15}});
       controller.set('board', model);
       controller.set('linkedBoardName', 'cookie');
       boardGrabber.setup(null, controller);
@@ -145,7 +147,7 @@ describe('boardGrabber', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {id: '134', key: 'cookie'}}),
+        response: RSVP.resolve({board: {id: '134', key: 'cookie'}}),
         compare: function(object) {
           return object.get('name') == 'cookie';
         }
@@ -173,7 +175,7 @@ describe('boardGrabber', function() {
       });
 
       var rand = Math.round(Math.random() * 99999);
-      var board = Ember.Object.create({
+      var board = EmberObject.create({
         id: rand,
         key: 'key' + rand
       });
@@ -199,8 +201,8 @@ describe('boardGrabber', function() {
         template = t;
       });
       stub(modal, 'error', function(t) { });
-      stub(contentGrabbers, 'upload_for_processing', function() { return Ember.RSVP.reject(); });
-      stub(contentGrabbers, 'read_file', function() { return Ember.RSVP.reject(); });
+      stub(contentGrabbers, 'upload_for_processing', function() { return RSVP.reject(); });
+      stub(contentGrabbers, 'read_file', function() { return RSVP.reject(); });
       boardGrabber.file_selected({});
       expect(template).toEqual('importing-boards');
     });
@@ -211,7 +213,7 @@ describe('boardGrabber', function() {
         message = str;
       });
       stub(contentGrabbers, 'read_file', function() {
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       boardGrabber.file_selected({});
       waitsFor(function() { return message; });
@@ -227,14 +229,14 @@ describe('boardGrabber', function() {
         message = str;
       });
       stub(contentGrabbers, 'read_file', function() {
-        return Ember.RSVP.resolve({target: {result: "abc"}});
+        return RSVP.resolve({target: {result: "abc"}});
       });
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/boards/imports') {
           expect(opts.type).toEqual('POST');
           expect(opts.data.type).toEqual('obf');
           made_it = true;
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       boardGrabber.file_selected({});
@@ -252,19 +254,19 @@ describe('boardGrabber', function() {
         message = str;
       });
       stub(contentGrabbers, 'read_file', function() {
-        return Ember.RSVP.resolve({target: {result: "abc"}});
+        return RSVP.resolve({target: {result: "abc"}});
       });
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/boards/imports') {
           expect(opts.type).toEqual('POST');
           expect(opts.data.type).toEqual('obf');
-          return Ember.RSVP.resolve({remote_upload: {}});
+          return RSVP.resolve({remote_upload: {}});
         }
       });
       stub(contentGrabbers, 'upload_to_remote', function(opts) {
         expect(opts.success_method).toEqual('POST');
         made_it = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       boardGrabber.file_selected({});
       waitsFor(function() { return message; });
@@ -281,18 +283,18 @@ describe('boardGrabber', function() {
         message = str;
       });
       stub(contentGrabbers, 'read_file', function() {
-        return Ember.RSVP.resolve({target: {result: "abc"}});
+        return RSVP.resolve({target: {result: "abc"}});
       });
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/boards/imports') {
           expect(opts.type).toEqual('POST');
           expect(opts.data.type).toEqual('obf');
-          return Ember.RSVP.resolve({remote_upload: {}});
+          return RSVP.resolve({remote_upload: {}});
         }
       });
       stub(contentGrabbers, 'upload_to_remote', function(opts) {
         expect(opts.success_method).toEqual('POST');
-        return Ember.RSVP.resolve({progress: {}});
+        return RSVP.resolve({progress: {}});
       });
       stub(progress_tracker, 'track', function(progress, callback) {
         made_it = true;
@@ -315,18 +317,18 @@ describe('boardGrabber', function() {
         message = str;
       });
       stub(contentGrabbers, 'read_file', function() {
-        return Ember.RSVP.resolve({target: {result: "abc"}});
+        return RSVP.resolve({target: {result: "abc"}});
       });
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/boards/imports') {
           expect(opts.type).toEqual('POST');
           expect(opts.data.type).toEqual('obf');
-          return Ember.RSVP.resolve({remote_upload: {}});
+          return RSVP.resolve({remote_upload: {}});
         }
       });
       stub(contentGrabbers, 'upload_to_remote', function(opts) {
         expect(opts.success_method).toEqual('POST');
-        return Ember.RSVP.resolve({progress: {}});
+        return RSVP.resolve({progress: {}});
       });
       stub(progress_tracker, 'track', function(progress, callback) {
         callback({

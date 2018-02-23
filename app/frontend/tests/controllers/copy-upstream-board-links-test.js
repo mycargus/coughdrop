@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { queryLog } from 'frontend/tests/helpers/ember_helper';
+import EmberObject from '@ember/object';
 import startApp from '../helpers/start-app';
 
 describe('CopyUpstreamBoardLinksController', 'controller:copy-upstream-board-links', function() {
@@ -10,8 +11,8 @@ describe('CopyUpstreamBoardLinksController', 'controller:copy-upstream-board-lin
 });
 // import Ember from 'ember';
 // import modal from '../utils/modal';
-// 
-// export default Ember.ObjectController.extend({
+//
+// export default EmberObjectController.extend({
 //   needs: 'application',
 //   actions: {
 //     tweakBoard: function(decision) {

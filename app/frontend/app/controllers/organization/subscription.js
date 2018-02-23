@@ -1,9 +1,10 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import modal from '../../utils/modal';
 import i18n from '../../utils/i18n';
 import CoughDrop from '../../app';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   actions: {
     update_org: function() {
       var org = this.get('model');

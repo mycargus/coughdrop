@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import RSVP from 'rsvp';
 import DS from 'ember-data';
 import CoughDrop from '../app';
 import i18n from '../utils/i18n';
@@ -57,9 +58,9 @@ CoughDrop.Video = DS.Model.extend({
         return _this;
       });
     } else if(this.get('url') && this.get('url').match(/^data/)) {
-      return Ember.RSVP.resolve(this);
+      return RSVP.resolve(this);
     }
-    return Ember.RSVP.reject('no video data url');
+    return RSVP.reject('no video data url');
   },
   checkForDataURLOnChange: function() {
     this.checkForDataURL().then(null, function() { });

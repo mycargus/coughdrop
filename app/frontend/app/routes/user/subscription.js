@@ -1,9 +1,10 @@
 import Ember from 'ember';
+import Route from '@ember/routing/route';
 import Subscription from '../../utils/subscription';
 import persistence from '../../utils/persistence';
 import i18n from '../../utils/i18n';
 
-export default Ember.Route.extend({
+export default Route.extend({
   model: function() {
     var user = this.modelFor('user');
     user.set('subroute_name', i18n.t('subscription', 'subscription'));

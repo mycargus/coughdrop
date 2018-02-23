@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { queryLog } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import editManager from '../../utils/edit_manager';
 import Button from '../../utils/button';
 import app_state from '../../utils/app_state';
@@ -10,12 +11,14 @@ import persistence from '../../utils/persistence';
 import progress_tracker from '../../utils/progress_tracker';
 import CoughDrop from '../../app';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import $ from 'jquery';
 
 describe('editManager', function() {
   var board = null;
 
   beforeEach(function() {
-    var model = Ember.Object.extend({
+    var model = EmberObject.extend({
       set_all_ready: function() {
         var allReady = true;
         if(!this.get('pending_buttons')) { return; }
@@ -26,19 +29,19 @@ describe('editManager', function() {
       }.observes('pending_buttons', 'pending_buttons.@each', 'pending_buttons.@each.content_status'),
       find_content_locally: function() {
         this.set('found_content_locally', true);
-        return Ember.RSVP.resolve();
+        return RSVP.resolve();
       },
       translated_buttons: function() {
         return this.get('buttons');
       }
     }).create();
-    stub(app_state, 'controller', Ember.Object.create({
+    stub(app_state, 'controller', EmberObject.create({
       'current_mode': 'edit',
       'send': function(str) {
         board.sent_messages.push(str);
       }
     }));
-    board = Ember.Object.extend({
+    board = EmberObject.extend({
       model: model,
       redraw_if_needed: function() {
         this.redraw();
@@ -246,7 +249,7 @@ describe('editManager', function() {
       });
       editManager.setup(board);
       app_state.set('edit_mode', false);
-      app_state.set('currentUser', Ember.Object.create({
+      app_state.set('currentUser', EmberObject.create({
         preferences: {long_press_edit: true}
       }));
       editManager.start_edit_mode();
@@ -267,7 +270,7 @@ describe('editManager', function() {
       editManager.setup(board);
       stashes.set('current_mode', 'speak');
       app_state.set('currentBoardState', {});
-      app_state.set('currentUser', Ember.Object.create({
+      app_state.set('currentUser', EmberObject.create({
         preferences: {
           require_speak_mode_pin: true,
           speak_mode_pin: '12345'
@@ -648,7 +651,7 @@ describe('editManager', function() {
       it("should add the button to the linked board's list if the user has edit permissions", function() {
         editManager.setup(board);
         var matched = false;
-        var fake_board = Ember.Object.create();
+        var fake_board = EmberObject.create();
         var res = {board: {
           id: 'a/b',
           key: 'a/b',
@@ -666,12 +669,12 @@ describe('editManager', function() {
           method: 'GET',
           type: 'board',
           id: 'a/b',
-          response: Ember.RSVP.resolve(res)
+          response: RSVP.resolve(res)
         });
         queryLog.defineFixture({
           method: 'PUT',
           type: 'board',
-          response: Ember.RSVP.resolve(res),
+          response: RSVP.resolve(res),
           compare: function(object) {
             var grid = object.get('grid');
             var buttons = object.get('buttons');
@@ -704,7 +707,7 @@ describe('editManager', function() {
       it("should fail if the user has no view permissions", function() {
         editManager.setup(board);
         var matched = false;
-        var fake_board = Ember.Object.create();
+        var fake_board = EmberObject.create();
         var res = {board: {
           id: 'a/b',
           key: 'a/b',
@@ -721,7 +724,7 @@ describe('editManager', function() {
           method: 'GET',
           type: 'board',
           id: 'a/b',
-          response: Ember.RSVP.resolve(res)
+          response: RSVP.resolve(res)
         });
 
 
@@ -742,7 +745,7 @@ describe('editManager', function() {
       it("should fail if the user has only view permissions and no cloning decision has been made", function() {
         editManager.setup(board);
         var matched = false;
-        var fake_board = Ember.Object.create();
+        var fake_board = EmberObject.create();
         var res = {board: {
           id: 'a/b',
           key: 'a/b',
@@ -760,7 +763,7 @@ describe('editManager', function() {
           method: 'GET',
           type: 'board',
           id: 'a/b',
-          response: Ember.RSVP.resolve(res)
+          response: RSVP.resolve(res)
         });
 
         var a = Button.create({id: 123, label: 'peanut butter', for_swap: true});
@@ -780,7 +783,7 @@ describe('editManager', function() {
       it("should add the button a cloned version of the board if the user has only view permissions", function() {
         editManager.setup(board);
         var matched = false;
-        var fake_board = Ember.Object.create();
+        var fake_board = EmberObject.create();
         var res = {board: {
           id: 'a/b',
           key: 'a/b',
@@ -807,12 +810,12 @@ describe('editManager', function() {
           method: 'GET',
           type: 'board',
           id: 'a/b',
-          response: Ember.RSVP.resolve(res)
+          response: RSVP.resolve(res)
         });
         queryLog.defineFixture({
           method: 'POST',
           type: 'board',
-          response: Ember.RSVP.resolve(res2),
+          response: RSVP.resolve(res2),
           compare: function(object) {
             var grid = object.get('grid');
             var buttons = object.get('buttons');
@@ -827,7 +830,7 @@ describe('editManager', function() {
         queryLog.defineFixture({
           method: 'PUT',
           type: 'board',
-          response: Ember.RSVP.resolve(res2),
+          response: RSVP.resolve(res2),
           compare: function(object) {
             var grid = object.get('grid');
             var buttons = object.get('buttons');
@@ -1358,7 +1361,7 @@ describe('editManager', function() {
       board.set('ordered_buttons', [[
         button
       ]]);
-      var defer = Ember.RSVP.defer();
+      var defer = RSVP.defer();
       var ajaxed = false;
       stub(contentGrabbers.pictureGrabber, 'picture_search', function(library, label, user_name, fallback) {
         ajaxed = true;
@@ -1368,7 +1371,7 @@ describe('editManager', function() {
         return defer.promise;
       });
       stub(contentGrabbers.pictureGrabber, 'save_image_preview', function(preview) {
-        return Ember.RSVP.resolve(Ember.Object.create({
+        return RSVP.resolve(EmberObject.create({
           id: '134'
         }));
       });
@@ -1380,7 +1383,7 @@ describe('editManager', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'image',
-        response: Ember.RSVP.resolve({image: {id: '134', url: "http://www.example.com/pic2.png"}}),
+        response: RSVP.resolve({image: {id: '134', url: "http://www.example.com/pic2.png"}}),
         compare: function(object) {
           return object.get('license.type') === 'LGPL' &&
                   object.get('license.copyright_notice_url') === 'https://www.gnu.org/licenses/lgpl.html' &&
@@ -1416,7 +1419,7 @@ describe('editManager', function() {
       board.set('ordered_buttons', [[
         button
       ]]);
-      var defer = Ember.RSVP.defer();
+      var defer = RSVP.defer();
       var ajaxed = false;
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/search/symbols?q=ham') {
@@ -1425,7 +1428,7 @@ describe('editManager', function() {
           expect(opts.type).toEqual('GET');
           return defer.promise;
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       editManager.lucky_symbol(1);
@@ -1436,7 +1439,7 @@ describe('editManager', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'image',
-        response: Ember.RSVP.resolve({image: {id: '134', url: "http://www.example.com/pic2.png"}}),
+        response: RSVP.resolve({image: {id: '134', url: "http://www.example.com/pic2.png"}}),
         compare: function(object) {
           return object.get('license.type') === 'LGPL' &&
                   object.get('license.copyright_notice_url') === 'https://www.gnu.org/licenses/lgpl.html' &&
@@ -1463,7 +1466,7 @@ describe('editManager', function() {
       board.set('ordered_buttons', [[
         button
       ]]);
-      var defer = Ember.RSVP.defer();
+      var defer = RSVP.defer();
       var ajaxed = false;
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/search/parts_of_speech' && opts.data.q == 'ham') {
@@ -1471,7 +1474,7 @@ describe('editManager', function() {
           expect(opts.type).toEqual('GET');
           return defer.promise;
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       editManager.lucky_symbol(1);
@@ -1481,7 +1484,7 @@ describe('editManager', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'image',
-        response: Ember.RSVP.resolve({image: {id: '134', url: "http://www.example.com/pic2.png"}}),
+        response: RSVP.resolve({image: {id: '134', url: "http://www.example.com/pic2.png"}}),
         compare: function(object) {
           return object.get('license.type') == 'LGPL' &&
                   object.get('license.copyright_notice_url') == 'https://www.gnu.org/licenses/lgpl.html' &&
@@ -1511,7 +1514,7 @@ describe('editManager', function() {
       board.set('ordered_buttons', [[
         button
       ]]);
-      var defer = Ember.RSVP.defer();
+      var defer = RSVP.defer();
       var ajaxed = false;
       stub(persistence, 'ajax', function(url, opts) {
         ajaxed = true;
@@ -1528,7 +1531,7 @@ describe('editManager', function() {
       board.set('ordered_buttons', [[
         button
       ]]);
-      var defer = Ember.RSVP.defer();
+      var defer = RSVP.defer();
       var ajaxed = false;
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/search/symbols?q=onward') {
@@ -1537,7 +1540,7 @@ describe('editManager', function() {
           expect(opts.type).toEqual('GET');
           return defer.promise;
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       editManager.lucky_symbol(1);
@@ -1558,7 +1561,7 @@ describe('editManager', function() {
       board.set('ordered_buttons', [[
         button
       ]]);
-      var defer = Ember.RSVP.defer();
+      var defer = RSVP.defer();
       var searched = false;
       stub(contentGrabbers.pictureGrabber, 'protected_search', function(text, library, user_name, fallback) {
         expect(library).toEqual('lessonpix');
@@ -1566,7 +1569,7 @@ describe('editManager', function() {
         expect(user_name).toEqual(undefined);
         expect(fallback).toEqual(true);
         searched = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       editManager.lucky_symbol(1);
       expect(searched).toEqual(true);
@@ -1580,18 +1583,18 @@ describe('editManager', function() {
     it("should fall back to the default library if searching in a protected library fails", function() {
       stashes.set('last_image_library', 'lessonpix');
       editManager.setup(board);
-      stub(persistence, 'ajax', function() { return Ember.RSVP.reject(); });
+      stub(persistence, 'ajax', function() { return RSVP.reject(); });
       app_state.set('edit_mode', true);
       var button = Button.create({id: 1, label: "onward"});
       board.set('ordered_buttons', [[
         button
       ]]);
-      var defer = Ember.RSVP.defer();
+      var defer = RSVP.defer();
       var searched = false;
       stub(contentGrabbers.pictureGrabber, 'open_symbols_search', function(text) {
         expect(text).toEqual('onward');
         searched = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       editManager.lucky_symbol(1);
       expect(button.get('pending_image')).toEqual(true);
@@ -1992,8 +1995,8 @@ describe('editManager', function() {
       });
       persistence.primed = true;
       editManager.setup(board);
-      var defer1 = Ember.RSVP.defer();
-      var defer2 = Ember.RSVP.defer();
+      var defer1 = RSVP.defer();
+      var defer2 = RSVP.defer();
       queryLog.defineFixture({
         method: 'GET',
         type: 'image',
@@ -2031,8 +2034,8 @@ describe('editManager', function() {
       });
       persistence.primed = true;
       editManager.setup(board);
-      var defer1 = Ember.RSVP.defer();
-      var defer2 = Ember.RSVP.defer();
+      var defer1 = RSVP.defer();
+      var defer2 = RSVP.defer();
       queryLog.defineFixture({
         method: 'GET',
         type: 'image',
@@ -2193,7 +2196,7 @@ describe('editManager', function() {
         expect(editManager.imageEditorSource).toEqual(window);
 
         var called = false;
-        Ember.$(window).bind('message', function(event) {
+        $(window).bind('message', function(event) {
           if(event.originalEvent && event.originalEvent.data == 'imageDataRequest') {
             called = true;
           }
@@ -2232,7 +2235,7 @@ describe('editManager', function() {
         grid: {}
       });
       var found = false;
-      var promise = Ember.RSVP.reject({stub: true});
+      var promise = RSVP.reject({stub: true});
       promise.then(null, function() { });
       queryLog.defineFixture({
         method: 'POST',
@@ -2259,7 +2262,7 @@ describe('editManager', function() {
       };
       var b = CoughDrop.store.createRecord('board', model);
       var found = false;
-      var promise = Ember.RSVP.resolve({board: model});
+      var promise = RSVP.resolve({board: model});
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
@@ -2288,7 +2291,7 @@ describe('editManager', function() {
       };
       var b = CoughDrop.store.createRecord('board', model);
       var found = false;
-      var promise = Ember.RSVP.resolve({board: model});
+      var promise = RSVP.resolve({board: model});
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
@@ -2319,7 +2322,7 @@ describe('editManager', function() {
     it("should trigger a call to reload_including_all_downstream", function() {
       app_state.set('currentBoardState', {id: '1_1'});
       stub(modal, 'flash', function() { });
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         stats: {
           board_set_ids: ['1_2', '1_3', '1_1']
         }
@@ -2340,7 +2343,7 @@ describe('editManager', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '1_2'
         }}),
         compare: function(object) {
@@ -2360,7 +2363,7 @@ describe('editManager', function() {
     it("should update the user if decision included as_home options", function() {
       app_state.set('currentBoardState', {id: '1_1'});
       stub(modal, 'flash', function() { });
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         stats: {
           board_set_ids: ['1_2', '1_3', '1_1']
         },
@@ -2370,7 +2373,7 @@ describe('editManager', function() {
       var saved = false;
       stub(user, 'save', function() {
         saved = true;
-        return Ember.RSVP.resolve();
+        return RSVP.resolve();
       });
       app_state.set('sessionUser', user);
       expect(app_state.get('board_in_current_user_set')).toEqual(true);
@@ -2388,7 +2391,7 @@ describe('editManager', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '1_2'
         }}),
         compare: function(object) {
@@ -2412,7 +2415,7 @@ describe('editManager', function() {
     it("should error if updating the user's home board failed", function() {
       app_state.set('currentBoardState', {id: '1_1'});
       stub(modal, 'flash', function() { });
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         stats: {
           board_set_ids: ['1_2', '1_3', '1_1']
         },
@@ -2422,7 +2425,7 @@ describe('editManager', function() {
       var saved = false;
       stub(user, 'save', function() {
         saved = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       app_state.set('sessionUser', user);
       expect(app_state.get('board_in_current_user_set')).toEqual(true);
@@ -2440,7 +2443,7 @@ describe('editManager', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '1_2'
         }}),
         compare: function(object) {
@@ -2459,7 +2462,7 @@ describe('editManager', function() {
     it("should replace in the user's communication set if specified as the decision and in the user's set", function() {
       app_state.set('currentBoardState', {id: '1_1'});
       stub(modal, 'flash', function() { });
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         id: 'self',
         stats: {
           board_set_ids: ['1_2', '1_3', '1_1']
@@ -2477,7 +2480,7 @@ describe('editManager', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '1_2'
         }}),
         compare: function(object) {
@@ -2490,7 +2493,7 @@ describe('editManager', function() {
       stub(persistence, 'ajax', function(u, o) {
         url = u;
         options = o;
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       });
       var rejected = false;
       editManager.copy_board(b, 'modify_links_copy', user).then(null, function() { rejected = true; });
@@ -2513,7 +2516,7 @@ describe('editManager', function() {
     it("should return the newly-created board in the copy_board promise resolution", function() {
       app_state.set('currentBoardState', {id: '1_1'});
       stub(modal, 'flash', function() { });
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         stats: {
           board_set_ids: ['1_2', '1_3', '1_1']
         }
@@ -2530,7 +2533,7 @@ describe('editManager', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '1_2'
         }}),
         compare: function(object) {
@@ -2555,12 +2558,12 @@ describe('editManager', function() {
         grid: {}
       });
       b.set('id', '1_1');
-      var user = Ember.Object.create({id: 'self'});
+      var user = EmberObject.create({id: 'self'});
       var found = false;
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '1_2'
         }}),
         compare: function(object) {
@@ -2571,7 +2574,7 @@ describe('editManager', function() {
       var ajaxed = false;
       stub(persistence, 'ajax', function(u, o) {
         ajaxed = true;
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       });
       var new_board = null;
       editManager.copy_board(b, 'modify_links_copy', user).then(function(b) { new_board = b; });
@@ -2585,7 +2588,7 @@ describe('editManager', function() {
 
     it("should not replace in the user's communication set if not specified but in the user's set", function() {
       app_state.set('currentBoardState', {id: '1_1'});
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         stats: {
           board_set_ids: ['1_2', '1_3', '1_1']
         }
@@ -2603,7 +2606,7 @@ describe('editManager', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '1_2'
         }}),
         compare: function(object) {
@@ -2614,7 +2617,7 @@ describe('editManager', function() {
       var ajaxed = false;
       stub(persistence, 'ajax', function(u, o) {
         ajaxed = true;
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       });
       var new_board = null;
       editManager.copy_board(b).then(function(b) { new_board = b; });
@@ -2628,7 +2631,7 @@ describe('editManager', function() {
     it("should error if the board replacement initial call fails", function() {
       app_state.set('currentBoardState', {id: '1_1'});
       stub(modal, 'flash', function() { });
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         stats: {
           board_set_ids: ['1_2', '1_3', '1_1']
         },
@@ -2647,7 +2650,7 @@ describe('editManager', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '1_2'
         }}),
         compare: function(object) {
@@ -2656,7 +2659,7 @@ describe('editManager', function() {
         }
       });
       stub(persistence, 'ajax', function(u, o) {
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       });
       var error = null;
       editManager.copy_board(b, 'modify_links_copy', user).then(null, function(err) { error = err; });
@@ -2669,7 +2672,7 @@ describe('editManager', function() {
     it("should error if the board replacement progress check fails", function() {
       app_state.set('currentBoardState', {id: '1_1'});
       stub(modal, 'flash', function() { });
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         stats: {
           board_set_ids: ['1_2', '1_3', '1_1']
         },
@@ -2688,7 +2691,7 @@ describe('editManager', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '1_2'
         }}),
         compare: function(object) {
@@ -2697,7 +2700,7 @@ describe('editManager', function() {
         }
       });
       stub(persistence, 'ajax', function(u, o) {
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       });
       var error = null;
       editManager.copy_board(b, 'modify_links_copy', user).then(null, function(err) { error = err; });
@@ -2710,7 +2713,7 @@ describe('editManager', function() {
     it("should alert when the copy process is completed", function() {
       app_state.set('currentBoardState', {id: '1_1'});
       stub(modal, 'flash', function() { });
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         stats: {
           board_set_ids: ['1_2', '1_3', '1_1']
         },
@@ -2729,7 +2732,7 @@ describe('editManager', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '1_2'
         }}),
         compare: function(object) {
@@ -2738,7 +2741,7 @@ describe('editManager', function() {
         }
       });
       stub(persistence, 'ajax', function(u, o) {
-        return Ember.RSVP.resolve({});
+        return RSVP.resolve({});
       });
       stub(progress_tracker, 'track', function(p, callback) {
         callback({status: 'errored'});
@@ -2754,7 +2757,7 @@ describe('editManager', function() {
     it("should make boards public if specified", function() {
       app_state.set('currentBoardState', {id: '1_1'});
       stub(modal, 'flash', function() { });
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         stats: {
           board_set_ids: ['1_2', '1_3', '1_1']
         },
@@ -2773,7 +2776,7 @@ describe('editManager', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '1_2'
         }}),
         compare: function(object) {
@@ -2784,7 +2787,7 @@ describe('editManager', function() {
       });
       stub(persistence, 'ajax', function(u, o) {
         expect(o.data.make_public).toEqual(true);
-        return Ember.RSVP.resolve({});
+        return RSVP.resolve({});
       });
       stub(progress_tracker, 'track', function(p, callback) {
         callback({status: 'errored'});
@@ -2800,7 +2803,7 @@ describe('editManager', function() {
     it("should allow trying to copy for someone else", function() {
       app_state.set('currentBoardState', {id: '1_1'});
       stub(modal, 'flash', function() { });
-      var user = Ember.Object.create({
+      var user = EmberObject.create({
         id: '1234',
         stats: {
           board_set_ids: ['1_2', '1_3', '1_1']
@@ -2818,7 +2821,7 @@ describe('editManager', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {
+        response: RSVP.resolve({board: {
           id: '1_2'
         }}),
         compare: function(object) {
@@ -2831,7 +2834,7 @@ describe('editManager', function() {
       stub(persistence, 'ajax', function(u, o) {
         url = u;
         options = o;
-        return Ember.RSVP.reject({});
+        return RSVP.reject({});
       });
       var rejected = false;
       editManager.copy_board(b, 'links_copy', user).then(null, function() { rejected = true; });

@@ -1,15 +1,16 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import modal from '../../utils/modal';
 import CoughDrop from '../../app';
 import i18n from '../../utils/i18n';
 import app_state from '../../utils/app_state';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   load_badges: function() {
     var _this = this;
     this.set('badges', {loading: true});
     this.store.query('badge', {user_id: this.get('model.id')}).then(function(badges) {
-      badges = badges.content.mapBy('record');
+      badges = badges.map(function(i) { return i; });
       _this.set('badges', badges);
     }, function(err) {
       _this.set('badges', {error: true});

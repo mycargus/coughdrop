@@ -1,4 +1,9 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import { later as runLater, scheduleOnce } from '@ember/runloop';
+import $ from 'jquery';
 import i18n from '../../utils/i18n';
 import persistence from '../../utils/persistence';
 import CoughDrop from '../../app';
@@ -7,7 +12,7 @@ import modal from '../../utils/modal';
 import Utils from '../../utils/misc';
 import Stats from '../../utils/stats';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   title: function() {
     if(this.get('model.user_name')) {
       return "Usage Reports for " + this.get('model.user_name');
@@ -41,11 +46,11 @@ export default Ember.Controller.extend({
   }.property('usage_stats.has_data', 'status', 'usage_stats2.has_data', 'status2'),
   refresh_left_on_type_change: function() {
     var _this = this;
-    Ember.run.scheduleOnce('actions', this, this.load_left_charts);
+    scheduleOnce('actions', this, this.load_left_charts);
   }.observes('start', 'end', 'location_id', 'device_id', 'snapshot_id', 'model.id'),
   refresh_right_on_type_change: function() {
     var _this = this;
-    Ember.run.scheduleOnce('actions', this, this.load_right_charts);
+    scheduleOnce('actions', this, this.load_right_charts);
   }.observes('start2', 'end2', 'location_id2', 'device_id2', 'snapshot_id2', 'model.id'),
   handle_split: function() {
     if(this.get('split') && this.get('usage_stats') && !this.get('usage_stats2')) {
@@ -77,7 +82,7 @@ export default Ember.Controller.extend({
     if(!stats) { return; }
 
     var draw_id = Math.random() * 9999999;
-    Ember.run.later(function() {
+    runLater(function() {
       if(controller.get('usage_stats')) {
         controller.set('usage_stats.draw_id', draw_id);
       }
@@ -97,7 +102,7 @@ export default Ember.Controller.extend({
     var matches = true;
     var _this = this;
     keys.forEach(function(key) {
-      if(Ember.get(ref, key) != _this.get(key + suffix)) {
+      if(emberGet(ref, key) != _this.get(key + suffix)) {
         matches = false;
       }
     });
@@ -148,7 +153,7 @@ export default Ember.Controller.extend({
     }
 
     if(this.already_loaded(side, side == 'left' ? this.get('usage_stats') : this.get('usage_stats2'))) {
-      Ember.run.later(this, this.draw_charts);
+      runLater(this, this.draw_charts);
       return;
     }
 
@@ -189,7 +194,7 @@ export default Ember.Controller.extend({
       args.end = dates.two_months_ago;
     }
 
-    var status = Ember.$.extend({}, args, {loading: true});
+    var status = $.extend({}, args, {loading: true});
     var status_key = side == 'left' ? 'status' : 'status2';
     var stats_key = side == 'left' ? 'usage_stats' : 'usage_stats2';
     controller.set(status_key, status);

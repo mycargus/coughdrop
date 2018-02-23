@@ -1,4 +1,9 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import RSVP from 'rsvp';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
 import modal from '../utils/modal';
 import persistence from '../utils/persistence';
 import i18n from '../utils/i18n';
@@ -43,8 +48,8 @@ export default modal.ModalController.extend({
             words.push(b.vocalization);
           }
         });
-        promises.push(new Ember.RSVP.Promise(function(res, rej) {
-          Ember.run.later(function() {
+        promises.push(new RSVP.Promise(function(res, rej) {
+          runLater(function() {
             persistence.ajax('/api/v1/users/self/translate', {
               type: 'POST',
               data: {
@@ -65,7 +70,7 @@ export default modal.ModalController.extend({
           }, idx * 1000);
         }));
       });
-      Ember.RSVP.all_wait(promises).then(function(res) {
+      RSVP.all_wait(promises).then(function(res) {
         _this.set('translating', {done: true});
       }, function(err) {
         _this.set('translating', {error: true});
@@ -82,7 +87,7 @@ export default modal.ModalController.extend({
       var board_id = this.get('model.board.id');
       this.get('model.board.buttons').forEach(function(button) {
         if(!words.find(function(b) { return b.board_id == board_id && b.id == button.id; })) {
-          words.push(Ember.$.extend({}, button, {
+          words.push($.extend({}, button, {
             board_id: board_id,
             board_key: _this.get('model.board.key'),
             depth: 0
@@ -102,7 +107,7 @@ export default modal.ModalController.extend({
         if(board_ids && board_ids.indexOf(b.board_id) == -1) { return; }
         if(!board_ids && b.board_id != original_board_id) { return; }
       }
-      Ember.set(b, 'label', b.vocalization || b.label);
+      emberSet(b, 'label', b.vocalization || b.label);
       words.forEach(function(b2, idx2) {
         b2.label = b2.vocalization || b2.label;
         if(b.label.toLowerCase() == b2.label.toLowerCase() && idx != idx2) {
@@ -122,10 +127,10 @@ export default modal.ModalController.extend({
     }
     (_this.get('sorted_buttons') || []).forEach(function(b) {
       if(translations[b.label]) {
-        Ember.set(b, 'translation', translations[b.label]);
+        emberSet(b, 'translation', translations[b.label]);
       }
       if(b.vocalization && b.vocalization != b.label && translations[b.vocalization]) {
-        Ember.set(b, 'secondary_translation', translations[b.vocalization]);
+        emberSet(b, 'secondary_translation', translations[b.vocalization]);
       }
     });
   }.observes('sorted_buttons', 'translation_index', 'translating.done'),
@@ -169,11 +174,11 @@ export default modal.ModalController.extend({
         translations[_this.get('model.board.name')] = _this.get('model.board.translated_name');
       }
       _this.get('sorted_buttons').forEach(function(b) {
-        if(Ember.get(b, 'translation')) {
-          translations[Ember.get(b, 'label')] = Ember.get(b, 'translation');
+        if(emberGet(b, 'translation')) {
+          translations[emberGet(b, 'label')] = emberGet(b, 'translation');
         }
-        if(Ember.get(b, 'secondary_translation')) {
-          translations[Ember.get(b, 'vocalization')] = Ember.get(b, 'secondary_translation');
+        if(emberGet(b, 'secondary_translation')) {
+          translations[emberGet(b, 'vocalization')] = emberGet(b, 'secondary_translation');
         }
       });
       persistence.ajax('/api/v1/boards/' + _this.get('model.copy.id') + '/translate', {

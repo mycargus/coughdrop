@@ -1,9 +1,10 @@
 import Ember from 'ember';
+import Route from '@ember/routing/route';
 import modal from '../../utils/modal';
 import coughDropExtras from '../../utils/extras';
 import i18n from '../../utils/i18n';
 
-export default Ember.Route.extend({
+export default Route.extend({
   model: function() {
     var model = this.modelFor('user');
     model.set('subroute_name', i18n.t('summary', 'summary'));

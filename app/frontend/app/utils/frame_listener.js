@@ -1,11 +1,14 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import { later as runLater, debounce as runDebounce} from '@ember/runloop';
+import $ from 'jquery';
 import app_state from './app_state';
 import scanner from './scanner';
 import speecher from './speecher';
 import utterance from './utterance';
 
 var raw_listeners = {};
-var frame_listener = Ember.Object.extend({
+var frame_listener = EmberObject.extend({
   handle_action: function(data) {
     data.respond = data.respond || function() { };
     if(data.action == 'listen') {
@@ -84,8 +87,8 @@ var frame_listener = Ember.Object.extend({
   },
   status: function(data) {
     var session_id = data.session_id;
-    var $elem = Ember.$("#integration_frame");
-    Ember.$("#integration_overlay").removeClass('pending');
+    var $elem = $("#integration_frame");
+    $("#integration_overlay").removeClass('pending');
     data.respond({
       status: 'ready',
       session_id: session_id,
@@ -259,7 +262,7 @@ var frame_listener = Ember.Object.extend({
     }
   },
   session_window: function(session_id) {
-    var $elem = Ember.$("#integration_frame");
+    var $elem = $("#integration_frame");
     if(!$elem.attr('data-session_id')) {
       $elem.attr('data-session_id', session_id);
     }
@@ -291,7 +294,7 @@ window.addEventListener('message', function(event) {
 });
 
 window.addEventListener('resize', function() {
-  Ember.run.debounce(frame_listener, frame_listener.size_targets, 100);
+  runDebounce(frame_listener, frame_listener.size_targets, 100);
 });
 
 export default frame_listener;

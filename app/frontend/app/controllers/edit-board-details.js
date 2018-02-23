@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import CoughDrop from '../app';
+import $ from 'jquery';
 import app_state from '../utils/app_state';
 import modal from '../utils/modal';
 
@@ -28,7 +29,7 @@ export default modal.ModalController.extend({
     var cats = {};
     (this.get('model.categories') || []).forEach(function(str) { cats[str] = true; });
     CoughDrop.board_categories.forEach(function(c) {
-      var cat = Ember.$.extend({}, c);
+      var cat = $.extend({}, c);
       if(cats[c.id]) { cat.selected = true; }
       res.push(cat);
     });

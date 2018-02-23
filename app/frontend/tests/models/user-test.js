@@ -1,5 +1,7 @@
 import DS from 'ember-data';
+import RSVP from 'rsvp';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 import { test, moduleForModel } from 'ember-qunit';
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { } from 'frontend/tests/helpers/ember_helper';
@@ -8,6 +10,7 @@ import speecher from '../../utils/speecher';
 import capabilities from '../../utils/capabilities';
 import persistence from '../../utils/persistence';
 import Utils from '../../utils/misc';
+import { run as emberRun } from '@ember/runloop';
 
 describe('User', function() {
   describe("avatar_url_with_fallback", function() {
@@ -330,7 +333,7 @@ describe('User', function() {
         expect(url).toEqual('/api/v1/users/bobbyo/devices/1234');
         expect(args.type).toEqual('POST');
         expect(args.data._method).toEqual('DELETE');
-        return Ember.RSVP.resolve();
+        return RSVP.resolve();
       });
       user.remove_device('1234');
       waitsFor(function() { return user.get('devices').length == 2; });
@@ -347,7 +350,7 @@ describe('User', function() {
         expect(url).toEqual('/api/v1/users/bobbyo/devices/1234');
         expect(args.type).toEqual('POST');
         expect(args.data._method).toEqual('PUT');
-        return Ember.RSVP.resolve({id: '1234', name: 'chicken nuggets'});
+        return RSVP.resolve({id: '1234', name: 'chicken nuggets'});
       });
       user.rename_device('1234', 'chicken nuggets');
       waitsFor(function() { return user.get('devices')[0].name == 'chicken nuggets'; });
@@ -363,12 +366,12 @@ describe('User', function() {
       stub(persistence, 'find_url', function(url, type) {
         if(url == 'http://www.example.com/pic.png' && type == 'image') {
           resolves++;
-          return Ember.RSVP.resolve('data:stuff');
+          return RSVP.resolve('data:stuff');
         } else if(url == 'http://www.example.com/pic2.png' && type == 'image') {
           resolves++;
-          return Ember.RSVP.resolve('data:stuff2');
+          return RSVP.resolve('data:stuff2');
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       user.set('preferences', {sidebar_boards: [
@@ -390,9 +393,9 @@ describe('User', function() {
       var user = CoughDrop.store.createRecord('user');
       stub(persistence, 'find_url', function(url, type) {
         if(url == 'http://www.example.com' && type == 'image') {
-          return Ember.RSVP.resolve('data:stuff');
+          return RSVP.resolve('data:stuff');
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       user.set('avatar_url', 'http://www.example.com');
@@ -423,14 +426,14 @@ describe('User', function() {
       stub(user.store, 'query', function(type, args) {
         expect(type).toEqual('goal');
         expect(args).toEqual({active: true, user_id: '1234'});
-        return Ember.RSVP.resolve({
+        return RSVP.resolve({
           content: [
-            {record: Ember.Object.create({id: '5'})},
-            {record: Ember.Object.create({id: '2'})},
-            {record: Ember.Object.create({id: '6', primary: true})},
-            {record: Ember.Object.create({id: '4'})},
-            {record: Ember.Object.create({id: '1'})},
-            {record: Ember.Object.create({id: '3'})}
+            {record: EmberObject.create({id: '5'})},
+            {record: EmberObject.create({id: '2'})},
+            {record: EmberObject.create({id: '6', primary: true})},
+            {record: EmberObject.create({id: '4'})},
+            {record: EmberObject.create({id: '1'})},
+            {record: EmberObject.create({id: '3'})}
           ]
         });
       });
@@ -458,7 +461,7 @@ describe('User', function() {
         expect(type).toEqual('user');
         expect(key).toEqual('bob');
         searched = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       user.set('watch_user_name', true);
       expect(user.get('user_name_check.checking')).toEqual(true);
@@ -478,7 +481,7 @@ describe('User', function() {
         expect(type).toEqual('user');
         expect(key).toEqual('bob');
         searched = true;
-        return Ember.RSVP.resolve(Ember.Object.create({}));
+        return RSVP.resolve(EmberObject.create({}));
       });
       user.set('watch_user_name', true);
       expect(user.get('user_name_check.checking')).toEqual(true);
@@ -530,11 +533,11 @@ describe('User', function() {
       user.set('supervisors', [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}]);
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/users/bob/supervisors') {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             user: [{}]
           });
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       user.set('load_all_connections', true);
@@ -550,11 +553,11 @@ describe('User', function() {
       user.set('supervisees', [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}]);
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/users/bob/supervisees') {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             user: [{}]
           });
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       user.set('load_all_connections', true);
@@ -571,11 +574,11 @@ describe('User', function() {
       user.set('supervisors', [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}]);
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/users/bob/supervisees') {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             user: [{}]
           });
         } else {
-          return new Ember.RSVP.Promise(function(res, rej) {
+          return new RSVP.Promise(function(res, rej) {
             setTimeout(function() {
               rej();
             }, 200);
@@ -598,15 +601,15 @@ describe('User', function() {
       user.set('supervisors', [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}]);
       stub(persistence, 'ajax', function(url, opts) {
         if(url == '/api/v1/users/bob/supervisees') {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             user: [{}]
           });
         } else if(url == '/api/v1/users/bob/supervisors') {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             user: [{}, {}]
           });
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       user.set('load_all_connections', true);
@@ -624,7 +627,7 @@ describe('User', function() {
       var called = false;
       stub(Utils, 'all_pages', function() {
         called = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       var rejected = false;
       u.check_integrations().then(null, function() { rejected = true; });
@@ -639,7 +642,7 @@ describe('User', function() {
       var called = false;
       stub(Utils, 'all_pages', function() {
         called = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       var rejected = false;
       u.check_integrations().then(null, function() { rejected = true; });
@@ -660,7 +663,7 @@ describe('User', function() {
       var called = false;
       stub(Utils, 'all_pages', function() {
         called = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       CoughDrop.User.integrations_for = {asdf: {promise: 'asdf'}};
       var res = u.check_integrations();
@@ -674,7 +677,7 @@ describe('User', function() {
       var called = false;
       stub(Utils, 'all_pages', function() {
         called = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       CoughDrop.User.integrations_for = {asdf: []};
       var result = null;
@@ -692,7 +695,7 @@ describe('User', function() {
       var called = false;
       stub(Utils, 'all_pages', function() {
         called = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       var error = null;
       u.check_integrations(true).then(null, function(err) {
@@ -710,7 +713,7 @@ describe('User', function() {
       var called = false;
       stub(Utils, 'all_pages', function() {
         called = true;
-        return Ember.RSVP.resolve('asdf');
+        return RSVP.resolve('asdf');
       });
       var u = CoughDrop.store.createRecord('user', {id: 'asdf', permissions: {supervise: true}});
       CoughDrop.User.integrations_for = {asdf: null};
@@ -729,7 +732,7 @@ describe('User', function() {
   describe("find_integration", function() {
     it('should wait on the existing promise if defined', function() {
       var u = CoughDrop.store.createRecord('user', {id: 'asdf'});
-      CoughDrop.User.integrations_for = {'asdf': Ember.RSVP.reject('no way')};
+      CoughDrop.User.integrations_for = {'asdf': RSVP.reject('no way')};
       var error = null;
       u.find_integration('bacon').then(null, function(err) { error = err; });
       waitsFor(function() { return error; });
@@ -740,7 +743,7 @@ describe('User', function() {
 
     it('should resolve on found record', function() {
       var u = CoughDrop.store.createRecord('user', {id: 'asdf'});
-      CoughDrop.User.integrations_for = {'asdf': Ember.RSVP.resolve([Ember.Object.create(), Ember.Object.create({template_key: 'bacon'})])};
+      CoughDrop.User.integrations_for = {'asdf': RSVP.resolve([EmberObject.create(), EmberObject.create({template_key: 'bacon'})])};
       var result = null;
       u.find_integration('bacon').then(function(res) { result = res; });
       waitsFor(function() { return result; });
@@ -751,7 +754,7 @@ describe('User', function() {
 
     it('should error if the waiting promise fails', function() {
       var u = CoughDrop.store.createRecord('user', {id: 'asdf'});
-      CoughDrop.User.integrations_for = {'asdf': Ember.RSVP.reject('no way')};
+      CoughDrop.User.integrations_for = {'asdf': RSVP.reject('no way')};
       var error = null;
       u.find_integration('bacon').then(null, function(err) { error = err; });
       waitsFor(function() { return error; });
@@ -763,7 +766,7 @@ describe('User', function() {
     it('should error if no integration found', function() {
       var u = CoughDrop.store.createRecord('user');
       stub(CoughDrop.User, 'check_integrations', function() {
-        return Ember.RSVP.resolve([Ember.Object.create({template_key: 'chicken'}), Ember.Object.create()]);
+        return RSVP.resolve([EmberObject.create({template_key: 'chicken'}), EmberObject.create()]);
       });
       var error = null;
       u.find_integration('bacon').then(null, function(err) { error = err; });
@@ -812,13 +815,13 @@ describe('User', function() {
       u.set('preferences', {home_board: {id: 'asdf'}, sidebar_boards: [{key: 'asdf/qwer'}, {key: 'asdf/zxcv'}]});
       stub(CoughDrop.store, 'findRecord', function(type, id) {
         if(type == 'buttonset' && id == 'asdf') {
-          return Ember.RSVP.resolve('one');
+          return RSVP.resolve('one');
         } else if(type == 'buttonset' && id == 'asdf/qwer') {
-          return Ember.RSVP.resolve('two');
+          return RSVP.resolve('two');
         } else if(type == 'buttonset' && id == 'asdf/zxcv') {
-          return Ember.RSVP.resolve('three');
+          return RSVP.resolve('three');
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       var list = null;
@@ -834,11 +837,11 @@ describe('User', function() {
       u.set('preferences', {home_board: {id: 'asdf'}, sidebar_boards: [{key: 'asdf/qwer'}, {key: 'asdf/zxcv'}]});
       stub(CoughDrop.store, 'findRecord', function(type, id) {
         if(type == 'buttonset' && id == 'asdf') {
-          return Ember.RSVP.resolve('one');
+          return RSVP.resolve('one');
         } else if(type == 'buttonset' && id == 'asdf/zxcv') {
-          return Ember.RSVP.resolve('three');
+          return RSVP.resolve('three');
         } else {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         }
       });
       var error = null;
@@ -851,7 +854,7 @@ describe('User', function() {
   describe('find_button', function() {
     it('should return a promise', function() {
       var u = CoughDrop.store.createRecord('user');
-      stub(u, 'load_button_sets', function() { return Ember.RSVP.reject(); });
+      stub(u, 'load_button_sets', function() { return RSVP.reject(); });
       var res = u.find_button('bacon');
       expect(res.then).toNotEqual(undefined);
       res.then(null, function() { });
@@ -859,7 +862,7 @@ describe('User', function() {
 
     it('should error if load_button_sets fails', function() {
       var u = CoughDrop.store.createRecord('user');
-      stub(u, 'load_button_sets', function() { return Ember.RSVP.reject(); });
+      stub(u, 'load_button_sets', function() { return RSVP.reject(); });
       var res = u.find_button('bacon');
       var error = null;
       res.then(null, function() { error = true; });
@@ -872,13 +875,13 @@ describe('User', function() {
       var list1 = {};
       stub(list1, 'find_buttons', function(label) {
         expect(label).toEqual('bacon');
-        return Ember.RSVP.resolve([{label: 'bacons', id: 1}]);
+        return RSVP.resolve([{label: 'bacons', id: 1}]);
       });
       var list2 = {};
       stub(list2, 'find_buttons', function(label) {
         expect(label).toEqual('bacon');
-        return new Ember.RSVP.Promise(function(res, rej) {
-          Ember.run.later(function() {
+        return new RSVP.Promise(function(res, rej) {
+          emberRun.later(function() {
             res([{label: 'baking', id: 2.1}, {label: 'Bacon', id: 2}]);
           }, 100);
         });
@@ -886,10 +889,10 @@ describe('User', function() {
       var list3 = {};
       stub(list3, 'find_buttons', function(label) {
         expect(label).toEqual('bacon');
-        return Ember.RSVP.resolve([{label: 'bacon', id: 3}]);
+        return RSVP.resolve([{label: 'bacon', id: 3}]);
       });
       stub(u, 'load_button_sets', function() {
-        return Ember.RSVP.resolve([list1, list2, list3]);
+        return RSVP.resolve([list1, list2, list3]);
       });
       var button = null;
       u.find_button('bacon').then(function(res) { button = res; });
@@ -904,13 +907,13 @@ describe('User', function() {
       var list1 = {};
       stub(list1, 'find_buttons', function(label) {
         expect(label).toEqual('bacon');
-        return Ember.RSVP.resolve([{label: 'bacons', id: 1}]);
+        return RSVP.resolve([{label: 'bacons', id: 1}]);
       });
       var list2 = {};
       stub(list2, 'find_buttons', function(label) {
         expect(label).toEqual('bacon');
-        return new Ember.RSVP.Promise(function(res, rej) {
-          Ember.run.later(function() {
+        return new RSVP.Promise(function(res, rej) {
+          emberRun.later(function() {
             res([{label: 'baking', id: 2.1}, {label: 'Bacon!', id: 2}]);
           }, 100);
         });
@@ -918,10 +921,10 @@ describe('User', function() {
       var list3 = {};
       stub(list3, 'find_buttons', function(label) {
         expect(label).toEqual('bacon');
-        return Ember.RSVP.resolve([{label: 'bracon', id: 3}]);
+        return RSVP.resolve([{label: 'bracon', id: 3}]);
       });
       stub(u, 'load_button_sets', function() {
-        return Ember.RSVP.resolve([list1, list2, list3]);
+        return RSVP.resolve([list1, list2, list3]);
       });
       var error = null;
       u.find_button('bacon').then(null, function(e) { error = e; });

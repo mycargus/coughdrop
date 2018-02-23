@@ -1,13 +1,15 @@
 import Ember from 'ember';
+import Route from '@ember/routing/route';
+import { later as runLater } from '@ember/runloop';
 import persistence from '../utils/persistence';
 
-export default Ember.Route.extend({
+export default Route.extend({
   model: function(params) {
     var obj = this.store.findRecord('organization', params.id);
     var _this = this;
     return obj.then(function(data) {
       if(!data.get('permissions') && persistence.get('online')) {
-        Ember.run.later(function() {data.reload();});
+        runLater(function() {data.reload();});
       }
       return data;
     });

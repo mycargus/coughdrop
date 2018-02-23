@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
 import modal from '../utils/modal';
 import app_state from '../utils/app_state';
 import i18n from '../utils/i18n';
@@ -49,7 +51,7 @@ export default modal.ModalController.extend({
     var url = this.get('model.user.avatar_url');
     if(url && this.get('avatar_options')) {
       this.get('avatar_options').forEach(function(o) {
-        Ember.set(o, 'selected', o.url == url);
+        emberSet(o, 'selected', o.url == url);
       });
     }
   }.observes('model.user.avatar_url'),

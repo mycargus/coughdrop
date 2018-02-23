@@ -4,6 +4,7 @@ import i18n from '../utils/i18n';
 import app_state from '../utils/app_state';
 import persistence from '../utils/persistence';
 import CoughDrop from '../app';
+import { htmlSafe } from '@ember/string';
 
 export default modal.ModalController.extend({
   opening: function() {
@@ -68,7 +69,7 @@ export default modal.ModalController.extend({
   part_of_speech_class: function() {
     var pos = this.get('part_of_speech');
     if(pos) {
-      return Ember.String.htmlSafe('part_of_speech_box ' + pos);
+      return htmlSafe('part_of_speech_box ' + pos);
     } else {
       return null;
     }

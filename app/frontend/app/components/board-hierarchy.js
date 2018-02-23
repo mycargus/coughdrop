@@ -1,6 +1,7 @@
 import Ember from 'ember';
+import Component from '@ember/component';
 
-export default Ember.Component.extend({
+export default Component.extend({
   actions: {
     toggle_board_hierarchy: function(board_id, state) {
       this.get('hierarchy').toggle(board_id, state);

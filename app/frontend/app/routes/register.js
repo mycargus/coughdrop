@@ -1,8 +1,9 @@
 import Ember from 'ember';
+import Route from '@ember/routing/route';
 import persistence from '../utils/persistence';
 import CoughDrop from '../app';
 
-export default Ember.Route.extend({
+export default Route.extend({
   model: function() {
     var res = this.store.createRecord('user', {preferences: {}, referrer: CoughDrop.referrer, ad_referrer: CoughDrop.ad_referrer});
     res.set('watch_user_name', true);

@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import Component from '@ember/component';
 import Subscription from '../utils/subscription';
 import modal from '../utils/modal';
 import persistence from '../utils/persistence';
@@ -8,7 +9,7 @@ import session from '../utils/session';
 import capabilities from '../utils/capabilities';
 import i18n from '../utils/i18n';
 
-export default Ember.Component.extend({
+export default Component.extend({
   update_classes: Subscription.obs_func.observes.apply(Subscription.obs_func, Subscription.obs_properties),
   didInsertElement: function() {
     if(this.$().width() < 850) {

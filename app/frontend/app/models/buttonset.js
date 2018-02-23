@@ -1,4 +1,8 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import $ from 'jquery';
+import RSVP from 'rsvp';
 import DS from 'ember-data';
 import CoughDrop from '../app';
 import i18n from '../utils/i18n';
@@ -23,7 +27,7 @@ CoughDrop.Buttonset = DS.Model.extend({
     this.set('buttons', buttons);
   }.observes('buttons_json'),
   find_buttons: function(str, from_board_id, user, include_home_and_sidebar) {
-    if(str.length === 0) { return Ember.RSVP.resolve([]); }
+    if(str.length === 0) { return RSVP.resolve([]); }
     var buttons = this.get('buttons') || [];
     var images = CoughDrop.store.peekAll('image');
 
@@ -38,7 +42,7 @@ CoughDrop.Buttonset = DS.Model.extend({
       var found_boards = [];
       var check_button = function(b) {
         if(b.board_id == board_to_check.id) {
-          var new_b = Ember.$.extend({}, b, {depth: board_to_check.depth});
+          var new_b = $.extend({}, b, {depth: board_to_check.depth});
           new_buttons.push(new_b);
           if(b.linked_board_id && found_boards.indexOf(b.linked_board_id) == -1) {
             found_boards.push(b.linked_board_id);
@@ -62,7 +66,7 @@ CoughDrop.Buttonset = DS.Model.extend({
         match_level = match_level || (button.vocalization && button.vocalization.match(re) && 2);
         match_level = match_level || (button.label && word_suggestions.edit_distance(str, button.label) < Math.max(str.length, button.label.length) * 0.5 && 1);
         if(match_level) {
-          button = Ember.$.extend({}, button);
+          button = $.extend({}, button);
           if(button.image) {
             button.image = CoughDrop.Image.personalize_url(button.image, app_state.get('currentUser.user_token'));
           }
@@ -70,8 +74,8 @@ CoughDrop.Buttonset = DS.Model.extend({
           if(image) {
             button.image = image.get('best_url');
           }
-          Ember.set(button, 'image', Ember.get(button, 'image') || Ember.templateHelpers.path('blank.png'));
-          Ember.set(button, 'on_this_board', (Ember.get(button, 'depth') === 0));
+          emberSet(button, 'image', emberGet(button, 'image') || Ember.templateHelpers.path('blank.png'));
+          emberSet(button, 'on_this_board', (emberGet(button, 'depth') === 0));
           var path = [];
           var depth = button.depth || 0;
           var ref_button = button;
@@ -110,14 +114,14 @@ CoughDrop.Buttonset = DS.Model.extend({
             }
           }
           if(depth >= 0) {
-            Ember.set(button, 'pre_buttons', path);
+            emberSet(button, 'pre_buttons', path);
             matching_buttons.push(button);
           }
         }
       }
     });
 
-    var other_lookups = Ember.RSVP.resolve();
+    var other_lookups = RSVP.resolve();
 
     var other_find_buttons = [];
     // TODO: include additional buttons if they are accessible from "home" or
@@ -125,12 +129,12 @@ CoughDrop.Buttonset = DS.Model.extend({
     var home_board_id = stashes.get('temporary_root_board_state.id') || stashes.get('root_board_state.id') || (user && user.get('preferences.home_board.id'));
 
     if(include_home_and_sidebar && home_board_id) {
-      other_lookups = new Ember.RSVP.Promise(function(lookup_resolve, lookup_reject) {
+      other_lookups = new RSVP.Promise(function(lookup_resolve, lookup_reject) {
         var root_button_set_lookups = [];
         var button_sets = [];
 
         var lookup = function(key, home_lock) {
-          var button_set = CoughDrop.store.peekRecord('buttonset', key);
+          var button_set = key && CoughDrop.store.peekRecord('buttonset', key);
           if(button_set) {
             button_set.set('home_lock_set', home_lock);
             button_sets.push(button_set);
@@ -138,7 +142,7 @@ CoughDrop.Buttonset = DS.Model.extend({
             root_button_set_lookups.push(CoughDrop.store.findRecord('buttonset', key).then(function(button_set) {
               button_set.set('home_lock_set', home_lock);
               button_sets.push(button_set);
-            }, function() { return Ember.RSVP.resolve(); }));
+            }, function() { return RSVP.resolve(); }));
           } else {
           }
         };
@@ -148,7 +152,7 @@ CoughDrop.Buttonset = DS.Model.extend({
         (app_state.get('sidebar_boards') || []).forEach(function(brd) {
           lookup(brd.id, brd.home_lock);
         });
-        Ember.RSVP.all_wait(root_button_set_lookups).then(function() {
+        RSVP.all_wait(root_button_set_lookups).then(function() {
           button_sets = Utils.uniq(button_sets, function(b) { return b.get('id'); });
           button_sets.forEach(function(button_set, idx) {
             var is_home = (idx === 0);
@@ -182,23 +186,23 @@ CoughDrop.Buttonset = DS.Model.extend({
     }
 
     var other_buttons = other_lookups.then(function() {
-      return Ember.RSVP.all_wait(other_find_buttons);
+      return RSVP.all_wait(other_find_buttons);
     });
 
     var image_lookups = other_buttons.then(function() {
       var image_lookup_promises = [];
       matching_buttons.forEach(function(button) {
-        Ember.set(button, 'current_depth', (button.pre_buttons || []).length);
+        emberSet(button, 'current_depth', (button.pre_buttons || []).length);
         if(button.image && button.image.match(/^http/)) {
-          Ember.set(button, 'original_image', button.image);
+          emberSet(button, 'original_image', button.image);
           var promise = persistence.find_url(button.image, 'image').then(function(data_uri) {
-            Ember.set(button, 'image', data_uri);
+            emberSet(button, 'image', data_uri);
           }, function() { });
           image_lookup_promises.push(promise);
           promise.then(null, function() { });
         }
       });
-      return Ember.RSVP.all_wait(image_lookup_promises);
+      return RSVP.all_wait(image_lookup_promises);
     });
 
     return image_lookups.then(function() {

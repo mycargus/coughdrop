@@ -1,4 +1,5 @@
 import DS from 'ember-data';
+import RSVP from 'rsvp';
 import Ember from 'ember';
 import { test, moduleForModel } from 'ember-qunit';
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
@@ -35,7 +36,7 @@ describe('Utterance', function() {
         u.set('large_image_url', 'http://www.example.com/pic.jpg');
       }
       called = true;
-      return Ember.RSVP.resolve();
+      return RSVP.resolve();
     });
     expect(u.check_for_large_image_url()).toEqual(false);
 

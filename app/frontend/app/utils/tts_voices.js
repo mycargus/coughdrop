@@ -1,6 +1,7 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 
-var voices = Ember.Object.extend({
+var voices = EmberObject.extend({
   find_voice: function(voice_id) {
     var res = null;
     this.get('voices').forEach(function(voice) {

@@ -1,4 +1,9 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
 import CoughDrop from '../app';
 import persistence from '../utils/persistence';
 import capabilities from '../utils/capabilities';
@@ -7,8 +12,9 @@ import session from '../utils/session';
 import modal from '../utils/modal';
 import stashes from '../utils/_stashes';
 import i18n from '../utils/i18n';
+import { htmlSafe } from '@ember/string';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   registration_types: CoughDrop.registrationTypes,
   sync_able: function() {
     return this.get('extras.ready');
@@ -64,7 +70,7 @@ export default Ember.Controller.extend({
     return Math.round(done / total * 100);
   }.property('app_state.currentUser.preferences.progress'),
   blank_slate_percent_style: function() {
-    return new Ember.String.htmlSafe("width: " + this.get('blank_slate_percent') + "%;");
+    return htmlSafe("width: " + this.get('blank_slate_percent') + "%;");
   }.property('blank_slate_percent'),
   checkForBlankSlate: function() {
     var _this = this;
@@ -293,9 +299,9 @@ export default Ember.Controller.extend({
     },
     record_note: function(user) {
       user = user || app_state.get('currentUser');
-      Ember.set(user, 'avatar_url_with_fallback', Ember.get(user, 'avatar_url'));
+      emberSet(user, 'avatar_url_with_fallback', emberGet(user, 'avatar_url'));
       modal.open('record-note', {note_type: 'text', user: user}).then(function() {
-        Ember.run.later(function() {
+        runLater(function() {
           app_state.get('currentUser').reload().then(null, function() { });
         }, 5000);
       });
@@ -312,8 +318,8 @@ export default Ember.Controller.extend({
     },
     hide_login: function() {
       app_state.set('login_modal', false);
-      Ember.$("html,body").css('overflow', '');
-      Ember.$("#login_overlay").remove();
+      $("html,body").css('overflow', '');
+      $("#login_overlay").remove();
     },
     show_explanation: function(exp) {
       this.set('show_' + exp + '_explanation', true);

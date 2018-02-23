@@ -4,6 +4,7 @@ import editManager from '../utils/edit_manager';
 import modal from '../utils/modal';
 import stashes from '../utils/_stashes';
 import Button from '../utils/button';
+import { htmlSafe } from '@ember/string';
 
 export default modal.ModalController.extend({
   opening: function() {
@@ -35,6 +36,6 @@ export default modal.ModalController.extend({
   }.property('model.id'),
   image_style: function() {
     var height = 100 - CoughDrop.labelHeight - CoughDrop.boxPad;
-    return new Ember.String.htmlSafe("height: " + height + "px;");
+    return htmlSafe("height: " + height + "px;");
   }.property('model.id')
 });

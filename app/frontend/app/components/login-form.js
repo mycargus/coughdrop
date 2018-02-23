@@ -1,12 +1,16 @@
 import Ember from 'ember';
+import Component from '@ember/component';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
 import capabilities from '../utils/capabilities';
 import stashes from '../utils/_stashes';
 import persistence from '../utils/persistence';
 import i18n from '../utils/i18n';
 import app_state from '../utils/app_state';
 import session from '../utils/session';
+import { isEmpty } from '@ember/utils';
 
-export default Ember.Component.extend({
+export default Component.extend({
   willInsertElement: function() {
     var _this = this;
     this.set('stashes', stashes);
@@ -25,7 +29,7 @@ export default Ember.Component.extend({
     } else {
       this.set('checking_for_secret', true);
       var timeout = this.get('restore') === false ? 100 : 2000;
-      Ember.run.later(function() {
+      runLater(function() {
         _this.check_for_missing_token();
       }, timeout);
       if(this.get('restore') !== false) {
@@ -33,7 +37,7 @@ export default Ember.Component.extend({
       }
     }
     if(this.get('set_overflow')) {
-      Ember.$("html,body").css('overflow', 'hidden');
+      $("html,body").css('overflow', 'hidden');
     }
   },
   check_for_missing_token: function() {
@@ -41,11 +45,11 @@ export default Ember.Component.extend({
     _this.set('checking_for_secret', false);
     if(!_this.get('client_secret')) {
       session.check_token().then(function() {
-        Ember.run.later(function() {
+        runLater(function() {
           _this.check_for_missing_token();
         }, 2000);
       }, function() {
-        Ember.run.later(function() {
+        runLater(function() {
           _this.check_for_missing_token();
         }, 2000);
       });
@@ -78,7 +82,7 @@ export default Ember.Component.extend({
         data.long_token = true;
         data.browserless = true;
       }
-      if (!Ember.isEmpty(data.identification) && !Ember.isEmpty(data.password)) {
+      if (!isEmpty(data.identification) && !isEmpty(data.password)) {
         this.set('password', null);
         var _this = this;
         session.authenticate(data).then(function(data) {

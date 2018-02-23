@@ -1,10 +1,12 @@
 import Ember from 'ember';
+import Component from '@ember/component';
+import { later as runLater } from '@ember/runloop';
 
-export default Ember.Component.extend({
+export default Component.extend({
   willInsertElement: function() {
     if(!this.get('already_opened')) {
       var _this = this;
-      Ember.run.later(function() {
+      runLater(function() {
         // TODO: this is considered bad behavior. an error was being triggered after upgrading
         // because we're setting an attribute before the rendering has finished
         _this.set('already_opened', true);

@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import { later as runLater } from '@ember/runloop';
 import modal from '../utils/modal';
 import app_state from '../utils/app_state';
 import i18n from '../utils/i18n';
@@ -58,7 +59,7 @@ export default modal.ModalController.extend({
       update_user.then(function(user) {
         _this.set('loading', false);
         if(persistence.get('online')) {
-          Ember.run.later(function() {
+          runLater(function() {
             console.debug('syncing because sidebar updated');
             persistence.sync('self').then(null, function() { });
           }, 1000);

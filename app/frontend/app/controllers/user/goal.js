@@ -1,16 +1,19 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
+import $ from 'jquery';
 import modal from '../../utils/modal';
 import CoughDrop from '../../app';
 import app_state from '../../utils/app_state';
+import { htmlSafe } from '@ember/string';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   load_logs: function() {
     var _this = this;
     _this.set('more_available', false);
     this.store.query('log', {user_id: this.get('user.id'), goal_id: this.get('model.id')}).then(function(list) {
-      _this.set('logs', list.content.mapBy('record'));
+      _this.set('logs', list.map(function(i) { return i; }));
 
-      var meta = Ember.$.extend({}, list.meta);
+      var meta = $.extend({}, list.meta);
       _this.set('meta', meta);
       _this.set('more_available', !!meta.next_url);
     }, function(err) {
@@ -28,7 +31,7 @@ export default Ember.Controller.extend({
   load_user_badges: function() {
     var _this = this;
     this.store.query('badge', {user_id: this.get('user.id'), goal_id: this.get('model.id')}).then(function(badges) {
-      _this.set('user_badges', badges.content.mapBy('record'));
+      _this.set('user_badges', badges.map(function(i) { return i; }));
     }, function(err) {
     });
 
@@ -38,7 +41,7 @@ export default Ember.Controller.extend({
     if(user_badges) {
       var res = [];
       (this.get('model.badges') || []).forEach(function(badge) {
-        var new_badge = Ember.$.extend({}, badge);
+        var new_badge = $.extend({}, badge);
         new_badge.user_badge = user_badges.find(function(b) { return b.get('level') == badge.level; });
         res.push(new_badge);
       });
@@ -68,7 +71,7 @@ export default Ember.Controller.extend({
     } else {
       res = res + " sad";
     }
-    return Ember.String.htmlSafe(res);
+    return htmlSafe(res);
   }.property('model.stats.weighted_average_status'),
   actions: {
     more_results: function() {
@@ -78,8 +81,8 @@ export default Ember.Controller.extend({
         var args = {user_id: this.get('user.id'), goal_id: this.get('model.id'), per_page: meta.per_page, offset: (meta.offset + meta.per_page)};
         var find = this.store.query('log', args);
         find.then(function(list) {
-          _this.set('logs', _this.get('logs').concat(list.content.mapBy('record')));
-          var meta = Ember.$.extend({}, list.meta);
+          _this.set('logs', _this.get('logs').concat(list.map(function(i) { return i; })));
+          var meta = $.extend({}, list.meta);
           _this.set('meta', meta);
           _this.set('more_available', !!meta.next_url);
         }, function() { });

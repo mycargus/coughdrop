@@ -1,4 +1,8 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import { later as runLater } from '@ember/runloop';
+import RSVP from 'rsvp';
+import $ from 'jquery';
 import i18n from './i18n';
 import CoughDrop from '../app';
 
@@ -33,7 +37,7 @@ var obs_func = function() {
   });
 };
 
-var Subscription = Ember.Object.extend({
+var Subscription = EmberObject.extend({
   init: function() {
     this.reset();
   },
@@ -56,7 +60,7 @@ var Subscription = Ember.Object.extend({
       this.set('sale_ends', sale);
     }
     var _this = this;
-    Ember.run.later(function() {
+    runLater(function() {
       var sale = new Date(CoughDrop.sale * 1000);
       if(sale && now && sale > now) {
         _this.set('sale', !!CoughDrop.sale);
@@ -367,7 +371,7 @@ Subscription.reopenClass({
   obs_properties: obs_properties,
   init: function() {
     if(window.StripeCheckout) { return; }
-    var $div = Ember.$("<div/>", {id: 'stripe_script'});
+    var $div = $("<div/>", {id: 'stripe_script'});
     var script = document.createElement('script');
     script.src = 'https://checkout.stripe.com/checkout.js';
     $div.append(script);
@@ -385,7 +389,7 @@ Subscription.reopenClass({
           closed: function() {
             console.error('purchase_modal_closed');
             var d = Subscription.handler.defer;
-            Ember.run.later(function() {
+            runLater(function() {
               if(d && Subscription.handler.defer == d) {
                 console.error('purchase_modal_not_resolved');
                 if(Subscription.handler.defer) {
@@ -412,12 +416,12 @@ Subscription.reopenClass({
   purchase: function(subscription) {
     if(!window.StripeCheckout || !Subscription.handler) {
       alert('not ready');
-      return Ember.RSVP.reject({error: "not ready"});
+      return RSVP.reject({error: "not ready"});
     }
     if(subscription.get('subscription_amount').match(/free/)) {
-      return Ember.RSVP.resolve({id: 'free'});
+      return RSVP.resolve({id: 'free'});
     }
-    var defer = Ember.RSVP.defer();
+    var defer = RSVP.defer();
     if(Subscription.handler.defer) {
       console.error('purchase_resetting_defer');
     }

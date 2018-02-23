@@ -1,10 +1,13 @@
 import Ember from 'ember';
+import Component from '@ember/component';
+import EmberObject from '@ember/object';
 import app_state from '../utils/app_state';
 import i18n from '../utils/i18n';
+import {set as emberSet, get as emberGet} from '@ember/object';
 
-export default Ember.Component.extend({
+export default Component.extend({
   tagName: 'span',
-  action: Ember.K, // action to fire on change
+  action: function() { return this; },
   didInsertElement: function() {
     var supervisees = [];
     var _this = this;
@@ -38,7 +41,7 @@ export default Ember.Component.extend({
   include_me: function() {
     var self = (this.get('users') || []).find(function(u) { return u.id == 'self'; });
     if(self) {
-      Ember.set(self, 'disabled', !!this.get('skip_me'));
+      emberSet(self, 'disabled', !!this.get('skip_me'));
     }
   }.observes('skip_me'),
   for_user_image: function() {
@@ -56,10 +59,10 @@ export default Ember.Component.extend({
       var found = false;
       (this.get('users') || []).forEach(function(sup) {
         if(sup.id == id) {
-          Ember.set(sup, 'currently_selected', true);
+          emberSet(sup, 'currently_selected', true);
           found = true;
         } else {
-          Ember.set(sup, 'currently_selected', false);
+          emberSet(sup, 'currently_selected', false);
         }
       });
       if(found) {

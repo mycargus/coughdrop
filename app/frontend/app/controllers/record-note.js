@@ -1,8 +1,11 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
 import modal from '../utils/modal';
 import persistence from '../utils/persistence';
 import stashes from '../utils/_stashes';
 import i18n from '../utils/i18n';
+import { htmlSafe } from '@ember/string';
 
 export default modal.ModalController.extend({
   text_note: function() {
@@ -47,25 +50,25 @@ export default modal.ModalController.extend({
     var res = [];
     res.push({
       id: '1',
-      text: new Ember.String.htmlSafe(i18n.t('we_didnt_do_it', "We didn't<br/>do it")),
+      text: htmlSafe(i18n.t('we_didnt_do_it', "We didn't<br/>do it")),
       display_class: 'face sad',
       button_display_class: 'btn btn-default face_button'
     });
     res.push({
       id: '2',
-      text: new Ember.String.htmlSafe(i18n.t('we_did_it', "We barely<br/>did it")),
+      text: htmlSafe(i18n.t('we_did_it', "We barely<br/>did it")),
       display_class: 'face neutral',
       button_display_class: 'btn btn-default face_button'
     });
     res.push({
       id: '3',
-      text: new Ember.String.htmlSafe(i18n.t('we_did_good', "We did<br/>good!")),
+      text: htmlSafe(i18n.t('we_did_good', "We did<br/>good!")),
       display_class: 'face happy',
       button_display_class: 'btn btn-default face_button'
     });
     res.push({
       id: '4',
-      text: new Ember.String.htmlSafe(i18n.t('we_did_awesome', "We did<br/>awesome!")),
+      text: htmlSafe(i18n.t('we_did_awesome', "We did<br/>awesome!")),
       display_class: 'face laugh',
       button_display_class: 'btn btn-default face_button'
     });
@@ -110,9 +113,9 @@ export default modal.ModalController.extend({
       this.set('goal_status', id);
       this.get('goal_statuses').forEach(function(status) {
         if(status.id == id) {
-          Ember.set(status, 'button_display_class', 'btn btn-primary face_button');
+          emberSet(status, 'button_display_class', 'btn btn-primary face_button');
         } else {
-          Ember.set(status, 'button_display_class', 'btn btn-default face_button');
+          emberSet(status, 'button_display_class', 'btn btn-default face_button');
         }
       });
     },

@@ -17,6 +17,9 @@ module.exports = function(defaults) {
     },
     minifyJS: {
       enabled: false
+    },
+    'ember-cli-babel': {
+      includePolyfill: true
     }
   });
 

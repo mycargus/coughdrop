@@ -1,10 +1,12 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
+import $ from 'jquery';
 import persistence from '../../utils/persistence';
 import modal from '../../utils/modal';
 import i18n from '../../utils/i18n';
 import CoughDrop from '../../app';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   advance_options: [
     {name: i18n.t('none', "Never"), id: "none"},
     {name: i18n.t('on_the_date', "On the Date"), id: "date"},
@@ -18,7 +20,7 @@ export default Ember.Controller.extend({
   load_user_badges: function() {
     var _this = this;
     this.store.query('badge', {user_id: this.get('app_state.currentUser.id'), goal_id: this.get('model.id')}).then(function(badges) {
-      _this.set('user_badges', badges.content.mapBy('record'));
+      _this.set('user_badges', badges.map(function(b) { return b; }));
     }, function(err) {
     });
   }.observes('app_state.currentUser.id', 'model.id', 'model.badges'),
@@ -27,7 +29,7 @@ export default Ember.Controller.extend({
     if(user_badges) {
       var res = [];
       (this.get('model.badges') || []).forEach(function(badge) {
-        var new_badge = Ember.$.extend({}, badge);
+        var new_badge = $.extend({}, badge);
         new_badge.user_badge = user_badges.find(function(b) { return b.get('level') == badge.level; });
         res.push(new_badge);
       });
@@ -49,7 +51,7 @@ export default Ember.Controller.extend({
       _this.store.query('goal', {template_header_id: header_id}).then(function(list) {
         _this.set('status', null);
         var res = [{id: '', name: i18n.t('none_set', "None Set")}];
-        list = list.content.mapBy('record');
+        list = list.map(function(i) { return i; });
         list.forEach(function(g) {
           if(!g.get('related')) { g.set('related', {}); }
           if(!g.get('related.next') && g.get('next_template_id')) {

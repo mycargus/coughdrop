@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { fakeRecorder, queryLog } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import progress_tracker from '../../utils/progress_tracker';
 import persistence from '../../utils/persistence';
 import Ember from 'ember';
@@ -33,7 +34,7 @@ describe('progress_tracker', function() {
       var called = false;
       stub(persistence, 'ajax', function(url, opts) {
         called = (url === "/status" && opts.type === 'GET');
-        return Ember.RSVP.defer().promise;
+        return RSVP.defer().promise;
       });
       progress_tracker.check("/status");
       waitsFor(function() { return called; });
@@ -44,9 +45,9 @@ describe('progress_tracker', function() {
       stub(persistence, 'ajax', function(url, opts) {
         calls.push([url, opts]);
         if(calls.length === 1) {
-          return Ember.RSVP.reject();
+          return RSVP.reject();
         } else {
-          return Ember.RSVP.defer().promise;
+          return RSVP.defer().promise;
         }
       });
       progress_tracker.track_ids = {'abc': true};
@@ -61,7 +62,7 @@ describe('progress_tracker', function() {
       var calls = [], statuses = [];
       stub(persistence, 'ajax', function(url, opts) {
         calls.push([url, opts]);
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       var error = false;
       progress_tracker.track_ids = {'abc': true};
@@ -81,11 +82,11 @@ describe('progress_tracker', function() {
       stub(persistence, 'ajax', function(url, opts) {
         calls.push([url, opts]);
         if(calls.length < 3) {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             progress: {calls: calls.length}
           });
         } else {
-          return Ember.RSVP.defer().promise;
+          return RSVP.defer().promise;
         }
       });
       progress_tracker.track_ids = {'abc': true};
@@ -105,11 +106,11 @@ describe('progress_tracker', function() {
       stub(persistence, 'ajax', function(url, opts) {
         calls.push([url, opts]);
         if(calls.length < 3) {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             progress: {calls: calls.length}
           });
         } else {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             progress: {finished_at: "123", status: "finished"}
           });
         }
@@ -142,7 +143,7 @@ describe('progress_tracker', function() {
           console.log("...");
           progress_tracker.untrack('abc');
         }
-        return Ember.RSVP.resolve({
+        return RSVP.resolve({
           progress: {calls: calls.length}
         });
       });
@@ -181,14 +182,14 @@ describe('progress_tracker', function() {
       if(url == 'abc') {
         attempt++;
         if(attempt == 1) {
-          return Ember.RSVP.reject('asdf');
+          return RSVP.reject('asdf');
         } else if(attempt == 2) {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             progress: {
             }
           });
         } else {
-          return Ember.RSVP.resolve({
+          return RSVP.resolve({
             progress: {
               finished_at: 123,
               status: 'finished'

@@ -1,8 +1,9 @@
 import Ember from 'ember';
+import Component from '@ember/component';
 import modal from '../utils/modal';
 import i18n from '../utils/i18n';
 
-export default Ember.Component.extend({
+export default Component.extend({
   didInsertElement: function() {
     var _this = this;
     _this.process_badge();

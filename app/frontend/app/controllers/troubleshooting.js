@@ -1,4 +1,9 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
 import speecher from '../utils/speecher';
 import modal from '../utils/modal';
 import stashes from '../utils/_stashes';
@@ -6,7 +11,7 @@ import capabilities from '../utils/capabilities';
 import i18n from '../utils/i18n';
 import contentGrabbers from '../utils/content_grabbers';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   tests: [
     {key: 'javascript', name: i18n.t('javascript', "JavaScript"), description: i18n.t('javscript_info', "This page wouldn't even load without a relatively-modern JavaScript engine.")},
     {key: 'local_storage', name: i18n.t('local_storage', "localStorage"), description: i18n.t('local_storage_info', "localStorage is used instead of cookies to remember whether a user is already logged in, what board they were on, etc.")},
@@ -29,19 +34,19 @@ export default Ember.Controller.extend({
     {key: 'fullscreen', name: i18n.t('fullscreen', "Full Screen Mode"), description: i18n.t('fullscreen_info', "On some devices CoughDrop can activate full screen mode when in Speak Mode to hide any navigation and status buttons from view.")},
   ],
   run_javascript_test: function(test) {
-    Ember.set(test, 'results', {passed: true});
+    emberSet(test, 'results', {passed: true});
   },
   run_speech_synthesis_test: function(test) {
     if(speecher.scope.speechSynthesis) {
       if(window.speechSynthesis && !window.speechSynthesis.polyfill) {
-        Ember.set(test, 'results', {passed: true});
+        emberSet(test, 'results', {passed: true});
       } else if(speecher.scope.speechSynthesis.cloud_only) {
-        Ember.set(test, 'results', {passed: false, reason: "A cloud-based fallback may work when your device is online"});
+        emberSet(test, 'results', {passed: false, reason: "A cloud-based fallback may work when your device is online"});
       } else {
-        Ember.set(test, 'results', {partially_passed: true, reason: "Supported through an extension, but quality will be limited"});
+        emberSet(test, 'results', {partially_passed: true, reason: "Supported through an extension, but quality will be limited"});
       }
     } else {
-      Ember.set(test, 'results', {passed: false, reason: "No speech synthesis found"});
+      emberSet(test, 'results', {passed: false, reason: "No speech synthesis found"});
     }
   },
   run_speech_synthesis_voices_test: function(test) {
@@ -54,15 +59,15 @@ export default Ember.Controller.extend({
             voice_names.push((voices[idx].name || voices[idx].voiceURI || "unnamed voice") + "(" + voices[idx].lang + ")");
           }
           var voice_string = voice_names.join("\n");
-          Ember.set(test, 'results', {passed: true, content: voice_string});
+          emberSet(test, 'results', {passed: true, content: voice_string});
         } else {
-          Ember.set(test, 'results', {passed: false, reason: "No voices found"});
+          emberSet(test, 'results', {passed: false, reason: "No voices found"});
         }
       } else {
-        Ember.set(test, 'results', {passed: false, reason: "No getVoices method found"});
+        emberSet(test, 'results', {passed: false, reason: "No getVoices method found"});
       }
     } else {
-      Ember.set(test, 'results', {passed: false, reason: "No speech synthesis found"});
+      emberSet(test, 'results', {passed: false, reason: "No speech synthesis found"});
     }
   },
   run_local_storage_test: function(test) {
@@ -73,40 +78,40 @@ export default Ember.Controller.extend({
       if(localStorage['cough_drop_test'] == 'ok') {
         localStorage.removeItem('cough_drop_test');
         if(localStorage['cough_drop_test'] === undefined) {
-          Ember.set(test, 'results', {passed: true});
+          emberSet(test, 'results', {passed: true});
         } else {
-          Ember.set(test, 'results', {passed: false, reason: "removeItem failed"});
+          emberSet(test, 'results', {passed: false, reason: "removeItem failed"});
         }
       } else {
-          Ember.set(test, 'results', {passed: false, reason: "setItem failed"});
+          emberSet(test, 'results', {passed: false, reason: "setItem failed"});
       }
     } catch(e) {
-      Ember.set(test, 'results', {passed: false, reason: e.toString()});
+      emberSet(test, 'results', {passed: false, reason: e.toString()});
     }
   },
   run_indexed_db_test: function(test) {
     if(window.indexedDB && window.indexedDB == window.shimIndexedDB) {
-      Ember.set(test, 'results', {partially_passed: true, reason: "IndexedDB Shim used to add support"});
+      emberSet(test, 'results', {partially_passed: true, reason: "IndexedDB Shim used to add support"});
     } else if(window.indexedDB) {
-      Ember.set(test, 'results', {passed: true});
+      emberSet(test, 'results', {passed: true});
     } else {
-      Ember.set(test, 'results', {passed: false});
+      emberSet(test, 'results', {passed: false});
     }
   },
   run_sqlite_test: function(test) {
     if(capabilities.dbman.sqlite) {
-      Ember.set(test, 'results', {passed: true});
+      emberSet(test, 'results', {passed: true});
     } else {
-      Ember.set(test, 'results', {passed: false});
+      emberSet(test, 'results', {passed: false});
     }
   },
   run_media_recording_test: function(test) {
     // media recording
     var captures = contentGrabbers.capture_types();
     if(navigator.getUserMedia || (captures.image && captures.audio)) {
-      Ember.set(test, 'results', {passed: true});
+      emberSet(test, 'results', {passed: true});
     } else {
-      Ember.set(test, 'results', {passed: false});
+      emberSet(test, 'results', {passed: false});
     }
   },
   run_xhr_cors_test: function(test) {
@@ -117,19 +122,19 @@ export default Ember.Controller.extend({
     xhr.addEventListener('load', function(r) {
       if(xhr.status == 200) {
         contentGrabbers.read_file(xhr.response).then(function(s) {
-          Ember.set(test, 'results', {passed: true});
+          emberSet(test, 'results', {passed: true});
         }, function() {
-          Ember.set(test, 'results', {passed: false, reason: "file reading failed"});
+          emberSet(test, 'results', {passed: false, reason: "file reading failed"});
         });
       } else {
-        Ember.set(test, 'results', {passed: false, reason: "CORS request failed"});
+        emberSet(test, 'results', {passed: false, reason: "CORS request failed"});
       }
     });
     xhr.addEventListener('error', function() {
-      Ember.set(test, 'results', {passed: false, reason: "URL lookup failed"});
+      emberSet(test, 'results', {passed: false, reason: "URL lookup failed"});
     });
     xhr.addEventListener('abort', function() {
-      Ember.set(test, 'results', {passed: false, reason: "URL lookup aborted"});
+      emberSet(test, 'results', {passed: false, reason: "URL lookup aborted"});
     });
     // Adding the query parameter because I suspect that if a URL has already
     // been retrieved by the browser, it's not sending CORS headers on the
@@ -139,27 +144,27 @@ export default Ember.Controller.extend({
     xhr.send(null);
   },
   run_file_uploads_test: function(test) {
-    Ember.set(test, 'results', {passed: !!(window.Blob && window.Uint8Array) });
+    emberSet(test, 'results', {passed: !!(window.Blob && window.Uint8Array) });
   },
   run_file_storage_test: function(test) {
     capabilities.storage.status().then(function(res) {
       if(res.available) {
         if(res.requires_confirmation) {
-          Ember.set(test, 'results', {partially_passed: true, reason: "Requires user permission"});
+          emberSet(test, 'results', {partially_passed: true, reason: "Requires user permission"});
         } else {
-          Ember.set(test, 'results', {passed: true});
+          emberSet(test, 'results', {passed: true});
         }
       } else {
-        Ember.set(test, 'results', {passed: false});
+        emberSet(test, 'results', {passed: false});
       }
     }, function(err) {
-      Ember.set(test, 'results', {passed: false});
+      emberSet(test, 'results', {passed: false});
     });
   },
   run_canvas_test: function(test) {
     var red_dot = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
     var svg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10'><linearGradient id='gradient'><stop offset='10%' stop-color='#F00'/><stop offset='90%' stop-color='#fcc'/> </linearGradient><rect fill='url(#gradient)' x='0' y='0' width='100%' height='100%'/></svg>";
-    var $canvas = Ember.$("<canvas/>");
+    var $canvas = $("<canvas/>");
     var canvas = $canvas[0];
     if(canvas && canvas.getContext) {
       canvas.width = 10;
@@ -170,7 +175,7 @@ export default Ember.Controller.extend({
       var svg_image = new Image();
       svg_image.src = svg;
 
-      Ember.run.later(function() {
+      runLater(function() {
         if(red_image.complete) {
           if(svg_image.complete) {
             context.clearRect(0, 0, canvas.width, canvas.height);
@@ -188,26 +193,26 @@ export default Ember.Controller.extend({
                 var c = 9;
                 var idx = (r*canvas.width+c)*4;
                 if(data[0] === 255 && data[1] === 0 && data[2] === 0 && data[idx] === 255 && data[idx + 1] === 204 && data[idx + 2] === 204) {
-                  Ember.set(test, 'results', {passed: true});
+                  emberSet(test, 'results', {passed: true});
                 } else {
-                  Ember.set(test, 'results', {passed: false, reason: "SVG rendering on Canvas failed"});
+                  emberSet(test, 'results', {passed: false, reason: "SVG rendering on Canvas failed"});
                 }
               } catch(e) {
-                Ember.set(test, 'results', {passed: false, reason: "SVG rendering on Canvas failed unexpectedly."});
+                emberSet(test, 'results', {passed: false, reason: "SVG rendering on Canvas failed unexpectedly."});
               }
             } else {
-              Ember.set(test, 'results', {passed: false, reason: "PNG rendering on Canvas failed"});
+              emberSet(test, 'results', {passed: false, reason: "PNG rendering on Canvas failed"});
             }
           } else {
-            Ember.set(test, 'results', {passd: false, reason: "SVG images not supported"});
+            emberSet(test, 'results', {passd: false, reason: "SVG images not supported"});
           }
         } else {
-          Ember.set(test, 'results', {passed: false, reason: "Data-URIs not supported"});
+          emberSet(test, 'results', {passed: false, reason: "Data-URIs not supported"});
         }
       }, 100);
 
     } else {
-      Ember.set(test, 'results', {passed: false, reason: "Canvas element not enabled"});
+      emberSet(test, 'results', {passed: false, reason: "Canvas element not enabled"});
     }
     // include data-uri test
   },
@@ -259,55 +264,55 @@ export default Ember.Controller.extend({
     var done_check = function() {
       if(dones[0] && dones[1] && dones[2]) {
         if(dones[0] !== true) {
-          Ember.set(test, 'results', dones[0]);
+          emberSet(test, 'results', dones[0]);
         } else if(dones[1] !== true) {
-          Ember.set(test, 'results', dones[1]);
+          emberSet(test, 'results', dones[1]);
         } else if(dones[2] !== true) {
-          Ember.set(test, 'results', dones[2]);
+          emberSet(test, 'results', dones[2]);
         } else {
-          Ember.set(test, 'results', {passed: true});
+          emberSet(test, 'results', {passed: true});
         }
       } else {
-        Ember.run.later(done_check, 100);
+        runLater(done_check, 100);
       }
     };
-    Ember.run.later(done_check, 100);
+    runLater(done_check, 100);
   },
   run_drag_and_drop_test: function(test) {
-    Ember.set(test, 'results', {passed: !!(window.DataTransfer) });
+    emberSet(test, 'results', {passed: !!(window.DataTransfer) });
   },
   run_speech_to_text_test: function(test) {
-    Ember.set(test, 'results', {passed: !!(window.webkitSpeechRecognition) });
+    emberSet(test, 'results', {passed: !!(window.webkitSpeechRecognition) });
   },
   run_file_reader_test: function(test) {
-    Ember.set(test, 'results', {passed: !!(window.FileReader) });
+    emberSet(test, 'results', {passed: !!(window.FileReader) });
   },
   run_wakelock_test: function(test) {
     if(window.chrome && window.chrome.power && window.chrome.power.requestKeepAwake) {
-      Ember.set(test, 'results', {passed: true});
+      emberSet(test, 'results', {passed: true});
     } else {
-      Ember.set(test, 'results', {passed: false});
+      emberSet(test, 'results', {passed: false});
     }
   },
   run_fullscreen_test: function(test) {
     if(capabilities.fullscreen_capable()) {
-      Ember.set(test, 'results', {passed: true});
+      emberSet(test, 'results', {passed: true});
     } else {
-      Ember.set(test, 'results', {passed: false});
+      emberSet(test, 'results', {passed: false});
     }
   },
   run_geolocation_test: function(test) {
     if(navigator.geolocation && navigator.geolocation.clearWatch && navigator.geolocation.watchPosition) {
-      Ember.set(test, 'results', {passed: true});
+      emberSet(test, 'results', {passed: true});
     } else {
-      Ember.set(test, 'results', {passed: false});
+      emberSet(test, 'results', {passed: false});
     }
   },
   run_online_test: function(test) {
     if(navigator.onLine === true || navigator.onLine === false) {
-      Ember.set(test, 'results', {passed: true});
+      emberSet(test, 'results', {passed: true});
     } else {
-      Ember.set(test, 'results', {passed: false});
+      emberSet(test, 'results', {passed: false});
     }
   },
   has_debugging: function() {
@@ -376,11 +381,11 @@ export default Ember.Controller.extend({
       this.set('testing', true);
       var _this = this;
       this.tests.forEach(function(test) {
-        Ember.run.later(function() {
+        runLater(function() {
           _this['run_' + test.key + '_test'](test);
-          Ember.run.later(function() {
-            if(!Ember.get(test, 'results')) {
-              Ember.set(test, 'results', {passed: false, reason: "Test failed to complete."});
+          runLater(function() {
+            if(!emberGet(test, 'results')) {
+              emberSet(test, 'results', {passed: false, reason: "Test failed to complete."});
             }
           }, 5000);
         });
@@ -438,13 +443,13 @@ export default Ember.Controller.extend({
               check_played.count = check_played.count || 0;
               check_played.count++;
               if(check_played.count < 20) {
-                Ember.run.later(check_played, 300);
+                runLater(check_played, 300);
               } else {
                 modal.error(i18n.t('audio_never_played', "Oops! The audio element never triggered a play event."));
               }
             }
           };
-          Ember.run.later(check_played, 300);
+          runLater(check_played, 300);
           return;
         } else if(num == '3') {
           var wav_audio = {};

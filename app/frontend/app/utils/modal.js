@@ -1,7 +1,12 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
+import EmberObject from '@ember/object';
+import RSVP from 'rsvp';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
 import scanner from './scanner';
 
-var modal = Ember.Object.extend({
+var modal = EmberObject.extend({
   setup: function(route) {
     if(this.last_promise) { this.last_promise.reject('closing due to setup'); }
     this.route = route;
@@ -27,7 +32,7 @@ var modal = Ember.Object.extend({
     this.last_template = template;
     this.route.render(template, { into: 'application', outlet: 'modal'});
     var _this = this;
-    return new Ember.RSVP.Promise(function(resolve, reject) {
+    return new RSVP.Promise(function(resolve, reject) {
       _this.last_promise = {
         resolve: resolve,
         reject: reject
@@ -42,7 +47,7 @@ var modal = Ember.Object.extend({
     }
   },
   is_closeable: function() {
-    return Ember.$(".modal").attr('data-uncloseable') != 'true';
+    return $(".modal").attr('data-uncloseable') != 'true';
   },
   queue: function(template) {
     if(this.is_open()) {
@@ -54,7 +59,7 @@ var modal = Ember.Object.extend({
   highlight: function($elems, options) {
     var minX, minY, maxX, maxY;
     $elems.each(function() {
-      var $e = Ember.$(this);
+      var $e = $(this);
       var offset = $e.offset();
       var thisMinX = offset.left;
       var thisMinY = offset.top;
@@ -65,13 +70,14 @@ var modal = Ember.Object.extend({
       maxX = Math.max(maxX || thisMaxX, thisMaxX);
       maxY = Math.max(maxY || thisMaxY, thisMaxY);
     });
-    if(true) {
+    var do_stretch = true;
+    if(do_stretch) {
       minX = minX - 10;
       minY = minY - 10;
       maxX = maxX + 10;
       maxY = maxY + 10;
     }
-    var settings = modal.highlight_settings || Ember.Object.create();
+    var settings = modal.highlight_settings || EmberObject.create();
     settings.setProperties({
       left: Math.floor(minX),
       top: Math.floor(minY),
@@ -86,7 +92,7 @@ var modal = Ember.Object.extend({
     settings.set('clear_overlay', options.clear_overlay);
     settings.set('prevent_close', options.prevent_close);
     settings.set('select_anywhere', options.select_anywhere);
-    settings.set('defer', Ember.RSVP.defer());
+    settings.set('defer', RSVP.defer());
     var promise = settings.get('defer').promise;
 
     if(modal.highlight_controller) {
@@ -96,7 +102,7 @@ var modal = Ember.Object.extend({
       modal.highlight_controller.set('model', settings);
     } else {
       modal.close();
-      Ember.run.later(function() {
+      runLater(function() {
         modal.open('highlight', settings);
       });
     }
@@ -125,7 +131,7 @@ var modal = Ember.Object.extend({
     }
     if(this.resume_scanning) {
       var _this = this;
-      Ember.run.later(function() {
+      runLater(function() {
         if(!modal.is_open()) {
           _this.resume_scanning = false;
           scanner.start(scanner.options);
@@ -143,7 +149,7 @@ var modal = Ember.Object.extend({
       });
     }
     if(this.queued_template) {
-      Ember.run.later(function() {
+      runLater(function() {
         if(!modal.is_open()) {
           modal.open(modal.queued_template);
           modal.queued_template = null;
@@ -169,18 +175,18 @@ var modal = Ember.Object.extend({
     }
 
     var _this = this;
-    Ember.run.later(function() {
+    runLater(function() {
       var timeout = below_header ? 500 : 1500;
       modal.route.render('flash-message', { into: 'application', outlet: 'flash-message'});
       if(!sticky) {
-        Ember.run.later(function() {
+        runLater(function() {
           _this.fade_flash();
         }, timeout);
       }
     });
   },
   fade_flash: function() {
-    Ember.$('.flash').addClass('fade');
+    $('.flash').addClass('fade');
   },
   warning: function(text, below_header, sticky, opts) {
     modal.flash(text, 'warning', below_header, sticky, opts);
@@ -207,10 +213,11 @@ var modal = Ember.Object.extend({
   }
 }).create();
 
-modal.ModalController = Ember.Controller.extend({
+modal.ModalController = Controller.extend({
   actions: {
     opening: function() {
-      var template = this.get('templateName') || this.get('renderedName') || this.constructor.toString().split(/:/)[1];
+      var template = modal.last_template;
+      if(!template) { console.error("can't find template name"); }
       var settings = modal.settings_for[template] || {};
       var controller = this;
       modal.last_controller = controller;

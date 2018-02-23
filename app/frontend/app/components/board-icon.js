@@ -1,9 +1,11 @@
 import Ember from 'ember';
+import { htmlSafe } from '@ember/string';
+import Component from '@ember/component';
 import CoughDrop from '../app';
 import app_state from '../utils/app_state';
 import modal from '../utils/modal';
 
-export default Ember.Component.extend({
+export default Component.extend({
   willInsertElement: function() {
     this.set_board_record();
   },
@@ -36,7 +38,8 @@ export default Ember.Component.extend({
     if(this.get('children')) {
       res = res + ' folder';
     }
-    return Ember.String.htmlSafe(res);
+
+    return htmlSafe(res);
   }.property('children'),
   actions: {
     board_preview: function(board) {

@@ -1,4 +1,7 @@
 import Ember from 'ember';
+import Route from '@ember/routing/route';
+import { later as runLater } from '@ember/runloop';
+import RSVP from 'rsvp';
 import Subscription from '../utils/subscription';
 import stashes from '../utils/_stashes';
 import app_state from '../utils/app_state';
@@ -10,7 +13,7 @@ import coughDropExtras from '../utils/extras';
 import session from '../utils/session';
 import i18n from '../utils/i18n';
 
-export default Ember.Route.extend({
+export default Route.extend({
   model: function() {
     if(session.get('access_token')) {
       return CoughDrop.store.findRecord('user', 'self').then(function(user) {
@@ -18,12 +21,12 @@ export default Ember.Route.extend({
         if(!user.get('really_fresh') && persistence.get('online')) {
           user.reload();
         }
-        return Ember.RSVP.resolve(user);
+        return RSVP.resolve(user);
       }, function() {
-        return Ember.RSVP.resolve(null);
+        return RSVP.resolve(null);
       });
     } else {
-      return Ember.RSVP.resolve(null);
+      return RSVP.resolve(null);
     }
   },
   setupController: function(controller, model) {
@@ -47,8 +50,9 @@ export default Ember.Route.extend({
         };
         // for some reason, iOS doesn't like being auto-launched into speak mode too quickly..
         // android installed app is taking like 5 times as long to load with auto-speak, maybe this will help there too?
-        if(capabilities.system == 'iOS' || true) {
-          Ember.run.later(homey);
+        var always_wait = true;
+        if(capabilities.system == 'iOS' || always_wait) {
+          runLater(homey);
         } else {
           homey();
         }

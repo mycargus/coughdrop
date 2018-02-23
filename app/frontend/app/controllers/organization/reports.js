@@ -1,9 +1,10 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import i18n from '../../utils/i18n';
 import persistence from '../../utils/persistence';
 import modal from '../../utils/modal';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   queryParams: ['current_report'],
   available_reports: function() {
     if(this.get('model.permissions.edit')) {

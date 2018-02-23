@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import RSVP from 'rsvp';
 import modal from '../utils/modal';
 import editManager from '../utils/edit_manager';
 import app_state from '../utils/app_state';
@@ -36,7 +37,7 @@ export default modal.ModalController.extend({
     this.get('model.board').set('downstream_board_ids_to_copy', board_ids_to_include);
     var _this = this;
     editManager.copy_board(_this.get('model.board'), _this.get('model.action'), _this.get('model.user'), _this.get('model.make_public')).then(function(board) {
-      var next = Ember.RSVP.resolve();
+      var next = RSVP.resolve();
       var new_board_ids = board_ids_to_include ? board.get('new_board_ids') : null;
       if(_this.get('model.shares') && _this.get('model.shares').length > 0) {
         var promises = [];
@@ -49,7 +50,7 @@ export default modal.ModalController.extend({
           });
         });
         next = next.then(null, function() {
-          return Ember.RSVP.reject(i18n.t('sharing_failed', "Sharing with one or more users failed"));
+          return RSVP.reject(i18n.t('sharing_failed', "Sharing with one or more users failed"));
         });
       }
 
@@ -67,15 +68,15 @@ export default modal.ModalController.extend({
             return modal.open('button-set', translate_opts).then(function(res) {
               if(res && res.translated) {
                 return board.reload(true).then(function() {
-                  return Ember.RSVP.resolve({translated: true});
+                  return RSVP.resolve({translated: true});
                 });
               } else {
-                return Ember.RSVP.reject(i18n.t('translation_canceled', "Translation was canceled"));
+                return RSVP.reject(i18n.t('translation_canceled', "Translation was canceled"));
               }
             });
           });
         } else {
-          return Ember.RSVP.resolve();
+          return RSVP.resolve();
         }
       });
 

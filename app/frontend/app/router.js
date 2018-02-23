@@ -1,15 +1,17 @@
 import Ember from 'ember';
+import EmberRouter from '@ember/routing/router';
 import config from './config/environment';
 import capabilities from './utils/capabilities';
 
 var use_push_state = !!(window.history && window.history.pushState);
+var check_full_screen = false;
 if(location.pathname.match(/^\/jasmine/)) {
   use_push_state = false;
 } else if(capabilities.browserless) {
   use_push_state = false;
 } else if(window.navigator.standalone) {
   use_push_state = false;
-} else if(false) { // TODO: check if full screen launch on android
+} else if(check_full_screen) { // TODO: check if full screen launch on android
   use_push_state = false;
 }
 if(Ember.testing) {
@@ -19,7 +21,7 @@ if(Ember.testing) {
 } else if(use_push_state) {
   config.locationType = 'history';
 }
-var Router = Ember.Router.extend({
+const Router = EmberRouter.extend({
   location: config.locationType,
   rootURL: config.rootURL
 });

@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
 import modal from '../utils/modal';
 import stashes from '../utils/_stashes';
 import app_state from '../utils/app_state';
@@ -10,8 +12,8 @@ export default modal.ModalController.extend({
     this.set('model', {});
     this.set('rememberedUtterances', utterances);
     var height = app_state.get('header_height');
-    Ember.run.later(function() {
-      Ember.$("#speak_menu").closest(".modal-dialog").css('top', (height - 40) + 'px');
+    runLater(function() {
+      $("#speak_menu").closest(".modal-dialog").css('top', (height - 40) + 'px');
     }, 100);
   },
   sharing_allowed: function() {

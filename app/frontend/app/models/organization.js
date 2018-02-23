@@ -1,5 +1,7 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 import DS from 'ember-data';
+import $ from 'jquery';
 import CoughDrop from '../app';
 import i18n from '../utils/i18n';
 import persistence from '../utils/persistence';
@@ -53,7 +55,7 @@ CoughDrop.Organization = DS.Model.extend({
   processed_purchase_history: function() {
     var res = [];
     (this.get('purchase_history') || []).forEach(function(e) {
-      var evt = Ember.$.extend({}, e);
+      var evt = $.extend({}, e);
       evt[e.type] = true;
       res.push(evt);
     });
@@ -62,7 +64,7 @@ CoughDrop.Organization = DS.Model.extend({
   processed_org_subscriptions: function() {
     var res = [];
     (this.get('org_subscriptions') || []).forEach(function(s) {
-      var user = Ember.Object.create(s);
+      var user = EmberObject.create(s);
       user.set('subscription_object', Subscription.create({user: user}));
       res.push(user);
     });

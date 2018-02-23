@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import RSVP from 'rsvp';
 import CoughDrop from '../app';
 import boundClasses from './bound_classes';
 import app_state from './app_state';
@@ -6,7 +8,7 @@ import persistence from './persistence';
 import i18n from './i18n';
 import stashes from './_stashes';
 
-var BoardHierarchy = Ember.Object.extend({
+var BoardHierarchy = EmberObject.extend({
   init: function() {
     var _this = this;
     var board = this.get('board');
@@ -14,7 +16,7 @@ var BoardHierarchy = Ember.Object.extend({
     var traversed_boards = {};
     var all_boards = [];
     var traverse_board = function(board_id, board_key) {
-      var hierarchy_board = Ember.Object.create({
+      var hierarchy_board = EmberObject.create({
         id: board_id,
         key: board_key,
         user_name: board_key.split(/\//)[0],
@@ -73,7 +75,7 @@ var BoardHierarchy = Ember.Object.extend({
           }
           traversed_boards[board_id].get('children').push(sub_board);
         } else {
-          var clone = Ember.Object.create({
+          var clone = EmberObject.create({
             already_linked: true,
             id: linked_board.get('id'),
             key: linked_board.get('key'),
@@ -125,26 +127,26 @@ var BoardHierarchy = Ember.Object.extend({
 BoardHierarchy.load_with_button_set = function(board, opts) {
   var reload_board = board.reload().then(null, function() {
   }, function(err) {
-    return Ember.RSVP.reject(i18n.t('loading_board_failed', "Failed loading board for copying"));
+    return RSVP.reject(i18n.t('loading_board_failed', "Failed loading board for copying"));
   });
 
   var downstream = reload_board.then(function() {
 //     if(board.get('downstream_boards') > 0) {
       return board.load_button_set(true);
 //     } else {
-//       return Ember.RSVP.resolve();
+//       return RSVP.resolve();
 //     }
   });
 
   var load_hierarchy = downstream.then(function(button_set) {
     if(!button_set) {
-      return Ember.RSVP.resolve(null);
+      return RSVP.resolve(null);
     }
     opts = opts || {};
 
-    return Ember.RSVP.resolve(BoardHierarchy.create({board: board, button_set: button_set, options: opts}));
+    return RSVP.resolve(BoardHierarchy.create({board: board, button_set: button_set, options: opts}));
   }, function() {
-    return Ember.RSVP.reject(i18n.t('loading_board_failed', "Failed loading board links for copying"));
+    return RSVP.reject(i18n.t('loading_board_failed', "Failed loading board links for copying"));
   });
 
   return load_hierarchy;

@@ -1,11 +1,13 @@
 import Ember from 'ember';
+import Component from '@ember/component';
+import $ from 'jquery';
 import coughDropExtras from '../utils/extras';
 import app_state from '../utils/app_state';
 import modal from '../utils/modal';
 import capabilities from '../utils/capabilities';
 import i18n from '../utils/i18n';
 
-export default Ember.Component.extend({
+export default Component.extend({
   tagName: 'span',
   didInsertElement: function() {
     if(this.get('utterance') && this.get('utterance').check_for_large_image_url) {
@@ -76,7 +78,7 @@ export default Ember.Component.extend({
       } else if(medium == 'email') {
         modal.open('share-email', {url: this.get('url'), text: this.get('text'), utterance_id: this.get('utterance.id') });
       } else if(medium == 'clipboard' && this.get('clipboard_enabled')) {
-        var $elem = Ember.$("#" + this.get('element_id'));
+        var $elem = $("#" + this.get('element_id'));
         window.getSelection().removeAllRanges();
         if($elem[0].tagName == 'INPUT') {
           $elem.focus().select();

@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { fakeRecorder, queryLog } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import contentGrabbers from '../../utils/content_grabbers';
 import editManager from '../../utils/edit_manager';
 import app_state from '../../utils/app_state';
 import modal from '../../utils/modal';
 import Utils from '../../utils/misc';
 import Ember from 'ember';
-
+import EmberObject from '@ember/object';
 
 describe('soundGrabber', function() {
   var soundGrabber = contentGrabbers.soundGrabber;
@@ -19,15 +20,15 @@ describe('soundGrabber', function() {
 
   beforeEach(function() {
     contentGrabbers.unlink();
-    var obj = Ember.Object.create({
+    var obj = EmberObject.create({
     });
-    controller = Ember.Object.extend({
+    controller = EmberObject.extend({
       send: function(message) {
         this.sentMessages[message] = arguments;
       },
-      model: Ember.Object.create({id: '456'})
+      model: EmberObject.create({id: '456'})
     }).create({
-      'currentUser': Ember.Object.create({user_name: 'bob', profile_url: 'http://www.bob.com/bob'}),
+      'currentUser': EmberObject.create({user_name: 'bob', profile_url: 'http://www.bob.com/bob'}),
       sentMessages: {},
       licenseOptions: [],
       'board': obj
@@ -35,10 +36,10 @@ describe('soundGrabber', function() {
     app_state.set('currentUser', controller.get('currentUser'));
     stub(app_state, 'controller', controller);
     stub(editManager, 'controller', obj);
-    button = Ember.Object.extend({
+    button = EmberObject.extend({
       findContentLocally: function() {
         this.foundContentLocally = true;
-        return Ember.RSVP.resolve(true);
+        return RSVP.resolve(true);
       }
     }).create();
   });
@@ -48,7 +49,7 @@ describe('soundGrabber', function() {
       var checked = false;
       button.set('sound', {id: 1, check_for_editable_license:function() { checked = true; }});
       stub(button, 'findContentLocally', function() {
-        return Ember.RSVP.resolve();
+        return RSVP.resolve();
       });
       soundGrabber.setup(button, controller);
       waitsFor(function() { return checked; });
@@ -224,7 +225,7 @@ describe('soundGrabber', function() {
         method: 'POST',
         type: 'sound',
         compare: function(s) { return s.get('url') == '/beep.mp3'; },
-        response: Ember.RSVP.resolve({sound: {id: '123', url: '/beep.mp3'}})
+        response: RSVP.resolve({sound: {id: '123', url: '/beep.mp3'}})
       });
       soundGrabber.select_sound_preview();
       waitsFor(function() { return controller.get('model.sound'); });
@@ -248,7 +249,7 @@ describe('soundGrabber', function() {
           correct_license = s.get('license.type') == 'Cool' && s.get('license.author_name') == "Bob";
           return s.get('url') == '/beep.mp3';
         },
-        response: Ember.RSVP.resolve({sound: {id: '123', url: '/beep.mp3'}})
+        response: RSVP.resolve({sound: {id: '123', url: '/beep.mp3'}})
       });
       soundGrabber.select_sound_preview();
       waitsFor(function() { return correct_license; });
@@ -266,7 +267,7 @@ describe('soundGrabber', function() {
           correct_license = s.get('license.type') == 'private' && s.get('license.author_name') == 'bob';
           return s.get('url') == '/beep.mp3';
         },
-        response: Ember.RSVP.resolve({sound: {id: '123', url: '/beep.mp3'}})
+        response: RSVP.resolve({sound: {id: '123', url: '/beep.mp3'}})
       });
       soundGrabber.select_sound_preview();
       waitsFor(function() { return correct_license; });
@@ -277,7 +278,7 @@ describe('soundGrabber', function() {
       var sound = null;
       stub(contentGrabbers, 'save_record', function(s) {
         sound = s;
-        return Ember.RSVP.resolve(Ember.Object.create());
+        return RSVP.resolve(EmberObject.create());
       });
       soundGrabber.select_sound_preview({
         url: wav_data_uri,
@@ -298,7 +299,7 @@ describe('soundGrabber', function() {
       var sound = null;
       stub(contentGrabbers, 'save_record', function(s) {
         sound = s;
-        return Ember.RSVP.resolve(Ember.Object.create());
+        return RSVP.resolve(EmberObject.create());
       });
       soundGrabber.select_sound_preview({
         url: wav_data_uri,
@@ -346,7 +347,7 @@ describe('soundGrabber', function() {
         expect(id).toEqual('bacon');
         return elem;
       });
-      var sound = Ember.Object.create({id: 'bacon'});
+      var sound = EmberObject.create({id: 'bacon'});
       soundGrabber.play_audio(sound);
       expect(sound.get('playing')).toEqual(true);
       expect(elem.currentTime).toEqual(5);
@@ -365,7 +366,7 @@ describe('soundGrabber', function() {
     });
 
     it('should not error when element not found', function() {
-      soundGrabber.play_audio(Ember.Object.create({id: 'asdf'}));
+      soundGrabber.play_audio(EmberObject.create({id: 'asdf'}));
       expect(1).toEqual(1);
     });
   });
@@ -389,7 +390,7 @@ describe('soundGrabber', function() {
       stub(contentGrabbers, 'read_file', function(file) {
         read = true;
         expect(file).toEqual(f);
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       soundGrabber.recording_selected(f);
       waitsFor(function() { return read; });
@@ -401,7 +402,7 @@ describe('soundGrabber', function() {
       var read = false;
       var selected = false;
       var loading = false;
-      soundGrabber.recordings_controller = Ember.Object.create({upload_status: 'bacon'});
+      soundGrabber.recordings_controller = EmberObject.create({upload_status: 'bacon'});
       stub(soundGrabber.recordings_controller, 'load_recordings', function() {
         loading = true;
       });
@@ -411,12 +412,12 @@ describe('soundGrabber', function() {
           url: 'asdf',
           name: 'sound.mp3'
         });
-        return Ember.RSVP.resolve();
+        return RSVP.resolve();
       });
       stub(contentGrabbers, 'read_file', function(file) {
         read = true;
         expect(file).toEqual(f);
-        return Ember.RSVP.resolve({
+        return RSVP.resolve({
           target: {
             result: "asdf"
           }
@@ -443,12 +444,12 @@ describe('soundGrabber', function() {
           url: 'asdf',
           name: 'sound.mp3'
         });
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       stub(contentGrabbers, 'read_file', function(file) {
         read = true;
         expect(file).toEqual(f);
-        return Ember.RSVP.resolve({
+        return RSVP.resolve({
           target: {
             result: "asdf"
           }
@@ -474,7 +475,7 @@ describe('soundGrabber', function() {
         expect(url).toEqual('/api/v1/sounds/imports');
         expect(opts).toEqual({});
         expect(progressor).not.toEqual(null);
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       soundGrabber.recording_selected(f);
       waitsFor(function() { return called && view; });
@@ -489,7 +490,7 @@ describe('soundGrabber', function() {
       stub(modal, 'open', function(v) { view = v; });
       var message = null;
       stub(modal, 'success', function(m) { message = m; });
-      soundGrabber.recordings_controller = Ember.Object.create();
+      soundGrabber.recordings_controller = EmberObject.create();
       var loading = false;
       stub(soundGrabber.recordings_controller, 'load_recordings', function() {
         loading = true;
@@ -501,7 +502,7 @@ describe('soundGrabber', function() {
         expect(url).toEqual('/api/v1/sounds/imports');
         expect(opts).toEqual({});
         expect(progressor).not.toEqual(null);
-        return Ember.RSVP.resolve();
+        return RSVP.resolve();
       });
       soundGrabber.recording_selected(f);
       waitsFor(function() { return called && loading; });

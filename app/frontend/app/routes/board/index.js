@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import Route from '@ember/routing/route';
+import RSVP from 'rsvp';
 import editManager from '../../utils/edit_manager';
 import stashes from '../../utils/_stashes';
 import modal from '../../utils/modal';
@@ -8,7 +10,7 @@ import CoughDrop from '../../app';
 import contentGrabbers from '../../utils/content_grabbers';
 import persistence from '../../utils/persistence';
 
-export default Ember.Route.extend({
+export default Route.extend({
   model: function(params) {
     CoughDrop.log.track('getting model');
     var res = this.modelFor('board');
@@ -86,7 +88,7 @@ export default Ember.Route.extend({
     } else if(persistence.get('online') || insufficient_data) {
       CoughDrop.log.track('considering reload');
       _this.set('load_state', {not_local: true});
-      var reload = Ember.RSVP.resolve();
+      var reload = RSVP.resolve();
       // if we're online then we should reload, but do it softly if we're in speak mode
       if(persistence.get('online')) {
         // reload(false) says "hey, reload but you can use the local copy if you need to"
@@ -170,7 +172,7 @@ export default Ember.Route.extend({
           return i18n.t('error_not_available_offline', "This board is not currently available while offline.");
         }
       }
-      return i18n.t('error_with_board', "There was a problem retrieving this board.");
+//      return i18n.t('error_with_board', "There was a problem retrieving this board.");
     }
   }.property('load_state', 'load_state.has_permissions', 'model.id'),
   actions: {

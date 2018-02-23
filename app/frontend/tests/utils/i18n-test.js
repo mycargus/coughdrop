@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } fro
 import { easyPromise, db_wait } from 'frontend/tests/helpers/ember_helper';
 import i18n from '../../utils/i18n';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 
 
 describe("i18n", function() {
@@ -180,7 +181,7 @@ describe("i18n", function() {
       expect(i18n.t('crab', "The crab is %{color}", {hash: {color: "green"}, hashTypes: {}})).toEqual("The crab is green");
       expect(i18n.t('crab', "The crab is %{color}", {})).toEqual("The crab is %{color}");
 
-      var context = Ember.Object.create({crab_color: "white"});
+      var context = EmberObject.create({crab_color: "white"});
       expect(i18n.t('crab', "The crab is %{color}", {hash: {color: "crab_color"}, hashTypes: {color: 'ID'}, hashContexts: {color: context}})).toEqual("The crab is white");
     });
     it("should handle multiple parameters", function() {

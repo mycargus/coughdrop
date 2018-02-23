@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import CoughDrop from '../app';
+import RSVP from 'rsvp';
 import modal from '../utils/modal';
 import i18n from '../utils/i18n';
 import app_state from '../utils/app_state';
@@ -47,7 +48,7 @@ export default modal.ModalController.extend({
       var get_user_name = user.save().then(function(user) {
         return user.get('user_name');
       }, function() {
-        return Ember.RSVP.reject(i18n.t('creating_user_failed', "Failed to create a new user with the given settings"));
+        return RSVP.reject(i18n.t('creating_user_failed', "Failed to create a new user with the given settings"));
       });
 
       var action = user.get('org_management_action');

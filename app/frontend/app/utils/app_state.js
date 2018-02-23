@@ -1,4 +1,10 @@
 import Ember from 'ember';
+import Route from '@ember/routing/route';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import { later as runLater, cancel as runCancel, next as runNext } from '@ember/runloop';
+import RSVP from 'rsvp';
+import $ from 'jquery';
 import stashes from './_stashes';
 import boundClasses from './bound_classes';
 import utterance from './utterance';
@@ -15,6 +21,7 @@ import geolocation from './geo';
 import i18n from './i18n';
 import frame_listener from './frame_listener';
 import Button from './button';
+import { htmlSafe } from '@ember/string';
 
 // tracks:
 // current mode (edit mode, speak mode, default)
@@ -24,10 +31,10 @@ import Button from './button';
 // who we're acting as for speak mode
 // whether logging is temporarily disabled
 // "back button" history
-var app_state = Ember.Object.extend({
+var app_state = EmberObject.extend({
   setup: function(application) {
     application.register('cough_drop:app_state', app_state, { instantiate: false, singleton: true });
-    Ember.$.each(['model', 'controller', 'view', 'route'], function(i, component) {
+    $.each(['model', 'controller', 'view', 'route'], function(i, component) {
       application.inject(component, 'app_state', 'cough_drop:app_state');
     });
     this.set('button_list', []);
@@ -45,7 +52,7 @@ var app_state = Ember.Object.extend({
       battery.level = Math.round(battery.level * 100);
       if(battery.level != _this.get('battery.level') || battery.charging !== _this.get('battery.charging')) {
         _this.set('battery', battery);
-        _this.set('battery.progress_style', new Ember.String.htmlSafe("width: " + parseInt(battery.level) + "%;"));
+        _this.set('battery.progress_style', htmlSafe("width: " + parseInt(battery.level) + "%;"));
         _this.set('battery.low', battery.level < 30);
         _this.set('battery.really_low', battery.level < 15);
         if(battery.level <= 15 && !battery.charging) {
@@ -88,7 +95,7 @@ var app_state = Ember.Object.extend({
     CoughDrop.controller = controller;
     stashes.controller = controller;
     boundClasses.setup();
-//    controller.set('model', Ember.Object.create());
+//    controller.set('model', EmberObject.create());
     utterance.setup(controller);
     this.speak_mode_handlers();
     this.dom_changes_on_board_state_change();
@@ -103,7 +110,7 @@ var app_state = Ember.Object.extend({
 
         find.then(function(user) {
           console.log("user initialization working..");
-          var valid_user = Ember.RSVP.resolve(user);
+          var valid_user = RSVP.resolve(user);
           if(!session.get('as_user_id') && session.get('user_id') && session.get('user_id') != user.get('id')) {
             // mismatch due to a user being renamed
             valid_user = CoughDrop.store.findRecord('user', session.get('user_id'));
@@ -151,7 +158,7 @@ var app_state = Ember.Object.extend({
             }
             session.force_logout(error);
           } else {
-            Ember.run.later(function() {
+            runLater(function() {
               find_user(true);
             }, 1000);
           }
@@ -162,23 +169,23 @@ var app_state = Ember.Object.extend({
       }
     }
     session.addObserver('access_token', function() {
-      Ember.run.later(function() {
+      runLater(function() {
         if(session.get('access_token')) {
           app_state.refresh_session_user();
         }
       }, 10);
     });
     // TODO: this is a dumb way to do this (remove the "loading..." message)...
-    Ember.$('#loading_box').remove();
-    Ember.$("body").removeClass('pretty_loader');
+    $('#loading_box').remove();
+    $("body").removeClass('pretty_loader');
   },
   refresh_user: function() {
     var _this = this;
-    Ember.run.cancel(_this.refreshing_user);
+    runCancel(_this.refreshing_user);
 
     function refresh() {
-      Ember.run.cancel(_this.refreshing_user);
-      _this.refreshing_user = Ember.run.later(function() {
+      runCancel(_this.refreshing_user);
+      _this.refreshing_user = runLater(function() {
         _this.refresh_user();
       }, 60000 * 15);
     }
@@ -195,7 +202,7 @@ var app_state = Ember.Object.extend({
   global_transition: function(transition) {
     if(transition.isAborted) { return; }
     app_state.set('from_url', app_state.get('route.router.url'));
-    var pieces = this.get('route.router.router.recognizer').recognize(app_state.get('from_url'));
+    var pieces = this.get('route.router._routerMicrolib.recognizer').recognize(app_state.get('from_url'));
     if(pieces && pieces.length > 0) {
       var args = [pieces[pieces.length - 1].handler];
       var handle_piece = function(name) {
@@ -228,7 +235,7 @@ var app_state = Ember.Object.extend({
       boundClasses.setup();
       var delay = app_state.get('currentUser.preferences.board_jump_delay') || window.user_preferences.any_user.board_jump_delay;
       CoughDrop.log.track('global transition handled');
-      Ember.run.later(this, this.check_for_board_readiness, delay, 50);
+      runLater(this, this.check_for_board_readiness, delay, 50);
     }
     var controller = this.controller;
     controller.updateTitle();
@@ -238,7 +245,7 @@ var app_state = Ember.Object.extend({
       // TODO: confirm leaving exit mode before continuing
       app_state.toggle_edit_mode();
     }
-//           Ember.$(".hover_button").remove();
+//           $(".hover_button").remove();
     this.set('hide_search', transition.targetName == 'search');
     if(transition.targetName != 'board.index') {
       app_state.set('currentBoardState', null);
@@ -249,7 +256,7 @@ var app_state = Ember.Object.extend({
   },
   finish_global_transition: function() {
     app_state.set('already_homed', true);
-    Ember.run.next(function() {
+    runNext(function() {
       var target = app_state.get('controller.currentRouteName');
 //       app_state.set('index_view', target == 'index');
     });
@@ -285,7 +292,7 @@ var app_state = Ember.Object.extend({
   }.observes('set_as_root_board_state', 'currentBoardState'),
   board_url: function() {
     if(this.get('currentBoardState.key')) {
-      return Ember.String.htmlSafe((capabilities.api_host || (location.protocol + "//" + location.host)) + "/" + this.get('currentBoardState.key'));
+      return htmlSafe((capabilities.api_host || (location.protocol + "//" + location.host)) + "/" + this.get('currentBoardState.key'));
     } else {
       return null;
     }
@@ -298,36 +305,36 @@ var app_state = Ember.Object.extend({
         res = res + "sr-only ";
       }
     }
-    return new Ember.String.htmlSafe(res);
+    return htmlSafe(res);
   }.property('currentBoardState.id', 'from_route', 'edit_mode'),
   nav_header_class: function() {
     var res = "no_beta ";
     if(this.get('currentBoardState.id') && this.get('from_route') && !this.get('edit_mode')) {
       res = res + "board_done ";
     }
-    return new Ember.String.htmlSafe(res);
+    return htmlSafe(res);
   }.property('currentBoardState.id', 'from_route'),
   set_latest_board_id: function() {
     this.set('latest_board_id', this.get('currentBoardState.id'));
   }.observes('currentBoardState.id'),
   check_for_board_readiness: function(delay) {
     if(this.check_for_board_readiness.timer) {
-      Ember.run.cancel(this.check_for_board_readiness.timer);
+      runCancel(this.check_for_board_readiness.timer);
     }
     var id = app_state.get('latest_board_id');
     if(id) {
-      var $board = Ember.$(".board[data-id='" + id + "']");
-      var $integration = Ember.$("#integration_frame");
+      var $board = $(".board[data-id='" + id + "']");
+      var $integration = $("#integration_frame");
       var _this = this;
       if($integration.length || ($board.length && $board.find(".button_row,canvas").length)) {
-        Ember.run.later(function() {
+        runLater(function() {
           CoughDrop.log.track('done transitioning');
           buttonTracker.transitioning = false;
         }, delay);
         return;
       }
     }
-    this.check_for_board_readiness.timer = Ember.run.later(this, this.check_for_board_readiness, delay, 100);
+    this.check_for_board_readiness.timer = runLater(this, this.check_for_board_readiness, delay, 100);
   },
   jump_to_board: function(new_state, old_state) {
     buttonTracker.transitioning = true;
@@ -390,7 +397,7 @@ var app_state = Ember.Object.extend({
     var res = this.get('speak_mode') && this.get('currentUser') && this.get('referenced_speak_mode_user') && app_state.get('currentUser.id') != this.get('referenced_speak_mode_user.id');
     var _this = this;
     // this is weird and hacky, but for some reason modeling wasn't reliably updating when modeling_for_user changed
-    Ember.run.later(function() {
+    runLater(function() {
       _this.set('modeling_ts', (new Date()).getTime() + "_" + Math.random());
     });
     return !!res;
@@ -466,7 +473,7 @@ var app_state = Ember.Object.extend({
     var current = app_state.get('currentBoardState');
     var preferred = app_state.get('speakModeUser.preferences.home_board') || app_state.get('currentUser.preferences.home_board');
     if(preferred && current) {
-      Ember.set(preferred, 'text_direction', current.text_direction);
+      emberSet(preferred, 'text_direction', current.text_direction);
     }
 
     if(!app_state.get('speak_mode')) {
@@ -577,7 +584,7 @@ var app_state = Ember.Object.extend({
     }
     stashes.persist('temporary_root_board_state', temporary_root_state);
     stashes.persist('sticky_board', false);
-    var $stash_hover = Ember.$("#stash_hover");
+    var $stash_hover = $("#stash_hover");
     $stash_hover.removeClass('on_button').data('button_id', null);
     editManager.clear_paint_mode();
   },
@@ -598,7 +605,7 @@ var app_state = Ember.Object.extend({
   },
   check_scanning: function() {
     var _this = this;
-    Ember.run.later(function() {
+    runLater(function() {
       if(app_state.get('speak_mode') && _this.get('currentUser.preferences.device.scanning')) { // scanning mode
         buttonTracker.scanning_enabled = true;
         buttonTracker.any_select = _this.get('currentUser.preferences.device.scanning_select_on_any_event');
@@ -696,7 +703,7 @@ var app_state = Ember.Object.extend({
       var _this = this;
 
       CoughDrop.store.findRecord('user', board_user_id).then(function(u) {
-        var data = Ember.RSVP.resolve(u);
+        var data = RSVP.resolve(u);
         if(!u.get('fresh') && stashes.get('online')) {
           data = u.reload();
         }
@@ -764,7 +771,7 @@ var app_state = Ember.Object.extend({
       return null;
     }
     var state = {};
-    var statuses = Ember.get(capabilities.eye_gaze, 'statuses') || {};
+    var statuses = emberGet(capabilities.eye_gaze, 'statuses') || {};
     var active = null, pending = null, dormant = null;
     for(var idx in statuses) {
       if(statuses[idx]) {
@@ -794,10 +801,10 @@ var app_state = Ember.Object.extend({
   }.property('currentUser.preferences.device.dwell', 'currentUser.preferences.device.dwell_type', 'eye_gaze.statuses'),
   dom_changes_on_board_state_change: function() {
     if(!this.get('currentBoardState')) {
-      Ember.$('#speak_mode').popover('destroy');
-      Ember.$('html,body').css('overflow', '');
+      $('#speak_mode').popover('destroy');
+      $('html,body').css('overflow', '');
     } else if(!app_state.get('testing')) {
-      Ember.$('html,body').css('overflow', 'hidden').scrollTop(0);
+      $('html,body').css('overflow', 'hidden').scrollTop(0);
       try {
         this.controller.set('footer', false);
       } catch(e) { }
@@ -820,8 +827,8 @@ var app_state = Ember.Object.extend({
     }
   }.observes('speak_mode', 'currentUser.preferences.activation_location', 'currentUser.preferences.activation_minimum', 'currentUser.preferences.activation_cutoff', 'currentUser.preferences.activation_on_start', 'currentUser.preferences.debounce'),
   align_button_list: function() {
-    Ember.run.later(function() {
-      Ember.$("#button_list").scrollTop(9999999);
+    runLater(function() {
+      $("#button_list").scrollTop(9999999);
     }, 200);
   }.observes('button_list'),
   monitor_scanning: function() {
@@ -844,7 +851,7 @@ var app_state = Ember.Object.extend({
   feature_flags: function() {
     var res = this.get('currentUser.feature_flags') || {};
     (window.enabled_frontend_features || []).forEach(function(feature) {
-      Ember.set(res, feature, true);
+      emberSet(res, feature, true);
     });
     return res;
   }.property('currentUser.feature_flags'),
@@ -884,19 +891,19 @@ var app_state = Ember.Object.extend({
   check_for_full_premium: function(user, action) {
     if(user && user.get('expired')) {
       return modal.open('premium-required', {user_name: user.get('user_name'), action: action}).then(function() {
-        return Ember.RSVP.reject({dialog: true});
+        return RSVP.reject({dialog: true});
       });
     } else {
-      return Ember.RSVP.resolve({dialog: false});
+      return RSVP.resolve({dialog: false});
     }
   },
   check_for_really_expired: function(user) {
     if(user && user.get('really_expired')) {
       return modal.open('premium-required', {user_name: user.get('user_name'), cancel_on_close: true, remind_to_upgrade: true}).then(function() {
-        return Ember.RSVP.reject({dialog: true});
+        return RSVP.reject({dialog: true});
       });
     } else {
-      return Ember.RSVP.resolve({dialog: false});
+      return RSVP.resolve({dialog: false});
     }
   },
   on_user_change: function() {
@@ -920,7 +927,7 @@ var app_state = Ember.Object.extend({
       // limits the following block to once per speak-mode-activation.
       if(!this.get('last_speak_mode')) {
         if(this.get('currentUser.preferences.speak_on_speak_mode')) {
-          Ember.run.later(function() {
+          runLater(function() {
             speecher.speak_text(i18n.t('here_we_go', "here we go"), null, {volume: 0.1});
           }, 200);
         }
@@ -961,7 +968,7 @@ var app_state = Ember.Object.extend({
         });
         var ref_user = this.get('referenced_speak_mode_user') || this.get('currentUser');
         if(ref_user && ref_user.get('goal.summary')) {
-          Ember.run.later(function() {
+          runLater(function() {
             noticed = true;
             var str = i18n.t('user_apostrophe', "%{user_name}'s ", {user_name: ref_user.get('user_name')});
             str = str + i18n.t('current_goal', "Current Goal: %{summary}", {summary: ref_user.get('goal.summary')});
@@ -1220,7 +1227,7 @@ var app_state = Ember.Object.extend({
       }
     }
     if(res) {
-      res = Ember.$.extend({}, res);
+      res = $.extend({}, res);
       res.fenced = true;
       res.shown_at = (new Date()).getTime();
       _this.set('last_fenced_board', res);
@@ -1239,9 +1246,9 @@ var app_state = Ember.Object.extend({
     return res;
   }.property('modeling_for_user', 'currentUser', 'currentUser.sidebar_boards_with_fallbacks', 'referenced_speak_mode_user', 'referenced_speak_mode_user.sidebar_boards_with_fallback'),
   check_locations: function() {
-    if(!this.get('speak_mode')) { return Ember.RSVP.resolve([]); }
+    if(!this.get('speak_mode')) { return RSVP.resolve([]); }
     var boards = this.get('current_sidebar_boards') || [];
-    if(!boards.find(function(b) { return b.places; })) { return Ember.RSVP.reject(); }
+    if(!boards.find(function(b) { return b.places; })) { return RSVP.reject(); }
     var res = geolocation.check_locations();
     res.then(null, function() { });
     return res;
@@ -1330,13 +1337,13 @@ var app_state = Ember.Object.extend({
     var specialty = utterance.specialty_button(obj);
     var skip_speaking_by_default = !!(button.load_board || specialty || button_to_speak.special || button.url || button.apps || (button.integration && button.integration.action_type == 'render'));
     if(specialty) {
-      button_to_speak = Ember.$.extend({}, specialty);
+      button_to_speak = $.extend({}, specialty);
       button_to_speak.special = true;
     } else if(skip_speaking_by_default && !button.add_to_vocalization) {
     } else {
       button_to_speak = utterance.add_button(obj, button);
     }
-//     Ember.$(".hover_button").remove();
+//     $(".hover_button").remove();
 
     // speak or make a sound to show the button was selected
     if(obj.label) {
@@ -1387,7 +1394,7 @@ var app_state = Ember.Object.extend({
         modal.warning(i18n.t('sticky_board_notice', "Board lock is enabled, disable to leave this board."), true);
       } else {
 
-//     var $button = Ember.$(".button[data-id='" + button.id + "']").parent();
+//     var $button = $(".button[data-id='" + button.id + "']").parent();
 //     if($button.length) {
 //       var $clone = $button.clone().addClass('hover_button').addClass('touched');
 //       var width = $button.find(".button").outerWidth();
@@ -1405,18 +1412,18 @@ var app_state = Ember.Object.extend({
 //         height: height
 //       });
 //
-//       Ember.$("body").append($clone);
+//       $("body").append($clone);
 //       $clone.addClass('selecting');
 //
-//       Ember.run.later(function() {
+//       runLater(function() {
 //         $button.addClass('selecting');
-//         var later = Ember.run.later(function() {
-//           Ember.$(".hover_button").remove();
+//         var later = runLater(function() {
+//           $(".hover_button").remove();
 //         }, 3000);
 //         $button.data('later', later);
 //       });
 //     }
-        Ember.run.later(function() {
+        runLater(function() {
           _this.jump_to_board({
             id: button.load_board.id,
             key: button.load_board.key,
@@ -1437,12 +1444,12 @@ var app_state = Ember.Object.extend({
         if(button.video && button.video.popup) {
           modal.open('inline-video', button);
         } else if(button.book && button.book.popup && book_integration) {
-          var opts = Ember.$.extend({}, button.book || {});
+          var opts = $.extend({}, button.book || {});
           delete opts['base_url'];
           delete opts['url'];
           delete opts['popup'];
           delete opts['type'];
-          Ember.run.later(function() {
+          runLater(function() {
             _this.jump_to_board({
               id: "i_tarheel",
               key: "integrations/tarheel:" + encodeURIComponent(btoa(JSON.stringify(opts))),
@@ -1492,7 +1499,7 @@ var app_state = Ember.Object.extend({
     } else if(button.integration && button.integration.action_type == 'webhook') {
       Button.extra_actions(button);
     } else if(button.integration && button.integration.action_type == 'render') {
-      Ember.run.later(function() {
+      runLater(function() {
       _this.jump_to_board({
         id: "i" + button.integration.user_integration_id,
         key: "integrations/" + button.integration.user_integration_id + ":" + button.integration.action,
@@ -1550,8 +1557,8 @@ var app_state = Ember.Object.extend({
         if(state == 'touched' || state == 'hover') {
           dom.clear_state(state, id);
           dom.each_button(function(b) {
-            if(b.id == id && !Ember.get(b, state)) {
-              Ember.set(b, state, true);
+            if(b.id == id && !emberGet(b, state)) {
+              emberSet(b, state, true);
               dom.sendAction('redraw', b.id);
             }
           });
@@ -1559,8 +1566,8 @@ var app_state = Ember.Object.extend({
       },
       clear_state: function(state, except_id) {
         dom.each_button(function(b) {
-          if(b.id != except_id && Ember.get(b, state)) {
-            Ember.set(b, state, false);
+          if(b.id != except_id && emberGet(b, state)) {
+            emberSet(b, state, false);
             dom.sendAction('redraw', b.id);
           }
         });
@@ -1650,12 +1657,12 @@ document.addEventListener('selectionchange', function() {
   }
 });
 
-app_state.ScrollTopRoute = Ember.Route.extend({
+app_state.ScrollTopRoute = Route.extend({
   activate: function() {
     this._super();
     if(!this.get('already_scrolled')) {
       this.set('already_scrolled', true);
-      Ember.$('body').scrollTop(0);
+      $('body').scrollTop(0);
     }
   }
 });

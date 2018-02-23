@@ -1,10 +1,11 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import modal from '../utils/modal';
 import i18n from '../utils/i18n';
 import session from '../utils/session';
 import CoughDrop from '../app';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   actions: {
     update_org: function() {
       var org = this.get('model');
@@ -53,7 +54,7 @@ export default Ember.Controller.extend({
           if(res.content.length === 0) {
             modal.warning(i18n.t('no_user_result', "No results found for \"%{q}\"", {q: q}));
           } else if(res.content.length == 1) {
-            _this.transitionToRoute('user.index', res.content[0].record.get('user_name'));
+            _this.transitionToRoute('user.index', res.map(function(i) { return i; })[0].get('user_name'));
           } else {
             modal.open('user-results', {list: res, q: q});
           }

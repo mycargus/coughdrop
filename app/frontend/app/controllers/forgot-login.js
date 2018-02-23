@@ -1,8 +1,9 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import persistence from '../utils/persistence';
 import i18n from '../utils/i18n';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   title: "Forgot Login",
   actions: {
     submitKey: function() {

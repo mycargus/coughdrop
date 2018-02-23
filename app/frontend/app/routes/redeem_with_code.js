@@ -1,13 +1,16 @@
 import Ember from 'ember';
+import Route from '@ember/routing/route';
+import EmberObject from '@ember/object';
+import RSVP from 'rsvp';
 
-export default Ember.Route.extend({
+export default Route.extend({
   controllerName: 'redeem',
   model: function(params) {
     var obj = this.store.findRecord('gift', params.code);
     return obj.then(function(data) {
-      return Ember.RSVP.resolve(data);
+      return RSVP.resolve(data);
     }, function() {
-      return Ember.RSVP.resolve(Ember.Object.create({invalid: true, code: params.code}));
+      return RSVP.resolve(EmberObject.create({invalid: true, code: params.code}));
     });
   },
   setupController: function(controller, model) {

@@ -1,11 +1,12 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import speecher from '../utils/speecher';
 import utterance from '../utils/utterance';
 import i18n from '../utils/i18n';
 import coughDropExtras from '../utils/extras';
 import modal from '../utils/modal';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   title: function() {
     var sentence = this.get('model.sentence') || "something";
     if(this.get('model.show_user') && this.get('model.user')) {

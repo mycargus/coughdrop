@@ -1,7 +1,8 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import CoughDrop from '../app';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   title: "Register",
   registration_types: CoughDrop.registrationTypes,
   triedToSave: false,

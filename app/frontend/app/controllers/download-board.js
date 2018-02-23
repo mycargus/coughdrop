@@ -4,6 +4,7 @@ import persistence from '../utils/persistence';
 import i18n from '../utils/i18n';
 import app_state from '../utils/app_state';
 import progress_tracker from '../utils/progress_tracker';
+import { htmlSafe } from '@ember/string';
 
 export default modal.ModalController.extend({
   pdf_download: function() {
@@ -107,7 +108,7 @@ export default modal.ModalController.extend({
     return Math.round(100 * (this.get('progress.percent') || 0));
   }.property('progress.percent'),
   num_style: function() {
-    return new Ember.String.htmlSafe("width: " + this.get('num_percent') + "%;");
+    return htmlSafe("width: " + this.get('num_percent') + "%;");
   }.property('num_percent'),
   download_type: function() {
     return this.get('model.type') != 'pdf';

@@ -1,5 +1,7 @@
 import DS from 'ember-data';
+import RSVP from 'rsvp';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 import { test, moduleForModel, moduleForComponent } from 'ember-qunit';
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { queryLog } from 'frontend/tests/helpers/ember_helper';
@@ -30,7 +32,7 @@ describe('audio-browser', function() {
       expect(type).toEqual('sound');
       expect(opts).toEqual({user_id: 'asdf'});
       callback = cb;
-      defer = Ember.RSVP.defer();
+      defer = RSVP.defer();
       return defer.promise;
     });
     app_state.set('currentUser', {id: 'asdf'});
@@ -78,19 +80,19 @@ describe('audio-browser', function() {
     it('should return a filtered list', function() {
       component.set('browse_audio', {
         full_results: [
-          Ember.Object.create({search_string: 'hat is good'}),
-          Ember.Object.create({search_string: 'hat is bad'}),
-          Ember.Object.create({search_string: 'hat is swell'}),
-          Ember.Object.create({search_string: 'hat is neat'}),
-          Ember.Object.create({search_string: 'hat is something'}),
-          Ember.Object.create({search_string: 'hat is ok'}),
-          Ember.Object.create({search_string: 'hat is awesome'}),
-          Ember.Object.create({search_string: 'hat is cheese'}),
-          Ember.Object.create({search_string: 'splat is cool'}),
-          Ember.Object.create({search_string: 'hat is from'}),
-          Ember.Object.create({search_string: 'hat is windy'}),
-          Ember.Object.create({search_string: 'hat is above'}),
-          Ember.Object.create({search_string: 'hat is flat'}),
+          EmberObject.create({search_string: 'hat is good'}),
+          EmberObject.create({search_string: 'hat is bad'}),
+          EmberObject.create({search_string: 'hat is swell'}),
+          EmberObject.create({search_string: 'hat is neat'}),
+          EmberObject.create({search_string: 'hat is something'}),
+          EmberObject.create({search_string: 'hat is ok'}),
+          EmberObject.create({search_string: 'hat is awesome'}),
+          EmberObject.create({search_string: 'hat is cheese'}),
+          EmberObject.create({search_string: 'splat is cool'}),
+          EmberObject.create({search_string: 'hat is from'}),
+          EmberObject.create({search_string: 'hat is windy'}),
+          EmberObject.create({search_string: 'hat is above'}),
+          EmberObject.create({search_string: 'hat is flat'}),
         ]
       });
       component.send('filter_browsed_audio', 'hat');
@@ -103,7 +105,7 @@ describe('audio-browser', function() {
     it('should add to the list', function() {
       var list = [];
       for(var idx = 0; idx < 100; idx++) {
-        list.push(Ember.Object.create());
+        list.push(EmberObject.create());
       }
 
       component.set('browse_audio', {
@@ -127,7 +129,7 @@ describe('audio-browser', function() {
     it('should do nothing if already fully loaded', function() {
       var list = [];
       for(var idx = 0; idx < 100; idx++) {
-        list.push(Ember.Object.create());
+        list.push(EmberObject.create());
       }
 
       component.set('browse_audio', {

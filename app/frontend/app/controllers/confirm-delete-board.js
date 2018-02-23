@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import modal from '../utils/modal';
+import RSVP from 'rsvp';
 
 export default modal.ModalController.extend({
   opening: function() {
@@ -29,7 +30,7 @@ export default modal.ModalController.extend({
       var save = board.save();
 
       var wait_for_loads = save.then(function() {
-        return Ember.RSVP.all_wait(load_promises);
+        return RSVP.all_wait(load_promises);
       });
 
       var delete_others = wait_for_loads.then(function() {
@@ -40,7 +41,7 @@ export default modal.ModalController.extend({
             delete_promises.push(b.save());
           }
         });
-        return Ember.RSVP.all_wait(delete_promises);
+        return RSVP.all_wait(delete_promises);
       });
 
       delete_others.then(function() {

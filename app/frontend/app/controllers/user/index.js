@@ -1,4 +1,8 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import { later as runLater } from '@ember/runloop';
 import persistence from '../../utils/persistence';
 import CoughDrop from '../../app';
 import modal from '../../utils/modal';
@@ -7,7 +11,7 @@ import i18n from '../../utils/i18n';
 import progress_tracker from '../../utils/progress_tracker';
 import Subscription from '../../utils/subscription';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   title: function() {
     return "Profile for " + this.get('model.user_name');
   }.property('model.user_name'),
@@ -87,8 +91,8 @@ export default Ember.Controller.extend({
     } else {
       list.forEach(function(b) {
         var obj = {board: b, children: []};
-        board_ids[Ember.get(b, 'id')] = obj;
-        if(Ember.get(b, 'copy_id') && board_ids[b.get('copy_id')]) {
+        board_ids[emberGet(b, 'id')] = obj;
+        if(emberGet(b, 'copy_id') && board_ids[b.get('copy_id')]) {
           board_ids[b.get('copy_id')].children.push({board: b});
         } else {
           new_list.push(obj);
@@ -145,7 +149,7 @@ export default Ember.Controller.extend({
         _this.set('model.goals', {loading: true});
       }
       this.store.query('goal', {user_id: this.get('model.id'), per_page: 3}).then(function(goals) {
-        _this.set('model.goals', goals.content.mapBy('record').filter(function(g) { return g.get('active'); }));
+        _this.set('model.goals', goals.map(function(i) { return i; }).filter(function(g) { return g.get('active'); }));
       }, function(err) {
         if(!(_this.get('model.goals') || {}).length) {
           _this.set('model.goals', {error: true});
@@ -173,7 +177,7 @@ export default Ember.Controller.extend({
         if(!append && prior.length) {
           prior = [];
         }
-        var result = prior.concat(boards.content.mapBy('record'));
+        var result = prior.concat(boards.map(function(i) { return i; }));
         result.user_id = _this.get('model.id');
         _this.set(list_name, result);
         var meta = persistence.meta('board', boards); //_this.store.metadataFor('board');
@@ -388,7 +392,7 @@ export default Ember.Controller.extend({
         }).then(function(res) {
           _this.set('new_user_name', null);
           _this.transitionToRoute('user.index', res.key);
-          Ember.run.later(function() {
+          runLater(function() {
             modal.success(i18n.t('user_renamed_to', "User successfully renamed to %{k}. The full renaming process can take a little while to complete.", {k: res.key}));
           }, 200);
         }, function(err) {

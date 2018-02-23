@@ -1,7 +1,8 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import modal from '../utils/modal';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   actions: {
     close: function() {
       modal.close_board_preview();

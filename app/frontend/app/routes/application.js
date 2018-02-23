@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import Route from '@ember/routing/route';
+import { later as runLater } from '@ember/runloop';
 import app_state from '../utils/app_state';
 import speecher from '../utils/speecher';
 import modal from '../utils/modal';
@@ -24,7 +26,7 @@ import capabilities from '../utils/capabilities';
 //     }
 //   }
 // });
-export default Ember.Route.extend({
+export default Route.extend({
   setupController: function(controller) {
     app_state.setup_controller(this, controller);
     speecher.refresh_voices();
@@ -36,7 +38,7 @@ export default Ember.Route.extend({
     },
     didTransition: function() {
       app_state.finish_global_transition();
-      Ember.run.later(function() {
+      runLater(function() {
         speecher.load_beep().then(null, function() { });
       }, 100);
     },

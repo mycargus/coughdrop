@@ -1,4 +1,7 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import { later as runLater, cancel as runCancel } from '@ember/runloop';
+import {set as emberSet, get as emberGet} from '@ember/object';
 import i18n from './i18n';
 import stashes from './_stashes';
 import speecher from './speecher';
@@ -6,7 +9,7 @@ import app_state from './app_state';
 import persistence from './persistence';
 import $ from 'jquery';
 
-var utterance = Ember.Object.extend({
+var utterance = EmberObject.extend({
   setup: function(controller) {
     this.controller = controller;
     this.set('rawButtonList', stashes.get('working_vocalization'));
@@ -71,7 +74,7 @@ var utterance = Ember.Object.extend({
     }
     var visualButtonList = [];
     buttonList.forEach(function(button) {
-      var visualButton = Ember.Object.create(button);
+      var visualButton = EmberObject.create(button);
       visualButtonList.push(visualButton);
       if(button.image && button.image.match(/^http/)) {
         persistence.find_url(button.image, 'image').then(function(data_uri) {
@@ -105,7 +108,7 @@ var utterance = Ember.Object.extend({
     // TODO: I'm thinking maybe +s notation shouldn't append to word buttons, only :modify notation
     // should do that. The problem is when you want to spell a word after picking a word-button,
     // how exactly do you go about that? Make them type a space first? I guess maybe...
-    var altered = Ember.$.extend({}, original);
+    var altered = $.extend({}, original);
 
     altered.modified = true;
     altered.button_id = altered.button_id || addition.button_id;
@@ -184,15 +187,15 @@ var utterance = Ember.Object.extend({
       this.clear(true);
     }
     // append button attributes as needed
-    var b = Ember.$.extend({}, button);
+    var b = $.extend({}, button);
     if(original_button && original_button.load_image) {
       original_button.load_image().then(function() {
-        Ember.set(b, 'image', original_button.get('image.best_url'));
-        Ember.set(b, 'image_license', original_button.get('image.license'));
+        emberSet(b, 'image', original_button.get('image.best_url'));
+        emberSet(b, 'image_license', original_button.get('image.license'));
       });
       original_button.load_sound().then(function() {
-        Ember.set(b, 'sound', original_button.get('sound.best_url'));
-        Ember.set(b, 'sound_license', original_button.get('sound.license'));
+        emberSet(b, 'sound', original_button.get('sound.best_url'));
+        emberSet(b, 'sound_license', original_button.get('sound.license'));
       });
     }
     // add button to the raw button list
@@ -237,14 +240,14 @@ var utterance = Ember.Object.extend({
     if(!$(selector).attr('data-popover')) {
       $(selector).attr('data-popover', true).popover({html: true});
     }
-    Ember.run.cancel(this._popoverHide);
+    runCancel(this._popoverHide);
     var text = "\"" + $('<div/>').text(button.vocalization || button.label).html() + "\"";
     if(button.sound) {
       text = text + " <span class='glyphicon glyphicon-volume-up'></span>";
     }
     $(selector).attr('data-content', text).popover('show');
 
-    this._popoverHide = Ember.run.later(this, function() {
+    this._popoverHide = runLater(this, function() {
       $(selector).popover('hide');
     }, 2000);
   },

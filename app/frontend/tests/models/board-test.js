@@ -1,5 +1,7 @@
 import DS from 'ember-data';
+import RSVP from 'rsvp';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 import { test, moduleForModel } from 'ember-qunit';
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { queryLog } from 'frontend/tests/helpers/ember_helper';
@@ -56,7 +58,7 @@ describe('Board', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {id: '134', key: 'cookie'}}),
+        response: RSVP.resolve({board: {id: '134', key: 'cookie'}}),
         compare: function(object) {
           record = object;
           return object.get('parent_board_id') == 'asdf';
@@ -82,7 +84,7 @@ describe('Board', function() {
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
-        response: Ember.RSVP.resolve({board: {id: '134', key: 'cookie'}}),
+        response: RSVP.resolve({board: {id: '134', key: 'cookie'}}),
         compare: function(object) {
           record = object;
           return object.get('parent_board_id') == 'asdf';
@@ -144,7 +146,7 @@ describe('Board', function() {
         expect(url).toEqual('/api/v1/boards/123/stars');
         expect(opts.type).toEqual('POST');
         expect(opts.data._method).toEqual('POST');
-        return Ember.RSVP.resolve({starred: true, stars: 4});
+        return RSVP.resolve({starred: true, stars: 4});
       });
       var board = CoughDrop.store.createRecord('board', {id: '123'});
       expect(board.get('starred')).not.toEqual(true);
@@ -164,7 +166,7 @@ describe('Board', function() {
         expect(url).toEqual('/api/v1/boards/1234/stars');
         expect(opts.type).toEqual('POST');
         expect(opts.data._method).toEqual('DELETE');
-        return Ember.RSVP.resolve({starred: false, stars: 2});
+        return RSVP.resolve({starred: false, stars: 2});
       });
       var board = CoughDrop.store.createRecord('board', {id: '1234', starred: true});
       expect(board.get('starred')).toEqual(true);
@@ -183,7 +185,7 @@ describe('Board', function() {
         expect(url).toEqual('/api/v1/boards/12345/stars');
         expect(opts.type).toEqual('POST');
         expect(opts.data._method).toEqual('POST');
-        return Ember.RSVP.resolve({starred: true, stars: 4});
+        return RSVP.resolve({starred: true, stars: 4});
       });
       var board = CoughDrop.store.createRecord('board', {id: '12345', stars: 3});
       expect(board.get('stars')).toEqual(3);
@@ -205,7 +207,7 @@ describe('Board', function() {
         expect(url).toEqual('/api/v1/boards/123456/stars');
         expect(opts.type).toEqual('POST');
         expect(opts.data._method).toEqual('POST');
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       var board = CoughDrop.store.createRecord('board', {id: '123456', stars: 3});
       board.star();
@@ -365,7 +367,7 @@ describe('Board', function() {
       var call_args = [];
       stub(persistence, 'push_records', function(type, ids) {
         call_args.push([type, ids]);
-        return Ember.RSVP.resolve();
+        return RSVP.resolve();
       });
 
       var resolved = false;
@@ -401,7 +403,7 @@ describe('Board', function() {
           CoughDrop.store.push({data: {type: 'sound', id: 'c', attributes: {id: 'c', url: 'http://www.example.com/sound2.mp3'}}});
         }
         call_args.push([type, ids]);
-        return Ember.RSVP.resolve();
+        return RSVP.resolve();
       });
 
       var resolved = false;
@@ -413,7 +415,7 @@ describe('Board', function() {
       var find_called = false;
       stub(CoughDrop.store, 'findRecord', function(a1, a2, a3) {
         find_called = true;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
 
       waitsFor(function() { return resolved; });
@@ -468,8 +470,8 @@ describe('Board', function() {
     it('should return the peeked value for a linked board if found', function() {
       var b = CoughDrop.store.createRecord('board');
       b.set('id', '1234');
-      var bs1 = Ember.Object.create({board_ids: ['1234'], fresh: true});
-      var bs2 = Ember.Object.create({board_ids: ['2345'], fresh: true});
+      var bs1 = EmberObject.create({board_ids: ['1234'], fresh: true});
+      var bs2 = EmberObject.create({board_ids: ['2345'], fresh: true});
       stub(CoughDrop.store, 'peekAll', function(type) {
         if(type == 'buttonset') {
           return {
@@ -491,8 +493,8 @@ describe('Board', function() {
     it('should not return the peeked value for a linked board if it is not fresh', function() {
       var b = CoughDrop.store.createRecord('board');
       b.set('id', '1234');
-      var bs1 = Ember.Object.create({board_ids: ['1234'], fresh: false});
-      var bs2 = Ember.Object.create({board_ids: ['2345', '1234'], fresh: true});
+      var bs1 = EmberObject.create({board_ids: ['1234'], fresh: false});
+      var bs2 = EmberObject.create({board_ids: ['2345', '1234'], fresh: true});
       stub(CoughDrop.store, 'peekAll', function(type) {
         if(type == 'buttonset') {
           return {
@@ -514,10 +516,10 @@ describe('Board', function() {
     it('should try to find the record if not found other ways', function() {
       var b = CoughDrop.store.createRecord('board');
       b.set('id', '1234');
-      var bs1 = Ember.Object.create({board_ids: ['1234'], fresh: true});
+      var bs1 = EmberObject.create({board_ids: ['1234'], fresh: true});
       stub(CoughDrop.store, 'findRecord', function(type, id) {
         if(type == 'buttonset' && id == '1234') {
-          return Ember.RSVP.resolve(bs1);
+          return RSVP.resolve(bs1);
         }
       });
       var res = null;
@@ -532,12 +534,12 @@ describe('Board', function() {
       var b = CoughDrop.store.createRecord('board');
       b.set('id', '1234');
       b.set('fresh', true);
-      var bs1 = Ember.Object.create({board_ids: ['1234'], fresh: false});
+      var bs1 = EmberObject.create({board_ids: ['1234'], fresh: false});
       var reloaded = false;
-      stub(bs1, 'reload', function() { reloaded = true; return Ember.RSVP.resolve(bs1); });
+      stub(bs1, 'reload', function() { reloaded = true; return RSVP.resolve(bs1); });
       stub(CoughDrop.store, 'findRecord', function(type, id) {
         if(type == 'buttonset' && id == '1234') {
-          return Ember.RSVP.resolve(bs1);
+          return RSVP.resolve(bs1);
         }
       });
       var res = null;
@@ -556,7 +558,7 @@ describe('Board', function() {
       stub(CoughDrop.store, 'peekRecord', function(type, id) {
         return 'asdf';
       });
-      var bs1 = Ember.Object.create({board_ids: ['1234'], fresh: false});
+      var bs1 = EmberObject.create({board_ids: ['1234'], fresh: false});
       stub(CoughDrop.store, 'peekAll', function(type) {
         if(type == 'buttonset') {
           return {
@@ -567,10 +569,10 @@ describe('Board', function() {
         }
       });
       var reloaded = false;
-      stub(bs1, 'reload', function() { reloaded = true; return Ember.RSVP.resolve(bs1); });
+      stub(bs1, 'reload', function() { reloaded = true; return RSVP.resolve(bs1); });
       stub(CoughDrop.store, 'findRecord', function(type, id) {
         if(type == 'buttonset' && id == '1234') {
-          return Ember.RSVP.resolve(bs1);
+          return RSVP.resolve(bs1);
         }
       });
       var res = null;
@@ -612,15 +614,15 @@ describe('Board', function() {
       var b = CoughDrop.store.createRecord('board');
       expect(b.get('protected_material')).toEqual(false);
       b.set('local_images_with_license', [
-        Ember.Object.create({protected: false})
+        EmberObject.create({protected: false})
       ]);
       expect(b.get('protected_material')).toEqual(false);
       b.set('local_images_with_license', [
-        Ember.Object.create({protected: true})
+        EmberObject.create({protected: true})
       ]);
       expect(b.get('protected_material')).toEqual(true);
       b.set('local_sounds_with_license', [
-        Ember.Object.create({protected: true})
+        EmberObject.create({protected: true})
       ]);
       b.set('local_images_with_license', []);
       expect(b.get('protected_material')).toEqual(true);

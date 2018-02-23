@@ -1,8 +1,9 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import CoughDrop from '../../app';
 import Utils from '../../utils/misc';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   load_results: function() {
     var _this = this;
     _this.set('history', {loading: true});

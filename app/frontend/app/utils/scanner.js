@@ -1,4 +1,7 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import { later as runLater, cancel as runCancel } from '@ember/runloop';
+import $ from 'jquery';
 import editManager from './edit_manager';
 import modal from './modal';
 import capabilities from './capabilities';
@@ -8,15 +11,15 @@ import speecher from './speecher';
 import buttonTracker from './raw_events';
 import frame_listener from './frame_listener';
 
-var scanner = Ember.Object.extend({
+var scanner = EmberObject.extend({
   setup: function(controller) {
     this.controller = controller;
   },
   find_elem: function(search) {
-    return Ember.$(search);
+    return $(search);
   },
   make_elem: function(tag, opts) {
-    return Ember.$(tag, opts);
+    return $(tag, opts);
   },
   start: function(options) {
     scanner.current_element = null;
@@ -42,7 +45,7 @@ var scanner = Ember.Object.extend({
       if(!options.skip_header) {
         row = {
           children: [],
-          dom: Ember.$("header"),
+          dom: $("header"),
           header: true,
           label: i18n.t('header', "Header")
         };
@@ -183,7 +186,8 @@ var scanner = Ember.Object.extend({
           columns_per_chunk = Math.max(Math.floor(content.columns / horizontal_chunks), 1);
         }
         var leftover_columns = Math.max(content.columns - (columns_per_chunk * horizontal_chunks), 0);
-        if(sub_scan == 'vertical' || true) {
+        var always_slice = true;
+        if(sub_scan == 'vertical' || always_slice) {
           for(var idx = 0; idx < horizontal_chunks; idx++) {
             for(var jdx = 0; jdx < vertical_chunks; jdx++) {
               var chunk = {
@@ -314,7 +318,7 @@ var scanner = Ember.Object.extend({
     }
   },
   reset: function() {
-    Ember.run.cancel(scanner.interval);
+    runCancel(scanner.interval);
     scanner.interval = null;
     modal.close_highlight();
     scanner.scan_axes('clear');
@@ -322,7 +326,7 @@ var scanner = Ember.Object.extend({
     scanner.listen_for_input();
   },
   stop: function()  {
-    Ember.run.cancel(scanner.interval);
+    runCancel(scanner.interval);
     scanner.interval = null;
     this.scanning = false;
     this.keyboard_tried_to_show = false;
@@ -396,7 +400,7 @@ var scanner = Ember.Object.extend({
       }
 
       if(elem.dom && elem.dom.hasClass('btn') && elem.dom.closest("#identity").length > 0) {
-        var e = Ember.$.Event( "click" );
+        var e = $.Event( "click" );
         e.pass_through = true;
         e.switch_activated = true;
         scanner.find_elem(elem.dom).trigger(e);
@@ -408,8 +412,8 @@ var scanner = Ember.Object.extend({
       if(elem.higher_level) {
         scanner.elements = elem.higher_level;
         scanner.element_index = elem.higher_level_index;
-        Ember.run.cancel(scanner.interval);
-        scanner.interval = Ember.run.later(function() {
+        runCancel(scanner.interval);
+        scanner.interval = runLater(function() {
           scanner.next_element();
         });
       } else if(elem.children) {
@@ -423,7 +427,7 @@ var scanner = Ember.Object.extend({
     }
   },
   pick_elem: function(dom) {
-    var $closest = Ember.$(dom).closest('.button,.integration_target,.button_list');
+    var $closest = $(dom).closest('.button,.integration_target,.button_list');
     if($closest.length > 0) { dom = $closest; }
     if(dom.hasClass('button') && dom.attr('data-id')) {
       var id = dom.attr('data-id');
@@ -437,11 +441,11 @@ var scanner = Ember.Object.extend({
     } else if(dom.hasClass('button_list')) {
       dom.select();
     } else {
-      var e = Ember.$.Event( "click" );
+      var e = $.Event( "click" );
       e.pass_through = true;
       scanner.find_elem(dom).trigger(e);
     }
-    Ember.run.later(function() {
+    runLater(function() {
       scanner.reset();
     });
   },
@@ -589,26 +593,26 @@ var scanner = Ember.Object.extend({
       scanner.scan_axes('clear');
       // simulate selection event at the current location
       var target = document.elementFromPoint(x, y);
-      scanner.pick_elem(Ember.$(target));
-      Ember.run.later(scanner.reset);
+      scanner.pick_elem($(target));
+      runLater(scanner.reset);
     }
   },
   load_children: function(elem, elements, index) {
-    var parent = Ember.$.extend({higher_level: elements, higher_level_index: index}, elem);
+    var parent = $.extend({higher_level: elements, higher_level_index: index}, elem);
     if(elem.reload_children) {
       elem.children = elem.reload_children();
     }
     scanner.elements = elem.children.concat([parent]);
     scanner.element_index = 0;
-    Ember.run.cancel(scanner.interval);
-    scanner.interval = Ember.run.later(function() {
+    runCancel(scanner.interval);
+    scanner.interval = runLater(function() {
       scanner.next_element();
     });
   },
   next: function() {
     var now = (new Date()).getTime();
     if(scanner.ignore_until && now < scanner.ignore_until) { return; }
-    Ember.run.cancel(scanner.interval);
+    runCancel(scanner.interval);
     scanner.interval = null;
     if(scanner.options.scan_mode == 'axes') {
       // ignore
@@ -679,7 +683,7 @@ var scanner = Ember.Object.extend({
     // Don't repeat
     if(!retry || !scanner.interval) {
       if(options.auto_scan !== false) {
-        scanner.interval = Ember.run.later(function() {
+        scanner.interval = runLater(function() {
           if(scanner.current_element == elem) {
             if(scanner.options && scanner.options.scanning_auto_select) {
               scanner.pick();

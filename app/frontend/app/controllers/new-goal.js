@@ -26,7 +26,7 @@ export default modal.ModalController.extend({
     var _this = this;
     _this.set('goals', {loading: true});
     CoughDrop.store.query('goal', {template_header: true}).then(function(data) {
-      _this.set('goals', data.content.mapBy('record'));
+      _this.set('goals', data.map(function(i) { return i; }));
       _this.set('goals.meta', data.meta);
     }, function(err) {
       _this.set('goals', {error: true});
@@ -93,7 +93,7 @@ export default modal.ModalController.extend({
         _this.set('goals.error', true);
         CoughDrop.store.query('goal', {template_header: true, per_page: this.get('goals.meta.per_page'), offset: this.get('goals.meta.next_offset')}).then(function(list) {
           var goals = _this.get('goals') || [];
-          goals = goals.concat(list.content.mapBy('record'));
+          goals = goals.concat(list.map(function(i) { return i; }));
           _this.set('goals', goals);
           _this.set('goals.meta', list.meta);
           _this.set('goals.loading', false);

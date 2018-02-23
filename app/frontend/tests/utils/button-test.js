@@ -1,11 +1,13 @@
 import { context, it, expect, stub, waitsFor, runs } from 'frontend/tests/helpers/jasmine';
 import { queryLog } from 'frontend/tests/helpers/ember_helper';
+import RSVP from 'rsvp';
 import Button from '../../utils/button';
 import app_state from '../../utils/app_state';
 import persistence from '../../utils/persistence';
 import progress_tracker from '../../utils/progress_tracker';
 import CoughDrop from '../../app';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 
 context('Button', function() {
   context("actions", function() {
@@ -92,7 +94,7 @@ context('Button', function() {
     });
 
     it("should trigger an error when not online", function() {
-      app_state.set('sessionUser', Ember.Object.create({id: '123'}));
+      app_state.set('sessionUser', EmberObject.create({id: '123'}));
       app_state.set('currentBoardState', {id: '234'});
       persistence.set('online', false);
       var b = Button.create({integration: {action_type: 'webhook'}});
@@ -101,7 +103,7 @@ context('Button', function() {
     });
 
     it("should not trigger an error for a non-webhook integration", function() {
-      app_state.set('sessionUser', Ember.Object.create({id: '123'}));
+      app_state.set('sessionUser', EmberObject.create({id: '123'}));
       app_state.set('currentBoardState', {id: '234'});
       persistence.set('online', false);
       var b = Button.create({integration: {action_type: 'render'}});
@@ -110,7 +112,7 @@ context('Button', function() {
     });
 
     it("should trigger a remote call for integration buttons", function() {
-      app_state.set('sessionUser', Ember.Object.create({id: '123'}));
+      app_state.set('sessionUser', EmberObject.create({id: '123'}));
       app_state.set('currentBoardState', {id: '234'});
       var b = Button.create({integration: {action_type: 'webhook'}});
       persistence.set('online', true);
@@ -119,7 +121,7 @@ context('Button', function() {
       stub(persistence, 'ajax', function(url, opts) {
         ajax_url = url;
         ajax_opts = opts;
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       Button.extra_actions(b);
       waitsFor(function(r) { return ajax_opts; });
@@ -130,7 +132,7 @@ context('Button', function() {
     });
 
     it("should handle ajax errors for remote calls", function() {
-      app_state.set('sessionUser', Ember.Object.create({id: '123'}));
+      app_state.set('sessionUser', EmberObject.create({id: '123'}));
       app_state.set('currentBoardState', {id: '234'});
       var b = Button.create({integration: {action_type: 'webhook'}});
       persistence.set('online', true);
@@ -140,7 +142,7 @@ context('Button', function() {
         ajax_url = url;
         ajax_opts = opts;
         expect(b.get('action_status.pending')).toEqual(true);
-        return Ember.RSVP.reject();
+        return RSVP.reject();
       });
       Button.extra_actions(b);
       waitsFor(function(r) { return ajax_opts; });
@@ -152,7 +154,7 @@ context('Button', function() {
     });
 
     it("should handle missing progress response", function() {
-      app_state.set('sessionUser', Ember.Object.create({id: '123'}));
+      app_state.set('sessionUser', EmberObject.create({id: '123'}));
       app_state.set('currentBoardState', {id: '234'});
       var b = Button.create({integration: {action_type: 'webhook'}});
       persistence.set('online', true);
@@ -162,7 +164,7 @@ context('Button', function() {
         ajax_url = url;
         ajax_opts = opts;
         expect(b.get('action_status.pending')).toEqual(true);
-        return Ember.RSVP.resolve({progress: null});
+        return RSVP.resolve({progress: null});
       });
       Button.extra_actions(b);
       waitsFor(function(r) { return ajax_opts; });
@@ -174,7 +176,7 @@ context('Button', function() {
     });
 
     it("should track progress for remote calls", function() {
-      app_state.set('sessionUser', Ember.Object.create({id: '123'}));
+      app_state.set('sessionUser', EmberObject.create({id: '123'}));
       app_state.set('currentBoardState', {id: '234'});
       var b = Button.create({integration: {action_type: 'webhook'}});
       persistence.set('online', true);
@@ -184,7 +186,7 @@ context('Button', function() {
         ajax_url = url;
         ajax_opts = opts;
         expect(b.get('action_status.pending')).toEqual(true);
-        return Ember.RSVP.resolve({progress: 'asdf'});
+        return RSVP.resolve({progress: 'asdf'});
       });
       var tracked = false;
       stub(progress_tracker, 'track', function(progress, callback) {
@@ -202,7 +204,7 @@ context('Button', function() {
     });
 
     it("should handle errors on progress tracking", function() {
-      app_state.set('sessionUser', Ember.Object.create({id: '123'}));
+      app_state.set('sessionUser', EmberObject.create({id: '123'}));
       app_state.set('currentBoardState', {id: '234'});
       var b = Button.create({integration: {action_type: 'webhook'}});
       persistence.set('online', true);
@@ -212,7 +214,7 @@ context('Button', function() {
         ajax_url = url;
         ajax_opts = opts;
         expect(b.get('action_status.pending')).toEqual(true);
-        return Ember.RSVP.resolve({progress: 'asdf'});
+        return RSVP.resolve({progress: 'asdf'});
       });
       var tracked = false;
       stub(progress_tracker, 'track', function(progress, callback) {
@@ -233,7 +235,7 @@ context('Button', function() {
     });
 
     it("should mark successful progresses with no responses as failed", function() {
-      app_state.set('sessionUser', Ember.Object.create({id: '123'}));
+      app_state.set('sessionUser', EmberObject.create({id: '123'}));
       app_state.set('currentBoardState', {id: '234'});
       var b = Button.create({integration: {action_type: 'webhook'}});
       persistence.set('online', true);
@@ -243,7 +245,7 @@ context('Button', function() {
         ajax_url = url;
         ajax_opts = opts;
         expect(b.get('action_status.pending')).toEqual(true);
-        return Ember.RSVP.resolve({progress: 'asdf'});
+        return RSVP.resolve({progress: 'asdf'});
       });
       var tracked = false;
       stub(progress_tracker, 'track', function(progress, callback) {
@@ -263,7 +265,7 @@ context('Button', function() {
       });
     });
     it("should mark successful progresses with any error codes as failed", function() {
-      app_state.set('sessionUser', Ember.Object.create({id: '123'}));
+      app_state.set('sessionUser', EmberObject.create({id: '123'}));
       app_state.set('currentBoardState', {id: '234'});
       var b = Button.create({integration: {action_type: 'webhook'}});
       persistence.set('online', true);
@@ -273,7 +275,7 @@ context('Button', function() {
         ajax_url = url;
         ajax_opts = opts;
         expect(b.get('action_status.pending')).toEqual(true);
-        return Ember.RSVP.resolve({progress: 'asdf'});
+        return RSVP.resolve({progress: 'asdf'});
       });
       var tracked = false;
       stub(progress_tracker, 'track', function(progress, callback) {
@@ -293,7 +295,7 @@ context('Button', function() {
       });
     });
     it("should mark successful progresses with success codes as succeeded", function() {
-      app_state.set('sessionUser', Ember.Object.create({id: '123'}));
+      app_state.set('sessionUser', EmberObject.create({id: '123'}));
       app_state.set('currentBoardState', {id: '234'});
       var b = Button.create({integration: {action_type: 'webhook'}});
       persistence.set('online', true);
@@ -303,7 +305,7 @@ context('Button', function() {
         ajax_url = url;
         ajax_opts = opts;
         expect(b.get('action_status.pending')).toEqual(true);
-        return Ember.RSVP.resolve({progress: 'asdf'});
+        return RSVP.resolve({progress: 'asdf'});
       });
       var tracked = false;
       stub(progress_tracker, 'track', function(progress, callback) {
@@ -350,7 +352,7 @@ context('Button', function() {
       var checked = false;
       stub(i, 'checkForDataURL', function() {
         checked = true;
-        return Ember.RSVP.resolve('asdf');
+        return RSVP.resolve('asdf');
       });
       var loaded = false;
       b.image_id = 'asdf';
@@ -388,7 +390,7 @@ context('Button', function() {
         method: 'GET',
         type: 'image',
         id: 'asdf',
-        response: Ember.RSVP.resolve({image: {
+        response: RSVP.resolve({image: {
           id: 'asdf',
           url: 'http://www.example.com/pic.png'
         }})
@@ -427,7 +429,7 @@ context('Button', function() {
       var checked = false;
       stub(i, 'checkForDataURL', function() {
         checked = true;
-        return Ember.RSVP.resolve('asdf');
+        return RSVP.resolve('asdf');
       });
       var loaded = false;
       b.sound_id = 'asdf';
@@ -464,7 +466,7 @@ context('Button', function() {
         method: 'GET',
         type: 'sound',
         id: 'asdf',
-        response: Ember.RSVP.resolve({sound: {
+        response: RSVP.resolve({sound: {
           id: 'asdf',
           url: 'http://www.example.com/pic.png'
         }})
@@ -511,8 +513,8 @@ context('Button', function() {
       var b = Button.create();
       var image_load = false;
       var sound_load = false;
-      stub(b, 'load_image', function() { image_load = true; return Ember.RSVP.reject(); });
-      stub(b, 'load_sound', function() { sound_load = true; return Ember.RSVP.reject(); });
+      stub(b, 'load_image', function() { image_load = true; return RSVP.reject(); });
+      stub(b, 'load_sound', function() { sound_load = true; return RSVP.reject(); });
       var done = false;
       b.image_id = 'asdf';
       b.image_url = 'http://www.example.com/pic.png';
@@ -532,8 +534,8 @@ context('Button', function() {
       var b = Button.create();
       var image_load = false;
       var sound_load = false;
-      stub(b, 'load_image', function() { image_load = true; return Ember.RSVP.resolve(); });
-      stub(b, 'load_sound', function() { sound_load = true; return Ember.RSVP.resolve(); });
+      stub(b, 'load_image', function() { image_load = true; return RSVP.resolve(); });
+      stub(b, 'load_sound', function() { sound_load = true; return RSVP.resolve(); });
       var done = false;
       b.image_id = 'asdf';
       b.image_url = 'http://www.example.com/pic.png';
@@ -553,8 +555,8 @@ context('Button', function() {
       var b = Button.create();
       var image_load = false;
       var sound_load = false;
-      stub(b, 'load_image', function() { image_load = true; return Ember.RSVP.reject(); });
-      stub(b, 'load_sound', function() { sound_load = true; return Ember.RSVP.resolve(); });
+      stub(b, 'load_image', function() { image_load = true; return RSVP.reject(); });
+      stub(b, 'load_sound', function() { sound_load = true; return RSVP.resolve(); });
       var done = false;
       b.image_id = 'asdf';
       b.image_url = 'http://www.example.com/pic.png';
@@ -574,8 +576,8 @@ context('Button', function() {
       var b = Button.create();
       var image_load = false;
       var sound_load = false;
-      stub(b, 'load_image', function() { image_load = true; return Ember.RSVP.reject(); });
-      stub(b, 'load_sound', function() { sound_load = true; return Ember.RSVP.reject(); });
+      stub(b, 'load_image', function() { image_load = true; return RSVP.reject(); });
+      stub(b, 'load_sound', function() { sound_load = true; return RSVP.reject(); });
       var done = false;
       b.sound_id = 'asdf';
       b.sound_url = 'http://www.example.com/pic.png';
@@ -595,8 +597,8 @@ context('Button', function() {
       var b = Button.create();
       var image_load = false;
       var sound_load = false;
-      stub(b, 'load_image', function() { image_load = true; return Ember.RSVP.resolve(); });
-      stub(b, 'load_sound', function() { sound_load = true; return Ember.RSVP.resolve(); });
+      stub(b, 'load_image', function() { image_load = true; return RSVP.resolve(); });
+      stub(b, 'load_sound', function() { sound_load = true; return RSVP.resolve(); });
       var done = false;
       b.sound_id = 'asdf';
       b.sound_url = 'http://www.example.com/pic.png';
@@ -616,8 +618,8 @@ context('Button', function() {
       var b = Button.create();
       var image_load = false;
       var sound_load = false;
-      stub(b, 'load_image', function() { image_load = true; return Ember.RSVP.resolve(); });
-      stub(b, 'load_sound', function() { sound_load = true; return Ember.RSVP.reject(); });
+      stub(b, 'load_image', function() { image_load = true; return RSVP.resolve(); });
+      stub(b, 'load_sound', function() { sound_load = true; return RSVP.reject(); });
       var done = false;
       b.sound_id = 'asdf';
       b.sound_url = 'http://www.example.com/pic.png';

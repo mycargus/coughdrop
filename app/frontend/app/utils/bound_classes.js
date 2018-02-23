@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
 import $ from 'jquery';
 
 
@@ -79,7 +81,7 @@ var boundClasses = {};
       if(button.link_disabled) {
         classes = classes + " link_disabled";
       }
-      Ember.set(button, 'display_class', classes);
+      emberSet(button, 'display_class', classes);
     }
   });
 

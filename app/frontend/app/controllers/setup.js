@@ -1,4 +1,8 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
+import EmberObject from '@ember/object';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
 import i18n from '../utils/i18n';
 import persistence from '../utils/persistence';
 import CoughDrop from '../app';
@@ -11,7 +15,7 @@ import Stats from '../utils/stats';
 
 var order = ['intro', 'usage', 'home_boards', 'core', 'symbols', 'access', 'board_category', 'voice', 'logging', 'supervisors', 'notifications', 'done'];
 var extra_order = ['extra-dashboard', 'extra-home-boards', 'extra-speak-mode', 'extra-folders', 'extra-exit-speak-mode', 'extra-modeling', 'extra-supervisors', 'extra-reports', 'extra-logs', 'extra-done'];
-export default Ember.Controller.extend({
+export default Controller.extend({
   speecher: speecher,
   title: function() {
     return i18n.t('account_setup', "Account Setup");
@@ -118,7 +122,7 @@ export default Ember.Controller.extend({
     } else {
       var pin = (parseInt(this.get('pin'), 10) || "").toString().substring(0, 4);
       var _this = this;
-      Ember.run.later(function() {
+      runLater(function() {
         if(pin != _this.get('pin')) {
           _this.set('pin', pin);
         }
@@ -160,7 +164,7 @@ export default Ember.Controller.extend({
     var voice_uri = user.get('preferences.device.voice.voice_uri');
     var found = false;
     list.forEach(function(voice) {
-      voice = Ember.$.extend({}, voice);
+      voice = $.extend({}, voice);
       voice.selected = voice.id == voice_uri;
       if(voice.selected) { found = true; }
       if(voice.voiceURI && voice.voiceURI.match(/^extra/)) {
@@ -182,7 +186,7 @@ export default Ember.Controller.extend({
   }.property('speecher.voiceList', 'app_state.currentUser.premium_voices.claimed', 'fake_user.preferences.device.voice.voice_uri', 'app_state.currentUser.preferences.device.voice.voice_uris'),
   update_on_page_change: function() {
     if(!this.get('fake_user')) {
-      this.set('fake_user', Ember.Object.create({
+      this.set('fake_user', EmberObject.create({
         preferences:
         {
           device: {voice: {}},
@@ -199,7 +203,7 @@ export default Ember.Controller.extend({
       });
     }
     app_state.controller.set('setup_page', this.get('page'));
-    Ember.$('html,body').scrollTop(0);
+    $('html,body').scrollTop(0);
   }.observes('page'),
   actions: {
     set_preference: function(preference, value) {
@@ -268,7 +272,7 @@ export default Ember.Controller.extend({
       if(window.ga) {
         window.ga('send', 'event', 'Setup', 'extra', 'Extra Setup Pursued');
       }
-      Ember.run.later(function() {
+      runLater(function() {
         app_state.controller.send('setup_go', 'forward');
       });
     }

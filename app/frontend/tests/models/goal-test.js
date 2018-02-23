@@ -1,5 +1,7 @@
 import DS from 'ember-data';
+import RSVP from 'rsvp';
 import Ember from 'ember';
+import EmberObject from '@ember/object';
 import { test, moduleForModel } from 'ember-qunit';
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
 import { queryLog } from 'frontend/tests/helpers/ember_helper';
@@ -7,6 +9,7 @@ import CoughDrop from '../../app';
 import persistence from '../../utils/persistence';
 import modal from '../../utils/modal';
 import Button from '../../utils/button';
+import $ from 'jquery';
 
 describe('Goal', function() {
   var fixed_moment = function() { return window.moment('2015-11-01'); };
@@ -44,7 +47,7 @@ describe('Goal', function() {
   var day1 = fixed_moment().add(-1, 'day');
   var day2 = fixed_moment().add(-3, 'day');
   var day3 = fixed_moment().add(-4, 'day');
-  var recent_daily = Ember.$.extend(true, {}, empty);
+  var recent_daily = $.extend(true, {}, empty);
   recent_daily.daily[day1.toISOString().substring(0, 10)] = {
     statuses: [3],
     sessions: 1
@@ -71,7 +74,7 @@ describe('Goal', function() {
 
   var day4 = fixed_moment().add(-11, 'day');
   var day5 = fixed_moment().add(-16, 'day');
-  var recent_weekly = Ember.$.extend(true, {}, empty);
+  var recent_weekly = $.extend(true, {}, empty);
   recent_weekly.daily[day1.toISOString().substring(0, 10)] = {
     statuses: [1],
     sessions: 1
@@ -102,7 +105,7 @@ describe('Goal', function() {
 
   var day6 = fixed_moment().add(-50, 'day');
   var day7 = fixed_moment().add(-100, 'day');
-  var recent_monthly = Ember.$.extend(true, {}, empty);
+  var recent_monthly = $.extend(true, {}, empty);
   recent_monthly.daily[day1.toISOString().substring(0, 10)] = {
     statuses: [1, 2],
     sessions: 2
@@ -137,7 +140,7 @@ describe('Goal', function() {
 
   var day8 = fixed_moment().add(-500, 'day');
   var day9 = fixed_moment().add(-501, 'day');
-  var old_daily = Ember.$.extend(true, {}, empty);
+  var old_daily = $.extend(true, {}, empty);
   old_daily.daily[day8.toISOString().substring(0, 10)] = {
     statuses: [1, 4],
     sessions: 2
@@ -158,7 +161,7 @@ describe('Goal', function() {
   old_daily.weekly.totals = {sessions: 3, statuses: [1, 4, 3]};
   old_daily.monthly.totals = {sessions: 3, statuses: [1, 4, 3]};
 
-  var old_weekly = Ember.$.extend(true, {}, empty);
+  var old_weekly = $.extend(true, {}, empty);
   var day10 = fixed_moment().add(-510, 'day');
   var day11 = fixed_moment().add(-520, 'day');
   old_weekly.daily[day8.toISOString().substring(0, 10)] = {
@@ -198,7 +201,7 @@ describe('Goal', function() {
   old_weekly.monthly.totals = {sessions: 7, statuses: [3, 1, 2, 3, 3, 3, 4]};
 
   var day12 = fixed_moment().add(-550, 'day');
-  var old_monthly = Ember.$.extend(true, {}, empty);
+  var old_monthly = $.extend(true, {}, empty);
   old_monthly.daily[day8.toISOString().substring(0, 10)] = {
     statuses: [3, 1],
     sessions: 2
@@ -223,7 +226,7 @@ describe('Goal', function() {
   old_monthly.weekly.totals = {sessions: 7, statuses: [3, 1, 4, 4, 3, 2, 4]};
   old_monthly.monthly.totals = {sessions: 12, statuses: [3, 1, 4, 4, 3, 2, 4, 3, 2, 4, 2, 4]};
 
-  var empty = Ember.$.extend(true, {}, empty);
+  var empty = $.extend(true, {}, empty);
 
   it("should calculate best_time_level", function() {
     var goal = CoughDrop.store.createRecord('goal');
@@ -533,7 +536,7 @@ describe('Goal', function() {
   });
   describe('generate_next_template_if_new', function() {
     it("should return success if not new", function() {
-      stub(Ember.RSVP, 'resolve', function(res) {
+      stub(RSVP, 'resolve', function(res) {
         expect(res).toEqual(null);
         return "promisey";
       });
@@ -542,7 +545,7 @@ describe('Goal', function() {
       expect(res).toEqual('promisey');
     });
     it("should return save promise if new", function() {
-      var obj = Ember.Object.create();
+      var obj = EmberObject.create();
       var goal = CoughDrop.store.createRecord('goal');
       stub(CoughDrop.store, 'createRecord', function(type) {
         expect(type).toEqual('goal');

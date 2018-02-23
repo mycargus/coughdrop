@@ -1,4 +1,7 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import $ from 'jquery';
 import modal from '../utils/modal';
 import persistence from '../utils/persistence';
 import app_state from '../utils/app_state';
@@ -31,21 +34,21 @@ export default modal.ModalController.extend({
   set_list: function(val, type) {
     if(this.get('list_type') == type) {
       if(val && val.items) {
-        Ember.set(val, 'total', val.items.length);
-        Ember.set(val, 'used', val.items.filter(function(i) { return i.used; }).length);
+        emberSet(val, 'total', val.items.length);
+        emberSet(val, 'used', val.items.filter(function(i) { return i.used; }).length);
       } else if(val && val.categories) {
         var total = 0;
         var used = 0;
         val.categories.forEach(function(cat) {
           if(cat.items) {
-            Ember.set(cat, 'total', cat.items.length);
-            Ember.set(cat, 'used', cat.items.filter(function(i) { return i.used; }).length);
+            emberSet(cat, 'total', cat.items.length);
+            emberSet(cat, 'used', cat.items.filter(function(i) { return i.used; }).length);
             total = total + cat.total;
             used = used + cat.used;
           }
         });
-        Ember.set(val, 'total', total);
-        Ember.set(val, 'used', used);
+        emberSet(val, 'total', total);
+        emberSet(val, 'used', used);
       }
       this.set('list', val);
       this.set('category', null);
@@ -141,7 +144,7 @@ export default modal.ModalController.extend({
               else if(_this.on_board({label: str})) { item.used = true; }
               items.push(item);
             });
-            list.categories[idx] = Ember.$.extend({}, list.categories[idx], {items: items});
+            list.categories[idx] = $.extend({}, list.categories[idx], {items: items});
           });
           _this.set_list(list, type);
         }
@@ -296,7 +299,7 @@ export default modal.ModalController.extend({
           editManager.lucky_symbol(button.id);
         }
       }
-      Ember.set(item, 'used', true);
+      emberSet(item, 'used', true);
       this.check_availability();
     },
     search_extras: function() {

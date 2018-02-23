@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import EmberObject from '@ember/object';
+import {set as emberSet, get as emberGet} from '@ember/object';
 import modal from '../utils/modal';
 import persistence from '../utils/persistence';
 
@@ -9,11 +11,11 @@ export default modal.ModalController.extend({
   details: function() {
     var details = ([].concat(persistence.get('sync_log') || [])).reverse();
     (details || []).forEach(function(sync) {
-      Ember.set(sync, 'cached', sync.statuses.filter(function(s) { return s.status == 'cached'; }).length);
-      Ember.set(sync, 'downloaded', sync.statuses.filter(function(s) { return s.status == 'downloaded'; }).length);
-      Ember.set(sync, 're_downloaded', sync.statuses.filter(function(s) { return s.status == 're-downloaded'; }).length);
+      emberSet(sync, 'cached', sync.statuses.filter(function(s) { return s.status == 'cached'; }).length);
+      emberSet(sync, 'downloaded', sync.statuses.filter(function(s) { return s.status == 'downloaded'; }).length);
+      emberSet(sync, 're_downloaded', sync.statuses.filter(function(s) { return s.status == 're-downloaded'; }).length);
       sync.statuses.forEach(function(s) {
-        Ember.set(s, s.status.replace(/-/, '_'), true);
+        emberSet(s, s.status.replace(/-/, '_'), true);
       });
     });
     return details;
@@ -27,7 +29,7 @@ export default modal.ModalController.extend({
   }.property('persistence.syncing'),
   actions: {
     toggle_statuses: function(sync) {
-      Ember.set(sync, 'toggled', !Ember.get(sync, 'toggled'));
+      emberSet(sync, 'toggled', !emberGet(sync, 'toggled'));
     }
   }
 });

@@ -1,9 +1,12 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
+import { later as runLater } from '@ember/runloop';
+import $ from 'jquery';
 import i18n from '../../utils/i18n';
 import capabilities from '../../utils/capabilities';
 import CoughDrop from '../../app';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   title: function() {
     return "Log Details";
   }.property('model.user_name'),
@@ -80,7 +83,7 @@ export default Ember.Controller.extend({
 //               'callback=ready_to_do_log_map&key=AIzaSyBofHMEAGEILQkXWAgO6fAbsLjw6fNJQwM';
 //           document.body.appendChild(script);
 //         } else {
-//           Ember.run.later(done);
+//           runLater(done);
 //         }
 //       }
     }
@@ -92,17 +95,17 @@ export default Ember.Controller.extend({
     toggle_notes: function(id, action) {
       this.get('model').toggle_notes(id);
       if(action == 'add') {
-        Ember.run.later(function() {
-          Ember.$("input[data-event_id='" + id + "']").focus().select();
+        runLater(function() {
+          $("input[data-event_id='" + id + "']").focus().select();
         }, 200);
       }
     },
     add_note: function(event_id) {
-      var val = Ember.$("input[data-event_id='" + event_id + "']").val();
+      var val = $("input[data-event_id='" + event_id + "']").val();
       if(val) {
         this.get('model').add_note(event_id, val);
       }
-      Ember.$("input[data-event_id='" + event_id + "']").val("");
+      $("input[data-event_id='" + event_id + "']").val("");
     },
     draw_charts: function() {
       this.draw_charts();

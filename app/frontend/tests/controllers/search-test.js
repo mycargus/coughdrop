@@ -12,7 +12,7 @@ describe('SearchController', 'controller:search', function() {
 // import CoughDrop from '../app';
 // import persistence from '../utils/persistence';
 // 
-// export default Ember.ObjectController.extend({
+// export default EmberObjectController.extend({
 //   title: function() {
 //     return "Search results for " + this.get('searchString');
 //   }.property('searchString'),

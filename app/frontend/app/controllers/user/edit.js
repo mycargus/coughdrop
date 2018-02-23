@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import Controller from '@ember/controller';
 import CoughDrop from '../../app';
 import modal from '../../utils/modal';
 import Utils from '../../utils/misc';
@@ -6,7 +7,7 @@ import i18n from '../../utils/i18n';
 import progress_tracker from '../../utils/progress_tracker';
 import persistence from '../../utils/persistence';
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   registration_types: CoughDrop.registrationTypes,
   allow_shares_options: [
     {name: i18n.t('email_shares', "Email Me When People I Supervise Share a Message with Me"), id: 'email'},
