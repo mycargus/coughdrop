@@ -352,28 +352,28 @@
         </div>
         <div class='col-md-3 col-xs-4 big_button_holder'>
           <button id='nav_secondary' class='btn big_button btn-default' {{action 'stats'}}>
-            <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/Line%20Graph-2c932e7f91.svg'>
+            <img src={{path 'images/line_graph.svg'}} />
             {{t "Reports" key='reports'}}
           </button>
         </div>
         {{#if app_state.currentUser.preferences.progress.intro_watched}}
           <div class='col-md-3 col-xs-4 big_button_holder'>
             <button id='nav_tertiary' class='btn big_button btn-default' {{action "newBoard"}}>
-              <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/New-ea00c9e5b0.svg'>
+              <img src={{path 'images/new.svg'}} />
               {{t "New Board" key='new_board'}}
             </button>
           </div>
         {{else}}
           <div class='col-md-3 col-xs-4 big_button_holder'>
             <button id='nav_tertiary' class='btn big_button btn-default middle_row' {{action "intro"}}>
-              <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/arasaac/have%20an%20idea.png'>
+              <img src={{path 'images/learn.png'}} />
               {{t "Learn<br/>and Setup" key='learn_and_setup'}}
             </button>
           </div>
         {{/if}}
         <div class='col-md-3 col-xs-4 big_button_holder'>
           <button id='nav_extras' class='btn big_button btn-default' {{action 'toggle_extras'}}>
-            <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/extra_455_g.svg'>
+            <img src={{path 'images/extras.svg'}}>
             {{t "Extras" key='new_board'}} <span class={{if show_main_extras 'caret' 'caret-right'}}></span>
           </button>
         </div>
@@ -381,14 +381,14 @@
           {{#if app_state.currentUser.preferences.progress.intro_watched}}
             <div class='col-md-3 col-xs-4 big_button_holder'>
               <button class='btn big_button btn-default middle_row' {{action "intro"}}>
-                <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/arasaac/have%20an%20idea.png'>
+                <img src={{path 'images/learn.png'}} />
                 {{t "Learn<br/>and Setup" key='learn_and_setup'}}
               </button>
             </div>
           {{else}}
             <div class='col-md-3 col-xs-4 big_button_holder'>
               <button class='btn big_button btn-default middle_row' {{action "newBoard"}}>
-                <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/New-ea00c9e5b0.svg'>
+                <img src={{path 'images/new.svg'}} />
                 {{t "New Board" key='new_board'}}
               </button>
             </div>
