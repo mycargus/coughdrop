@@ -60,7 +60,7 @@ context('Button', function() {
       var b = Button.create();
       expect(b.get('integrationAction')).toEqual(false);
       b.set('integration', {});
-      expect(b.get('integrationAction')).toEqual(true);
+      expect(!!b.get('integrationAction')).toEqual(true);
     });
 
     it("should return the correct action_image for integration-type buttons in different states", function() {

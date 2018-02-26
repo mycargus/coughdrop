@@ -101,7 +101,7 @@ var stashes = EmberObject.extend({
       window.user_preferences.global_integrations = stashes.get('global_integrations');
     } else if(!Ember.testing) {
       runLater(function() {
-        if(CoughDrop && CoughDrop.session) {
+        if(CoughDrop && CoughDrop.session && CoughDrop.session.check_token) {
           CoughDrop.session.check_token();
         }
       }, 500);
@@ -113,7 +113,7 @@ var stashes = EmberObject.extend({
     if((!prefix || prefix == 'auth_') && ignore_prefix != 'auth_') {
       stashes.flush_db_id();
     }
-    if(stash_capabilities) {
+    if(stash_capabilities && stash_capabilities.dbman) {
       var stash = {};
       stash.storageId = 'stash';
       stash_capabilities.storage_store({store: 'settings', id: 'stash', record: stash});

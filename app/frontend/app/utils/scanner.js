@@ -35,11 +35,12 @@ var scanner = EmberObject.extend({
     this.last_options = options;
     options.scan_mode = options.scan_mode || "row";
     options.interval = options.interval || 1000;
+    options.auto_start = options.auto_start || false;
     options.all_elements = [];
 
     if(modal.is_open() && !modal.is_open('highlight')) {
       return;
-    } else if(options.scan_mode == 'axes') {
+    } else if(options && options.scan_mode == 'axes') {
     } else {
       var row = {};
       if(!options.skip_header) {
@@ -387,7 +388,7 @@ var scanner = EmberObject.extend({
     });
     if(!track.proceed) { return; }
 
-    if(scanner.options.scan_mode == 'axes') {
+    if(scanner.options && scanner.options.scan_mode == 'axes') {
       // progress to next scanning mode, or trigger select event at the coords
       scanner.scan_axes('next');
     } else {

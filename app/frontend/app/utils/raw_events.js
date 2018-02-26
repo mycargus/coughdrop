@@ -75,7 +75,7 @@ $(document).on('mousedown touchstart', function(event) {
     frame_listener.trigger_target($(event.target).closest(".integration_target")[0]);
   }
 }).on('keypress', function(event) {
-  if(buttonTracker.check('keyboard_listen') && !buttonTracker.check('scanning_enabled') && !buttonTracker.check('dwell_enabled')) {
+  if(buttonTracker.check('keyboard_listen') && !buttonTracker.check('scanning_enabled') && !buttonTracker.check('dwell_enabled') && !modal.is_open()) {
     // add letter to the sentence box
     var key = "+" + event.key;
     if(event.key == ' ' || event.key == 'Enter') { key = ':space'; }
@@ -113,7 +113,7 @@ $(document).on('mousedown touchstart', function(event) {
   } else if(event.keyCode == 27) { // esc
     if(modal.is_open() && modal.is_closeable()) {// && (event.target.tagName == 'INPUT' || event.target.tagName == 'BUTTON' || event.target.tagName == 'TEXTAREA' || event.target.tagName == 'A')) {
       modal.close();
-    } else if(buttonTracker.check('keyboard_listen')) {
+    } else if(buttonTracker.check('keyboard_listen') && !modal.is_open()) {
       app_state.activate_button({vocalization: ':clear'}, {
         label: 'escape',
         vocalization: ':clear',
@@ -124,7 +124,7 @@ $(document).on('mousedown touchstart', function(event) {
       });
     }
   } else if(event.keyCode == 8) { // backspace
-    if(buttonTracker.check('keyboard_listen')) {
+    if(buttonTracker.check('keyboard_listen') && !modal.is_open()) {
       app_state.activate_button({vocalization: ':backspace'}, {
         label: 'escape',
         vocalization: ':backspace',

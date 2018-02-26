@@ -7,6 +7,7 @@ import { queryLog, db_wait, queue_promise } from 'frontend/tests/helpers/ember_h
 import CoughDrop from '../../app';
 import persistence from '../../utils/persistence';
 import modal from '../../utils/modal';
+import app_state from '../../utils/app_state';
 import { run as emberRun } from '@ember/runloop';
 
 describe('Buttonset', function() {
@@ -416,6 +417,7 @@ describe('Buttonset', function() {
           {label: 'charbroil', depth: 1, id: '1', board_id: '4'}
         ]
       });
+      app_state.set('sessionUser', user);
 
       queue_promise(bs.find_buttons('ch', null, user, true)).then(function(res) {
         expect(res.length).toEqual(4);
@@ -630,6 +632,9 @@ describe('Buttonset', function() {
           }
         })
       });
+      app_state.set('sessionUser', user);
+      expect(app_state.get('currentUser')).toEqual(user);
+      expect(app_state.get('sidebar_boards.length')).toEqual(2);
       queue_promise(bs.find_buttons('h', null, user, true)).then(function(res) {
         expect(res.length).toEqual(3);
         expect(res[0].label).toEqual('hat');

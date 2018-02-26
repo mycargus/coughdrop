@@ -202,7 +202,8 @@ var app_state = EmberObject.extend({
   global_transition: function(transition) {
     if(transition.isAborted) { return; }
     app_state.set('from_url', app_state.get('route.router.url'));
-    var pieces = this.get('route.router._routerMicrolib.recognizer').recognize(app_state.get('from_url'));
+    var rec = this.get('route.router._routerMicrolib.recognizer')
+    var pieces = rec && rec.recognize(app_state.get('from_url'));
     if(pieces && pieces.length > 0) {
       var args = [pieces[pieces.length - 1].handler];
       var handle_piece = function(name) {
@@ -567,7 +568,7 @@ var app_state = EmberObject.extend({
         }
       } else if(mode == 'speak') {
         var already_speaking_as_someone_else = app_state.get('speakModeUser.id') && app_state.get('speakModeUser.id') != app_state.get('sessionUser.id');
-        if(app_state.get('currentBoardState')) { app_state.set('currentBoardState.reload_token', null) }
+        if(app_state.get('currentBoardState')) { delete app_state.get('currentBoardState').reload_token }
         if(app_state.get('currentUser') && !opts.reminded && app_state.get('currentUser.expired') && !already_speaking_as_someone_else) {
           return modal.open('premium-required', {user_name: app_state.get('currentUser.user_name'), limited_supervisor: app_state.get('currentUser.subscription.limited_supervisor'), remind_to_upgrade: true, action: 'app_speak_mode'}).then(function() {
             opts.reminded = true;
@@ -862,7 +863,7 @@ var app_state = EmberObject.extend({
     return !!(this.get('default_mode') && !this.get('currentBoardState') && !this.get('hide_search'));
   }.property('default_mode', 'currentBoardState', 'hide_search'),
   header_size: function() {
-    var size = this.get('currentUser.preferences.device.vocalization_height') || window.user_preferences.device.vocalization_height;
+    var size = this.get('currentUser.preferences.device.vocalization_height') || ((window.user_preferences || {}).device || {}).vocalization_height || 100;
     if(window.innerHeight < 400) {
       size = 'tiny';
     } else if(window.innerHeight < 600 && size != 'tiny') {
@@ -979,8 +980,10 @@ var app_state = EmberObject.extend({
       this.set('eye_gaze', capabilities.eye_gaze);
       this.set('embedded', !!(CoughDrop.embedded));
       this.set('full_screen_capable', capabilities.fullscreen_capable());
-      if(this.get('currentUser.needs_speak_mode_intro') && !this.get('currentUser.preferences.progress.speak_mode_intro_done')) {
-        modal.open('speak-mode-intro');
+      if(this.get('currentBoardState') && this.get('currentUser.needs_speak_mode_intro') && !this.get('currentUser.preferences.progress.speak_mode_intro_done')) {
+        if(modal.route) {
+          modal.open('speak-mode-intro');
+        }
       }
     } else if(!this.get('speak_mode') && this.get('last_speak_mode') !== undefined) {
       capabilities.wakelock('speak!', false);

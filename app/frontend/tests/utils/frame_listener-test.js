@@ -260,14 +260,14 @@ describe("frame_listener", function() {
     it('should return ready status', function() {
       var data = null;
       frame_listener.status({respond: function(d) { data = d; }});
-      expect(data).toEqual({status: 'ready', session_id: undefined, user_token: undefined, code: undefined});
+      expect(data).toEqual({status: 'ready', session_id: undefined, user_token: undefined, code: undefined, system_token: 'CoughDropAAC'});
     });
 
     it('should return the user token if specified', function() {
       var data = null;
       frame.setAttribute('data-user_token', 'token');
       frame_listener.handle_action({action: 'status', session_id: 'asdf', respond: function(d) { data = d; }});
-      expect(data).toEqual({status: 'ready', session_id: 'asdf', user_token: 'token', code: undefined});
+      expect(data).toEqual({status: 'ready', session_id: 'asdf', user_token: 'token', code: undefined, system_token: 'CoughDropAAC'});
     });
 
     it('should return the action code if specified', function() {
@@ -275,7 +275,7 @@ describe("frame_listener", function() {
       frame.setAttribute('data-user_token', 'token');
       frame.setAttribute('data-code', 'codeness');
       frame_listener.handle_action({action: 'status', session_id: 'asdf', respond: function(d) { data = d; }});
-      expect(data).toEqual({status: 'ready', session_id: 'asdf', user_token: 'token', code: 'codeness'});
+      expect(data).toEqual({status: 'ready', session_id: 'asdf', user_token: 'token', code: 'codeness', system_token: 'CoughDropAAC'});
     });
   });
 
@@ -724,7 +724,7 @@ describe("frame_listener", function() {
       window.postMessage({aac_shim: true, session_id: 'asdf', action: 'status'}, '*');
       waitsFor(function() { return response; });
       runs(function() {
-        expect(response).toEqual({callback_id: undefined, aac_shim: true, status: 'ready', session_id: 'asdf', user_token: undefined, code: undefined});
+        expect(response).toEqual({callback_id: undefined, aac_shim: true, status: 'ready', session_id: 'asdf', user_token: undefined, code: undefined, system_token: 'CoughDropAAC'});
       });
 
     });

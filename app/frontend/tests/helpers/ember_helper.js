@@ -54,7 +54,7 @@ CoughDrop.testing = true;
 var queryLog = [];
 queryLog.log = function(event) {
   if(event && event.type) {
-    event.simple_type = event.type.toString().split(/:/)[1];
+    event.simple_type = event.type.modelName || event.type.toString().split(/:/)[1];
   }
   queryLog.push(event);
 };
@@ -63,8 +63,7 @@ queryLog.respondAndLog = function(event, defaultResponse) {
   queryLog.log(event);
   for(var idx = 0; idx < queryLog.fixtures.length; idx++) {
     var fixture = queryLog.fixtures[idx];
-    var type = 'frontend@model:' + fixture.type + ':';
-    if(fixture.method == event.method && type == event.type) {
+    if(fixture.method == event.method && fixture.type == event.type.modelName) {
       var found = false;
       if(fixture.method == 'GET' && fixture.id && fixture.id == event.id) {
         found = true;
@@ -318,6 +317,24 @@ function easyPromise() {
   return promise;
 }
 
+function result_wrap(data) {
+  if(data.map) { return data; }
+  var res = {};
+  res.meta = data.meta;
+  res.list = data.content.mapBy('record');
+  res.length = data.length;
+  res.forEach = function(cb) {
+    res.list.forEach(function(i) {
+      cb(i);
+    });
+  };
+  res.map = function(cb) {
+    return res.list.map(function(i) { return cb(i); });
+  };
+
+  return res;
+}
+
 ApplicationAdapter.reopen({
   ajax: function(url, type, options) {
     options = options || {};
@@ -453,4 +470,4 @@ afterEach(function() {
   stub.stubs = [];
 });
 
-export { queryLog, fakeAudio, fakeRecorder, fakeMediaRecorder, fakeCanvas, easyPromise, db_wait, fake_dbman, queue_promise };
+export { queryLog, fakeAudio, fakeRecorder, fakeMediaRecorder, fakeCanvas, easyPromise, db_wait, fake_dbman, queue_promise, result_wrap };

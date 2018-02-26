@@ -1552,7 +1552,10 @@ var persistence = EmberObject.extend({
                 var keep_big = !!(board.get('grid.rows') < 3 || board.get('grid.columns') < 6);
                 if(image.url && image.url.match(/^http/)) {
                   // TODO: should this be app_state.currentUser instead of the currently-syncing user?
-                  var personalized = CoughDrop.Image.personalize_url(image.url, user.get('user_token'));
+                  var personalized = image.url;
+                  if(CoughDrop.Image && CoughDrop.Image.personalize_url) {
+                    personalized = CoughDrop.Image.personalize_url(image.url, user.get('user_token'));
+                  }
 
                   visited_board_promises.push(//persistence.queue_sync_action('store_button_image', function() {
                     /*return*/ persistence.store_url(personalized, 'image', keep_big, force).then(null, function() {

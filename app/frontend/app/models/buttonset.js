@@ -66,7 +66,7 @@ CoughDrop.Buttonset = DS.Model.extend({
         match_level = match_level || (button.vocalization && button.vocalization.match(re) && 2);
         match_level = match_level || (button.label && word_suggestions.edit_distance(str, button.label) < Math.max(str.length, button.label.length) * 0.5 && 1);
         if(match_level) {
-          button = $.extend({}, button);
+          button = $.extend({}, button, {match_level: match_level});
           if(button.image) {
             button.image = CoughDrop.Image.personalize_url(button.image, app_state.get('currentUser.user_token'));
           }
@@ -214,12 +214,18 @@ CoughDrop.Buttonset = DS.Model.extend({
         } else if(a_depth < b_depth) {
           return -1;
         } else {
-          if(a.label.toLowerCase() > b.label.toLowerCase()) {
-            return 1;
-          } else if(a.label.toLowerCase() < b.label.toLowerCase()) {
+          if(a.match_level > b.match_level) {
             return -1;
+          } else if(a.match_level < b.match_level) {
+            return 1;
           } else {
-            return 0;
+            if(a.label.toLowerCase() > b.label.toLowerCase()) {
+              return 1;
+            } else if(a.label.toLowerCase() < b.label.toLowerCase()) {
+              return -1;
+            } else {
+              return 0;
+            }
           }
         }
       });

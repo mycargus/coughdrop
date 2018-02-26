@@ -475,10 +475,12 @@ describe('Board', function() {
       stub(CoughDrop.store, 'peekAll', function(type) {
         if(type == 'buttonset') {
           return {
-            content: [
-              {record: bs1},
-              {record: bs2}
-            ]
+            map: function(cb) {
+              return [
+                bs1,
+                bs2
+              ];
+            }
           };
         }
       });
@@ -498,10 +500,12 @@ describe('Board', function() {
       stub(CoughDrop.store, 'peekAll', function(type) {
         if(type == 'buttonset') {
           return {
-            content: [
-              {record: bs1},
-              {record: bs2}
-            ]
+            map: function(cb) {
+              return [
+                bs1,
+                bs2
+              ];
+            }
           };
         }
       });
@@ -562,9 +566,11 @@ describe('Board', function() {
       stub(CoughDrop.store, 'peekAll', function(type) {
         if(type == 'buttonset') {
           return {
-            content: [
-              {record: bs1}
-            ]
+            map: function(cb) {
+              return [
+                bs1
+              ];
+            }
           };
         }
       });

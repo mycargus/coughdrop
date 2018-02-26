@@ -2260,9 +2260,15 @@ describe('editManager', function() {
         buttons: [{id: 1, load_board: {key: 'asdf', id: '1_2'}}],
         grid: {}
       };
+      var model2 = {
+        id: '1_2',
+        key: 'example/fred2',
+        buttons: [{id: 1, load_board: {key: 'asdf', id: '1_2'}}],
+        grid: {}
+      };
       var b = CoughDrop.store.createRecord('board', model);
       var found = false;
-      var promise = RSVP.resolve({board: model});
+      var promise = RSVP.resolve({board: model2});
       queryLog.defineFixture({
         method: 'POST',
         type: 'board',
@@ -2289,7 +2295,13 @@ describe('editManager', function() {
         buttons: [{id: 1, load_board: {key: 'asdf', id: '1_2'}}],
         grid: {}
       };
-      var b = CoughDrop.store.createRecord('board', model);
+      var model2 = {
+        id: '1_2',
+        key: 'example/fred',
+        buttons: [{id: 1, load_board: {key: 'asdf', id: '1_2'}}],
+        grid: {}
+      };
+      var b = CoughDrop.store.createRecord('board', model2);
       var found = false;
       var promise = RSVP.resolve({board: model});
       queryLog.defineFixture({

@@ -88,7 +88,7 @@ var utterance = EmberObject.extend({
       }
     });
     var last_spoken_button = visualButtonList[visualButtonList.length - 1];
-    if(last_spoken_button && (last_spoken_button.vocalization || last_spoken_button.label).match(/[\.\?\,\!]/)) {
+    if(last_spoken_button && (last_spoken_button.vocalization || last_spoken_button.label || "").match(/[\.\?\,\!]/)) {
       var prior = utterance.sentence(visualButtonList.slice(0, -1));
       var parts = prior.split(/[\.\?\!]/);
       var last_part = parts[parts.length - 1];

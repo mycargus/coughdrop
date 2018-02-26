@@ -427,14 +427,16 @@ describe('User', function() {
         expect(type).toEqual('goal');
         expect(args).toEqual({active: true, user_id: '1234'});
         return RSVP.resolve({
-          content: [
-            {record: EmberObject.create({id: '5'})},
-            {record: EmberObject.create({id: '2'})},
-            {record: EmberObject.create({id: '6', primary: true})},
-            {record: EmberObject.create({id: '4'})},
-            {record: EmberObject.create({id: '1'})},
-            {record: EmberObject.create({id: '3'})}
-          ]
+          map: function() {
+            return [
+              EmberObject.create({id: '5'}),
+              EmberObject.create({id: '2'}),
+              EmberObject.create({id: '6', primary: true}),
+              EmberObject.create({id: '4'}),
+              EmberObject.create({id: '1'}),
+              EmberObject.create({id: '3'})
+            ];
+          }
         });
       });
       user.load_active_goals();

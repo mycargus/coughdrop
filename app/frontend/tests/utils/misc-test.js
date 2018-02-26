@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } from 'frontend/tests/helpers/jasmine';
-import { easyPromise, db_wait } from 'frontend/tests/helpers/ember_helper';
+import { easyPromise, db_wait, result_wrap } from 'frontend/tests/helpers/ember_helper';
 import RSVP from 'rsvp';
 import Utils from '../../utils/misc';
 import modal from '../../utils/modal';
@@ -105,43 +105,40 @@ describe("misc", function() {
           expect(opts.a).toEqual(1);
           attempt++;
           if(attempt == 1) {
-            return RSVP.resolve({
-              content: [
-                {record: {id: '1'}},
-                {record: {id: '2'}}
-              ],
+            return RSVP.resolve(result_wrap({
+              map: function() {
+                return [{id: '1'},{id: '2'}];
+              },
               meta: {
                 more: true,
                 per_page: 2,
                 next_offset: 2
               }
-            });
+            }));
           } else if(attempt == 2) {
             expect(opts.offset).toEqual(2);
-            return RSVP.resolve({
-              content: [
-                {record: {id: '3'}},
-                {record: {id: '4'}}
-              ],
+            return RSVP.resolve(result_wrap({
+              map: function() {
+                return [{id: '3'},{id: '4'}];
+              },
               meta: {
                 more: true,
                 per_page: 2,
                 next_offset: 4
               }
-            });
+            }));
           } else {
             expect(opts.offset).toEqual(4);
-            return RSVP.resolve({
-              content: [
-                {record: {id: '1'}},
-                {record: {id: '2'}}
-              ],
+            return RSVP.resolve(result_wrap({
+              map: function() {
+                return [{id: '1'},{id: '2'}];
+              },
               meta: {
                 more: false,
                 per_page: 2,
                 next_offset: 2
               }
-            });
+            }));
           }
         });
         var list = null;
@@ -169,10 +166,11 @@ describe("misc", function() {
           attempt++;
           if(attempt == 1) {
             return RSVP.resolve({
-              content: [
-                {record: {id: '1'}},
-                {record: {id: '2'}}
-              ],
+              map: function() {
+                return [
+                  {id: '1'},{id: '2'}
+                ];
+              },
               meta: {
                 more: false,
                 per_page: 2,
@@ -329,10 +327,11 @@ describe("misc", function() {
           attempt++;
           if(attempt == 1) {
             return RSVP.resolve({
-              content: [
-                {record: {id: '1'}},
-                {record: {id: '2'}}
-              ],
+              map: function() {
+                return [
+                  {id: '1'},{id: '2'}
+                ];
+              },
               meta: {
                 more: true,
                 per_page: 2,
@@ -342,10 +341,10 @@ describe("misc", function() {
           } else if(attempt == 2) {
             expect(opts.offset).toEqual(2);
             return RSVP.resolve({
-              content: [
-                {record: {id: '3'}},
-                {record: {id: '4'}}
-              ],
+              map: function() {
+                return [{id: '3'},{id: '4'}
+                ];
+              },
               meta: {
                 more: true,
                 per_page: 2,
@@ -383,10 +382,11 @@ describe("misc", function() {
           if(attempt == 1) {
             expect(intermediate).toEqual(null);
             return RSVP.resolve({
-              content: [
-                {record: {id: '1'}},
-                {record: {id: '2'}}
-              ],
+              map: function() {
+                return [
+                  {id: '1'},{id: '2'}
+                ];
+              },
               meta: {
                 more: true,
                 per_page: 2,
@@ -397,10 +397,11 @@ describe("misc", function() {
             expect(opts.offset).toEqual(2);
             expect(intermediate.length).toEqual(2);
             return RSVP.resolve({
-              content: [
-                {record: {id: '3'}},
-                {record: {id: '4'}}
-              ],
+              map: function() {
+                return [
+                  {id: '3'},{id: '4'}
+                ];
+              },
               meta: {
                 more: true,
                 per_page: 2,
@@ -411,10 +412,11 @@ describe("misc", function() {
             expect(opts.offset).toEqual(4);
             expect(intermediate.length).toEqual(4);
             return RSVP.resolve({
-              content: [
-                {record: {id: '1'}},
-                {record: {id: '2'}}
-              ],
+              map: function() {
+                return [
+                  {id: '1'},{id: '2'}
+                ]
+              },
               meta: {
                 more: false,
                 per_page: 2,
