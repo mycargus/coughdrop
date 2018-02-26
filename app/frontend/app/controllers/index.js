@@ -213,7 +213,7 @@ export default Controller.extend({
         controller.set('logs', {loading: true});
       }
       this.store.query('log', find_args).then(function(list) {
-        controller.set('logs', list.get('content').slice(0, 6).mapBy('record'));
+        controller.set('logs', list.map(function(i) { return i; }));
       }, function() {
         if(!(controller.get('logs') || {}).length) {
           controller.set('logs', {error: true});

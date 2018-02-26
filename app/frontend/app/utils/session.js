@@ -178,13 +178,16 @@ var session = EmberObject.extend({
       location.reload();
     }
   },
+  alert: function(message) {
+    if(!Ember.testing) {
+      alert(message);
+    }
+  },
   force_logout: function(message) {
     var full_invalidate = !!(app_state.get('currentUser') || stashes.get_object('auth_settings', true));
     if(full_invalidate) {
       if(!modal.route) {
-        if(!Ember.testing) {
-          alert(message);
-        }
+        session.alert(message);
         session.invalidate(true);
       } else {
         modal.open('force-logout', {message: message});

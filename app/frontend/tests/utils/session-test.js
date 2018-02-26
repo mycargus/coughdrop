@@ -11,6 +11,10 @@ import CoughDrop from '../../app';
 import { run as emberRun } from '@ember/runloop';
 
 describe('session', function() {
+  beforeEach(function() {
+    stub(session, 'alert', function(message) {
+    });
+  });
   describe("setup", function() {
     it("should set session information", function() {
       var app = EmberObject.create();
