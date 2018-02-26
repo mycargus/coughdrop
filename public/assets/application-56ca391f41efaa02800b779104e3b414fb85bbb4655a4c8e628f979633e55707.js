@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.02.26";
+window.app_version = "2018.02.26a";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -7974,7 +7974,7 @@ a.default.get("currentUser.preferences.home_board.key")&&(s=a.default.get("curre
 else{var r="homeBoards",i={public:!0,starred:!0,user_id:"example",sort:"custom_order",per_page:12}
 "personal"==a?(r="personalBoards",i={user_id:"self",copies:!1,per_page:12}):"popular"==a&&(r="popularBoards",i={sort:"home_popularity",per_page:12,exclude_starred:"example"}),(e.get(r)||{}).length||e.set(r,{loading:!0}),e.store.query("board",i).then(function(t){e.set(r,t),e.checkForBlankSlate()},function(){e.set(r,{error:!0})}),e.checkForBlankSlate()}else e.set(a+"_selected",!1)})}}.observes("selected","persistence.online"),reload_logs:function(){var e=this.get("model")
 if(e&&e.get("id")&&n.default.get("online")){var t=this,s={user_id:e.get("id"),type:"session"}
-e.get("supporter_role")&&(s.supervisees=!0),(t.get("logs")||{}).length||t.set("logs",{loading:!0}),this.store.query("log",s).then(function(e){t.set("logs",e.get("content").slice(0,6).mapBy("record"))},function(){(t.get("logs")||{}).length||t.set("logs",{error:!0})})}}.observes("model.id","persistence.online"),many_supervisees:function(){return(a.default.get("currentUser.supervisees")||[]).length>5}.property("app_state.currentUser.supervisees"),some_supervisees:function(){return(a.default.get("currentUser.supervisees")||[]).length>3}.property("app_state.currentUser.supervisees"),save_user_pref_change:function(){var e=a.default.get("currentUser.preferences.auto_open_speak_mode")
+e.get("supporter_role")&&(s.supervisees=!0),(t.get("logs")||{}).length||t.set("logs",{loading:!0}),this.store.query("log",s).then(function(e){t.set("logs",e.map(function(e){return e}))},function(){(t.get("logs")||{}).length||t.set("logs",{error:!0})})}}.observes("model.id","persistence.online"),many_supervisees:function(){return(a.default.get("currentUser.supervisees")||[]).length>5}.property("app_state.currentUser.supervisees"),some_supervisees:function(){return(a.default.get("currentUser.supervisees")||[]).length>3}.property("app_state.currentUser.supervisees"),save_user_pref_change:function(){var e=a.default.get("currentUser.preferences.auto_open_speak_mode")
 if(void 0!==e){var t=this.get("last_auto_open_speak_mode")
 void 0!==t&&null!==e&&t!=e&&a.default.get("currentUser").save().then(null,function(){}),this.set("last_auto_open_speak_mode",e)}}.observes("app_state.currentUser.preferences.auto_open_speak_mode"),index_nav:function(){var e={}
 return this.get("index_nav_state")?e[this.get("index_nav_state")]=!0:a.default.get("currentUser.preferences.device.last_index_nav")?e[a.default.get("currentUser.preferences.device.last_index_nav")]=!0:(this.get("model.supporter_role"),e.main=!0),e}.property("index_nav_state","model.supporter_role","app_state.currentUser.preference.device.last_index_nav"),subscription_check:function(){if(this.get("app_state.sessionUser")&&!this.get("app_state.installed_app")){var e=this.get("app_state.sessionUser.preferences.progress"),t=this.get("app_state.sessionUser"),n=!1
@@ -10262,7 +10262,7 @@ return s.as_user_id&&(i=i+"&as_user_id="+s.as_user_id),a.default.ajax(i,{type:"G
 console.debug("COUGHDROP: restoring session data")
 var n=t.default.get_object("auth_settings",!0)||{},s=n.access_token||"none"
 return a.default.tokens=a.default.tokens||{},n.access_token&&!d.get("isAuthenticated")?(d.set("isAuthenticated",!0),d.set("access_token",n.access_token),d.set("user_name",n.user_name),d.set("user_id",n.user_id),d.set("as_user_id",n.as_user_id)):n.access_token||d.force_logout(l.default.t("session_lost","Session data has been lost, please log back in")),(e||null==a.default.tokens[s]&&!Ember.testing&&a.default.get("online"))&&(n.access_token||e?d.check_token(!0):d.set("tokenConfirmed",!1)),n},override:function(e){var n=d.restore()
-n.access_token=e.access_token,n.user_name=e.user_name,n.user_id=e.user_id,t.default.flush(),t.default.setup(),d.persist(n),d.reload("/")},reload:function(e){e?Ember.testing?console.error("would have redirected off the page"):s.default.installed_app?(location.href="#"+e,location.reload()):location.href=e:location.reload()},force_logout:function(e){!(!r.default.get("currentUser")&&!t.default.get_object("auth_settings",!0))?i.default.route?i.default.open("force-logout",{message:e}):(Ember.testing||alert(e),d.invalidate(!0)):d.invalidate()},invalidate:function(e){var n=e||!(!r.default.get("currentUser")&&!t.default.get_object("auth_settings",!0))
+n.access_token=e.access_token,n.user_name=e.user_name,n.user_id=e.user_id,t.default.flush(),t.default.setup(),d.persist(n),d.reload("/")},reload:function(e){e?Ember.testing?console.error("would have redirected off the page"):s.default.installed_app?(location.href="#"+e,location.reload()):location.href=e:location.reload()},alert:function(e){function t(t){return e.apply(this,arguments)}return t.toString=function(){return e.toString()},t}(function(e){Ember.testing||alert(e)}),force_logout:function(e){!(!r.default.get("currentUser")&&!t.default.get_object("auth_settings",!0))?i.default.route?i.default.open("force-logout",{message:e}):(d.alert(e),d.invalidate(!0)):d.invalidate()},invalidate:function(e){var n=e||!(!r.default.get("currentUser")&&!t.default.get_object("auth_settings",!0))
 t.default.flush(),t.default.setup(),n&&d.reload("/")
 Ember.run.later(function(){d.set("isAuthenticated",!1),d.set("access_token",null),d.set(" ",null),d.set("user_id",null),d.set("as_user_id",null)})}}).create({})
 window.session=d,e.default=d}),define("frontend/utils/speecher",["exports","frontend/utils/capabilities","frontend/utils/persistence","frontend/utils/tts_voices","frontend/utils/app_state","frontend/utils/i18n"],function(e,t,n,s,a,o){Object.defineProperty(e,"__esModule",{value:!0})
@@ -10456,8 +10456,8 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+f4f59ee2"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+f4f59ee2"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+4d5d0272"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+4d5d0272"})
 ;
 
 
