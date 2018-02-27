@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.02.26a";
+window.app_version = "2018.02.27";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -10243,7 +10243,7 @@ var r=document.elementFromPoint(a,o)
 d.pick_elem(Ember.$(r)),Ember.run.later(d.reset)}}else d.axes.x?(d.axes.x="fixed",d.axes.y="scanning-forward"):(d.axes.y="fixed",d.axes.x="scanning-forward"),d.axes.handling||d.axes_advance()
 else d.options&&"y"==d.options.start_axis?(d.axes.y="scanning-forward",d.axes.x=null):(d.axes.x="scanning-forward",d.axes.y=null),d.axes.handling||d.axes_advance()},load_children:function(e,t,n){var s=Ember.$.extend({higher_level:t,higher_level_index:n},e)
 e.reload_children&&(e.children=e.reload_children()),d.elements=e.children.concat([s]),d.element_index=0,Ember.run.cancel(d.interval),d.interval=Ember.run.later(function(){d.next_element()})},next:function(){var e=(new Date).getTime()
-d.ignore_until&&e<d.ignore_until||(Ember.run.cancel(d.interval),d.interval=null,"axes"==d.options.scan_mode||(d.element_index=d.element_index+1,d.element_index>=d.elements.length&&(d.element_index=0),d.next_element(),d.options&&d.options.debounce&&(d.ignore_until=e+d.options.debounce)))},next_element:function(e){var t=this.elements[this.element_index]
+d.ignore_until&&e<d.ignore_until||(Ember.run.cancel(d.interval),d.interval=null,d.options&&"axes"==d.options.scan_mode||(d.element_index=d.element_index+1,d.element_index>=d.elements.length&&(d.element_index=0),d.next_element(),d.options&&d.options.debounce&&(d.ignore_until=e+d.options.debounce)))},next_element:function(e){var t=this.elements[this.element_index]
 if(d.options&&"axes"==d.options.scan_mode)d.scan_axes("start")
 else{if(t||(t=t||this.elements[0],this.element_index=0),!document.body.contains(t.dom[0])){var u=this.elements[this.elements.length-1]
 if(u&&u.higher_level&&u.reload_children)return void d.load_children(u.higher_level[u.higher_level_index],u.higher_level,u.higher_level_index)}d.current_element=t
@@ -10456,8 +10456,8 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+4d5d0272"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+4d5d0272"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+d4dbe63e"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+d4dbe63e"})
 ;
 
 
