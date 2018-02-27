@@ -1,4 +1,4 @@
-Hello! This is a final reminder that the <%= @user.grace_period? ? "free trial" : "premium access" %> for the CoughDrop user account "<%= @user.user_name %>" is about to expire. It is set to expire *<%= @user.expires_at.to_s(:long_ordinal) %>*. Please update your billing settings(<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription?confirmation=<%= @user.registration_code %>) so you don't lose out on CoughDrop's rich set of communication and tracking tools.
+Hello! This is a final reminder that the <%= @user.grace_period? ? "free trial" : "premium cloud extras access" %> for the CoughDrop user account "<%= @user.user_name %>" is about to expire. It is set to expire *<%= @user.expires_at.to_s(:long_ordinal) %>*. Please update your billing settings(<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription?confirmation=<%= @user.registration_code %>) so you don't lose out on CoughDrop's rich set of communication and tracking tools.
 
 If you don't need CoughDrop right now, don't worry, you won't be automatically billed or anything, and your account will stay here waiting for you in case you decide to pick it up again later.
 

@@ -1,4 +1,4 @@
-Hello! This is a final reminder that the <%= @user.grace_period? ? "free trial" : "premium access" %> for the CoughDrop 
+Hello! This is a final reminder that the <%= @user.grace_period? ? "free trial" : "premium cloud extras access" %> for the CoughDrop 
 user account <b><%= @user.user_name %></b> is about to expire. It is set to expire 
 <b><%= @user.expires_at.to_s(:long_ordinal) %></b>. Please
 <a href="<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/subscription?confirmation=<%= @user.registration_code %>">update your billing settings</a> 
