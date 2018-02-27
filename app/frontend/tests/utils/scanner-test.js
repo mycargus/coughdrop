@@ -896,7 +896,7 @@ describe('scanner', function() {
         scanner.scan_elements([a, b], opts);
         expect(scanner.elements).toEqual([a, b]);
         expect(scanner.options).toEqual(opts);
-        expect(scanner.element_index).toEqual(0);
+        expect(scanner.element_index).toEqual(undefined);
       });
     });
 
@@ -1019,8 +1019,8 @@ describe('scanner', function() {
         EmberObject.extend({
           activateButton: function(button, opts) {
             picked_button = button;
-            expect(opts.image).toEqual('image');
-            expect(opts.sound).toEqual('sound');
+            expect(button.image).toEqual('image');
+            expect(button.sound).toEqual('sound');
             expect(opts.board).toEqual('board');
           }
         }).create({board: {model: 'board'}})

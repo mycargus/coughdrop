@@ -615,7 +615,7 @@ var scanner = EmberObject.extend({
     if(scanner.ignore_until && now < scanner.ignore_until) { return; }
     runCancel(scanner.interval);
     scanner.interval = null;
-    if(scanner.options.scan_mode == 'axes') {
+    if(scanner.options && scanner.options.scan_mode == 'axes') {
       // ignore
     } else {
       scanner.element_index = scanner.element_index + 1;
