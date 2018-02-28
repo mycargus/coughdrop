@@ -1086,7 +1086,9 @@
     </div>
     <div class="form-group" style="margin-top: -15px;">
       <div class="col-sm-6 col-sm-offset-3">
-        (some voices don't support changing pitch/volume/etc.)
+        {{#if ios_app}}
+          <p class='text-info'>{{t "NOTE: There is a bug in Apple's speech engine which can cause some system voices not to work. If this is happening for you, try using a Premium Voice or selecting \"System Default Voice\" to get around the problem." key='apple_tts_bug'}}</p>
+        {{/if}}
       </div>
     </div>
   {{/if}}
@@ -1122,6 +1124,11 @@
           <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.voice.pitch"}}>+</button>
         </span>
       </div>
+    </div>
+  </div>
+  <div class="form-group" style="margin-top: -15px;">
+    <div class="col-sm-6 col-sm-offset-3">
+      (some voices don't support changing pitch/volume/etc.)
     </div>
   </div>
   <div class="form-group">
