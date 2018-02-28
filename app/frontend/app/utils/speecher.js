@@ -26,7 +26,25 @@ var speecher = EmberObject.extend({
       list.push((voices._list || voices)[idx]);
     }
     var _this = this;
+    if(capabilities.system == 'iOS' && window.TTS && window.TTS.checkLanguage) {
+      window.TTS.checkLanguage().then(function(list) {
+        if(list && list.split) {
+          var voices = _this.get('voices');
+          var more_voices = [];
+          var langs = list.split(',');
+          langs.forEach(function(lang) {
+            more_voices.push({
+              lang: lang,
+              name: "System Voice for " + lang,
+              voiceURI: 'tts:' + lang
+            });
+          });
+          _this.set('voices', more_voices.concat(voices));
+        }
+      }, function() { });
+    }
     capabilities.tts.available_voices().then(function(voices) {
+      var voices = _this.get('voices');
       var more_voices = [];
       voices.forEach(function(voice) {
         if(voice.active) {
@@ -42,7 +60,7 @@ var speecher = EmberObject.extend({
           });
         }
       });
-      _this.set('voices', more_voices.concat(list));
+      _this.set('voices', more_voices.concat(voices));
     }, function() { });
     if(list.length === 0) {
       list.push({
@@ -347,7 +365,7 @@ var speecher = EmberObject.extend({
             speak_utterance();
           });
         });
-      } else if(capabilities.system == 'iOS' && window.TTS && (!opts.voiceURI || opts.voiceURI == 'force_default' || opts.voiceURI == 'default')) {
+      } else if(capabilities.system == 'iOS' && window.TTS && (!opts.voiceURI || opts.voiceURI == 'force_default' || opts.voiceURI == 'default' || opts.voiceURI.match(/tts:/))) {
         console.log("using native iOS tts");
         window.TTS.speak({
           text: utterance.text,
