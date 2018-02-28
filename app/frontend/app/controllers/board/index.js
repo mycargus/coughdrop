@@ -748,7 +748,10 @@ export default Controller.extend({
       var button = editManager.fake_button();
       button.label = ":complete";
       button.completion = text;
-      button.image = word.original_image;
+      if(word.original_image) {
+        button.image = CoughDrop.store.createRecord('image');
+        button.image.set('url', word.original_image);
+      }
       button.empty = false;
 
       var controller = this;
