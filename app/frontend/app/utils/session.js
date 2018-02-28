@@ -22,9 +22,21 @@ var session = EmberObject.extend({
   },
   persist: function(data) {
     stashes.persist_object('auth_settings', data, true);
+    session.set('auth_settings_fallback_data', data);
   },
   clear: function() {
     stashes.flush('auth_');
+  },
+  auth_settings_fallback: function() {
+    if(session.get('auth_settings_fallback_data')) {
+      console.error('auth settings stash lost mid-session');
+      var res = session.get('auth_settings_fallback_data');
+      if(res.user_name && res.user_name.match(/wahl/)) {
+        session.alert('Session information lost unexpectedly');
+      }
+      return res;
+    }
+    return null;
   },
   authenticate: function(credentials) {
     var _this = this;
@@ -69,7 +81,7 @@ var session = EmberObject.extend({
     return res;
   },
   check_token: function(allow_invalidate) {
-    var store_data = stashes.get_object('auth_settings', true) || {};
+    var store_data = stashes.get_object('auth_settings', true) || session.auth_settings_fallback() || {};
     var key = store_data.access_token || "none";
     persistence.tokens = persistence.tokens || {};
     persistence.tokens[key] = true;
@@ -127,7 +139,7 @@ var session = EmberObject.extend({
   restore: function(force_check_for_token) {
     if(!stashes.get('enabled')) { return {}; }
     console.debug('COUGHDROP: restoring session data');
-    var store_data = stashes.get_object('auth_settings', true) || {};
+    var store_data = stashes.get_object('auth_settings', true) || session.auth_settings_fallback() || {};
     var key = store_data.access_token || "none";
     persistence.tokens = persistence.tokens || {};
     if(store_data.access_token && !session.get('isAuthenticated')) {
@@ -137,7 +149,7 @@ var session = EmberObject.extend({
       session.set('user_id', store_data.user_id);
       session.set('as_user_id', store_data.as_user_id);
     } else if(!store_data.access_token) {
-      // This should not run until stashes.db_connect has completed, to stashes has its
+      // This should not run until stashes.db_connect has completed, so stashes has its
       // best chance to be populated.
       session.force_logout(i18n.t('session_lost', "Session data has been lost, please log back in"));
     }
@@ -184,7 +196,7 @@ var session = EmberObject.extend({
     }
   },
   force_logout: function(message) {
-    var full_invalidate = !!(app_state.get('currentUser') || stashes.get_object('auth_settings', true));
+    var full_invalidate = !!(app_state.get('currentUser') || stashes.get_object('auth_settings', true) || session.auth_settings_fallback());
     if(full_invalidate) {
       if(!modal.route) {
         session.alert(message);
@@ -197,7 +209,7 @@ var session = EmberObject.extend({
     }
   },
   invalidate: function(force) {
-    var full_invalidate = force || !!(app_state.get('currentUser') || stashes.get_object('auth_settings', true));
+    var full_invalidate = force || !!(app_state.get('currentUser') || stashes.get_object('auth_settings', true) || session.auth_settings_fallback());
     stashes.flush();
     stashes.setup();
     if(full_invalidate) {
