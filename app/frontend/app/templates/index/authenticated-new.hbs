@@ -344,6 +344,16 @@
       {{/each}}
     {{else if index_nav.main}}
       <div class={{if show_main_extras 'main' 'main short_list'}}>
+        {{#if app_state.currentUser.expired_or_grace_period}}
+          <div>
+            {{#link-to 'user.subscription' app_state.currentUser.user_name class='purchase_link'}}
+              <span style='color: #fff;'>
+                <span class={{if app_state.currentUser.expired "glyphicon glyphicon-info-sign expired" "glyphicon glyphicon-info-sign"}}></span>
+                {{t "Purchase CoughDrop" key='purchase_coughdrop'}}
+              </span>
+            {{/link-to}}
+          </div>
+        {{/if}}
         <div class='col-md-3 col-xs-4 big_button_holder'>
           <button id='nav_primary' class='btn big_button btn-primary' {{action 'homeInSpeakMode'}}>
             <span class='glyphicon glyphicon-volume-up'></span>

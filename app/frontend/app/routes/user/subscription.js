@@ -2,6 +2,7 @@ import Ember from 'ember';
 import Route from '@ember/routing/route';
 import Subscription from '../../utils/subscription';
 import persistence from '../../utils/persistence';
+import app_state from '../../utils/app_state';
 import i18n from '../../utils/i18n';
 
 export default Route.extend({
@@ -29,5 +30,8 @@ export default Route.extend({
       controller.set('subscription', Subscription.create({user: model, code: controller.get('code')}));
     }
     Subscription.init();
+    if(app_state.get('currentUser.expired_or_grace_period')) {
+      controller.send('show_options');
+    }
   }
 });
