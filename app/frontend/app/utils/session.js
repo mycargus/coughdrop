@@ -205,6 +205,10 @@ var session = EmberObject.extend({
         modal.open('force-logout', {message: message});
       }
     } else {
+      var store_data = stashes.get_object('auth_settings', true) || session.auth_settings_fallback() || {};
+      if((app_state.get('currentUser.user_name') || '').match(/wahl/) || (store_data.user_name || '').match(/wahl/)) {
+        session.alert(message);
+      }
       session.invalidate();
     }
   },
@@ -212,6 +216,7 @@ var session = EmberObject.extend({
     var full_invalidate = force || !!(app_state.get('currentUser') || stashes.get_object('auth_settings', true) || session.auth_settings_fallback());
     stashes.flush();
     stashes.setup();
+
     if(full_invalidate) {
       session.reload('/');
     }
