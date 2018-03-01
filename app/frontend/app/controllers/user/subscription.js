@@ -4,6 +4,7 @@ import Subscription from '../../utils/subscription';
 import modal from '../../utils/modal';
 import i18n from '../../utils/i18n';
 import persistence from '../../utils/persistence';
+import app_state from '../../utils/app_state';
 import progress_tracker from '../../utils/progress_tracker';
 
 export default Controller.extend({
@@ -37,8 +38,10 @@ export default Controller.extend({
       this.get('subscription').reset();
     },
     show_options: function() {
-      this.set('subscription.show_options', true);
-      this.set('subscription.show_cancel', false);
+      if(!app_state.get('installed_app')) {
+        this.set('subscription.show_options', true);
+        this.set('subscription.show_cancel', false);
+      }
     },
     // "frd" == "for reals, dude". See previous notes on the subject.
     cancel_subscription: function(frd) {
