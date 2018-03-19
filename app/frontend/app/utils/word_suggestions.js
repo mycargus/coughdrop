@@ -111,7 +111,7 @@ var word_suggestions = EmberObject.extend({
     bitchers:1,bitches:1,bitchin:1,bitching:1,bloody:1,"blow job":1,
     bitchy:1,bitched:1,"bitchin'":1,bitchiness:1,asshat:1,
     blowjob:1,blowjobs:1,boiolas:1,bollock:1,bollok:1,boner:1,boob:1,
-    boobs:1,booobs:1,boooobs:1,booooobs:1,booooooobs:1,breasts:1,
+    boobs:1,booobs:1,boooobs:1,booooobs:1,booooooobs:1,breasts:1,bullshit:1,
     buceta:1,bugger:1,bum:1,"bunny fucker":1,butt:1,butthole:1,buttmuch:1,
     buttplug:1,c0ck:1,c0cksucker:1,"carpet muncher":1,cawk:1,chink:1,
     cipa:1,cl1t:1,clit:1,clitoris:1,clits:1,cnut:1,cock:1,"cock-sucker":1,
