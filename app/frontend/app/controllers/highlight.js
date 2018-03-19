@@ -89,8 +89,7 @@ export default modal.ModalController.extend({
       }
     },
     opening: function() {
-      var template = this.get('templateName') || this.get('renderedName') || this.constructor.toString().split(/:/)[1];
-      var settings = modal.settings_for[template] || {};
+      var settings = modal.settings_for['highlight'] || {};
       var controller = this;
       modal.last_controller = controller;
       controller.set('model', settings);
