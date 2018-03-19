@@ -319,6 +319,10 @@ var stashes = EmberObject.extend({
           action: obj
         };
       }
+      if(stash_capabilities) {
+        log_event.system = stash_capabilities.system;
+        log_event.browser = stash_capabilities.browser;
+      }
       if(stashes.orientation) {
         log_event.orientation = stashes.orientation;
       }
