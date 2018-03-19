@@ -11,7 +11,15 @@ import editManager from '../utils/edit_manager';
 
 export default modal.ModalController.extend({
   opening: function() {
-    this.set('searchString', '');
+    var _this = this;
+    _this.set('searchString', '');
+    if(_this.get('model.board')) {
+      _this.get('model.board').load_button_set().then(function(bs) {
+        _this.set('button_set', bs);
+      }, function() {
+        _this.set('button_set', null);
+      });
+    }
     runLater(function() {
       $("#button_search_string").focus();
     }, 100);
@@ -61,7 +69,7 @@ export default modal.ModalController.extend({
         _this.set('error', i18n.t('button_set_not_found', "Button set not downloaded, please try syncing or going online and reopening this board"));
       }
     }
-  }.observes('searchString'),
+  }.observes('searchString', 'button_set'),
   actions: {
     pick_result: function(result) {
       if(result.board_id == editManager.controller.get('model.id')) {
