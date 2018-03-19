@@ -202,7 +202,7 @@ export default Controller.extend({
     var model = this.get('model');
     if(!persistence.get('online')) { return; }
     var default_key = null;
-    if(!_this.get('selected')) {
+    if(!_this.get('selected') && model) {
       default_key = model.get('permissions.supervise') ? 'mine' : 'public';
     }
     ['mine', 'public', 'private', 'starred', 'shared', 'prior_home'].forEach(function(key, idx) {
