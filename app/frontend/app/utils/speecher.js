@@ -44,7 +44,7 @@ var speecher = EmberObject.extend({
       }, function() { });
     }
     capabilities.tts.available_voices().then(function(voices) {
-      var voices = _this.get('voices');
+      var orig_voices = _this.get('voices');
       var more_voices = [];
       voices.forEach(function(voice) {
         if(voice.active) {
@@ -60,7 +60,7 @@ var speecher = EmberObject.extend({
           });
         }
       });
-      _this.set('voices', more_voices.concat(voices));
+      _this.set('voices', more_voices.concat(orig_voices));
     }, function() { });
     if(list.length === 0) {
       list.push({
