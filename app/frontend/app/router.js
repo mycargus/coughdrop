@@ -58,6 +58,7 @@ Router.map(function() {
   this.route('partners');
   this.route('compare');
   this.route('ambassadors');
+  this.route('limited', {path: '/limited'});
   this.route('utterance', { path: '/utterances/:id' });
   this.route('admin', { path: '/admin' });
   this.route('organization', { path: '/organizations/:id' }, function() {

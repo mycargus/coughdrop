@@ -125,24 +125,28 @@
     {{/if}}
     {{#if app_state.empty_header}}
       {{#if persistence.online}}
-        <form id="header_search">
-          <div style="float: left; margin-right: 4px; width: 150px;">
-          {{input type="text" value=searchString enter="searchBoards" class="form-control" placeholder="Search Boards"}}
-          </div>
-          <button class="btn btn-default" {{action "searchBoards"}}>{{t "Go" key='go'}}</button>
-          <div style="clear: left;"></div>
-        </form>
+        {{#unless app_state.super_no_linky}}
+          <form id="header_search">
+            <div style="float: left; margin-right: 4px; width: 150px;">
+            {{input type="text" value=searchString enter="searchBoards" class="form-control" placeholder="Search Boards"}}
+            </div>
+            <button class="btn btn-default" {{action "searchBoards"}}>{{t "Go" key='go'}}</button>
+            <div style="clear: left;"></div>
+          </form>
+        {{/unless}}
       {{/if}}
     {{/if}}
     {{#unless session.isAuthenticated}}
       {{#unless app_state.installed_app}}
         {{#unless app_state.embedded}}
           {{#unless app_state.currentBoardState}}
-            <div class='signup_links'>
-              {{#link-to 'register'}}<span style='color: #444;'>{{t "2-Month Trial" key='two_month_trial'}}</span>{{/link-to}}
-              <span style='color: #aaa; padding: 0 5px;'> | </span>
-              {{#link-to 'gift_purchase'}}<span style='color: #444;'>{{t "Gift Purchase" key='gift_purchase'}}</span>{{/link-to}}
-            </div>
+            {{#unless app_state.no_linky}}
+              <div class='signup_links'>
+                {{#link-to 'register'}}<span style='color: #444;'>{{t "2-Month Trial" key='two_month_trial'}}</span>{{/link-to}}
+                <span style='color: #aaa; padding: 0 5px;'> | </span>
+                {{#link-to 'gift_purchase'}}<span style='color: #444;'>{{t "Gift Purchase" key='gift_purchase'}}</span>{{/link-to}}
+              </div>
+            {{/unless}}
           {{/unless}}
         {{/unless}}
       {{/unless}}
@@ -428,7 +432,7 @@
     </span>
   {{/if}}
     <span id="identity" class={{if app_state.speak_mode 'advanced_selection undwellable'}}>
-      <span class="dropdown" style="display: inline-block;">
+      <span class="dropdown" style="display: inline-block;" class={{if app_state.super_no_linky 'hidden'}}>
         <a class='btn btn-default' id='identity_button' href="#" data-toggle="dropdown">
           {{#if app_state.currentUser}}
             <span class='user_holder'>

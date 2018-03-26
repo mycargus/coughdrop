@@ -6,7 +6,11 @@ import CoughDrop from '../app';
 
 export default app_state.ScrollTopRoute.extend({
   setupController: function(controller, model) {
-    controller.set('model', model); 
+    if(app_state.get('no_linky')) {
+      controller.transitionToRoute('limited');
+      return;
+    }
+    controller.set('model', model);
     controller.set('subscription', Subscription.create());
 
     var url = '/api/v1/token_check?access_token=none';

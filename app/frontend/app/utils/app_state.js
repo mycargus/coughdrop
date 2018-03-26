@@ -48,6 +48,7 @@ var app_state = EmberObject.extend({
     var _this = this;
     this.set('version', window.app_version || 'unknown');
     var _this = this;
+
     capabilities.battery.listen(function(battery) {
       battery.level = Math.round(battery.level * 100);
       if(battery.level != _this.get('battery.level') || battery.charging !== _this.get('battery.charging')) {
