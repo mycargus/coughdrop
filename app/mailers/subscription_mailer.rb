@@ -33,7 +33,11 @@ class SubscriptionMailer < ActionMailer::Base
     end
     @subscription = @user.subscription_hash
     if ENV['NEW_REGISTRATION_EMAIL']
-      mail(to: ENV['NEW_REGISTRATION_EMAIL'], subject: "CoughDrop - New Subscription")
+      subj = "CoughDrop - New Subscription"
+      if @user.purchase_credit_duration > 3.weeks
+        subj = "CoughDrop - Updated Subscription"
+      end
+      mail(to: ENV['NEW_REGISTRATION_EMAIL'], subject: subj)
     end
   end
   

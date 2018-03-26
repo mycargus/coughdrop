@@ -3,10 +3,10 @@
 
 User name: <%= @user.display_user_name %>
 Email: <%= @user.settings['email'] %>
+Type: <%= @user.registration_type %>
 <%if @location%>Location: <%= @location %><% end %>
 <%if @user.settings['referrer']%>Source: <%= @user.settings['referrer'] %><% end %>
 <%if @user.settings['ad_referrer']%>Ad Key: <%= @user.settings['ad_referrer'] %><% end %>
-Type: <%= @user.registration_type %>
 <%= JsonApi::Json.current_host %>/<%= @user.user_name %>
 
 Thanks!

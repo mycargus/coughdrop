@@ -94,6 +94,7 @@ module JsonApi::User
       json['terms_agree'] = !!user.settings['terms_agreed']
       json['subscription'] = user.subscription_hash
       json['organizations'] = user.organization_hash
+      json['purchase_duration'] = (user.purchase_credit_duration / 1.year.to_f).round(1)
       json['pending_board_shares'] = UserLink.links_for(user).select{|l| l['user_id'] == user.global_id && l['state'] && l['state']['pending'] }.map{|link|
         {
           'user_name' => link['state']['sharer_user_name'] || (link['state']['board_key'] || '').split(/\//)[0],

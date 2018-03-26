@@ -433,24 +433,31 @@ module Subscription
     Organization.sponsored?(self)
   end
   
-  def fully_purchased?
-    # long-term purchase, org-sponsored, or subscription for at least 2 years
+  def purchase_credit_duration
+    # long-term purchase, org-sponsored, or subscription duration for the current user
     past_tally = (self.settings['past_purchase_durations'] || []).map{|d| d['duration'] || 0}.sum
-    return true if past_tally > 2.years
+    return past_tally if past_tally > 2.years
     started = nil
+    # for a long-term purchase, track from when the purchase happened
     if self.settings['subscription'] && self.settings['subscription']['last_purchased'] && self.expires_at
       started = Time.parse(self.settings['subscription']['last_purchased']) rescue nil
     end
     if self.recurring_subscription?
+      # for a recurrind subscription, track from when the subscription started
       started = Time.parse(self.settings['subscription']['started']) rescue nil
     elsif self.org_sponsored?
+      # for an org sponsorship, track the duration of the sponsorship
       started = Time.parse(self.settings['managed_by'].map{|id, opts| opts['added'] }.compact.sort.first) rescue nil
     end
-    if started
-      return (past_tally + ([self.expires_at, Time.now].compact.max.to_i - started.to_i)) > 2.years
-    else
-      false
-    end
+    return (past_tally + ([self.expires_at, Time.now].compact.max.to_i - started.to_i))
+  end
+  
+  def fully_purchased?
+    # long-term purchase, org-sponsored, or subscription for at least 2 years
+    past_tally = (self.settings['past_purchase_durations'] || []).map{|d| d['duration'] || 0}.sum
+    return true if past_tally > 2.years
+    duration = self.purchase_credit_duration
+    return duration > 2.years
   end
   
   def free_premium?

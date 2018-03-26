@@ -694,6 +694,9 @@
               {{t " -- expires" key='dash_expires'}}
               {{date model.subscription.expires 'day'}}
             {{/if}}
+            {{#if model.purchase_duration}}
+              <br/>{{t "paid for %{n} year" count=model.purchase_duration key='paid_for_n_years'}}
+            {{/if}}
             {{#if model.premium_voices}}
               <div>
                 {{t "premium voice" count=model.premium_voices.allowed key='premium_voices_count'}}{{t ", %{cnt} used" key='comma_premium_voices_used' cnt=model.premium_voices.claimed.length}}

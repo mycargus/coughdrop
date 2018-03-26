@@ -53,6 +53,7 @@ CoughDrop.User = DS.Model.extend({
   devices: DS.attr('raw'),
   requested_phrase_changes: DS.attr('raw'),
   premium_voices: DS.attr('raw'),
+  purchase_duration: DS.attr('number'),
   feature_flags: DS.attr('raw'),
   prior_home_boards: DS.attr('raw'),
   supervisor_key: DS.attr('string'),
