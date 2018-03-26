@@ -757,7 +757,7 @@ var capabilities;
             setInterval(function() {
               // poll
               notify_all(null);
-            }, 3000);
+            }, 5000);
           }
         }
       },
@@ -798,12 +798,21 @@ var capabilities;
                 }
               });
             }
-            window.addEventListener('batterystatus', function(data) {
-              capabilities.battery_callbacks.last_result = capabilities.battery_callbacks.last_result || {};
-              capabilities.battery_callbacks.last_result.level = data.level / 100;
-              capabilities.battery_callbacks.last_result.charging = data.isPlugged ? true : undefined;
-              notify();
-            }, false);
+            document.addEventListener('deviceready', function() {
+              window.addEventListener('batterystatus', function(data) {
+                if(data && data.level) {
+                  capabilities.battery_callbacks.last_result = capabilities.battery_callbacks.last_result || {};
+                  capabilities.battery_callbacks.last_result.level = data.level / 100;
+                  capabilities.battery_callbacks.last_result.charging = data.isPlugged ? true : undefined;
+                  notify();
+                }
+              }, false);
+            });
+            if(window.cordova && window.cordova.exec) {
+              setTimeout(function() {
+                cordova.exec(function(r) { console.log(r); }, function(e) { console.error(e); }, 'Battery', 'updateBatteryStatus', [])
+              }, 1000);
+            }
           }
           if(capabilities.battery_callbacks.last_result) {
             callback(capabilities.battery_callbacks.last_result);
@@ -1212,7 +1221,7 @@ var capabilities;
       });
     }
     // TODO: https://github.com/brunovilar/cordova-plugins/tree/master/AmbientLight
-    setInterval(capabilities.update_brightness, 2000);
+    setInterval(capabilities.update_brightness, 10000);
     var LightSensor = window.LightSensor || window.AmbientLightSensor;
     if(LightSensor) {
       try {
