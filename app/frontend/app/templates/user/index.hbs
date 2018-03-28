@@ -695,7 +695,7 @@
               {{date model.subscription.expires 'day'}}
             {{/if}}
             {{#if model.purchase_duration}}
-              <br/>{{t "paid for %{n} year" count=model.purchase_duration key='paid_for_n_years'}}
+              <br/>{{t "premium user for %{n} years" n=model.purchase_duration key='paid_for_n_years'}}
             {{/if}}
             {{#if model.premium_voices}}
               <div>
