@@ -2052,7 +2052,7 @@ var boardGrabber = EmberObject.extend({
   cancel_build_board: function() {
     this.controller.set('pending_board', null);
   },
-  create_board: function() {
+  create_board: function(opts) {
     var board = this.controller.get('pending_board');
     if(board.get('copy_access')) {
       var original_board = this.controller.get('board');
@@ -2061,6 +2061,9 @@ var boardGrabber = EmberObject.extend({
         board.set('public', original_board.get('public'));
         board.set('visibility', original_board.get('visibility'));
       }
+    }
+    if(opts && opts.source_id) {
+      board.set('source_id', opts.source_id);
     }
     var _this = this;
     board.save().then(function(board) {

@@ -482,7 +482,7 @@ export default modal.ModalController.extend({
       contentGrabbers.boardGrabber.copy_found_board();
     },
     create_board: function() {
-      contentGrabbers.boardGrabber.create_board();
+      contentGrabbers.boardGrabber.create_board({source_id: this.get('model.id')});
     },
     clearImageWork: function() {
       contentGrabbers.pictureGrabber.clear();

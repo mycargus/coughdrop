@@ -509,6 +509,8 @@ class Board < ActiveRecord::Base
     raise "user required as board author" unless self.user_id || non_user_params[:user]
     @edit_notes = []
     self.user ||= non_user_params[:user] if non_user_params[:user]
+    
+    
     if !params['parent_board_id'].blank?
       parent_board = Board.find_by_global_id(params['parent_board_id'])
       if !parent_board
@@ -522,6 +524,15 @@ class Board < ActiveRecord::Base
     end
     self.settings ||= {}
     self.settings['last_updated'] = Time.now.iso8601
+
+    if !self.id && params['source_id']
+      # check if the user has edit permission on the source, and oly set this if so
+      ref_board = Board.find_by_global_id(params['source_id'])
+      if ref_board && ref_board.allows?(non_user_params[:user], 'edit')
+        self.settings['copy_id'] ||= ref_board.settings['copy_id'] || ref_board.global_id
+      end
+    end
+
     @edit_notes << "renamed the board" if params['name'] && self.settings['name'] != params['name']
     self.settings['name'] = process_string(params['name']) if params['name']
     self.settings['word_suggestions'] = params['word_suggestions'] if params['word_suggestions'] != nil
