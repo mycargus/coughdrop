@@ -236,11 +236,11 @@ describe Stats do
       u = User.create
       d = Device.create
       s1 = LogSession.process_new({'events' => [
-        {'type' => 'button', 'volume' => 75, 'screen_brightness' => 50, 'ambient_light' => 200, 'orientation' => {'alpha' => 355, 'beta' => 10, 'gamma' => 45, 'layout' => 'landscape-primary'}, 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 1},
-        {'type' => 'utterance', 'volume' => 54, 'screen_brightness' => 50, 'ambient_light' => 1000, 'orientation' => {'alpha' => 90, 'beta' => 5, 'gamma' => 0, 'layout' => 'landscape-secondary'}, 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i}
+        {'type' => 'button', 'volume' => 0.75, 'screen_brightness' => 0.50, 'ambient_light' => 200, 'orientation' => {'alpha' => 355, 'beta' => 10, 'gamma' => 45, 'layout' => 'landscape-primary'}, 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 1},
+        {'type' => 'utterance', 'volume' => 0.54, 'screen_brightness' => 0.50, 'ambient_light' => 1000, 'orientation' => {'alpha' => 90, 'beta' => 5, 'gamma' => 0, 'layout' => 'landscape-secondary'}, 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i}
       ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
       s2 = LogSession.process_new({'events' => [
-        {'type' => 'utterance', 'volume' => 55, 'screen_brightness' => 80, 'ambient_light' => 1100, 'orientation' => {'alpha' => 95, 'beta' => 8, 'gamma' => 50, 'layout' => 'landscape-primary'}, 'utterance' => {'text' => 'never again', 'buttons' => []}, 'geo' => ['13.0001', '12.0001'], 'timestamp' => 2.days.ago.to_time.to_i}
+        {'type' => 'utterance', 'volume' => 0.55, 'screen_brightness' => 0.80, 'ambient_light' => 1100, 'orientation' => {'alpha' => 95, 'beta' => 8, 'gamma' => 50, 'layout' => 'landscape-primary'}, 'utterance' => {'text' => 'never again', 'buttons' => []}, 'geo' => ['13.0001', '12.0001'], 'timestamp' => 2.days.ago.to_time.to_i}
       ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
       
       ClusterLocation.clusterize_ips(u.global_id)

@@ -151,6 +151,38 @@
         {{/if}}
       </div>
 
+      <div class='col-sm-6' style='margin-bottom: 50px;'>
+        <h4>{{t "Hardware Device" key='hardware_device'}}</h4>
+        {{#if systems}}
+          <div style='max-height: 300px; overflow: auto;'>
+            <div class="list-group">
+              {{#each systems as |system|}}
+                {{system.name}}
+                <span class='text-muted'>({{system.pct}}%)</span>
+              {{/each}}
+            </div>
+          </div>
+        {{else}}
+          {{t "None available" key='none_available'}}
+        {{/if}}
+      </div>
+
+      <div class='col-sm-6' style='margin-bottom: 50px;'>
+        <h4>{{t "Access Method" key='access_method'}}</h4>
+        {{#if access_methods}}
+          <div style='max-height: 300px; overflow: auto;'>
+            <div class="list-group">
+              {{#each access_methods as |access|}}
+                {{access.name}}
+                <span class='text-muted'>({{access.pct}}%)</span>
+              {{/each}}
+            </div>
+          </div>
+        {{else}}
+          {{t "None available" key='none_available'}}
+        {{/if}}
+      </div>
+
       <div class='col-sm-6'>
         <p>{{t "Isn't data great? Usually when we see a little bit, it makes us think of more questions to ask, and we want to dig in deeper. There's always more to learn, more research we can do to help communicators succeed." key='data_summary_1'}}</p>
         <p>{{t "Did you know we have over <b>%{cnt}</b> communicators who have opted in to sharing their anonymized usage data with researchers? We work with AAC research organizations and institutions to discover valuable trends and insights that can help move the industry forward." key='data_summary_2' cnt=trends.research_communicators}}</p>

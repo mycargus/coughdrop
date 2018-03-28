@@ -179,6 +179,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     board_user_ids = {}
     word_pairs = {}
     home_boards = {}
+    device_prefs = {}
     user_ids_with_home_boards = []
     sums.find_in_batches(batch_size: 5) do |batch|
       # TODO: sharding
@@ -282,9 +283,17 @@ class WeeklyStatsSummary < ActiveRecord::Base
           word_pairs[k]['a'] = pair['a']
           word_pairs[k]['b'] = pair['b']
         end
+        
+        Stats::DEVICE_PREFERENCES.each do |pref|
+          ((summary.data['stats']['device'] || {})["#{pref}s"] || {}).each do |key, val|
+            device_prefs["#{pref}s"][key] ||= 0
+            device_prefs["#{pref}s"][key] += val
+          end
+        end
       end
     end
 
+    total.data['totals']['device'] = device_prefs
     total.data['board_usages'] = {}
     total.data['board_locales'] = {}
     board_ids = board_usages.to_a.map(&:first)
@@ -385,6 +394,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     stash[:board_usages] = {}
     stash[:board_locales] = {}
     stash[:home_board_user_ids] = []
+    stash[:device] = {}
     earliest = nil
     latest = nil
     WeeklyStatsSummary.where(['weekyear >= ?', cutoffweekyear]).where(:user_id => 0).find_in_batches(batch_size: 20) do |batch|
@@ -481,6 +491,15 @@ class WeeklyStatsSummary < ActiveRecord::Base
             stash[:badges][goal_id]['user_ids'] << badge['user_ids'] || []
             stash[:badges][goal_id]['levels'] += badge['levels'] || []
             stash[:badges][goal_id]['shared_user_ids'] << badge['shared_user_ids'] || []
+          end
+        end
+        
+        if summary.data['totals']['device']
+          Stats::DEVICE_PREFERENCES.each do |pref|
+            ((summary.data['totals']['device'] || {})["#{pref}s"] || {}).each do |key, val|
+              stash[:device]["#{pref}s"][key] ||= 0
+              stash[:device]["#{pref}s"][key] += val
+            end
           end
         end
       end
@@ -588,6 +607,16 @@ class WeeklyStatsSummary < ActiveRecord::Base
           'percent' => (pair['count'].to_f / max_word_pair.to_f * 2.0).round(1) / 2.0
         }
         res[:word_pairs][k]['percent'] = 0.0 if res[:word_pairs][k]['percent'].nan?
+      end
+    end
+    
+    stash[:device].each do |pref, hash|
+      res[:device] ||= {}
+      res[:device][pref] ||= {}
+      max_val = hash.to_a.map(&:last).max || 0.0
+      res[:device][pref][:max_value] = max_val if include_admin
+      hash.each do |k, v|
+        res[:device][pref][k] = (v.to_f / max_val.to_f * 2.0).round(1) / 2.0
       end
     end
     

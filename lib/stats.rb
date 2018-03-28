@@ -468,8 +468,11 @@ module Stats
     res
   end
   
+  DEVICE_PREFERENCES = [:access_method, :voice_uri, :text_position, :auto_home_return, :vocalization_height, :system, :browser, :window_width, :window_height]
+  
   def self.stats_counts(sessions, total_stats_list=nil)
     stats = init_stats(sessions)
+    device_prefs = DEVICE_PREFERENCES
     sessions.each do |session|
       if session.data['stats']
         # TODO: more filtering needed for board-specific drill-down
@@ -513,6 +516,14 @@ module Stats
           stats[:goals][goal['id']]['positives'] += goal['positives'] if goal['positives']
           stats[:goals][goal['id']]['negatives'] += goal['negatives'] if goal['negatives']
           stats[:goals][goal['id']]['statuses'] << goal['status'] if goal['status']
+        end
+        
+        device_prefs.each do |key|
+          val = session.data['stats'][key]
+          if key && val != nil
+            stats[:device]["#{key}s".to_sym][val] ||= 0
+            stats[:device]["#{key}s".to_sym][val] += 1
+          end
         end
       end
     end
@@ -563,6 +574,12 @@ module Stats
           total_stats[:goals][id]['negatives'] += goal['negatives']
           total_stats[:goals][id]['statuses'] += goal['statuses']
         end
+        device_prefs.each do |pref|
+          (stats[:device]["#{pref}s".to_sym] || {}).each do |key, val|
+            total_stats[:device]["#{pref}s".to_sym][key] ||= 0
+            total_stats[:device]["#{pref}s".to_sym][key] += val
+          end
+        end
         total_stats[:started_at] = [total_stats[:started_at], stats[:started_at]].compact.sort.first
         total_stats[:ended_at] = [total_stats[:ended_at], stats[:ended_at]].compact.sort.last
       end
@@ -582,6 +599,18 @@ module Stats
     stats[:all_word_sequences] = []
     stats[:modeled_button_counts] = {}
     stats[:modeled_word_counts] = {}
+    stats[:device] = {
+      :acces_methods => {},
+      :voice_uris => {},
+      :text_positions => {},
+      :auto_home_returns => {},
+      :vocalization_heights => {},
+      :systems => {},
+      :browsers => {},
+      :window_widths => {},
+      :window_heights => {}
+    }
+    
     stats
   end
   

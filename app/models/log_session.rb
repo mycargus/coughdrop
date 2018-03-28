@@ -255,9 +255,38 @@ class LogSession < ActiveRecord::Base
     self.data['stats']['all_ambient_light_levels'] = []
     self.data['stats']['all_screen_brightness_levels'] = []
     self.data['stats']['all_orientations'] = []
+    if self.device && self.user
+      device_prefs = self.user.settings['preferences']['devices'][self.device.device_key]
+      if device_prefs
+        self.data['stats']['access_method'] = 'touch'
+        if device_prefs['scanning']
+          if device_prefs['scan_mode'] == 'axes'
+            self.data['stats']['access_method'] = 'axis_scanning'
+          else
+            self.data['stats']['access_method'] = 'scanning'
+          end
+        elsif device_prefs['dwell']
+          if device_prefs['dwell_type'] == 'arrow_dwell'
+            self.data['stats']['access_method'] = 'arrow_dwell'
+          else
+            self.data['stats']['access_method'] = 'dwell'
+          end
+        end
+        self.data['stats']['voice_uri'] = (device_prefs['voice_uris'] || [])[0] || 'default'
+        self.data['stats']['text_position'] = device_prefs['text_position'] || 'top'
+        self.data['stats']['auto_home_return'] = self.user.settings['preferences']['auto_home_return']
+        self.data['stats']['auto_home_return'] = true if self.data['stats']['auto_home_return'] == nil
+        self.data['stats']['vocalization_height'] = device_prefs['vocalization_height']
+      end
+    end
+    
     if self.data['events'] && self.started_at && self.ended_at
       self.data['stats']['session_seconds'] = (self.ended_at - self.started_at).to_i
       self.data['events'].each do |event|
+        self.data['stats']['system'] ||= event['system']
+        self.data['stats']['browser'] ||= event['browser']
+        self.data['stats']['window_width'] ||= event['window_width']
+        self.data['stats']['window_height'] ||= event['window_height']
         if !event['modeling'] && event['type'] == 'utterance'
           self.data['stats']['utterances'] += 1
           self.data['stats']['utterance_words'] += event['utterance']['text'].split(/\s+/).length
@@ -301,9 +330,9 @@ class LogSession < ActiveRecord::Base
           end
         end
       
-        self.data['stats']['all_volumes'] << event['volume'].to_f if event['volume']
+        self.data['stats']['all_volumes'] << (event['volume'] * 100).to_f if event['volume']
         self.data['stats']['all_ambient_light_levels'] << event['ambient_light'].to_f if event['ambient_light']
-        self.data['stats']['all_screen_brightness_levels'] << event['screen_brightness'].to_f if event['screen_brightness']
+        self.data['stats']['all_screen_brightness_levels'] << (event['screen_brightness'] * 100).to_f if event['screen_brightness']
         self.data['stats']['all_orientations'] << event['orientation'] if event['orientation']
       
         pos_key = event['modeling'] ? 'modeled_parts_of_speech' : 'parts_of_speech'
