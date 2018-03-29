@@ -203,6 +203,7 @@ export default Controller.extend({
   }.observes('selected', 'persistence.online'),
   reload_logs: function() {
     var model = this.get('model');
+    var _this = this;
     if(model && model.get('id') && persistence.get('online')) {
       var controller = this;
       var find_args = {user_id: model.get('id'), type: 'session'};
@@ -226,56 +227,62 @@ export default Controller.extend({
             for_users[badge.get('user_id')] = for_users[badge.get('user_id')] || []
             for_users[badge.get('user_id')].push(badge);
           });
-          var best_badge = function(badges, goal_id) {
-            var res = null;
-            badges = badges.filter(function(b) { return !b.get('earned'); });
-            res = badges.find(function(b) { return b.get('goal_id') == goal_id; });
-            if(!res) {
-              badges = badges.sort(function(a, b) {
-                // sort by non-global first, progress second
-                if(a.get('global') == b.get('global')) {
-                  if(a.get('global') && (a.get('global_goal_priority') || b.get('global_goal_priority'))) {
-                    // if they're both global and at least one of them has a priority, use that
-                    var ap = a.get('global_goal_priority') || 99999999;
-                    var bp = b.get('global_goal_priority') || 99999999;
-                    return ap - bp;
-                  }
-                  if(a.get('progress') == b.get('progress')) {
-                    if(a.get('name') == b.get('name')) {
-                      return 0;
-                    } else if(a.get('name') > b.get('name')) {
-                      return 1;
-                    } else {
-                      return -1;
-                    }
-                  } else if(a.get('progress') > b.get('progress')) {
-                    return -1;
-                  } else {
-                    return 1;
-                  }
-                } else if(a.get('global') && !b.get('global')) {
-                  return 1;
-                } else {
-                  return -1;
-                }
-              });
-            };
-            return badges[0];
-          };
-          if(for_users[model.get('id')]) {
-            var b = best_badge(for_users[model.get('id')], model.get('goal.id'));
-            emberSet(model, 'current_badge', b);
-          }
-          (app_state.get('currentUser.supervisees') || []).forEach(function(sup) {
-            if(for_users[emberGet(sup, 'id')]) {
-              var b = best_badge(for_users[emberGet(sup, 'id')]);
-              emberSet(sup, 'current_badge', b);
-            }
-          });
+          _this.set('current_user_badges', for_users);
         }, function(err) { });
       }
     }
   }.observes('model.id', 'persistence.online'),
+  best_badge: function(badges, goal_id) {
+    var res = null;
+    badges = badges.filter(function(b) { return !b.get('earned'); });
+    res = badges.find(function(b) { return b.get('goal_id') == goal_id; });
+    if(!res) {
+      badges = badges.sort(function(a, b) {
+        // sort by non-global first, progress second
+        if(a.get('global') == b.get('global')) {
+          if(a.get('global') && (a.get('global_goal_priority') || b.get('global_goal_priority'))) {
+            // if they're both global and at least one of them has a priority, use that
+            var ap = a.get('global_goal_priority') || 99999999;
+            var bp = b.get('global_goal_priority') || 99999999;
+            return ap - bp;
+          }
+          if(a.get('progress') == b.get('progress')) {
+            if(a.get('name') == b.get('name')) {
+              return 0;
+            } else if(a.get('name') > b.get('name')) {
+              return 1;
+            } else {
+              return -1;
+            }
+          } else if(a.get('progress') > b.get('progress')) {
+            return -1;
+          } else {
+            return 1;
+          }
+        } else if(a.get('global') && !b.get('global')) {
+          return 1;
+        } else {
+          return -1;
+        }
+      });
+    };
+    return badges[0];
+  },
+  update_current_badges: function() {
+    var _this = this;
+    var model = _this.get('model');
+    var for_users = _this.get('current_user_badges') || {};
+    if(for_users[model.get('id')]) {
+      var b = _this.best_badge(for_users[model.get('id')], model.get('goal.id'));
+      emberSet(model, 'current_badge', b);
+    }
+    (app_state.get('currentUser.supervisees') || []).forEach(function(sup) {
+      if(for_users[emberGet(sup, 'id')]) {
+        var b = _this.best_badge(for_users[emberGet(sup, 'id')], sup.goal.id);
+        emberSet(sup, 'current_badge', b);
+      }
+    });
+  }.observes('currentUser.supervisees', 'current_user_badges'),
   many_supervisees: function() {
     return (app_state.get('currentUser.supervisees') || []).length > 5;
   }.property('app_state.currentUser.supervisees'),
