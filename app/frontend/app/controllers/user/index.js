@@ -228,7 +228,7 @@ export default Controller.extend({
       }
     });
 
-    if(model.get('permissions.edit')) {
+    if(model && model.get('permissions.edit')) {
       if(!model.get('preferences.home_board.key')) {
         _this.generate_or_append_to_list({user_id: 'example', starred: true, public: true}, 'model.starting_boards', list_id);
       }

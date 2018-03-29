@@ -339,6 +339,11 @@
               </ul>
             </div>
             <div style='clear: left;'></div>
+            {{#if supervisee.current_badge}}
+              {{badge-progress badge=supervisee.current_badge}}
+            {{else}}
+              <div style='height: 35px;'></div>
+            {{/if}}
           </div>
         </div>
       {{/each}}
@@ -447,6 +452,10 @@
               {{t "My Account" key='my_account'}}
             {{/link-to}}
           </div>
+        {{else if persistence.online}}
+          {{#if app_state.currentUser.current_badge}}
+            {{badge-progress badge=app_state.currentUser.current_badge big=true}}
+          {{/if}}
         {{/if}}
       </div>
     {{else if index_nav.boards}}

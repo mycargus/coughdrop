@@ -31,6 +31,7 @@ class UserBadge < ActiveRecord::Base
     self.disabled ||= false
     if self.user_goal
       self.data['global_goal'] = self.user_goal.global
+      self.data['global_goal_priority'] = self.user_goal.settings['global_priority']
     end
     self.data['max_level'] = true if self.user_goal && self.level && self.user_goal.settings['max_badge_level'] && self.level >= self.user_goal.settings['max_badge_level']
     if self.earned && !self.data['earn_recorded']

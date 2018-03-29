@@ -8,8 +8,18 @@ import { htmlSafe } from '@ember/string';
 
 export default modal.ModalController.extend({
   opening: function() {
-    if(this.get('model.badge.id') && !this.get('model.badge.completion_settings')) {
-      this.get('model.badge').reload();
+    var _this = this;
+    if(_this.get('model.badge.id') && !_this.get('model.badge.completion_settings')) {
+      if(!_this.get('model.badge').reload) {
+        _this.set('model.badge.loading', true);
+        CoughDrop.store.findRecord('badge', _this.get('model.badge.id')).then(function(b) {
+          _this.set('model.badge', b);
+        }, function(err) {
+          _this.set('model.badge.error', true);
+        });
+      } else {
+        _this.get('model.badge').reload();
+      }
     }
     var list = [];
     for(var idx = 0; idx < 80; idx++) {

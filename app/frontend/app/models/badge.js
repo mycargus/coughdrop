@@ -7,9 +7,11 @@ import { htmlSafe } from '@ember/string';
 
 CoughDrop.Badge = DS.Model.extend({
   name: DS.attr('string'),
+  user_id: DS.attr('string'),
   highlighted: DS.attr('boolean'),
   disabled: DS.attr('boolean'),
   global: DS.attr('boolean'),
+  global_goal_priority: DS.attr('number'),
   image_url: DS.attr('string'),
   sound_url: DS.attr('string'),
   level: DS.attr('number'),

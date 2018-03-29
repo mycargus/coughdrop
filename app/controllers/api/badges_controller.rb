@@ -9,23 +9,30 @@ class Api::BadgesController < ApplicationController
       params['highlighted'] = true
     end
     # TODO: sharding
-    badges = UserBadge.where(:user_id => user.id, :disabled => false)
-    if params['goal_id']
-      goal = UserGoal.find_by_path(params['goal_id'])
-      return unless exists?(goal, params['goal_id'])
-      return unless allowed?(goal, 'edit')
+    if params['recent']
+      supervisees = user.supervisees
       # TODO: sharding
-      badges = badges.where(:user_goal_id => goal.id)
+      user_ids = [user.id] + supervisees.map(&:id)
+      badges = UserBadge.where(:user_id => user_ids).where(['(earned = ? AND updated_at > ?) OR (earned = ? AND superseded = ?)', true, 2.weeks.ago, false, false])
     else
-      badges = badges.where(:superseded => false)
+      badges = UserBadge.where(:user_id => user.id, :disabled => false)
+      if params['goal_id']
+        goal = UserGoal.find_by_path(params['goal_id'])
+        return unless exists?(goal, params['goal_id'])
+        return unless allowed?(goal, 'edit')
+        # TODO: sharding
+        badges = badges.where(:user_goal_id => goal.id)
+      else
+        badges = badges.where(:superseded => false)
+      end
+      if params['highlighted']
+        badges = badges.where(:highlighted => true)
+      end
+      if params['earned']
+        badges = badges.where(:earned => true)
+      end
+      badges = badges.order('highlighted DESC, id DESC')
     end
-    if params['highlighted']
-      badges = badges.where(:highlighted => true)
-    end
-    if params['earned']
-      badges = badges.where(:earned => true)
-    end
-    badges = badges.order('highlighted DESC, id DESC')
     
     render json: JsonApi::Badge.paginate(params, badges)
   end
