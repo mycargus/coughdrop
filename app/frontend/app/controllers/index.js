@@ -276,12 +276,15 @@ export default Controller.extend({
       var b = _this.best_badge(for_users[model.get('id')], model.get('goal.id'));
       emberSet(model, 'current_badge', b);
     }
+    var sups = [];
     (app_state.get('currentUser.supervisees') || []).forEach(function(sup) {
       if(for_users[emberGet(sup, 'id')]) {
         var b = _this.best_badge(for_users[emberGet(sup, 'id')], (sup.goal || {}).id);
         emberSet(sup, 'current_badge', b);
       }
+      sups.push(sup);
     });
+    _this.set('supervisees_with_badges', sups);
   }.observes('currentUser.supervisees', 'current_user_badges'),
   many_supervisees: function() {
     return (app_state.get('currentUser.supervisees') || []).length > 5;
