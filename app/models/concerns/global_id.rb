@@ -62,6 +62,24 @@ module GlobalId
       res
     end
     
+    def find_batches_by_global_id(ids, opts, &block)
+      batch = (opts && opts[:batch_size]) || 10
+      return [] if !ids || ids.length == 0
+      id_hashes = (ids || []).map{|id| id_pieces(id) }
+      self.where(:id => id_hashes.map{|h| h[:id] }).find_in_batches(batch_size: batch) do |batch|
+        batch.each do |obj|
+          if self.protected_global_id
+            hash = id_hashes.detect{|h| h[:id] == obj.id.to_s }
+            if hash && (record.nonce == 'legacy' || hash[:nonce] == record.nonce)
+              block.call(obj)
+            end
+          else
+            block.call(obj)
+          end
+        end
+      end
+    end
+    
     def find_by_path(path)
       return nil unless path
       if self == Board && path.to_s.match(/\//)

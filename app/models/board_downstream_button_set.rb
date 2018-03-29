@@ -80,7 +80,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
       set ||= BoardDownstreamButtonSet.find_or_create_by(:board_id => board.id)
       
       existing_board_ids = (set.data || {})['linked_board_ids'] || []
-      Board.find_all_by_global_id(board.settings['immediately_upstream_board_ids'] || []).each do |brd|
+      Board.find_batches_by_global_id(board.settings['immediately_upstream_board_ids'] || [], :batch_size => 3) do |brd|
         set.data['found_upstream_board'] = true
         bs = brd.board_downstream_button_set
         set.data['found_upstream_set'] = true if bs
@@ -106,17 +106,18 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
         end
       end
       boards_hash = {}
-      Board.find_all_by_global_id(board.settings['downstream_board_ids'] || []).each do |brd|
-        boards_hash[brd.global_id] = brd
-      end
+      # hash of all downstream boards is pretty memory intensive, let's skip
+#      Board.find_batches_by_global_id(board.settings['downstream_board_ids'] || [], :batch_size => 3) do |brd|
+#        boards_hash[brd.global_id] = brd
+#      end
       
-      boards_to_visit = [{:board => board, :depth => 0, :index => 0}]
+      boards_to_visit = [{:board_id => board.global_id, :depth => 0, :index => 0}]
       visited_board_ids = []
       linked_board_ids = []
       all_buttons = []
       while boards_to_visit.length > 0
         bv = boards_to_visit.shift
-        board_to_visit = bv[:board]
+        board_to_visit = Board.find_by_global_id(bv[:board_id])
         images = board_to_visit.button_images
         visited_board_ids << board_to_visit.global_id
         # add all buttons
@@ -155,7 +156,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
             if linked_board && !linked_board_ids.include?(linked_board.global_id) && !button['hidden'] && !button['link_disabled']
               button_data['preferred_link'] = true
               linked_board_ids << button['load_board']['id']
-              boards_to_visit << {:board => linked_board, :depth => bv[:depth] + 1, :hidden => (bv[:hidden] || button['hidden'] || button['link_disabled']), :index => idx} if !visited_board_ids.include?(linked_board.global_id)
+              boards_to_visit << {:board_id => linked_board.global_id, :depth => bv[:depth] + 1, :hidden => (bv[:hidden] || button['hidden'] || button['link_disabled']), :index => idx} if !visited_board_ids.include?(linked_board.global_id)
             end
           end
           all_buttons << button_data
