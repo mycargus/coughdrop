@@ -19,9 +19,9 @@ export default Component.extend({
   image_style: function() {
     var res = '';
     if(this.get('big')) {
-      res = 'height: 50px; float: left; margin-right: 5px;';
+      res = 'height: 50px; width: 50px; float: left; margin-right: 5px; object-fit: contain; object-position: center;';
     } else {
-      res = 'height: 40px; margin: -5px 5px -5px -5px; float: left;';
+      res = 'height: 40px; width: 40px; margin: -5px 5px -5px -5px; float: left; object-fit: contain; object-position: center;';
     }
     return htmlSafe(res);
   }.property('big'),

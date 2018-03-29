@@ -278,7 +278,7 @@ export default Controller.extend({
     }
     (app_state.get('currentUser.supervisees') || []).forEach(function(sup) {
       if(for_users[emberGet(sup, 'id')]) {
-        var b = _this.best_badge(for_users[emberGet(sup, 'id')], sup.goal.id);
+        var b = _this.best_badge(for_users[emberGet(sup, 'id')], (sup.goal || {}).id);
         emberSet(sup, 'current_badge', b);
       }
     });
