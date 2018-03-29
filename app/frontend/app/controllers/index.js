@@ -219,7 +219,7 @@ export default Controller.extend({
           controller.set('logs', {error: true});
         }
       });
-      if(app_state.get('feature_flags.badge_progress')) {
+      if(app_state.get('feature_flags.badge_progress') || model.get('feature_flags.badge_progress')) {
         this.store.query('badge', {user_id: model.get('id'), recent: 1}).then(function(badges) {
           var for_users = {};
           badges.forEach(function(badge) {
