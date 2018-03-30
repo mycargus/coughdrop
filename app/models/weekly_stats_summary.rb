@@ -286,6 +286,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
         
         Stats::DEVICE_PREFERENCES.each do |pref|
           ((summary.data['stats']['device'] || {})["#{pref}s"] || {}).each do |key, val|
+            device_prefs["#{pref}s"] ||= {}
             device_prefs["#{pref}s"][key] ||= 0
             device_prefs["#{pref}s"][key] += val
           end
@@ -497,6 +498,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
         if summary.data['totals']['device']
           Stats::DEVICE_PREFERENCES.each do |pref|
             ((summary.data['totals']['device'] || {})["#{pref}s"] || {}).each do |key, val|
+              stash[:device]["#{pref}s"] ||= {}
               stash[:device]["#{pref}s"][key] ||= 0
               stash[:device]["#{pref}s"][key] += val
             end
