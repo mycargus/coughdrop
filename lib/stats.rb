@@ -519,7 +519,7 @@ module Stats
         end
         
         device_prefs.each do |key|
-          val = session.data['stats'][key]
+          val = session.data['stats'][key.to_s]
           if key && val != nil
             stats[:device]["#{key}s".to_sym][val] ||= 0
             stats[:device]["#{key}s".to_sym][val] += 1
@@ -600,7 +600,7 @@ module Stats
     stats[:modeled_button_counts] = {}
     stats[:modeled_word_counts] = {}
     stats[:device] = {
-      :acces_methods => {},
+      :access_methods => {},
       :voice_uris => {},
       :text_positions => {},
       :auto_home_returns => {},
