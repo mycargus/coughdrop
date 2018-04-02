@@ -1661,4 +1661,78 @@ describe Subscription, :type => :model do
     it "should call reset_eval" do
     end
   end
+  
+  describe "purchase_credit_duration" do
+    it "should be zero by default" do
+      u = User.create
+      expect(u.purchase_credit_duration).to eq(0)
+    end
+    
+    it "should include past durations" do
+      u = User.create
+      u.settings['past_purchase_durations'] = [{'duration' => 100}, {'duration' => 50}]
+      expect(u.purchase_credit_duration).to eq(150)
+    end
+    
+    it "should include the current subscription if active" do
+      u = User.new
+      expect(u.recurring_subscription?).to eq(false)
+      u.settings = {}
+      u.settings['subscription'] = {}
+      u.settings['subscription']['started'] = 9.weeks.ago.iso8601
+      expect(u.recurring_subscription?).to eq(true)
+      expect(u.purchase_credit_duration).to be > (8.weeks.to_i)
+      expect(u.purchase_credit_duration).to be < (10.weeks.to_i)
+    end
+    
+    it "should include the current long-term purchase" do
+      u = User.new
+      expect(u.long_term_purchase?).to eq(false)
+      u.settings = {}
+      u.settings['subscription'] = {}
+      u.expires_at = 2.weeks.from_now
+      u.settings['subscription']['last_purchase_plan_id'] = 'asdf'
+      cutoff = 3.weeks
+      u.settings['subscription']['last_purchased'] = (Time.now - cutoff).iso8601
+      expect(u.long_term_purchase?).to eq(true)
+      expect(u.purchase_credit_duration).to eq(cutoff.to_i)
+    end
+    
+    it "should include org sponsorship" do
+      u = User.create
+      o = Organization.create(:settings => {'total_licenses' => 2})
+      u.update_subscription_organization(o.global_id, false, true)
+      links = UserLink.links_for(u)
+      expect(links).to eq([{
+        'user_id' => u.global_id,
+        'record_code' => Webhook.get_record_code(o),
+        'type' => 'org_user',
+        'state' => {
+          'pending' => false,
+          'sponsored' => true,
+          'eval' => false,
+          'added' => links[0]['state']['added']
+        }
+      }])
+      link = UserLink.last
+      
+      added = Time.now - 2.years
+      link.data['state']['added'] = added.iso8601
+      link.save
+      expect(u.reload.org_sponsored?).to eq(true)
+      expect(u.purchase_credit_duration).to eq((Time.now - added).to_i)
+    end
+    
+    it "should count recently-expired long-term-purchase in calculation" do
+      u = User.new
+      expect(u.long_term_purchase?).to eq(false)
+      u.settings = {}
+      u.settings['subscription'] = {}
+      u.expires_at = 2.weeks.ago
+      u.settings['subscription']['last_purchase_plan_id'] = 'asdf'
+      cutoff = 3.weeks
+      u.settings['subscription']['last_purchased'] = (Time.now - cutoff).iso8601
+      expect(u.purchase_credit_duration).to eq(1.week.to_i)
+    end
+  end
 end

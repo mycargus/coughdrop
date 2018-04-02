@@ -447,9 +447,14 @@ module Subscription
       started = Time.parse(self.settings['subscription']['started']) rescue nil
     elsif self.org_sponsored?
       # for an org sponsorship, track the duration of the sponsorship
-      started = Time.parse(self.settings['managed_by'].map{|id, opts| opts['added'] }.compact.sort.first) rescue nil
+      sponsor_dates = UserLink.links_for(self).select{|l| l['type'] == 'org_user' && l['state']['sponsored'] == true}.map{|l| l['state']['added'] }
+      started = Time.parse(sponsor_dates.sort.first) rescue nil
     end
-    return (past_tally + ([self.expires_at, Time.now].compact.max.to_i - [started, Time.now].compact.min.to_i))
+    tally = past_tally
+    if !self.grace_period?
+      tally += [self.expires_at, Time.now].compact.min.to_i - [started, Time.now].compact.min.to_i
+    end
+    return tally
   end
   
   def fully_purchased?
