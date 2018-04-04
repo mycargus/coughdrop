@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.04.04a";
+window.app_version = "2018.04.04b";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -7981,7 +7981,7 @@ else{var r="homeBoards",i={public:!0,starred:!0,user_id:"example",sort:"custom_o
 if(e&&e.get("id")&&n.default.get("online")){var s=this,o={user_id:e.get("id"),type:"session"}
 e.get("supporter_role")&&(o.supervisees=!0),(s.get("logs")||{}).length||s.set("logs",{loading:!0}),this.store.query("log",o).then(function(e){s.set("logs",e.map(function(e){return e}))},function(){(s.get("logs")||{}).length||s.set("logs",{error:!0})}),(a.default.get("feature_flags.badge_progress")||e.get("feature_flags.badge_progress"))&&this.store.query("badge",{user_id:e.get("id"),recent:1}).then(function(e){var n={}
 e.forEach(function(e){n[e.get("user_id")]=n[e.get("user_id")]||[],n[e.get("user_id")].push(e)}),t.set("current_user_badges",n)},function(e){})}}.observes("model.id","persistence.online"),best_badge:function(e,t){return(e=e.filter(function(e){return!e.get("earned")})).find(function(e){return e.get("goal_id")==t})||(e=e.sort(function(e,t){return e.get("global")==t.get("global")?e.get("global")&&(e.get("global_goal_priority")||t.get("global_goal_priority"))?(e.get("global_goal_priority")||99999999)-(t.get("global_goal_priority")||99999999):e.get("progress")==t.get("progress")?e.get("name")==t.get("name")?0:e.get("name")>t.get("name")?1:-1:e.get("progress")>t.get("progress")?-1:1:e.get("global")&&!t.get("global")?1:-1})),e[0]},update_current_badges:function(){var e=this,t=e.get("model"),n=e.get("current_user_badges")||{}
-if(n[t.get("id")]){var s=e.best_badge(n[t.get("id")],t.get("goal.id"))
+if(t&&n[t.get("id")]){var s=e.best_badge(n[t.get("id")],t.get("goal.id"))
 Ember.set(t,"current_badge",s)}var o=[];(a.default.get("currentUser.supervisees")||[]).forEach(function(t){if(n[Ember.get(t,"id")]){var s=e.best_badge(n[Ember.get(t,"id")],(t.goal||{}).id)
 Ember.set(t,"current_badge",s)}o.push(t)}),e.set("supervisees_with_badges",o)}.observes("app_state.currentUser","app_state.currentUser.supervisees","current_user_badges"),many_supervisees:function(){return(a.default.get("currentUser.supervisees")||[]).length>5}.property("app_state.currentUser.supervisees"),some_supervisees:function(){return(a.default.get("currentUser.supervisees")||[]).length>3}.property("app_state.currentUser.supervisees"),save_user_pref_change:function(){var e=a.default.get("currentUser.preferences.auto_open_speak_mode")
 if(void 0!==e){var t=this.get("last_auto_open_speak_mode")
@@ -10477,8 +10477,8 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+1824035f"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+1824035f"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+c2efbd79"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+c2efbd79"})
 ;
 
 
