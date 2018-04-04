@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.03.29d";
+window.app_version = "2018.04.04";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -8831,7 +8831,7 @@ var u=!!("speak"==n.default.get("current_mode")&&!document.referrer||o&&o.get("f
 if(o&&o.get("id")&&!o.get("terms_agree"))a.default.open("terms-agree")
 else if("edit"==n.default.get("current_mode"))n.default.persist("current_mode","default")
 else if(u&&o&&o.get("id")&&!o.get("supporter_role")&&!s.default.get("already_homed")&&o.get("preferences.home_board.key")){var c=function(){s.default.home_in_speak_mode({user:o}),s.default.set("already_homed",!0)}
-return r.default.system,void Ember.run.later(c)}s.default.clear_mode(),s.default.get("currentUser.preferences.home_board.id")||this.store.query("board",{user_id:"example",starred:!0,public:!0}).then(function(t){e.set("starting_boards",t)},function(){}),d.default.get("isAuthenticated")||(e.set("homeBoards",{loading:!0}),e.store.query("board",{sort:"home_popularity",per_page:9}).then(function(t){e.set("homeBoards",t),e.checkForBlankSlate()},function(){e.set("homeBoards",{error:!0}),e.checkForBlankSlate()}),e.set("popularBoards",{loading:!0}),e.store.query("board",{sort:"popularity",per_page:9}).then(function(t){e.set("popularBoards",t),e.checkForBlankSlate()},function(){e.set("popularBoards",{error:!0}),e.checkForBlankSlate()})),e.update_selected(),e.checkForBlankSlate(),e.subscription_check(),s.default.get("show_intro")&&a.default.open("intro")},actions:{homeInSpeakMode:function(e,t){if(e)s.default.set_speak_mode_user(e,!0,t)
+return r.default.system,void Ember.run.later(c)}s.default.clear_mode(),s.default.get("currentUser.preferences.home_board.id")||this.store.query("board",{user_id:"example",starred:!0,public:!0}).then(function(t){e.set("starting_boards",t)},function(){}),d.default.get("isAuthenticated")||(e.set("homeBoards",{loading:!0}),e.store.query("board",{sort:"home_popularity",per_page:9}).then(function(t){e.set("homeBoards",t),e.checkForBlankSlate()},function(){e.set("homeBoards",{error:!0}),e.checkForBlankSlate()}),e.set("popularBoards",{loading:!0}),e.store.query("board",{sort:"popularity",per_page:9}).then(function(t){e.set("popularBoards",t),e.checkForBlankSlate()},function(){e.set("popularBoards",{error:!0}),e.checkForBlankSlate()})),e.update_selected(),e.checkForBlankSlate(),e.subscription_check(),e.update_current_badges(),s.default.get("show_intro")&&a.default.open("intro")},actions:{homeInSpeakMode:function(e,t){if(e)s.default.set_speak_mode_user(e,!0,t)
 else if((s.default.get("currentUser.supervisees")||[]).length>0){var n=u.default.t("speak_as_which_user","Select User to Speak As")
 s.default.set("referenced_speak_mode_user",null),s.default.controller.send("switch_communicators",{stay:!0,modeling:"ask",skip_me:!1,header:n})}else s.default.home_in_speak_mode()},saveProfile:function(){var e=this.get("controller"),t=e.get("user")
 if(e.set("triedToSave",!0),t.get("terms_agree")&&o.default.get("online")&&!(e.get("badEmail")||e.get("shortPassword")||e.get("noName")||e.get("noSpacesName"))){e.set("registering",{saving:!0})
@@ -10477,8 +10477,8 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+9c096e88"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+9c096e88"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+e9825adf"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+e9825adf"})
 ;
 
 
