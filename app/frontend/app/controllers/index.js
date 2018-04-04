@@ -285,7 +285,7 @@ export default Controller.extend({
       sups.push(sup);
     });
     _this.set('supervisees_with_badges', sups);
-  }.observes('currentUser.supervisees', 'current_user_badges'),
+  }.observes('app_state.currentUser', 'app_state.currentUser.supervisees', 'current_user_badges'),
   many_supervisees: function() {
     return (app_state.get('currentUser.supervisees') || []).length > 5;
   }.property('app_state.currentUser.supervisees'),
