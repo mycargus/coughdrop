@@ -272,7 +272,7 @@ export default Controller.extend({
     var _this = this;
     var model = _this.get('model');
     var for_users = _this.get('current_user_badges') || {};
-    if(for_users[model.get('id')]) {
+    if(model && for_users[model.get('id')]) {
       var b = _this.best_badge(for_users[model.get('id')], model.get('goal.id'));
       emberSet(model, 'current_badge', b);
     }
