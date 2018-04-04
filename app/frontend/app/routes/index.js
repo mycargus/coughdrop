@@ -89,6 +89,7 @@ export default Route.extend({
     controller.update_selected();
     controller.checkForBlankSlate();
     controller.subscription_check();
+    controller.update_current_badges();
     if(app_state.get('show_intro')) {
       modal.open('intro');
     }
