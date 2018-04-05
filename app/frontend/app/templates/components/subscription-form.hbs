@@ -100,7 +100,7 @@
             <td style='width: 25%;'>
               <button style='width: 100%;' rel='monthly' class={{communicator_monthly_subscription_class}} type="button" {{action "set_subscription_type" 'monthly_communicator'}}>
                 <b>{{t "select this plan" key='select_this_plan'}}</b><br/>
-                {{#if subscription.much_cheaper_offer}}
+                {{#if subscription.subscription_discount}}
                   {{t "$3 per month" key='3_per_month'}}
                 {{else}}
                   {{t "$6 per month" key='6_per_month'}}
