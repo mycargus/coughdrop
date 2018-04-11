@@ -417,8 +417,7 @@ module Purchasing
   def self.reconcile(with_side_effects=false)
     Stripe.api_key = ENV['STRIPE_SECRET_KEY']
     customers = Stripe::Customer.list(:limit => 10)
-    customer_actives = 0
-    user_actives = 0
+    customer_active_ids = []
     total = 0
     cancel_months = {}
     cancels = {}
@@ -427,6 +426,8 @@ module Purchasing
       cancels[sub['customer']] ||= []
       cancels[sub['customer']] << sub
     end
+    problems = []
+    user_active_ids = []
     customers.auto_paging_each do |customer|
       total += 1
       cus_id = customer['id']
@@ -439,22 +440,29 @@ module Purchasing
       user_id = customer['metadata'] && customer['metadata']['user_id']
       user = user_id && User.find_by_global_id(user_id)
       if !user
+        problems << "#{customer['id']} no user found"
         puts "\tuser not found"
         next
       end
 
       customer_subs = customer['subscriptions'].to_a
       user_active = user.recurring_subscription?
-      user_actives += 1 if user_active
+      user_active_ids << user.global_id if user_active
       customer_active = false
       
       if customer_subs.length > 1
         puts "\ttoo many subscriptions"
+        problems << "#{user.global_id} #{user.user_name} too many subscriptions"
       elsif customer_subs.length == 0 
+        # if no active subscription, this is an old customer record
         check_cancels = false
+        # if customer id matches, then we are properly aligned
         if user.settings['subscription'] && user.settings['subscription']['customer_id'] == cus_id
           check_cancels = true
-          puts "\tno subscription found, but expected (FREELOADER)" if user_active
+          if user_active
+            puts "\tno subscription found, but expected (FREELOADER)" 
+            problems << "#{user.global_id} #{user.user_name} no subscription found, but expected (FREELOADER)"
+          end
           if user_active && with_side_effects
             User.schedule(:subscription_event, {
               'unsubscribe' => true,
@@ -465,12 +473,17 @@ module Purchasing
               'source' => 'customer.reconciliation'
             })
           else
-            puts "\tuser active without a subscription (huh?)" if user_active
+            if user_active
+              puts "\tuser active without a subscription (huh?)" 
+              problems << "#{user.global_id} #{user.user_name} user active without a subscription (huh?)"
+            end
+
           end
         else
+          # if customer id doesn't match on subscription hash then we don't really care,
+          # since there are no subscriptions for this customer, we just shouldn't
+          # track this as a cancellation
           if user_active
-            puts "\tuser active and tied to a different customer id, #{user.settings['subscription']['customer_id']}"
-            user_actives -= 1
           else
             check_cancels = true
           end
@@ -489,12 +502,30 @@ module Purchasing
         end
       else
         sub = customer_subs[0]
-        customer_active = sub['status'] == 'active'
-        customer_actives += 1 if customer_active
-        puts "\tcustomer is #{sub['status']} but user is #{user_active ? 'subscribed' : 'expired'}" if user_active != customer_active
+        if user.settings['subscription'] && user.settings['subscription']['customer_id'] == cus_id
+          customer_active = sub['status'] == 'active'
+          customer_active_ids << user.global_id if customer_active
+          if user_active != customer_active
+            puts "\tcustomer is #{sub['status']} but user is #{user_active ? 'subscribed' : 'expired'}" 
+            problems << "#{user.global_id} #{user.user_name} customer is #{sub['status']} but user is #{user_active ? 'subscribed' : 'expired'}"
+          end
+        else
+          # if customer id doesn't match on subscription hash:
+          # - if the subscription is active, we have a problem
+          # - otherwise we can ignore this customer record
+          if user_active
+            if sub['status'] == 'active' || sub['status'] == 'trialing'
+              puts "\tcustomer is #{sub['status']} but user is tied to a different customer record #{user.settings['subscription']['customer_id']}" 
+              problems << "#{user.global_id} #{user.user_name} but user is tied to a different customer record #{user.settings['subscription']['customer_id']}"
+            end
+          end
+        end
       end
     end
-    puts "TOTALS: checked #{total}, paying customers (not trialing, not duplicates) #{customer_actives}, subscription users #{user_actives}"
+    if problems.length > 0
+      puts "PROBLEMS:\n#{problems.join('\n')}\n"
+    end
+    puts "TOTALS: checked #{total}, paying customers (not trialing, not duplicates) #{customer_active_ids.uniq.length}, subscription users #{user_active_ids.uniq.length}"
     cancel_months.each{|k, a| 
       res = []
       res << (cancel_months[k].sum / cancel_months[k].length.to_f).round(1) 
