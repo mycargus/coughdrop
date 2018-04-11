@@ -17,7 +17,7 @@
       <div class="form-group">
         <label for="user_name" class="col-sm-4 control-label">{{t "Username" key='username'}}</label>
         <div class="col-sm-8">
-          {{input value=model.user_name class="form-control" id="user_name" placeholder="unique_name (optional)"}}
+          {{input value=model.user_name class="form-control" id="user_name" placeholder="User name (optional, we can pick for you)"}}
           {{#if noSpacesName}}
             <span class='text-danger'>{{t "user names can't have spaces, dots or quotes" key='no_spaces_user_name'}}</span>
           {{else if user.user_name_check.checking}}
@@ -38,23 +38,18 @@
         </div>
       </div>
       <div class="form-group">
-        <label for="registration_type" class="col-sm-4 control-label">{{t "Type" key='type'}}</label>
-        <div class="col-sm-8">
-          {{bound-select select_class="form-control" select_id="registration_type" content=registration_types selection=model.preferences.registration_type action=(action (mut model.preferences.registration_type)) }}
-        </div>
-      </div>
-      <div class="form-group">
         <label class="col-sm-4 control-label">{{t "Password" key='password'}}</label>
         <div class="col-sm-8">
             {{input type="password" value=model.password class="form-control" id="password" placeholder="at least 6 characters"}}
-            &nbsp;
-            {{input type="password" value=model.password2 class="form-control" id="password2" placeholder=""}}
             {{#if shortPassword}}
               <span class='text-danger'>{{t "password must be at least 6 characters" key='min_password'}}</span><br/>
             {{/if}}
-            {{#if passwordMismatch}}
-              <span class='text-danger'>{{t "passwords don't match" key='password_mismatch'}}</span>
-            {{/if}}
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="registration_type" class="col-sm-4 control-label">{{t "Type" key='type'}}</label>
+        <div class="col-sm-8">
+          {{bound-select select_class="form-control" select_id="registration_type" content=registration_types selection=model.preferences.registration_type action=(action (mut model.preferences.registration_type)) }}
         </div>
       </div>
       <div class="form-group">

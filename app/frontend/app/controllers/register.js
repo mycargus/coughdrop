@@ -10,11 +10,6 @@ export default Controller.extend({
     var email = this.get('model.email');
     return (this.get('triedToSave') && !email);
   }.property('model.email', 'triedToSave'),
-  passwordMismatch: function() {
-    var present = this.get('model.password');
-    var matches = !present || this.get('model.password') == this.get('model.password2');
-    return (present && !matches) || (this.get('triedToSave') && !matches);
-  }.property('model.password', 'model.password2', 'triedToSave'),
   shortPassword: function() {
     var password = this.get('model.password') || '';
     var password2 = this.get('model.password2');

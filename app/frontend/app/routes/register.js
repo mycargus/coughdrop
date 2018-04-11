@@ -11,19 +11,20 @@ export default Route.extend({
   },
   setupController: function(controller, model) {
     controller.set('model', model);
+    controller.set('user', model);
   },
   actions: {
     saveProfile: function() {
       // TODO: add a "save pending..." status somewhere
       var controller = this.get('controller');
-      controller.set('registering', {saving: true});
       var user = controller.get('model');
+      controller.set('triedToSave', true);
       if(!user.get('terms_agree')) { return; }
       if(!persistence.get('online')) { return; }
       if(controller.get('badEmail') || controller.get('passwordMismatch') || controller.get('shortPassword') || controller.get('noName')|| controller.get('noSpacesName')) {
         return;
       }
-      controller.set('triedToSave', true);
+      controller.set('registering', {saving: true});
       var _this = this;
       user.save().then(function(user) {
         controller.set('registering', null);
