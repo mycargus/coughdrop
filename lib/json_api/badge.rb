@@ -32,6 +32,8 @@ module JsonApi::Badge
     if args[:permissions]
       json['permissions'] = badge.permissions_for(args[:permissions])
       json['completion_settings'] = badge.data['badge_level']
+      json['user_name'] = badge.user.user_name
+      json['avatar_url'] = badge.user.generated_avatar_url
     end
     json
   end

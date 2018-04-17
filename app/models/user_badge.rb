@@ -40,6 +40,19 @@ class UserBadge < ActiveRecord::Base
     end
   end
   
+  def dismiss(user_id)
+    if user_id
+      self.data['dimsissed_by'] ||= {}
+      self.data['dismissed_by'][user_id] = true
+      self.save
+    end
+  end
+  
+  def dismissed_by?(user_id)
+    self.data['dismissed_by'] ||= {}
+    return self.data['dismissed_by'][user_id] || self.data['dismissed_by'][self.related_global_id(self.user_id)]
+  end
+  
   def update_user
     User.where(:id => self.user_id).update_all(:badges_updated_at => Time.now)
     true
@@ -189,6 +202,7 @@ class UserBadge < ActiveRecord::Base
   def self.process_goal_badges(badges, assessment_badge=nil)
     res = []
     all_badges = []
+
     if assessment_badge
       assessment_badge['assessment'] = true
       all_badges << assessment_badge

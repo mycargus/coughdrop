@@ -82,6 +82,10 @@ describe Api::BadgesController, :type => :controller do
     
     it "should filter by earned if specified" do
     end
+    
+    it "should filter to recently-earned (including supervisees) if specified" do
+      write_this_test
+    end
   end
   
   describe "show" do

@@ -11,6 +11,8 @@ export default Component.extend({
     var res = '';
     if(this.get('big')) {
       res = 'width: 300px; clear: both; margin-left: 5px;';
+    } else if(this.get('inline')) {
+      res = 'width: 100%; clear: both; opacity: 0.7;';
     } else {
       res = 'width: 310px; clear: both; margin-left: 39px; margin-top: 5px; margin-bottom: -20px;';
     }
@@ -29,11 +31,13 @@ export default Component.extend({
     var res = '';
     if(this.get('big')) {
       res = 'height: 50px; font-size: 40px; border-radius: 10px; border: 2px solid rgba(0, 0, 0, 0.5);';
+    } else if(this.get('inline')) {
+      res = 'margin-bottom: 0; height: 30px; font-size: 40px; border-radius: 5px; border: 2px solid rgba(0, 0, 0, 0.4);';
     } else {
       res = 'height: 30px; font-size: 40px; border-radius: 5px; border: 2px solid rgba(0, 0, 0, 0.4);';
     }
     return htmlSafe(res);
-  }.property('big'),
+  }.property('big', 'inline'),
   badge_progress: function() {
     return (this.get('badge.progress') || 0) * 100
   }.property('badge.progress'),

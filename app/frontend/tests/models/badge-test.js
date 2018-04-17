@@ -109,4 +109,16 @@ describe('Badge', function() {
       expect(b.get('completion_explanation')).toEqual('Use the word \"cuttlefish\" each day, for a total of 3 times');
     });
   });
+
+  describe('best_next_badge', function() {
+    it('should find the correct badge', function() {
+      expect('test').toEqual('todo');
+    });
+  });
+
+  describe('best_earned_badge', function() {
+    it('should find the correct badge', function() {
+      expect('test').toEqual('todo');
+    });
+  });
 });

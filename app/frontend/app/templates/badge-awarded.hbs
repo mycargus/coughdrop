@@ -2,7 +2,12 @@
   <div class="modal-header">
     <button type="button" class="close" {{action 'close'}}>&times;</button>
     <h3>
-      {{#if model.badge.earned}}
+      {{#if model.badge.avatar_url}}
+        <img src={{model.badge.avatar_url}} class='fit_image' style='height: 60px; width: 60px; margin: -15px 10px -25px -5px; border: 1px solid rgba(0, 0, 0, 0.5); border-radius: 100%; padding: 1px; background: #fff; box-shadow: 0px 0px 3px;' onerror='button_broken_image(this)'/>
+      {{/if}}
+      {{#if user_goals_and_badges}}
+        {{t "Badges and Goals" key='badges_and_goals'}}
+      {{else if model.badge.earned}}
         {{t "Badge Awarded!" key='badge_awarded'}}
       {{else if model.badge.id}}
         {{t "Badge In Progress" key='badge_in_progress'}}
@@ -12,83 +17,152 @@
     </h3>
   </div>
   <div class="modal-body">
-    <div style='text-align: center;'>
-      {{#if model.badge.loading}}
-        {{t "Loading badge details" key='loading_badge_details'}}
-      {{else if model.badge.error}}
-        {{t "Error loading badge details" key='error_loading_badge_details'}}
-      {{else}}
-        {{#if model.badge.earned}}
-          <div class='medal-holder'>
-            <div class='medal'>
-              <img src={{model.badge.image_url}} style='width: 200px;'/>
-              <div class='sparkle'>&#10022;</div>
+    {{#if user_goals_and_badges}}
+      <div style='margin-bottom: 15px;'>
+        {{#if user_badges.loading}}
+          {{t "Loading Badges..." key='loading_badges'}}
+        {{else if user_badges.error}}
+          {{t "Error Loading Badges" key='error_loading_badges'}}
+        {{else if user_badges}}
+          {{#each user_badges as |badge|}}
+            <div style='float: left;'>
+              <a href="#" {{action 'show_badge' badge.id}}>
+                <img src={{badge.image_url}} style="height: 80px; margin-right: 10px;" onerror='button_broken_image(this)' data-fallback={{path 'images/badge-fallback.png'}} />
+              </a>
             </div>
-            <div class="medal-ribbon">
-              <div style="width: 34px;height: 0;border-left: 11px solid transparent;border-right: 11px solid transparent;border-top: 111px solid #444;top: 0;left: 0;transform: rotate(-33deg) translate(44px,24px);position: absolute;"></div>
-              <div style="width: 30px;height: 0;border-left: 10px solid transparent;border-right: 10px solid transparent;border-top: 112px solid red;top: 0;left: 0;transform: rotate(-33deg) translate(46px,27px);position: absolute;"></div>
-              <div style="width: 35px;height: 0;border-left: 11px solid transparent;border-right: 11px solid transparent;border-top: 111px solid #444;top: 0;left: 0;transform: rotate(36deg) translate(96px,-72px);position: absolute;"></div>
-              <div style="width: 30px;height: 0;border-left: 10px solid transparent;border-right: 10px solid transparent;border-top: 112px solid red;top: 0;left: 0;transform: rotate(36deg) translate(98px,-72px);position: absolute;"></div>
-            </div>
-            <div class='medal-hanger'>
-              <div style='border: 2px solid #444; background: #ff0; width: 30px; height: 30px; border-radius: 15px; position: absolute; top: 95px; left: 85px;'></div>
-            </div>
-          </div>
-          {{#if model.badge.sound_url_with_fallback}}
-            <audio src={{model.badge.sound_url_with_fallback}} autoplay='true' />
-          {{/if}}
-        {{else}}
-          <div>
-            <img src={{model.badge.image_url}} style='width: 200px;'/>
-          </div>
+          {{/each}}
+          <div style='clear: left;'></div>
         {{/if}}
-        <div style='font-weight: bold; font-size: 30px;'>{{model.badge.name}}</div>
-        {{#if model.badge.level}}
-          <div style='color: #888; font-size: 16px;'>{{t "Level %{n}" n=model.badge.level key='level_n'}}</div>
-        {{/if}}
-        {{#if model.badge.earned}}
-          <div style='color: #888;'>
-            {{t "earned " key='earned'}}
-            {{date model.badge.earned 'short_day'}}
-          </div>
-        {{else if model.badge.id}}
-          <div style='color: #888; font-size: 14px; margin-top: 10px;'>
-            {{#if model.badge.progress}}
-              {{model.badge.time_left}}
+      </div>
+      <div>
+      {{#if user_goals.loading}}
+        {{t "Loading Goals..." key='loading_goals'}}
+      {{else if user_goals.error}}
+        {{t "Error Loading Goals" key='error_loading_goals'}}
+      {{else if user_goals}}
+        {{#each user_goals as |goal|}}
+          <div {{action 'show_goal' goal.id}} class={{if goal.badge_image_url 'cursor'}} style='padding-top: 10px; padding-bottom: 15px; margin-bottom: 5px; border-bottom: 1px solid #eee;'>
+            <div style='float: left; margin-right: 10px;'>
+            {{#if goal.badge_image_url}}
+              <img src={{goal.badge_image_url}} style='width: 50px; max-height: 50px; opacity: 0.8;' />
+            {{else}}
+              <span class='glyphicon glyphicon-flag' style='margin-top: 5px; display: inline-block;width: 50px; height: 40px; font-size: 30px; text-align: center;'></span>
             {{/if}}
+            </div>
+            <div style='font-size: 20px; white-space: nowrap; overflow: hidden;'>
+            {{goal.summary}}
+            </div>
+            <div class='text-muted'>
+              {{#if goal.advance}}
+                {{t "advances" key='advances_in'}}
+                {{date_ago goal.advance 'day'}}
+              {{else if goal.expires}}
+                {{t "concludes" key='concludes_in'}}
+                {{date_ago goal.expires 'day'}}
+              {{else}}
+                long goal
+              {{/if}}
+            </div>
           </div>
-          <div style='width: 150px; margin: 0 auto;'>
-            <div class="progress" style="border: 1px solid #aaa;height: 15px;">
-              <div class="progress-bar" role="progressbar" aria-value={{model.badge.progress_out_of_100}} aria-valuemin="0" aria-valuemax="100" style={{model.badge.progress_style}}>
-                <span class="sr-only">
-                  {{t "%{pct}% Complete" key='percent_complete' pct=model.badge.progress_out_of_100}}
-                </span>
+        {{/each}}
+      {{else}}
+        <span class='glyphicon glyphicon-flag' style='font-size: 30px; float: left; margin-right: 10px;'></span>
+        <p>{{t "This communicator had earned one or more badges! Some badges are automatically set up in CoughDrop, but you can also easily set your own goals and assign new badges to go with them." key='badges_explainer'}}</p>
+        <p>{{t "Setting goals is an important part of the communication process! In CoughDrop, goals can help keep the team on the same page and working on the same thing, which is important for newly-developing communicators." key='goals_explainer'}}</p>
+        <p>{{t "To set your first goal, hit the 'New Goal' button below and get started. You can find an existing goal or set one of your own. You can even have the system automatically track progress toward the goal, and award badges to the communicator as they progress!" key='goals_explainer_2'}}</p>
+      {{/if}}
+      </div>
+    {{else}}
+      <div style='text-align: center;'>
+        {{#if model.badge.loading}}
+          {{t "Loading badge details" key='loading_badge_details'}}
+        {{else if model.badge.error}}
+          {{t "Error loading badge details" key='error_loading_badge_details'}}
+        {{else}}
+          {{#if model.badge.earned}}
+            <div class='medal-holder'>
+              <div class='medal'>
+                <img src={{model.badge.image_url}} style='width: 200px;' onerror='button_broken_image(this)' data-fallback={{path 'images/badge-fallback.png'}} />
+                <div class='sparkle'>&#10022;</div>
+              </div>
+              <div class="medal-ribbon">
+                <div style="width: 34px;height: 0;border-left: 11px solid transparent;border-right: 11px solid transparent;border-top: 111px solid #444;top: 0;left: 0;transform: rotate(-33deg) translate(44px,24px);position: absolute;"></div>
+                <div style="width: 30px;height: 0;border-left: 10px solid transparent;border-right: 10px solid transparent;border-top: 112px solid red;top: 0;left: 0;transform: rotate(-33deg) translate(46px,27px);position: absolute;"></div>
+                <div style="width: 35px;height: 0;border-left: 11px solid transparent;border-right: 11px solid transparent;border-top: 111px solid #444;top: 0;left: 0;transform: rotate(36deg) translate(96px,-72px);position: absolute;"></div>
+                <div style="width: 30px;height: 0;border-left: 10px solid transparent;border-right: 10px solid transparent;border-top: 112px solid red;top: 0;left: 0;transform: rotate(36deg) translate(98px,-72px);position: absolute;"></div>
+              </div>
+              <div class='medal-hanger'>
+                <div style='border: 2px solid #444; background: #ff0; width: 30px; height: 30px; border-radius: 15px; position: absolute; top: 95px; left: 85px;'></div>
               </div>
             </div>
-          </div>
-        {{/if}}
-        {{#if model.badge.completion_explanation}}
-          <div style='font-size: 14px; margin: 10px auto; max-width: 300px;'>
-            <span style='color: #888;'>
-              {{#if model.badge.earned}}
-                {{t "To earn this badge, the user had to:" key='to_earn_user_had_to'}}<br/>
-              {{else}}
-                {{t "To earn this badge, the user needs to:" key='to_earn_user_needs_to'}}<br/>
+            {{#if model.badge.sound_url_with_fallback}}
+              <audio src={{model.badge.sound_url_with_fallback}} autoplay='true' />
+            {{/if}}
+          {{else}}
+            <div>
+              <img src={{model.badge.image_url}} style='width: 200px;' onerror='button_broken_image(this)' data-fallback={{path 'images/badge-fallback.png'}} />
+            </div>
+          {{/if}}
+          <div style='font-weight: bold; font-size: 30px;'>{{model.badge.name}}</div>
+          {{#if model.badge.level}}
+            <div style='color: #888; font-size: 16px;'>{{t "Level %{n}" n=model.badge.level key='level_n'}}</div>
+          {{/if}}
+          {{#if model.badge.earned}}
+            <div style='color: #888;'>
+              {{t "earned " key='earned'}}
+              {{date model.badge.earned 'short_day'}}
+            </div>
+          {{else if model.badge.id}}
+            <div style='color: #888; font-size: 14px; margin-top: 10px;'>
+              {{#if model.badge.progress}}
+                {{model.badge.time_left}}
               {{/if}}
-            </span>
+            </div>
+            <div style='width: 150px; margin: 0 auto;'>
+              <div class="progress" style="border: 1px solid #aaa;height: 15px;">
+                <div class="progress-bar" role="progressbar" aria-value={{model.badge.progress_out_of_100}} aria-valuemin="0" aria-valuemax="100" style={{model.badge.progress_style}}>
+                  <span class="sr-only">
+                    {{t "%{pct}% Complete" key='percent_complete' pct=model.badge.progress_out_of_100}}
+                  </span>
+                </div>
+              </div>
+            </div>
+          {{/if}}
+          {{#if model.badge.completion_explanation}}
+            <div style='font-size: 14px; margin: 10px auto; max-width: 300px;'>
+              <span style='color: #888;'>
+                {{#if model.badge.earned}}
+                  {{t "To earn this badge, %{user} had to:" user=user_name key='to_earn_user_had_to'}}<br/>
+                {{else}}
+                  {{t "To earn this badge, %{user} needs to:" user=user_name key='to_earn_user_needs_to'}}<br/>
+                {{/if}}
+              </span>
 
-            {{model.badge.completion_explanation}}
-          </div>
+              {{model.badge.completion_explanation}}
+            </div>
+          {{/if}}
         {{/if}}
+      </div>
+      {{#if model.badge.earned}}
+        {{#each confettis as |confetti|}}
+          <div class='confetti' style={{confetti.style}}></div>
+        {{/each}}
       {{/if}}
-    </div>
-    {{#if model.badge.earned}}
-      {{#each confettis as |confetti|}}
-        <div class='confetti' style={{confetti.style}}></div>
-      {{/each}}
     {{/if}}
   </div>
   <div class="modal-footer">
     <button {{action "close"}} class="btn btn-lg btn-default">{{t "Close" key='close'}}</button>
+    {{#if user_goals_and_badges}}
+      <button {{action 'show_badge'}} class='btn btn-lg btn-default'>{{t "Back to Badge" key='back_to_badge'}}</button>
+    {{else}}
+      {{#if persistence.online}}
+        <button {{action 'user_badges'}} class='btn btn-lg btn-default'>{{t "See User Goals and Badges" key='see_user_goals_and_badges'}}</button>
+      {{/if}}
+    {{/if}}
+    {{#if persistence.online}}
+      {{#unless app_state.speak_mode}}
+        <button {{action 'new_goal'}} class='btn btn-lg btn-default'>{{t "New Goal" key='new_goal'}}</button>
+      {{/unless}}
+    {{/if}}
   </div>
 {{/modal-dialog}}

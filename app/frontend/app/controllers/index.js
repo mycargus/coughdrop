@@ -8,6 +8,7 @@ import CoughDrop from '../app';
 import persistence from '../utils/persistence';
 import capabilities from '../utils/capabilities';
 import app_state from '../utils/app_state';
+import Badge from '../models/badge';
 import session from '../utils/session';
 import modal from '../utils/modal';
 import stashes from '../utils/_stashes';
@@ -233,40 +234,10 @@ export default Controller.extend({
     }
   }.observes('model.id', 'persistence.online'),
   best_badge: function(badges, goal_id) {
-    var res = null;
-    badges = badges.filter(function(b) { return !b.get('earned'); });
-    res = badges.find(function(b) { return b.get('goal_id') == goal_id; });
-    if(!res) {
-      badges = badges.sort(function(a, b) {
-        // sort by non-global first, progress second
-        if(a.get('global') == b.get('global')) {
-          if(a.get('global') && (a.get('global_goal_priority') || b.get('global_goal_priority'))) {
-            // if they're both global and at least one of them has a priority, use that
-            var ap = a.get('global_goal_priority') || 99999999;
-            var bp = b.get('global_goal_priority') || 99999999;
-            return ap - bp;
-          }
-          if(a.get('progress') == b.get('progress')) {
-            if(a.get('name') == b.get('name')) {
-              return 0;
-            } else if(a.get('name') > b.get('name')) {
-              return 1;
-            } else {
-              return -1;
-            }
-          } else if(a.get('progress') > b.get('progress')) {
-            return -1;
-          } else {
-            return 1;
-          }
-        } else if(a.get('global') && !b.get('global')) {
-          return 1;
-        } else {
-          return -1;
-        }
-      });
-    };
-    return badges[0];
+    return Badge.best_next_badge(badges, goal_id);
+  },
+  earned_badge: function(badges) {
+    return Badge.best_earned_badge(badges);
   },
   update_current_badges: function() {
     var _this = this;
@@ -274,13 +245,27 @@ export default Controller.extend({
     var for_users = _this.get('current_user_badges') || {};
     if(model && for_users[model.get('id')]) {
       var b = _this.best_badge(for_users[model.get('id')], model.get('goal.id'));
+      var eb = _this.earned_badge(for_users[model.get('id')]);
+      if(!app_state.get('currentUser.premium') || app_state.get('currentUser.supporter_role')) {
+        b = null;
+      }
+      // If no badge for the current user use the supervisee if there's only one
+      if(!b && app_state.get('currentUser.supervisees').length == 1) {
+        var sup = app_state.get('currentUser.supervisees')[0];
+        if(sup.premium) {
+          b = _this.best_badge(for_users[emberGet(sup, 'id')], (sup.goal || {}).id)
+        }
+      }
       emberSet(model, 'current_badge', b);
+      emberSet(model, 'earned_badge', eb);
     }
     var sups = [];
     (app_state.get('currentUser.supervisees') || []).forEach(function(sup) {
       if(for_users[emberGet(sup, 'id')]) {
         var b = _this.best_badge(for_users[emberGet(sup, 'id')], (sup.goal || {}).id);
         emberSet(sup, 'current_badge', b);
+        var eb = _this.earned_badge(for_users[emberGet(sup, 'id')]);
+        emberSet(sup, 'earned_badge', eb);
       }
       sups.push(sup);
     });
@@ -430,6 +415,13 @@ export default Controller.extend({
     },
     manage_supervisors: function() {
       modal.open('supervision-settings', {user: app_state.get('currentUser')});
+    },
+    session_select: function() {
+      if(!app_state.get('currentUser.preferences.logging')) {
+        this.send('load_reports');
+      } else {
+        this.send('set_index_nav', 'updates');
+      }
     },
     sync_details: function() {
       var list = ([].concat(persistence.get('sync_log') || [])).reverse();

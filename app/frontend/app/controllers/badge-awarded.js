@@ -8,6 +8,9 @@ import { htmlSafe } from '@ember/string';
 
 export default modal.ModalController.extend({
   opening: function() {
+    this.load_badge();
+  },
+  load_badge: function() {
     var _this = this;
     if(_this.get('model.badge.id') && !_this.get('model.badge.completion_settings')) {
       if(!_this.get('model.badge').reload) {
@@ -29,6 +32,62 @@ export default modal.ModalController.extend({
     }
     this.set('confettis', list);
   },
+  user_name: function() {
+    if(!this.get('model.badge.user_name')) {
+      return i18n.t('the_user', "the user");
+    } else {
+      return this.get('model.badge.user_name');
+    }
+  }.property('model.badge.user_name'),
+  load_user_badges: function() {
+    var _this = this;
+    if(_this.get('user_goals_and_badges')) {
+      if(!_this.get('user_goals')) {
+        _this.set('user_goals', {loading: true});
+        _this.store.query('goal', {user_id: _this.get('model.badge.user_id')}).then(function(goals) {
+          _this.set('user_goals', goals);
+        }, function(err) {
+          _this.set('user_goals', {error: true});
+        });
+      }
+      if(!_this.get('user_badges')) {
+        _this.set('user_badges', {loading: true});
+        _this.store.query('badge', {user_id: _this.get('model.badge.user_id'), earned: true}).then(function(badges) {
+          _this.set('user_badges', badges);
+        }, function(err) {
+          _this.set('user_badges', {error: true});
+        });
+      }
+    }
+  }.observes('user_goals_and_badges'),
   actions: {
+    user_badges: function() {
+      this.set('user_goals_and_badges', true);
+    },
+    show_badge: function(badge_id) {
+      if(badge_id) {
+        this.set('model.badge', {id: badge_id})
+        this.load_badge();
+      }
+      this.set('user_goals_and_badges', false);
+    },
+    show_goal: function(goal_id) {
+      var _this = this;
+      _this.store.query('badge', {user_id: _this.get('model.badge.user_id'), goal_id: goal_id}).then(function(badges) {
+        badges = badges.map(function(b) { return b; });
+        if(badges.length > 0) {
+          _this.set('model.badge', {id: badges[0].get('id')});
+          _this.load_badge();
+          _this.set('user_goals_and_badges', false);
+        }
+      });
+    },
+    new_goal: function() {
+      var _this = this;
+      var user_id = _this.get('model.badge.user_id');
+      _this.store.findRecord('user', user_id).then(function(user) {
+        modal.open('new-goal', {user: user});
+      });
+    }
   }
 });

@@ -213,7 +213,7 @@
     {{/if}}
 
     {{#if app_state.currentUser}}
-      <a href="#" class={{if app_state.currentUser.supporter_role "list-group-item collapsible half_size" "list-group-item collapsible"}} {{action "set_index_nav" 'updates'}} style='height: auto;'>
+      <a href="#" class={{if app_state.currentUser.supporter_role "list-group-item collapsible half_size" "list-group-item collapsible"}} {{action "session_select"}} style='height: auto;'>
         <span>
         <span class="glyphicon glyphicon-list-alt"></span>
         {{#unless app_state.currentUser.supporter_role}}
@@ -298,6 +298,9 @@
               {{#link-to 'user' supervisee.user_name}}
                 <img src={{supervisee.avatar_url}} class='fit_image' style="height: 80px; width: 80px; margin: 30px 10px 0 -10px;"/>
               {{/link-to}}
+              {{#if supervisee.earned_badge}}
+                {{badge-earned badge=supervisee.earned_badge}}
+              {{/if}}
             </div>
             <div style='overflow: hidden; white-space: nowrap; margin-top: -10px;'>
               <span style='font-size: 30px;'>{{supervisee.user_name}}</span>
@@ -340,7 +343,11 @@
             </div>
             <div style='clear: left;'></div>
             {{#if supervisee.current_badge}}
-              {{badge-progress badge=supervisee.current_badge}}
+              {{#if supervisee.premium}}
+                {{badge-progress badge=supervisee.current_badge}}
+              {{else}}
+                <div style='height: 35px;'></div>
+              {{/if}}
             {{else}}
               <div style='height: 35px;'></div>
             {{/if}}
@@ -357,6 +364,10 @@
                 {{t "Purchase CoughDrop" key='purchase_coughdrop'}}
               </span>
             {{/link-to}}
+          </div>
+        {{else if model.earned_badge}}
+          <div>
+            {{badge-earned badge=model.earned_badge}}
           </div>
         {{/if}}
         <div class='col-md-3 col-xs-4 big_button_holder'>

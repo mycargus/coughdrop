@@ -517,6 +517,11 @@ export default Controller.extend({
         current_index = Math.max(current_index - 1, 0);
       }
       this.transitionToRoute('setup', {queryParams: {page: order[current_index]}});
+    },
+    speak_mode_notification: function() {
+      if(app_state.get('user_badge')) {
+        modal.open('badge-awarded', {badge: {id: app_state.get('user_badge.id')}});
+      }
     }
   },
   setup_next: function() {

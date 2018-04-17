@@ -609,7 +609,11 @@ Button.broken_image = function(image) {
   if(image.src && image.src != fallback && !image.src.match(/^data/)) {
     console.log("bad image url: " + image.src);
     image.setAttribute('rel', image.src);
-    image.setAttribute('onerror', '');
+    if(image.getAttribute('data-fallback')) {
+      fallback = image.getAttribute('data-fallback');
+    } else {
+      image.setAttribute('onerror', '');
+    }
     var bad_src = image.src;
     image.src = fallback;
     persistence.find_url(fallback).then(function(data_uri) {

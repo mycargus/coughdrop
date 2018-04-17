@@ -2618,4 +2618,10 @@ describe('app_state', function() {
     });
 
   });
+
+  describe('load_user_badge', function() {
+    it('should have valid specs', function() {
+      expect('test').toEqual('todo');
+    });
+  });
 });

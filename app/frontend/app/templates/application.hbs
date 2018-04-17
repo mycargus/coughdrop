@@ -62,6 +62,21 @@
           {{partial "button-list"}}
         {{/with}}
       </div>
+      {{#unless app_state.button_list}}
+        {{#if app_state.currentUser.preferences.blank_status}}
+          <button id='speak_mode_notification' class='btn btn-default' {{action 'speak_mode_notification'}}>
+            {{#if app_state.user_badge}}
+              <span>
+                {{#if app_state.user_badge.earned}}
+                  {{badge-earned badge=app_state.user_badge inline=true}}
+                {{else}}
+                  {{badge-progress badge=app_state.user_badge inline=true}}
+                {{/if}}
+              </span>
+            {{/if}}
+          </button>
+        {{/if}}
+      {{/unless}}
       <button class="btn btn-default undwellable" {{action "speakOptions"}} id="speak_options"><span class="sr-only">{{t "speak options" key='speak_options'}}</span><span class="glyphicon glyphicon-chevron-down"></span></button>
       <button class="btn btn-default access skinnier" id="backspace_button" {{action "backspace"}}>
         <span class="sr-only">{{t "backspace" key='backspace'}}</span>

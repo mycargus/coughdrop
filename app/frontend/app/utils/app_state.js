@@ -986,6 +986,7 @@ var app_state = EmberObject.extend({
           modal.open('speak-mode-intro');
         }
       }
+      app_state.load_user_badge();
     } else if(!this.get('speak_mode') && this.get('last_speak_mode') !== undefined) {
       capabilities.wakelock('speak!', false);
       capabilities.fullscreen(false);
@@ -1243,12 +1244,9 @@ var app_state = EmberObject.extend({
     return res;
   }.property('last_fenced_board', 'medium_refresh_stamp', 'current_ssid', 'stashes.geo.latest', 'nearby_places', 'currentUser', 'current_sidebar_boards'),
   current_sidebar_boards: function() {
-    var res = this.get('currentUser.sidebar_boards_with_fallbacks');
-    if(this.get('modeling_for_user') && this.get('referenced_speak_mode_user')) {
-      res = this.get('referenced_speak_mode_user.sidebar_boards_with_fallbacks');
-    }
+    var res = this.get('referenced_user.sidebar_boards_with_fallbacks');
     return res;
-  }.property('modeling_for_user', 'currentUser', 'currentUser.sidebar_boards_with_fallbacks', 'referenced_speak_mode_user', 'referenced_speak_mode_user.sidebar_boards_with_fallback'),
+  }.property('referenced_user.sidebar_boards_with_fallback'),
   check_locations: function() {
     if(!this.get('speak_mode')) { return RSVP.resolve([]); }
     var boards = this.get('current_sidebar_boards') || [];
@@ -1272,6 +1270,36 @@ var app_state = EmberObject.extend({
   sidebar_pinned: function() {
     return this.get('speak_mode') && this.get('currentUser.preferences.quick_sidebar');
   }.property('speak_mode', 'currentUser', 'currentUser.preferences.quick_sidebar'),
+  referenced_user: function() {
+    var user = app_state.get('currentUser');
+    if(this.get('modeling_for_user') && this.get('referenced_speak_mode_user')) {
+      user = this.get('referenced_speak_mode_user');
+    }
+    return user;
+  }.property('modeling_for_user', 'currentUser', 'referenced_speak_mode_user'),
+  load_user_badge: function() {
+    var _this = this;
+    if(!_this.get('feature_flags.badge_progress')) { return; }
+    var user = this.get('referenced_user');
+    if(!user || _this.get('user_badge.user_id') != user.get('id')) {
+      _this.set('user_badge', null);
+    }
+    // clear current badge if it doesn't match the referenced user info
+    // load recent badges
+    if(CoughDrop.store && user) {
+      Ember.run.later(function() {
+        CoughDrop.store.query('badge', {user_id: user.get('id'), recent: 1}).then(function(badges) {
+          badges = badges.filter(function(b) { return b.get('user_id') == user.get('id'); });
+          var badge = CoughDrop.Badge.best_earned_badge(badges);
+          if(badge && badge.get('dismissed')) {
+            var next_badge = CoughDrop.Badge.best_next_badge(badges);
+            badge = next_badge || badge;
+          }
+          _this.set('user_badge', badge);
+        });
+      });
+    }
+  },
   testing: function() {
     return Ember.testing;
   }.property(),

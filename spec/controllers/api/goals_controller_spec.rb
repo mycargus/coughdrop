@@ -158,6 +158,14 @@ describe Api::GoalsController, type: :controller do
       expect(json['goal']['id']).to_not be_nil
       expect(json['goal']['author']['id']).to eq(@user.global_id)
     end
+    
+    it "should allow a supervisiong token to create a goal" do
+      write_this_test
+    end
+    
+    it "should auto-expire a token with the same external_id" do
+      write_this_test
+    end
   end
 
   describe "update" do

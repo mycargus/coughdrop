@@ -32,6 +32,7 @@ CoughDrop.Goal = DS.Model.extend({
   started: DS.attr('date'),
   ended: DS.attr('date'),
   advance: DS.attr('date'),
+  expires: DS.attr('date'),
   advancement: DS.attr('string'),
   duration: DS.attr('number'),
   stats: DS.attr('raw'),

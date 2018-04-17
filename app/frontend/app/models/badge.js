@@ -8,6 +8,8 @@ import { htmlSafe } from '@ember/string';
 CoughDrop.Badge = DS.Model.extend({
   name: DS.attr('string'),
   user_id: DS.attr('string'),
+  user_name: DS.attr('string'),
+  avatar_url: DS.attr('string'),
   highlighted: DS.attr('boolean'),
   disabled: DS.attr('boolean'),
   global: DS.attr('boolean'),
@@ -302,6 +304,69 @@ CoughDrop.Badge = DS.Model.extend({
     }
   }.property('completion_settings')
 });
+
+CoughDrop.Badge.best_next_badge = function(badges, goal_id) {
+  var res = null;
+  badges = badges.filter(function(b) { return !b.get('earned') && b.get('progress') > 0; });
+  res = badges.find(function(b) { return b.get('goal_id') == goal_id; });
+  if(!res) {
+    badges = badges.sort(function(a, b) {
+      // sort by non-global first, progress second
+      if(a.get('global') == b.get('global')) {
+        if(a.get('global') && (a.get('global_goal_priority') || b.get('global_goal_priority'))) {
+          // if they're both global and at least one of them has a priority, use that
+          var ap = a.get('global_goal_priority') || 99999999;
+          var bp = b.get('global_goal_priority') || 99999999;
+          return ap - bp;
+        }
+        if(a.get('progress') == b.get('progress')) {
+          if(a.get('name') == b.get('name')) {
+            return 0;
+          } else if(a.get('name') > b.get('name')) {
+            return 1;
+          } else {
+            return -1;
+          }
+        } else if(a.get('progress') > b.get('progress')) {
+          return -1;
+        } else {
+          return 1;
+        }
+      } else if(a.get('global') && !b.get('global')) {
+        return 1;
+      } else {
+        return -1;
+      }
+    });
+  };
+  return badges[0];
+};
+CoughDrop.Badge.best_earned_badge = function(badges) {
+  badges = badges.filter(function(b) { return b.get('earned'); })
+  badges = badges.sort(function(a, b) {
+    // first show non-dismissed badges, then show most-recently-earned
+    if(a.get('dismissed') && !b.get('dismissed')) {
+      return 1;
+    } else if(!a.get('dismissed') && b.get('dismissed')) {
+      return -1;
+    } else {
+      if(a.get('earned') > b.get('earned')) {
+        return -1;
+      } else if(a.get('earned') < b.get('earned')) {
+        return 1;
+      } else {
+        if(a.get('name') > b.get('name')) {
+          return 1;
+        } else if(a.get('name') < b.get('name')) {
+          return -1;
+        } else {
+          return 0;
+        }
+      }
+    }
+  });
+  return badges[0];
+};
 
 
 export default CoughDrop.Badge;

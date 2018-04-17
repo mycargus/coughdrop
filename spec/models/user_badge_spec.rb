@@ -2468,6 +2468,16 @@ describe UserBadge, type: :model do
       expect(g.template_goal).to eq(ug)
     end
   end
+  
+  describe "dismiss" do
+    it 'should allow dismissing goals' do
+      write_this_test
+    end
+    
+    it 'should dismiss for everyone if dismissed by the user' do
+      write_this_test
+    end
+  end
 end
 
 

@@ -133,6 +133,11 @@ header {
           }
         }
       }
+      #speak_mode_notification {
+        > span {
+          top: 17px;
+        }
+      }
     }
     &.tiny {
       height: 50px;
@@ -219,6 +224,11 @@ header {
       }
       #speak_options {
         height: 30px; 
+      }
+      #speak_mode_notification {
+        > span {
+          top: 6px;
+        }
       }
       .button_icon {
         font-size: 15px;
@@ -400,6 +410,11 @@ header {
         margin-left: -70px;
         height: 80px; 
       }
+      #speak_mode_notification {
+        width: 100px;
+        margin-right: 76px;
+        margin-left: -179px;
+      }
       .button_icon {
         font-size: 65px;
       }
@@ -494,6 +509,11 @@ header {
         height: 120px; 
         margin-left: -90px;
         width: 75px;
+      }
+      #speak_mode_notification {
+        width: 100px;
+        margin-right: 96px;
+        margin-left: -200px;
       }
       .button_icon {
         font-size: 65px;

@@ -44,6 +44,9 @@
               {{t "changes" key='changes'}}
               <!-- TODO: make this a link to the template for the next goal -->
               {{date model.advance 'short_day'}}
+            {{else if model.expires}}
+              {{t "concludes" key='concludes'}}
+              {{date model.expires 'short_day'}}
             {{/if}}
             &nbsp;
           </span>
