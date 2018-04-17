@@ -92,9 +92,15 @@ def assert_timestamp(ts, ts2)
   expect(ts).to be < ts2 + 3
 end
 
-def token_user
+def token_user(scopes=nil)
   @user = User.create
-  @device = Device.create(:user => @user, :developer_key_id => 0, :device_key => 'hippo')
+  if scopes
+    @device = Device.create(:user => @user, :developer_key_id => 1, :device_key => 'bacon')
+    @device.settings['permission_scopes'] = scopes
+    @device.save
+  else
+    @device = Device.create(:user => @user, :developer_key_id => 0, :device_key => 'hippo')
+  end
   request.headers['Authorization'] = "Bearer #{@device.token}"
   request.headers['Check-Token'] = "true"
 end

@@ -101,7 +101,46 @@ describe DeletedBoard, :type => :model do
   
   describe "restore!" do
     it 'should restore the deleted board' do
-      write_this_test
+      u = User.create
+      PaperTrail.whodunnit = "admin:somebody@example.com"
+      b = Board.create(user: u)
+      b = Board.find(b.id)
+      b.process({
+        'buttons' => [
+          {'id' => 1, 'label' => 'hat'}
+        ]
+      })
+      b = Board.find_by(id: b.id)
+      b.process({
+        'buttons' => [
+          {'id' => 1, 'label' => 'hat'},
+          {'id' => 2, 'label' => 'freedom'}
+        ]
+      })
+      b = Board.find_by(id: b.id)
+      b.process({
+        'buttons' => [
+          {'id' => 1, 'label' => 'hat'},
+          {'id' => 2, 'label' => 'freedom'},
+          {'id' => 3, 'label' => 'polygon'}
+        ]
+      })
+      key = b.key
+      expect(Board.find_by(id: b.id)).to_not eq(nil)
+      b.destroy
+      expect(Board.find_by(id: b.id)).to eq(nil)
+      db = DeletedBoard.find_by(board_id: b.id)
+      expect(DeletedBoard.find_by(key: key)).to eq(db)
+      db.restore!
+      expect(Board.find_by_path(key)).to_not eq(nil)
+      expect(Board.find_by(id: b.id)).to_not eq(nil)
+      
+      b = Board.find_by_path(key)
+      expect(b.settings['buttons']).to eq([
+          {'id' => 1, 'label' => 'hat'},
+          {'id' => 2, 'label' => 'freedom'},
+          {'id' => 3, 'label' => 'polygon'}
+      ])
     end
   end
 end

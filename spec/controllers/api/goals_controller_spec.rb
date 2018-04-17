@@ -159,12 +159,35 @@ describe Api::GoalsController, type: :controller do
       expect(json['goal']['author']['id']).to eq(@user.global_id)
     end
     
-    it "should allow a supervisiong token to create a goal" do
-      write_this_test
+    it "should not allow a basic api token to create a goal" do
+      token_user(['read_profile'])
+      post :create, params: {:goal => {'summary' => 'cool goal'}}
+      assert_unauthorized
+    end
+
+    it "should allow a supervising token to create a goal" do
+      token_user(['basic_supervision'])
+      post :create, params: {:goal => {'summary' => 'cool goal'}}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['goal']['id']).to_not be_nil
     end
     
     it "should auto-expire a token with the same external_id" do
-      write_this_test
+      token_user
+      eid = 'some:bucket'
+      goal = UserGoal.create(user: @user, active: true)
+      goal.settings['external_id'] = eid
+      goal.save!
+      expect(goal.active).to eq(true)
+      post :create, params: {:goal => {'user_id' => @user.global_id, 'summary' => 'cool goal', 'external_id' => eid}}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['goal']['id']).to_not be_nil
+      expect(json['goal']['summary']).to eq('cool goal')
+      expect(goal.reload.active).to eq(true)
+      Worker.process_queues
+      expect(goal.reload.active).to eq(false)
     end
   end
 
@@ -213,7 +236,12 @@ describe Api::GoalsController, type: :controller do
     end
     
     it "should not allow a supervision api token to update a goal" do
-      write_this_test
+      token_user(['read_profile', 'basic_supervision'])
+      u = User.create
+      User.link_supervisor_to_user(@user, u, nil, false)
+      g = UserGoal.create(:user => u)
+      put :update, params: {:id => g.global_id, :goal => {'summary' => 'dumb name', 'comment' => {'text' => 'hey yo'}}}
+      assert_unauthorized
     end
   end
 

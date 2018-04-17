@@ -456,6 +456,7 @@ describe Board, :type => :model do
       b4.instance_variable_set('@buttons_changed', true)
       b4.save
       Worker.process_queues
+      Worker.process_queues
       expect(b1.reload.settings['full_set_revision']).to_not eq(hash1)
       expect(b1.current_revision).to eq(current1)
       expect(b2.reload.settings['full_set_revision']).to_not eq(hash2)
@@ -1092,15 +1093,42 @@ describe Board, :type => :model do
     end
     
     it "should tie to the source board's copy id if defined" do
-      write_this_test
+      u = User.create
+      b = Board.create(:user => u, :settings => {'copy_id' => '123456'})
+      b2 = Board.process_new({
+        'source_id' => b.global_id
+      }, {'user' => u})
+      expect(b2.settings['copy_id']).to eq('123456')
     end
     
-    it "should user the source board's id as the copy id if defined" do
-      write_this_test
+    it "should ignore source_id on update" do
+      u = User.create
+      b = Board.create(:user => u, :settings => {'copy_id' => '123456'})
+      b2 = Board.create(:user => u)
+      expect(b2.settings['copy_id']).to eq(nil)
+      b2.process({
+        'source_id' => b.global_id
+      })
+      expect(b2.settings['copy_id']).to eq(nil)
+    end
+
+    it "should use the source board's id as the copy id if defined" do
+      u = User.create
+      b = Board.create(:user => u)
+      b2 = Board.process_new({
+        'source_id' => b.global_id
+      }, {'user' => u})
+      expect(b2.settings['copy_id']).to eq(b.global_id)
     end
     
     it "should not set the copy id if not allowed to edit the source board" do
-      write_this_test
+      u = User.create
+      u2 = User.create
+      b = Board.create(:user => u, :settings => {'copy_id' => '123456'})
+      b2 = Board.process_new({
+        'source_id' => b.global_id
+      }, {'user' => u2})
+      expect(b2.settings['copy_id']).to eq(nil)
     end
   end
 

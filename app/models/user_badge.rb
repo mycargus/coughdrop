@@ -42,15 +42,17 @@ class UserBadge < ActiveRecord::Base
   
   def dismiss(user_id)
     if user_id
-      self.data['dimsissed_by'] ||= {}
+      self.data ||= {}
+      self.data['dismissed_by'] ||= {}
       self.data['dismissed_by'][user_id] = true
       self.save
     end
   end
   
   def dismissed_by?(user_id)
+    self.data ||= {}
     self.data['dismissed_by'] ||= {}
-    return self.data['dismissed_by'][user_id] || self.data['dismissed_by'][self.related_global_id(self.user_id)]
+    return !!(self.data['dismissed_by'][user_id] || self.data['dismissed_by'][self.related_global_id(self.user_id)])
   end
   
   def update_user
@@ -184,7 +186,7 @@ class UserBadge < ActiveRecord::Base
   def self.check_for(user_id, stats_id=nil, allow_forever_check=false)
     user = User.find_by_path(user_id)
     stats = WeeklyStatsSummary.find_by_global_id(stats_id) if stats_id
-    stats_start = (Date.commercial(stats.weekyear / 100, stats.weekyear % 100, 1) + 6) if stats
+    stats_start = WeeklyStatsSummary.weekyear_to_date(stats.weekyear) if stats
     # TODO: sharding
     badges = UserBadge.where(:user_id => user.id)
     globals = UserGoal.where(:global => true)

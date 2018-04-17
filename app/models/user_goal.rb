@@ -260,11 +260,11 @@ class UserGoal < ActiveRecord::Base
     if @set_as_primary
       if self.user && self.user.settings
         do_set = true
-        if @set_as_primary = 'if_available'
+        if @set_as_primary == 'if_available'
           # for if_available, only set as the primary goal if there is no primary
           # goal set, or if this goal is going to replace the primary goal
           # via external_id
-          primaries = UserGoal.where(:user_id => self.user_id, :primary => true, :active => true)
+          primaries = UserGoal.where(:user_id => self.user_id, :primary => true, :active => true).where(['id != ?', self.id])
           do_set = primaries.count == 0 || primaries.all?{|g| g.settings['external_id'] && g.settings['external_id'] == self.settings['external_id'] }
         end
         if do_set
@@ -425,14 +425,14 @@ class UserGoal < ActiveRecord::Base
       @clear_primary = true
       @set_as_primary = false
     end
-    self.primary = !!params[:primary] if params[:primary] != nil
+#    self.primary = !!params[:primary] if params[:primary] != nil
     true
   end
   
   def expire_external_dups(frd=false)
     return true unless self.settings && self.settings['external_id'] && self.settings['expire_external_id']
     if !frd
-      schedule(:expired_external_dups, true)
+      schedule(:expire_external_dups, true)
       return true
     end
     self.settings.delete('expire_external_id')

@@ -213,7 +213,7 @@ describe UserGoal, type: :model do
       g = UserGoal.process_new({
         primary: true
       }, {user: u, author: u})
-      expect(g.primary).to eq(true)
+      expect(g.reload.primary).to eq(true)
       expect(u.settings['primary_goal']).to eq({'id' => g.global_id, 'summary' => 'user goal'})
       expect(g.reload.primary).to eq(true)
       expect(gg.reload.primary).to eq(false)
@@ -458,7 +458,19 @@ describe UserGoal, type: :model do
     end
     
     it 'should honor if_available option for set_as_primary' do
-      write_this_test
+      u = User.create
+      g = UserGoal.process_new({
+        primary: 'if_available',
+        active: true
+      }, {user: u, author: u})
+      expect(g.reload.primary).to eq(true)
+
+      g2 = UserGoal.process_new({
+        primary: 'if_available',
+        active: true
+      }, {user: u, author: u})
+      expect(g.reload.primary).to eq(true)
+      expect(g2.reload.primary).to eq(false)
     end
   end
   
@@ -942,7 +954,7 @@ describe UserGoal, type: :model do
   it "should clear primary goal for the user correctly" do
     u = User.create
     g = UserGoal.process_new({:primary => true}, {:user => u, :author => u})
-    expect(g.primary).to eq(true)
+    expect(g.reload.primary).to eq(true)
     Worker.process_queues
     u.reload
     expect(u.settings['primary_goal']['id']).to eq(g.global_id)
@@ -976,7 +988,26 @@ describe UserGoal, type: :model do
   
   describe "expire_external_dups" do
     it "should expire existing goals with the same external_id" do
-      write_this_test
+      u = User.create
+      g = UserGoal.process_new({
+        primary: 'if_available',
+        external_id: 'baconator',
+        active: true
+      }, {user: u, author: u})
+      Worker.process_queues
+      expect(g.reload.primary).to eq(true)
+      expect(g.reload.active).to eq(true)
+
+      g2 = UserGoal.process_new({
+        primary: 'if_available',
+        external_id: 'baconator',
+        active: true
+      }, {user: u, author: u})
+      Worker.process_queues
+      expect(g.reload.primary).to eq(false)
+      expect(g.reload.active).to eq(false)
+      expect(g2.reload.active).to eq(true)
+      expect(g2.reload.primary).to eq(true)
     end
   end
 end

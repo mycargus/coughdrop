@@ -39,12 +39,13 @@ module Subscription
     self.settings['subscription'].delete('started')
     self.settings['subscription'].delete('never_expires')
     self.settings['subscription'].delete('added_to_organization')
-    if self.settings['managed_by']
+    if Organization.managed?(self)
       self.settings['past_purchase_durations'] ||= []
-      self.settings['managed_by'].each do |id, opts|
-        added = (opts['added'] && Time.parse(opts['added'])) rescue nil
+      links = UserLink.links_for(self)
+      links.select{|l| l['type'] == 'org_user' && l['state']['added'] }.each do |link|
+        added = (link['state']['added'] && Time.parse(link['state']['added'])) rescue nil
         if added
-          self.settings['past_purchase_durations'] << {type: 'org', started: opts['added'], duration: (Time.now.to_i - added.to_i)}
+          self.settings['past_purchase_durations'] << {type: 'org', started: link['state']['added'], duration: (Time.now.to_i - added.to_i)}
         end
       end
     end
@@ -416,6 +417,9 @@ module Subscription
     destination_user.save
     # transfer usage logs to the new user
     eval_start = Time.parse(self.settings['subscription']['eval_expires'] || 60.days.ago)
+    WeeklyStatsSummary.where(user_id: self.id).where(['created_at > ?', eval_start]).each do |summary|
+      summary.schedule(:update!)
+    end
     LogSession.where(user_id: self.global_id, log_type: ['session', 'note', 'assessment']).where(['started_at > ?', eval_start]).each do |session|
       session.user_id = destination_user.id
       session.save

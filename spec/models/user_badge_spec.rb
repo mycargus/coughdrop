@@ -1252,6 +1252,7 @@ describe UserBadge, type: :model do
         'ended' => ended.utc.iso8601,
         'earn_recorded' => Time.now.utc.iso8601,
         'global_goal' => nil,
+        'global_goal_priority' => nil,
         'badge_level' => nil,
         'units' => [{}],
         'tally' => 4,
@@ -1396,9 +1397,11 @@ describe UserBadge, type: :model do
       ])
       expect(res).to eq([{
         'level' => 1,
+        'simple_type' => 'custom',
         'interval' => 'date'
       }, {
         'level' => 2,
+        'simple_type' => 'custom',
         'interval' => 'date'
       }])
     end
@@ -1426,6 +1429,7 @@ describe UserBadge, type: :model do
       expect(res).to eq([
         {
           'level' => 1,
+          'simple_type' => 'custom',
           'interval' => 'weekyear',
           'watchlist' => true,
           'words_list' => ['hat', 'cat', 'frog'],
@@ -1437,6 +1441,7 @@ describe UserBadge, type: :model do
         },
         {
           'level' => 2,
+          'simple_type' => 'custom',
           'interval' => 'date',
           'watchlist' => true,
           'parts_of_speech_list' => ['noun', 'verb'],
@@ -1464,11 +1469,13 @@ describe UserBadge, type: :model do
         'level' => 1,
         'interval' => 'monthyear',
         'instance_count' => 14.0,
+        'simple_type' => 'custom',
         'matching_instances' => 3.2
       }, {
         'level' => 2,
         'interval' => 'date',
         'instance_count' => 3.43,
+        'simple_type' => 'custom',
         'word_instances' => 11.0
       }])
     end
@@ -1502,6 +1509,7 @@ describe UserBadge, type: :model do
       
       expect(res).to eq([{
         'level' => 1,
+        'simple_type' => 'custom',
         'interval' => 'weekyear',
         'watchlist' => true,
         'words_list' => ['hat', 'cat', 'frog'],
@@ -1511,6 +1519,7 @@ describe UserBadge, type: :model do
         'consecutive_units' => 3.0
       }, {
         'level' => 2,
+        'simple_type' => 'custom',
         'interval' => 'date',
         'watchlist' => true,
         'parts_of_speech_list' => ['noun', 'verb'],
@@ -1519,11 +1528,13 @@ describe UserBadge, type: :model do
         'matching_units' => 2.0
       }, {
         'level' => 3,
+        'simple_type' => 'custom',
         'interval' => 'monthyear',
         'instance_count' => 14.0,
         'matching_instances' => 3.2
       }, {
         'level' => 4,
+        'simple_type' => 'custom',
         'interval' => 'date',
         'instance_count' => 3.43,
         'word_instances' => 11.0
@@ -1549,10 +1560,12 @@ describe UserBadge, type: :model do
         'level' => 1,
         'interval' => 'monthyear',
         'instance_count' => 14.0,
+        'simple_type' => 'custom',
         'matching_instances' => 3.2
       }, {
         'level' => 2,
         'interval' => 'date',
+        'simple_type' => 'custom',
         'instance_count' => 3.43,
         'word_instances' => 11.0
       }])
@@ -1560,7 +1573,51 @@ describe UserBadge, type: :model do
     end
     
     it "should process simple_type badge settings" do
-      write_this_test
+      u = User.create
+      g = UserGoal.process_new({
+        'badges' => [
+          {
+            'simple_type' => 'words_per_week',
+            'words_list' => 'cat,rat,fat'
+          },
+          {
+            'simple_type' => 'buttons_per_day',
+            'instance_count' => '5'
+          },
+          {
+            'simple_type' => 'modeling_per_week',
+            'modeled_words_list' => 'cat,fat,hat',
+            'instance_count' => '4'
+          },
+          {
+            'simple_type' => 'modeling_per_day',
+            'instance_count' => '3'
+          }
+        ]
+      }, {user: u, author: u})
+      expect(g.settings['badges']).to eq(
+       [{"simple_type"=>"words_per_week",
+         "level"=>1,
+         "interval"=>"weekyear",
+         "watchlist"=>true,
+         "words_list"=>["cat", "rat", "fat"]},
+        {"simple_type"=>"buttons_per_day",
+         "level"=>2,
+         "interval"=>"date",
+         "instance_count"=>5.0,
+         "button_instances"=>5.0},
+        {"simple_type"=>"modeling_per_week",
+         "level"=>3,
+         "interval"=>"weekyear",
+         "watchlist"=>true,
+         "modeled_words_list"=>["cat", "fat", "hat"],
+         "watch_total"=>4.0},
+        {"simple_type"=>"modeling_per_day",
+         "level"=>4,
+         "interval"=>"date",
+         "instance_count"=>3.0,
+         "modeled_button_instances"=>3.0}
+      ])
     end
   end
 
@@ -2104,15 +2161,42 @@ describe UserBadge, type: :model do
         'parts_of_speech_list' => ['noun', 'adjective', 'verb']
       }, { 'total' => {
         'parts_of_speech' => {
-          'past_participle' => {'count' => 5},
-          'negation' => {'count' => 2}
+          'past_participle' => 4,
+          'negation' => 3
         }
       }})
       expect(res).to eq(nil)
     end
     
     it "should identify modeled words matches" do
-      write_this_test
+      res = UserBadge.check_day_stats({
+        'watchlist' => true,
+        'modeled_words_list' => ['cat', 'fat', 'hat']
+      }, { 'total' => {
+        'modeled_word_counts' => {
+          'cat' => 5,
+          'bug' => 3,
+          'hat' => 2
+        }
+      }})
+      expect(res).to eq({
+        matches: [
+          {value: 'cat', count: 5},
+          {value: 'hat', count: 2}
+        ],
+        total: 7
+      })
+
+      res = UserBadge.check_day_stats({
+        'watchlist' => true,
+        'parts_of_speech_list' => ['dog', 'fog', 'log']
+      }, { 'total' => {
+        'modeled_word_counts' => {
+          'rat' => 4,
+          'hat' => 3
+        }
+      }})
+      expect(res).to eq(nil)
     end
     
     it "should count word instances" do
@@ -2479,15 +2563,23 @@ describe UserBadge, type: :model do
   
   describe "dismiss" do
     it 'should allow dismissing goals' do
-      write_this_test
+      g = UserBadge.create
+      g.dismiss('1234')
+      expect(g.data['dismissed_by']).to eq({'1234' => true})
+      expect(g.dismissed_by?('1234')).to eq(true)
+      expect(g.dismissed_by?('2345')).to eq(false)
     end
     
     it 'should dismiss for everyone if dismissed by the user' do
-      write_this_test
+      g = UserBadge.create(user_id: 12)
+      gid = g.related_global_id(g.user_id)
+      g.dismiss(gid)
+      expect(g.data['dismissed_by'][gid]).to eq(true)
+      expect(g.dismissed_by?('1234')).to eq(true)
+      expect(g.dismissed_by?('2345')).to eq(true)
     end
   end
 end
-
 
 #     # possible goals:
 #     # - speaking streak, consecutive days spoken in a row

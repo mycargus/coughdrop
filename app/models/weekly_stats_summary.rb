@@ -20,22 +20,19 @@ class WeeklyStatsSummary < ActiveRecord::Base
     raise "no summary index defined" if found_ids == 0
     true
   end
-
-  def self.update_for(log_session_id)
+  
+  def self.weekyear_to_date(weekyear)
+    Date.commercial(weekyear / 100, weekyear % 100, 1) + 6
+  end
+  
+  def update!
+    summary = self
     all = false
-    log_session = LogSession.find_by_global_id(log_session_id)
-    return if !log_session || log_session.log_type != 'session'
-    return unless log_session.user_id && log_session.started_at && log_session.data && log_session.data['stats']
-    # TODO: if log_session.started_at ever gets updated in a way that changes cweek then
-    # multiple weeks need to be updated 
-    start_at = log_session.started_at.utc.beginning_of_week(:sunday)
-    end_at = log_session.started_at.utc.end_of_week(:sunday)
-    cweek = start_at.to_date.cweek
-    cwyear = start_at.to_date.cwyear
-    weekyear = (cwyear * 100) + cweek
-
-    summary = WeeklyStatsSummary.find_or_create_by(:weekyear => weekyear, :user_id => (all ? 0 : log_session.user_id))
-    sessions = Stats.find_sessions((all ? 'all' : log_session.user.global_id), {:start_at => start_at, :end_at => end_at})
+    user = User.find_by(id: self.user_id)
+    start_at = WeeklyStatsSummary.weekyear_to_date(self.weekyear).beginning_of_week(:sunday)
+    end_at = start_at.end_of_week(:sunday)
+    
+    sessions = Stats.find_sessions((all ? 'all' : user.global_id), {:start_at => start_at, :end_at => end_at})
     
     total_stats = Stats.init_stats(sessions)
     days = {}
@@ -82,7 +79,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     total_stats[:word_pairs] = Stats.word_pairs(sessions)
     total_stats[:days] = days
     total_stats[:locations] = Stats.location_use_for_sessions(sessions)
-    total_stats[:goals] = Stats.goals_for_user(log_session.user, start_at, end_at)
+    total_stats[:goals] = Stats.goals_for_user(user, start_at, end_at)
     total_stats[:buttons_used] = Stats.buttons_used(sessions)
     
     # TODO: include for the week:
@@ -98,6 +95,23 @@ class WeeklyStatsSummary < ActiveRecord::Base
     summary.save
     
     # TODO: create board-aligned stat summaries as well
+  end
+
+  def self.update_for(log_session_id)
+    all = false
+    log_session = LogSession.find_by_global_id(log_session_id)
+    return if !log_session || log_session.log_type != 'session'
+    return unless log_session.user_id && log_session.started_at && log_session.data && log_session.data['stats']
+    # TODO: if log_session.started_at ever gets updated in a way that changes cweek then
+    # multiple weeks need to be updated 
+    start_at = log_session.started_at.utc.beginning_of_week(:sunday)
+    end_at = log_session.started_at.utc.end_of_week(:sunday)
+    cweek = start_at.to_date.cweek
+    cwyear = start_at.to_date.cwyear
+    weekyear = (cwyear * 100) + cweek
+
+    summary = WeeklyStatsSummary.find_or_create_by(:weekyear => weekyear, :user_id => (all ? 0 : log_session.user_id))
+    summary.update!
   end
 
   def track_for_trends
@@ -430,7 +444,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
         stash[:user_ids] += summary.data['user_ids'] || []
         stash[:total_sessions] += summary.data['totals']['total_sessions']
         (summary.data['totals']['modeled_session_events'] || {}).each do |total, cnt|
-          stash[:modeled_sessions] += cnt in total >= minimum_session_modeling_events
+          stash[:modeled_sessions] += cnt if total >= minimum_session_modeling_events
         end
         stash[:home_board_user_ids] += summary.data['home_board_user_ids'] || summary.data['user_ids'] || []
       

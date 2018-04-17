@@ -60,7 +60,18 @@ describe SessionController, :type => :controller do
     end
     
     it "should allow requesting multiple valid scopes" do
-      write_this_test
+      k = DeveloperKey.create(:redirect_uri => DeveloperKey.oob_uri)
+      post :oauth, params: {:client_id => k.key, :redirect_uri => DeveloperKey.oob_uri, :scope => 'read_profile:basic_supervision'}
+      expect(assigns[:app_name]).to eq("the application")
+      expect(assigns[:app_icon]).not_to eq(nil)
+      expect(assigns[:code]).not_to eq(nil)
+      expect(response).to be_success
+      str = RedisInit.default.get("oauth_#{assigns[:code]}")
+      expect(str).not_to eq(nil)
+      json = JSON.parse(str)
+      expect(json['app_name']).to eq('the application')
+      expect(json['scope']).to eq('read_profile:basic_supervision')
+      expect(json['user_id']).to eq(nil)
     end
   end
   
@@ -270,7 +281,18 @@ describe SessionController, :type => :controller do
     end
     
     it "should allow settings multiple whitelisted scopes" do
-      write_this_test
+      u = User.create
+      key_with_stash(u)
+      @config['scope'] = 'read_profile:basic_supervision'
+      RedisInit.default.set("oauth_#{@code}", @config.to_json)
+
+      expect(Device.count).to eq(0)
+      post :oauth_token, params: {:code => @code, :client_id => @key.key, :client_secret => @key.secret}
+      expect(response).to be_success
+      expect(RedisInit.default.get("oauth_#{@code}")).to eq(nil)
+      expect(Device.count).to eq(1)
+      d = Device.last
+      expect(d.permission_scopes).to eq(['read_profile', 'basic_supervision'])
     end
 
     it "should not set non-whitelisted scopes for the device" do

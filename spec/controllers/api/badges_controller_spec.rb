@@ -81,10 +81,30 @@ describe Api::BadgesController, :type => :controller do
     end
     
     it "should filter by earned if specified" do
+      token_user
+      b = UserBadge.create(:user => @user)
+      b2 = UserBadge.create(:user => @user, :earned => true)
+      get 'index', params: {:user_id => @user.global_id, earned: true}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['badge'].length).to eq(1)
+      expect(json['badge'][0]['id']).to eq(b2.global_id)
     end
     
     it "should filter to recently-earned (including supervisees) if specified" do
-      write_this_test
+      token_user
+      b = UserBadge.create(:user => @user)
+      b2 = UserBadge.create(:user => @user, :earned => true)
+      b3 = UserBadge.create(:user => @user, :earned => true)
+      b3.data['earn_recorded'] = 6.months.ago.iso8601
+      b3.save
+      b4 = UserBadge.create(:user => @user, :superseded => true)
+      UserBadge.where(id: b3.id).update_all(updated_at: 6.months.ago)
+      get 'index', params: {:user_id => @user.global_id, recent: true}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['badge'].length).to eq(2)
+      expect(json['badge'].map{|b| b['id']}.sort).to eq([b.global_id, b2.global_id])
     end
   end
   

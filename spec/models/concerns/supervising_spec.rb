@@ -19,6 +19,7 @@ describe Supervising, :type => :model do
         'view_detailed' => true,
         'view_deleted_boards' => true,
         'view_word_map' => true,
+        'set_goals' => true,
         'supervise' => true
       })
       u.settings['supervisors'] = [{'user_id' => u2.global_id, 'edit_permission' => true}]
@@ -35,6 +36,7 @@ describe Supervising, :type => :model do
         'view_deleted_boards' => true,
         'view_word_map' => true,
         'supervise' => true,
+        'set_goals' => true,
         'edit' => true
       })
     end

@@ -48,7 +48,28 @@ describe Subscription, :type => :model do
   end
   
   it "should not check managed_by to get date data" do
-    write_this_test
+    u = User.create
+    o = Organization.create(:settings => {'total_licenses' => 2})
+    u.update_subscription_organization(o.global_id, false, true)
+    links = UserLink.links_for(u)
+    expect(links).to eq([{
+      'user_id' => u.global_id,
+      'record_code' => Webhook.get_record_code(o),
+      'type' => 'org_user',
+      'state' => {
+        'pending' => false,
+        'sponsored' => true,
+        'eval' => false,
+        'added' => links[0]['state']['added']
+      }
+    }])
+    link = UserLink.last
+    
+    added = Time.now - 2.years
+    link.data['state']['added'] = added.iso8601
+    link.save
+    expect(u.reload.org_sponsored?).to eq(true)
+    expect(u.purchase_credit_duration).to eq((Time.now - added).to_i)
   end
   
   describe "long_term_purchase?" do
@@ -216,9 +237,11 @@ describe Subscription, :type => :model do
         'purchase' => true,
         'customer_id' => '12345',
         'plan_id' => 'long_term_150',
-        'purchase_id' => '23456',
+        'purchase_id' => '234567',
         'seconds_to_add' => 2.years.to_i
       })
+      expect(res).to eq(true)
+      expect(u.reload.expires_at).to be >= 2.years.from_now - 1.week
       expect(Time).to receive(:now).and_return(3.years.from_now).at_least(1).times
       expect(u.fully_purchased?).to eq(true)
       expect(u.premium?).to eq(true)
@@ -1649,6 +1672,7 @@ describe Subscription, :type => :model do
     end
     
     it "should transfer preferences to the new user" do
+      write_this_test
     end
     
     it "should transfer copied boards to the new user"
@@ -1660,9 +1684,11 @@ describe Subscription, :type => :model do
     it "should transfer user utterances"
     
     it "should keep any device preferences already set for the new user" do
+      write_this_test
     end
     
     it "should call reset_eval" do
+      write_this_test
     end
   end
   

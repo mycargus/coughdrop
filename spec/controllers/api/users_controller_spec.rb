@@ -87,6 +87,7 @@ describe Api::UsersController, :type => :controller do
         "supervise"=>false, 
         "edit"=>false, 
         "manage_supervision"=>false, 
+        'set_goals' => false,
         "delete"=>false
       })
 
@@ -130,6 +131,7 @@ describe Api::UsersController, :type => :controller do
         "view_deleted_boards"=>true, 
         "view_detailed"=>true, 
         'view_word_map' => true,
+        'set_goals' => true,
         "supervise"=>true
       })
       
@@ -144,6 +146,7 @@ describe Api::UsersController, :type => :controller do
         "view_deleted_boards"=>true, 
         "view_detailed"=>true, 
         'view_word_map' => true,
+        'set_goals' => true,
         "supervise"=>true
       })
       expect(json['user']['id']).to eq(u.global_id)
@@ -986,14 +989,16 @@ describe Api::UsersController, :type => :controller do
       expect(u.reload.settings['subscription']['plan_id']).to eq('eval_monthly_free')
     end
     
-    it "should not let admins set a subscription to gift_code" do
+    it "should let admins set a subscription to gift_code" do
       token_user
       u = User.create
       o = Organization.create(:admin => true, :settings => {'total_licenses' => 1})
       o.add_manager(@user.user_name, true)
       
-      post :subscribe, params: {:user_id => u.global_id, :type => 'gift_code', 'code' => 'asdf'}
-      assert_unauthorized
+      post :subscribe, params: {:user_id => u.global_id, :type => 'gift_code', token: {'code' => 'asdf'}}
+      expect(response.success?).to eq(true)
+      json = JSON.parse(response.body)
+      expect(json['progress']).not_to eq(nil)
     end
 
     it "should not let non-admins set a subscription to never_expires" do
