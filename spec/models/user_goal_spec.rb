@@ -973,4 +973,10 @@ describe UserGoal, type: :model do
       expect(g.active_during(3.hours.ago, 2.hours.ago)).to eq(false)
     end
   end
+  
+  describe "expire_external_dups" do
+    it "should expire existing goals with the same external_id" do
+      write_this_test
+    end
+  end
 end

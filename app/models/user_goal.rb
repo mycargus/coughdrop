@@ -9,6 +9,7 @@ class UserGoal < ActiveRecord::Base
   before_save :generate_defaults
   after_save :check_set_as_primary
   after_save :update_template_header
+  after_save :expire_external_dups
   after_destroy :remove_if_primary
   after_destroy :remove_linked_templates
   replicated_model  
@@ -258,15 +259,25 @@ class UserGoal < ActiveRecord::Base
   def check_set_as_primary
     if @set_as_primary
       if self.user && self.user.settings
-        # TODO: sharding
-        UserGoal.where(:user_id => self.user_id).update_all(:primary => false)
-        UserGoal.where(:id => self.id).update_all(:primary => true)
-        if !self.user.settings || !self.user.settings['primary_goal'] || self.user.settings['primary_goal']['id'] != self.global_id
-          self.user.reload
-          self.user.update_setting('primary_goal', {
-            'id' => self.global_id,
-            'summary' => self.summary
-          })
+        do_set = true
+        if @set_as_primary = 'if_available'
+          # for if_available, only set as the primary goal if there is no primary
+          # goal set, or if this goal is going to replace the primary goal
+          # via external_id
+          primaries = UserGoal.where(:user_id => self.user_id, :primary => true, :active => true)
+          do_set = primaries.count == 0 || primaries.all?{|g| g.settings['external_id'] && g.settings['external_id'] == self.settings['external_id'] }
+        end
+        if do_set
+          # TODO: sharding
+          UserGoal.where(:user_id => self.user_id).update_all(:primary => false)
+          UserGoal.where(:id => self.id).update_all(:primary => true)
+          if !self.user.settings || !self.user.settings['primary_goal'] || self.user.settings['primary_goal']['id'] != self.global_id
+            self.user.reload
+            self.user.update_setting('primary_goal', {
+              'id' => self.global_id,
+              'summary' => self.summary
+            })
+          end
         end
       end
     elsif @clear_primary
@@ -321,6 +332,14 @@ class UserGoal < ActiveRecord::Base
     badges = UserBadge.process_goal_badges(params['badges'], params['assessment_badge']) if params['badges'] || params['assessment_badge']
     self.settings['badges'] = badges.select{|b| b['level']} if badges
     self.settings['assessment_badge'] = badges.detect{|b| b['assessment'] } if badges
+    if params['external_id'] && self.settings['external_id'] != params['external_id']
+      self.settings['external_id'] = params['external_id'] 
+      self.settings['expire_external_id'] = true
+    end
+    if params['expires'] && !self.settings['template_id']
+      self.advance_at = current_date_from_template(params['expires'])
+    end
+    
     if self.template_header
       self.template = true
       self.settings['template_header_id'] ||= 'self'
@@ -400,7 +419,7 @@ class UserGoal < ActiveRecord::Base
     end
     
     if params[:primary]
-      @set_as_primary = true
+      @set_as_primary = params[:primary]
       @clear_primary = false
     elsif self.primary && params[:primary] == false
       @clear_primary = true
@@ -408,6 +427,24 @@ class UserGoal < ActiveRecord::Base
     end
     self.primary = !!params[:primary] if params[:primary] != nil
     true
+  end
+  
+  def expire_external_dups(frd=false)
+    return true unless self.settings && self.settings['external_id'] && self.settings['expire_external_id']
+    if !frd
+      schedule(:expired_external_dups, true)
+      return true
+    end
+    self.settings.delete('expire_external_id')
+    self.save
+    UserGoal.where(user_id: self.user_id).find_in_batches(batch_size: 10) do |batch|
+      batch.each do |goal|
+        if goal.id != self.id && goal.settings['external_id'] == self.settings['external_id']
+          goal.active = false
+          goal.save
+        end
+      end
+    end
   end
   
   def author
