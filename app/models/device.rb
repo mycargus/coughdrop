@@ -8,6 +8,11 @@ class Device < ActiveRecord::Base
   before_save :generate_defaults
   after_save :update_user_device_name
 
+  VALID_API_SCOPES = {
+    'read_profile' => "access basic profile information",
+    'basic_supervision' => "supervise communicators"
+  }
+
   def generate_defaults
     self.settings ||= {}
     self.settings['name'] ||= 'Web browser for Desktop' if self.default_device?

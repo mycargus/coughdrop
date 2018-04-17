@@ -42,6 +42,8 @@ class User < ActiveRecord::Base
   add_permissions('manage_supervision', 'support_actions') {|user| Organization.manager_for?(user, self) }
   add_permissions('admin_support_actions', 'support_actions', 'view_deleted_boards') {|user| Organization.admin_manager?(user) }
   add_permissions('view_word_map', ['*']) {|user| user.supervisor_for?(self) }
+  add_permissions('view_detailed', 'view_deleted_boards', 'set_goals', ['basic_supervision']) {|user| user.supervisor_for?(self) }
+  add_permissions('set_goals', ['basic_supervision']) {|user| user.id == self.id }
   cache_permissions
   
   def self.find_for_login(user_name)
@@ -83,7 +85,7 @@ class User < ActiveRecord::Base
   def log_session_duration
     (self.settings['preferences'] && self.settings['preferences']['log_session_duration']) || User.default_log_session_duration
   end
-  
+    
   def self.default_log_session_duration
     30.minutes.to_i
   end

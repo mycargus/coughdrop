@@ -1,5 +1,5 @@
 <div id='small_header'><%= render 'shared/static_header' %></div>
-<div id="content" style="width: 400px; margin: 50px auto 0 auto;">
+<div id="content" style="width: 500px; margin: 50px auto 0 auto;">
       <div style="margin: 20px;">
         <% if @error && @error != 'invalid_login' %>
           <!-- TODO: i18n -->
@@ -23,8 +23,12 @@
               <p>
                 <!-- TODO: icon_url -->
                 <b><%= @app_name %></b> is requesting permission 
-                to access your CoughDrop account. Please login to authorize.
+                to access your CoughDrop account. Please login to authorize the 
+                following permissions:
               </p>
+              <div style='margin: 20px 0; text-align: center; font-weight: bold; white-space: pre-line;'>
+                <%= @scope_descriptors %>
+              </div>
             </div>
             <div class='form-group'>
               <input class='form-control input-lg' type='text' name='username' value='<%= params['username'] %>' placeholder="username"/>
@@ -64,7 +68,11 @@
                 <!-- TODO: icon_url -->
                 <b><%= @app_name %></b> is requesting permission 
                 to access your CoughDrop account. Please approve the app to continue
+                with the following permissions:
               </p>
+              <div style='margin: 20px 0; text-align: center; font-weight: bold; white-space: pre-line;'>
+                <%= @scope_descriptors %>
+              </div>
             </div>
             <div class='form-group'>
               You are currently signed in as:
@@ -98,6 +106,8 @@
   } catch(e) { }
   if(auth && auth.user_name && auth.access_token && document.getElementById('oauth_login') && !document.getElementById('invalid_attempt')) {
     var xhr = new XMLHttpRequest();
+    // If already logged in with a fully-scoped access token, use that information
+    // and show an 'approve' option instead of a 'login' option.
     xhr.onreadystatechange = function() {
       if(this.readyState == 4 && this.status == 200) {
         res = JSON.parse(this.responseText);

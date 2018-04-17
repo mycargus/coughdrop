@@ -211,6 +211,10 @@ describe Api::GoalsController, type: :controller do
       expect(json['goal']['comments'][0]['text']).to eq('hey yo')
       expect(json['goal']['comments'][0]['user']['user_name']).to eq(@user.user_name)
     end
+    
+    it "should not allow a supervision api token to update a goal" do
+      write_this_test
+    end
   end
 
   describe "destroy" do

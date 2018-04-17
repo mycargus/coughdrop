@@ -58,6 +58,10 @@ describe SessionController, :type => :controller do
       expect(json['scope']).to eq('')
       expect(json['user_id']).to eq(nil)
     end
+    
+    it "should allow requesting multiple valid scopes" do
+      write_this_test
+    end
   end
   
   def key_with_stash(user=nil, redirect_uri=nil)
@@ -263,6 +267,10 @@ describe SessionController, :type => :controller do
       expect(Device.count).to eq(1)
       d = Device.last
       expect(d.permission_scopes).to eq(['read_profile'])
+    end
+    
+    it "should allow settings multiple whitelisted scopes" do
+      write_this_test
     end
 
     it "should not set non-whitelisted scopes for the device" do

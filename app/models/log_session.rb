@@ -283,6 +283,8 @@ class LogSession < ActiveRecord::Base
     if self.data['events'] && self.started_at && self.ended_at
       self.data['stats']['session_seconds'] = (self.ended_at - self.started_at).to_i
       self.data['events'].each do |event|
+        self.data['stats']['modeling_events'] ||= 0
+        self.data['stats']['modeling_events'] += 1 if event['modeling']
         self.data['stats']['system'] ||= event['system']
         self.data['stats']['browser'] ||= event['browser']
         self.data['stats']['window_width'] ||= event['window_width']

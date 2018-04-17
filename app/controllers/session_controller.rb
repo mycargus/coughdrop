@@ -17,7 +17,7 @@ class SessionController < ApplicationController
       @error = error
       render #:status => 400
     else
-      scope = params['scope'] || ''
+      scope = params['scope'] || 'read_profile'
       scope = scope.sub(/full/, '')
       config = {
         'scope' => scope,
@@ -27,6 +27,9 @@ class SessionController < ApplicationController
         'app_name' => @app_name,
         'app_icon' => @app_icon
       }
+      @scope_descriptors = scope.split(/:/).uniq.map{|s| Device::VALID_API_SCOPES[s] }.compact.join("\n")
+      @scope_descriptors = "no permissions requested" if @scope_descriptors.blank?
+      
       @code = GoSecure.nonce('oauth_code')
       RedisInit.default.setex("oauth_#{@code}", 1.hour.from_now.to_i, config.to_json)
       # render login page
@@ -79,6 +82,7 @@ class SessionController < ApplicationController
     end
   end
   
+  
   def oauth_token
     key = DeveloperKey.find_by(:key => params['client_id'])
     error = nil
@@ -105,8 +109,9 @@ class SessionController < ApplicationController
       device.settings['name'] = config['device_name']
       device.settings['name'] += device.id.to_s if device.settings['name'] == 'browser'
       device.settings['name'] ||= (key.name || "Token") + " account"
-      if ['read_profile'].include?(config['scope'])
-        device.settings['permission_scopes'] = [config['scope']]
+      device.settings['permission_scopes'] = []
+      (config['scope'] || '').split(/:/).uniq.each do |scope|
+        device.settings['permission_scopes'].push(scope) if Device::VALID_API_SCOPES[scope]
       end
       device.generate_token!
       render json: JsonApi::Token.as_json(device.user, device).to_json
