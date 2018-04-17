@@ -212,7 +212,29 @@ class UserBadge < ActiveRecord::Base
     end
     level = 0
     all_badges.each_with_index do |badge, idx|
+      badge['simple_type'] ||= 'custom'
+      if badge['simple_type'] && badge['simple_type'] != 'custom'
+        if badge['simple_type'].match(/per_week/)
+          badge['interval'] = 'weekyear'
+        else
+          badge['interval'] = 'date'
+        end
+        if badge['simple_type'].match(/words/)
+          badge['watchlist'] = true
+        elsif badge['simple_type'].match(/buttons/)
+          badge['button_instances'] = badge['instance_count']
+        elsif badge['simple_type'].match(/modeling/)
+          if badge['modeled_words_list']
+            badge['watchlist'] = true
+            badge['watch_total'] ||= badge['instance_count']
+          else
+            badge['modeled_button_instances'] = badge['instance_count']
+          end
+        end
+      end
+
       badge_level = {}
+      badge_level['simple_type'] = badge['simple_type']
       if badge['assessment']
         badge_level['assessment'] = true
       else
@@ -233,6 +255,9 @@ class UserBadge < ActiveRecord::Base
         elsif badge['parts_of_speech_list']
           badge_level['parts_of_speech_list'] = badge['parts_of_speech_list']
           badge_level['parts_of_speech_list'] = badge_level['parts_of_speech_list'].split(',').compact.map(&:strip).select{|w| w.length > 0 } if badge_level['parts_of_speech_list'].is_a?(String)
+        elsif badge['modeled_words_list']
+          badge_level['modeled_words_list'] = badge['modeled_words_list']
+          badge_level['modeled_words_list'] = badge_level['modeled_words_list'].split(',').compact.map(&:strip).select{|w| w.length > 0 } if badge_level['modeled_words_list'].is_a?(String)
         end
         
         ['watch_type_minimum', 'watch_total', 'watch_type_count'].each do |key|
@@ -246,7 +271,8 @@ class UserBadge < ActiveRecord::Base
       elsif badge['instance_count']
         badge_level['instance_count'] = badge['instance_count'].to_f
         ['word_instances', 'button_instances', 'session_instances', 'modeled_button_instances',
-            'modeled_word_instances', 'unique_word_instances', 'unique_button_instances',
+            'modeled_word_instances', 'modeled_session_instances', 'unique_word_instances', 
+            'unique_button_instances',
             'repeat_word_instances', 'geolocation_instances'].each do |key|
           badge_level[key] = badge[key].to_f if badge[key]
         end
@@ -564,6 +590,14 @@ class UserBadge < ActiveRecord::Base
             }
           end
         end
+      elsif badge_level['modeled_words_list'] && data['modeled_word_counts']
+        words = data['modeled_word_counts'].select{|k, v| badge_level['modeled_words_list'].include?(k) }
+        words.each do |word, val|
+          matches << {
+            value: word,
+            count: val
+          }
+        end
       elsif badge_level['parts_of_speech_list'] && data['parts_of_speech']
         parts = data['parts_of_speech'].each do |k, v| 
           if badge_level['parts_of_speech_list'].include?(k) 
@@ -593,6 +627,13 @@ class UserBadge < ActiveRecord::Base
         instances = data['all_button_counts'].map{|k, v| v['count'] }.sum
       elsif badge_level['session_instances'] && data['total_sessions']
         instances = data['total_sessions']
+      elsif badge_level['modeled_session_instances'] && data['modeled_session_events']
+        cutoff = badge_level['modeled_session_minimum'] || 3
+        instances = 0
+        data['modeled_session_events'].each do |total, cnt|
+          instance += cnt if total >= cutoff
+        end
+        instances = data['modeled_sessions']
       elsif badge_level['modeled_button_instances'] && data['modeled_button_counts']
         instances = data['modeled_button_counts'].map{|k, v| v['count'] }.sum
       elsif badge_level['modeled_word_instances'] && data['modeled_word_counts']

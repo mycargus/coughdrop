@@ -456,6 +456,10 @@ describe UserGoal, type: :model do
       expect(g.settings['goal_duration']).to eq(nil)
       expect(g.settings['goal_advances_at']).to eq(nil)
     end
+    
+    it 'should honor if_available option for set_as_primary' do
+      write_this_test
+    end
   end
   
   describe "current_date_from_template" do

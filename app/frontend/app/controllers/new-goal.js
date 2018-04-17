@@ -15,7 +15,68 @@ export default modal.ModalController.extend({
     if(this.get('model.browse')) {
       this.send('browse_goals');
     }
+    if(!this.get('model.user.goal')) {
+      this.set('goal.primary', true);
+    }
   },
+  simple_types: [
+    {name: i18n.t('select_simple_goal_type', "[ Select a Goal Type ]"), id: ''},
+    {name: i18n.t('use_for_communication', "Increase Communication Attempts"), id: 'buttons'},
+    {name: i18n.t('use_target_words', "Try to Use a List of Target Words"), id: 'words'},
+    {name: i18n.t('modeling_for_communication', "Work on Modelings for the Communicator"), id: 'modeling'},
+    {name: i18n.t('custom_goal', "I Will Define My Own Goal"), id: 'custom'},
+  ],
+  goal_type: function() {
+    var type = this.get('goal.simple_type');
+    if(!type) { return null; }
+    var res = {}
+    res[type] = true;
+    if(type == 'buttons' || type == 'modeling') {
+      res.instance_count = true;
+    }
+    if(type == 'words' || type == 'modeling') {
+      res.strings_list = true;
+    }
+    return res;
+  }.property('goal.simple_type'),
+  goal_simple_action: function() {
+    var type = this.get('goal.simple_type');
+    if(type == 'buttons') {
+      return i18n.t('button_hits', "button hits");
+    } else if(type == 'words') {
+      return i18n.t('word_usages', "times used");
+    } else if(type == 'modeling') {
+      return i18n.t('modeling_events', "modeling hits");
+    } else {
+      return i18n.t('events', "events");
+    }
+  }.property('goal.simple_type'),
+  set_defaults_by_simple_type: function(obj, change) {
+    if(change == 'goal.summary' && !this.get('ignore_summary_change')) {
+      this.set('custom_summary', true);
+    }
+    if(change == 'goal.simple_type') { this.set('custom_summary', false); }
+    if(this.set('custom_summary')) { return; }
+    this.set('ignore_summary_change', true);
+    if(this.get('goal.simple_type') == 'buttons') {
+      var instance_count = this.get('goal.instance_count');
+      var extra = instance_count ? (" " + instance_count + " buttons per day!") : "";
+      this.set('goal.summary', "Keep Talking!" + extra);
+    } else if(this.get('goal.simple_type') == 'words') {
+      var words = this.get('goal.strings_list') || '[words]';
+      this.set('goal.summary', "Look for times to say: " + words);
+    } else if(this.get('goal.simple_type') == 'modeling') {
+      var words = this.get('goal.strings_list');
+      if(words) {
+        this.set('goal.summary', "Try to model: " + words);
+      } else {
+        var instance_count = this.get('goal.instance_count');
+        var extra = instance_count ? (" " + instance_count + " buttons per day!") : "";
+        this.set('goal.summary', "More Modeling!" + extra);
+      }
+    }
+    this.set('ignore_summary_change', false);
+  }.observes('goal.simple_type', 'goal.strings_list', 'goal.summary', 'goal.instance_count'),
   save_disabled: function() {
     return this.get('pending_save') || (this.get('browse_goals') && !this.get('selected_goal')) || this.get('saving');
   }.property('pending_save', 'browse_goals', 'selected_goal', 'saving'),
@@ -41,6 +102,52 @@ export default modal.ModalController.extend({
         goal.set('template_id', this.get('selected_goal.id'));
         goal.set('primary', this.get('selected_goal.user_primary'));
       }
+      if(goal.get('simple_type') && goal.get('simple_type') != 'custom') {
+        // Populate additional information for simple-type goals
+        var type = goal.get('simple_type');
+        if(type == 'buttons') {
+          if(!goal.get('description')) {
+            goal.set('description', i18n.t('buttons_explainer', "Consistent usage is important! Communication isn't something that just happens in one location, and for communicators to get proficient using their device they need to have it out and available throughout the day, in different locations and situations."));
+          }
+          if(goal.get('instance_count')) {
+            var count = parseInt(goal.get('instance_count'), 10) || 3;
+            goal.set('assessment_badge', {
+              assessment: true,
+              instance_count: count.toString(),
+              simple_type: 'buttons_per_day'
+            });
+          }
+        } else if(type == 'words') {
+          var strings = goal.get('strings_list');
+          if(!goal.get('description')) {
+            goal.set('description', i18n.t('words_explainer', "Right now you have a goal to focus on the following: " + strings + ". Try to think of different ways to use these words, and different situations where they might come up. There are lots of activities that can be targeted toward specific words of phrases if you get creative. Don't forget to model these words as well so you can show the communicator examples of how they could use the words on their device!"));
+          }
+          if(goal.get('instance_count') && strings) {
+            var count = parseInt(goal.get('instance_count'), 10) || 3;
+            goal.set('assessment_badge', {
+              assessment: true,
+              words_list: strings,
+              watch_total: count.toString(),
+              simple_type: 'words_per_day'
+            });
+          }
+        } else if(type == 'modeling') {
+          var strings = goal.get('strings_list');
+          if(!goal.get('description')) {
+            goal.set('description', i18n.t('modeling_explainer', "Modeling is the process of showing a communicator how they could say things user their communication device. Just like with spoken communication, it often takes a lot of modeled communication before a communicator gets comfortable on their own, so look for many opportunities to model in different environments and times of day."));
+          }
+          if(goal.get('instance_count')) {
+            var count = parseInt(goal.get('instance_count'), 10) || 3;
+            goal.set('assessment_badge', {
+              assessment: true,
+              instance_count: count.toString(),
+              modeled_words_list: strings,
+              watch_total: count.toString(),
+              simple_type: 'modeling_per_day'
+            });
+          }
+        }
+      }
       goal.set('user_id', this.get('model.user.id'));
       goal.set('active', true);
       // TODO: something about attaching the video
@@ -48,7 +155,7 @@ export default modal.ModalController.extend({
       _this.set('error', false);
       goal.save().then(function() {
         _this.set('saving', false);
-        modal.close(true);
+        modal.close(goal);
       }, function() {
         _this.set('saving', false);
         _this.set('error', true);

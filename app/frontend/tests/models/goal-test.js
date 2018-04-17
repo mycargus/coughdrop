@@ -628,6 +628,10 @@ describe('Goal', function() {
       expect(g.get('badges').length).toEqual(3);
       expect(g.get('badges')[2]['b']).toEqual(1);
     });
+
+    it('should have multiple possible default images', function() {
+      expect('test').toEqual('todo');
+    });
   });
 
   describe('set_zero_badge', function() {

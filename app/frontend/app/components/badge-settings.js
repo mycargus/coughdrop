@@ -13,6 +13,7 @@ export default Component.extend({
       var _this = this;
       this.set('badge.enable_auto_tracking', !!(this.get('badge.watchlist') || this.get('badge.instance_count') ||this.get('assessment')));
       if(this.get('badge.instance_count')) {
+        if(!this.get('badge.simple_type')) { this.set('badge.simple_type', 'custom'); }
         this.set('badge.tracking_type', 'instance_count');
 
         if(this.get('badge.word_instances')) {
@@ -37,15 +38,15 @@ export default Component.extend({
       } else if(this.get('badge.watchlist')) {
         this.set('badge.tracking_type', 'watchlist');
         if(this.get('badge.words_list')) {
-          this.set('badge.watchlist_type', 'words');
           var list = this.get('badge.words_list') || [];
           if(list.join) { list = list.join(','); }
           this.set('badge.string_list', list);
+          this.set('badge.watchlist_type', 'words');
         } else if(this.get('badge.parts_of_speech_list')) {
-          this.set('badge.watchlist_type', 'parts_of_speech');
           var list = this.get('badge.parts_of_speech_list') || [];
           if(list.join) { list = list.join(','); }
           this.set('badge.string_list', list);
+          this.set('badge.watchlist_type', 'parts_of_speech');
         }
         this.setProperties({
           'badge.enable_watch_type_minimum': !!this.get('badge.watch_type_minimum'),
@@ -56,13 +57,33 @@ export default Component.extend({
       }
     }
     if(this.get('badge.consecutive_units')) {
+      if(!this.get('badge.simple_type')) { this.set('badge.simple_type', 'custom'); }
       this.set('badge.criteria_type', 'consecutive_units');
     } else if(this.get('badge.matching_units')) {
+      if(!this.get('badge.simple_type')) { this.set('badge.simple_type', 'custom'); }
       this.set('badge.criteria_type', 'matching_units');
     } else if(this.get('badge.matching_instances')) {
+      if(!this.get('badge.simple_type')) { this.set('badge.simple_type', 'custom'); }
       this.set('badge.criteria_type', 'matching_instances');
     }
   }.observes('badge'),
+  simple_types: [
+    {name: i18n.t('select_simple_tracking_type', "[ How to Earn This Badge ]"), id: ''},
+    {name: i18n.t('earned_by_words_per_day', "Earned by Watchwords Used Per Day"), id: 'words_per_day'},
+    {name: i18n.t('earned_by_words_per_week', "Earned by Watchwords Used Per Week"), id: 'words_per_week'},
+    {name: i18n.t('earned_by_buttons_per_day', "Earned by Buttons Hit Per Day"), id: 'buttons_per_day'},
+    {name: i18n.t('earned_by_buttons_per_week', "Earned by Buttons Hit Per Week"), id: 'buttons_per_week'},
+    {name: i18n.t('earned_by_modeling_per_day', "Earned by Modeling Events Per Day"), id: 'modeling_per_day'},
+    {name: i18n.t('earned_by_modeling_per_week', "Earned by Modeling Events Per Week"), id: 'modeling_per_week'},
+    {name: i18n.t('custom_tracking', "Custom or More Fine-Grained Tracking"), id: 'custom'},
+  ],
+  simple_assessment_types: [
+    {name: i18n.t('select_simple_tracking_type', "[ How to Track for Mastery ]"), id: ''},
+    {name: i18n.t('assess_by_words_per_day', "Track Watchwords Used Each Day"), id: 'words_per_day'},
+    {name: i18n.t('assess_by_buttons_per_day', "Track Buttons Hit Each Day"), id: 'buttons_per_day'},
+    {name: i18n.t('assess_by_modeling_per_day', "Track Modeling Events Each Day"), id: 'modeling_per_day'},
+    {name: i18n.t('custom_tracking', "Custom or More Fine-Grained Tracking"), id: 'custom'},
+  ],
   tracking_types: [
     {name: i18n.t('select_tracking_type', "[ Select ]"), id: ''},
     {name: i18n.t('watch_for_events', "Watch for events of a specific type"), id: 'instance_count'},
@@ -90,6 +111,34 @@ export default Component.extend({
     {name: i18n.t('unique_words', "Unique Word(s)"), id: 'unique_word'},
     {name: i18n.t('unique_buttons', "Unique Button(s)"), id: 'unique_button'},
   ],
+  custom_badge: function() {
+    return this.get('badge.simple_type') == 'custom';
+  }.property('badge.simple_type'),
+  simple_badge: function() {
+    return (this.get('badge.simple_type') && this.get('badge.simple_type') != 'custom');
+  }.property('badge.simple_type'),
+  simple_word_badge: function() {
+    var type = this.get('badge.simple_type') || '';
+    return type.match(/words/);
+  }.property('badge.simple_type'),
+  simple_button_badge: function() {
+    var type = this.get('badge.simple_type') || '';
+    return type.match(/buttons/);
+  }.property('badge.simple_type'),
+  simple_modeling_badge: function() {
+    var type = this.get('badge.simple_type') || '';
+    return type.match(/modeling/);
+  }.property('badge.simple_type'),
+  simple_badge_unit: function() {
+    var type = this.get('badge.simple_type') || '';
+    if(type.match(/per_day/)) {
+      return i18n.t('days', "days");
+    } else if(type.match(/per_week/)) {
+      return i18n.t('weeks', "weeks");
+    } else {
+      return i18n.t('units', "units");
+    }
+  }.property('badge.simple_type'),
   criteria_type_list: function() {
     if(this.get('badge.interval') == 'monthyear') {
       return [
@@ -175,10 +224,12 @@ export default Component.extend({
   update_lists: function() {
     if(this.get('badge.watchlist_type') == 'words' && this.get('badge.string_list')) {
       this.set('badge.words_list', this.get('badge.string_list'));
+    } else if((this.get('badge.simple_type') || '').match(/words/)) {
+      this.set('badge.words_list', this.get('badge.string_list'));
     } else if(this.get('badge.watchlist_type') == 'parts_of_speech' && this.get('badge.string_list')) {
       this.set('badge.parts_of_speech_list', this.get('badge.string_list'));
     }
-  }.observes('badge.string_list', 'badge.watchlist_type'),
+  }.observes('badge.string_list', 'badge.watchlist_type', 'badge.simple_type'),
   update_instance_count: function() {
     if(this.get('badge.instance_metric') && this.get('badge.instance_count')) {
       var _this = this;

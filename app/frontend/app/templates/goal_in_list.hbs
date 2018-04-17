@@ -55,6 +55,15 @@
     {{else}}
       {{date_ago goal.ended}}
     {{/if}}
+    <span style='margin-left: 10px;'>
+      {{#if goal.advance}}
+        {{t "advances" key='advances_in'}}
+        {{date_ago goal.advance 'day'}}
+      {{else if goal.expires}}
+        {{t "concludes" key='concludes_in'}}
+        {{date_ago goal.expires 'day'}}
+      {{/if}}
+    </span>
   </div>
   <div class='description text-muted'>
     {{goal.description}}

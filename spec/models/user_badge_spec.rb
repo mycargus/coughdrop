@@ -1558,6 +1558,10 @@ describe UserBadge, type: :model do
       }])
       expect(g.settings['badge_name']).to eq('awesomeness')
     end
+    
+    it "should process simple_type badge settings" do
+      write_this_test
+    end
   end
 
 

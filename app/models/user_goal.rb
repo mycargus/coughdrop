@@ -506,6 +506,11 @@ class UserGoal < ActiveRecord::Base
   end
   
   def advance!
+    if !(self.settings || {})['template_id'] && self.active && self.advance_at && self.advance_at < Time.now
+      # Co-opt advance_at to also be expire_at for one-time goals
+      self.active = false
+      return self.save
+    end
     return true unless self.active && self.advance_at && self.advance_at < Time.now && self.settings && self.settings['template_id']
     template = UserGoal.find_by_global_id(self.settings['template_id'])
     return false unless template && template.template

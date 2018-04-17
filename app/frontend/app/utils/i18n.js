@@ -29,11 +29,21 @@ Ember.templateHelpers.date_ago = function(date, precision) {
   if(precision == 'day') {
     var pre = window.moment();
     pre.hours(0).minutes(0).seconds(0);
-    if(moment > pre) {
+    pre.add(1, 'day');
+    var post = window.moment()
+    post.hours(0).minutes(0).seconds(0);
+    post.add(2, 'day')
+    if(moment >= pre && moment <= post) {
+      return i18n.t('tomorrow', "tomorrow");
+    }
+    pre.subtract(1, 'day');
+    post.subtract(1, 'day');
+    if(moment >= pre && moment <= post) {
       return i18n.t('today', "today");
     }
     pre.subtract(1, 'day');
-    if(moment > pre) {
+    post.subtract(1, 'day');
+    if(moment >= pre && moment <= post) {
       return i18n.t('yesterday', "yesterday");
     }
   }

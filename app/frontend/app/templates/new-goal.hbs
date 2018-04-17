@@ -148,71 +148,113 @@
           </div>
         {{/unless}}
         <div class="form-group">
-          <label for="new_goal_summary" class="col-sm-2 control-label">{{t "Summary" key='summary'}}</label>
-          <div class="col-sm-10" style='max-width: 300px;'>
-            {{input value=goal.summary class="form-control" id="new_goal_summary" placeholder="short goal summary"}}
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="new_goal_description" class="col-sm-2 control-label">{{t "Description" key='description'}}</label>
+          <label for="new_goal_type" class="col-sm-2 control-label">{{t "Type" key='type'}}</label>
           <div class="col-sm-10">
-            {{textarea value=goal.description class="form-control" id="new_goal_description" placeholder="longer, detailed description of the goal"}}
+            {{bound-select select_class="form-control" content=simple_types selection=goal.simple_type action=(action (mut goal.simple_type)) }}
           </div>
         </div>
-        {{#if goal.video}}
+        {{#if goal_type.strings_list}}
           <div class="form-group">
-            <label class="col-sm-2 control-label">{{t "Video" key='video'}}</label>
+            <label for="new_goal_strings_list" class="col-sm-2 control-label">{{t "Target Words" key='target_words'}}</label>
+            <div class="col-sm-10" style='max-width: 300px;'>
+              {{#if goal_type.modeling}}
+                {{input value=goal.strings_list class="form-control" id="new_goal_strings_list" placeholder="modeling targets (optional)"}}
+              {{else}}
+                {{input value=goal.strings_list class="form-control" id="new_goal_strings_list" placeholder="words, to, watch, for"}}
+              {{/if}}
+            </div>
+          </div>
+        {{/if}}
+        {{#if goal_type.instance_count}}
+          <div class="form-group">
+            <label for="new_goal_instance_count" class="col-sm-2 control-label">{{t "Try For" key='try_for'}}</label>
+            <div class="col-sm-2">
+              {{input value=goal.instance_count class="form-control" id="new_goal_instance_count" placeholder="#"}}
+            </div>
+            <div class="col-sm-8">
+              <p class='form-control-static'>{{goal_simple_action}} {{t "per day" key='per_day'}}</p>
+            </div>
+          </div>
+        {{/if}}
+        {{#if goal_type}}
+          <div class="form-group">
+            <label for="new_goal_summary" class="col-sm-2 control-label">{{t "Summary" key='summary'}}</label>
+            <div class="col-sm-10" style='max-width: 300px;'>
+              {{input value=goal.summary class="form-control" id="new_goal_summary" placeholder="short goal summary"}}
+            </div>
+          </div>
+        {{/if}}
+        {{#if goal_type.custom}}
+          <div class="form-group">
+            <label for="new_goal_description" class="col-sm-2 control-label">{{t "Description" key='description'}}</label>
             <div class="col-sm-10">
-              <div style="margin-top: 10px;">
-                <video src={{model.video.url}} controls style='max-width: 100%; max-height: 400px; border: 1px solid #ccc;'></video>
+              {{textarea value=goal.description class="form-control" id="new_goal_description" placeholder="longer, detailed description of the goal"}}
+            </div>
+          </div>
+          {{#if goal.video}}
+            <div class="form-group">
+              <label class="col-sm-2 control-label">{{t "Video" key='video'}}</label>
+              <div class="col-sm-10">
+                <div style="margin-top: 10px;">
+                  <video src={{model.video.url}} controls style='max-width: 100%; max-height: 400px; border: 1px solid #ccc;'></video>
+                </div>
+                <a href="#" {{action 'reset_video'}}>{{t "Remove Video" key='remove_video'}}</a>
               </div>
-              <a href="#" {{action 'reset_video'}}>{{t "Remove Video" key='remove_video'}}</a>
             </div>
-          </div>
-        {{else}}
+          {{else}}
+            <div class="form-group">
+              <label class="col-sm-2 control-label">{{t "Video" key='video'}}</label>
+              <div class="col-sm-10">
+                {{video-recorder user=model.user video_ready='video_ready' video_not_ready='video_not_ready'}}
+              </div>
+            </div>
+          {{/if}}
           <div class="form-group">
-            <label class="col-sm-2 control-label">{{t "Video" key='video'}}</label>
-            <div class="col-sm-10">
-              {{video-recorder user=model.user video_ready='video_ready' video_not_ready='video_not_ready'}}
-            </div>
-          </div>
-        {{/if}}
-        <div class="form-group">
-          <label for="auto_assessment" class="col-sm-2 control-label">{{t "Assessment" key='auto_assessment'}}</label>
-          <div class="col-sm-10">
-            <div class="checkbox">
-              <label>
-                {{input type="checkbox" checked=goal.auto_assessment id="auto_assessment"}}
-                {{t "Automatically assess this goal daily based on usage data" key='auto_assess_goal_daily'}}
-              </label>
-            </div>
-          </div>
-        </div>
-        {{#if goal.assessment_badge}}
-          {{badge-settings badge=goal.assessment_badge assessment=true}}
-        {{/if}}
-
-        <div class="form-group">
-          <label class="col-sm-2 control-label">{{t "Badges" key='badges'}}</label>
-          <div class="col-sm-10">
-            <div class="checkbox">
-              <em style='padding-left: 20px;'>{{t "You can add badges after the goal has been created" key='add_badges_later'}}</em>
-            </div>
-          </div>
-        </div>
-        <div class="form-group">
-          <fieldset>
-            <label class="col-sm-2 control-label">{{t "Primary" key='primary'}}</label>
+            <label for="auto_assessment" class="col-sm-2 control-label">{{t "Assessment" key='auto_assessment'}}</label>
             <div class="col-sm-10">
               <div class="checkbox">
                 <label>
-                  {{input type="checkbox" checked=goal.primary id="primary"}}
-                  {{t "Set as the User's Primary Goal" key='set_as_primary_user_goal'}}
+                  {{input type="checkbox" checked=goal.auto_assessment id="auto_assessment"}}
+                  {{t "Generate a daily progress report for mastery of this goal" key='auto_assess_goal_daily'}}
                 </label>
               </div>
             </div>
-          </fieldset>
-        </div>
+          </div>
+          {{#if goal.assessment_badge}}
+            {{badge-settings badge=goal.assessment_badge assessment=true}}
+          {{/if}}
+
+        {{/if}}
+        {{#if goal_type}}
+          <div class="form-group">
+            <label class="col-sm-2 control-label">{{t "Badges" key='badges'}}</label>
+            <div class="col-sm-10">
+              <div class="checkbox">
+                <label>
+                  {{input type="checkbox" checked=goal.set_badges id="set_badges"}}
+                  {{t "I want to create earnable badges as part of this goal" key='created_badges'}}
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <fieldset>
+              <label class="col-sm-2 control-label">{{t "Primary" key='primary'}}</label>
+              <div class="col-sm-10">
+                <div class="checkbox">
+                  <label>
+                    {{input type="checkbox" checked=goal.primary id="primary"}}
+                    {{#if model.user.user_goal}}
+                      {{t "Set as the User's New Primary Goal" key='set_as_new_primary_user_goal'}}
+                    {{else}}
+                      {{t "Set as the User's Primary Goal" key='set_as_primary_user_goal'}}
+                    {{/if}}
+                  </label>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+        {{/if}}
       </form>
     {{/if}}
   </div>

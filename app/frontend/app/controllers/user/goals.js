@@ -53,7 +53,9 @@ export default Controller.extend({
     add_goal: function() {
       var _this = this;
       modal.open('new-goal', {user: this.get('model') }).then(function(res) {
-        if(res) {
+        if(res && res.get('id') && res.get('set_badges')) {
+          _this.transitionToRoute('user.goal', _this.get('model.user_name'), res.get('id'));
+        } else if(res) {
           _this.load_goals();
         }
       }, function() { });

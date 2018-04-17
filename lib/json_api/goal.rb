@@ -48,6 +48,12 @@ module JsonApi::Goal
     json['ended'] = goal.settings['ended_at']
     json['duration'] = goal.settings['goal_duration'] if goal.settings['goal_duration']
     json['advance'] = goal.goal_advance && goal.goal_advance.iso8601
+    if !goal.template && goal.settings['template_id']
+      json['advance'] = goal.advance_at && goal.advance_at.iso8601
+    end
+    if !goal.settings['template_id'] && goal.advance_at
+      json['expires'] = goal.advance_at.iso8601
+    end
     
     if goal.settings['stats']
       json['stats'] = {}
@@ -110,11 +116,7 @@ module JsonApi::Goal
         UserVideo.find_all_by_global_id(video_ids).each{|video| videos_hash[video.global_id] = video }
 
         video = videos_hash[goal.settings['video_id']]
-        json['video'] = video.summary_hash if video
-        
-        if !goal.template
-          json['advance'] = goal.advance_at && goal.advance_at.iso8601
-        end
+        json['video'] = video.summary_hash if video        
 
         user = users_hash[goal.related_global_id(:user_id)]
         json['user'] = JsonApi::User.as_json(user, limited_identity: true) if user

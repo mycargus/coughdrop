@@ -101,50 +101,58 @@
           </div>
         </div>
       {{/unless}}
-      <div class="form-group">
-        <label for="new_goal_summary" class="col-sm-2 control-label">{{t "Summary" key='summary'}}</label>
-        <div class="col-sm-10" style='max-width: 300px;'>
-          {{input value=model.summary class="form-control" id="new_goal_summary" placeholder="short goal summary"}}
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="new_goal_description" class="col-sm-2 control-label">{{t "Description" key='description'}}</label>
-        <div class="col-sm-10">
-          {{textarea value=model.description class="form-control" id="new_goal_description" placeholder="longer, detailed description of the goal"}}
-        </div>
-      </div>
-      {{#if model.video}}
+      {{#unless badges_only}}
         <div class="form-group">
-          <label class="col-sm-2 control-label">{{t "Video" key='video'}}</label>
+          <label for="new_goal_summary" class="col-sm-2 control-label">{{t "Summary" key='summary'}}</label>
+          <div class="col-sm-10" style='max-width: 300px;'>
+            {{input value=model.summary class="form-control" id="new_goal_summary" placeholder="short goal summary"}}
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="new_goal_description" class="col-sm-2 control-label">{{t "Description" key='description'}}</label>
           <div class="col-sm-10">
-            <div style="margin-top: 10px;">
-              <video src={{model.video.url}} controls style='max-width: 100%; max-height: 400px; border: 1px solid #ccc;'></video>
+            {{textarea value=model.description class="form-control" id="new_goal_description" placeholder="longer, detailed description of the goal"}}
+          </div>
+        </div>
+        {{#if model.video}}
+          <div class="form-group">
+            <label class="col-sm-2 control-label">{{t "Video" key='video'}}</label>
+            <div class="col-sm-10">
+              <div style="margin-top: 10px;">
+                <video src={{model.video.url}} controls style='max-width: 100%; max-height: 400px; border: 1px solid #ccc;'></video>
+              </div>
+              <a href="#" {{action 'reset_video'}}>{{t "Remove Video" key='remove_video'}}</a>
             </div>
-            <a href="#" {{action 'reset_video'}}>{{t "Remove Video" key='remove_video'}}</a>
           </div>
-        </div>
-      {{else}}
+        {{else}}
+          <div class="form-group">
+            <label class="col-sm-2 control-label">{{t "Video" key='video'}}</label>
+            <div class="col-sm-10">
+              {{video-recorder user=model.user video_ready='video_ready' video_not_ready='video_not_ready'}}
+            </div>
+          </div>
+        {{/if}}
         <div class="form-group">
-          <label class="col-sm-2 control-label">{{t "Video" key='video'}}</label>
+          <label for="auto_assessment" class="col-sm-2 control-label">{{t "Assessment" key='auto_assessment'}}</label>
           <div class="col-sm-10">
-            {{video-recorder user=model.user video_ready='video_ready' video_not_ready='video_not_ready'}}
+            <div class="checkbox">
+              <label>
+                {{input type="checkbox" checked=model.auto_assessment id="auto_assessment"}}
+                {{t "Automatically assess this goal daily based on usage data" key='auto_assess_goal_daily'}}
+              </label>
+            </div>
           </div>
         </div>
-      {{/if}}
-      <div class="form-group">
-        <label for="auto_assessment" class="col-sm-2 control-label">{{t "Assessment" key='auto_assessment'}}</label>
-        <div class="col-sm-10">
-          <div class="checkbox">
-            <label>
-              {{input type="checkbox" checked=model.auto_assessment id="auto_assessment"}}
-              {{t "Automatically assess this goal daily based on usage data" key='auto_assess_goal_daily'}}
-            </label>
+        {{#if model.assessment_badge}}
+          {{badge-settings badge=model.assessment_badge assessment=true}}
+        {{/if}}
+      {{else}}
+        <div class='form-group'>
+          <div class='col-sm-10 col-sm-offset-2'>
+            <h3>{{t "Define Badges For This Goal" key='badges_for_goal'}}</h3>
           </div>
         </div>
-      </div>
-      {{#if model.assessment_badge}}
-        {{badge-settings badge=model.assessment_badge assessment=true}}
-      {{/if}}
+      {{/unless}}
       <div class="form-group">
         <label for="badges_enabled" class="col-sm-2 control-label">{{t "Badges" key='badges'}}</label>
         <div class="col-sm-5">
@@ -160,30 +168,34 @@
         <div class="form-group">
           <label for="badge_name" class="col-sm-2 control-label">{{t "Badge Name" key='badge_name'}}</label>
           <div class="col-sm-5">
-            {{input value=model.badge_name class="form-control" id="badge_name" placeholder="optional badge name"}}
+            {{input value=model.badge_name class="form-control" id="badge_name" placeholder=model.summary}}
           </div>
         </div>
         {{#each model.badges as |badge index|}}
           {{badge-settings badge=badge index=index remove_badge='remove_badge'}}
         {{/each}}
-        <div class="form-group">
-          <div class="col-sm-5">
+        <div class="form-group" style='border-top: 1px solid #ddd; padding-top: 10px;'>
+          <div class="col-sm-5 col-sm-offset-2">
             <button class='btn btn-default' {{action 'add_badge_level'}}>{{t "Add Badge Level" key='add_badge_level'}}</button>
           </div>
         </div>
       {{/if}}
+      <div class='form-group' style='margin-top: 20px;'>
+        <div class='col-sm-10 col-sm-offset-2'>
+          <button {{action "save_goal"}} disabled={{save_disabled}} class="btn btn-primary">
+            {{#if saving}}
+              {{t "Updating Goal" key='updating_goal'}}
+            {{else}}
+              {{t "Update Goal" key='update_goal'}}
+            {{/if}}
+          </button>
+          <button {{action "cancel_edit"}} class="btn btn-default">{{t "Cancel" key='cancel'}}</button>
+          {{#if error}}
+            <p class='text-danger'>{{t "There was an error trying to save the goal" key='error_saving_goal'}}</p>
+          {{/if}}
+        </div>
+      </div>
     </form>
-    <button {{action "save_goal"}} disabled={{save_disabled}} class="btn btn-primary">
-      {{#if saving}}
-        {{t "Updating Goal" key='updating_goal'}}
-      {{else}}
-        {{t "Update Goal" key='update_goal'}}
-      {{/if}}
-    </button>
-    <button {{action "cancel_edit"}} class="btn btn-default">{{t "Cancel" key='cancel'}}</button>
-    {{#if error}}
-      <p class='text-danger'>{{t "There was an error trying to save the goal" key='error_saving_goal'}}</p>
-    {{/if}}
 {{else}}
   <div class='safe_html' style='margin: 20px 0 50px;'>{{safe model.description}}</div>
   {{#if model.video}}
