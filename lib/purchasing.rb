@@ -523,7 +523,7 @@ module Purchasing
       end
     end
     if problems.length > 0
-      puts "PROBLEMS:\n#{problems.join('\n')}\n"
+      puts "PROBLEMS:\n#{problems.join("\n")}\n"
     end
     puts "TOTALS: checked #{total}, paying customers (not trialing, not duplicates) #{customer_active_ids.uniq.length}, subscription users #{user_active_ids.uniq.length}"
     cancel_months.each{|k, a| 
