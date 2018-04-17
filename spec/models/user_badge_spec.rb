@@ -2111,6 +2111,10 @@ describe UserBadge, type: :model do
       expect(res).to eq(nil)
     end
     
+    it "should identify modeled words matches" do
+      write_this_test
+    end
+    
     it "should count word instances" do
       res = UserBadge.check_day_stats({
         'instance_count' => 3,

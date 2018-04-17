@@ -166,6 +166,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     total.data['totals']['total_words'] = 0
     total.data['totals']['total_buttons'] = 0
     total.data['totals']['total_core_words'] = 0
+    total.data['totals']['modeled_session_events'] = {}
     total.data['word_counts'] = {}
     total.data['user_ids'] = []
     total.data['home_board_user_ids'] = []
@@ -207,6 +208,9 @@ class WeeklyStatsSummary < ActiveRecord::Base
         # quick win with some basic, easy data to track
         total_keys.each do |key|
           total.data['totals'][key] += summary.data['stats'][key]
+        end
+        (summary.data['modeled_session_events'] || {}).each do |total, cnt|
+          total.data['modeled_session_events'][total] = (total.data['modeled_session_events'][total] || 0) + cnt
         end
         total.data['totals']['total_modeled_words'] += (summary.data['stats']['modeled_word_counts'] || {}).map(&:last).sum
         total.data['totals']['total_modeled_buttons'] += (summary.data['stats']['modeled_button_counts'] || {}).map{|k, h| h['count'] }.sum
@@ -375,6 +379,10 @@ class WeeklyStatsSummary < ActiveRecord::Base
     total
   end
   
+  def self.minimum_session_modeling_events
+    3
+  end
+  
   def self.trends(include_admin=false)
     res = {}
     res['weeks'] = {}
@@ -390,6 +398,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     stash[:total_words] = 0
     stash[:user_ids] = []
     stash[:total_sessions] = 0
+    stash[:modeled_sessions] = 0
     stash[:total_words] = 0
     stash[:word_counts] = {}
     stash[:board_usages] = {}
@@ -420,6 +429,9 @@ class WeeklyStatsSummary < ActiveRecord::Base
         stash[:total_words] += summary.data['totals']['total_words']
         stash[:user_ids] += summary.data['user_ids'] || []
         stash[:total_sessions] += summary.data['totals']['total_sessions']
+        (summary.data['totals']['modeled_session_events'] || {}).each do |total, cnt|
+          stash[:modeled_sessions] += cnt in total >= minimum_session_modeling_events
+        end
         stash[:home_board_user_ids] += summary.data['home_board_user_ids'] || summary.data['user_ids'] || []
       
         if summary.data['word_counts']
@@ -524,6 +536,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     if include_admin
       res[:total_users] = total_users
       res[:total_sessions] = stash[:total_sessions]
+      res[:modeled_sessions] = stash[:modeled_sessions]
       res[:sessions_per_user] = (res[:total_sessions].to_f / res[:total_users].to_f).round(1)
       res[:sessions_per_user] = 0.0 if res[:sessions_per_user].nan?
       res[:total_words] = stash[:total_words]

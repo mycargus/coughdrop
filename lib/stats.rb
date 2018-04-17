@@ -259,6 +259,7 @@ module Stats
     
     res = {
       :total_sessions => 0,
+      :modeled_session_events => {},
       :total_utterances => 0,
       :words_per_utterance => 0.0,
       :buttons_per_utterance => 0.0,
@@ -308,6 +309,9 @@ module Stats
       total_session_seconds += stats[:total_session_seconds] if stats[:total_session_seconds]
       
       res[:total_sessions] += stats[:total_sessions]
+      (stats[:modeled_session_events] || {}).each do |total, cnt|
+        res[:modeled_session_events][total] = (res[:modeled_session_events][total] || 0) + cnt
+      end
       res[:total_utterances] += stats[:total_utterances]
       res[:total_buttons] += buttons
       res[:modeled_buttons] += (stats[:modeled_button_counts] || {}).map{|k, v| v['count'] }.sum
@@ -590,6 +594,11 @@ module Stats
   def self.init_stats(sessions)
     stats = {}
     stats[:total_sessions] = sessions.select{|s| s.log_type == 'session' }.length
+    stats[:modeled_session_events] = {}
+    sessions.each do |s| 
+      cnt = s.data['stats']['modeling_events']
+      stats[:modeled_session_events][cnt] = (stats[:modeled_session_events][cnt] || 0) + 1 if cnt
+    end
     stats[:total_utterances] = 0.0
     stats[:total_utterance_words] = 0.0
     stats[:total_utterance_buttons] = 0.0
