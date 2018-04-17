@@ -47,6 +47,10 @@ describe Subscription, :type => :model do
     end
   end
   
+  it "should not check managed_by to get date data" do
+    write_this_test
+  end
+  
   describe "long_term_purchase?" do
     it "should return correct values" do
       u = User.new

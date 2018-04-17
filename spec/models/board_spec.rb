@@ -1090,6 +1090,18 @@ describe Board, :type => :model do
       expect(b.settings['unlisted']).to eq(false)
       expect(b.settings['edit_description']['notes']).to eq(['set to public'])
     end
+    
+    it "should tie to the source board's copy id if defined" do
+      write_this_test
+    end
+    
+    it "should user the source board's id as the copy id if defined" do
+      write_this_test
+    end
+    
+    it "should not set the copy id if not allowed to edit the source board" do
+      write_this_test
+    end
   end
 
   it "should securely serialize settings" do
