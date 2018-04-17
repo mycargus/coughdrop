@@ -16,6 +16,18 @@ class DeletedBoard < ActiveRecord::Base
     related_global_id(self.board_id)
   end
   
+  def restore!
+    version = PaperTrail::Version.where(item_type: 'Board', item_id: self.board_id).order('created_at DESC')[0]
+    if version
+      board = Board.load_version(version)
+      board.load_secure_object
+      board.instance_variable_set('@buttons_changed', true)
+      board.save!
+    else
+      raise "no valid version found"
+    end
+  end
+  
   def self.find_by_path(path)
     if path && path.match(/\//)
       DeletedBoard.where(:key => path).order('id DESC').first

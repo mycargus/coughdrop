@@ -98,4 +98,10 @@ describe DeletedBoard, :type => :model do
       expect(res).to eq(1)
     end
   end
+  
+  describe "restore!" do
+    it 'should restore the deleted board' do
+      write_this_test
+    end
+  end
 end
