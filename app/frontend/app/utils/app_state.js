@@ -1285,7 +1285,7 @@ var app_state = EmberObject.extend({
       var old_badge_hash = this.get('user_badge_hash');
 
       var _this = this;
-      if(!_this.get('feature_flags.badge_progress')) { return; }
+      if(!_this.get('feature_flags.badge_progress') && !_this.get('sessionUser.feature_flags.badge_progress')) { return; }
       var user = this.get('referenced_user');
       if(!user || _this.get('user_badge.user_id') != user.get('id')) {
         _this.set('user_badge', null);
