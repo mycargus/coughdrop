@@ -132,8 +132,12 @@ module JsonApi::User
       end
       
       if user.settings['user_notifications'] && user.settings['user_notifications'].length > 0
-        json['notifications'] = user.settings['user_notifications'].select{|n| Time.parse(n['added_at']) > 2.weeks.ago }[0, 5]
+        cutoff = 6.weeks.ago.iso8601
+        unread_cutoff = user.settings['user_notifications_cutoff'] || user.created_at.utc.iso8601
+        json['notifications'] = user.settings['user_notifications'].select{|n| n['added_at'] > cutoff }
+        json['notifications'].each{|n| n['unread'] = true if n['added_at'] > unread_cutoff }
       end
+      json['read_notifications'] = false
     elsif json['permissions'] && json['permissions']['admin_support_actions']
       json['subscription'] = user.subscription_hash
       ::Device.where(:user_id => user.id).sort_by{|d| (d.settings['token_history'] || [])[-1] || 0 }.reverse

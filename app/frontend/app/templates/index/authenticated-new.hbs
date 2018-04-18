@@ -279,10 +279,16 @@
           <li role="presentation" class={{if index_nav.supervisees 'active'}}><a href="#" {{action 'set_index_nav' 'supervisees'}}>{{t "Communicators" key='communicators'}}</a></li>
         {{/if}}
         <li role="presentation" class={{if index_nav.boards 'active'}}><a href="#" {{action 'set_index_nav' 'boards'}}>{{t "Boards" key='boards'}}</a></li>
-        <li role="presentation" class={{if index_nav.updates 'active'}}><a href="#" {{action 'set_index_nav' 'updates'}}>
+        <li role="presentation" id='nav_updates' class={{if index_nav.updates 'active'}}><a href="#" {{action 'set_index_nav' 'updates'}}>
           {{t "Updates" key='updates'}}
           {{#if pending_updates}}
-            <span class="label label-danger unread">{{t "!" key='exclaim'}}</span>
+            <span class="label label-danger unread">
+              {{#if pending_updates.count}}
+                {{pending_updates.count}}
+              {{else}}
+                {{t "!" key='exclaim'}}
+              {{/if}}
+            </span>
           {{/if}}
         </a></li>
       </ul>

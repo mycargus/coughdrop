@@ -156,7 +156,7 @@
       <button {{action 'show_badge'}} class='btn btn-lg btn-default'>{{t "Back to Badge" key='back_to_badge'}}</button>
     {{else}}
       {{#if persistence.online}}
-        <button {{action 'user_badges'}} class='btn btn-lg btn-default'>{{t "See User Goals and Badges" key='see_user_goals_and_badges'}}</button>
+        <button {{action 'user_badges'}} class='btn btn-lg btn-default'><span class='glyphicon glyphicon-flag'></span> {{t "See User Goals and Badges" key='see_user_goals_and_badges'}}</button>
       {{/if}}
     {{/if}}
     {{#if persistence.online}}

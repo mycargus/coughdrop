@@ -508,6 +508,9 @@ class User < ActiveRecord::Base
         self.settings['last_message_read'] = params['last_message_read']
       end
     end
+    if params['read_notifications']
+      self.settings['user_notifications_cutoff'] = Time.now.utc.iso8601
+    end
     self.settings['preferences'] ||= {}
     PREFERENCE_PARAMS.each do |attr|
       self.settings['preferences'][attr] = params['preferences'][attr] if params['preferences'] && params['preferences'][attr] != nil
@@ -793,7 +796,7 @@ class User < ActiveRecord::Base
     args = args.with_indifferent_access
     self.settings['user_notifications'] ||= []
     self.settings['user_notifications'].reject!{|n| n['type'] == args['type'] && n['id'] == args['id'] }
-    args['added_at'] = Time.now.iso8601
+    args['added_at'] = Time.now.utc.iso8601
     self.settings['user_notifications'].unshift(args)
     self.settings['user_notifications'] = self.settings['user_notifications'][0, 10]
     self.save

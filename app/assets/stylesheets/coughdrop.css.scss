@@ -3922,3 +3922,15 @@ body:-ms-fullscreen {
     display: none;
   }
 }
+@media (max-width: 550px) {
+  #nav_updates {
+    display: none;
+  }
+}
+@media (max-width: 825px) {
+  @media (min-width: 768px) {
+    #nav_updates .label {
+      display: none;
+    }
+  }
+}

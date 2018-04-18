@@ -143,10 +143,21 @@ export default Controller.extend({
     return res;
   }.property('popular_selected', 'personal_selected', 'suggested_selected', 'recent_selected', 'popularBoards', 'personalBoards', 'homeBoards', 'recentOfflineBoards'),
   pending_updates: function() {
-    return this.get('app_state.currentUser.pending_org') ||
+    var important = this.get('app_state.currentUser.pending_org') ||
                 this.get('app_state.currentUser.pending_supervision_org') ||
                 (this.get('app_state.currentUser.pending_board_shares') || []).length > 0 ||
                 this.get('app_state.currentUser.unread_messages');
+    var normal_new = app_state.get('currentUser.unread_messages.length') || 0;
+    var unread_notifications = (app_state.get('currentUser.parsed_notifications') || []).filter(function(n) { return n.unread; }).length;
+    normal_new = normal_new + (unread_notifications || 0);
+
+    if(normal_new && !app_state.get('currentUser.read_notifications')) {
+      return {count: normal_new};
+    } else if(important) {
+      return true;
+    } else {
+      return null;
+    }
   }.property('app_state.currentUser.pending_org', 'app_state.currentUser.pending_supervision_org', 'app_state.currentUser.pending_board_shares', 'app_state.currentUser.unread_messages'),
   update_selected: function() {
     var _this = this;
@@ -384,7 +395,8 @@ export default Controller.extend({
         u.save().then(null, function() { });
       } else if(nav == 'updates') {
         if(app_state.get('currentUser')) {
-          app_state.get('currentUser').reload().then(null, function() { });
+          app_state.set('currentUser.read_notifications', true);
+          app_state.get('currentUser').save().then(null, function() { });
         }
       }
       this.set('index_nav_state', nav);
