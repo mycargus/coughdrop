@@ -1278,28 +1278,41 @@ var app_state = EmberObject.extend({
     return user;
   }.property('modeling_for_user', 'currentUser', 'referenced_speak_mode_user'),
   load_user_badge: function() {
-    var _this = this;
-    if(!_this.get('feature_flags.badge_progress')) { return; }
-    var user = this.get('referenced_user');
-    if(!user || _this.get('user_badge.user_id') != user.get('id')) {
-      _this.set('user_badge', null);
-    }
-    // clear current badge if it doesn't match the referenced user info
-    // load recent badges
-    if(CoughDrop.store && user && !user.get('supporter_role') && user.get('full_premium')) {
-      Ember.run.later(function() {
-        CoughDrop.store.query('badge', {user_id: user.get('id'), recent: 1}).then(function(badges) {
-          badges = badges.filter(function(b) { return b.get('user_id') == user.get('id'); });
-          var badge = CoughDrop.Badge.best_earned_badge(badges);
-          if(badge && badge.get('dismissed')) {
-            var next_badge = CoughDrop.Badge.best_next_badge(badges);
-            badge = next_badge || badge;
-          }
-          _this.set('user_badge', badge);
+    if(this.get('speak_mode') && this.get('persistence.online')) {
+      var badge_hash = (this.get('referenced_user.id') || 'nobody') + "::" + ((new Date()).getTime() / 1000 / 3600)
+      // don't check more than once an hour
+      if(this.get('user_badge_hash') == badge_hash) { return; }
+      var old_badge_hash = this.get('user_badge_hash');
+
+      var _this = this;
+      if(!_this.get('feature_flags.badge_progress')) { return; }
+      var user = this.get('referenced_user');
+      if(!user || _this.get('user_badge.user_id') != user.get('id')) {
+        _this.set('user_badge', null);
+      }
+      // clear current badge if it doesn't match the referenced user info
+      // load recent badges
+      if(CoughDrop.store && user && !user.get('supporter_role') && user.get('full_premium')) {
+        Ember.run.later(function() {
+          _this.set('user_badge_hash', badge_hash);
+          CoughDrop.store.query('badge', {user_id: user.get('id'), recent: 1}).then(function(badges) {
+            _this.set('user_badge_hash', badge_hash);
+            badges = badges.filter(function(b) { return b.get('user_id') == user.get('id'); });
+            var badge = CoughDrop.Badge.best_earned_badge(badges);
+            if(!badge || badge.get('dismissed')) {
+              var next_badge = CoughDrop.Badge.best_next_badge(badges);
+              badge = next_badge || badge;
+            }
+            _this.set('user_badge', badge);
+          }, function(err) {
+            _this.set('user_badge_hash', old_badge_hash);
+          });
         });
-      });
+      }
+    } else if(this.get('user_badge') && this.get('user_badge.user_id') != this.get('referenced_user.id')) {
+      this.set('user_badge', null);
     }
-  },
+  }.observes('speak_mode', 'referenced_user', 'persistence.online'),
   testing: function() {
     return Ember.testing;
   }.property(),
@@ -1311,6 +1324,7 @@ var app_state = EmberObject.extend({
   }.property('short_refresh_stamp'),
   check_for_user_updated: function(obj, changes) {
     if(window.persistence) {
+      app_state.set('persistence', window.persistence);
       if(changes == 'sessionUser' || !window.persistence.get('last_sync_stamp')) {
         window.persistence.set('last_sync_stamp', this.get('sessionUser.sync_stamp'));
       }
