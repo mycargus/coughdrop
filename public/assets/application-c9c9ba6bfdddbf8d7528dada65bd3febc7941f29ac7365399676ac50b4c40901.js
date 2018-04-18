@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.04.18a";
+window.app_version = "2018.04.18b";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -9059,12 +9059,15 @@ return e.then(null,function(){}),e}.observes("speak_mode","persistence.online","
 !e&&window.user_preferences&&window.user_preferences.any_user&&window.user_preferences.any_user.default_sidebar_boards&&(e=window.user_preferences.any_user.default_sidebar_boards),e=e||[]
 var t=this.get("fenced_sidebar_board")
 return t?((e=e.filter(function(e){return e.key!=t.key})).unshift(t),e):e}.property("fenced_sidebar_board","currentUser","current_sidebar_boards"),sidebar_pinned:function(){return this.get("speak_mode")&&this.get("currentUser.preferences.quick_sidebar")}.property("speak_mode","currentUser","currentUser.preferences.quick_sidebar"),referenced_user:function(){var e=h.get("currentUser")
-return this.get("modeling_for_user")&&this.get("referenced_speak_mode_user")&&(e=this.get("referenced_speak_mode_user")),e}.property("modeling_for_user","currentUser","referenced_speak_mode_user"),load_user_badge:function(){var e=this
-if(e.get("feature_flags.badge_progress")){var t=this.get("referenced_user")
-t&&e.get("user_badge.user_id")==t.get("id")||e.set("user_badge",null),o.default.store&&t&&!t.get("supporter_role")&&t.get("full_premium")&&Ember.run.later(function(){o.default.store.query("badge",{user_id:t.get("id"),recent:1}).then(function(n){n=n.filter(function(e){return e.get("user_id")==t.get("id")})
-var s=o.default.Badge.best_earned_badge(n)
-s&&s.get("dismissed")&&(s=o.default.Badge.best_next_badge(n)||s)
-e.set("user_badge",s)})})}},testing:function(){return Ember.testing}.property(),logging_paused:function(){return!!t.default.get("logging_paused_at")}.property("stashes.logging_paused_at"),current_time:function(){return this.get("short_refresh_stamp")||new Date}.property("short_refresh_stamp"),check_for_user_updated:function(e,t){if(window.persistence&&("sessionUser"!=t&&window.persistence.get("last_sync_stamp")||window.persistence.set("last_sync_stamp",this.get("sessionUser.sync_stamp"))),this.get("sessionUser")){var n=1e3*(this.get("sessionUser.preferences.sync_refresh_interval")||900)
+return this.get("modeling_for_user")&&this.get("referenced_speak_mode_user")&&(e=this.get("referenced_speak_mode_user")),e}.property("modeling_for_user","currentUser","referenced_speak_mode_user"),load_user_badge:function(){if(this.get("speak_mode")&&this.get("persistence.online")){var e=(this.get("referenced_user.id")||"nobody")+"::"+(new Date).getTime()/1e3/3600
+if(this.get("user_badge_hash")==e)return
+var t=this.get("user_badge_hash"),n=this
+if(!n.get("feature_flags.badge_progress"))return
+var s=this.get("referenced_user")
+s&&n.get("user_badge.user_id")==s.get("id")||n.set("user_badge",null),o.default.store&&s&&!s.get("supporter_role")&&s.get("full_premium")&&Ember.run.later(function(){n.set("user_badge_hash",e),o.default.store.query("badge",{user_id:s.get("id"),recent:1}).then(function(t){n.set("user_badge_hash",e),t=t.filter(function(e){return e.get("user_id")==s.get("id")})
+var a=o.default.Badge.best_earned_badge(t)
+a&&!a.get("dismissed")||(a=o.default.Badge.best_next_badge(t)||a)
+n.set("user_badge",a)},function(e){n.set("user_badge_hash",t)})})}else this.get("user_badge")&&this.get("user_badge.user_id")!=this.get("referenced_user.id")&&this.set("user_badge",null)}.observes("speak_mode","referenced_user","persistence.online"),testing:function(){return Ember.testing}.property(),logging_paused:function(){return!!t.default.get("logging_paused_at")}.property("stashes.logging_paused_at"),current_time:function(){return this.get("short_refresh_stamp")||new Date}.property("short_refresh_stamp"),check_for_user_updated:function(e,t){if(window.persistence&&(h.set("persistence",window.persistence),"sessionUser"!=t&&window.persistence.get("last_sync_stamp")||window.persistence.set("last_sync_stamp",this.get("sessionUser.sync_stamp"))),this.get("sessionUser")){var n=1e3*(this.get("sessionUser.preferences.sync_refresh_interval")||900)
 window.persistence?window.persistence.get("last_sync_stamp_interval")!=n&&window.persistence.set("last_sync_stamp_interval",n):console.error("persistence needed for checking user status")}}.observes("short_refresh_stamp","sessionUser"),activate_button:function(e,n){if(o.default.log.start(),(e.hidden||e.empty)&&!this.get("edit_mode")&&"grid"==this.get("currentUser.preferences.hidden_buttons")&&!t.default.get("all_buttons_enabled"))return!1
 var r=(new Date).getTime()
 h.get("modeling")?n.modeling=!0:t.default.last_selection&&t.default.last_selection.modeling&&t.default.last_selection.ts>r-500&&(n.modeling=!0),h.set("last_activation",r),e.link_disabled&&(e.apps=null,e.url=null,e.video=null,e.load_board=null,e.user_integration=null),e.apps?n.type="app":e.url?e.video&&e.video.popup?n.type="video":n.type="url":e.load_board&&(n.type="link")
@@ -10508,8 +10511,8 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+1d7c67a7"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+1d7c67a7"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+32d3bb10"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+32d3bb10"})
 ;
 
 
