@@ -73,6 +73,7 @@ var Subscription = EmberObject.extend({
       var plan = u.get('subscription.plan_id');
 
       this.set('email', u.get('email'));
+      this.set('name', u.get('name'));
 
       if(u.get('preferences.role') == 'supporter') {
         this.set('user_type', 'supporter');
@@ -426,7 +427,7 @@ Subscription.reopenClass({
       console.error('purchase_resetting_defer');
     }
     Subscription.handler.open({
-      name: "CoughDrop",
+      name: subscription.get('name') || subscription.get('user.name') || "CoughDrop",
       description: subscription.get('description'),
       amount: subscription.get('amount_in_cents'),
       panelLabel: subscription.get('purchase_description'),

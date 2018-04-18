@@ -29,6 +29,14 @@
         {{/if}}
         <div class="form-group">
           <div class="col-sm-9" style="padding-top: 30px;">
+            <label>{{t "Your Name" key='your_name'}}</label><br/>
+            <span style="display: inline-block; width: 300px;">
+              {{input type='text' value=subscription.name class='form-control input-lg' placeholder="Purchaser's Name"}}
+            </span>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-9" style="padding-top: 30px;">
             <label>{{t "Your Email" key='your_email'}}</label><br/>
             <span style="display: inline-block; width: 300px;">
               {{input type='text' value=subscription.email class='form-control input-lg' placeholder='email@example.com'}}
