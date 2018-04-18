@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.04.18c";
+window.app_version = "2018.04.18d";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -9063,7 +9063,7 @@ return t?((e=e.filter(function(e){return e.key!=t.key})).unshift(t),e):e}.proper
 return this.get("modeling_for_user")&&this.get("referenced_speak_mode_user")&&(e=this.get("referenced_speak_mode_user")),e}.property("modeling_for_user","currentUser","referenced_speak_mode_user"),load_user_badge:function(){if(this.get("speak_mode")&&this.get("persistence.online")){var e=(this.get("referenced_user.id")||"nobody")+"::"+(new Date).getTime()/1e3/3600
 if(this.get("user_badge_hash")==e)return
 var t=this.get("user_badge_hash"),n=this
-if(!n.get("feature_flags.badge_progress"))return
+if(!n.get("feature_flags.badge_progress")&&!n.get("sessionUser.feature_flags.badge_progress"))return
 var s=this.get("referenced_user")
 s&&n.get("user_badge.user_id")==s.get("id")||n.set("user_badge",null),o.default.store&&s&&!s.get("supporter_role")&&s.get("full_premium")&&Ember.run.later(function(){n.set("user_badge_hash",e),o.default.store.query("badge",{user_id:s.get("id"),recent:1}).then(function(t){n.set("user_badge_hash",e),t=t.filter(function(e){return e.get("user_id")==s.get("id")})
 var a=o.default.Badge.best_earned_badge(t)
@@ -10512,8 +10512,8 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+5e0abd5e"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+5e0abd5e"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+3118f695"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+3118f695"})
 ;
 
 
