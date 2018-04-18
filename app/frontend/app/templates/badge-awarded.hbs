@@ -69,7 +69,11 @@
         <span class='glyphicon glyphicon-flag' style='font-size: 30px; float: left; margin-right: 10px;'></span>
         <p>{{t "This communicator had earned one or more badges! Some badges are automatically set up in CoughDrop, but you can also easily set your own goals and assign new badges to go with them." key='badges_explainer'}}</p>
         <p>{{t "Setting goals is an important part of the communication process! In CoughDrop, goals can help keep the team on the same page and working on the same thing, which is important for newly-developing communicators." key='goals_explainer'}}</p>
-        <p>{{t "To set your first goal, hit the 'New Goal' button below and get started. You can find an existing goal or set one of your own. You can even have the system automatically track progress toward the goal, and award badges to the communicator as they progress!" key='goals_explainer_2'}}</p>
+        {{#if app_state.speak_mode}}
+          <p>{{t "If you exit Speak Mode and go to the 'Goals' section of your account you can find an existing goal or set one of your own. You can even have the system automatically track progress toward the goal, and award badges to the communicator as they progress!" key='goals_explainer_3'}}</p>
+        {{else}}
+          <p>{{t "To set your first goal, hit the 'New Goal' button below and get started. You can find an existing goal or set one of your own. You can even have the system automatically track progress toward the goal, and award badges to the communicator as they progress!" key='goals_explainer_2'}}</p>
+        {{/if}}
       {{/if}}
       </div>
     {{else}}
