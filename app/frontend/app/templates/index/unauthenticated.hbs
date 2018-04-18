@@ -220,6 +220,10 @@
           </div>
           <div class="form-group">
             <p><label style="font-weight: normal;">
+              {{input type="checkbox" checked=user.preferences.cookies}}
+              {{t "Send usage data to CoughDrop for analytics and feature improvements" key='allow_cookies'}}
+            </label></p>
+            <p><label style="font-weight: normal;">
               {{input type="checkbox" checked=user.terms_agree}}
               By registering or using the product, you are agreeing that you have read and understood the <a href="/terms">Terms of Use and License Agreement</a>, and are capable of binding to a legal contract.
             </label></p>

@@ -810,7 +810,7 @@ var capabilities;
             });
             if(window.cordova && window.cordova.exec) {
               setTimeout(function() {
-                cordova.exec(function(r) { console.log(r); }, function(e) { console.error(e); }, 'Battery', 'updateBatteryStatus', [])
+                window.cordova.exec(function(r) { console.log(r); }, function(e) { console.error(e); }, 'Battery', 'updateBatteryStatus', [])
               }, 1000);
             }
           }

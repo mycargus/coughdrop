@@ -166,7 +166,12 @@ var stashes = EmberObject.extend({
     stashes.persist_raw(key, JSON.stringify(obj), include_prefix);
 
     if(key == 'auth_settings' && obj.user_name) {
-      document.cookie = "authDBID=" + obj.user_name;
+      // Setting the cookie is a last-resort fallback to try not to lose user information
+      // unnecessarily. We probably don't actually need it, but that's why it's here.
+      // Don't set a cookie unless explicitly authorized, or in an installed app (where it shouldn't be sent anyway)
+      if(localStorage['enable_cookies'] == 'true' || (stash_capabilities && stash_capabilities.installed_app)) {
+        document.cookie = "authDBID=" + obj.user_name;
+      }
       if(window.kvstash && window.kvstash.store) {
         window.kvstash.store('user_name', obj.user_name);
       }

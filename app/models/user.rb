@@ -208,7 +208,8 @@ class User < ActiveRecord::Base
         'geo_logging' => false,
         'role' => 'communicator',
         'auto_open_speak_mode' => true,
-        'share_notifications' => 'email'
+        'share_notifications' => 'email',
+        'cookies' => true
       }
     }
   end
@@ -463,7 +464,8 @@ class User < ActiveRecord::Base
       'goal_notifications', 'word_suggestion_images', 'hidden_buttons',
       'speak_on_speak_mode', 'ever_synced', 'folder_icons', 'allow_log_reports',
       'symbol_background', 'disable_button_help', 'click_buttons', 'prevent_hide_buttons',
-      'new_index', 'debounce']
+      'new_index', 'debounce', 'cookies']
+  CONFIRMATION_PREFERENCE_PARAMS = ['logging', 'geo_logging', 'allow_log_reports', 'cookies']
 
   PROGRESS_PARAMS = ['setup_done', 'intro_watched', 'profile_edited', 'preferences_edited', 'home_board_set', 'app_added', 'skipped_subscribe_modal', 'speak_mode_intro_done']
   def process_params(params, non_user_params)
@@ -512,6 +514,20 @@ class User < ActiveRecord::Base
       self.settings['user_notifications_cutoff'] = Time.now.utc.iso8601
     end
     self.settings['preferences'] ||= {}
+    if params['preferences']
+      CONFIRMATION_PREFERENCE_PARAMS.each do |key|
+        if params['preferences'][key] != self.settings['preferences'][key]
+          self.settings['confirmation_log'] ||= []
+          self.settings['confirmation_log'] << {
+            'updater' => non_user_params['updater'].global_id,
+            'setting' => key,
+            'timestamp' => Time.now.utc.iso8601
+          }
+        end
+      end
+    end
+    if params['logging'] && !self.settings['logging']
+    end
     PREFERENCE_PARAMS.each do |attr|
       self.settings['preferences'][attr] = params['preferences'][attr] if params['preferences'] && params['preferences'][attr] != nil
     end

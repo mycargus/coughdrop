@@ -103,6 +103,10 @@ var session = EmberObject.extend({
       if(data.user_name) {
         session.set('user_name', data.user_name);
         session.set('user_id', data.user_id);
+        if(window.ga) {
+          window.ga('set', 'userId', data.user_id);
+          window.ga('send', 'event', 'authentication', 'user-id available');
+        }
         if(app_state.get('sessionUser.id') != data.user_id) {
           runLater(function() {
             app_state.refresh_session_user();
@@ -147,6 +151,10 @@ var session = EmberObject.extend({
       session.set('access_token', store_data.access_token);
       session.set('user_name', store_data.user_name);
       session.set('user_id', store_data.user_id);
+      if(window.ga && store_data.user_id) {
+        window.ga('set', 'userId', store_data.user_id);
+        window.ga('send', 'event', 'authentication', 'user-id available');
+      }
       session.set('as_user_id', store_data.as_user_id);
     } else if(!store_data.access_token) {
       // This should not run until stashes.db_connect has completed, so stashes has its

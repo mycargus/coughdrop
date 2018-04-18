@@ -5,6 +5,7 @@ import DS from 'ember-data';
 import CoughDrop from '../app';
 import speecher from '../utils/speecher';
 import persistence from '../utils/persistence';
+import app_state from '../utils/app_state';
 import capabilities from '../utils/capabilities';
 import Utils from '../utils/misc';
 
@@ -464,7 +465,7 @@ CoughDrop.User = DS.Model.extend({
     return CoughDrop.User.find_integration(this.get('id'), key);
   },
   check_user_name: function() {
-    if(this.get('watch_user_name')) {
+    if(this.get('watch_user_name_and_cookies')) {
       var user_name = this.get('user_name');
       var user_id = this.get('id');
       this.set('user_name_check', null);
@@ -483,7 +484,12 @@ CoughDrop.User = DS.Model.extend({
         });
       }
     }
-  }.observes('watch_user_name', 'user_name')
+  }.observes('watch_user_name_and_cookies', 'user_name'),
+  toggle_cookies: function() {
+    if(this.get('watch_user_name_and_cookies') && this.get('preferences.cookies') != undefined) {
+      app_state.toggle_cookies(!!this.get('preferences.cookies'));
+    }
+  }.observes('watch_user_name_and_cookies', 'preferences.cookies')
 });
 CoughDrop.User.integrations_for = {};
 CoughDrop.User.find_integration = function(user_name, key) {

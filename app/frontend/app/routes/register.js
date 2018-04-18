@@ -1,12 +1,13 @@
 import Ember from 'ember';
 import Route from '@ember/routing/route';
 import persistence from '../utils/persistence';
+import app_state from '../utils/app_state';
 import CoughDrop from '../app';
 
 export default Route.extend({
   model: function() {
     var res = this.store.createRecord('user', {preferences: {}, referrer: CoughDrop.referrer, ad_referrer: CoughDrop.ad_referrer});
-    res.set('watch_user_name', true);
+    res.set('watch_user_name_and_cookies', true);
     return res;
   },
   setupController: function(controller, model) {

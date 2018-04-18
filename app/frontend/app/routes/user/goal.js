@@ -1,6 +1,8 @@
 import Ember from 'ember';
 import Route from '@ember/routing/route';
 import i18n from '../../utils/i18n';
+import { resolve } from 'rsvp';
+import { later } from '@ember/runloop';
 
 export default Route.extend({
   model: function(params) {
@@ -9,7 +11,7 @@ export default Route.extend({
     return this.store.findRecord('goal', params.goal_id);
   },
   setupController: function(controller, model) {
-    var wait = Ember.RSVP.resolve();
+    var wait = resolve();
     if(!model.get('permissions')) {
       wait = model.reload();
     }
@@ -22,8 +24,8 @@ export default Route.extend({
         model.set('set_badges', false);
         controller.set('badges_only', true);
         controller.send('edit_goal');
-        Ember.run.later(function() {
-        model.add_badge_level(true);
+        later(function() {
+          model.add_badge_level(true);
         });
       } else {
         controller.set('badges_only', false);

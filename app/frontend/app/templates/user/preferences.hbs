@@ -114,16 +114,25 @@
           </label>
         </div>
       {{else}}
-        {{#if advanced}}
-          {{#if model.permissions.delete}}
-            <div style="margin-top: 10px;">
-              <button type="button" class='btn btn-default' {{action "delete_logs"}}>{{t "Delete all stored logs" key='delete_logs'}}</button>
-            </div>
-          {{/if}}
+        {{#if model.permissions.delete}}
+          <div style="margin-top: 10px;">
+            <button type="button" class='btn btn-default' {{action "delete_logs"}}>{{t "Delete all stored logs" key='delete_logs'}}</button>
+          </div>
         {{/if}}
       {{/if}}
       <div style="margin-top: 10px;">
         {{t "NOTE: When logging is enabled, anonymous usage data will be sent to Google services for generating reports" key='logging_uses_google'}}
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="cookies" class="col-sm-3 control-label">{{t "Analytics" key='analytics'}}</label>
+    <div class="col-sm-5">
+      <div class="checkbox">
+        <label>
+          {{input type="checkbox" checked=model.preferences.cookies id="cookies"}}
+          {{t "CoughDrop can track my actions and pageviews for internal purposes like improving features and tracking trends" key='allow_cookies'}}
+        </label>
       </div>
     </div>
   </div>

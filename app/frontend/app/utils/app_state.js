@@ -1293,7 +1293,7 @@ var app_state = EmberObject.extend({
       // clear current badge if it doesn't match the referenced user info
       // load recent badges
       if(CoughDrop.store && user && !user.get('supporter_role') && user.get('full_premium')) {
-        Ember.run.later(function() {
+        runLater(function() {
           _this.set('user_badge_hash', badge_hash);
           CoughDrop.store.query('badge', {user_id: user.get('id'), recent: 1}).then(function(badges) {
             _this.set('user_badge_hash', badge_hash);
@@ -1576,6 +1576,26 @@ var app_state = EmberObject.extend({
       stashes.persist('global_integrations', this.get('sessionUser.global_integrations'));
     }
   }.observes('sessionUser.global_integrations'),
+  toggle_cookies: function(state, change) {
+    if(change == 'sessionUser.preferences.cookies') {
+      state = !!this.get('sessionUser.preferences.cookies');
+    }
+    if(state === true) {
+      if(!window.ga && window.ga_setup) {
+        window.ga_setup();
+      }
+      localStorage['enable_cookies'] = 'true';
+    } else if(state === false) {
+      window.ga = null;
+      localStorage['enable_cookies'] = 'false';
+    }
+    if(localStorage['enable_cookies']) {
+      var elem = document.getElementById('cookies_prompt');
+      if(elem) {
+        elem.style.display = 'none';
+      }
+    }
+  }.observes('sessionUser.preferences.cookies'),
   board_virtual_dom: function() {
     var _this = this;
     var dom = {
