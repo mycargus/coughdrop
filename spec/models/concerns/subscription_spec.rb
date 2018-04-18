@@ -717,7 +717,8 @@ describe Subscription, :type => :model do
         expect(u.settings['subscription']['subscription_id']).to eq('12345')
         expect(u.settings['subscription']['customer_id']).to eq('23456')
         expect(u.settings['subscription']['plan_id']).to eq('monthly_6')
-        expect(u.settings['subscription']['started']).to eq(Time.now.iso8601)
+        expect(u.settings['subscription']['started']).to be > (Time.now - 2).iso8601
+        expect(u.settings['subscription']['started']).to be < (Time.now + 2).iso8601
         expect(u.settings['subscription']['seconds_left']).to be > (time_diff - 100)
         expect(u.settings['subscription']['seconds_left']).to be < (time_diff + 100)
         expect(u.expires_at).to eq(nil)        
