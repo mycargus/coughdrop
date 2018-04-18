@@ -1286,7 +1286,7 @@ var app_state = EmberObject.extend({
     }
     // clear current badge if it doesn't match the referenced user info
     // load recent badges
-    if(CoughDrop.store && user) {
+    if(CoughDrop.store && user && !user.get('supporter_role') && user.get('full_premium')) {
       Ember.run.later(function() {
         CoughDrop.store.query('badge', {user_id: user.get('id'), recent: 1}).then(function(badges) {
           badges = badges.filter(function(b) { return b.get('user_id') == user.get('id'); });

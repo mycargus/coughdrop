@@ -246,7 +246,7 @@ export default Controller.extend({
     if(model && for_users[model.get('id')]) {
       var b = _this.best_badge(for_users[model.get('id')], model.get('goal.id'));
       var eb = _this.earned_badge(for_users[model.get('id')]);
-      if(!app_state.get('currentUser.premium') || app_state.get('currentUser.supporter_role')) {
+      if(!app_state.get('currentUser.full_premium') || app_state.get('currentUser.supporter_role')) {
         b = null;
       }
       // If no badge for the current user use the supervisee if there's only one
@@ -261,7 +261,7 @@ export default Controller.extend({
     }
     var sups = [];
     (app_state.get('currentUser.supervisees') || []).forEach(function(sup) {
-      if(for_users[emberGet(sup, 'id')]) {
+      if(for_users[emberGet(sup, 'id')] && emberGet(sup, 'premium')) {
         var b = _this.best_badge(for_users[emberGet(sup, 'id')], (sup.goal || {}).id);
         emberSet(sup, 'current_badge', b);
         var eb = _this.earned_badge(for_users[emberGet(sup, 'id')]);
