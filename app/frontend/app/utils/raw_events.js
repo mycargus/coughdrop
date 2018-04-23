@@ -38,6 +38,7 @@ var $board_canvas = null;
 
 $(document).on('mousedown touchstart', function(event) {
   if(buttonTracker.dwell_elem) {
+    console.log("linger cleared because touch event");
     buttonTracker.clear_dwell();
     event.target = document.elementFromPoint(event.clientX, event.clientY);
   }
@@ -58,6 +59,7 @@ $(document).on('mousedown touchstart', function(event) {
     buttonTracker.ios_initialized = true;
   }
   if((event.type == 'mouseup' || event.type == 'touchend' || event.type == 'touchcancel') && buttonTracker.dwell_elem) {
+    console.log("linger cleared because touch release event");
     buttonTracker.clear_dwell();
   }
   buttonTracker.touch_release(event);
@@ -885,11 +887,12 @@ var buttonTracker = EmberObject.extend({
   },
   dwell_linger: function(event) {
     // debounce, waiting for clearance
-    if(buttonTracker.dwell_wait) { return; }
+    if(buttonTracker.dwell_wait) { console.log("linger waiting for dwell timeout"); return; }
     var dwell_selection = buttonTracker.dwell_selection != 'button';
     // cursor-based trackers can throw the cursor up against the edges of the screen causing
     // inaccurate lingers for the buttons along the edges
     if(event.type == 'mousemove' && (event.clientX === 0 || event.clientY === 0 || event.clientX >= (window.innerWidth - 1) || event.clientY >= (window.innerHeight - 1))) {
+      console.log("linger waiting because on a screen edge");
       return;
     }
     if(buttonTracker.last_triggering_dwell_event && dwell_selection) {
@@ -899,6 +902,7 @@ var buttonTracker = EmberObject.extend({
       var diffX = Math.abs(event.clientX - last.clientX);
       var diffY = Math.abs(event.clientY - last.clientY);
       if(diffX < needed_distance && diffY < needed_distance) {
+        console.log("linger waiting because selected recently");
         return;
       }
     } else if(buttonTracker.debounce) {
@@ -906,6 +910,7 @@ var buttonTracker = EmberObject.extend({
       if(buttonTracker.last_selection && buttonTracker.last_selection.ts) {
         var now = (new Date()).getTime();
         if(now - buttonTracker.last_selection.ts < buttonTracker.debounce) {
+          console.log("linger waiting because of debounce after selection");
           return;
         }
       }
@@ -920,6 +925,7 @@ var buttonTracker = EmberObject.extend({
     var elem_wrap = buttonTracker.find_selectable_under_event(event, true, false);
     if(elem_wrap && buttonTracker.dwell_ignore == elem_wrap.dom) {
       buttonTracker.dwell_ignore = null;
+      console.log("linger waiting because on an ignore elem");
       return;
     }
     if(!buttonTracker.dwell_elem) {
@@ -936,14 +942,16 @@ var buttonTracker = EmberObject.extend({
       mask.className = 'mask';
       elem.appendChild(mask);
       buttonTracker.dwell_elem = elem;
+      if(!dwell_selection) {
+        buttonTracker.dwell_elem.classList.add('cursor');
+      }
+    }
+    if(!buttonTracker.dwell_icon_elem) {
       var icon = document.createElement('div');
       icon.id = 'dwell_icon';
       icon.className = 'dwell_icon';
       document.body.appendChild(icon);
       buttonTracker.dwell_icon_elem = icon;
-      if(!dwell_selection) {
-        buttonTracker.dwell_elem.classList.add('cursor');
-      }
     }
     if(buttonTracker.check('dwell_cursor') || !dwell_selection) {
       buttonTracker.dwell_icon_elem.style.left = (event.clientX - 5) + "px";
@@ -964,6 +972,7 @@ var buttonTracker = EmberObject.extend({
     }
     buttonTracker.linger_clear_later = runLater(function() {
       // clear the dwell icon if not dwell activity for a period of time
+      console.log("linger cleared because linger timed out");
       buttonTracker.clear_dwell(elem_wrap && elem_wrap.dom);
     }, allowed_delay_between_events);
 
@@ -986,15 +995,18 @@ var buttonTracker = EmberObject.extend({
       // if so clear the object
       if(now - buttonTracker.last_dwell_linger.started > buttonTracker.dwell_timeout + 1000 - duration) {
         // if it's been too long since starting to track the dwell, start over
+        console.log("linger cleared because linger took too long");
         buttonTracker.last_dwell_linger = null;
       } else if(now - buttonTracker.last_dwell_linger.updated > allowed_delay_between_events - duration) {
         // if it's been too long since the last dwell event, start over
+        console.log("linger cleared because too long a gap");
         buttonTracker.last_dwell_linger = null;
       } else {
         // if it's outside the loose bounds to the last target, start over
         var bounds = buttonTracker.last_dwell_linger.loose_bounds();
         if(event.clientX < bounds.left || event.clientX > bounds.left + bounds.width ||
               event.clientY < bounds.top || event.clientY > bounds.top + bounds.height) {
+          console.log("linger cleared because out of bounds", event.clientX, event.clientY);
           buttonTracker.last_dwell_linger = null;
         }
       }
@@ -1024,9 +1036,11 @@ var buttonTracker = EmberObject.extend({
       var old_dist = (Math.abs(old_bounds.left + (old_bounds.width / 2) - avg_x) + Math.abs(old_bounds.top + (old_bounds.height / 2) - avg_y)) / 2;
       var new_dist = (Math.abs(new_bounds.left + (new_bounds.width / 2) - avg_x) + Math.abs(new_bounds.top + (new_bounds.height / 2) - avg_y)) / 2;
       if(new_dist < old_dist) {
+        console.log("linger switched to new target", event.clientX, event.clientY, elem_wrap.dom);
         buttonTracker.last_dwell_linger = elem_wrap;
       }
     } else if(elem_wrap) {
+      console.log("linger started for new target", event.clientX, event.clientY, elem_wrap.dom);
       buttonTracker.last_dwell_linger = elem_wrap;
     }
 
@@ -1358,6 +1372,8 @@ var buttonTracker = EmberObject.extend({
 
       buttonTracker.dwell_elem.parentNode.removeChild(buttonTracker.dwell_elem);
       buttonTracker.dwell_elem = document.getElementById('linger');
+      buttonTracker.dwell_icon_elem.parentNode.removeChild(buttonTracker.dwell_icon_elem);
+      buttonTracker.dwell_icon_elem = document.getElementById('dwell_icon');
       if(buttonTracker.check('dwell_selection') == 'button') {
         if(buttonTracker.last_dwell_linger && buttonTracker.last_dwell_linger.events && buttonTracker.last_dwell_linger.events.length) {
           var events = buttonTracker.last_dwell_linger.events;
@@ -1562,13 +1578,13 @@ window.addEventListener('gamepaddisconnected', function(e) {
 if (!('ongamepadconnected' in window)) {
   // No gamepad events available, poll instead.
   buttonTracker.gamepad_check_interval = setInterval(function() {
-    if(app_state.get('speak_mode')) {
+    if(app_state.get('speak_mode') && buttonTracker.check('dwell_type')) {
       buttonTracker.update_gamepads();
       if(Object.keys(buttonTracker.gamepads).length > 0) {
         buttonTracker.direction_event('gamepads');
       }
     }
-  }, 2000);
+  }, 10000);
 }
 
 
