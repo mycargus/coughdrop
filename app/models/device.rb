@@ -36,6 +36,15 @@ class Device < ActiveRecord::Base
     !!(self.settings && self.settings['disabled'])
   end
   
+  def anonymized_identifier
+    self.settings ||= {}
+    if !self.settings['anonymized_identifier']
+      self.settings['anonymized_identifier'] = GoSecure.nonce('device_pseudonymization')
+      self.save
+    end
+    GoSecure.hmac("#{self.global_id}:#{self.created_at.iso8601}", self.settings['anonymized_identifier'], 1)
+  end
+
   def permission_scopes
     if disabled?
       []

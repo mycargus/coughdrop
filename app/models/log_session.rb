@@ -223,6 +223,15 @@ class LogSession < ActiveRecord::Base
     return nil unless event
     (event['button'] && event['button']['completion']) || event['spelling'] || (event['button'] && event['button']['vocalization']) || (event['button'] && event['button']['label'])
   end
+
+  def anonymized_identifier
+    self.data ||= {}
+    if !self.data['anonymized_identifier']
+      self.data['anonymized_identifier'] = GoSecure.nonce('log_pseudonymization')
+      self.save
+    end
+    GoSecure.hmac("#{self.global_id}:#{self.created_at.iso8601}", self.data['anonymized_identifier'], 1)
+  end
   
   def require_nonce
     if !self.data['nonce']
@@ -287,8 +296,8 @@ class LogSession < ActiveRecord::Base
         self.data['stats']['modeling_events'] += 1 if event['modeling']
         self.data['stats']['system'] ||= event['system']
         self.data['stats']['browser'] ||= event['browser']
-        self.data['stats']['window_width'] ||= event['window_width']
-        self.data['stats']['window_height'] ||= event['window_height']
+        self.data['stats']['window_width'] ||= event['window_width'] if event['window_width'] && event['window_width'] > 0
+        self.data['stats']['window_height'] ||= event['window_height'] if event['window_height'] && event['window_height'] > 0
         if !event['modeling'] && event['type'] == 'utterance'
           self.data['stats']['utterances'] += 1
           self.data['stats']['utterance_words'] += event['utterance']['text'].split(/\s+/).length

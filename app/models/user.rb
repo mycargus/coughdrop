@@ -176,6 +176,16 @@ class User < ActiveRecord::Base
     self.settings['registration_code']
   end
   
+  def anonymized_identifier(str=nil)
+    str ||= ""
+    self.settings ||= {}
+    if !self.settings['anonymized_identifier']
+      self.settings['anonymized_identifier'] = GoSecure.nonce('user_pseudonymization')
+      self.save
+    end
+    GoSecure.hmac("#{self.global_id}:#{self.created_at.iso8601}:#{str}", self.settings['anonymized_identifier'], 1)
+  end
+  
   def self.preference_defaults
     {
       'device' => {
