@@ -546,7 +546,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     res[:core_percent] = 0.0 if res[:core_percent].nan?
     res[:words_per_minute] = (stash[:total_words].to_f / stash[:total_session_seconds].to_f * 60.0).round(1)
     res[:words_per_minute] = 0.0 if res[:words_per_minute].nan?
-    res[:research_communicators] = 500
+    res[:research_communicators] = 1200
     if include_admin
       res[:total_users] = total_users
       res[:total_sessions] = stash[:total_sessions]
