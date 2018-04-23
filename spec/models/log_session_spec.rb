@@ -1718,7 +1718,7 @@ describe LogSession, :type => :model do
         'author_user_name' => u2.user_name,
         'text' => 'ahem',
         'occurred_at' => "2015-05-12T20:06:22Z",
-        'added_at' => Time.now.iso8601
+        'added_at' => Time.now.utc.iso8601
       }])
       expect(u2.reload.settings['user_notifications']).to eq(nil)
     end
@@ -1745,7 +1745,7 @@ describe LogSession, :type => :model do
         'author_user_name' => u2.user_name,
         'text' => 'ahem',
         'occurred_at' => "2015-05-12T20:06:22Z",
-        'added_at' => Time.now.iso8601
+        'added_at' => Time.now.utc.iso8601
       }])
       expect(u2.reload.settings['user_notifications']).to eq(nil)
       expect(u3.reload.settings['unread_messages']).to eq(nil)
@@ -1756,7 +1756,7 @@ describe LogSession, :type => :model do
         'author_user_name' => u2.user_name,
         'text' => 'ahem',
         'occurred_at' => "2015-05-12T20:06:22Z",
-        'added_at' => Time.now.iso8601
+        'added_at' => Time.now.utc.iso8601
       }])
     end
     

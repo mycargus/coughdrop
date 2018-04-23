@@ -704,7 +704,7 @@ describe Board, :type => :model do
         'name' => b.settings['name'],
         'key' => b.key,
         'occurred_at' => b.reload.updated_at.iso8601,
-        'added_at' => Time.now.iso8601
+        'added_at' => Time.now.utc.iso8601
       }])
       expect(u2.reload.settings['user_notifications']).to eq(nil)
     end
@@ -738,7 +738,7 @@ describe Board, :type => :model do
         'name' => b.settings['name'],
         'key' => b.key,
         'occurred_at' => b.reload.updated_at.iso8601,
-        'added_at' => Time.now.iso8601
+        'added_at' => Time.now.utc.iso8601
       }])
       expect(u2.reload.settings['user_notifications']).to eq(nil)
       expect(u3.reload.settings['user_notifications']).to eq([{
@@ -750,7 +750,7 @@ describe Board, :type => :model do
         'name' => b.settings['name'],
         'key' => b.key,
         'occurred_at' => b.reload.updated_at.iso8601,
-        'added_at' => Time.now.iso8601
+        'added_at' => Time.now.utc.iso8601
       }])
     end
     

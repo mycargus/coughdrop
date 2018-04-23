@@ -1451,7 +1451,7 @@ describe User, :type => :model do
         'badge_name' => 'badgy wadgy',
         'badge_level' => 1,
         'id' => b.global_id,
-        'added_at' => Time.now.iso8601
+        'added_at' => Time.now.utc.iso8601
       })
     end
   end

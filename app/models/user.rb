@@ -529,7 +529,7 @@ class User < ActiveRecord::Base
         if params['preferences'][key] != self.settings['preferences'][key]
           self.settings['confirmation_log'] ||= []
           self.settings['confirmation_log'] << {
-            'updater' => non_user_params['updater'].global_id,
+            'updater' => (non_user_params['updater'] ? non_user_params['updater'].global_id : PaperTrail.whodunnit),
             'setting' => key,
             'timestamp' => Time.now.utc.iso8601
           }
