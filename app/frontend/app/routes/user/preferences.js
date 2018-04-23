@@ -9,6 +9,7 @@ export default Route.extend({
     return user;
   },
   setupController: function(controller, model) {
+    model.set('watch_cookies', true);
     controller.set('model', model);
     controller.check_core_words();
     controller.check_voices_available();

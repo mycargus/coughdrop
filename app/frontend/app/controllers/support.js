@@ -4,10 +4,30 @@ import persistence from '../utils/persistence';
 import i18n from '../utils/i18n';
 
 export default modal.ModalController.extend({
+  opening: function() {
+    if(app_state.get('sessionUser')) {
+      this.set('cookies', !!app_state.get('sessionUser.preferences.cookies'));
+    } else {
+      this.set('cookies', localStorage['enable_cookies'] == 'true');
+    }
+  },
   ios: function() {
     return window.navigator.userAgent.match(/ipad|ipod|iphone/i);
   }.property(),
   actions: {
+    toggle_cookies: function() {
+      var _this = this;
+      if(app_state.get('sessionUser')) {
+        app_state.set('sessionUser.watch_cookies');
+        app_state.set('sessionUser.preferences.cookies', !app_state.get('sessionUser.preferences.cookies'));
+        app_state.get('sessionUser').save().then(function() {
+          _this.set('cookies', !!app_state.get('sessionUser.preferences.cookies'));
+        }, function() { });
+      } else {
+        app_state.toggle_cookies(localStorage['enable_cookies'] != 'true');
+        this.set('cookies', localStorage['enable_cookies'] == 'true');
+      }
+    },
     submit_message: function() {
       if(!this.get('email') && !app_state.get('currentUser')) { return; }
       var message = {

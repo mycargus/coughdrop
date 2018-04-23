@@ -117,7 +117,11 @@
     var elem = document.getElementById('cookies_prompt');
     if(elem) {
       if(localStorage['enable_cookies'] == undefined) {
-        elem.style.display = 'block';
+        setTimeout(function() {
+          if(!elem.getAttribute('data-hidden')) {
+            elem.style.display = 'block';
+          }
+        }, 1000);
       }
       document.getElementById('cookies_prompt_enable').addEventListener('click', function(event) {
         event.preventDefault();
@@ -137,7 +141,7 @@
         event.preventDefault();
         elem.style.display = 'none';
         window.ga = null;
-        localStorage['enable_cookies'] = 'false';
+        localStorage['enable_cookies'] = 'explicit_false';
       });
     }
   <% end %>

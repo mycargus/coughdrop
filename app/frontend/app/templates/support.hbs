@@ -76,5 +76,14 @@
         </div>
       {{/if}}
     </form>
+    <div style='margin-top: 20px'>
+      <a href="#" {{action 'toggle_cookies'}}>
+        {{#if cookies}}
+          {{t "disable cookies" key='disable_cookies'}}
+        {{else}}
+          {{t "enable cookies" key='enable_cookies'}}
+        {{/if}}
+      </a>
+    </div>
   </div>
 {{/modal-dialog}}

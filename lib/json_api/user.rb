@@ -33,7 +33,7 @@ module JsonApi::User
       json['preferences']['home_board'] = user.settings['preferences']['home_board']
       json['preferences']['progress'] = user.settings['preferences']['progress']
       json['preferences']['protected_usage'] = !user.external_email_allowed?
-      if !json['preferences']['cookies']
+      if json['preferences']['cookies'] == nil
         json['preferences']['cookies'] = true
       end
       if FeatureFlags.user_created_after?(user, 'word_suggestion_images')

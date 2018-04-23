@@ -1589,10 +1589,14 @@ var app_state = EmberObject.extend({
       state = !!this.get('sessionUser.preferences.cookies');
     }
     if(state === true) {
-      if(!window.ga && window.ga_setup) {
-        window.ga_setup();
+      // If changed on the user preferences page, or they haven't explicitly said
+      // 'No Thanks' on the popup, go ahead and enable cookies and tracking
+      if(!change || this.get('sessionUser.watch_cookies') || localStorage['enable_cookies'] != 'explicit_false') {
+        if(!window.ga && window.ga_setup) {
+          window.ga_setup();
+        }
+        localStorage['enable_cookies'] = 'true';
       }
-      localStorage['enable_cookies'] = 'true';
     } else if(state === false) {
       window.ga = null;
       localStorage['enable_cookies'] = 'false';
@@ -1601,6 +1605,7 @@ var app_state = EmberObject.extend({
       var elem = document.getElementById('cookies_prompt');
       if(elem) {
         elem.style.display = 'none';
+        elem.setAttribute('data-hidden', 'true');
       }
     }
   }.observes('sessionUser.preferences.cookies'),
