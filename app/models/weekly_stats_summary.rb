@@ -428,8 +428,8 @@ class WeeklyStatsSummary < ActiveRecord::Base
         earliest = [earliest, date].compact.min
         latest = [latest, date].compact.max
         week = {
-          'modeled_percent' => 100.0 * (summary.data['totals']['total_modeled_buttons'].to_f / summary.data['totals']['total_buttons'].to_f * 2.0).round(1) / 2.0,
-          'core_percent' => 100.0 * (summary.data['totals']['total_core_words'].to_f / summary.data['totals']['total_words'].to_f * 2.0).round(1) / 2.0,
+          'modeled_percent' => 100.0 * (summary.data['totals']['total_modeled_buttons'].to_f / summary.data['totals']['total_buttons'].to_f * 10.0).round(1) / 10.0,
+          'core_percent' => 100.0 * (summary.data['totals']['total_core_words'].to_f / summary.data['totals']['total_words'].to_f * 10.0).round(1) / 10.0,
           'words_per_minute' => (summary.data['totals']['total_words'].to_f / summary.data['totals']['total_session_seconds'].to_f * 60.0).round(1),
           'goals_percent' => 100.0 * ((summary.data['totals']['goals_set'] || 0).to_f / summary.data['user_ids'].length.to_f).round(3),
           'badges_percent' => 100.0 * ((summary.data['totals']['badges_earned'] || 0).to_f / summary.data['user_ids'].length.to_f).round(3)
@@ -537,12 +537,12 @@ class WeeklyStatsSummary < ActiveRecord::Base
     res[:started_at] = earliest && earliest.iso8601
     res[:ended_at] = latest && latest.iso8601
     res[:total_session_seconds] = stash[:total_session_seconds]
-    res[:modeled_percent] = 100.0 * (stash[:modeled_buttons].to_f / stash[:total_buttons].to_f * 2.0).round(1) / 2.0
+    res[:modeled_percent] = 100.0 * (stash[:modeled_buttons].to_f / stash[:total_buttons].to_f * 10.0).round(1) / 10.0
     res[:modeled_percent] = 0.0 if res[:modeled_percent].nan?
     res[:goals_percent] = 100.0 * (stash[:goal_user_ids].uniq.length.to_f / total_users.to_f).round(2) if stash[:goal_user_ids]
     res[:badges_percent] = 100.0 * (stash[:badged_user_ids].uniq.length.to_f / total_users.to_f).round(2) if stash[:badged_user_ids]
 
-    res[:core_percent] = 100.0 * (stash[:core_words].to_f / stash[:total_words].to_f * 2.0).round(1) / 2.0
+    res[:core_percent] = 100.0 * (stash[:core_words].to_f / stash[:total_words].to_f * 10.0).round(1) / 10.0
     res[:core_percent] = 0.0 if res[:core_percent].nan?
     res[:words_per_minute] = (stash[:total_words].to_f / stash[:total_session_seconds].to_f * 60.0).round(1)
     res[:words_per_minute] = 0.0 if res[:words_per_minute].nan?
