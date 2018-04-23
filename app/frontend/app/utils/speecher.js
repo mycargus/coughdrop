@@ -596,7 +596,8 @@ var speecher = EmberObject.extend({
     runLater(check_status, 100);
     return elem;
   },
-  beep: function() {
+  beep: function(opts) {
+    opts = opts || {};
     var beep = $("#beep")[0];
     if(!beep) {
       var audio = document.createElement('audio');
@@ -609,6 +610,10 @@ var speecher = EmberObject.extend({
     }
     if(beep) {
       this.play_audio(beep);
+      stashes.log({
+        action: 'beep',
+        button_triggered: opts.button_triggered
+      });
     } else {
       console.log("beep sound not found");
     }

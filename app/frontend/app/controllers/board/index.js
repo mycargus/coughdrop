@@ -746,13 +746,13 @@ export default Controller.extend({
     complete_word: function(word) {
       var text = word.word;
       var button = editManager.fake_button();
-      button.label = ":complete";
-      button.completion = text;
+      button.set('label', ":complete");
+      button.set('completion', text);
       if(word.original_image) {
-        button.image = CoughDrop.store.createRecord('image');
-        button.image.set('url', word.original_image);
+        button.set('image', CoughDrop.store.createRecord('image'));
+        button.set('image.url', word.original_image);
       }
-      button.empty = false;
+      button.set('empty', false);
 
       var controller = this;
       var board = this.get('model');

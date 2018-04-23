@@ -105,15 +105,15 @@ export default Controller.extend({
         this.transitionToRoute('search', encodeURIComponent(this.get('searchString') || '_'));
       }
     },
-    backspace: function() {
-      utterance.backspace();
+    backspace: function(opts) {
+      utterance.backspace(opts);
       if(app_state.get('currentUser.preferences.click_buttons') && app_state.get('speak_mode')) {
         speecher.click();
       }
     },
-    clear: function() {
+    clear: function(opts) {
       app_state.toggle_modeling(false);
-      utterance.clear();
+      utterance.clear(opts);
       if(app_state.get('currentUser.preferences.click_buttons') && app_state.get('speak_mode')) {
         speecher.click();
       }
@@ -129,7 +129,8 @@ export default Controller.extend({
         stashes.persist('all_buttons_enabled', true);
       }
     },
-    home: function() {
+    home: function(opts) {
+      opts = opts || {};
       var state = stashes.get('temporary_root_board_state') || stashes.get('root_board_state');
       var current = app_state.get('currentBoardState');
       // if you're on a temporary home board and you hit home, it should take you to the real home
@@ -148,7 +149,7 @@ export default Controller.extend({
         if(stashes.get('sticky_board') && app_state.get('speak_mode')) {
           modal.warning(i18n.t('sticky_board_notice', "Board lock is enabled, disable to leave this board."), true);
         } else {
-          this.rootBoard({index_as_fallback: true});
+          this.rootBoard({index_as_fallback: true, button_triggered: opts.button_triggered});
           if(app_state.get('currentUser.preferences.click_buttons') && app_state.get('speak_mode')) {
             speecher.click();
           }
@@ -236,7 +237,7 @@ export default Controller.extend({
       session.persist(data);
       location.reload();
     },
-    back: function() {
+    back: function(opts) {
       // TODO: true back button vs. separate history? one is better for browser,
       // other is better if you end up with intermediate pages at all.. what about
       // full screen browser mode? Prolly needs a localstorage component as well,
@@ -245,17 +246,17 @@ export default Controller.extend({
       if(stashes.get('sticky_board') && app_state.get('speak_mode')) {
         modal.warning(i18n.t('sticky_board_notice', "Board lock is enabled, disable to leave this board."), true);
       } else {
-        this.backOneBoard();
+        this.backOneBoard(opts);
         if(app_state.get('currentUser.preferences.click_buttons') && app_state.get('speak_mode')) {
           speecher.click();
         }
       }
     },
-    vocalize: function() {
-      this.vocalize();
+    vocalize: function(opts) {
+      this.vocalize(null, opts);
     },
     alert: function() {
-      utterance.alert();
+      utterance.alert({button_triggered: true});
       this.send('hide_temporary_sidebar');
     },
     setSpeakModeUser: function(id, type) {
@@ -620,14 +621,14 @@ export default Controller.extend({
   sayLouder: function() {
     this.vocalize(3.0);
   },
-  vocalize: function(volume) {
-    utterance.vocalize_list(volume);
+  vocalize: function(volume, opts) {
+    utterance.vocalize_list(volume, opts);
   },
   jumpToBoard: function(new_state, old_state) {
     app_state.jump_to_board(new_state, old_state);
   },
-  backOneBoard: function() {
-    app_state.back_one_board();
+  backOneBoard: function(opts) {
+    app_state.back_one_board(opts);
   },
   rootBoard: function(options) {
     app_state.jump_to_root_board(options);

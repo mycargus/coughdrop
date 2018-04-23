@@ -184,7 +184,7 @@ var utterance = EmberObject.extend({
   add_button: function(button, original_button) {
     // clear if the sentence box was already spoken and auto-clear is enabled
     if(this.get('clear_on_vocalize') && this.get('list_vocalized')) {
-      this.clear(true);
+      this.clear({auto_cleared: true});
     }
     // append button attributes as needed
     var b = $.extend({}, button);
@@ -258,22 +258,25 @@ var utterance = EmberObject.extend({
       speecher.speak_text(text);
     }
   },
-  alert: function() {
-    speecher.beep();
+  alert: function(opts) {
+    speecher.beep(opts);
   },
-  clear: function(auto_cleared, skip_logging) {
+  clear: function(opts) {
+    opts = opts || {}
     this.set('rawButtonList', []);
-    if(!skip_logging) {
+    if(!opts.skip_logging) {
       stashes.log({
-        action: 'clear'
+        action: 'clear',
+        button_triggered: opts.button_triggered
       });
     }
-    if(!auto_cleared) {
+    if(!opts.auto_cleared) {
       speecher.stop('all');
     }
     this.set('list_vocalized', false);
   },
-  backspace: function() {
+  backspace: function(opts) {
+    opts = opts || {};
     var list = this.get('rawButtonList');
     // if the list is vocalized, backspace should take it back into building-mode
     if(!this.get('list_vocalized')) {
@@ -282,7 +285,8 @@ var utterance = EmberObject.extend({
       speecher.stop('all');
     }
     stashes.log({
-      action: 'backspace'
+      action: 'backspace',
+      button_triggered: opts.button_triggered
     });
     this.set('list_vocalized', false);
   },
@@ -290,7 +294,8 @@ var utterance = EmberObject.extend({
     this.set('rawButtonList', buttons);
     this.controller.vocalize();
   },
-  vocalize_list: function(volume) {
+  vocalize_list: function(volume, opts) {
+    opts = opts || {};
     // TODO: this is ignoring volume right now :-(
     var list = app_state.get('button_list');
     var text = list.map(function(i) { return i.vocalization || i.label; }).join(' ');
@@ -308,6 +313,7 @@ var utterance = EmberObject.extend({
 
     stashes.log({
       text: text,
+      button_triggered: opts.button_triggered,
       buttons: stashes.get('working_vocalization')
     });
     speecher.speak_collection(items, Math.round(Math.random() * 99999) + '-' + (new Date()).getTime(), {override_volume: volume});

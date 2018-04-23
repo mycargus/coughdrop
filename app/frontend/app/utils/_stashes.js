@@ -323,6 +323,9 @@ var stashes = EmberObject.extend({
           geo: geo,
           action: obj
         };
+        if(obj.button_triggered) {
+          log_event.button_triggered = true;
+        }
       }
       if(stash_capabilities) {
         log_event.system = stash_capabilities.system;

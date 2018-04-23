@@ -431,12 +431,14 @@ var app_state = EmberObject.extend({
       }
     }
   }.observes('short_refresh_stamp', 'modeling'),
-  back_one_board: function() {
+  back_one_board: function(opts) {
+    opts = opts || {};
     buttonTracker.transitioning = true;
     var history = this.get_history();
     var state = history.pop();
     stashes.log({
-      action: 'back'
+      action: 'back',
+      button_triggered: opts.button_triggered
     });
     this.set_history([].concat(history));
     this.controller.transitionToRoute('board', state.key);
@@ -464,7 +466,12 @@ var app_state = EmberObject.extend({
     }
     if(do_log) {
       stashes.log({
-        action: (auto_home ? 'auto_home' : 'home')
+        action: (auto_home ? 'auto_home' : 'home'),
+        button_triggered: options.button_triggered,
+        new_id: {
+          id: state.id,
+          key: state.key
+        }
       });
     }
   },
@@ -536,7 +543,7 @@ var app_state = EmberObject.extend({
   },
   toggle_mode: function(mode, opts) {
     opts = opts || {};
-    utterance.clear(null, true);
+    utterance.clear({skip_logging: true});
     var current_mode = stashes.get('current_mode');
     var temporary_root_state = null;
     if(opts && opts.force) { current_mode = null; }
@@ -1473,6 +1480,7 @@ var app_state = EmberObject.extend({
           _this.jump_to_board({
             id: button.load_board.id,
             key: button.load_board.key,
+            button_triggered: true,
             home_lock: button.home_lock
           }, obj.board);
         }, 50);
@@ -1530,17 +1538,17 @@ var app_state = EmberObject.extend({
       }
     } else if(button_to_speak.special) {
       if(button.vocalization == ':clear') {
-        app_state.controller.send('clear');
+        app_state.controller.send('clear', {button_triggered: true});
       } else if(button.vocalization == ':beep') {
-        app_state.controller.send('alert');
+        app_state.controller.send('alert', {button_triggered: true});
       } else if(button.vocalization == ':home') {
-        app_state.controller.send('home');
+        app_state.controller.send('home', {button_triggered: true});
       } else if(button.vocalization == ':back') {
-        app_state.controller.send('back');
+        app_state.controller.send('back', {button_triggered: true});
       } else if(button.vocalization == ':speak') {
-        app_state.controller.send('vocalize');
+        app_state.controller.send('vocalize', {button_triggered: true});
       } else if(button.vocalization == ':backspace') {
-        app_state.controller.send('backspace');
+        app_state.controller.send('backspace', {button_triggered: true});
       }
     } else if(button.integration && button.integration.action_type == 'webhook') {
       Button.extra_actions(button);
