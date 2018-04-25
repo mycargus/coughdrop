@@ -64,7 +64,7 @@
       </div>
       {{#unless app_state.button_list}}
         {{#if app_state.currentUser.preferences.blank_status}}
-          <button id='speak_mode_notification' class='btn btn-default' {{action 'speak_mode_notification'}}>
+          <button id='speak_mode_notification' class='btn btn-default undwellable' {{action 'speak_mode_notification'}}>
             {{#if app_state.user_badge}}
               <span>
                 {{#if app_state.user_badge.earned}}
