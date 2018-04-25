@@ -30,7 +30,8 @@ module Exporter
 
 More information about the file formats being used is available at https://www.openboardformat.org
 })
-      zipper.add('settings.json', JSON.pretty_generate({}))
+      json = JsonApi::User.build_json(user, {:permissions => user})
+      zipper.add('user.json', JSON.pretty_generate(json))
       export_logs(user.global_id, false, zipper)
       export_logs(user.global_id, true, zipper)
       export_boards(user, zipper)
@@ -39,6 +40,57 @@ More information about the file formats being used is available at https://www.o
   end
   
   def self.export_boards(user, zipper=nil)
+    matched_board_ids = {}
+    if user.settings['preferences']['home_board']
+      home_board = Board.find_by_path(user.settings['preferences']['home_board']['id'] || user.settings['preferences']['home_board']['key'])
+      if home_board
+        matched_board_ids[home_board.global_id] = true
+        home_board.settings['downstream_board_ids'].each{|id| matched_board_ids[id] = true }
+        
+        file = Tempfile.new(['home-board', '.obz'])
+        path = file.path
+        file.close
+        Converters::CoughDrop.to_obz(home_board, path, {'user' => user})
+        file = File.open(path, 'rb')
+        zipper.add('boards/home.obz', file.read)
+        file.close
+
+        file = Tempfile.new(['home-board', '.pdf'])
+        path = file.path
+        file.close
+        Converters::CoughDrop.to_pdf(home_board, path, {'user' => user, 'packet' => true})
+        file = File.open(path, 'rb')
+        zipper.add('boards/home.pdf', file.read)
+        file.close
+      end
+    end
+    user.sidebar_boards.each_with_index do |board, idx|
+      sidebar_board = Board.find_by_path(board['id'] || board['key']) if board['key']
+      if sidebar_board
+        matched_board_ids[sidebar_board.global_id] = true
+        sidebar_board.settings['downstream_board_ids'].each{|id| matched_board_ids[id] = true }
+          
+        file = Tempfile.new(['sidebar-board', '.obz'])
+        path = file.path
+        file.close
+        Converters::CoughDrop.to_obz(sidebar_board, path, {'user' => user})
+        file = File.open(path, 'rb')
+        zipper.add("boards/sidebar-#{idx.to_s.rjust(2, '0')}.obz", file.read)
+        file.close
+      end
+    end
+    Board.where(user_id: user.id).find_in_batches(batch_size: 5) do |batch|
+      batch.each do |board|
+        next if matched_board_ids[board.global_id]
+        file = Tempfile.new(['board', '.obf'])
+        path = file.path
+        file.close
+        Converters::CoughDrop.to_obf(board, path)
+        file = File.open(path, 'rb')
+        zipper.add("boards/personal/board-#{board.global_id}.obf", file.read)
+        file.close
+      end
+    end
     "boards/home.obz"
     "boards/sidebar-##.obz"
     "boards/personal/global_id.obf"
