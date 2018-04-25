@@ -271,6 +271,7 @@
 </div>
 
 {{#if model.session_type}}
+  <button type="button" {{action "obl_export"}} class='btn btn-default'>{{t "Download Log File" key='download_log_file'}}</button>
   <button type="button" {{action "lam_export"}} class='btn btn-default'>{{t "View LAM Report" key='export_as_lam'}}</button>
 {{/if}}
 {{#if model.previous_log_id}}

@@ -196,7 +196,7 @@ class WordData < ActiveRecord::Base
   end
   
   def self.core_list_for(user)
-    template = UserIntegration.find_by(:template => true, :integration_key => 'core_word_list')
+    template = user && UserIntegration.find_by(:template => true, :integration_key => 'core_word_list')
     ui = template && UserIntegration.find_by(:template_integration => template, :user => user)
     if ui
       ui.settings['core_word_list']['words']

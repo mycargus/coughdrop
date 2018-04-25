@@ -130,6 +130,23 @@ class Api::LogsController < ApplicationController
     end
   end
   
+  def obl
+    if params['log_id']
+      log = LogSession.find_by_global_id(params['log_id'])
+      return unless exists?(log, params['log_id'])
+      return unless exists?(log.user)
+      return unless allowed?(log.user, 'supervise')
+      progress = Progress.schedule(Exporter, :export_log, log.global_id)
+      render json: JsonApi::Progress.as_json(progress, :wrapper => true).to_json
+    elsif params['user_id']
+      user = User.find_by_global_id(params['user_id'])
+      return unless exists?(user, params['user_id'])
+      return unless allowed?(user, 'supervise')
+      progress = Progress.schedule(Exporter, :export_logs, user.global_id)
+      render json: JsonApi::Progress.as_json(progress, :wrapper => true).to_json
+    end
+  end
+  
   def trends
     extra_data = !!(@api_user && @api_user.allows?(@api_user, 'admin_support_actions'))
     res = JSON.parse(Permissable.permissions_redis.get('global/stats/trends')) rescue nil

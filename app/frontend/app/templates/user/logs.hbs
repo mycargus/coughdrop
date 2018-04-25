@@ -64,6 +64,7 @@
         <button class='btn btn-small btn-default' {{action "quick_assessment"}}>{{t "Quick Assessment" key='quick_assessment'}}</button>
       {{/if}}
     {{/if}}
+    <button type="button" {{action "obl_export"}} class='btn btn-default'>{{t "Download Log File" key='download_log_file'}}</button>
     <button class="btn btn-default" {{action "clearLogs"}}>{{t "Clear All Logs" key='clear_all_logs'}}</button>
   {{else}}
     {{#if messages_only}}

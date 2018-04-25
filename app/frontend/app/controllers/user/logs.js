@@ -36,6 +36,9 @@ export default Controller.extend({
     return !this.get('filtered_results') && (!this.get('type') || this.get('type') == 'all');
   }.property('type', 'filtered_results'),
   actions: {
+    obl_export: function() {
+      modal.open('download-log', {user: this.get('model')});
+    },
     recordNote: function(type) {
       var _this = this;
       var user = this.get('model');

@@ -92,6 +92,9 @@ export default Controller.extend({
     lam_export: function() {
       capabilities.window_open('/api/v1/logs/' + this.get('model.id') + '/lam?nonce=' + this.get('model.nonce'), '_system');
     },
+    obl_export: function() {
+      modal.open('download-log', {log: this.get('model')});
+    },
     toggle_notes: function(id, action) {
       this.get('model').toggle_notes(id);
       if(action == 'add') {
