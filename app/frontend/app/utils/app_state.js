@@ -1615,8 +1615,10 @@ var app_state = EmberObject.extend({
       sendAction: function() {
       },
       trigger: function(event, id, args) {
-        if(CoughDrop.customEvents[event]) {
-          dom.sendAction(CoughDrop.customEvents[event], id, {event: args});
+        if(app_state.get('currentUser.preferences.device.canvas_render')) {
+          if(CoughDrop.customEvents[event]) {
+            dom.sendAction(CoughDrop.customEvents[event], id, {event: args});
+          }
         }
       },
       each_button: function(callback) {
@@ -1673,16 +1675,18 @@ var app_state = EmberObject.extend({
       },
       button_from_point: function(x, y) {
         var res = null;
-        dom.each_button(function(b) {
-          var pos = b.positioning;
-          if(!b.hidden) {
-            if(x > pos.left - 2 && x < pos.left + pos.width + 2) {
-              if(y > pos.top - 2 && y < pos.top + pos.height + 2) {
-                res = dom.button_result(b);
+        if(app_state.get('currentUser.preferences.device.canvas_render')) {
+          dom.each_button(function(b) {
+            var pos = b.positioning;
+            if(!b.hidden) {
+              if(x > pos.left - 2 && x < pos.left + pos.width + 2) {
+                if(y > pos.top - 2 && y < pos.top + pos.height + 2) {
+                  res = dom.button_result(b);
+                }
               }
             }
-          }
-        });
+          });
+        }
         return res;
       },
       button_from_index: function(idx) {
