@@ -37,7 +37,12 @@ export default modal.ModalController.extend({
     this.set('state', state);
     this.set('original_image_license', $.extend({}, button.get('image.license')));
     this.set('original_sound_license', $.extend({}, button.get('sound.license')));
-    this.set('board_search_type', stashes.get('last_board_search_type') || "personal");
+
+    var fallback = 'personal';
+    if(this.get('board.user_name') != app_state.get('currentUser.user_name')) {
+      fallback = 'current_user';
+    }
+    this.set('board_search_type', stashes.get('last_board_search_type') || fallback);
     if(!(stashes.get('last_image_library') || "").match(/required/)) {
       this.set('image_library', stashes.get('last_image_library'));
     }
@@ -249,7 +254,7 @@ export default modal.ModalController.extend({
       res.push({name: i18n.t('their_starred_boards', "This User's Liked Boards"), id: 'current_user_starred'});
       res.push({name: i18n.t('my_public_boards', "My Public Boards"), id: 'personal_public'});
       res.push({name: i18n.t('my_public_boards', "My Liked Public Boards"), id: 'personal_public_starred'});
-
+      // TODO: add My Private Boards, but warn and have option to auto-share if selected
     } else {
       res.push({name: i18n.t('my_boards', "My Boards (includes shared)"), id: 'personal'});
       res.push({name: i18n.t('public_boards', "Public Boards"), id: 'public'});

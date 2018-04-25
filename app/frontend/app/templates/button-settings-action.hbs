@@ -84,7 +84,11 @@
                 </div>
               {{else}}
                 <div style="margin-top: 10px;">
-                  {{t "No results found for \"%{term}\"" key='no_results_for' term=foundBoards.term}}
+                  {{#if foundBoards.term}}
+                    {{t "No results found for \"%{term}\"" key='no_results_for' term=foundBoards.term}}
+                  {{else}}
+                    {{t "No results found" key='no_results'}}
+                  {{/if}}
                 </div>
               {{/if}}
             {{else}}

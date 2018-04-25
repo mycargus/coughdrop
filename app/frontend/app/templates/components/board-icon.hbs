@@ -3,7 +3,7 @@
     <a href="#" {{action 'board_preview' board_record bubbles=false}} class='info'><span class='glyphicon glyphicon-info-sign'></span></a>
   {{/unless}}
   <img src={{board_record.icon_url_with_fallback}} onerror="button_broken_image(this);"/>
-  <div class='name'>
+  <div class={{if noinfo 'name compact' 'name'}}>
   {{board_record.name}}
   </div>
   <div class='author'>

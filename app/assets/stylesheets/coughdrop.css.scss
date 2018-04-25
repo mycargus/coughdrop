@@ -2066,6 +2066,10 @@ $nav_extras: #eee;
     margin-top: -10px; 
     white-space: normal; 
     line-height: 25px;
+    &.compact {
+      margin-bottom: 0;
+      font-size: 13px;
+    }
   }
   .author {
     font-size: 12px; 
