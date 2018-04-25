@@ -55,7 +55,7 @@ var utterance = EmberObject.extend({
         buttonList.push(altered);
       } else if(text.match(/^\:/) && !last.sound) {
         last = buttonList.pop();
-        if(text == ':complete' && !(last || {}).in_progress) {
+        if((text == ':complete' || text == ':predict') && !(last || {}).in_progress) {
           if(last) {
             buttonList.push(last);
           }
@@ -103,7 +103,7 @@ var utterance = EmberObject.extend({
     stashes.persist('working_vocalization', buttonList);
   }.observes('rawButtonList', 'rawButtonList.[]', 'rawButtonList.length', 'rawButtonList.@each.image'),
   modifiers: [':plural', ':singular', ':comparative', ':er', ':superlative',
-    ':est', ':possessive', ':\'s', ':past', ':ed', ':present-participle', ':ing', ':space', ':complete'],
+    ':est', ':possessive', ':\'s', ':past', ':ed', ':present-participle', ':ing', ':space', ':complete', ':predict'],
   modify_button: function(original, addition) {
     // TODO: I'm thinking maybe +s notation shouldn't append to word buttons, only :modify notation
     // should do that. The problem is when you want to spell a word after picking a word-button,
@@ -126,7 +126,8 @@ var utterance = EmberObject.extend({
       altered.in_progress = true;
     } else if(text == ':space') {
       altered.in_progress = false;
-    } else if(text == ':complete') {
+    } else if(text == ':complete' || text == ':predict') {
+
       altered.vocalization = addition.completion;
       altered.label = addition.completion;
       if(addition.image) { altered.image = addition.image; }

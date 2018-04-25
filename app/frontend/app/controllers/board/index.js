@@ -13,6 +13,7 @@ import i18n from '../../utils/i18n';
 import modal from '../../utils/modal';
 import Button from '../../utils/button';
 import frame_listener from '../../utils/frame_listener';
+import {set as emberSet, get as emberGet} from '@ember/object';
 import { htmlSafe } from '@ember/string';
 
 var cached_images = {};
@@ -746,7 +747,12 @@ export default Controller.extend({
     complete_word: function(word) {
       var text = word.word;
       var button = editManager.fake_button();
-      button.set('label', ":complete");
+      button.set('label', text);
+      button.set('vocalization', ":complete");
+      var list = app_state.get('button_list') || [];
+      if(!emberGet(list[0] || {}, 'in_progress')) {
+        button.set('label', ":predict");
+      }
       button.set('completion', text);
       if(word.original_image) {
         button.set('image', CoughDrop.store.createRecord('image'));
