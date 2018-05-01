@@ -389,12 +389,21 @@
           </button>
         </div>
         {{#if app_state.currentUser.preferences.progress.intro_watched}}
-          <div class='col-md-3 col-xs-4 big_button_holder'>
-            <button id='nav_tertiary' class='btn big_button btn-default' {{action "newBoard"}}>
-              <img src={{path 'images/new.svg'}} />
-              {{t "New Board" key='new_board'}}
-            </button>
-          </div>
+          {{#if false}}
+            <div class='col-md-3 col-xs-4 big_button_holder'>
+              <button id='nav_tertiary' class='btn big_button btn-default bottom_row' {{action 'goals'}}>
+                <span class='glyphicon glyphicon-flag'></span>
+                {{t "Goal Ideas" key='goal_ideas'}}
+              </button>
+            </div>
+          {{else}}
+            <div class='col-md-3 col-xs-4 big_button_holder'>
+              <button id='nav_tertiary' class='btn big_button btn-default' {{action "newBoard"}}>
+                <img src={{path 'images/new.svg'}} />
+                {{t "New Board" key='new_board'}}
+              </button>
+            </div>
+          {{/if}}
         {{else}}
           <div class='col-md-3 col-xs-4 big_button_holder'>
             <button id='nav_tertiary' class='btn big_button btn-default middle_row' {{action "intro"}}>
@@ -446,15 +455,15 @@
             </div>
           {{/if}}
           <div class='col-md-3 col-xs-4 big_button_holder'>
-            <button class='btn big_button btn-default bottom_row' {{action "record_note"}}>
-              <span class='glyphicon glyphicon-file'></span>
-              {{t "New Note" key='new_note'}}
-            </button>
-          </div>
-          <div class='col-md-3 col-xs-4 big_button_holder'>
             <button class='btn big_button btn-default bottom_row' {{action 'goals'}}>
               <span class='glyphicon glyphicon-flag'></span>
               {{t "Goals" key='goals'}}
+            </button>
+          </div>
+          <div class='col-md-3 col-xs-4 big_button_holder'>
+            <button class='btn big_button btn-default bottom_row' {{action "record_note"}}>
+              <span class='glyphicon glyphicon-file'></span>
+              {{t "New Note" key='new_note'}}
             </button>
           </div>
           <div class='col-md-3 col-xs-4 big_button_holder'>

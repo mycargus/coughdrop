@@ -2,7 +2,7 @@
   <div class="row">
     {{#each users as |supervisee|}}
       <div class="col-md-3 col-sm-4 col-xs-6">
-        <button disabled={{supervisee.disabled}} class={{if supervisee.currently_selected 'btn btn-info' 'btn btn-default'}} {{action 'select' supervisee.id}} style="width: 100%; padding-top: 10px; padding-bottom: 10px; margin-bottom: 20px;">
+        <button disabled={{supervisee.disabled}} class={{if supervisee.currently_selected 'user_select btn btn-info' 'user_select btn btn-default'}} {{action 'select' supervisee.id}} style="width: 100%; padding-top: 10px; padding-bottom: 10px; margin-bottom: 20px;">
           <img src={{supervisee.image}} style="height: 60px; max-width: 100px;"/><br/>
           {{supervisee.name}}<br/>
           {{#if supervisee.disabled}}

@@ -42,7 +42,7 @@
         {{else}}
           <button {{action 'update' goal 'primary' 'on'}} class='btn btn-lg btn-default' title={{t "make primary goal" key='make_primary_goal'}}><span class='glyphicon glyphicon-hand-up'></span><span class='sr-only'>{{t "make primary goal" key='make_primary_goal'}}</span></button>
         {{/if}}
-        <button {{action 'delete' goal}} class='btn btn-lg btn-default' title={{t "retire goal" key='retire_goal'}}><span class='glyphicon glyphicon-remove'></span><span class='sr-only'>{{t "retire goal" key='retire_goal'}}</span></button>
+        <button {{action 'delete' goal}} class='btn btn-lg btn-default' title={{t "retire goal" key='retire_goal'}}><span class='glyphicon glyphicon-ok'></span><span class='sr-only'>{{t "retire goal" key='retire_goal'}}</span></button>
       {{else}}
         <button {{action 'update' goal 'active' 'on'}} class='btn btn-lg btn-default' title={{t "restore goal" key='restore_goal'}}><span class='glyphicon glyphicon-arrow-up'></span><span class='sr-only'>{{t "restore goal" key='restore_goal'}}</span></button>
         <button {{action 'delete' goal}} class='btn btn-lg btn-default' title={{t "delete goal" key='delete_goal'}}><span class='glyphicon glyphicon-trash'></span><span class='sr-only'>{{t "delete goal" key='delete_goal'}}</span></button>

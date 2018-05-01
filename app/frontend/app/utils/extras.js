@@ -157,6 +157,7 @@ import capabilities from './capabilities';
       options = arguments[1];
       options.url = options.url || arguments[0];
     }
+
     var original_options = {}
     for(var key in options) {
       original_options[key] = options[key];
