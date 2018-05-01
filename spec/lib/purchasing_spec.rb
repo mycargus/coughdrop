@@ -1251,6 +1251,49 @@ describe Purchasing do
       expect(res[:success]).to eq(true)
       expect(res[:code]).to eq(g.code)
     end
+    
+    it "should redeem a sub-gift code" do
+      g = GiftPurchase.create(:settings => {'total_codes' => 50, 'seconds_to_add' => 4.years.to_i})
+      expect(g.settings['codes']).to_not eq(nil)
+      expect(g.settings['codes'].keys.length).to eq(50)
+      expect(g.reload.settings['codes'].to_a[0][1]).to eq(nil)
+      code = g.settings['codes'].to_a[0][0]
+      u = User.create
+      exp = u.expires_at
+      res = Purchasing.redeem_gift(code, u)
+      expect(res[:success]).to eq(true)
+      expect(res[:code]).to eq(code)
+      u.reload
+      expect(u.expires_at).to eq(exp + 4.years.to_i)
+      expect(g.reload.settings['codes'].to_a[0][1]).to_not eq(nil)
+      expect(g.reload.settings['codes'].to_a[0][1]['receiver_id']).to eq(u.global_id)
+      expect(g.reload.settings['codes'].to_a[0][1]['redeemed_at']).to_not eq(nil)
+    end
+    
+    it "should add a sub-gift code to an org if defined" do
+      o = Organization.create
+      g = GiftPurchase.create(:settings => {'total_codes' => 50, 'seconds_to_add' => 4.years.to_i, 'org_id' => o.global_id})
+      expect(g.settings['codes']).to_not eq(nil)
+      expect(g.settings['codes'].keys.length).to eq(50)
+      expect(g.reload.settings['codes'].to_a[0][1]).to eq(nil)
+      code = g.settings['codes'].to_a[0][0]
+      u = User.create
+      exp = u.expires_at
+      res = Purchasing.redeem_gift(code, u)
+      expect(res[:success]).to eq(true)
+      expect(res[:code]).to eq(code)
+      u.reload
+      expect(u.expires_at).to eq(exp + 4.years.to_i)
+      expect(g.reload.settings['codes'].to_a[0][1]).to_not eq(nil)
+      expect(g.reload.settings['codes'].to_a[0][1]['receiver_id']).to eq(u.global_id)
+      expect(g.reload.settings['codes'].to_a[0][1]['redeemed_at']).to_not eq(nil)
+      links = UserLink.links_for(u)
+      expect(links.length).to eq(1)
+      expect(links[0]['record_code']).to eq(Webhook.get_record_code(o))
+      expect(links[0]['state']['pending']).to eq(false)
+      expect(links[0]['state']['sponsored']).to eq(false)
+      expect(links[0]['state']['eval']).to eq(false)
+    end
   end
   
   describe "logging" do

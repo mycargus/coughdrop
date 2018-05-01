@@ -361,7 +361,7 @@ module Purchasing
   end
   
   def self.redeem_gift(code, user)
-    gift = GiftPurchase.where(:active => true, :code => code).first
+    gift = GiftPurchase.find_by_code(code)
     if !user
       return {success: false, error: "user required"}
     end
@@ -371,16 +371,14 @@ module Purchasing
     if !gift.settings || gift.settings['seconds_to_add'].to_i <= 0
       return {success: false, error: "gift has no time to add"}
     end
-    gift.active = false
-    gift.settings['receiver_id'] = user.global_id
-    gift.settings['redeemed_at'] = Time.now.iso8601
-    gift.save
+    gift.redeem_code!(code, user)
     
     res = User.subscription_event({
       'user_id' => user.global_id,
       'purchase' => true,
       'plan_id' => 'gift_code',
       'gift_id' => gift.global_id,
+      'code' => code,
       'seconds_to_add' => gift.settings['seconds_to_add'].to_i
     })
     if res

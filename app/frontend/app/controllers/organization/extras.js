@@ -27,6 +27,17 @@ export default Controller.extend({
       _this.set('blocked_emails', {error: true});
     });
   },
+  gift_types: [
+    {name: i18n.t('select_type', "[ Select Type ]"), id: ""},
+    {name: i18n.t('single_user_gift_code', "Single User Gift Code"), id: "user_gift"},
+    {name: i18n.t('bulk_purchase', "Bulk License Purchase"), id: "bulk_purchase"},
+    {name: i18n.t('gift_code_batch', "Gift Code Batch"), id: "multi_code"},
+  ],
+  current_gift_type: function() {
+    var res = {};
+    res[this.get('gift_type')] = true;
+    return res;
+  }.property('gift_type'),
   actions: {
     block_email: function() {
       var email = this.get('blocked_email_address');
@@ -58,6 +69,14 @@ export default Controller.extend({
         gift.set('organization', this.get('org'));
         gift.set('email', this.get('email'));
         gift.set('memo', this.get('memo'));
+      } else if(type == 'multi_code') {
+        gift.set('org_id', this.get('org_id'));
+        gift.set('total_codes', parseInt(this.get('total_codes'), 10));
+        gift.set('organization', this.get('org'));
+        gift.set('email', this.get('email'));
+        gift.set('memo', this.get('memo'));
+        var years = parseFloat(this.get('duration')) || 5;
+        gift.set('seconds', years * 365.25 * 24 * 60 * 60);
       } else {
         var years = parseFloat(this.get('duration')) || 3;
         gift.set('seconds', years * 365.25 * 24 * 60 * 60);

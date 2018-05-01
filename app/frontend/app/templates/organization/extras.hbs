@@ -29,9 +29,15 @@
         {{#each gifts as |gift|}}
           <a class='list-group-item'>
             <span style='float: left; font-size: 30px; padding-right: 10px;'>
-              {{#if gift.licenses}}
+              {{#if gift.gift_types.bulk_purchase}}
                 {{#if gift.active}}
                   <span class='glyphicon glyphicon-usd'></span>
+                {{else}}
+                  <span class='glyphicon glyphicon-ok'></span>
+                {{/if}}
+              {{else if gift.gift_types.multi_code}}
+                {{#if gift.active}}
+                  <span class='glyphicon glyphicon-th'></span>
                 {{else}}
                   <span class='glyphicon glyphicon-ok'></span>
                 {{/if}}
@@ -43,7 +49,7 @@
                 {{/if}}
               {{/if}}
             </span>
-            {{#if gift.licenses}}
+            {{#if gift.gift_types.bulk_purchase}}
               <a href="/purchase/{{gift.code}}">
                 {{#if gift.organization}}{{gift.organization}}<br/>{{/if}}
                 {{t "$" key='dollar_sign'}}{{delimit gift.amount 'full'}}
@@ -54,6 +60,20 @@
                   {{t "pending," key='pending'}}
                 {{else}}
                   {{t "purchased," key='purchased'}}
+                {{/if}}
+                {{t "created" key='created'}}
+                {{date gift.created 'day'}}
+              </div>
+            {{else if gift.gift_types.multi_code}}
+              <a href="/purchase/{{gift.code}}">
+                {{#if gift.organization}}{{gift.organization}}<br/>{{/if}}
+                {{t "code" count=gift.total_codes key='n_codes'}}
+              </a>
+              <div class='text-muted' style='font-size: 12px; margin-left: 15px;'>
+                {{#if gift.active}}
+                  {{gift.redeemed_codes}} {{t "redeemed" key='redeemed'}}
+                {{else}}
+                  {{t "fully redeemed," key='fully_redeemed'}}
                 {{/if}}
                 {{t "created" key='created'}}
                 {{date gift.created 'day'}}
@@ -74,25 +94,48 @@
           </a>
         {{/each}}
       </div>
-      <div>
-        {{input value=gift_name placeholder="gift name" class="form-control inline inline-masquerade input-sm"}}
-        {{input value=duration placeholder="# of years" class="form-control inline inline-masquerade input-sm"}}
-        <button class="btn btn-default btn-sm" {{action "add_gift" 'gift'}}>{{t "Create Gift Code" key='create_gift_code'}}</button>
+      <label>{{t "Create a Gift or Bulk Purchase" key='create_a_gift_or_bulk_purchase'}}</label>
+      <div style='width: 300px;'>
+        {{bound-select select_class="form-control" select_id="license" content=gift_types selection=gift_type action=(action (mut gift_type)) }}
       </div>
-      <div style='margin-top: 15px;'>
-        <div style='margin-bottom: 5px;'>
-          {{input value=org placeholder="client name" class="form-control inline inline-masquerade input-sm"}}
-          {{input value=email placeholder="client email" class="form-control inline inline-masquerade input-sm"}}
+      {{#if current_gift_type.user_gift}}
+        <div style='margin-top: 15px;'>
+          {{input value=gift_name placeholder="gift name" class="form-control inline inline-masquerade input-sm"}}
+          {{input value=duration placeholder="# of years" class="form-control inline inline-masquerade input-sm"}}
+          <button class="btn btn-default btn-sm" {{action "add_gift" 'gift'}}>{{t "Create Gift Code" key='create_gift_code'}}</button>
         </div>
-        <div style='margin-bottom: 5px;'>
-          {{input value=amount placeholder="dollars" class="form-control inline inline-masquerade input-sm"}}
-          {{input value=licenses placeholder="# of licenses" class="form-control inline inline-masquerade input-sm"}}
+      {{else if current_gift_type.bulk_purchase}}
+        <div style='margin-top: 15px;'>
+          <div style='margin-bottom: 5px;'>
+            {{input value=org placeholder="client name" class="form-control inline inline-masquerade input-sm"}}
+            {{input value=email placeholder="client email" class="form-control inline inline-masquerade input-sm"}}
+          </div>
+          <div style='margin-bottom: 5px;'>
+            {{input value=amount placeholder="dollars" class="form-control inline inline-masquerade input-sm"}}
+            {{input value=licenses placeholder="# of licenses" class="form-control inline inline-masquerade input-sm"}}
+          </div>
+          <span style='display: inline-block; width: 304px;'>
+            {{input value=memo placeholder="memo" class="form-control inline input-sm"}}
+          </span>
+          <button class="btn btn-default btn-sm" {{action "add_gift" 'purchase'}}>{{t "Create Purchase Page" key='create_purchase_page'}}</button>
         </div>
-        <span style='display: inline-block; width: 304px;'>
-          {{input value=memo placeholder="memo" class="form-control inline input-sm"}}
-        </span>
-        <button class="btn btn-default btn-sm" {{action "add_gift" 'purchase'}}>{{t "Create Purchase Page" key='create_purchase_page'}}</button>
-      </div>
+      {{else if current_gift_type.multi_code}}
+        <div style='margin-top: 15px;'>
+          <div style='margin-bottom: 5px;'>
+            {{input value=org placeholder="org name" class="form-control inline inline-masquerade input-sm"}}
+            {{input value=email placeholder="org email" class="form-control inline inline-masquerade input-sm"}}
+          </div>
+          <div style='margin-bottom: 5px;'>
+            {{input value=total_codes placeholder="# of codes" class="form-control inline inline-masquerade input-sm"}}
+            {{input value=years placeholder="years" class="form-control inline inline-masquerade input-sm"}}
+          </div>
+          <div style='margin-bottom: 5px;'>
+            {{input value=org_id placeholder="org_id" class="form-control inline inline-masquerade input-sm"}}
+            {{input value=memo placeholder="memo" class="form-control inline inline-masquerade input-sm"}}
+            <button class="btn btn-default btn-sm" {{action "add_gift" 'multi_code'}}>{{t "Create Multi-Code Batch" key='create_multi_code_batch'}}</button>
+          </div>
+        </div>
+      {{/if}}
     {{else}}
       <p>{{t "No data available" key='no_data_available'}}</p>
     {{/if}}

@@ -8,10 +8,18 @@ class GiftPurchase < ActiveRecord::Base
   replicated_model  
   
   add_permissions('view', ['*']) { self.active == true }
+  add_permissions('manage') {|user| Organization.admin_manager?(user) }
+  add_permissions('manage') {|user| (self.settings['admin_user_ids'] || []).include?(user.global_id) }
 
   def self.find_by_code(code)
-    code = code.downcase.gsub(/o/, '0')
-    gift = GiftPurchase.where(:code => code, :active => true).first
+    code = (code || '').downcase.gsub(/o/, '0')
+    parts = code.split(/x/)
+    if parts.length > 1
+      gifts = GiftPurchase.where(["code LIKE ?", "#{parts[0]}%"])
+      gift = gifts.detect{|g| g.settings['total_codes'] && g.settings['codes'].has_key?(code) }
+    else
+      gift = GiftPurchase.where(:code => code, :active => true).first
+    end
   end
   
   def generate_defaults
@@ -19,16 +27,34 @@ class GiftPurchase < ActiveRecord::Base
     self.active = true if self.active == nil
     self.active = false if self.settings['purchase_id'] && self.settings['licenses']
     self.settings['code_length'] = 20 if self.settings['licenses']
+    self.settings['code_length'] = 40 if self.settings['total_codes']
     if !self.code
       code = nil
       length = self.settings['code_length'] || 8
       while !code || GiftPurchase.where(:active => true, :code => code).count > 0
-        code = GoSecure.nonce('gift_code')[0, length.floor]
+        code = (GoSecure.nonce('gift_code') + GoSecure.nonce('gift_code'))[0, length.floor]
         length += 0.5
       end
       self.code = code
+      if self.settings['total_codes'] && !self.settings['codes']
+        self.settings['codes'] = {}
+        while self.settings['codes'].keys.length < self.settings['total_codes']
+          code = "#{self.code[0, 4]}x#{GoSecure.nonce('gift_code_sub')[0, 4]}"
+          self.settings['codes'][code] ||= nil
+        end
+      end
     end
     true
+  end
+  
+  def gift_type
+    if self.settings['total_codes']
+      'multi_code'
+    elsif self.settings['licenses']
+      'bulk_purchase'
+    else
+      'user_gift'
+    end
   end
   
   def notify_of_creation
@@ -86,9 +112,14 @@ class GiftPurchase < ActiveRecord::Base
       self.settings['giver_email'] ||= non_user_params['giver'].settings['email'] if non_user_params['giver'].settings['email']
     end
 
-    ['licenses', 'amount', 'memo', 'email', 'organization', 'gift_name'].each do |arg|
+    ['licenses', 'total_codes', 'amount', 'memo', 'email', 'organization', 'gift_name'].each do |arg|
       self.settings[arg] = params[arg] if params[arg] && !params[arg].blank?
     end
+    if params['org_id']
+      org = Organization.find_by_global_id(params['org_id'])
+      self.settings['org_id'] = org.global_id
+    end
+    
     if non_user_params['giver'] && self.settings['licenses']
       self.settings['giver_email'] = non_user_params['giver'].settings['email'] if non_user_params['giver'].settings['email']
     end
@@ -103,7 +134,30 @@ class GiftPurchase < ActiveRecord::Base
     Purchasing.purchase_gift(token, opts)
   end
   
-  def self.redeem(code, user)
-    Purchasing.redeem_gift(code, user)
+#  def self.redeem(code, user)
+#    Purchasing.redeem_gift(code, user)
+#  end
+  
+  def redeem_code!(code, user)
+    if self.gift_type == 'multi_code'
+      parts = code.split(/x/)
+      raise "invalid code" unless self.code[0, 4] == parts[0] && self.settings['codes'].has_key?(code)
+      raise "code already redeemed" if !self.active || self.settings['codes'][code] != nil
+      self.settings['codes'][code] = {
+        'redeemed_at' => Time.now.iso8601,
+        'receiver_id' => user.global_id
+      }
+      self.active = false if self.settings['codes'].to_a.map(&:last).all?{|v| v != nil }
+    else
+      raise "invalid code" unless self.code == code
+      self.active = false
+      self.settings['receiver_id'] = user.global_id
+      self.settings['redeemed_at'] = Time.now.iso8601
+    end
+    if self.settings['org_id']
+      org = Organization.find_by_global_id(self.settings['org_id'])
+      org.add_user(user.global_id, false, false, false)
+    end
+    self.save
   end
 end

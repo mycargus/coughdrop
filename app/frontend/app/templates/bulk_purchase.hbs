@@ -1,17 +1,63 @@
 <div class="row">
   <div class="col-sm-8 col-sm-offset-2 col-lg-6 col-lg-offset-3">
-    <h2>{{t "CoughDrop Purchase" key='coughdrop_purchase'}}{{#if gift.organization}}{{t ", " key='comma'}}
+    <h2>
+      {{#if gift.gift_types.multi_code}}
+        {{t "Gift Codes for" key='gift_codes'}}
+      {{else}}
+        {{t "CoughDrop Purchase, " key='coughdrop_purchase'}}
+      {{/if}}
+
+      {{#if gift.organization}}
         {{gift.organization}}
       {{/if}}
     </h2>
-    <span class="glyphicon glyphicon-paperclip" style="font-size: 50px; float: left; margin: 5px 15px 5px 0;"></span>
-    <p style='margin-bottom: 20px;'>
-      {{t "Thank you for your interest in purchasing CoughDrop! CoughDrop is a powerful tool for developing communicators, and the support team around them. We are confident that CoughDrop can make a difference for the communicators you work with. Please enter the following information to complete your purchase. If you have any questions, feel free to contact our support team." key='bulk_purchase_intro'}}
-    </p>
+    {{#if gift.gift_types.multi_code}}
+      <span class="glyphicon glyphicon-th" style="font-size: 50px; float: left; margin: 5px 15px 5px 0;"></span>
+      <p style='margin-bottom: 20px;'>
+        {{t "Thank you for using CoughDrop! This organization" key='multi_code_intro'}}
+        {{#if gift.organization}}
+          <b>( {{gift.organization}} )</b>
+        {{/if}}
+        {{t "has been set up with multiple gifts code for use within CoughDrop. You can distribute these gift codes to users who can enter them when they sign up to get free access to CoughDrop's communication features." key='multi_code_intro2'}}
+        {{t "Each gift code includes <b>%{dur}</b> of free access to CoughDrop's cloud extras features." dur=gift.duration key='cloud_extras_duration'}}
+      </p>
+    {{else}}
+      <span class="glyphicon glyphicon-paperclip" style="font-size: 50px; float: left; margin: 5px 15px 5px 0;"></span>
+      <p style='margin-bottom: 20px;'>
+        {{t "Thank you for your interest in purchasing CoughDrop! CoughDrop is a powerful tool for developing communicators, and the support team around them. We are confident that CoughDrop can make a difference for the communicators you work with. Please enter the following information to complete your purchase. If you have any questions, feel free to contact our support team." key='bulk_purchase_intro'}}
+      </p>
+    {{/if}}
     {{#if gift.loading}}
       <p>{{t "Loading purchase information..." key='loading_purchase'}}</p>
     {{else if gift.error}}
       <p>{{t "This purchase link appears to have been disabled. If you believe there is an error, please contact our support team." key='invalid_gift'}}</p>
+    {{else if gift.gift_types.multi_code}}
+      <h4>{{t "Gift Codes" key='gift_codes'}}</h4>
+      <div style='margin-top: -5px; margin-bottom: 15px;'>
+        {{gift.redeemed_codes}} {{t "out of" key='out_of'}} {{gift.total_codes}} {{t "redeemed" key='redeemed'}}
+      </div>
+      <ul class='list-group'>
+      {{#each gift.codes as |code|}}
+        <li class='list-group-item'>
+          {{#if code.redeemed}}
+            <span style='text-decoration: line-through;'>{{code.code}}</span>
+            <span class='text-muted'>
+              {{#link-to 'user' code.receiver.user_name}}
+                {{#if code.receiver.avatar_url}}
+                  <img src={{code.receiver.avatar_url}} style='height: 20px; opacity: 0.5;' />
+                {{/if}}
+                {{code.receiver.user_name}}
+              {{/link-to}}
+              {{t "redeemed" key='redeemed'}}
+              {{date code.redeemed_at 'day'}}
+            </span>
+          {{else}}
+            <span style='font-size: 20px;'>{{code.code}}</span>
+            <span class='text-muted'>{{t " - not redeemed" key='not_redeemed'}}</span>
+          {{/if}}
+        </li>
+      {{/each}}
+      </ul>
     {{else if gift.active}}
       {{#if subscription.purchase_complete}}
         <div style="margin: 50px 0;">
