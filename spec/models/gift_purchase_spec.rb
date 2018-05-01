@@ -9,7 +9,7 @@ describe GiftPurchase, :type => :model do
   end
   
   it "should generate a unique code on create" do
-    expect(GoSecure).to receive(:nonce).with('gift_code').and_return('abcdefghij').exactly(4).times
+    expect(GoSecure).to receive(:nonce).with('gift_code').and_return('abcdefghij').exactly(5).times
     g = GiftPurchase.create
     expect(g.code).to eq('abcdefgh')
     g2 = GiftPurchase.create
@@ -168,5 +168,83 @@ describe GiftPurchase, :type => :model do
     g.settings['purchase_id'] = 'asdf'
     g.save
     expect(g.active).to eq(false)
+  end
+  
+  describe "redeem_code!" do
+    it "should redeem from a multi-code gift" do
+      g = GiftPurchase.create(:settings => {'total_codes' => 50, 'seconds_to_add' => 4.years.to_i})
+      expect(g.settings['codes']).to_not eq(nil)
+      expect(g.settings['codes'].keys.length).to eq(50)
+      expect(g.reload.settings['codes'].to_a[0][1]).to eq(nil)
+      expect(g.active).to eq(true)
+      code = g.settings['codes'].to_a[0][0]
+      u = User.create
+      exp = u.expires_at
+      g.redeem_code!(code, u)
+      u.reload
+      expect(g.reload.settings['codes'].to_a[0][1]).to_not eq(nil)
+      expect(g.reload.settings['codes'].to_a[0][1]['receiver_id']).to eq(u.global_id)
+      expect(g.reload.settings['codes'].to_a[0][1]['redeemed_at']).to_not eq(nil)
+      expect(g.active).to eq(true)
+    end
+    
+    it "should redeem from a single-code gift" do
+      g = GiftPurchase.create(:settings => {'seconds_to_add' => 4.years.to_i})
+      expect(g.settings['codes']).to eq(nil)
+      expect(g.active).to eq(true)
+      code = g.code
+      u = User.create
+      exp = u.expires_at
+      g.redeem_code!(code, u)
+      u.reload
+      expect(g.reload.settings['receiver_id']).to eq(u.global_id)
+      expect(g.reload.settings['redeemed_at']).to_not eq(nil)
+      expect(g.active).to eq(false)
+    end
+    
+    it "should close the gift when all codes have been redeemed" do
+      g = GiftPurchase.create(:settings => {'total_codes' => 25, 'seconds_to_add' => 4.years.to_i})
+      expect(g.settings['codes']).to_not eq(nil)
+      expect(g.settings['codes'].keys.length).to eq(25)
+      g.settings['codes'].to_a.each do |code, val|
+        expect(g.reload.active).to eq(true)
+        expect(val).to eq(nil)
+        u = User.create
+        g.redeem_code!(code, u)
+        u.reload
+        expect(g.reload.settings['codes'][code]).to_not eq(nil)
+        expect(g.reload.settings['codes'][code]['receiver_id']).to eq(u.global_id)
+        expect(g.reload.settings['codes'][code]['redeemed_at']).to_not eq(nil)
+      end
+      expect(g.reload.active).to eq(false)
+    end
+    
+    it "should not redeem a multi-code gift with the gift's full code" do
+      g = GiftPurchase.create(:settings => {'total_codes' => 50, 'seconds_to_add' => 4.years.to_i})
+      u = User.create
+      expect { g.redeem_code!(g.code, u) }.to raise_error("invalid code")
+    end
+    
+    it "should add to an org if specified" do
+      o = Organization.create
+      g = GiftPurchase.create(:settings => {'total_codes' => 50, 'seconds_to_add' => 4.years.to_i, 'org_id' => o.global_id})
+      expect(g.settings['codes']).to_not eq(nil)
+      expect(g.settings['codes'].keys.length).to eq(50)
+      expect(g.reload.settings['codes'].to_a[0][1]).to eq(nil)
+      code = g.settings['codes'].to_a[0][0]
+      u = User.create
+      exp = u.expires_at
+      g.redeem_code!(code, u)
+      expect(g.reload.settings['codes'].to_a[0][1]).to_not eq(nil)
+      expect(g.reload.settings['codes'].to_a[0][1]['receiver_id']).to eq(u.global_id)
+      expect(g.reload.settings['codes'].to_a[0][1]['redeemed_at']).to_not eq(nil)
+      links = UserLink.links_for(u.reload)
+      expect(links.length).to eq(1)
+      expect(links[0]['record_code']).to eq(Webhook.get_record_code(o))
+      expect(links[0]['state']['pending']).to eq(false)
+      expect(links[0]['state']['sponsored']).to eq(false)
+      expect(links[0]['state']['eval']).to eq(false)
+      expect(g.active).to eq(true)
+    end
   end
 end

@@ -93,7 +93,7 @@ describe Passwords, :type => :model do
     it "should generate a password" do
       u = User.new
       u.generate_password("hippo")
-      expect(u.settings['password']['hash_type']).to eq('pbkdf2-sha256')
+      expect(u.settings['password']['hash_type']).to eq('pbkdf2-sha256-2')
       expect(u.settings['password']['hashed_password']).not_to eq(nil)
       expect(u.settings['password']['salt']).not_to eq(nil)
       
@@ -144,7 +144,7 @@ describe Passwords, :type => :model do
       }
       expect(GoSecure.outdated_password?(u.settings['password'])).to eq(true)
       expect(u.valid_password?('bacon')).to eq(true)
-      expect(u.settings['password']['hash_type']).to eq('pbkdf2-sha256')
+      expect(u.settings['password']['hash_type']).to eq('pbkdf2-sha256-2')
       expect(u.settings['password']['hashed_password']).not_to eq(hash)
       expect(u.settings['password']['salt']).not_to eq(salt)
     end

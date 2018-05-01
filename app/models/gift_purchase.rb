@@ -148,11 +148,13 @@ class GiftPurchase < ActiveRecord::Base
         'receiver_id' => user.global_id
       }
       self.active = false if self.settings['codes'].to_a.map(&:last).all?{|v| v != nil }
-    else
+    elsif self.gift_type == 'user_gift'
       raise "invalid code" unless self.code == code
       self.active = false
       self.settings['receiver_id'] = user.global_id
       self.settings['redeemed_at'] = Time.now.iso8601
+    else
+      raise "invalid code"
     end
     if self.settings['org_id']
       org = Organization.find_by_global_id(self.settings['org_id'])
