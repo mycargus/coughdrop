@@ -33,6 +33,7 @@ import frame_listener from './frame_listener';
 // - click/touch events should still work when in dwell tracking mode
 // - keyboard events can add to the vocalization box
 // - mouse cursor/joystick and control the dwell target
+// - touch events on modal targets needs to work in speak mode
 
 var $board_canvas = null;
 
@@ -260,6 +261,8 @@ var buttonTracker = EmberObject.extend({
       } else {
         app_state.get('board_virtual_dom').clear_touched();
       }
+    } else {
+      buttonTracker.triggerEvent = event;
     }
   },
   // used for handling dragging, scanning selection
@@ -884,6 +887,8 @@ var buttonTracker = EmberObject.extend({
   dwell_linger: function(event) {
     // debounce, waiting for clearance
     if(buttonTracker.dwell_wait) { console.log("linger waiting for dwell timeout"); return; }
+    // touch events get blocked because mousemove gets triggered and creates a dwell element directly under the finger
+    if(buttonTracker.triggerEvent && buttonTracker.triggerEvent.type == 'touchstart') { return; }
     var dwell_selection = buttonTracker.dwell_selection != 'button';
     // cursor-based trackers can throw the cursor up against the edges of the screen causing
     // inaccurate lingers for the buttons along the edges
