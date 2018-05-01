@@ -1974,6 +1974,8 @@ body.pretty_loader #loading_box {
 
 $nav_primary: #337ab7;
 $nav_secondary: #fffbbc;
+$nav_secondary_bottom_row: #ffd7a8;
+$nav_secondary_middle_row: #eac8ff;
 $nav_tertiary: #d1efbc;
 $nav_extras: #eee;
 #new_right {
@@ -2000,11 +2002,19 @@ $nav_extras: #eee;
   }
   #nav_secondary {
     border-color: #9b962e; 
-    background: #fffbbc;
+    background: $nav_secondary;
   }
   #nav_tertiary {
-    background: #d1efbc; 
+    background: $nav_tertiary;
     border-color: #56b700;
+    &.bottom_row {
+      border-color: #ad7332;
+      background: $nav_secondary_bottom_row;
+    }
+    &.middle_row {
+      border-color: #692693;
+      background: $nav_secondary_middle_row;
+    }
   }
   #nav_extras {
     background: #eee;
@@ -3490,6 +3500,12 @@ table tr.long_delay td {
     text-align: left;
   }
 }
+.user_select {
+  box-shadow: inset 1px 1px 8px -2px #000;
+  &:disabled {
+    box-shadow: none;
+  }
+}
 
 .caret-right {
   border-bottom: 4px solid transparent;
@@ -3856,20 +3872,58 @@ body:-ms-fullscreen {
           height: calc((100vh - 150px) - 150px - 25px);
           box-shadow: inset 0 0 20px #000000;
           &#nav_primary {
-            background: linear-gradient(63deg, $nav_primary 23%, transparent 23%) 7px 0, linear-gradient(63deg, transparent 74%, $nav_primary 78%), linear-gradient(63deg, transparent 34%, $nav_primary 38%, $nav_primary 58%, transparent 62%), darken($nav_primary, 5);
-            background-size: 8px 24px;
+            background: 
+              linear-gradient(135deg, $nav_primary 25%, transparent 25%) 0px 0,
+              linear-gradient(315deg, $nav_primary 25%, transparent 25%) 5px -5px,
+              linear-gradient(315deg, $nav_primary 25%, transparent 25%) -5px 5px,
+              linear-gradient(135deg, $nav_primary 25%, transparent 25%) 10px -10px,
+              darken($nav_primary, 3);	
+            background-size: 20px 20px;
           }
           &#nav_secondary {
-            background: linear-gradient(63deg, $nav_secondary 23%, transparent 23%) 7px 0, linear-gradient(63deg, transparent 74%, $nav_secondary 78%), linear-gradient(63deg, transparent 34%, $nav_secondary 38%, $nav_secondary 58%, transparent 62%), darken($nav_secondary, 10);
-            background-size: 8px 24px;
+            background: 
+              linear-gradient(135deg, $nav_secondary 25%, transparent 25%) 0px 0,
+              linear-gradient(315deg, $nav_secondary 25%, transparent 25%) 5px -5px,
+              linear-gradient(315deg, $nav_secondary 25%, transparent 25%) -5px 5px,
+              linear-gradient(135deg, $nav_secondary 25%, transparent 25%) 10px -10px,
+              darken($nav_secondary, 10);	
+            background-size: 20px 20px;
           }
           &#nav_tertiary {
-            background: linear-gradient(63deg, $nav_tertiary 23%, transparent 23%) 7px 0, linear-gradient(63deg, transparent 74%, $nav_tertiary 78%), linear-gradient(63deg, transparent 34%, $nav_tertiary 38%, $nav_tertiary 58%, transparent 62%), darken($nav_tertiary, 7);
-            background-size: 8px 24px;
+            background: 
+              linear-gradient(135deg, $nav_tertiary 25%, transparent 25%) 0px 0,
+              linear-gradient(315deg, $nav_tertiary 25%, transparent 25%) 5px -5px,
+              linear-gradient(315deg, $nav_tertiary 25%, transparent 25%) -5px 5px,
+              linear-gradient(135deg, $nav_tertiary 25%, transparent 25%) 10px -10px,
+              darken($nav_tertiary, 5);	
+            background-size: 20px 20px;
+            &.middle_row {
+              background: 
+                linear-gradient(135deg, $nav_secondary_middle_row 25%, transparent 25%) 0px 0,
+                linear-gradient(315deg, $nav_secondary_middle_row 25%, transparent 25%) 5px -5px,
+                linear-gradient(315deg, $nav_secondary_middle_row 25%, transparent 25%) -5px 5px,
+                linear-gradient(135deg, $nav_secondary_middle_row 25%, transparent 25%) 10px -10px,
+                darken($nav_secondary_middle_row, 3);	
+              background-size: 20px 20px;
+            }
+            &.bottom_row {
+              background: 
+                linear-gradient(135deg, $nav_secondary_bottom_row 25%, transparent 25%) 0px 0,
+                linear-gradient(315deg, $nav_secondary_bottom_row 25%, transparent 25%) 5px -5px,
+                linear-gradient(315deg, $nav_secondary_bottom_row 25%, transparent 25%) -5px 5px,
+                linear-gradient(135deg, $nav_secondary_bottom_row 25%, transparent 25%) 10px -10px,
+                darken($nav_secondary_bottom_row, 3);	
+              background-size: 20px 20px;
+            }
           }
           &#nav_extras {
-            background: linear-gradient(63deg, $nav_extras 23%, transparent 23%) 7px 0, linear-gradient(63deg, transparent 74%, $nav_extras 78%), linear-gradient(63deg, transparent 34%, $nav_extras 38%, $nav_extras 58%, transparent 62%), darken($nav_extras, 5);
-            background-size: 8px 24px;
+            background: 
+              linear-gradient(135deg, $nav_extras 25%, transparent 25%) 0px 0,
+              linear-gradient(315deg, $nav_extras 25%, transparent 25%) 5px -5px,
+              linear-gradient(315deg, $nav_extras 25%, transparent 25%) -5px 5px,
+              linear-gradient(135deg, $nav_extras 25%, transparent 25%) 10px -10px,
+              darken($nav_extras, 3);	
+            background-size: 20px 20px;
           }
           img {
             margin-bottom: 20px;
