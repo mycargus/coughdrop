@@ -988,9 +988,20 @@ var app_state = EmberObject.extend({
       this.set('eye_gaze', capabilities.eye_gaze);
       this.set('embedded', !!(CoughDrop.embedded));
       this.set('full_screen_capable', capabilities.fullscreen_capable());
-      if(this.get('currentBoardState') && this.get('currentUser.needs_speak_mode_intro') && !this.get('currentUser.preferences.progress.speak_mode_intro_done')) {
-        if(modal.route) {
-          modal.open('speak-mode-intro');
+      if(this.get('currentBoardState') && this.get('currentUser.needs_speak_mode_intro')) {
+        var intro = this.get('currentUser.preferences.progress.speak_mode_intro_done');
+        if(!intro) {
+          if(modal.route && !modal.is_open('speak-mode-intro')) {
+            modal.open('speak-mode-intro');
+          }
+        } else if(intro && !this.get('currentUser.preferences.progress.modeling_intro_done') && this.get('currentUser.preferences.logging')) {
+          var now = (new Date()).getTime();
+          if(intro === true && this.get('currentUser.joined')) { intro = this.get('currentUser.joined').getTime(); }
+          if(now - intro > (4 * 24 * 60 * 60 * 1000)) {
+            if(modal.route && !modal.is_open('modeling-intro')) {
+              modal.open('modeling-intro');
+            }
+          }
         }
       }
       app_state.load_user_badge();

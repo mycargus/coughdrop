@@ -460,7 +460,7 @@ CoughDrop.User = DS.Model.extend({
       });
     }
     return res;
-  }.observes('permissions.supervise'),
+  }, //.observes('permissions.supervise'),
   find_integration: function(key) {
     return CoughDrop.User.find_integration(this.get('id'), key);
   },

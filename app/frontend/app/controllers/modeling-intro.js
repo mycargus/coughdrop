@@ -7,7 +7,7 @@ export default modal.ModalController.extend({
     if(user) {
       var progress = user.get('preferences.progress') || {};
 
-      progress.speak_mode_intro_done = (new Date()).getTime();
+      progress.modeling_intro_done = (new Date()).getTime();
       user.set('preferences.progress', progress);
       user.save().then(null, function() { });
     }
