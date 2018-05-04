@@ -15,6 +15,7 @@ CoughDrop.Gift = DS.Model.extend({
   gift_type: DS.attr('string'),
   total_codes: DS.attr('number'),
   redeemed_codes: DS.attr('number'),
+  org_connected: DS.attr('boolean'),
   codes: DS.attr('raw'),
   active: DS.attr('boolean'),
   purchase: DS.attr('string'),

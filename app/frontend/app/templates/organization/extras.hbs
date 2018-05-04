@@ -68,6 +68,9 @@
               <a href="/purchase/{{gift.code}}">
                 {{#if gift.organization}}{{gift.organization}}<br/>{{/if}}
                 {{t "code" count=gift.total_codes key='n_codes'}}
+                {{#if gift.org_connected}}
+                  {{t "(org-connected)" key='org_connected'}}
+                {{/if}}
               </a>
               <div class='text-muted' style='font-size: 12px; margin-left: 15px;'>
                 {{#if gift.active}}
