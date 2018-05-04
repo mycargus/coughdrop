@@ -8,6 +8,9 @@ import editManager from '../utils/edit_manager';
 export default modal.ModalController.extend({
   opening: function() {
     this.set('goal', this.get('model.goal') || this.store.createRecord('goal'));
+    if(!this.get('goal.id') && window.moment) {
+      this.set('goal.expires', window.moment().add(2, 'month').format('YYYY-MM-DD'));
+    }
     this.set('error', false);
     this.set('saving', false);
     this.set('browse_goals', false);
@@ -101,6 +104,9 @@ export default modal.ModalController.extend({
         goal = this.store.createRecord('goal');
         goal.set('template_id', this.get('selected_goal.id'));
         goal.set('primary', this.get('selected_goal.user_primary'));
+        if(!goal.get('template_id')) {
+          goal.set('expires', this.get('goal.expires'));
+        }
       }
       if(goal.get('simple_type') && goal.get('simple_type') != 'custom') {
         // Populate additional information for simple-type goals
@@ -192,6 +198,9 @@ export default modal.ModalController.extend({
     },
     reset_video: function() {
       this.set('model.video', null);
+    },
+    clear_expires: function() {
+      this.set('goal.expires', null);
     },
     more_goals: function() {
       if(this.get('goals.meta')) {

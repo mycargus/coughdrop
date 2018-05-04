@@ -95,6 +95,17 @@
             </div>
           </fieldset>
         </div>
+        {{#unless selected_goal.sequence}}
+          <div class="form-group">
+            <label for="new_goal_concludes" class="col-sm-2 control-label">{{t "Concludes" key='concludes'}}</label>
+            <div class="col-sm-7" style='max-width: 300px;'>
+              {{input type='date' value=goal.expires class="form-control" id="new_goal_concludes"}}
+            </div>
+            <div class='col-sm-3'>
+              <button class='btn btn-default' {{action 'clear_expires'}}>{{t "clear" key='clear'}}</button>
+            </div>
+          </div>
+        {{/unless}}
       </form>
     {{else if browse_goals}}
       {{#if goals}}
@@ -253,6 +264,15 @@
                 </div>
               </div>
             </fieldset>
+          </div>
+          <div class="form-group">
+            <label for="new_goal_concludes" class="col-sm-2 control-label">{{t "Concludes" key='concludes'}}</label>
+            <div class="col-sm-7" style='max-width: 300px;'>
+              {{input type='date' value=goal.expires class="form-control" id="new_goal_concludes"}}
+            </div>
+            <div class='col-sm-3'>
+              <button class='btn btn-default' {{action 'clear_expires'}}>{{t "clear" key='clear'}}</button>
+            </div>
           </div>
         {{/if}}
       </form>
