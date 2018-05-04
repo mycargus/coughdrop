@@ -23,7 +23,7 @@ export default modal.ModalController.extend({
     {name: i18n.t('select_simple_goal_type', "[ Select a Goal Type ]"), id: ''},
     {name: i18n.t('use_for_communication', "Increase Communication Attempts"), id: 'buttons'},
     {name: i18n.t('use_target_words', "Try to Use a List of Target Words"), id: 'words'},
-    {name: i18n.t('modeling_for_communication', "Work on Modelings for the Communicator"), id: 'modeling'},
+    {name: i18n.t('modeling_for_communication', "Work on Modeling for the Communicator"), id: 'modeling'},
     {name: i18n.t('custom_goal', "I Will Define My Own Goal"), id: 'custom'},
   ],
   goal_type: function() {

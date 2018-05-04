@@ -318,26 +318,34 @@
                 {{/if}}
               </div>
             </div>
-            <button class='btn btn-primary' style='overflow: hidden; width: 88px; border-width: 2px;' {{action 'homeInSpeakMode' supervisee.id true}}>
+            <button class='btn btn-primary' style='overflow: hidden; margin-bottom: 5px; width: 88px; border-width: 2px;' {{action 'homeInSpeakMode' supervisee.id true}}>
               <span class='glyphicon glyphicon-hand-up' style='font-size: 30px;'></span><br/>
               <div style='line-height: 14px;'>
                 {{t "Model for" key='model_for'}}<br/>{{supervisee.user_name}}
               </div>
             </button>
-            <button class='btn btn-default' style='overflow: hidden; width: 88px; border-width: 2px; background-color: #cce7ff; border-color: #337ab7; color: #666;' {{action 'homeInSpeakMode' supervisee.id}}>
+            <button class='btn btn-default' style='overflow: hidden; margin-bottom: 5px; width: 88px; border-width: 2px; background-color: #cce7ff; border-color: #337ab7; color: #666;' {{action 'homeInSpeakMode' supervisee.id}}>
               <span class='glyphicon glyphicon-volume-up' style='font-size: 30px;'></span><br/>
               <div style='line-height: 14px;'>
                 {{t "Speak as" key='speak_as'}}<br/>{{supervisee.user_name}}
               </div>
             </button>
-            <button class='btn btn-default' style='width: 85px; border-width: 2px; color: #888; border-color: #9b962e; background: #fffbbc;' {{action 'stats' supervisee.user_name}}>
+            <button class='btn btn-default' style='margin-bottom: 5px; width: 88px; border-width: 2px; color: #888; border-color: #9b962e; background: #fffbbc;' {{action 'stats' supervisee.user_name}}>
               <span class='glyphicon glyphicon-stats' style='font-size: 30px;'></span><br/>
               <div style='line-height: 14px;'>
                 {{t "Usage" key='usage'}}<br/>{{t "Reports" key='reports'}}
               </div>
             </button>
+            {{#if app_state.feature_flags.badge_progress}}
+              <button class='btn btn-default button_row_wrap' style='opacity: 0.8; margin-bottom: 5px; border-width: 2px; color: #444; border-color: #ad7332; background: #ffd7a8;' {{action 'modeling_ideas' supervisee.user_name}}>
+                <img src={{path 'images/modeling_ideas.svg'}}/>
+                <div style='line-height: 14px;'>
+                  {{t "Modeling" key='modeling'}}<br/>{{t "Ideas" key='ideas'}}
+                </div>
+              </button>
+            {{/if}}
             <div class="btn-group">
-              <button class='btn btn-default dropdown-toggle' style='height: 79px; border-width: 2px; border-color: #ddd; color: #888;'data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="caret"></span></button>
+              <button class='btn btn-default dropdown-toggle button_row_extras' style='margin-bottom: 5px; border-width: 2px; border-color: #ddd; color: #888;'data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class='text'>{{t "Extras " key='extras'}}</span><span class="caret"></span></button>
               <ul class="dropdown-menu" style='left: auto; right: 0;'>
                 <li>{{#link-to 'board' supervisee.home_board_key}}{{t "Home Board" key='home_board'}}{{/link-to}}</li>
                 <li>{{#link-to 'user' supervisee.user_name}}{{t "Account" key='account'}}{{/link-to}}</li>
@@ -389,11 +397,11 @@
           </button>
         </div>
         {{#if app_state.currentUser.preferences.progress.intro_watched}}
-          {{#if false}}
+          {{#if app_state.feature_flags.badge_progress}}
             <div class='col-md-3 col-xs-4 big_button_holder'>
-              <button id='nav_tertiary' class='btn big_button btn-default bottom_row' {{action 'goals'}}>
-                <span class='glyphicon glyphicon-flag'></span>
-                {{t "Goal Ideas" key='goal_ideas'}}
+              <button id='nav_tertiary' class='btn big_button btn-default bottom_row' {{action 'modeling_ideas'}}>
+                <img src={{path 'images/modeling_ideas.svg'}} style='opacity: 0.7; filter: grayscale(50%);'/>
+                {{t "Modeling<br/>Ideas" key='modeling_ideas'}}
               </button>
             </div>
           {{else}}
@@ -435,16 +443,23 @@
             </div>
           {{/if}}
           <div class='col-md-3 col-xs-4 big_button_holder'>
+            {{#if app_state.feature_flags.badge_progress}}
+              <button class='btn big_button btn-default middle_row' {{action "newBoard"}}>
+                <img src={{path 'images/new.svg'}} />
+                {{t "New Board" key='new_board'}}
+              </button>
+            {{else}}
+              {{#link-to 'user.preferences' app_state.currentUser.user_name class='btn big_button btn-default middle_row'}}
+                <span class='glyphicon glyphicon-cog'></span>
+                {{t "Preferences" key='preferences'}}
+              {{/link-to}}
+            {{/if}}
+          </div>
+          <div class='col-md-3 col-xs-4 big_button_holder'>
             <button class='btn big_button btn-default middle_row' {{action "manage_supervisors"}}>
               <span class='glyphicon glyphicon-user'></span>
               {{t "Supervisors" key='manage_supervisors'}}
             </button>
-          </div>
-          <div class='col-md-3 col-xs-4 big_button_holder'>
-            {{#link-to 'user.preferences' app_state.currentUser.user_name class='btn big_button btn-default middle_row'}}
-              <span class='glyphicon glyphicon-cog'></span>
-              {{t "Preferences" key='preferences'}}
-            {{/link-to}}
           </div>
           {{#if sync_able}}
             <div class='col-md-3 col-xs-4 big_button_holder'>
