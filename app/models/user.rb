@@ -481,7 +481,9 @@ class User < ActiveRecord::Base
       'new_index', 'debounce', 'cookies']
   CONFIRMATION_PREFERENCE_PARAMS = ['logging', 'geo_logging', 'allow_log_reports', 'cookies']
 
-  PROGRESS_PARAMS = ['setup_done', 'intro_watched', 'profile_edited', 'preferences_edited', 'home_board_set', 'app_added', 'skipped_subscribe_modal', 'speak_mode_intro_done']
+  PROGRESS_PARAMS = ['setup_done', 'intro_watched', 'profile_edited', 'preferences_edited', 
+      'home_board_set', 'app_added', 'skipped_subscribe_modal', 'speak_mode_intro_done',
+      'modeling_intro_done']
   def process_params(params, non_user_params)
     self.settings ||= {}
     ['name', 'description', 'details_url', 'location', 'cell_phone'].each do |arg|
