@@ -1502,7 +1502,7 @@ var app_state = EmberObject.extend({
       } else if(app_state.get('currentUser.preferences.external_links') == 'prevent') {
         modal.warning(i18n.t('external_links_disabled_notice', "External Links have been disabled in this user's preferences."), true);
       } else {
-        app_state.launch_url(button, real_url);
+        app_state.launch_url(button);
       }
     } else if(button.apps) {
       if(stashes.get('sticky_board') && app_state.get('speak_mode')) {
@@ -1569,12 +1569,12 @@ var app_state = EmberObject.extend({
     frame_listener.notify_of_button(button, obj);
     return true;
   },
-  launch_url: function(button, real_url, force) {
+  launch_url: function(button, force) {
     var _this = this;
     if(!force && _this.get('currentUser.preferences.external_links') == 'confirm_all') {
-      modal.open('confirm-external-link', {url: button.url, real_url: real_url}).then(function(res) {
+      modal.open('confirm-external-link', {url: button.url}).then(function(res) {
         if(res && res.open) {
-          _this.launch_url(button, real_url, true);
+          _this.launch_url(button, true);
         }
       });
     } else {
@@ -1600,7 +1600,7 @@ var app_state = EmberObject.extend({
           }, obj.board);
         }, 100);
       } else {
-        var do_confirm = (!_this.get('currentUser') && window.user_preferences.any_user.external_links == 'confirm') || _this.get('currentUser.preferences.external_links') == 'confirm_custom';
+        var do_confirm = (!_this.get('currentUser') && window.user_preferences.any_user.external_links == 'confirm_custom') || _this.get('currentUser.preferences.external_links') == 'confirm_custom';
         do_confirm = do_confirm || (!_this.get('currentUser') && window.user_preferences.any_user.confirm_external_links) || _this.get('currentUser.preferences.confirm_external_links');
         if(!force && do_confirm) {
           modal.open('confirm-external-link', {url: button.url, real_url: real_url}).then(function(res) {
