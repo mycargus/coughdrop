@@ -336,9 +336,6 @@ class UserGoal < ActiveRecord::Base
       self.settings['external_id'] = params['external_id'] 
       self.settings['expire_external_id'] = true
     end
-    if params['expires'] && !self.settings['template_id']
-      self.advance_at = current_date_from_template(params['expires'])
-    end
     
     if self.template_header
       self.template = true
@@ -396,6 +393,9 @@ class UserGoal < ActiveRecord::Base
       if template && template.template
         self.build_from_template(template, self.user)
       end
+    end
+    if params['expires'] && !self.settings['template_id']
+      self.advance_at = current_date_from_template(params['expires'])
     end
     if params['comment']
       self.settings['comments'] ||= []

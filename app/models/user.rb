@@ -249,6 +249,9 @@ class User < ActiveRecord::Base
         self.settings['preferences']['devices'][key][attr] = val if self.settings['preferences']['devices'][key][attr] == nil
       end
     end
+    if self.settings['preferences']['cookies'] == false
+      self.settings['preferences']['protected_user'] = true
+    end
     self.settings['preferences']['disable_quick_sidebar'] = false if self.settings['preferences']['quick_sidebar']
     if !FeatureFlags.user_created_after?(self, 'word_suggestion_images')
       self.settings['preferences']['word_suggestion_images'] = false if self.settings['preferences']['word_suggestion_images'] == nil
