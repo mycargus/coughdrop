@@ -40,6 +40,101 @@ class WordData < ActiveRecord::Base
     true
   end
   
+  def self.update_activities_for(user, include_supervisees=false)
+    return false unless user
+    
+    if include_supervisees
+      user.supervisees.each{|u| WordData.update_activities_for(u, false) }
+    end
+    
+    # skip if recently-retrieved
+    return true if ((user.settings['target_words'] || {})['activities'] || {})['generated'] > 5.days.ago.iso8601
+    
+    # get the user's suggested words
+    lists = self.core_and_fringe_for(user)
+    available_words = lists[:reachable_for_user] + lists[:reachable_fringe_for_user]
+    basic_core = self.basic_core_list
+
+    suggestions = []
+    suggestions += user.settings['target_words']['list']
+    if suggestions.length < 3
+      # add from the basic word list, indexed by weeks having daily_use or created_at
+      daily_use = LogSession.find_by(log_type: 'daily_use', user_id: user.id)
+      units = ((Time.now - user.created_at) / 1.day) / 10
+      if daily_use
+        units = (daily_use.data['days'] || []).keys.length / 5
+      end
+      index = [0, units % (basic_core.length - 5)].max
+      basic_core[index, 5].each do |word|
+        if !suggestions.detect{|w| w['word'] == word }
+          suggestions << {
+            'word' => word,
+            'reasons' => ['fallback']
+          }
+        end
+      end
+    end
+    
+    # make an API call to comm workshop to get activities for the words
+    activities = []
+    found_words = []
+    suggestions.each_with_index do |suggestion, idx|
+      next if found_words.length > 5
+      word = suggestions['word']
+      next unless available_words.includes?(word)
+      locale = suggestion['locale'] || 'en'
+      req = Typhoeus.get("https://workshop.openaac.org/api/v1/words/#{CGI.escape(word + ":" + locale)}")
+      json = JSON.parse(req.body) rescue nil
+      word = json && json['word']
+      if word && !word['pending']
+        found_words << word
+        ['learning_projects', 'activity_ideas', 'topic_starters', 'books', 'videos', 'send_homes'].each do |key|
+          list = (word[key] || [])
+          list.each do |a|
+            a['type'] = key
+            a['score'] = 5 * (suggestions.length - idx) / suggestions.length.to_f
+            a['score'] += 1 if ['learning_projects', 'activity_ideas', 'send_homes'].include?(key)
+          end
+          activities += list
+        end
+      end
+    end
+    # TODO: boost activities that:
+    # - have multiple words from the suggestion list
+    # - represent an actual activity
+    # - have more user likes
+    # - match the type the user usually implements
+    # - come from the same author as previous successful activities
+    # - does not come from authors of previous flopped activities
+    
+    # mark which activities have been used (and how recently) by the user
+    session = LogSession.find_by(log_type: 'activities', user_id: user.id)
+    if session && session.data['activities']
+      activities.each do |a|
+        if session.data['activities'][a['id']]
+          ref = session.data['activities'][a['id']]
+          a['handled'] = ref['updated']
+          a['attempted'] = false
+          a['skipped'] = true
+        end
+      end
+    end
+    
+    # prioritize based on activities that have words in the user's vocab?
+    available_words.includes?('')
+    activities.each do |a|
+      a['score'] += extra_words_in(a, available_words)
+    end
+    
+    # add the activities to the user object for quick retrieval
+    user.settings['target_words']['activities'] = {
+      'generated' => Time.now.iso8601,
+      'words' => found_words,
+      'list' => activities.sort_by{|a| [a['score'] || 0, rand] }[0, 25]
+    }
+    true
+  end
+  
 # word types:
 #  'noun', 'plural noun', 'noun phrase',
 #  'verb', 'usu participle verb', 'transitive verb', 'intransitive verb',
@@ -205,6 +300,10 @@ class WordData < ActiveRecord::Base
     end
   end
   
+  def self.basic_core_list_for(user)
+    self.basic_core_list[0, 25]
+  end
+  
   def self.requested_phrases_for(user, button_sets)
     phrases = (user.settings && user.settings['preferences'] && user.settings['preferences']['requested_phrases']) || []
     button_sets ||= BoardDownstreamButtonSet.for_user(user)
@@ -291,6 +390,17 @@ class WordData < ActiveRecord::Base
     end
     @@default_core_list ||= []
     @@default_core_list
+  end
+
+  def self.basic_core_list
+    @@basic_core_list ||= nil
+    return @@basic_core_list if @@basic_core_list
+    lists = self.core_lists || []
+    if lists
+      @@basic_core_list = (lists.detect{|l| l['id'] == 'basic_core'} || {})['words']
+    end
+    @@basic_core_list ||= []
+    @@basic_core_list
   end
   
   # see also, http://praacticalaac.org/praactical/aac-vocabulary-lists/

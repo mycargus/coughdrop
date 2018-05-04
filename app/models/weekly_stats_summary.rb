@@ -31,6 +31,9 @@ class WeeklyStatsSummary < ActiveRecord::Base
     user = User.find_by(id: self.user_id)
     start_at = WeeklyStatsSummary.weekyear_to_date(self.weekyear).beginning_of_week(:sunday)
     end_at = start_at.end_of_week(:sunday)
+    cweek = Date.today.cweek
+    cwyear = Date.today.cwyear
+    current_weekyear = (cwyear * 100) + cweek
     
     sessions = Stats.find_sessions((all ? 'all' : user.global_id), {:start_at => start_at, :end_at => end_at})
     
@@ -76,6 +79,9 @@ class WeeklyStatsSummary < ActiveRecord::Base
     total_stats.merge!(Stats.sensor_stats(sessions))
     total_stats.merge!(Stats.time_block_use_for_sessions(sessions))
     total_stats.merge!(Stats.parts_of_speech_stats(sessions))
+    target_words = Stats.target_words(user, sessions, current_weekyear == self.weekyear)
+    total_stats.merge!(target_words)
+    
     total_stats[:word_pairs] = Stats.word_pairs(sessions)
     total_stats[:days] = days
     total_stats[:locations] = Stats.location_use_for_sessions(sessions)
@@ -92,7 +98,20 @@ class WeeklyStatsSummary < ActiveRecord::Base
     summary.data ||= {}
     summary.data['stats'] = total_stats
     summary.data['session_ids'] = sessions.map(&:global_id)
-    summary.save
+    res = summary.save
+    
+    if current_weekyear == self.weekyear
+      if (target_words[:watchwords][:suggestions] || []).length > 0
+        user.settings['target_words'] = {
+          'generated' => Time.now.iso8601,
+          'weekyear' => current_weekyear
+          'list' => target_words[:watchwords][:suggestions]
+        }
+        user.save
+      end
+    end
+    
+    res
     
     # TODO: create board-aligned stat summaries as well
   end

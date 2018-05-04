@@ -804,6 +804,193 @@ module Stats
     res
   end 
   
+
+  def self.target_words(user, sessions, current=false)
+    res = {
+      :watchwords => {}
+    }
+    # as part of this, discover emergent/dwindling words from long-view history
+    
+    raise "only include words that are available to the user in their vocab"
+    
+    lists = WordData.core_and_fringe_for(user)
+    default_core = lists[:for_user]
+    reachable_words = lists[:reachable_for_user] + lists[:reachable_fringe_for_user]
+    
+    basic_core = WordData.basic_core_list_for(user)
+    # Where to look for target words:
+    # - primary goal set with watchwords
+    # - secondary goals set with watchwords
+    if current && user
+      goals = UserGoal.where(user_id: user.id, active: true)
+      goals.each do |goal|
+        if goal.settings['assessment_badge'] && goal.settings['assessment_badge']['watchlist']
+          if goal.settings['assessment_badge']['words_list']
+            key = goal.primary ? :primary_words : :primary_modeled_words
+            res[:watchwords][key] ||= {}
+            goal.settings['assessment_badge']['words_list'].each do |word|
+              res[:watchwords][key][word] = 1.0
+            end
+          elsif goal.settings['assessment_badge']['modeled_words_list']
+            key = goal.primary ? :secondary_words : :secondary_modeled_words
+            res[:watchwords][key] ||= {}
+            goal.settings['assessment_badge']['modeled_words_list'].each do |word|
+              res[:watchwords][key][word] = 1.0
+            end
+          end
+        end
+      end
+    end
+    modeled_words = {}
+    core_word_counts = {}
+    all_word_counts = {}
+    sessions.each do |session|
+      default_core.each do |word|
+        if session.data['stats']['modeled_word_counts'][word]
+          modeled_words[word] ||= 0
+          modeled_words[word] += session.data['stats']['modeled_word_counts'][word]
+        end
+        if session.data['stats']['all_word_counts'][word]
+          all_word_counts[word] ||= 0
+          all_word_counts[word] += session.data['stats']['all_word_counts'][word]
+        end
+      end
+      basic_core.each do |word|
+        if session.data['stats']['all_word_counts'][word]
+          core_word_counts[word] ||= 0
+          core_word_counts[word] += session.data['stats']['all_word_counts'][word]
+        end
+      end
+    end
+    
+    longview_core_words = {}
+    total_weeks = 0
+    recent_weeks = 0
+    if user
+      min_summary = (sessions[0].started_at - 6.months).to_date
+      start_weekyear = (min_summary.cwyear * 100) + min_summary.cweek
+      recent_weekyear = ((min_summary - 2.weeks).cwyear * 100) + (min_summary - 2.weeks).cweek
+      end_weekyear = (sessions[0].started_at.to_date.cwyear * 100) + sessions[0].started_at.to_date.cweek
+      summaries = WeeklyStatsSummary.where(user_id: user.id).where(['weekyear >= ? AND weekyear < ?', start_weekyear, end_weekyear])
+      summaries.find_in_batches(batch_size: 5) do |batch|
+        batch.each do |summary|
+          total_weeks += 1
+          default_core.each do |word|
+            if summary.data['stats'] && summary.data['stats']['all_word_counts'] && summary.data['stats']['all_word_counts'][word]
+              longview_core_words[word] ||= 0
+              longview_core_words[word] += summary.data['stats']['all_word_counts'][word]
+            end
+            if summary.weekyear >= recent_weekyear && summary.weekyear < end_weekyear
+              recent_weeks += 1
+              default_core.each do |word|
+                if summary.data['stats']['modeled_word_counts'][word]
+                  modeled_words[word] ||= 0
+                  modeled_words[word] += session.data['stats']['modeled_word_counts'][word]
+                end
+                if summary.data['stats']['all_word_counts'][word]
+                  all_word_counts[word] ||= 0
+                  all_word_counts[word] += session.data['stats']['all_word_counts'][word]
+                end
+              end
+              basic_core.each do |word|
+                if summary.data['stats']['all_word_counts'][word]
+                  core_word_counts[word] ||= 0
+                  core_word_counts[word] += session.data['stats']['all_word_counts'][word]
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+    # - popular modeled words
+    max_modeled = modeled_words.to_a.map(&:last).max || 0
+    modeled_words.each do |word, cnt|
+      if cnt > 5 && cnt > (max_modeled * 0.8)
+        res[:watchwords][:popular_modeled_words] ||= {}
+        res[:watchwords][:popular_modeled_words][word] = cnt.to_f / max_modeled.to_f
+      end
+    end
+
+    # - basic core words that are available but not used often
+    if recent_weeks > 0
+      max_core_word = core_word_counts.to_a.map(&:last).max || 1
+      min_core_word = core_word_counts.to_a.map(&:last).min || 1
+      basic_core.each do |word|
+        # if there are more than 5 weeks of data and the core word has never been used,
+        # or has been used less than once every 4 weeks in the long-view history
+        # then mark it as an infrequent word
+        if total_weeks > 5
+          if (longview_core_words[word] || 0) < (total_weeks.to_f / 4.0)
+            res[:watchwords][:infrequent_core_words] ||= {}
+            res[:watchwords][:infrequent_core_words][word] = (longview_core_words[word] || 0).to_f / max_core_word.to_f
+          end
+        end
+      end
+    end
+    
+    # - emergent words based on long-view history
+    max_longview_word = longview_core_words.to_a.map(&:last).max || 1
+    all_word_counts.each do |word, cnt|
+      # if there are at least 3 weeks of data and the word has been 
+      # used at least 3 times in the session list,
+      # but hasn't been used more than once every 4 weeks in the long-view history
+      # then mark it as an emergent word
+      if total_weeks > 3
+        if all_word_counts[word] > 3 && (longview_core_words[word] || 0) < (total_weeks.to_f / 4.0)
+          res[:emergent_words] ||= {}
+          res[:emergent_words][word] = all_word_counts[word] 
+          if default_core.includes?(word)
+            res[:watchwords][:emergent_words] ||= {}
+            res[:watchwords][:emergent_words][word] = all_word_counts[word].to_f / (longview_core_words[word] || 1).to_f
+          end
+        end
+        
+        # if used at least once every 2 weeks in the history, but not used in the session list,
+        # then mark it as a dwindling word
+        if longview_core_words[word] > (total_weeks.to_f / 2.0) && !all_word_counts[word]
+          res[:dwindling_words] ||= {}
+          res[:dwindling_words][word] = longview_core_words[word]
+        end
+      end
+    end
+    if res[:watchwords][:emergent_words]
+      max = res[:watchwords][:emergent_words].to_a.map(&:last).max || 1.0
+      res[:watchwords][:emergent_words].each do |word, cnt|
+        res[:watchwords][:emergent_words][word] = cnt.to_f / max.to_f
+      end
+    end
+    # - (not here) basic core words based on a timeline from registration/daily_use
+    
+    # Combine all the lists to find the best match recommendations
+    # 1. Primary goal words
+    # 2. Emergent core words
+    # 3. Popular modeled words
+    # 4. Secondary goal words
+    # 5. Infrequent core words
+    scored_words = {}
+    keys = [[:primary_words, 10.0], 
+            [:primary_modeled_words, 3.0], 
+            [:secondary_words, 3.0], 
+            [:secondary_modeled_words, 1.0], 
+            [:popular_modeled_words, 6.0],
+            [:infrequent_core_words, 2.0], 
+            [:emergent_words, 10.0]]
+    keys.each do |key, score|
+      (res[:watchwords][key] || {}).each do |word, cnt|
+        # only suggest words that are actually reachable in the user's vocabulary
+        if reachable_words.include?(word)
+          scored_words[word] ||= {:word => word, :score => 0, :reasons => []}
+          scored_words[word][:score] += cnt * score
+          scored_words[word][:reasons] << key
+        end
+      end
+    end
+    res[:watchwords][:suggestions] = scored_words.to_a.map(&:last).sort_by{|w| w[:score] || 0 }
+    
+    res
+  end
+  
   def self.parts_of_speech_stats(sessions)
     res = {
       :parts_of_speech => {},
