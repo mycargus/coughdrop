@@ -1499,41 +1499,20 @@ var app_state = EmberObject.extend({
     } else if(button.url) {
       if(stashes.get('sticky_board') && app_state.get('speak_mode')) {
         modal.warning(i18n.t('sticky_board_notice', "Board lock is enabled, disable to leave this board."), true);
+      } else if(app_state.get('currentUser.preferences.external_links') == 'prevent') {
+        modal.warning(i18n.t('external_links_disabled_notice', "External Links have been disabled in this user's preferences."), true);
       } else {
-        var real_url = button.url;
-        var book_integration = app_state.get('sessionUser.global_integrations.tarheel');
-        book_integration = book_integration || ((window.user_preferences || {}).global_integrations || []).indexOf('tarheel') != -1;
-        if(button.book && button.book.popup && button.book.url) {
-          real_url = button.book.url;
-        }
-        if(button.video && button.video.popup) {
-          modal.open('inline-video', button);
-        } else if(button.book && button.book.popup && book_integration) {
-          var opts = $.extend({}, button.book || {});
-          delete opts['base_url'];
-          delete opts['url'];
-          delete opts['popup'];
-          delete opts['type'];
-          runLater(function() {
-            _this.jump_to_board({
-              id: "i_tarheel",
-              key: "integrations/tarheel:" + encodeURIComponent(btoa(JSON.stringify(opts))),
-              home_lock: button.home_lock
-            }, obj.board);
-          }, 100);
-        } else {
-          if((!app_state.get('currentUser') && window.user_preferences.any_user.confirm_external_links) || app_state.get('currentUser.preferences.confirm_external_links')) {
-            modal.open('confirm-external-link', {url: button.url, real_url: real_url});
-          } else {
-            capabilities.window_open(real_url, '_blank');
-          }
-        }
+        app_state.launch_url(button, real_url);
       }
     } else if(button.apps) {
       if(stashes.get('sticky_board') && app_state.get('speak_mode')) {
         modal.warning(i18n.t('sticky_board_notice', "Board lock is enabled, disable to leave this board."), true);
+      } else if(app_state.get('currentUser.preferences.external_links') == 'prevent') {
+        modal.warning(i18n.t('external_links_disabled_notice', "External Links have been disabled in this user's preferences."), true);
       } else {
-        if((!app_state.get('currentUser') && window.user_preferences.any_user.confirm_external_links) || app_state.get('currentUser.preferences.confirm_external_links')) {
+        if((!app_state.get('currentUser') && (window.user_preferences.any_user.external_links || '').match(/confirm/)) || (app_state.get('currentUser.preferences.external_links') || '').match(/confirm/)) {
+          modal.open('confirm-external-app', {apps: button.apps});
+        } else if((!app_state.get('currentUser') && window.user_preferences.any_user.confirm_external_links) || app_state.get('currentUser.preferences.confirm_external_links')) {
           modal.open('confirm-external-app', {apps: button.apps});
         } else {
           if(capabilities.system == 'iOS' && button.apps.ios && button.apps.ios.launch_url) {
@@ -1589,6 +1568,51 @@ var app_state = EmberObject.extend({
     }
     frame_listener.notify_of_button(button, obj);
     return true;
+  },
+  launch_url: function(button, real_url, force) {
+    var _this = this;
+    if(!force && _this.get('currentUser.preferences.external_links') == 'confirm_all') {
+      modal.open('confirm-external-link', {url: button.url, real_url: real_url}).then(function(res) {
+        if(res && res.open) {
+          _this.launch_url(button, real_url, true);
+        }
+      });
+    } else {
+      var real_url = button.url;
+      var book_integration = _this.get('sessionUser.global_integrations.tarheel');
+      book_integration = book_integration || ((window.user_preferences || {}).global_integrations || []).indexOf('tarheel') != -1;
+      if(button.book && button.book.popup && button.book.url) {
+        real_url = button.book.url;
+      }
+      if(button.video && button.video.popup) {
+        modal.open('inline-video', button);
+      } else if(button.book && button.book.popup && book_integration) {
+        var opts = $.extend({}, button.book || {});
+        delete opts['base_url'];
+        delete opts['url'];
+        delete opts['popup'];
+        delete opts['type'];
+        runLater(function() {
+          _this.jump_to_board({
+            id: "i_tarheel",
+            key: "integrations/tarheel:" + encodeURIComponent(btoa(JSON.stringify(opts))),
+            home_lock: button.home_lock
+          }, obj.board);
+        }, 100);
+      } else {
+        var do_confirm = (!_this.get('currentUser') && window.user_preferences.any_user.external_links == 'confirm') || _this.get('currentUser.preferences.external_links') == 'confirm_custom';
+        do_confirm = do_confirm || (!_this.get('currentUser') && window.user_preferences.any_user.confirm_external_links) || _this.get('currentUser.preferences.confirm_external_links');
+        if(!force && do_confirm) {
+          modal.open('confirm-external-link', {url: button.url, real_url: real_url}).then(function(res) {
+            if(res && res.open) {
+              capabilities.window_open(real_url || button.url, '_blank');
+            }
+          });
+        } else {
+          capabilities.window_open(real_url || button.url, '_blank');
+        }
+      }
+    }
   },
   remember_global_integrations: function() {
     if(this.get('sessionUser.global_integrations')) {

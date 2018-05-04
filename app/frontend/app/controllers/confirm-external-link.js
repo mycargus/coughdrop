@@ -7,8 +7,7 @@ export default modal.ModalController.extend({
   }.property('model.url'),
   actions: {
     open_link: function() {
-      modal.close();
-      capabilities.window_open(this.get('model.real_url') || this.get('model.url'), '_blank');
+      modal.close({open: true});
     }
   }
 });

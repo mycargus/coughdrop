@@ -201,7 +201,7 @@ class User < ActiveRecord::Base
         'activation_location' => 'end',
         'auto_home_return' => true,
         'vocalize_buttons' => true,
-        'confirm_external_links' => true,
+        'external_links' => 'confirm_custom',
         'clear_on_vocalize' => true,
         'sharing' => true,
         'board_jump_delay' => 500,
@@ -261,6 +261,10 @@ class User < ActiveRecord::Base
     end
     if FeatureFlags.user_created_after?(self, 'new_index')
       self.settings['preferences']['new_index'] = true if self.settings['preferences']['new_index'] == nil
+    end
+    if self.settings['preferences']['confirm_external_links']
+      self.settings['preferences']['external_links'] = 'confirm_custom'
+      self.settings['preferences'].delete('confirm_external_links')
     end
     User.preference_defaults['any_user'].each do |attr, val|
       self.settings['preferences'][attr] = val if self.settings['preferences'][attr] == nil
@@ -464,7 +468,7 @@ class User < ActiveRecord::Base
       'lock_quick_sidebar', 'clear_on_vocalize', 'logging', 'geo_logging', 
       'require_speak_mode_pin', 'speak_mode_pin', 'activation_minimum',
       'activation_location', 'activation_cutoff', 'activation_on_start', 
-      'confirm_external_links', 'long_press_edit', 'scanning', 'scanning_interval',
+      'confirm_external_links', 'external_links', 'long_press_edit', 'scanning', 'scanning_interval',
       'scanning_mode', 'scanning_select_keycode', 'scanning_next_keycode',
       'scanning_select_on_any_event', 'vocalize_linked_buttons', 'sidebar_boards',
       'silence_spelling_buttons', 'stretch_buttons', 'registration_type',
@@ -533,13 +537,20 @@ class User < ActiveRecord::Base
             'setting' => key,
             'timestamp' => Time.now.utc.iso8601
           }
+          if self.id && key == 'cookies' && params['preferences'] && params['preferences']['cookies'] == false
+            @opt_out = true
+          end
         end
       end
     end
-    if params['logging'] && !self.settings['logging']
-    end
     PREFERENCE_PARAMS.each do |attr|
       self.settings['preferences'][attr] = params['preferences'][attr] if params['preferences'] && params['preferences'][attr] != nil
+    end
+    if self.settings['preferences']['external_links']
+      self.settings['preferences'].delete('confirm_external_links')
+    end
+    if params['preferences'] && params['preferences']['cookies'] == true
+      self.settings['preferences']['protected_user'] = false
     end
     self.settings['preferences']['stretch_buttons'] = nil if self.settings['preferences']['stretch_buttons'] == 'none'
     self.settings['preferences']['progress'] ||= {}

@@ -203,12 +203,7 @@
   <div class="form-group">
     <label for="external_links" class="col-sm-3 control-label">{{t "External Links" key='external_links'}}</label>
     <div class="col-sm-5">
-      <div class="checkbox">
-        <label>
-          {{input type="checkbox" checked=model.preferences.confirm_external_links id="external_links"}}
-          {{t "Confirm before opening externally-linked buttons" key='confirm_before_opening_links'}}
-        </label>
-      </div>
+      {{bound-select select_class="form-control" select_id="external_links" content=externalLinksList selection=model.preferences.external_links action=(action (mut model.preferences.external_links)) }}
     </div>
   </div>
   <div class="form-group">
