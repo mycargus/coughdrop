@@ -30,6 +30,12 @@ export default modal.ModalController.extend({
   actions: {
     toggle_statuses: function(sync) {
       emberSet(sync, 'toggled', !emberGet(sync, 'toggled'));
-    }
+    },
+    sync: function() {
+      if(!persistence.get('syncing')) {
+        console.debug('syncing because manually triggered');
+        persistence.sync('self', true).then(null, function() { });
+      }
+    },
   }
 });
