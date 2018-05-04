@@ -108,6 +108,7 @@
       else {
         ga('create', "<%= ENV['ANALYTICS_ID'] %>", 'auto');
       }
+      ga('set', 'anonymizeIp', true);
 
       ga('send', 'pageview');
     };
