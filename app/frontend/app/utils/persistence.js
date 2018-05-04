@@ -998,6 +998,7 @@ var persistence = EmberObject.extend({
 
       var confirm_quota_for_user = find_user.then(function(user) {
         if(user) {
+          persistence.set('online', true);
           if(user.get('preferences.skip_supervisee_sync')) {
             ignore_supervisees = true;
           }
@@ -2073,6 +2074,18 @@ document.addEventListener('online', function() {
 document.addEventListener('offline', function() {
   persistence.set('online', false);
 });
+setInterval(function() {
+  if(navigator.onLine === true && persistence.get('online') === false) {
+    persistence.set('online', true);
+  } else if(navigator.onLine === false && persistence.get('online') === true) {
+    persistence.set('online', false);
+  } else if(persistence.get('online') === false) {
+    // making an AJAX call when offline should have very little overhead
+    CoughDrop.session.check_token(false).then(function() {
+      persistence.set('online', true);
+    }, function() { });
+  }
+}, 30000);
 
 persistence.DSExtend = {
   findRecord: function(store, type, id) {
