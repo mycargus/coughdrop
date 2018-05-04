@@ -4,6 +4,7 @@ class ApplicationController < ActionController::Base
   before_action :replace_helper_params
   before_action :set_paper_trail_whodunnit
   after_action :log_api_call
+  before_bugsnag_notify :add_user_info_to_bugsnag
   
   # TODO: do we need a cache buster? Not for ember renders obviously, but for APIs?
   def set_host
@@ -14,6 +15,12 @@ class ApplicationController < ActionController::Base
     time = @time ? (Time.now - @time) : nil
     ApiCall.log(@token, @api_user, request, response, time)
     true
+  end
+  
+  def add_user_info_to_bugsnag(report)
+    report.user = {
+      id: GoSecure.sha512(request.remote_ip, 'user_ip')
+    }
   end
   
   def check_api_token
