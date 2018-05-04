@@ -1,26 +1,39 @@
 <div class="row">
   <div class="col-sm-8 col-sm-offset-2">
     <h2>Respecting User Privacy</h2>
-    <p>Updated: Dec 11, 2017</p>
+    <p>Updated: May 3, 2018</p>
     
     <p>CoughDrop is a powerful, flexible communication app and system that enables communicators 
     and the teams around them to develop a personalized language learning strategy and
     to communicate effectively. Because CoughDrop is used in medical and educational settings for
-    adults and minors, we are sensitive to state and federal regulations like FERPA,
+    different ages of user, we are sensitive to state and federal regulations like FERPA,
     HIPAA, COPPA, etc. and work hard to track policies related to those regulations.
     Compliance with privacy and security regulations requires collaboration
     between CoughDrop and the institutions that use our software. As such, we have 
-    compiled this set of assurances and best practices to prevent exposing personal information
+    compiled this set of assertions and best practices to prevent exposing personal information
     to anyone who shouldn't have access to it.</p>
     
     <p>CoughDrop uses the cloud to back up, synchronize, and report on
-    a communicator's vocabulary and activities. Because of the potentially sensitive nature
+    a communicator's vocabulary and activities. We do this to provide convenience for
+    users (backup and multi-device support), insights on communicator progress, 
+    collaboration across support teams, accountability for organizations, and general
+    trends across the site. Because of the potentially sensitive nature
     of the information related to an individual's communication, we take user privacy very
     seriously. Below are some of our protection strategies, and best practices that you can
     follow to ensure the privacy and rights of the communicator are respected. The 
     information is provided to help organizations in their decision-making and
-    training processes, and should be considered supplementary information, as it may
-    change over time.</p>
+    training processes, and may change over time.</p>
+    
+    <h4>Personal Information</h4>
+    <p>By default CoughDrop tries to collect as little personal information as possible about
+    our users. At registration we ask for a username and email address, and we record the initial
+    IP address for location tracking purposes. Any additional information provided by the 
+    user is optional and opt-in. Some features of CoughDrop, if enabled, will result in 
+    additional levels of tracking and information storage. For example, logging records
+    additional data as the user uses the system, and the personalization of boards results
+    in the storage of additional images and data fields based on the user-entered information.
+    <b>We encourage therapy and educational teams to discuss together what information
+    is appropriate to be added for an individual user</b>.
     
     <h4>General Access</h4>
     <p>By default CoughDrop doesn't collect personal or academic information about our users.
@@ -69,7 +82,7 @@
     audio records and videos uploaded to the CoughDrop system
     are encrypted in transit via SSL, but are not encrypted at rest (although they are
     protected from unintentional access using long randomly-generated identifiers), and <b>we 
-    recommend only uploaded anonymized images and
+    suggest only uploaded anonymized images and
     videos that do not disclose private information</b>.</p>
     
     <h4>Logs, Reports and Tracking</h4>
@@ -91,20 +104,51 @@
     in a user's communication session, and an additional level which also tracks GPS
     locations to be used for filtering data based on physical location. Both levels are 
     opt-in, and CoughDrop includes a user-controlled mechanism which can permanently 
-    delete all previous logs generated in the system (this purge can take up to 24 hours).</p>
+    delete all previous logs generated in the system (this purge can take up to 24 hours).
+    You can see what information is recorded via logging in our
+    <a href="https://docs.google.com/document/d/1XA8M0aEghcRMQoRnK_tbnk1A7hWoekMSW5ScR2LKusw/edit?usp=sharing" target='_blank'>data and services tracker</a>.
+    </p>
+    
+    <p>CoughDrop incorporates anonymized data from all user-generated logs to share
+    usage trends such as most common words, core vs. fringe breakdown, etc. These public
+    trends are always strictly anonymized and not gathered without enough different user
+    sources to ensure individual user information is protected. When users enable logging
+    they can opt-in to allowing their usage log information to be anonymized and shared
+    with third-party research groups. Personally-identifiable information, including
+    email addresses, personalized phrases or location information, will not be shared with outside 
+    research parties without explicit user consent.</p>
     
     <h4>Third-Party Services</h4>
     <p>Some components of CoughDrop take advantage of third-party services to improve 
-    the user experience. For example, CoughDrop reports send anonymized data to the
-    Google Charts service to generate visualizations of usage over time. These types
-    of third-party services are opt-in, and the actions that enable the services are
-    clearly delineated within the system.</p>
+    the user experience. CoughDrop reports send anonymized data to the
+    Google Charts service to generate visualizations of usage over time. CoughDrop
+    uses Google Analytics to track user trends and to help evaluate the effectiveness of
+    new features. These third-party services are opt-in, and the  actions that enable 
+    these services are clearly delineated within the system.</p>
     
-    <p>We use some troubleshooting and logging services to aid in application 
-    troubleshooting which do send limited user metadata such as IP Address and
+    <p>Additionally, CoughDrop "launches" players for third party content including
+    YouTube, Tarheel Reader and OpenAAC. By default these launches do not send any 
+    CoughDrop-stored information unless clearly specified when setting up the tool 
+    for a user. These third-party services may include
+    their own tracking mechanisms, and can be included as button launches on user
+    boards. CoughDrop also allows for "launches" from arbitrary web sites based on
+    user-entered URLs. 
+    Control over whether to allow third-party launches is available
+    in a user's preferences, and <b>we encourage teams concerned about external
+    tracking to disable third-party launches for their users</b>.</p>
+    
+    <p>We use the server-based troubleshooting and logging services 
+    listed in our 
+    <a href="https://docs.google.com/document/d/1XA8M0aEghcRMQoRnK_tbnk1A7hWoekMSW5ScR2LKusw/edit?usp=sharing" target='_blank'>data and services tracker</a>
+    to aid in application 
+    troubleshooting and information security, which send limited user metadata such as IP Address and
     User Agent, but this data is deleted after 7-14 days. Organization-created
-    communicator accounts have this logging disabled, so <b>we encourage organizations
-    to create user accounts through the organization interface if there are concerns
+    communicator accounts have error tracking disabled by default for everything 
+    other than IP address (which we keep to use to combat fraud and maintain 
+    information security), 
+    so <b>we encourage organizations
+    to create user accounts through the organization interface, or to manually
+    disable error tracking in a user's preferences if there are concerns
     about user metadata being stored outside the system</b>.</p>
     
     <p>In addition, CoughDrop collects contact information when users sign up or purchase
@@ -115,8 +159,9 @@
     communicator accounts are not shared with third-party communication services, so 
     <b>we encourage organizations to create user accounts through the organization 
     interface to prevent email addresses from being shared</b> with these third-party
-    services. If your users are not created this way, please reach out to us and will 
-    manually remove their information from the third-party communication services.</p>
+    services. If your users are not created this way, you can disable this setting
+    in your user preferences
+    and we will remove your information from our marketing tools.</p>
     
     <p>CoughDrop can optionally send out notifications to communicators and supervisors.
     These notifications include things like weekly usage summaries, notifications of badges
@@ -143,10 +188,33 @@
     unauthorized access through the physical device.</b>
     </p>
     
+    <h4>Removing Old Data</h4>
+    <p>CoughDrop logs and board provide ongoing value, so for active users this information
+    is not deleted. Users may choose to delete their usage logs in their entirety at any time,
+    or delete their full account including boards and logs, from within their profile. When
+    an account deletion is requested we delay the deletion for up to 18 days to allow for
+    cancellations or mistakes. Some users take advantage of CoughDrop's features only seasonally,
+    so we wait a full year of inactivity before initiating the process of automatically
+    deleting a user's profile, but users can always request the account to be removed
+    sooner if they would like. When an account is deleted, boards and logs are removed
+    as well, but historical aggregate data generated using those data sources will not
+    be updated, as this aggregate data does not expose user-specific information.</p>
+
+    <h4>Security Breaches</h4>
+    <p>We have many security measures in place to protect against unauthorized access 
+    to user information, including training our employees on privacy and encrypting and
+    obfuscating data sources. However, as we have seen in recent years even strict
+    security measures are at times compromised. In the event that personal user information 
+    is exposed to unapproved parties, or 
+    CoughDrop becomes aware of unauthorized access to our internal system resources, we will notify
+    affected users via email within 72 hours. If comprehensive information is not available
+    at the time of the report we will include a schedule of updates, not less often than
+    one update per week, until the issue has been resolved or concluded.</p>
+    
     <p>At CoughDrop we work hard to ensure communicators are respected and given the privacy
     that everyone deserves. If you have questions about these policies please don't hesitate
     to reach out to us.</p>
 
-    <p>© 2017 CoughDrop, Inc. All rights reserved.</p>
+    <p>© 2018 CoughDrop, Inc. All rights reserved.</p>
   </div>
 </div>
