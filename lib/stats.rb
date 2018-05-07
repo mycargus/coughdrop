@@ -880,17 +880,15 @@ module Stats
             end
             if summary.weekyear >= recent_weekyear && summary.weekyear < end_weekyear
               recent_weeks += 1
-              default_core.each do |word|
-                if summary.data['stats'] && summary.data['stats']['modeled_word_counts'] && summary.data['stats']['modeled_word_counts'][word]
-                  modeled_words[word] ||= 0
-                  modeled_words[word] += summary.data['stats']['modeled_word_counts'][word]
-                end
-                if summary.data['stats'] && summary.data['stats']['all_word_counts'] && summary.data['stats']['all_word_counts'][word]
-                  all_word_counts[word] ||= 0
-                  all_word_counts[word] += summary.data['stats']['all_word_counts'][word]
-                end
+              if summary.data['stats'] && summary.data['stats']['modeled_word_counts'] && summary.data['stats']['modeled_word_counts'][word]
+                modeled_words[word] ||= 0
+                modeled_words[word] += summary.data['stats']['modeled_word_counts'][word]
               end
-              basic_core.each do |word|
+              if summary.data['stats'] && summary.data['stats']['all_word_counts'] && summary.data['stats']['all_word_counts'][word]
+                all_word_counts[word] ||= 0
+                all_word_counts[word] += summary.data['stats']['all_word_counts'][word]
+              end
+              if basic_core.include?(word)
                 if summary.data['stats'] && summary.data['stats']['all_word_counts'] && summary.data['stats']['all_word_counts'][word]
                   core_word_counts[word] ||= 0
                   core_word_counts[word] += summary.data['stats']['all_word_counts'][word]
@@ -940,7 +938,7 @@ module Stats
           res[:emergent_words][word] = all_word_counts[word] 
           if default_core.include?(word)
             res[:watchwords][:emergent_words] ||= {}
-            res[:watchwords][:emergent_words][word] = all_word_counts[word].to_f / (longview_core_words[word] || 1).to_f
+            res[:watchwords][:emergent_words][word] = all_word_counts[word].to_f / (all_word_counts[word].to_f + (longview_core_words[word] || 1)).to_f
           end
         end
         
