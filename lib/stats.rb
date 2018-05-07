@@ -869,7 +869,7 @@ module Stats
       start_weekyear = (min_summary.cwyear * 100) + min_summary.cweek
       recent_weekyear = ((min_summary - 2.weeks).cwyear * 100) + (min_summary - 2.weeks).cweek
       end_weekyear = (sessions[0].started_at.to_date.cwyear * 100) + sessions[0].started_at.to_date.cweek
-      summaries = WeeklyStatsSummary.where(user_id: user.id).where(['weekyear >= ? AND weekyear <= ?', start_weekyear, end_weekyear])
+      summaries = WeeklyStatsSummary.where(user_id: user.id).where(['weekyear >= ? AND weekyear <= ?', start_weekyear, end_weekyear]); summaries.count
       summaries.find_in_batches(batch_size: 5) do |batch|
         batch.each do |summary|
           total_weeks += 1
@@ -984,7 +984,7 @@ module Stats
         end
       end
     end
-    res[:watchwords][:suggestions] = scored_words.to_a.map(&:last).sort_by{|w| w[:score] || 0 }
+    res[:watchwords][:suggestions] = scored_words.to_a.map(&:last).sort_by{|w| w[:score] || 0 }.reverse
     
     res
   end
