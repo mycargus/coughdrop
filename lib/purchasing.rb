@@ -453,11 +453,17 @@ module Purchasing
         puts "\ttoo many subscriptions"
         problems << "#{user.global_id} #{user.user_name} too many subscriptions"
       elsif user.long_term_purchase?
-        puts "\converted to a long-term purchase"
+        sub = customer_subs[0]
+        str = "\tconverted to a long-term purchase"
+        if sub && sub['canceled_at']
+          canceled = Time.at(sub['canceled_at'])
+          created = Time.at(customer['created'])
+          str += " on #{canceled.iso8601}, registered #{created.iso8601}"
+        end
+        puts str
         if customer_subs.length > 0
-          sub = customer_subs[0]
-          if sub['status'] == 'active' || sub['status'] == 'trialing'
-            puts "\converted to long-term purchase, but still has a lingering subscription"
+          if sub && (sub['status'] == 'active' || sub['status'] == 'trialing')
+            puts "\tconverted to long-term purchase, but still has a lingering subscription"
             problems << "#{user.global_id} #{user.user_name} converted to long-term purchase, but still has a lingering subscription"
           end
         end
