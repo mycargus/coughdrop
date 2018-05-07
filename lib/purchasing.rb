@@ -452,6 +452,15 @@ module Purchasing
       if customer_subs.length > 1
         puts "\ttoo many subscriptions"
         problems << "#{user.global_id} #{user.user_name} too many subscriptions"
+      elsif user.long_term_purchase?
+        puts "\converted to a long-term purchase"
+        if customer_subs.length > 0
+          sub = customer_subs[0]
+          if sub['status'] == 'active' || sub['status'] == 'trialing'
+            puts "\converted to long-term purchase, but still has a lingering subscription"
+            problems << "#{user.global_id} #{user.user_name} converted to long-term purchase, but still has a lingering subscription"
+          end
+        end
       elsif customer_subs.length == 0 
         # if no active subscription, this is an old customer record
         check_cancels = false
