@@ -902,7 +902,9 @@ module Stats
     # - popular modeled words
     max_modeled = modeled_words.to_a.map(&:last).max || 0
     modeled_words.each do |word, cnt|
-      if cnt > 5 && cnt > (max_modeled * 0.8)
+      # if the word is used more than 5 times, and is a highly-modeled word, and is
+      # used less than half as often as it is modeled, then flag it as important
+      if cnt > 5 && cnt > (max_modeled * 0.8) && (all_word_counts[word] || 0) < (cnt / 2)
         res[:watchwords][:popular_modeled_words] ||= {}
         res[:watchwords][:popular_modeled_words][word] = cnt.to_f / max_modeled.to_f
       end
