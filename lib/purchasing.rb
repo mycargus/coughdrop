@@ -329,6 +329,7 @@ module Purchasing
         :amount => (amount * 100),
         :currency => 'usd',
         :source => token['id'],
+        :receipt_email => opts['email'],
         :description => description,
         :metadata => {
           'giver_id' => user && user.global_id,
@@ -493,6 +494,7 @@ module Purchasing
             canceled = Time.at(sub['canceled_at'])
             created = Time.at(customer['created'])
             if canceled > 6.months.ago
+              puts "\tcanceled #{canceled.iso8601}, subscribed #{created.iso8601}, active #{user_active}" if canceled > 3.months.ago
               cancel_months[(canceled.year * 100) + canceled.month] ||= []
               cancel_months[(canceled.year * 100) + canceled.month] << (canceled - created) / 1.month.to_i
             end

@@ -16,7 +16,7 @@ module JsonApi::Gift
     json['licenses'] = gift.settings['licenses']
     json['total_codes'] = gift.settings['total_codes']
     json['redeemed_codes'] = (gift.settings['codes'] || {}).to_a.map(&:last).select{|v| v != nil }.length
-    json['org_connected'] = gift.type_type == 'multi_codes' && !!gift.settings['org_id']
+    json['org_connected'] = gift.gift_type == 'multi_codes' && !!gift.settings['org_id']
     json['active'] = gift.active
     json['purchased'] = gift.purchased?
     json['organization'] = gift.settings['organization']

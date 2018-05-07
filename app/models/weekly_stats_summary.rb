@@ -104,7 +104,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
       if (target_words[:watchwords][:suggestions] || []).length > 0
         user.settings['target_words'] = {
           'generated' => Time.now.iso8601,
-          'weekyear' => current_weekyear
+          'weekyear' => current_weekyear,
           'list' => target_words[:watchwords][:suggestions]
         }
         user.save
