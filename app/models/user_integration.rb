@@ -34,6 +34,17 @@ class UserIntegration < ActiveRecord::Base
       self.settings['name'] ||= self.template_integration.settings['name']
     end
     self.settings['permission_scopes'] ||= ['read_profile']
+    if !self.settings['obfuscation_offset']
+      hash = {}
+      '0123456789'.each_char do |n|
+        val = nil
+        while !val || hash.to_a.map(&:last).include?(val)
+          val = rand(99)
+        end
+        hash[n] = val
+      end
+      self.settings['obfuscation_offset'] = hash
+    end
     self.for_button = !!(self.settings['button_webhook_url'] || self.settings['board_render_url'])
     self.assert_device
     # TODO: assert device
@@ -47,7 +58,33 @@ class UserIntegration < ActiveRecord::Base
     return nil unless user && user.global_id
     # user token must be consistent across repeated launches
     sig = self.class.user_token(user.global_id, self.global_id)
-    "#{user.global_id}:#{self.global_id}:#{sig}"
+    if !self.settings['obfuscation_offset']
+      self.generate_defaults
+      self.save!
+    end
+    "#{self.class.obfuscate_user_id(user.global_id, self.settings['obfuscation_offset'])}:#{self.global_id}:#{sig}"
+  end
+  
+  def self.obfuscate_user_id(user_id, lookup)
+    raise "bad id" unless user_id.match(/^[_0123456789]+$/)
+    shard, user_id = user_id.split(/_/)
+    val = 0
+    keys = {}
+    user_id.each_char{|c| val = (val * 100) + lookup[c]}
+    "#{shard}_#{val.to_s(16)}"
+  end
+  
+  def self.deobfuscate_user_id(str, lookup)
+    shard, str = str.split(/_/)
+    val = str.hex
+    res = ""
+    while val > 0
+      num = (val % 100)
+      res = lookup.to_a.detect{|n, val| val == num }[0] + res
+      val = val / 100
+    end
+    return nil unless res.match(/^[_0123456789]+$/)
+    "#{shard}_#{res}"
   end
   
   def self.user_token(user_id, integration_id)

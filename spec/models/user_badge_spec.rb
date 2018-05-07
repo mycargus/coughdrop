@@ -1709,7 +1709,7 @@ describe UserBadge, type: :model do
     it "should generate unit-level blocks" do
       u = User.create
       d = Device.create(:user => u)
-      expect(Date).to receive(:today).and_return(Date.parse("June 6, 2016"))
+      expect(Date).to receive(:today).and_return(Date.parse("June 6, 2016")).at_least(1).times
       s1 = LogSession.process_new({'events' => [
         {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'spoken' => true, 'board' => {'id' => '1_1'}}, 'timestamp' => 1465279200 - 1},
         {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'timestamp' => 1465279200}
