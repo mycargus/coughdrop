@@ -552,11 +552,11 @@ class UserBadge < ActiveRecord::Base
         if data['all_word_sequences'] && data['all_word_sequences'].length > 0
           word_hits = {}
           data['all_word_sequences'].compact.each do |sequence|
-            str = sequence.join(' ').gsub(/\s+/, "\s")
+            str = sequence.join(' ').gsub(/\s+/, "\s").downcase
             badge_level['words_list'].each do |word|
               index = -1
               while index
-                index = str.index(Regexp.new("\\b#{word}\\b", 'i'), index + 1)
+                index = str.index(Regexp.new("\\b#{word.downcase}\\b", 'i'), index + 1)
                 if index
                   pre = [str.rindex(/\b\w+\b/, [index - 1, 0].max), 0].max
                   pre2 = str.rindex(/\b\w+\b/, [pre - 1, 0].max) if pre
@@ -584,7 +584,7 @@ class UserBadge < ActiveRecord::Base
             }
           end
         else
-          words = data['all_word_counts'].select{|k, v| badge_level['words_list'].include?(k) }
+          words = data['all_word_counts'].select{|k, v| badge_level['words_list'].map(&:downcase).include?(k.downcase) }
           words.each do |word, val|
             matches << {
               value: word,
@@ -593,7 +593,7 @@ class UserBadge < ActiveRecord::Base
           end
         end
       elsif badge_level['modeled_words_list'] && data['modeled_word_counts']
-        words = data['modeled_word_counts'].select{|k, v| badge_level['modeled_words_list'].include?(k) }
+        words = data['modeled_word_counts'].select{|k, v| badge_level['modeled_words_list'].map(&:downcase).include?(k.downcase) }
         words.each do |word, val|
           matches << {
             value: word,
@@ -602,7 +602,7 @@ class UserBadge < ActiveRecord::Base
         end
       elsif badge_level['parts_of_speech_list'] && data['parts_of_speech']
         parts = data['parts_of_speech'].each do |k, v| 
-          if badge_level['parts_of_speech_list'].include?(k) 
+          if badge_level['parts_of_speech_list'].map(&:downcase).include?(k.downcase) 
             matches << {
               value: k,
               count: v

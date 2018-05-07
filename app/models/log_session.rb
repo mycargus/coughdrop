@@ -317,8 +317,8 @@ class LogSession < ActiveRecord::Base
                 self.data['stats']['all_button_counts'][ref]['count'] += 1
                 if button['text'] && button['text'].length > 0 && (event['button']['spoken'] || event['button']['for_speaking'])
                   button['text'].split(/\s+/).each do |word|
-                    self.data['stats']['all_word_counts'][word] ||= 0
-                    self.data['stats']['all_word_counts'][word] += 1
+                    self.data['stats']['all_word_counts'][word.downcase] ||= 0
+                    self.data['stats']['all_word_counts'][word.downcase] += 1
                     self.data['stats']['all_word_sequence'] << word if word
                   end
                 end
@@ -332,8 +332,8 @@ class LogSession < ActiveRecord::Base
                 self.data['stats']['modeled_button_counts'][ref]['count'] += 1
                 if button['text'] && button['text'].length > 0 && (event['button']['spoken'] || event['button']['for_speaking'])
                   button['text'].split(/\s+/).each do |word|
-                    self.data['stats']['modeled_word_counts'][word] ||= 0
-                    self.data['stats']['modeled_word_counts'][word] += 1
+                    self.data['stats']['modeled_word_counts'][word.downcase] ||= 0
+                    self.data['stats']['modeled_word_counts'][word.downcase] += 1
                   end
                 end
               end

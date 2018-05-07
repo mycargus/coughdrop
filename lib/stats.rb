@@ -318,7 +318,7 @@ module Stats
       res[:unique_buttons] += stats[:all_button_counts].keys.length
       res[:total_words] += words
       res[:modeled_words] += (stats[:modeled_word_counts] || {}).map{|k, v| v }.sum
-      res[:unique_words] += stats[:all_word_counts].keys.length
+      res[:unique_words] += stats[:all_word_counts].keys.map(&:downcase).length
       res[:started_at] = [res[:started_at], stats[:started_at]].compact.min
       res[:ended_at] = [res[:ended_at], stats[:ended_at]].compact.max
       stats[:all_button_counts].each do |ref, button|
@@ -329,8 +329,8 @@ module Stats
         end
       end
       stats[:all_word_counts].each do |word, cnt|
-        all_word_counts[word] ||= 0
-        all_word_counts[word] += cnt
+        all_word_counts[word.downcase] ||= 0
+        all_word_counts[word.downcase] += cnt
       end
       (stats[:modeled_button_counts] || {}).each do |ref, button|
         if modeled_button_counts[ref]
@@ -340,8 +340,8 @@ module Stats
         end
       end
       (stats[:modeled_word_counts] || {}).each do |word, cnt|
-        modeled_word_counts[word] ||= 0
-        modeled_word_counts[word] += cnt
+        modeled_word_counts[word.downcase] ||= 0
+        modeled_word_counts[word.downcase] += cnt
       end
       if stats[:all_word_sequence]
 #        all_word_sequences << stats[:all_word_sequence].join(' ')
@@ -465,9 +465,9 @@ module Stats
     res[:buttons_per_minute] += total_session_seconds > 0 ? (total_buttons / total_session_seconds * 60) : 0.0
     res[:utterances_per_minute] +=  total_session_seconds > 0 ? (total_utterances / total_session_seconds * 60) : 0.0
     res[:buttons_by_frequency] = all_button_counts.to_a.sort_by{|ref, button| [button['count'], button['text']] }.reverse.map(&:last)[0, 50]
-    res[:words_by_frequency] = all_word_counts.to_a.sort_by{|word, cnt| [cnt, word] }.reverse.map{|word, cnt| {'text' => word, 'count' => cnt} }[0, 100]
+    res[:words_by_frequency] = all_word_counts.to_a.sort_by{|word, cnt| [cnt, word.downcase] }.reverse.map{|word, cnt| {'text' => word.downcase, 'count' => cnt} }[0, 100]
     res[:modeled_buttons_by_frequency] = modeled_button_counts.to_a.sort_by{|ref, button| [button['count'], button['text']] }.reverse.map(&:last)[0, 50]
-    res[:modeled_words_by_frequency] = modeled_word_counts.to_a.sort_by{|word, cnt| [cnt, word] }.reverse.map{|word, cnt| {'text' => word, 'count' => cnt} }[0, 100]
+    res[:modeled_words_by_frequency] = modeled_word_counts.to_a.sort_by{|word, cnt| [cnt, word.downcase] }.reverse.map{|word, cnt| {'text' => word.downcase, 'count' => cnt} }[0, 100]
     # res[:word_sequences] = all_word_sequences
     res
   end
@@ -492,8 +492,8 @@ module Stats
           end
         end
         (session.data['stats']['all_word_counts'] || []).each do |word, cnt|
-          stats[:all_word_counts][word] ||= 0
-          stats[:all_word_counts][word] += cnt
+          stats[:all_word_counts][word.downcase] ||= 0
+          stats[:all_word_counts][word.downcase] += cnt
         end
         stats[:all_word_sequences] << session.data['stats']['all_word_sequence'] || []
         (session.data['stats']['modeled_button_counts'] || []).each do |ref, button|
@@ -504,8 +504,8 @@ module Stats
           end
         end
         (session.data['stats']['modeled_word_counts'] || []).each do |word, cnt|
-          stats[:modeled_word_counts][word] ||= 0
-          stats[:modeled_word_counts][word] += cnt
+          stats[:modeled_word_counts][word.downcase] ||= 0
+          stats[:modeled_word_counts][word.downcase] += cnt
         end
         if session.data['goal']
           goal = session.data['goal']
@@ -550,8 +550,8 @@ module Stats
           end
         end
         stats[:all_word_counts].each do |word, cnt|
-          total_stats[:all_word_counts][word] ||= 0
-          total_stats[:all_word_counts][word] += cnt
+          total_stats[:all_word_counts][word.downcase] ||= 0
+          total_stats[:all_word_counts][word.downcase] += cnt
         end
         total_stats[:all_word_sequences] += stats[:all_word_sequences]
         stats[:modeled_button_counts].each do |ref, button|
@@ -562,8 +562,8 @@ module Stats
           end
         end
         stats[:modeled_word_counts].each do |word, cnt|
-          total_stats[:modeled_word_counts][word] ||= 0
-          total_stats[:modeled_word_counts][word] += cnt
+          total_stats[:modeled_word_counts][word.downcase] ||= 0
+          total_stats[:modeled_word_counts][word.downcase] += cnt
         end
         (stats[:goals] || {}).each do |id, goal|
           total_stats[:goals] ||= {}
@@ -845,18 +845,18 @@ module Stats
     sessions.each do |session|
       default_core.each do |word|
         if session.data['stats'] && session.data['stats']['modeled_word_counts'] && session.data['stats']['modeled_word_counts'][word]
-          modeled_words[word] ||= 0
-          modeled_words[word] += session.data['stats']['modeled_word_counts'][word]
+          modeled_words[word.downcase] ||= 0
+          modeled_words[word.downcase] += session.data['stats']['modeled_word_counts'][word]
         end
         if session.data['stats'] && session.data['stats']['all_word_counts'] && session.data['stats']['all_word_counts'][word]
-          all_word_counts[word] ||= 0
-          all_word_counts[word] += session.data['stats']['all_word_counts'][word]
+          all_word_counts[word.downcase] ||= 0
+          all_word_counts[word.downcase] += session.data['stats']['all_word_counts'][word]
         end
       end
       basic_core.each do |word|
         if session.data['stats'] && session.data['stats']['all_word_counts'] && session.data['stats']['all_word_counts'][word]
-          core_word_counts[word] ||= 0
-          core_word_counts[word] += session.data['stats']['all_word_counts'][word]
+          core_word_counts[word.downcase] ||= 0
+          core_word_counts[word.downcase] += session.data['stats']['all_word_counts'][word]
         end
       end
     end
@@ -869,29 +869,29 @@ module Stats
       start_weekyear = (min_summary.cwyear * 100) + min_summary.cweek
       recent_weekyear = ((min_summary - 2.weeks).cwyear * 100) + (min_summary - 2.weeks).cweek
       end_weekyear = (sessions[0].started_at.to_date.cwyear * 100) + sessions[0].started_at.to_date.cweek
-      summaries = WeeklyStatsSummary.where(user_id: user.id).where(['weekyear >= ? AND weekyear < ?', start_weekyear, end_weekyear])
+      summaries = WeeklyStatsSummary.where(user_id: user.id).where(['weekyear >= ? AND weekyear <= ?', start_weekyear, end_weekyear])
       summaries.find_in_batches(batch_size: 5) do |batch|
         batch.each do |summary|
           total_weeks += 1
           default_core.each do |word|
             if summary.data['stats'] && summary.data['stats']['all_word_counts'] && summary.data['stats']['all_word_counts'][word]
-              longview_core_words[word] ||= 0
-              longview_core_words[word] += summary.data['stats']['all_word_counts'][word]
+              longview_core_words[word.downcase] ||= 0
+              longview_core_words[word.downcase] += summary.data['stats']['all_word_counts'][word]
             end
             if summary.weekyear >= recent_weekyear && summary.weekyear < end_weekyear
               recent_weeks += 1
               if summary.data['stats'] && summary.data['stats']['modeled_word_counts'] && summary.data['stats']['modeled_word_counts'][word]
-                modeled_words[word] ||= 0
-                modeled_words[word] += summary.data['stats']['modeled_word_counts'][word]
+                modeled_words[word.downcase] ||= 0
+                modeled_words[word.downcase] += summary.data['stats']['modeled_word_counts'][word]
               end
               if summary.data['stats'] && summary.data['stats']['all_word_counts'] && summary.data['stats']['all_word_counts'][word]
-                all_word_counts[word] ||= 0
-                all_word_counts[word] += summary.data['stats']['all_word_counts'][word]
+                all_word_counts[word.downcase] ||= 0
+                all_word_counts[word.downcase] += summary.data['stats']['all_word_counts'][word]
               end
               if basic_core.include?(word)
                 if summary.data['stats'] && summary.data['stats']['all_word_counts'] && summary.data['stats']['all_word_counts'][word]
-                  core_word_counts[word] ||= 0
-                  core_word_counts[word] += summary.data['stats']['all_word_counts'][word]
+                  core_word_counts[word.downcase] ||= 0
+                  core_word_counts[word.downcase] += summary.data['stats']['all_word_counts'][word]
                 end
               end
             end
@@ -919,7 +919,7 @@ module Stats
         if total_weeks > 5
           if (longview_core_words[word] || 0) < (total_weeks.to_f / 4.0)
             res[:watchwords][:infrequent_core_words] ||= {}
-            res[:watchwords][:infrequent_core_words][word] = (longview_core_words[word] || 0).to_f / max_core_word.to_f
+            res[:watchwords][:infrequent_core_words][word] = 1.0 - ((longview_core_words[word] || 0).to_f / max_core_word.to_f)
           end
         end
       end
