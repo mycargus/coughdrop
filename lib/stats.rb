@@ -811,8 +811,6 @@ module Stats
     }
     # as part of this, discover emergent/dwindling words from long-view history
     
-    raise "only include words that are available to the user in their vocab"
-    
     lists = WordData.core_and_fringe_for(user)
     default_core = lists[:for_user]
     reachable_words = lists[:reachable_for_user] + lists[:reachable_fringe_for_user]
@@ -846,17 +844,17 @@ module Stats
     all_word_counts = {}
     sessions.each do |session|
       default_core.each do |word|
-        if session.data['stats']['modeled_word_counts'][word]
+        if session.data['stats'] && session.data['stats']['modeled_word_counts'] && session.data['stats']['modeled_word_counts'][word]
           modeled_words[word] ||= 0
           modeled_words[word] += session.data['stats']['modeled_word_counts'][word]
         end
-        if session.data['stats']['all_word_counts'][word]
+        if session.data['stats'] && session.data['stats']['all_word_counts'] && session.data['stats']['all_word_counts'][word]
           all_word_counts[word] ||= 0
           all_word_counts[word] += session.data['stats']['all_word_counts'][word]
         end
       end
       basic_core.each do |word|
-        if session.data['stats']['all_word_counts'][word]
+        if session.data['stats'] && session.data['stats']['all_word_counts'] && session.data['stats']['all_word_counts'][word]
           core_word_counts[word] ||= 0
           core_word_counts[word] += session.data['stats']['all_word_counts'][word]
         end
@@ -883,19 +881,19 @@ module Stats
             if summary.weekyear >= recent_weekyear && summary.weekyear < end_weekyear
               recent_weeks += 1
               default_core.each do |word|
-                if summary.data['stats']['modeled_word_counts'][word]
+                if summary.data['stats'] && summary.data['stats']['modeled_word_counts'] && summary.data['stats']['modeled_word_counts'][word]
                   modeled_words[word] ||= 0
-                  modeled_words[word] += session.data['stats']['modeled_word_counts'][word]
+                  modeled_words[word] += summary.data['stats']['modeled_word_counts'][word]
                 end
-                if summary.data['stats']['all_word_counts'][word]
+                if summary.data['stats'] && summary.data['stats']['all_word_counts'] && summary.data['stats']['all_word_counts'][word]
                   all_word_counts[word] ||= 0
-                  all_word_counts[word] += session.data['stats']['all_word_counts'][word]
+                  all_word_counts[word] += summary.data['stats']['all_word_counts'][word]
                 end
               end
               basic_core.each do |word|
-                if summary.data['stats']['all_word_counts'][word]
+                if summary.data['stats'] && summary.data['stats']['all_word_counts'] && summary.data['stats']['all_word_counts'][word]
                   core_word_counts[word] ||= 0
-                  core_word_counts[word] += session.data['stats']['all_word_counts'][word]
+                  core_word_counts[word] += summary.data['stats']['all_word_counts'][word]
                 end
               end
             end

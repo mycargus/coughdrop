@@ -460,6 +460,28 @@ export default Controller.extend({
         var user_name = app_state.get('currentUser.user_name');
         this.transitionToRoute('user.stats', user_name, {queryParams: {start: null, end: null, device_id: null, location_id: null, split: null, start2: null, end2: null, devicde_id2: null, location_id2: null}});
       }
+    },
+    modeling_ideas: function(user_name) {
+      var users = [];
+      if(!user_name) {
+        if((app_state.get('currentUser.supervisees') || []).length > 0) {
+          (app_state.get('currentUser.supervisees') || []).forEach(function(u) {
+            users.push(u);
+          });
+          // add all supervisees as users
+        } else {
+          users.push(app_state.get('currentUser'));
+        }
+      } else {
+        (app_state.get('currentUser.supervisees') || []).forEach(function(u) {
+          if(u.user_name == user_name) {
+            users.push(u);
+          }
+        });
+      }
+      if(users.length > 0) {
+        modal.open('modals/modeling-ideas', {users: users});
+      }
     }
   }
 });

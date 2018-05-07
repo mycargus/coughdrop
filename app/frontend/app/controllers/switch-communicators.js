@@ -37,6 +37,14 @@ export default modal.ModalController.extend({
           modal.close();
           modal.error(i18n.t('error_loading_user', "There was an unexpected error loading the user's details"));
         });
+      } else if(this.get('model.modal')) {
+        var _this = this;
+        this.store.findRecord('user', board_for_user_id).then(function(u) {
+          modal.open(_this.get('modal.modal'), {user: u});
+        }, function(err) {
+          modal.close();
+          modal.error(i18n.t('error_loading_user', "There was an unexpected error loading the user's details"));
+        });
       } else {
         app_state.set_speak_mode_user(board_for_user_id, jump_home, keep_as_self);
       }

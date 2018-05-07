@@ -78,6 +78,7 @@ Coughdrop::Application.routes.draw do
       cache "/images/camera.svg"
       cache "/images/delete.svg"
       cache "/images/square.svg"
+      cache "/images/modeling_ideas.svg"
       cache "/images/cc.png"
       cache "/images/pd.png"
       cache "/images/unknown_action.png"
