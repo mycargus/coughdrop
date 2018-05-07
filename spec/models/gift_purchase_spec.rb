@@ -9,7 +9,7 @@ describe GiftPurchase, :type => :model do
   end
   
   it "should generate a unique code on create" do
-    expect(GoSecure).to receive(:nonce).with('gift_code').and_return('abcdefghij').exactly(6).times
+    expect(GoSecure).to receive(:nonce).with('gift_code').and_return('abcdefghij').at_least(3).times
     g = GiftPurchase.create
     expect(g.code).to eq('abcdefgh')
     g2 = GiftPurchase.create

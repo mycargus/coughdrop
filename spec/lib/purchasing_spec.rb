@@ -1041,6 +1041,7 @@ describe Purchasing do
       expect(Stripe::Charge).to receive(:create).with({
         :amount => 15000,
         :currency => 'usd',
+        :receipt_email=>"bob@example.com",
         :source => 'token',
         :description => 'sponsored CoughDrop license',
         :metadata => {
@@ -1073,6 +1074,7 @@ describe Purchasing do
         :amount => 50000,
         :currency => 'usd',
         :source => 'token',
+        :receipt_email=>"bob@example.com",
         :description => 'sponsored CoughDrop license',
         :metadata => {
           'giver_id' => u.global_id,
@@ -1115,6 +1117,7 @@ describe Purchasing do
       expect(Stripe::Charge).to receive(:create).with({
         :amount => 15000,
         :currency => 'usd',
+        :receipt_email=>"bob@example.com",
         :source => 'token',
         :description => 'sponsored CoughDrop license',
         :metadata => {
@@ -1144,6 +1147,7 @@ describe Purchasing do
       expect(Stripe::Charge).to receive(:create).with({
         :amount => 50000,
         :currency => 'usd',
+        :receipt_email=>"bob@example.com",
         :source => 'token',
         :description => '4 sponsored CoughDrop license(s), PO #12345',
         :metadata => {
@@ -1184,6 +1188,7 @@ describe Purchasing do
         :amount => 50000,
         :currency => 'usd',
         :source => 'token',
+        :receipt_email=>"bob@example.com",
         :description => 'sponsored CoughDrop license',
         :metadata => {
           'giver_id' => u.global_id,
