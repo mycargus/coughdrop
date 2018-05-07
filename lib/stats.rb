@@ -938,7 +938,7 @@ module Stats
         if all_word_counts[word] > 3 && (longview_core_words[word] || 0) < (total_weeks.to_f / 4.0)
           res[:emergent_words] ||= {}
           res[:emergent_words][word] = all_word_counts[word] 
-          if default_core.includes?(word)
+          if default_core.include?(word)
             res[:watchwords][:emergent_words] ||= {}
             res[:watchwords][:emergent_words][word] = all_word_counts[word].to_f / (longview_core_words[word] || 1).to_f
           end
