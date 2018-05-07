@@ -935,7 +935,7 @@ module Stats
       # but hasn't been used more than once every 4 weeks in the long-view history
       # then mark it as an emergent word
       if total_weeks > 3
-        if all_word_counts[word] > 3 && (longview_core_words[word] || 0) < (total_weeks.to_f / 4.0)
+        if all_word_counts[word] && all_word_counts[word] > 3 && (longview_core_words[word] || 0) < (total_weeks.to_f / 4.0)
           res[:emergent_words] ||= {}
           res[:emergent_words][word] = all_word_counts[word] 
           if default_core.include?(word)
@@ -946,7 +946,7 @@ module Stats
         
         # if used at least once every 2 weeks in the history, but not used in the session list,
         # then mark it as a dwindling word
-        if longview_core_words[word] > (total_weeks.to_f / 2.0) && !all_word_counts[word]
+        if longview_core_words[word] && longview_core_words[word] > (total_weeks.to_f / 2.0) && !all_word_counts[word]
           res[:dwindling_words] ||= {}
           res[:dwindling_words][word] = longview_core_words[word]
         end
