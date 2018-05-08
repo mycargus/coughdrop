@@ -31,8 +31,8 @@ class WeeklyStatsSummary < ActiveRecord::Base
     user = User.find_by(id: self.user_id)
     start_at = WeeklyStatsSummary.weekyear_to_date(self.weekyear).beginning_of_week(:sunday)
     end_at = start_at.end_of_week(:sunday)
-    cweek = Date.today.cweek
-    cwyear = Date.today.cwyear
+    cweek = Date.today.beginning_of_week(:sunday).cweek
+    cwyear = Date.today.beginning_of_week(:sunday).cwyear
     current_weekyear = (cwyear * 100) + cweek
     
     sessions = Stats.find_sessions((all ? 'all' : user.global_id), {:start_at => start_at, :end_at => end_at})
@@ -102,12 +102,23 @@ class WeeklyStatsSummary < ActiveRecord::Base
     
     if current_weekyear == self.weekyear
       if (target_words[:watchwords][:suggestions] || []).length > 0
-        user.settings['target_words'] = {
-          'generated' => Time.now.iso8601,
-          'weekyear' => current_weekyear,
-          'list' => target_words[:watchwords][:suggestions]
-        }
+        user.reload
+        if user.settings['target_words'] && user.settings['target_words']['list'] && user.settings['target_words']['list'].map{|s| s['word'] }.sort == target_words[:watchwords][:suggestions].map{|s| s['word'] }.sort
+          user.settings['target_words'] = {
+            'generated' => user.settings['target_words']['generated'] || Time.now.iso8601,
+            'weekyear' => current_weekyear,
+            'list' => target_words[:watchwords][:suggestions]
+          }
+        else
+          user.settings['target_words'] = {
+            'generated' => Time.now.iso8601,
+            'weekyear' => current_weekyear,
+            'list' => target_words[:watchwords][:suggestions]
+          }
+        end
         user.save
+
+        WordData.schedule_once(:update_activities_for, user.global_id, true)
       end
     end
     

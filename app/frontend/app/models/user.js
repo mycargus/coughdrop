@@ -6,6 +6,7 @@ import CoughDrop from '../app';
 import speecher from '../utils/speecher';
 import persistence from '../utils/persistence';
 import app_state from '../utils/app_state';
+import progress_tracker from '../utils/progress_tracker';
 import capabilities from '../utils/capabilities';
 import Utils from '../utils/misc';
 
@@ -489,7 +490,53 @@ CoughDrop.User = DS.Model.extend({
     if(this.get('watch_user_name_and_cookies') && this.get('preferences.cookies') != undefined) {
       app_state.toggle_cookies(!!this.get('preferences.cookies'));
     }
-  }.observes('watch_user_name_and_cookies', 'preferences.cookies')
+  }.observes('watch_user_name_and_cookies', 'preferences.cookies'),
+  load_word_activities: function() {
+    // if already loaded for the user, keep the local copy unless it's really old
+    var _this = this;
+    if(this.get('word_activities')) {
+      if(this.get('word_activities.promise')) {
+        return this.get('word_activities.promise');
+      }
+      var cutoff = window.moment().add(-3, 'days').toISOString();
+      if(this.get('word_activities.checked') > cutoff) {
+        return RSVP.resolve(this.get('word_activities'));
+      }
+    }
+    var try_online = RSVP.reject();
+    // try a remote lookup, which will possibly return a progress object
+    if(persistence.get('online')) {
+      try_online = persistence.ajax('/api/v1/users/' + _this.get('id') + '/word_activities', {type: 'GET'}).then(function(res) {
+        if(res.progress) {
+          return new RSVP.Promise(function(resolve, reject) {
+            progress_tracker.track(res.progress, function(event) {
+              if(event.status == 'errored') {
+                reject({error: 'processing failed'});
+              } else if(event.status == 'finished') {
+                resolve(event.result);
+              }
+            });
+          });
+        } else {
+          return RSVP.resolve(res);
+        }
+      });
+    }
+    // if not possible or errored, check for a local copy in the dataCache
+    var promise_result = try_online.then(function(res) {
+      // persist to dataCache
+      persistence.store('dataCache', res, 'word_activities/' + _this.get('id')).then(null, function() { });
+      _this.set('word_activities', res);
+      return RSVP.resolve(res);
+    }, function() {
+      return persistence.find('dataCache', 'word_activities/' + _this.get('id'));
+
+      // look up a local copy
+    });
+    promise_result.then(null, function() { });
+    this.set('word_activities', {promise: promise_result});
+    return promise_result;
+  }
 });
 CoughDrop.User.integrations_for = {};
 CoughDrop.User.find_integration = function(user_name, key) {

@@ -1,13 +1,100 @@
-{{#modal-dialog opening='opening' closing='closing'}}
+{{#modal-dialog action='close' opening='opening' closing='closing'}}
   <div class="modal-header">
     <button type="button" class="close" {{action 'close'}}>&times;</button>
-    <h3>{{t "Modeling Ideas" key='modeling_ideas'}}</h3>
+    <h3>{{t "Modeling Ideas" key='modeling_ideas'}}
+      <a href="#" class='text-info' {{action 'show_intro'}}><span class='glyphicon glyphicon-question-sign'></span></a>
+    </h3>
   </div>
-  <div class="modal-body" id="button_settings">
-    Coming Soon!
+  <div class="modal-body" style='font-size: 18px;'>
+    {{#if activities.loading}}
+    {{else if activities.error}}
+    {{else if current_activity}}
+      <div style='margin-bottom: 10px;'>
+        <button class='btn btn-default btn-lg' style='float: left;' {{action 'previous'}} disabled={{no_previous}}><span class='glyphicon glyphicon-chevron-left'></span> {{t "Previous" key='previous'}}</button>
+        <button class='btn btn-default btn-lg' style='float: right;' {{action 'next'}} disabled={{no_next}}>{{t "Next" key='next'}} <span class='glyphicon glyphicon-chevron-right'></span></button>
+        {{#if current_activity.real}}
+          {{#if words_list}}
+            <div class='text-muted' {{action 'target_words'}} style='cursor: pointer; padding: 0 10px; text-align: center;'><span style='color: #aaa;'>{{t "targets:" key='target_words'}}</span> {{words_list}}</div>
+          {{/if}}
+        {{/if}}
+        <div style='clear: both;'></div>
+      </div>
+    {{/if}}
+    {{#if activities.loading}}
+      {{t "Loading Ideas..." key='loading_ideas'}}
+    {{else if activities.error}}
+      {{t "Error Loading Ideas" key='error_loading_ideas'}}
+    {{else if show_target_words}}
+      <p style='font-size: 14px;'>{{t "Each of the following words were suggested based on available user activity, goals, time in the app, etc. Some words are included for different reasons, you can review the reasons below, or set a goal inside of CoughDrop to track progress toward these words." key='target_words_explainer'}}</p>
+      <div style='margin: 20px 60px 30px;'>
+        <table class='table table-striped'>
+          <tbody>
+          {{#each user_words as |word|}}
+            <tr>
+              <td>{{word.word}}</td>
+              <td style='color: #666;'>{{word.text_reasons}}</td>
+            </tr>
+          {{/each}}
+          </tbody>
+        </table>
+      </div>
+      <div style='text-align: center;'>
+        <button {{action 'target_words'}} class='btn btn-default'>{{t "Back to List" key='back_to_list'}}</button>
+        <button {{action 'make_goal'}} class='btn btn-default'>{{t "Choose Goal Words" key='make_goal_for_words'}}</button>
+      </div>
+    {{else if current_activity.no_home_board}}
+      <span class='glyphicon glyphicon-home' style='font-size: 140px; float: left; margin-right: 10px;'></span>
+      <p>{{t "You don't have a home board set! Modeling Ideas draws suggestions from buttons in your home board set, so it won't do a lot of good until you choose a home board." key='home_board_required'}}</p>
+      {{#link-to "home-boards" class='btn btn-default btn-lg'}}
+        {{t "Help Me Choose a Home Board" key='help_me_choose_a_home_board'}}
+      {{/link-to}}
+    {{else if current_activity.empty}}
+      <span class='glyphicon glyphicon-hourglass' style='font-size: 140px; float: left; margin-right: 10px;'></span>
+      <p>{{t "Sorry! We don't have any suggestions for you right now! We're continually adding more core words and suggestions, so please check back soon for more ideas!" key='no_data_yet'}}</p>
+    {{else if current_activity.none_premium}}
+      <span class='glyphicon glyphicon-info-sign' style='font-size: 70px; float: left; margin-right: 10px;'></span>
+      <p>{{t "CoughDrop's Modeling Ideas require a premium membership to access for users. Modeling Ideas are a powerful feature that can make a significant different for developing communicators. Please consider purchasing a license to access these ideas." key='purchase_to_unlock_modeling_ideas'}}</p>
+    {{else if current_activity.real}}
+      {{#if current_activity.types.topic_starters}}
+      {{else if current_activity.image.image_url}}
+        <img src={{current_activity.image.image_url}} style='width: 150px; float: left; margin-right: 10px;'/>
+      {{else}}
+        <img src={{path 'images/modeling_ideas.svg'}} style='width: 150px; float: left; margin-right: 10px;'/>
+      {{/if}}
+      <h3>{{ current_activity.text }} ({{current_activity.word}})</h3>
+      {{#if current_activity.description}}
+        <p>{{current_activity.description}}</p>
+      {{/if}}
+      {{#if current_activity.types.books}}
+        LAUNCH THE BOOK
+      {{else if current_activity.types.videos}}
+        <button {{action 'video'}} class='btn btn-primary btn-lg'>{{t "Watch the Video" key='watch_the_video'}}</button>
+      {{else if current_activity.types.topic_starters}}
+        <div style='text-align: center;'>
+          <img src={{current_activity.image.image_url}} style='width: 100%; max-height: 500px;'/>
+        </div>
+      {{/if}}
+      {{#if current_activity.will_attempt}}
+        <div class='alert alert-info' style='font-size: 14px;'>{{t "Thanks! Give this activity a try and we'll follow up later to see how it went!" key='follow_up_later'}}</div>
+      {{else if current_activity.dismissed}}
+        <div class='alert alert-info' style='font-size: 14px;'>{{t "Thank you for the feedback, we'll keep adding new ideas!" key='thank_you_for_feedback'}}</div>
+      {{/if}}
+    {{else if current_activity}}
+      <img src={{path 'images/modeling_ideas.svg'}} style='width: 150px; float: left; margin-right: 10px;'/>
+      <p>{{t "Did you know that new communicators learn to combine words by observing others do it first? Did you know that babies hear thousands of hours of spoken language before speaking on their own? Or that AAC experts recommend up to 80% of communication with a new user be modeled on their device?" key='modeling_intro_1'}}</p>
+      <!-- source: https://www.facebook.com/groups/421704261346486/permalink/830509463799295/ -->
+      <p>{{t "Modeling, or showing examples of how to hit buttons to communicate, is very important! As you start work with communicators who are using AAC, look for chances to model different words, or the same words in different ways. It may take practice to get comfortable or to see results, but research has shown over and over how much of a different modeling makes!" key='modeling_intro_2'}}</p>
+      <p>{{t "<b>Modeling Ideas</b> is a CoughDrop tool that recommends words and activities based on your user's goals and log history. We hope it helps give you lots of ideas to help your communicator grow!" key='modeling_intro_3'}}</p>
+    {{/if}}
+    <div style='clear: left;'></div>
     <!-- MODEL AND STUFF {{model.users.length}} -->
   </div>
   <div class='modal-footer'>
-    <button class='btn btn-default btn-lg' {{action 'close'}}>{{t "Got It" key='got_it'}}</button>
+    <button class='btn btn-default btn-lg' {{action 'close'}}>{{t "Close" key='close'}}</button>
+    {{#if current_activity.real}}
+      <button class='btn btn-default btn-lg' {{action 'attempt'}}>{{t "Great Idea!" key='great_idea'}}</button>
+      <button class='btn btn-default btn-lg' {{action 'dismiss'}}>{{t "Not a Good Fit" key='not_a_good_fit'}}</button>
+      <button class='btn btn-default btn-lg' {{action 'find'}}>{{t "Find" key='find_button'}}</button>
+    {{/if}}
   </div>
 {{/modal-dialog}}

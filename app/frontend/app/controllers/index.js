@@ -241,6 +241,7 @@ export default Controller.extend({
           });
           _this.set('current_user_badges', for_users);
         }, function(err) { });
+        model.load_word_activities();
       }
     }
   }.observes('model.id', 'persistence.online'),

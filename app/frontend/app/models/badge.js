@@ -338,7 +338,7 @@ CoughDrop.Badge.best_next_badge = function(badges, goal_id) {
         return -1;
       }
     });
-  };
+  }
   return badges[0];
 };
 CoughDrop.Badge.best_earned_badge = function(badges) {

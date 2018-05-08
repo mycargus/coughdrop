@@ -2,6 +2,7 @@ import Ember from 'ember';
 import modal from '../utils/modal';
 import CoughDrop from '../app';
 import progress_tracker from '../utils/progress_tracker';
+import persistence from '../utils/persistence';
 
 export default modal.ModalController.extend({
   opening: function() {

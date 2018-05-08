@@ -169,6 +169,7 @@ Coughdrop::Application.routes.draw do
       get 'message_bank_suggestions' => 'users#message_bank_suggestions'
       get 'protected_image/:library/:image_id' => 'users#protected_image'
       get 'word_map' => 'users#word_map'
+      get 'word_activities' => 'users#word_activities'
     end
     
     resources :images do

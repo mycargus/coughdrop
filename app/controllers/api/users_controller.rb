@@ -207,6 +207,21 @@ class Api::UsersController < ApplicationController
       api_error 400, {error: 'matching device not found'}
     end
   end
+  
+  def word_activities
+    user = User.find_by_path(params['user_id'])
+    return unless exists?(user, params['user_id'])
+    return unless allowed?(user, 'supervise')
+    
+    # skip if recently-retrieved
+    existing = WordData.activities_for(user, true)
+    if existing.instance_variable_get('@fresh')
+      render json: existing
+    else
+      progress = Progress.schedule(WordData, :update_activities_for, user.global_id, true)
+      render json: JsonApi::Progress.as_json(progress, :wrapper => true)
+    end
+  end
 
   def history
     user_id = nil

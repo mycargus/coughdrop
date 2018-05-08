@@ -3,6 +3,7 @@ import Controller from '@ember/controller';
 import { later as runLater } from '@ember/runloop';
 import $ from 'jquery';
 import i18n from '../../utils/i18n';
+import modal from '../../utils/modal';
 import capabilities from '../../utils/capabilities';
 import CoughDrop from '../../app';
 

@@ -40,15 +40,87 @@ class WordData < ActiveRecord::Base
     true
   end
   
-  def self.update_activities_for(user, include_supervisees=false)
-    return false unless user
-    
+  def self.add_activities_for(user, hash)
+    return true if !user.full_premium?
+    act = (user.settings['target_words'] || {})['activities'] || {}
+    fresh = true
+    hash['generated'] = [hash['generated'], act['generated'] || Time.at(0).iso8601].compact.min
+    (act['words'] || []).each do |word|
+      existing = hash['words'].detect{|w| w['word'] == word['word'] && w['locale'] == word['locale'] }
+      if existing
+        existing['user_ids'] << user.global_id
+      else
+        word['user_ids'] = [user.global_id]
+        hash['words'] << word
+      end
+    end
+    (act['list'] || []).each do |sug|
+      existing = hash['list'].detect{|s| s['id'] == sug['id']}
+      if existing
+        existing['score'] += sug['score']
+        existing['user_ids'] << user.global_id
+      else
+        sug['user_ids'] = [user.global_id]
+        hash['list'] << sug
+      end
+    end
+    # If the target word list has updated more recently than the activity list, then
+    # the activity list is out of date
+    if user.settings['target_words'] && act['generated'] && user.settings['target_words']['generated'] > act['generated']
+      fresh = false
+    end
+
+    fresh
+  end
+  
+  def self.activities_for(user, include_supervisees=false)
+    res = {
+      'words' => [],
+      'list' => [],
+      'checked' => Time.now.iso8601
+    }
+    all_fresh = add_activities_for(user, res)
     if include_supervisees
-      user.supervisees.each{|u| WordData.update_activities_for(u, false) }
+      user.supervisees.each do |sup|
+        all_fresh = all_fresh && add_activities_for(sup, res)
+      end
+    end
+    res['list'] = res['list'].sort_by{|s| [s['score'], rand] }.reverse
+    # If all the activity lists are more recent than the word lists they were derived
+    # from, and all the activity lists were generated no less than two weeks ago,
+    # then mark this list as fresh.
+    res.instance_variable_set('@fresh', !!(all_fresh && res['generated'] && res['generated'] > 2.weeks.ago.iso8601))
+#    res.instance_variable_set('@fresh', true) if !user.settings['target_words']
+    res
+  end
+  
+  def self.update_activities_for(user_id, include_supervisees=false)
+    user = User.find_by_global_id(user_id)
+    return nil unless user
+
+    if !user.settings['target_words']
+      user.settings['target_words'] = {
+        'generated' => Time.now.iso8601,
+        'list' => []
+      }
     end
     
-    # skip if recently-retrieved
-    return true if ((user.settings['target_words'] || {})['activities'] || {})['generated'] > 5.days.ago.iso8601
+    if include_supervisees
+      user.supervisees.each{|u| WordData.update_activities_for(u.global_id, false) }
+    end
+    
+    # short-circuit if recently-generated
+    activities_session = LogSession.find_by(log_type: 'activities', user_id: user.id)
+    existing = activities_for(user, include_supervisees)
+    if existing.instance_variable_get('@fresh')
+      generated = Time.parse(existing['generated'])
+      # TODO: created_at will tell us if a new goal was created, but not if it was just modified
+      # and updated_at also gets modified regularly when goals have a badges attached, even
+      # if they haven't actually been modified.
+      more_recent_goals = UserGoal.where(active: true, user_id: user.id).where(['created_at > ?', generated]).count
+      more_recent_activities = activities_session && activities_session.updated_at > generated
+      return existing unless more_recent_goals || more_recent_activities
+    end
     
     # get the user's suggested words
     lists = self.core_and_fringe_for(user)
@@ -56,7 +128,7 @@ class WordData < ActiveRecord::Base
     basic_core = self.basic_core_list
 
     suggestions = []
-    suggestions += user.settings['target_words']['list']
+    suggestions += (user.settings['target_words'] || {})['list'] || []
     if suggestions.length < 3
       # add from the basic word list, indexed by weeks having daily_use or created_at
       daily_use = LogSession.find_by(log_type: 'daily_use', user_id: user.id)
@@ -69,6 +141,7 @@ class WordData < ActiveRecord::Base
         if !suggestions.detect{|w| w['word'] == word }
           suggestions << {
             'word' => word,
+            'locale' => 'en', # TODO: i18n
             'reasons' => ['fallback']
           }
         end
@@ -78,22 +151,33 @@ class WordData < ActiveRecord::Base
     # make an API call to comm workshop to get activities for the words
     activities = []
     found_words = []
+    word_re = Regexp.new("\\b(" + suggestions.map{|s| s['word'] }.join('|') + ")\\b")
+    quote_re = Regexp.new("\"(" + suggestions.map{|s| s['word'] }.join('|') + ")\"")
     suggestions.each_with_index do |suggestion, idx|
       next if found_words.length > 5
-      word = suggestions['word']
-      next unless available_words.includes?(word)
+      word = suggestion['word']
+      next unless available_words.include?(word)
       locale = suggestion['locale'] || 'en'
       req = Typhoeus.get("https://workshop.openaac.org/api/v1/words/#{CGI.escape(word + ":" + locale)}")
       json = JSON.parse(req.body) rescue nil
       word = json && json['word']
       if word && !word['pending']
-        found_words << word
+        found_words << {
+          'word' => word['word'],
+          'locale' => word['locale'],
+          'reasons' => suggestion['reasons']
+        }
         ['learning_projects', 'activity_ideas', 'topic_starters', 'books', 'videos', 'send_homes'].each do |key|
           list = (word[key] || [])
           list.each do |a|
             a['type'] = key
+            a['word'] = suggestion['word']
+            a['locale'] = locale
             a['score'] = 5 * (suggestions.length - idx) / suggestions.length.to_f
             a['score'] += 1 if ['learning_projects', 'activity_ideas', 'send_homes'].include?(key)
+            text = "#{suggestion['text']} #{suggestion['description']}"
+            a['score'] += 0.3 * text.scan(word_re).length
+            a['score'] += 0.5 * text.scan(quote_re).length
           end
           activities += list
         end
@@ -108,11 +192,12 @@ class WordData < ActiveRecord::Base
     # - does not come from authors of previous flopped activities
     
     # mark which activities have been used (and how recently) by the user
-    session = LogSession.find_by(log_type: 'activities', user_id: user.id)
-    if session && session.data['activities']
+    if activities_session && activities_session.data['activities']
       activities.each do |a|
-        if session.data['activities'][a['id']]
-          ref = session.data['activities'][a['id']]
+        if activities_session.data['activities'][a['id']]
+          ref = activities_session.data['activities'][a['id']]
+          # Have a weighted history so after like a year there's little discount for
+          # having been tried already
           a['handled'] = ref['updated']
           a['attempted'] = false
           a['skipped'] = true
@@ -121,18 +206,21 @@ class WordData < ActiveRecord::Base
     end
     
     # prioritize based on activities that have words in the user's vocab?
-    available_words.includes?('')
+    available_words.include?('')
     activities.each do |a|
-      a['score'] += extra_words_in(a, available_words)
+      # TODO: ...
+      # a['score'] += extra_words_in(a, available_words)
     end
     
     # add the activities to the user object for quick retrieval
     user.settings['target_words']['activities'] = {
       'generated' => Time.now.iso8601,
       'words' => found_words,
-      'list' => activities.sort_by{|a| [a['score'] || 0, rand] }[0, 25]
+      'list' => activities.sort_by{|a| [a['score'] || 0, rand] }.reverse[0, 25]
     }
-    true
+    user.save
+    
+    activities_for(user, include_supervisees)
   end
   
 # word types:

@@ -8,6 +8,7 @@ import persistence from './persistence';
 import tts_voices from './tts_voices';
 import app_state from './app_state';
 import i18n from './i18n';
+import stashes from './_stashes';
 
 var speecher = EmberObject.extend({
   beep_url: "https://opensymbols.s3.amazonaws.com/beep.mp3",
