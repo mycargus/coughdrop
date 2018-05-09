@@ -639,12 +639,20 @@ class LogSession < ActiveRecord::Base
       non_user_params[:user_id] = user.global_id
       non_user_params[:author_id] = author.global_id
       non_user_params[:device_id] = device.global_id
-      schedule(:process_delayed_follow_on, params, non_user_params)
+      stash = JobStash.create(data: params)
+      schedule(:process_delayed_follow_on, stash.global_id, non_user_params)
       res
     end
   end
   
-  def self.process_delayed_follow_on(params, non_user_params)
+  def self.process_delayed_follow_on(params_data, non_user_params)
+    params = params_data
+    stash = nil
+    if params_data.is_a?(String)
+      stash = JobStash.find_by_global_id(params_data)
+      raise "missing stash for #{params_data[0, 20]}" unless stash
+      params = stash.data
+    end
     non_user_params = non_user_params.with_indifferent_access
     non_user_params[:user] = User.find_by_global_id(non_user_params[:user_id])
     non_user_params[:author] = User.find_by_global_id(non_user_params[:author_id])
@@ -673,6 +681,7 @@ class LogSession < ActiveRecord::Base
         session = self.process_new(params, non_user_params)
         session.schedule(:check_for_merger)
       end
+      stash.destroy if stash
     else
       raise "only event-list logs can be delay-processed"
     end

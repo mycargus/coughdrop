@@ -629,13 +629,45 @@ describe LogSession, :type => :model do
           {'user_id' => u.global_id, 'geo' => ['2', '3'], 'timestamp' => 2.minutes.ago.to_i, 'type' => 'button', 'button' => {'label' => 'radish', 'board' => {'id' => '1_1'}}}
         ]
       }, {:device => d, :author => u, :user => u})
+      expect(JobStash.count).to eq(1)
       Worker.process_queues
+      expect(JobStash.count).to eq(0)
       
       s.reload
       expect(s.data['events'].length).to eq(4)
       expect(s.data['events'].map{|e| e['button']['label'] }).to eq(['hat', 'cow', 'chicken', 'radish'])
       expect(LogSession.count).to eq(1)
     end
+
+    it "should stash the params data to the db" do
+      d = Device.create
+      u = User.create
+      s = LogSession.new(:device => d, :user => u, :author => u)
+      s.data = {}
+      s.data['events'] = [
+        {'user_id' => u.global_id, 'geo' => ['2', '3'], 'timestamp' => 10.minutes.ago.to_i, 'type' => 'button', 'button' => {'label' => 'hat', 'board' => {'id' => '1_1'}}},
+        {'user_id' => u.global_id, 'geo' => ['1', '2'], 'timestamp' => 8.minutes.ago.to_i, 'type' => 'button', 'button' => {'label' => 'cow', 'board' => {'id' => '1_1'}}}
+      ]
+      s.save
+      s.reload
+      expect(s.data['events'].length).to eq(2)
+      expect(s.data['events'].map{|e| e['button']['label'] }).to eq(['hat', 'cow'])
+      
+      LogSession.process_as_follow_on({
+        'events' => [
+          {'user_id' => u.global_id, 'geo' => ['2', '3'], 'timestamp' => 3.minutes.ago.to_i, 'type' => 'button', 'button' => {'label' => 'chicken', 'board' => {'id' => '1_1'}}},
+          {'user_id' => u.global_id, 'geo' => ['2', '3'], 'timestamp' => 2.minutes.ago.to_i, 'type' => 'button', 'button' => {'label' => 'radish', 'board' => {'id' => '1_1'}}}
+        ]
+      }, {:device => d, :author => u, :user => u})
+      expect(JobStash.count).to eq(1)
+      Worker.process_queues
+      expect(JobStash.count).to eq(0)
+      
+      s.reload
+      expect(s.data['events'].length).to eq(4)
+      expect(s.data['events'].map{|e| e['button']['label'] }).to eq(['hat', 'cow', 'chicken', 'radish'])
+      expect(LogSession.count).to eq(1)
+    end    
     
     it "should create a new log if no active log" do
       d = Device.create

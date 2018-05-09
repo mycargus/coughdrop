@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171128171610) do
+ActiveRecord::Schema.define(version: 20180509162835) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -128,7 +128,7 @@ ActiveRecord::Schema.define(version: 20171128171610) do
     t.datetime "updated_at"
     t.string   "cluster_type", limit: 255
     t.string   "cluster_hash", limit: 255
-    t.index ["cluster_type", "cluster_hash"], name: "index_cluster_locations_on_cluster_type_and_hash", unique: true, using: :btree
+    t.index ["cluster_type", "cluster_hash"], name: "index_cluster_locations_on_cluster_type_and_cluster_hash", unique: true, using: :btree
   end
 
   create_table "contact_messages", force: :cascade do |t|
@@ -180,6 +180,13 @@ ActiveRecord::Schema.define(version: 20171128171610) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.index ["active", "code"], name: "index_gift_purchases_on_active_and_code", unique: true, using: :btree
+  end
+
+  create_table "job_stashes", force: :cascade do |t|
+    t.text     "data"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_job_stashes_on_created_at", using: :btree
   end
 
   create_table "log_session_boards", force: :cascade do |t|
