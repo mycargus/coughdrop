@@ -1993,10 +1993,10 @@ var persistence = EmberObject.extend({
     if(stashes.get('auth_settings') && window.coughDropExtras && window.coughDropExtras.ready) {
       var synced = _this.get('last_sync_at') || 0;
       var syncable = persistence.get('online') && !Ember.testing && !persistence.get('syncing');
-      var interval = persistence.get('last_sync_stamp_interval') || (30 * 60 * 1000);
+      var interval = persistence.get('last_sync_stamp_interval') || (5 * 60 * 1000);
       interval = interval + (0.2 * interval * Math.random()); // jitter
       if(_this.get('last_sync_event_at')) {
-        // don't background sync more than once every 30 minutes
+        // don't background sync too often
         syncable = syncable && (_this.get('last_sync_event_at') < ((new Date()).getTime() - interval));
       }
       var now = (new Date()).getTime() / 1000;
@@ -2013,16 +2013,18 @@ var persistence = EmberObject.extend({
         persistence.sync('self').then(null, function() { });
         return true;
       } else if(force || (syncable && _this.get('last_sync_stamp'))) {
-        // don't check sync_stamp more than once every 15 minutes
+        // don't check sync_stamp more than once every interval
         var last_check = persistence.get('last_sync_stamp_check');
         if(force || !last_check || (last_check < (new Date()).getTime() - interval)) {
           persistence.set('last_sync_stamp_check', (new Date()).getTime());
           persistence.ajax('/api/v1/users/self/sync_stamp', {type: 'GET'}).then(function(res) {
+            persistence.set('last_sync_stamp_check', (new Date()).getTime());
             if(!_this.get('last_sync_stamp') || res.sync_stamp != _this.get('last_sync_stamp')) {
               console.debug('syncing because sync_stamp has changed');
               persistence.sync('self').then(null, function() { });
             }
           }, function(err) {
+            persistence.set('last_sync_stamp_check', (new Date()).getTime());
             // TODO: if error implies no connection, consider marking as offline and checking for stamp more frequently
             if(err && err.result && err.result.invalid_token) {
               if(stashes.get('auth_settings') && !Ember.testing) {

@@ -1348,7 +1348,7 @@ var app_state = EmberObject.extend({
       }
     }
     if(this.get('sessionUser')) {
-      var interval = (this.get('sessionUser.preferences.sync_refresh_interval') || (15 * 60)) * 1000;
+      var interval = (this.get('sessionUser.preferences.sync_refresh_interval') || (5 * 60)) * 1000;
       if(window.persistence) {
         if(window.persistence.get('last_sync_stamp_interval') != interval) {
           window.persistence.set('last_sync_stamp_interval', interval);
