@@ -9,6 +9,36 @@ export default modal.ModalController.extend({
     var user = app_state.get('currentUser');
     var _this = this;
     _this.set('activity_index', 0);
+
+    var today = (new Date());
+    var now = today.getTime();
+    var weekhour = ((new Date()).getDay() * 24) + (new Date()).getHours();
+
+    var date = today;
+    date.setHours(0, 0, 0, 0);
+    // Thursday in current week decides the year.
+    date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+    // January 4 is always in week 1.
+    var week1 = new Date(date.getFullYear(), 0, 4);
+    // Adjust to Thursday in week 1 and count number of weeks from date to week1.
+    var weeknum = 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000
+                          - 3 + (week1.getDay() + 6) % 7) / 7);
+
+    // We increment weekhour by week number to prevent getting the same suggestions
+    // Every week at the same time of the week.
+    weekhour = weekhour + weeknum;
+
+    // If opened less than five minutes since last time, keep the previous weekhour
+    // Otherwise just use the current weekhour, whatever it may be
+    if(_this.get('last_opening') && (now - _this.get('last_opening') < (5 * 1000 * 60))) {
+      _this.set('weekhour', _this.get('last_weekhour') || weekhour);
+    } else {
+      _this.set('weekhour', weekhour);
+    }
+    _this.set('last_weekhour', _this.get('weekhour'));
+    _this.set('last_opening', now);
+
+
     _this.set('show_target_words', false);
     _this.set('force_intro', false);
     if(user) {
@@ -32,6 +62,7 @@ export default modal.ModalController.extend({
     }
 
     var user_ids = (this.get('model.users') || []).mapBy('id');
+    var middles = [];
     (this.get('activities.list') || []).forEach(function(a) {
       emberSet(a, 'real', true);
       var types = {};
@@ -39,11 +70,32 @@ export default modal.ModalController.extend({
       emberSet(a, 'types', types);
       var valids = 0;
       a.user_ids.forEach(function(id) { if(user_ids.indexOf(id) !== -1) { valids++; } });
-      if(valids > 0) {
+      if(valids > 0 && res.length < (5 + empty_num)) {
         emberSet(a, 'matching_users', valids);
-        res.push(a);
+        middles.push(a);
       }
     });
+    var weekhour = this.get('weekhour');
+    var units = 3;
+    var chunks = Math.max(1, Math.floor(middles.length / units));
+    // with 25 records:
+    // total chunks: 8
+    // 0 => 0-4, 1 => 6-10, 2 => 12-16, 3 => 18-22, 4 => 3-7, 5 => 9-13, 6 => 15-19, 7 => 21-25
+    // with 2 records:
+    // total chunks: 1
+    // 0 => 0-2
+    // with 27 records:
+    // total chunks: 9
+    // 0 => 0-4, 1 => 6-10, 2 => 12-16, 3 => 18-22, 4 => 24-27, 5 => 3-7, 6 => 9-13, 7 => 15-19, 8 => 21-25
+    var index = weekhour % chunks;
+    var cutoff_chunk = Math.floor(chunks / 2);
+    var offset = index * units * 2
+    if(index > 0 && index >= cutoff_chunk) {
+      offset = ((index - cutoff_chunk) * units * 2) + units;
+    }
+    middles = middles.slice(offset, offset + 5);
+    res = res.concat(middles);
+
     if(res.length == empty_num) {
       var none_premium = true;
       (this.get('model.users') || []).forEach(function(u) { if(emberGet(u, 'premium')) { none_premium = false; } });
