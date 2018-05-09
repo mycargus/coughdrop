@@ -112,7 +112,7 @@ class WordData < ActiveRecord::Base
     # short-circuit if recently-generated
     activities_session = LogSession.find_by(log_type: 'activities', user_id: user.id)
     existing = activities_for(user, include_supervisees)
-    if existing.instance_variable_get('@fresh')
+    if existing.instance_variable_get('@fresh') && existing['words'].length >= 3
       generated = Time.parse(existing['generated'])
       # TODO: created_at will tell us if a new goal was created, but not if it was just modified
       # and updated_at also gets modified regularly when goals have a badges attached, even
@@ -128,7 +128,7 @@ class WordData < ActiveRecord::Base
     basic_core = self.basic_core_list
 
     suggestions = []
-    suggestions += (user.settings['target_words'] || {})['list'] || []
+    suggestions += ((user.settings['target_words'] || {})['list'] || []).select{|w| available_words.include?(w['word']) }
     if suggestions.length < 3
       # add from the basic word list, indexed by weeks having daily_use or created_at
       daily_use = LogSession.find_by(log_type: 'daily_use', user_id: user.id)
