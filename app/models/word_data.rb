@@ -129,7 +129,9 @@ class WordData < ActiveRecord::Base
 
     suggestions = []
     suggestions += ((user.settings['target_words'] || {})['list'] || []).select{|w| available_words.include?(w['word']) }
-    if suggestions.length < 3
+    # unless there are lots of options available, add some fallbacks in case
+    # comm workshop doesn't have results for words
+    if suggestions.length < 10
       # add from the basic word list, indexed by weeks having daily_use or created_at
       daily_use = LogSession.find_by(log_type: 'daily_use', user_id: user.id)
       units = ((Time.now - user.created_at) / 1.day) / 10
@@ -181,6 +183,8 @@ class WordData < ActiveRecord::Base
           end
           activities += list
         end
+      else
+        RedisInit.default.hincrby('missing_workshop_words', suggestion['word'].to_s, 1)
       end
     end
     # TODO: boost activities that:
