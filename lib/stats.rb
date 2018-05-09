@@ -867,7 +867,8 @@ module Stats
     if user
       min_summary = (sessions[0].started_at - 6.months).to_date
       start_weekyear = (min_summary.cwyear * 100) + min_summary.cweek
-      recent_weekyear = ((min_summary - 2.weeks).cwyear * 100) + (min_summary - 2.weeks).cweek
+      recent_cutoff = (sessions[0].started_at - 2.weeks).to_date
+      recent_weekyear = (recent_cutoff.cwyear * 100) + recent_cutoff.cweek
       end_weekyear = (sessions[0].started_at.to_date.cwyear * 100) + sessions[0].started_at.to_date.cweek
       summaries = WeeklyStatsSummary.where(user_id: user.id).where(['weekyear >= ? AND weekyear <= ?', start_weekyear, end_weekyear]); summaries.count
       summaries.find_in_batches(batch_size: 5) do |batch|
@@ -931,7 +932,7 @@ module Stats
     max_longview_word = longview_core_words.to_a.map(&:last).max || 1
     all_word_counts.each do |word, cnt|
       # if there are at least 3 weeks of data and the word has been 
-      # used at least 3 times in the session list,
+      # used at least 3 times in the session list (last two weeks),
       # but hasn't been used more than once every 4 weeks in the long-view history
       # then mark it as an emergent word
       if total_weeks > 3
