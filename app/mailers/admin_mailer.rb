@@ -9,4 +9,11 @@ class AdminMailer < ActionMailer::Base
       mail(to: ENV['NEW_REGISTRATION_EMAIL'], subject: "CoughDrop - \"Contact Us\" Message Received", reply_to: @message.settings['email'])
     end
   end
+  
+  def opt_out(user_id)
+    @user = User.find_by_global_id(user_id)
+    if ENV['NEW_REGISTRATION_EMAIL'] && @user
+      mail(to: ENV['NEW_REGISTRATION_EMAIL'], subject: "CoughDrop - \"Opt-Out\" Requested")
+    end
+  end
 end

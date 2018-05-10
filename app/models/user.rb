@@ -831,6 +831,10 @@ class User < ActiveRecord::Base
       UserMailer.schedule_delivery(:email_changed, self.global_id)
       @email_changed = false
     end
+    if @opt_out
+      AdminMailer.schedule_delivery(:opt_out, self.global_id)
+      @opt_out = false
+    end
     true
   end
   
