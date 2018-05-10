@@ -789,4 +789,10 @@ describe Relinking, :type => :model do
     
     expect(parent.settings['preferences']['home_board']['id']).not_to eq(level0.global_id)
   end
+  
+  describe "assert_copy_id" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
 end

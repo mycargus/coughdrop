@@ -402,4 +402,10 @@ describe Api::SearchController, :type => :controller do
       expect(json).to eq([{'a' => 1}, {'b' => 1}])
     end
   end
+  
+  describe "audio" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
 end

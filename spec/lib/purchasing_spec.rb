@@ -1660,4 +1660,10 @@ describe Purchasing do
         expect(u.subscription_events[0]['error']).to eq('yipe')
       end
     end
+    
+  describe "reconcile" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
 end

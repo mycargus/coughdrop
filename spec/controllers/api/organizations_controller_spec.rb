@@ -932,6 +932,18 @@ describe Api::OrganizationsController, :type => :controller do
       expect(json['stats']).to_not eq(nil)
     end
     
+    it "should generate home_boards report" do
+      write_this_test
+    end
+    
+    it "should generate recent home boards report" do
+      write_this_test
+    end
+    
+    it "should generate subscriptions report" do
+      write_this_test
+    end
+    
     it "should generate overridden_parts_of_speech report" do
       token_user
       o = Organization.create(:admin => true)

@@ -468,4 +468,16 @@ describe Api::LogsController, :type => :controller do
       expect(json).to eq({'a' => 1})
     end
   end
+  
+  describe "show" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
+  
+  describe "obl" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
 end

@@ -1175,4 +1175,10 @@ SOME SILLY GARBAGE
       expect(res['button_chains']).to eq({})
     end
   end
+  
+  describe "target_words" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
 end

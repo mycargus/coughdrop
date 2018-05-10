@@ -34,5 +34,9 @@ describe JsonApi::Gift do
         'purchased' => false
       })
     end
+    
+    it "should include receiver information" do
+      write_this_test
+    end
   end
 end

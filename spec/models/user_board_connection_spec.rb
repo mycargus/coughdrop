@@ -18,6 +18,16 @@ describe UserBoardConnection, :type => :model do
     expect(UserBoardConnection.count).to eq(1)
     expect(UserBoardConnection.first.home).to eq(true)
   end
+  
+  it "should match parent_board_id to board's parent_board_id" do
+    write_this_test
+  end
+  
+  describe "root_board_id" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
 
   it "should be created for home boards only when tracking boards" do
     u = User.create

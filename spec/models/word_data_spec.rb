@@ -402,4 +402,22 @@ RSpec.describe WordData, :type => :model do
       expect(WordData.standardized_words['golem']).to eq(nil)
     end
   end
+  
+  describe "basic_core_for" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
+  
+  describe "activities_for" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
+  
+  describe "update_activities_for" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
 end

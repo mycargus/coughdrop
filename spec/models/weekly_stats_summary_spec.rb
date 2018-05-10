@@ -627,4 +627,14 @@ describe WeeklyStatsSummary, :type => :model do
       expect(res[:total_words]).to eq(32)
     end
   end
+  
+  it "should update a user's target_list if for the current week" do
+    write_this_test
+  end
+  
+  describe "word_trends" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
 end

@@ -247,4 +247,46 @@ describe SecureSerialize, :type => :model do
       expect(r.instance_variable_get('@settings_changed')).to eq(true)
     end
   end
+  
+  describe "paper_trail_for_secure_column?" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
+  
+  describe "load_secure_object" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
+  
+  describe "mark_changed_secure_object_hash" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
+  
+  describe "rollback_to" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
+  
+  describe "persist_secure_object" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
+  
+  describe "user_versions" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
+  
+  describe "load_version" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
 end
