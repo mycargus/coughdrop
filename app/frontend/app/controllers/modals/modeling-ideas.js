@@ -1,7 +1,9 @@
+import Ember from 'ember';
 import modal from '../../utils/modal';
 import app_state from '../../utils/app_state';
 import i18n from '../../utils/i18n';
 import {set as emberSet, get as emberGet} from '@ember/object';
+import { later as runLater } from '@ember/runloop';
 
 export default modal.ModalController.extend({
   opening: function() {
@@ -71,7 +73,9 @@ export default modal.ModalController.extend({
       var valids = 0;
       a.user_ids.forEach(function(id) { if(user_ids.indexOf(id) !== -1) { valids++; } });
       if(valids > 0 && res.length < (5 + empty_num)) {
-        emberSet(a, 'matching_users', valids);
+        if(user_ids.length > 1) {
+          emberSet(a, 'matching_users', valids);
+        }
         middles.push(a);
       }
     });
@@ -118,13 +122,17 @@ export default modal.ModalController.extend({
       popular_modeled_words: i18n.t('modeled_words', "Frequently-Modeled"),
       infrequent_core_words: i18n.t('infrequent_core', "Rarely-Used Core"),
       emergent_words: i18n.t('emergent', "Emergent Use"),
+      dwindling_words: i18n.t('dwindling', "Dwindling Use"),
+      infrequent_home_words: i18n.t('infrequence_home', "Rare but on Home Board")
     };
     var user_ids = (this.get('model.users') || []).mapBy('id');
     (this.get('activities.words') || []).forEach(function(w) {
       var valids = 0;
       w.user_ids.forEach(function(id) { if(user_ids.indexOf(id) !== -1) { valids++; } });
       if(valids > 0) {
-        emberSet(w, 'matching_users', valids);
+        if(user_ids.length > 1) {
+          emberSet(w, 'matching_users', valids);
+        }
         emberSet(w, 'text_reasons', w.reasons.map(function(r) { return text_reasons[r]; }).uniq().compact().join(', '));
         res.push(w);
       }
@@ -136,7 +144,15 @@ export default modal.ModalController.extend({
   }.property('user_words'),
   current_activity: function() {
     var idx = this.get('activity_index') || 0;
-    return (this.get('user_activities') || [])[idx];
+    var res = (this.get('user_activities') || [])[idx];
+    if(res && emberGet(res, 'image.image_url')) {
+      var img = emberGet(res, 'image.image_url');
+      emberSet(res, 'image.image_url', Ember.templateHelpers.path('images/blank.gif'));
+      runLater(function() {
+        emberSet(res, 'image.image_url', img);
+      });
+    }
+    return res;
   }.property('activity_index', 'user_activities'),
   no_next: function() {
     return !((this.get('activity_index') + 1) < this.get('user_activities.length'));
@@ -187,6 +203,10 @@ export default modal.ModalController.extend({
       if(youtube_id) {
         modal.open('inline-video', {video: {type: 'youtube', id: youtube_id}});
       }
+    },
+    book: function() {
+      var act = this.get('current_activity');
+      modal.open('inline-book', {url: act.url});
     }
   }
 });

@@ -903,7 +903,7 @@ module Stats
     # - popular modeled words
     max_modeled = modeled_words.to_a.map(&:last).max || 0
     modeled_words.each do |word, cnt|
-      # if the word is used more than 5 times, and is a highly-modeled word, and is
+      # if the word is used more than 5 times, and is a highly-modeled word recently, and is
       # used less than half as often as it is modeled, then flag it as important
       if cnt > 5 && cnt > (max_modeled * 0.8) && (all_word_counts[word] || 0) < (cnt / 2)
         res[:watchwords][:popular_modeled_words] ||= {}
@@ -923,6 +923,24 @@ module Stats
           if (longview_core_words[word] || 0) < (total_weeks.to_f / 4.0)
             res[:watchwords][:infrequent_core_words] ||= {}
             res[:watchwords][:infrequent_core_words][word] = 1.0 - ((longview_core_words[word] || 0).to_f / max_core_word.to_f)
+          end
+        end
+      end
+    end
+    
+    home_board = Board.find_by_path(user.settings['preferences'] && user.settings['preferences']['home_board'] && user.settings['preferences']['home_board']['id'])
+    if home_board
+      home_board.settings['buttons'].each do |button|
+        word = (button['vocalization'] || button['label'] || '').downcase
+        if word && (!button['load_board'] || button['link_disabled']) && !button['hidden']
+          if default_core.include?(word)
+            # If there are more than 3 weeks of data and the home board core word has
+            # never been used or has been used less than once every 2 weeks in the long-view
+            # history then mark it as an infrequence home word
+            if total_weeks > 3 && (longview_core_words[word] || 0) < (total_weeks.to_f / 2.0)
+              res[:watchwords][:infrequent_home_words] ||= {}
+              res[:watchwords][:infrequent_home_words][word] = 1.0 - ((longview_core_words[word] || 0).to_f / max_core_word.to_f)
+            end
           end
         end
       end
@@ -950,6 +968,10 @@ module Stats
         if longview_core_words[word] && longview_core_words[word] > (total_weeks.to_f / 2.0) && !all_word_counts[word]
           res[:dwindling_words] ||= {}
           res[:dwindling_words][word] = longview_core_words[word]
+          if default_core.include?(word)
+            res[:watchwords][:dwindling_words] ||= {}
+            res[:watchwords][:dwindling_words][word] = 1.0 - (all_word_counts[word].to_f / (all_word_counts[word].to_f + (longview_core_words[word] || 1)).to_f)
+          end
         end
       end
     end
@@ -962,19 +984,17 @@ module Stats
     # - (not here) basic core words based on a timeline from registration/daily_use
     
     # Combine all the lists to find the best match recommendations
-    # 1. Primary goal words
-    # 2. Emergent core words
-    # 3. Popular modeled words
-    # 4. Secondary goal words
-    # 5. Infrequent core words
     scored_words = {}
-    keys = [[:primary_words, 10.0], 
-            [:primary_modeled_words, 3.0], 
-            [:secondary_words, 3.0], 
-            [:secondary_modeled_words, 1.0], 
-            [:popular_modeled_words, 6.0],
-            [:infrequent_core_words, 2.0], 
-            [:emergent_words, 10.0]]
+    keys = [[:primary_words,           10.0], 
+            [:emergent_words,           9.0],
+            [:popular_modeled_words,    6.0],
+            [:infrequent_home_words,    5.0],
+            [:primary_modeled_words,    3.0], 
+            [:secondary_words,          3.0], 
+            [:infrequent_core_words,    2.0], 
+            [:dwindling_words,          2.0],
+            [:secondary_modeled_words,  1.0], 
+          ]
     keys.each do |key, score|
       (res[:watchwords][key] || {}).each do |word, cnt|
         # only suggest words that are actually reachable in the user's vocabulary
