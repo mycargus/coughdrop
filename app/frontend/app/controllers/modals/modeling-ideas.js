@@ -144,6 +144,9 @@ export default modal.ModalController.extend({
     });
     return res;
   }.property('activities', 'model.users'),
+  show_words_list: function() {
+    return !!(this.get('current_activity.real') || this.get('current_activity.target_words'));
+  }.property('current_activity.real', 'current_activity.target_words'),
   words_list: function() {
     return (this.get('user_words') || []).mapBy('word').join(', ');
   }.property('user_words'),
@@ -167,6 +170,7 @@ export default modal.ModalController.extend({
   }.property('activity_index', 'user_activities'),
   actions: {
     next: function() {
+      var on_target_words = this.get('current_activity.target_words');
       this.set('activity_index', Math.min(this.get('user_activities.length') - 1, this.get('activity_index') + 1));
       this.set('show_target_words', false);
 
@@ -177,7 +181,7 @@ export default modal.ModalController.extend({
         progress.modeling_ideas_viewed = true;
         user.set('preferences.progress', progress);
         user.save().then(null, function() { });
-      } else if(this.get('current_activity.target_words')) {
+      } else if(on_target_words) {
         var progress = user.get('preferences.progress') || {};
 
         progress.modeling_ideas_target_words_reviewed = true;
