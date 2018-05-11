@@ -117,13 +117,19 @@ export default Controller.extend({
     var _this = this;
     if(!persistence.get('online')) { return; }
     if(!(_this.get('model.logs') || {}).length) {
-      this.set('model.logs', {loading: true});
+      if(this.get('model')) {
+        this.set('model.logs', {loading: true});
+      }
     }
     this.store.query('log', {user_id: this.get('model.id'), per_page: 4}).then(function(logs) {
-      _this.set('model.logs', logs.slice(0,4));
+      if(_this.get('model')) {
+        _this.set('model.logs', logs.slice(0,4));
+      }
     }, function() {
       if(!(_this.get('model.logs') || {}).length) {
-        _this.set('model.logs', {error: true});
+        if(_this.get('model')) {
+          _this.set('model.logs', {error: true});
+        }
       }
     });
   }.observes('persistence.online'),

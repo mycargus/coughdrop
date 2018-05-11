@@ -60,7 +60,7 @@ export default modal.ModalController.extend({
     var empty_num = 0;
     if(this.get('force_intro') || !app_state.get('currentUser.preferences.progress.modeling_ideas_viewed')) {
       res.push({intro: true});
-      empty_num = 1;
+      empty_num++;
     }
 
     var user_ids = (this.get('model.users') || []).mapBy('id');
@@ -79,6 +79,11 @@ export default modal.ModalController.extend({
         middles.push(a);
       }
     });
+    if(middles.length > 0 && !app_state.get('currentUser.preferences.progress.modeling_ideas_target_words_reviewed')) {
+      res.push({target_words: true});
+      empty_num++;
+    }
+
     var weekhour = this.get('weekhour');
     var units = 3;
     var chunks = Math.max(1, Math.floor(middles.length / units));
@@ -170,6 +175,12 @@ export default modal.ModalController.extend({
         var progress = user.get('preferences.progress') || {};
 
         progress.modeling_ideas_viewed = true;
+        user.set('preferences.progress', progress);
+        user.save().then(null, function() { });
+      } else if(this.get('current_activity.target_words')) {
+        var progress = user.get('preferences.progress') || {};
+
+        progress.modeling_ideas_target_words_reviewed = true;
         user.set('preferences.progress', progress);
         user.save().then(null, function() { });
       }

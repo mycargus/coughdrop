@@ -12,7 +12,7 @@
       <div style='margin-bottom: 10px;'>
         <button class='btn btn-default btn-lg' style='float: left;' {{action 'previous'}} disabled={{no_previous}}><span class='glyphicon glyphicon-chevron-left'></span> {{t "Previous" key='previous'}}</button>
         <button class='btn btn-default btn-lg' style='float: right;' {{action 'next'}} disabled={{no_next}}>{{t "Next" key='next'}} <span class='glyphicon glyphicon-chevron-right'></span></button>
-        {{#if current_activity.real}}
+        {{#if show_words_list}}
           {{#if words_list}}
             <div class='text-muted' {{action 'target_words'}} style='cursor: pointer; padding: 0 10px; text-align: center;'>
               <span style='color: #aaa;'>{{t "targets:" key='target_words'}}</span> {{words_list}}
@@ -52,6 +52,24 @@
         <button {{action 'target_words'}} class='btn btn-default'>{{t "Back to List" key='back_to_list'}}</button>
         <button {{action 'make_goal'}} class='btn btn-default'>{{t "Choose Goal Words" key='make_goal_for_words'}}</button>
       </div>
+    {{else if current_activity.target_words}}
+      <span class='glyphicon glyphicon-screenshot' style='font-size: 80px; float: left; margin-right: 20px;'></span>
+      <p>
+        {{t "As you use CoughDrop, the app will automatically generate <b>target words</b> that you can choose to focus on with your communicator." key='target_words_explainer'}}
+        {{#if user_words}}
+          {{t "Below are some words you may want to consider using. CoughDrop shows different ideas throughout the day for ways to use the target words, so check back regularly." key='target_user_words'}}
+        {{else}}
+          {{t "The list of suggestions will update throughout the day, so check back regularly for new ideas of activities to try with your communicator." key='target_no_user_words'}}
+        {{/if}}
+      </p>
+      <ul class="list-group" style='width: 300px; margin: 20px auto;'>
+        {{#each user_words as |word|}}
+          <li class="list-group-item" style='text-align: center;'>{{word.word}}</li>
+        {{/each}}
+      </ul>
+      <p>
+        {{t "You can review this list in the future by hitting the \"targets\" list at the top of this window." key='link_at_top_of_window'}}
+      </p>
     {{else if current_activity.no_home_board}}
       <span class='glyphicon glyphicon-home' style='font-size: 140px; float: left; margin-right: 10px;'></span>
       <p>{{t "You don't have a home board set! Modeling Ideas draws suggestions from buttons in your home board set, so it won't do a lot of good until you choose a home board." key='home_board_required'}}</p>
@@ -98,7 +116,7 @@
       <p>{{t "Did you know that new communicators learn to combine words by observing others do it first? Did you know that babies hear thousands of hours of spoken language before speaking on their own? Or that AAC experts recommend up to 80% of communication with a new user be modeled on their device?" key='modeling_intro_1'}}</p>
       <!-- source: https://www.facebook.com/groups/421704261346486/permalink/830509463799295/ -->
       <p>{{t "Modeling, or showing examples of how to hit buttons to communicate, is very important! As you start work with communicators who are using AAC, look for chances to model different words, or the same words in different ways. It may take practice to get comfortable or to see results, but research has shown over and over how much of a different modeling makes!" key='modeling_intro_2'}}</p>
-      <p>{{t "<b>Modeling Ideas</b> is a CoughDrop tool that recommends words and activities based on your user's goals and log history. We hope it helps give you lots of ideas to help your communicator grow!" key='modeling_intro_3'}}</p>
+      <p>{{t "<b>Modeling Ideas</b> is a CoughDrop tool that recommends a few activities every day based on target words from your user's goals and log history. We hope it helps give you lots of ideas to help your communicator grow!" key='modeling_intro_3'}}</p>
     {{/if}}
     <div style='clear: left;'></div>
     <!-- MODEL AND STUFF {{model.users.length}} -->

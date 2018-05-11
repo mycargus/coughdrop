@@ -83,7 +83,7 @@ class Api::SearchController < ApplicationController
       RedisInit.default.hincrby('overridden_parts_of_speech', str, 1) if RedisInit.default
     end
 
-    render json: res.merge(data).to_json
+    render json: res.merge(data || {}).to_json
   end
   
   def proxy
