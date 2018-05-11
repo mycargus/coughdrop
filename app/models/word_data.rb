@@ -376,9 +376,28 @@ class WordData < ActiveRecord::Base
     res = {}
     res[:for_user] = WordData.core_list_for(user)
     button_sets = BoardDownstreamButtonSet.for_user(user)
-    res[:reachable_for_user] = WordData.reachable_core_list_for(user, button_sets)
-    res[:reachable_fringe_for_user] = WordData.fringe_list_for(user, button_sets)
-    res[:requested_phrases_for_user] = WordData.requested_phrases_for(user, button_sets)
+    cache_key = "reachable_phrases_and_words/#{user.cache_key}/#{button_sets.map(&:cache_key).join('/')}"
+    hashes = user.get_cached(cache_key)
+    if !hashes
+      hashes = {}
+      # These lists don't contain any user-specific information and so can be safely
+      # cached in Redis
+      hashes['reachable_for_user'] = WordData.reachable_core_list_for(user, button_sets)
+      hashes['reachable_fringe_for_user'] = WordData.fringe_list_for(user, button_sets)
+      hashes['reachable_requested_phrases'] = WordData.reachable_requested_phrases_for(user, button_sets)
+      user.set_cached(cache_key, hashes, 72.hours.to_i)
+    end
+    hashes['requested_phrases_for_user'] = []
+    phrases = (user.settings && user.settings['preferences'] && user.settings['preferences']['requested_phrases']) || []
+    phrases.each do |str|
+      word = {text: str}
+      if hashes['reachable_requested_phrases'].include?(str.downcase.sub(/[^\w]+$/, ''))
+        word[:used] = true
+      end
+      hashes['requested_phrases_for_user'] << word
+    end
+    
+    hashes.each{|k, v| res[k.to_sym] = v }
     res
   end
   
@@ -396,7 +415,7 @@ class WordData < ActiveRecord::Base
     self.basic_core_list[0, 25]
   end
   
-  def self.requested_phrases_for(user, button_sets)
+  def self.reachable_requested_phrases_for(user, button_sets)
     phrases = (user.settings && user.settings['preferences'] && user.settings['preferences']['requested_phrases']) || []
     button_sets ||= BoardDownstreamButtonSet.for_user(user)
     res = []
@@ -415,11 +434,9 @@ class WordData < ActiveRecord::Base
       end
     end
     phrases.each do |str|
-      word = {text: str}
       if words[str.downcase.sub(/[^\w]+$/, '')]
-        word[:used] = true
+        res << str
       end
-      res << word
     end
     res
   end
@@ -455,20 +472,24 @@ class WordData < ActiveRecord::Base
   def self.reachable_core_list_for(user, button_sets=nil)
     list = self.core_list_for(user)
     button_sets ||= BoardDownstreamButtonSet.for_user(user)
-    reachable_words = button_sets.map{|bs| 
-      bs.buttons.map{|b| 
+    reachable_hash = {}
+    button_sets.each{|bs| 
+      bs.buttons.each{|b| 
         if b['hidden']
           nil
         elsif b['linked_board_id'] && !b['link_disabled']
           nil
         else
-          b['label'] || b['vocalization']
+          word = b['label'] || b['vocalization']
+          reachable_hash[word.downcase.sub(/[^\w]+$/, '') ] = true
+          
         end
-      }.compact
-    }.flatten.map{|w| w.downcase.sub(/[^\w]+$/, '') }.uniq
+      }
+    }
+    reachable_hash.to_a.map(&:first).map{|w| w.downcase.sub(/[^\w]+$/, '') }
     res = []
     list.each do |word|
-      res << word if reachable_words.include?(word.downcase.sub(/[^\w]+$/, ''))
+      res << word if reachable_hash[word.downcase.sub(/[^\w]+$/, '')]
     end
     res
   end

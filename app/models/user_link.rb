@@ -78,7 +78,7 @@ class UserLink < ApplicationRecord
         'state' => link.data['state']
       }
     end
-    if record.is_a?(User)
+    if record.is_a?(User) && record.settings
       # include old-school supervisors, supervisees, org connections, board shares
       (record.settings['boards_shared_with_me'] || []).each do |share|
         res << {

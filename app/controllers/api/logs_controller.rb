@@ -70,7 +70,7 @@ class Api::LogsController < ApplicationController
     user = user_id ? User.find_by_path(user_id) : @api_user
     return unless allowed?(user, 'supervise')
     
-    log = LogSession.process_as_follow_on(params['log'], {
+    log = LogSession.process_as_follow_on(params['log'].to_unsafe_h, {
       :author => @api_user,
       :ip_address => ip,
       :user => user,

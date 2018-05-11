@@ -639,7 +639,7 @@ class LogSession < ActiveRecord::Base
       non_user_params[:user_id] = user.global_id
       non_user_params[:author_id] = author.global_id
       non_user_params[:device_id] = device.global_id
-      stash = JobStash.create(data: params)
+      stash = JobStash.create(data: params.respond_to?(:to_unsafe_h) ? params.to_unsafe_h : params)
       schedule(:process_delayed_follow_on, stash.global_id, non_user_params)
       res
     end

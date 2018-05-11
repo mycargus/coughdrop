@@ -320,15 +320,17 @@ RSpec.describe WordData, :type => :model do
   describe "core_and_fringe_for" do
     it "should include core and fringe lists" do
       u = User.create
+      u.settings['preferences']['requested_phrases'] = ['d', 'xxxxx']
       expect(WordData).to receive(:core_list_for).with(u).and_return(['a'])
       expect(WordData).to receive(:reachable_core_list_for).with(u, []).and_return(['b'])
       expect(WordData).to receive(:fringe_list_for).with(u, []).and_return(['c'])
-      expect(WordData).to receive(:requested_phrases_for).with(u, []).and_return(['d'])
+      expect(WordData).to receive(:reachable_requested_phrases_for).with(u, []).and_return(['d'])
       expect(WordData.core_and_fringe_for(u)).to eq({
         :for_user => ['a'],
         :reachable_for_user => ['b'],
         :reachable_fringe_for_user => ['c'],
-        :requested_phrases_for_user => ['d']
+        :requested_phrases_for_user => [{:text=>"d", :used=>true}, {:text=>"xxxxx"}],
+        :reachable_requested_phrases => ['d']
       })
     end
   end
@@ -351,12 +353,7 @@ RSpec.describe WordData, :type => :model do
           ]
         }
       })
-      expect(WordData.requested_phrases_for(u, [bs])).to eq([
-        {text: 'hippie', used: true},
-        {text: 'hippo'},
-        {text: 'hipchat', used: true},
-        {text: 'hipmonk'}
-      ])
+      expect(WordData.reachable_requested_phrases_for(u, [bs])).to eq(["hippie", "hipchat"])
     end
   end
   
