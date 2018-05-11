@@ -340,7 +340,7 @@ var app_state = EmberObject.extend({
   },
   jump_to_board: function(new_state, old_state) {
     buttonTracker.transitioning = true;
-    if(new_state && old_state && new_state.id && (new_state.id == old_state.id || new_state.key == old_state.key) {
+    if(new_state && old_state && new_state.id && (new_state.id == old_state.id || new_state.key == old_state.key)) {
       // transition was getting stuck when staying on the same board
       buttonTracker.transitioning = false;
     }
