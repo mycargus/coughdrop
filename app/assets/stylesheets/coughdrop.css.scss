@@ -324,6 +324,18 @@ header .btn {
   img.user {
     width: 40px;
   }
+  .status {
+    background: rgba(255, 0, 0, 0.5);
+    width: 10px;
+    height: 10px;
+    border-radius: 10px;
+  }
+  #identity_button.online {
+    .status {
+      background: rgba(0, 255, 0, 0.2);
+      display: none;
+    }
+  }
 }
 header.speaking #identity {
   width: auto;

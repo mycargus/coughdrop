@@ -448,7 +448,7 @@
   {{/if}}
     <span id="identity" class={{if app_state.speak_mode 'advanced_selection undwellable'}}>
       <span class="dropdown" style="display: inline-block;" class={{if app_state.super_no_linky 'hidden'}}>
-        <a class='btn btn-default' id='identity_button' href="#" data-toggle="dropdown">
+        <a class={{if persistence.online 'btn btn-default online' 'btn btn-default offline'}} id='identity_button' href="#" data-toggle="dropdown">
           {{#if app_state.currentUser}}
             <span class='user_holder'>
               <img src={{app_state.currentUser.avatar_url_with_fallback}} class='user' onerror='button_broken_image(this);' />
@@ -467,6 +467,8 @@
               <span class="label label-danger unread">{{t "!" key='exclaim'}}</span>
             {{else if app_state.currentUser.unread_messages}}
               <span class="label label-danger unread">{{app_state.currentUser.unread_messages}}</span>
+            {{else}}
+              <span class='status unread'></span>
             {{/if}}
           {{else}}
             <img src="{{path 'images/settings.png'}}" style="opacity: 0.7; height: 25px; margin: -12px 3px -10px -25px;"/>
