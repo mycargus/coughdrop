@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.05.11";
+window.app_version = "2018.05.11a";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -7660,8 +7660,8 @@ var m={},f=(new Date).getTime()
 e.default=Ember.Controller.extend({title:function(){var e=this.get("model.name"),t="Board"
 return e&&(t=t+" - "+e),t}.property("model.name"),ordered_buttons:null,processButtons:function(){this.update_button_symbol_class(),t.default.add_rules(this.get("model.buttons")),this.computeHeight(),s.default.process_for_displaying()}.observes("app_state.board_reload_key"),check_for_share_approval:function(){var e=this.get("model.id")
 if(e&&o.default.get("currentBoardState")){var t=(o.default.get("currentUser.pending_board_shares")||[]).filter(function(t){return t.board_id&&t.board_id==e})
-if(t.length>0&&o.default.get("default_mode")){var n={}
-n[e]||(n[e]=!0,this.set("already_checked_boards",n),u.default.open("approve-board-share",{board:this.get("model"),shares:t}))}}}.observes("model.id","app_state.currentUser.pending_board_shares","app_state.default_mode"),updateSuggestions:function(){if(this.get("model.word_suggestions")){var e=this,t=this.get("app_state.button_list"),s=t[t.length-1],a=null
+if(t.length>0&&(o.default.get("default_mode")||o.default.get("speak_mode")&&r.default.get("boardHistory.length")>0)){var n=o.default.get("speak_mode")&&this.get("already_checked_boards")||{}
+n[e]||(n[e]=!0,this.set("already_checked_boards",n),u.default.open("approve-board-share",{board:this.get("model"),shares:t}))}}}.observes("model.id","app_state.currentUser.pending_board_shares","app_state.default_mode","app_state.speak_mode"),updateSuggestions:function(){if(this.get("model.word_suggestions")){var e=this,t=this.get("app_state.button_list"),s=t[t.length-1],a=null
 s&&s.in_progress&&(a=s,s=t[t.length-2])
 var l=(s&&(s.vocalization||s.label)||"").toLowerCase(),i=(a&&(a.vocalization||a.label)||"").toLowerCase()
 n.default.lookup({last_finished_word:l,word_in_progress:i,board_ids:[o.default.get("currentUser.preferences.home_board.id"),r.default.get("temporary_root_board_state.id")]}).then(function(t){e.set("suggestions.list",t)},function(){e.set("suggestions.list",[])})}}.observes("app_state.button_list","app_state.button_list.[]","app_state.currentUser"),saveButtonChanges:function(e){var n=s.default.process_for_saving();(this.get("model.license")&&this.set("model.license.copyright_notice_url",a.default.licenseOptions.license_url(this.get("model.license.type"))),this.set("model.buttons",n.buttons),this.set("model.grid",n.grid),t.default.setup(!0),this.processButtons(),o.default.get("currentBoardState.id")&&r.default.get("copy_on_save")==o.default.get("currentBoardState.id"))?o.default.controller.send("tweakBoard"):(o.default.toggle_mode("edit"),this.get("model").save().then(null,function(e){console.error(e),u.default.error(d.default.t("board_save_failed","Failed to save board"))}))},check_for_updated_board:function(){if(i.default.get("online")&&this.get("ordered_buttons")&&this.get("app_state.currentBoardState.reload_token")&&!this.get("app_state.speak_mode")){var e=this
@@ -9022,7 +9022,7 @@ return this.get("currentBoardState.id")&&(e+="with_board ",this.get("from_route"
 return this.get("currentBoardState.id")&&this.get("from_route")&&!this.get("edit_mode")&&(e+="board_done "),Ember.String.htmlSafe(e)}.property("currentBoardState.id","from_route"),set_latest_board_id:function(){this.set("latest_board_id",this.get("currentBoardState.id"))}.observes("currentBoardState.id"),check_for_board_readiness:function(e){this.check_for_board_readiness.timer&&Ember.run.cancel(this.check_for_board_readiness.timer)
 var t=h.get("latest_board_id")
 if(t){var n=Ember.$(".board[data-id='"+t+"']")
-if(Ember.$("#integration_frame").length||n.length&&n.find(".button_row,canvas").length)return void Ember.run.later(function(){o.default.log.track("done transitioning"),i.default.transitioning=!1},e)}this.check_for_board_readiness.timer=Ember.run.later(this,this.check_for_board_readiness,e,100)},jump_to_board:function(e,n){i.default.transitioning=!0
+if(Ember.$("#integration_frame").length||n.length&&n.find(".button_row,canvas").length)return void Ember.run.later(function(){o.default.log.track("done transitioning"),i.default.transitioning=!1},e)}this.check_for_board_readiness.timer=Ember.run.later(this,this.check_for_board_readiness,e,100)},jump_to_board:function(e,n){i.default.transitioning=!0,e&&n&&e.id&&(e.id==n.id||e.key==n.key)&&(i.default.transitioning=!1)
 var s=this.get_history()
 n=n||this.get("currentBoardState"),s.push(n),t.default.log({action:"open_board",previous_key:n,new_id:e}),e&&e.home_lock&&this.set("temporary_root_board_key",e.key),this.controller.send("hide_temporary_sidebar"),this.set_history([].concat(s)),this.controller.transitionToRoute("board",e.key)},check_for_lock_on_board_state:function(){var e=this.get("currentBoardState")
 e&&e.key&&(e.key==this.get("temporary_root_board_key")&&this.toggle_home_lock(!0),this.set("temporary_root_board_key",null))}.observes("currentBoardState"),toggle_home_lock:function(e){var n=t.default.get("root_board_state"),s=h.get("currentBoardState")
@@ -9030,9 +9030,9 @@ e&&e.key&&(e.key==this.get("temporary_root_board_key")&&this.toggle_home_lock(!0
 return Ember.run.later(function(){t.set("modeling_ts",(new Date).getTime()+"_"+Math.random())}),!!e}.property("speak_mode","currentUser","referenced_speak_mode_user"),auto_clear_modeling:function(){if(this.get("manual_modeling")){var e=(new Date).getTime()
 h.get("last_activation")||h.set("last_activation",e)
 var t=e-h.get("modeling_started"),n=3e5
-t>18e5?n=5e3:t>6e5?n=3e4:t>3e5&&(n=6e4),e-h.get("last_activation")>n&&h.toggle_modeling()}}.observes("short_refresh_stamp","modeling"),back_one_board:function(e){e=e||{},i.default.transitioning=!0
+t>18e5?n=5e3:t>6e5?n=3e4:t>3e5&&(n=6e4),e-h.get("last_activation")>n&&h.toggle_modeling()}}.observes("short_refresh_stamp","modeling"),back_one_board:function(e){e=e||{}
 var n=this.get_history(),s=n.pop()
-t.default.log({action:"back",button_triggered:e.button_triggered}),this.set_history([].concat(n)),this.controller.transitionToRoute("board",s.key)},jump_to_root_board:function(e){var n=(e=e||{}).index_as_fallback,s=e.auto_home
+i.default.transitioning=!0,s&&s.id&&s.id==this.get("currentBoardState.id")&&(i.default.transitioning=!1),t.default.log({action:"back",button_triggered:e.button_triggered}),this.set_history([].concat(n)),this.controller.transitionToRoute("board",s.key)},jump_to_root_board:function(e){var n=(e=e||{}).index_as_fallback,s=e.auto_home
 this.set_history([])
 var a=this.get("currentBoardState"),o=t.default.get("temporary_root_board_state")||t.default.get("root_board_state"),r=!1;(o=o||this.get("currentUser.preferences.home_board"))&&o.key?h.get("currentBoardState.key")!=o.key&&(i.default.transitioning=!0,this.controller.transitionToRoute("board",o.key),r=a&&a.key&&o.key!=a.key):n&&(this.controller.transitionToRoute("index"),r=a&&a.key),r&&t.default.log({action:s?"auto_home":"home",button_triggered:e.button_triggered,new_id:{id:o.id,key:o.key}})},toggle_speak_mode:function(e){e&&a.default.close(!0)
 var n=h.get("currentBoardState"),s=h.get("speakModeUser.preferences.home_board")||h.get("currentUser.preferences.home_board")
@@ -10569,8 +10569,8 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+ae164004"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+ae164004"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"2018.05.11+1cae1e89"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"2018.05.11+1cae1e89"})
 ;
 
 
