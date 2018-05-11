@@ -340,6 +340,10 @@ var app_state = EmberObject.extend({
   },
   jump_to_board: function(new_state, old_state) {
     buttonTracker.transitioning = true;
+    if(new_state && old_state && new_state.id && (new_state.id == old_state.id || new_state.key == old_state.key) {
+      // transition was getting stuck when staying on the same board
+      buttonTracker.transitioning = false;
+    }
     var history = this.get_history();
     old_state = old_state || this.get('currentBoardState');
     history.push(old_state);
@@ -433,9 +437,12 @@ var app_state = EmberObject.extend({
   }.observes('short_refresh_stamp', 'modeling'),
   back_one_board: function(opts) {
     opts = opts || {};
-    buttonTracker.transitioning = true;
     var history = this.get_history();
     var state = history.pop();
+    buttonTracker.transitioning = true;
+    if(state && state.id && state.id == this.get('currentBoardState.id')) {
+      buttonTracker.transitioning = false;
+    }
     stashes.log({
       action: 'back',
       button_triggered: opts.button_triggered
