@@ -42,8 +42,10 @@ export default Controller.extend({
       var shares = (app_state.get('currentUser.pending_board_shares') || []);
       var matching_shares = shares.filter(function(s) { return s.board_id && s.board_id == board_id; });
       if(matching_shares.length > 0) {
-        if(app_state.get('default_mode')) {
-          var already = {}; //this.get('already_checked_boards') || {};
+        // If not in Speak Mode, or just barely launched into Speak Mode
+        if(app_state.get('default_mode') || (app_state.get('speak_mode') && stashes.get('boardHistory.length') > 0)) {
+          // Only prompt once if in Speak Mode
+          var already = (app_state.get('speak_mode') && this.get('already_checked_boards')) || {};
           if(!already[board_id]) {
             already[board_id] = true;
             this.set('already_checked_boards', already);
@@ -52,7 +54,7 @@ export default Controller.extend({
         }
       }
     }
-  }.observes('model.id', 'app_state.currentUser.pending_board_shares', 'app_state.default_mode'),
+  }.observes('model.id', 'app_state.currentUser.pending_board_shares', 'app_state.default_mode', 'app_state.speak_mode'),
   updateSuggestions: function() {
     if(!this.get('model.word_suggestions')) { return; }
     var _this = this;
