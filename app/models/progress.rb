@@ -79,15 +79,15 @@ class Progress < ActiveRecord::Base
       progress.settings['percent_tallies'] << percent_tally_addition
       progress.settings['percents_before'] ||= []
       progress.settings['percents_before'] << percent
-      progress.settings['current_multiplier'] *= percent
+      progress.settings['current_multiplier'] = (progress.settings['current_multiplier'] * percent).round(4)
       progress.save
       block.call
       
       # tear-down after progress updates
-      progress.settings['percent'] = full_percent_tally_addition
+      progress.settings['percent'] = full_percent_tally_addition.round(2)
       progress.settings['percent_tallies'].pop
       progress.settings['percents_before'].pop
-      progress.settings['current_multiplier'] /= percent
+      progress.settings['current_multiplier'] = (progress.settings['current_multiplier'] / percent).round(4)
       progress.save
     else
       block.call
@@ -102,7 +102,7 @@ class Progress < ActiveRecord::Base
         percent *= progress.settings['current_multiplier'] || 1.0
         percent += progress.settings['percent_tallies'].sum
       end
-      progress.settings['percent'] = percent
+      progress.settings['percent'] = percent.round(2)
       progress.settings['message_key'] = message_key.to_s if message_key
       progress.save
     else

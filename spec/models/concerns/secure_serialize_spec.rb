@@ -82,7 +82,7 @@ describe SecureSerialize, :type => :model do
     end
     
     it "should register callbacks correctly" do
-      expect(FakeRecord.after).to eq(:load_secure_object)
+      expect(FakeRecord.after).to eq(nil) #:load_secure_object)
       expect(FakeRecord.before).to eq(nil)
       expect(FakeRecord.before_s).to eq(:persist_secure_object)
     end
@@ -115,14 +115,14 @@ describe SecureSerialize, :type => :model do
       r = FakeRecord.new
       r.id = 1
       r.instance_variable_set('@settings', GoSecure::SecureJson.dump({a: 1}))
-      r.send(r.after)
+#      r.send(r.after)
       expect(r.settings).to eq({"a" => 1})
     end
     
     it "should use the provided valued if instantiating" do
       r = FakeRecord.new
       r.settings = {'b' => 1}
-      r.send(r.after)
+#      r.send(r.after)
       expect(r.settings).to eq({'b' => 1})
     end
     
@@ -130,7 +130,7 @@ describe SecureSerialize, :type => :model do
       r = FakeRecord.new
       r.settings = {'b' => 1}
       expect(r.settings_changed?).to eq(false)
-      r.send(r.after)
+#      r.send(r.after)
       expect(r.settings_changed?).to eq(false)
       r.mark_changed_secure_object_hash
       expect(r.settings_changed?).to eq(true)
@@ -140,7 +140,7 @@ describe SecureSerialize, :type => :model do
       r = FakeRecord.new
       r.id = 1
       r.instance_variable_set('@settings', GoSecure::SecureJson.dump({a: 1}))
-      r.send(r.after)
+#      r.send(r.after)
       expect(r.settings).to eq({"a" => 1})
       r.settings['b'] = 2
       r.reload

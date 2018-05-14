@@ -6,20 +6,17 @@ module SecureSerialize
           (!self.class.paper_trail_options[:only] || self.class.paper_trail_options[:only].include?(self.class.secure_column.to_s)))
   end
   
-  # TODO: this is not very efficient, and I've heard rumors it was getting
-  # folded into active_record by default anyway... Or, it wouldn't
-  # be that hard to just replace serialize completely with some before and
-  # after calls...
   def load_secure_object
     @secure_object_json = nil.to_json
     if self.id
-      attr = read_attribute(self.class.secure_column) || self.send(self.class.secure_column)
+      attr = read_attribute(self.class.secure_column) || (!self.respond_to?(:secure_column_value) && self.send(self.class.secure_column)) || (@secure_object.is_a?(String) && @secure_object) || nil
       if attr && attr.match(/\s*^{/)
         @secure_object = JSON.parse(attr)
       else
         @secure_object = GoSecure::SecureJson.load(attr)
       end
       @secure_object_json = @secure_object.to_json
+      @loaded_secure_object = true
     end
     true
   end
@@ -90,13 +87,19 @@ module SecureSerialize
         self.more_before_saves ||= []
         self.more_before_saves << args[0]
       end
-      define_method("#{column}") do 
+      define_method("secure_column_value") do
+        nil
+      end
+      define_method("#{column}") do
+        load_secure_object unless @loaded_secure_object 
         @secure_object
       end
       define_method("#{column}=") do |val|
+        @loaded_secure_object = true
         @secure_object = val
       end
-      after_initialize :load_secure_object
+      # Commented out because eager-loading an encrypted data column is not efficient
+      # after_initialize :load_secure_object
     end
     
     def user_versions(global_id)
@@ -147,6 +150,7 @@ module SecureSerialize
   module SecureSerializeHelpers
     def reload(*args)
       res = super
+      @loaded_secure_object = false
       load_secure_object
       res
     end
