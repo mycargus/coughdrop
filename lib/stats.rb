@@ -1293,7 +1293,7 @@ module Stats
     puts "premium_users: #{res[:premium_users]}"
     res[:communicators] = 0
     User.where(['created_at < ?', date]).find_in_batches(:batch_size => 100).each do |batch|
-      res[:communicators] += batch.select(&:communicator_role?).count
+      res[:communicators] += batch.select(&:communicator_role?).select{|u| !u.supporter_registration? }.count
     end
     puts "communicators: #{res[:communicators]}"
     maps = {:android => [], :ios => [], :windows => [], :browser => []}

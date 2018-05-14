@@ -26,7 +26,7 @@ class UserMailer < ActionMailer::Base
       end
     end
     if ENV['NEW_REGISTRATION_EMAIL']
-      user_type = @user.supporter_role? ? 'Supervisor' : 'Communicator'
+      user_type = @user.supporter_registration? ? 'Supervisor' : 'Communicator'
       mail(to: ENV['NEW_REGISTRATION_EMAIL'], subject: "CoughDrop - New #{user_type} Registration", reply_to: @user.settings['email'])
     end
   end

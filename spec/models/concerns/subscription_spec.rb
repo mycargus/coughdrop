@@ -170,6 +170,78 @@ describe Subscription, :type => :model do
       expect(u.supporter_role?).to eq(true)
       expect(u.fully_purchased?).to eq(false)
     end
+
+    it "should correctly auto-expire a communicator signed up as a supporter role into a free_premium role" do
+      u = User.create(:settings => {'preferences' => {'registration_type' => 'therapist'}})
+      expect(u.communicator_role?).to eq(true)
+      expect(u.premium?).to eq(true)
+      expect(u.free_premium?).to eq(false)
+      expect(u.org_sponsored?).to eq(false)
+      expect(u.full_premium?).to eq(false)
+      expect(u.never_expires?).to eq(false)
+      expect(u.grace_period?).to eq(true)
+      expect(u.long_term_purchase?).to eq(false)
+      expect(u.recurring_subscription?).to eq(false)
+      expect(u.communicator_role?).to eq(true)
+      expect(u.supporter_role?).to eq(false)
+      expect(u.fully_purchased?).to eq(false)
+      
+      u.expires_at = 2.days.ago
+      u.save!
+      expect(u.premium?).to eq(true)
+      expect(u.free_premium?).to eq(true)
+      expect(u.communicator_role?).to eq(true)
+      Worker.process_queues
+      u.reload
+      expect(u.premium?).to eq(true)
+      expect(u.free_premium?).to eq(true)
+      expect(u.communicator_role?).to eq(false)
+      expect(u.supporter_role?).to eq(true)
+      expect(u.org_sponsored?).to eq(false)
+      expect(u.full_premium?).to eq(false)
+      expect(u.never_expires?).to eq(false)
+      expect(u.grace_period?).to eq(false)
+      expect(u.long_term_purchase?).to eq(false)
+      expect(u.recurring_subscription?).to eq(false)
+      expect(u.communicator_role?).to eq(false)
+      expect(u.supporter_role?).to eq(true)
+      expect(u.fully_purchased?).to eq(false)
+    end
+
+    it "should not auto-expire a communicator signed up as a communicator role" do
+      u = User.create(:settings => {'preferences' => {'registration_type' => 'communicator'}})
+      expect(u.communicator_role?).to eq(true)
+      expect(u.premium?).to eq(true)
+      expect(u.free_premium?).to eq(false)
+      expect(u.org_sponsored?).to eq(false)
+      expect(u.full_premium?).to eq(false)
+      expect(u.never_expires?).to eq(false)
+      expect(u.grace_period?).to eq(true)
+      expect(u.long_term_purchase?).to eq(false)
+      expect(u.recurring_subscription?).to eq(false)
+      expect(u.communicator_role?).to eq(true)
+      expect(u.supporter_role?).to eq(false)
+      expect(u.fully_purchased?).to eq(false)
+      
+      u.expires_at = 2.days.ago
+      u.save!
+      expect(u.communicator_role?).to eq(true)
+      expect(u.premium?).to eq(false)
+      expect(u.free_premium?).to eq(false)
+      Worker.process_queues
+      u.reload
+      expect(u.premium?).to eq(false)
+      expect(u.free_premium?).to eq(false)
+      expect(u.org_sponsored?).to eq(false)
+      expect(u.full_premium?).to eq(false)
+      expect(u.never_expires?).to eq(false)
+      expect(u.grace_period?).to eq(false)
+      expect(u.long_term_purchase?).to eq(false)
+      expect(u.recurring_subscription?).to eq(false)
+      expect(u.communicator_role?).to eq(true)
+      expect(u.supporter_role?).to eq(false)
+      expect(u.fully_purchased?).to eq(false)
+    end
   
     it "should correctly auto-expire a communicator role into needing a subscription" do
       u = User.create

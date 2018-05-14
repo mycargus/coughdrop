@@ -194,7 +194,25 @@ describe UserMailer, :type => :mailer do
       ENV['NEW_REGISTRATION_EMAIL'] = 'asdf@example.com'
       expect(Typhoeus).to receive(:get).and_raise("no worky")
       m = UserMailer.new_user_registration(u.global_id)
-      expect(m.subject).to eq('CoughDrop - New User Registration')
+      expect(m.subject).to eq('CoughDrop - New Communicator Registration')
+      html = message_body(m, :html)
+      expect(html).to match(/just signed up/)
+      expect(html).to match(/#{u.user_name}/)
+      expect(html).to_not match(/Location:/)
+      
+      text = message_body(m, :text)
+      expect(text).to match(/just signed up/)
+      expect(text).to match(/#{u.user_name}/)
+      expect(text).to_not match(/Location:/)
+    end
+
+    it "should generate a supervisor registration message" do
+      u = User.create(:settings => {'preferences' => {'registration_type' => 'therapist'}})
+      d = Device.create(:user => u, :settings => {'ip_address' => '1.2.3.4'})
+      ENV['NEW_REGISTRATION_EMAIL'] = 'asdf@example.com'
+      expect(Typhoeus).to receive(:get).and_raise("no worky")
+      m = UserMailer.new_user_registration(u.global_id)
+      expect(m.subject).to eq('CoughDrop - New Supervisor Registration')
       html = message_body(m, :html)
       expect(html).to match(/just signed up/)
       expect(html).to match(/#{u.user_name}/)
@@ -212,7 +230,7 @@ describe UserMailer, :type => :mailer do
       ENV['NEW_REGISTRATION_EMAIL'] = 'asdf@example.com'
       expect(Typhoeus).to receive(:get).with("http://freegeoip.net/json/1.2.3.4").and_return(OpenStruct.new(body: {city: 'Paris', region_name: 'Texas', country_code: 'US'}.to_json))
       m = UserMailer.new_user_registration(u.global_id)
-      expect(m.subject).to eq('CoughDrop - New User Registration')
+      expect(m.subject).to eq('CoughDrop - New Communicator Registration')
       html = message_body(m, :html)
       expect(html).to match(/just signed up/)
       expect(html).to match(/#{u.user_name}/)

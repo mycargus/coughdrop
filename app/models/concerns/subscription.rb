@@ -473,6 +473,9 @@ module Subscription
     if self.supporter_role? && self.expires_at && self.expires_at < Time.now && !self.long_term_purchase?
       self.schedule(:subscription_override, 'manual_supporter')
       return true
+    elsif self.supporter_registration? && self.communicator_role? && self.expires_at && self.expires_at < Time.now && !self.long_term_purchase? && !self.recurring_subscription?
+      self.schedule(:subscription_override, 'manual_supporter')
+      return true
     end
     if self.expires_at && !self.long_term_purchase? && fully_purchased?
       return true

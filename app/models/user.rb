@@ -82,6 +82,10 @@ class User < ActiveRecord::Base
     res
   end
   
+  def supporter_registration?
+    !['unspecified', 'communicator'].include?(self.registration_type)
+  end
+  
   def log_session_duration
     (self.settings['preferences'] && self.settings['preferences']['log_session_duration']) || User.default_log_session_duration
   end
