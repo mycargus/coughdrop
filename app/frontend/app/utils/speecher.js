@@ -9,6 +9,7 @@ import tts_voices from './tts_voices';
 import app_state from './app_state';
 import i18n from './i18n';
 import stashes from './_stashes';
+import Utils from './misc';
 
 var speecher = EmberObject.extend({
   beep_url: "https://opensymbols.s3.amazonaws.com/beep.mp3",
@@ -40,7 +41,9 @@ var speecher = EmberObject.extend({
               voiceURI: 'tts:' + lang
             });
           });
-          _this.set('voices', more_voices.concat(voices));
+          voices = more_voices.concat(voices);
+          voices = Utils.uniq(voices, function(v) { return v.voiceURI; });
+          _this.set('voices', voices);
         }
       }, function() { });
     }
@@ -61,7 +64,9 @@ var speecher = EmberObject.extend({
           });
         }
       });
-      _this.set('voices', more_voices.concat(orig_voices));
+      var voices = more_voices.concat(orig_voices);
+      voices = Utils.uniq(voices, function(v) { return v.voiceURI; });
+      _this.set('voices', voices);
     }, function() { });
     if(list.length === 0) {
       list.push({
