@@ -374,8 +374,12 @@ module Subscription
     !self.supporter_role?
   end
   
+  def paid_or_sponsored?
+    !!(never_expires? || self.recurring_subscription? || self.long_term_purchase? || self.fully_purchased?(true) || self.org_sponsored? )
+  end
+  
   def premium?
-    !!(never_expires? || self.recurring_subscription? || self.org_sponsored? || (self.expires_at && self.expires_at > Time.now) || self.free_premium? || self.fully_purchased?)
+    !!(self.paid_or_sponsored? || self.grace_period? || self.free_premium?)
   end
 
   def full_premium?
@@ -461,10 +465,11 @@ module Subscription
     return tally
   end
   
-  def fully_purchased?
+  def fully_purchased?(shallow=false)
     # long-term purchase, org-sponsored, or subscription for at least 2 years
-    past_tally = (self.settings['past_purchase_durations'] || []).map{|d| d['duration'] || 0}.sum
+    past_tally = ((self.settings || {})['past_purchase_durations'] || []).map{|d| d['duration'] || 0}.sum
     return true if past_tally > (2.years - 1.week)
+    return false if shallow
     duration = self.purchase_credit_duration
     return duration > (2.years - 1.week)
   end
@@ -473,7 +478,7 @@ module Subscription
     if self.supporter_role? && self.expires_at && self.expires_at < Time.now && !self.long_term_purchase?
       self.schedule(:subscription_override, 'manual_supporter')
       return true
-    elsif self.supporter_registration? && self.communicator_role? && self.expires_at && self.expires_at < Time.now && !self.long_term_purchase? && !self.recurring_subscription?
+    elsif self.supporter_registration? && self.communicator_role? && self.expires_at && self.expires_at < Time.now && !self.paid_or_sponsored?
       self.schedule(:subscription_override, 'manual_supporter')
       return true
     end
@@ -488,7 +493,7 @@ module Subscription
   end
 
   def grace_period?
-    !!(self.expires_at && self.expires_at > Time.now && !self.org_sponsored? && !self.never_expires? && !self.long_term_purchase? && !self.recurring_subscription?)
+    !!(self.expires_at && self.expires_at > Time.now && !self.paid_or_sponsored?)
   end
   
   def long_term_purchase?

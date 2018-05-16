@@ -383,7 +383,7 @@ describe Subscription, :type => :model do
       expect(u.org_sponsored?).to eq(false)
       expect(u.full_premium?).to eq(false)
       expect(u.never_expires?).to eq(false)
-      expect(u.grace_period?).to eq(true)
+      expect(u.grace_period?).to eq(false)
       expect(u.long_term_purchase?).to eq(false)
       expect(u.recurring_subscription?).to eq(false)
       expect(u.communicator_role?).to eq(true)
