@@ -98,7 +98,7 @@ class Api::BoardsController < ApplicationController
     self.class.trace_execution_scoped(['boards/category']) do
       if params['category']
         boards = boards.limit(100) if boards.respond_to?(:limit)
-        boards = boards[0, 100].select{|b| (b.settings['categories'] || []).include?(params['category']) }
+        boards = boards[0, 100].select{|b| b.categories.include?(params['category']) }
       elsif params['copies'] == false || params['copies'] == 'false'
         boards = boards.limit(500) if boards.respond_to?(:limit)
         boards = boards.limit(500)[0, 500].select{|b| !b.settings['copy_id'] || b.settings['copy_id'] == b.global_id }[0, 100]

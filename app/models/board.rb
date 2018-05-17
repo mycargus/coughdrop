@@ -605,6 +605,12 @@ class Board < ActiveRecord::Base
     true
   end
   
+  def categories
+    res = (self.settings['categories'] || [])
+    res << 'layout' if self.settings['layout_category']
+    res
+  end
+  
   def check_for_parts_of_speech!
     self.check_for_parts_of_speech
     self.save!
