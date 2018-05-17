@@ -68,7 +68,7 @@ GEM
       mime-types
       xml-simple
     aws-sigv4 (1.0.0)
-    boy_band (0.1.1)
+    boy_band (0.1.2)
     bugsnag (6.7.2)
       concurrent-ruby (~> 1.0)
     builder (3.2.2)
