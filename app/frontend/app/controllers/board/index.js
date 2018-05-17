@@ -711,11 +711,12 @@ export default Controller.extend({
   }.observes('app_state.currentUser.hide_symbols', 'app_state.currentUser.preferences.device.button_text_position'),
   reload_on_connect: function() {
     if(persistence.get('online') && !this.get('model.id')) {
-      var _this = this;
-      var obj = this.store.findRecord('board', this.get('model.id') || this.get('model.key'));
-      return obj.then(function(data) {
-        _this.set('model', data);
-      }, function() { });
+      this.send('refreshData');
+//       var _this = this;
+//       var obj = this.store.findRecord('board', editManager.get('last_board_key'));
+//       return obj.then(function(data) {
+//         _this.set('model', data);
+//       }, function() { });
     }
   }.observes('persistence.online'),
   actions: {
