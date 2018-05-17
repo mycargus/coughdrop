@@ -183,6 +183,9 @@ export default Route.extend({
       }
       return true;
     },
+    refreshData: function() {
+      this.refresh();
+    },
     error: function(error, transition) {
       if(this.get('load_state')) {
         this.set('load_state.has_permissions', !!this.get('model.permissions'));
