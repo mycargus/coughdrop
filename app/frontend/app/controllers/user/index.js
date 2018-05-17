@@ -112,7 +112,11 @@ export default Controller.extend({
       res.filtered_results = new_list.slice(0, 18);
     }
     return res;
-  }.property('selected', 'parent_object', 'show_all_boards', 'filterString', 'model.my_boards', 'model.prior_home_boards', 'model.public_boards', 'model.private_boards', 'model.starred_boards', 'model.shared_boards'),
+  }.property('selected', 'parent_object', 'show_all_boards', 'filterString',
+      'model.my_boards', 'model.prior_home_boards', 'model.public_boards', 'model.private_boards',
+      'model.starred_boards', 'model.shared_boards',
+      'model.my_boards.length', 'model.prior_home_boards.length', 'model.public_boards.length',
+      'model.private_boards.length', 'model.starred_boards.length', 'model.shared_boards.length'),
   reload_logs: function() {
     var _this = this;
     if(!persistence.get('online')) { return; }
@@ -183,9 +187,12 @@ export default Controller.extend({
         if(!append && prior.length) {
           prior = [];
         }
-        var result = prior.concat(boards.map(function(i) { return i; }));
-        result.user_id = _this.get('model.id');
-        _this.set(list_name, result);
+        boards.map(function(i) { return i; }).forEach(function(b) {
+          prior.pushObject(b);
+        });
+//        var result = prior.concat(boards.map(function(i) { return i; }));
+        prior.user_id = _this.get('model.id');
+        _this.set(list_name, prior);
         var meta = persistence.meta('board', boards); //_this.store.metadataFor('board');
         if(meta && meta.more) {
           args.per_page = meta.per_page;
