@@ -253,11 +253,16 @@ var editManager = EmberObject.extend({
     });
     var button = this.find_button(id);
     if(button) {
-      emberSet(button, 'local_image_url', null);
-      emberSet(button, 'local_sound_url', null);
+      if(options.image) {
+        emberSet(button, 'local_image_url', null);
+      }
+      if(options.sound) {
+        emberSet(button, 'local_sound_url', null);
+      }
       for(var key in options) {
         emberSet(button, key, options[key]);
       }
+      emberSet(button, 'user_modified', true);
       this.check_button(id);
     } else {
       console.log("no button found for: " + id);
