@@ -110,6 +110,12 @@
     {{else}}
       <p style='margin-top: 20px;'>{{t "No sync details to show" key='no_sync_details'}}</p>
     {{/if}}
+    {{#if stashes.usage_log.length}}
+      <p style='margin-top: 20px;'>
+        {{stashes.usage_log.length}} {{t "log items waiting to be synced starting" key='pending_log_items_from'}}
+        {{date first_log_date}}
+      </p>
+    {{/if}}
   </div>
   <div class="modal-footer">
     <button class='btn btn-default' {{action 'close'}}>{{t "Close" key='close'}}</button>

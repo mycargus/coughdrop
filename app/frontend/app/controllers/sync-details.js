@@ -27,6 +27,13 @@ export default modal.ModalController.extend({
     }
     return res;
   }.property('persistence.syncing'),
+  first_log_date: function() {
+    var log = this.get('stashes.usage_log')[0];
+    if(log) {
+      return new Date(log.timestamp * 1000);
+    }
+    return null;
+  }.property('stashes.usage_log.length'),
   actions: {
     toggle_statuses: function(sync) {
       emberSet(sync, 'toggled', !emberGet(sync, 'toggled'));
