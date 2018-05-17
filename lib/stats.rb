@@ -464,7 +464,7 @@ module Stats
     res[:words_per_minute] += total_session_seconds > 0 ? (total_words / total_session_seconds * 60) : 0.0
     res[:buttons_per_minute] += total_session_seconds > 0 ? (total_buttons / total_session_seconds * 60) : 0.0
     res[:utterances_per_minute] +=  total_session_seconds > 0 ? (total_utterances / total_session_seconds * 60) : 0.0
-    res[:buttons_by_frequency] = all_button_counts.to_a.sort_by{|ref, button| [button['count'], button['text']] }.reverse.map(&:last)[0, 50]
+    res[:buttons_by_frequency] = all_button_counts.to_a.sort_by{|ref, button| [button['count'], button['text'] || 'zzz'] }.reverse.map(&:last)[0, 50]
     res[:words_by_frequency] = all_word_counts.to_a.sort_by{|word, cnt| [cnt, word.downcase] }.reverse.map{|word, cnt| {'text' => word.downcase, 'count' => cnt} }[0, 100]
     res[:modeled_buttons_by_frequency] = modeled_button_counts.to_a.sort_by{|ref, button| [button['count'], button['text']] }.reverse.map(&:last)[0, 50]
     res[:modeled_words_by_frequency] = modeled_word_counts.to_a.sort_by{|word, cnt| [cnt, word.downcase] }.reverse.map{|word, cnt| {'text' => word.downcase, 'count' => cnt} }[0, 100]
@@ -1000,6 +1000,7 @@ module Stats
         # only suggest words that are actually reachable in the user's vocabulary
         if reachable_words.include?(word)
           scored_words[word] ||= {:word => word, :score => 0, :reasons => []}
+          cnt = 0 if cnt.respond_to?(:nan?) && cnt.nan?
           scored_words[word][:score] += cnt * score
           scored_words[word][:reasons] << key
         end
