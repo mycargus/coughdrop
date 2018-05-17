@@ -2264,19 +2264,39 @@ $nav_extras: #eee;
   }
 }
 @media (max-width: 550px) {
-  .big_buttons {
-    .button_row_wrap {
-      margin-left: 80px;
-      width: 180px;
-      img {
-        width: 25px; 
-        height: 25px; 
-        float: left;
+  @media (min-width: 421px) {
+    .big_buttons {
+      .button_row_wrap {
+        margin-left: 80px;
+        width: 180px;
+        img {
+          width: 25px; 
+          height: 25px; 
+          float: left;
+        }
+      }
+      .button_row_extras {
+        height: 44px;
+        width: 88px;
+        .text {
+          display: inline;
+        }
       }
     }
-    .button_row_extras {
+  }
+}
+@media (max-width: 420px) {
+  .big_buttons {
+    .button_row_mini_wrap {
+      margin-left: 80px;
+    }
+    .button_row_wrap {
+      margin-left: 0px;
+    }
+    .btn-group>.btn.button_row_extras {
+      margin-left: 80px;
       height: 44px;
-      width: 88px;
+      width: 180px;
       .text {
         display: inline;
       }
