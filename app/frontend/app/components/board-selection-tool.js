@@ -146,6 +146,7 @@ export default Component.extend({
       _this.set('status', null);
     }, function(err) {
       _this.set('status', {error: true});
+      _this.sendAction('load_error');
     });
   },
   no_next: function() {
