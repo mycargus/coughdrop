@@ -596,6 +596,11 @@
               <li role="presentation">
                 {{#link-to "user" app_state.currentUser.user_name}}{{t "My Account" key='my_account'}}{{/link-to}}
               </li>
+              {{#if persistence.syncing}}
+                <li role="presentation" style='display: none;'>
+                  <a href="#" {{action 'cancel_sync'}}>{{t "Cancel Sync" key='cancel_sync'}}</a>
+                </li>
+              {{/if}}
             {{else}}
               {{#unless app_state.index_view}}
                 <li role="presentation">

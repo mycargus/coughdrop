@@ -15,11 +15,11 @@ export default modal.ModalController.extend({
       emberSet(sync, 'downloaded', sync.statuses.filter(function(s) { return s.status == 'downloaded'; }).length);
       emberSet(sync, 're_downloaded', sync.statuses.filter(function(s) { return s.status == 're-downloaded'; }).length);
       sync.statuses.forEach(function(s) {
-        emberSet(s, s.status.replace(/-/, '_'), true);
+        emberSet(s, (s.status || '').replace(/-/, '_'), true);
       });
     });
     return details;
-  }.property('persistence.sync_log'),
+  }.property('persistence.sync_log', 'persistence.sync_log.length', 'persistence.sync_log.@each.status'),
   refreshing_class: function() {
     var res = "glyphicon glyphicon-refresh ";
     if(this.get('persistence.syncing')) {
@@ -37,6 +37,11 @@ export default modal.ModalController.extend({
   actions: {
     toggle_statuses: function(sync) {
       emberSet(sync, 'toggled', !emberGet(sync, 'toggled'));
+    },
+    cancel_sync: function() {
+      if(persistence.get('syncing')) {
+        persistence.cancel_sync();
+      }
     },
     sync: function() {
       if(!persistence.get('syncing')) {

@@ -27,8 +27,8 @@
             <strong class='text-danger'>{{t "Tap here to update your subscription" key='subscribe'}}</strong><br/>
             {{t "your free preview has ended" key='preview_expired'}}
           {{else}}
-            <strong>{{t "Please update your license" key='subscribe'}}</strong><br/>
-            {{t "your free preview ends" key='preview_expires'}} {{date app_state.currentUser.subscription.expires 'day'}}
+            <strong>{{t "Please update your license" key='subscribe'}}</strong>
+            <div style='font-size: 12px; line-height: 13px;'>{{t "your free preview ends" key='preview_expires'}}<br/>{{date app_state.currentUser.subscription.expires 'day'}}</div>
           {{/if}}
         {{/link-to}}
       {{/if}}

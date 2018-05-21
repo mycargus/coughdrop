@@ -942,6 +942,11 @@ var persistence = EmberObject.extend({
       persistence.set('sync_progress.errors', errors);
     }
   },
+  cancel_sync: function() {
+    if(persistence.get('sync_progress')) {
+      persistence.set('sync_progress.canceled', true);
+    }
+  },
   sync: function(user_id, force, ignore_supervisees) {
     if(!window.coughDropExtras || !window.coughDropExtras.ready) {
       return new RSVP.Promise(function(wait_resolve, wait_reject) {
@@ -979,7 +984,17 @@ var persistence = EmberObject.extend({
 
       var prime_caches = persistence.prime_caches(true).then(null, function() { return RSVP.resolve(); });
 
-      var find_user = prime_caches.then(function() {
+      var check_first = function(callback) {
+        if(persistence.get('sync_progress') && persistence.get('sync_progress.canceled')) {
+          return function() {
+            return RSVP.reject({error: 'canceled'});
+          };
+        } else {
+          return callback;
+        }
+      };
+
+      var find_user = prime_caches.then(check_first(function() {
         return CoughDrop.store.findRecord('user', user_id).then(function(user) {
           return user.reload().then(null, function() {
             sync_reject({error: "failed to retrieve user details"});
@@ -987,7 +1002,7 @@ var persistence = EmberObject.extend({
         }, function() {
           sync_reject({error: "failed to retrieve user details"});
         });
-      });
+      }));
 
       // cache images used for keyboard spelling to work offline
       if(!CoughDrop.testing || CoughDrop.sync_testing) {
@@ -996,7 +1011,7 @@ var persistence = EmberObject.extend({
         persistence.store_url('https://s3.amazonaws.com/opensymbols/libraries/arasaac/board_3.png', 'image', false, false).then(null, function() { });
       }
 
-      var confirm_quota_for_user = find_user.then(function(user) {
+      var confirm_quota_for_user = find_user.then(check_first(function(user) {
         if(user) {
           persistence.set('online', true);
           if(user.get('preferences.skip_supervisee_sync')) {
@@ -1019,9 +1034,9 @@ var persistence = EmberObject.extend({
           }
         }
         return user;
-      });
+      }));
 
-      confirm_quota_for_user.then(function(user) {
+      confirm_quota_for_user.then(check_first(function(user) {
         if(user) {
           var old_user_id = user_id;
           user_id = user.get('id');
@@ -1105,7 +1120,7 @@ var persistence = EmberObject.extend({
           persistence.refresh_after_eventual_stores();
           sync_reject.apply(null, arguments);
         });
-      });
+      }));
 
     }).then(function() {
       // TODO: some kind of alert with a "reload" option, since we potentially
@@ -1154,7 +1169,7 @@ var persistence = EmberObject.extend({
           }, function() {
             debugger;
           });
-          var log = persistence.get('sync_log') || [];
+          var log = [].concat(persistence.get('sync_log') || []);
           log.push({
             user_id: user_name,
             manual: force,
@@ -1164,6 +1179,7 @@ var persistence = EmberObject.extend({
             summary: sync_message
           });
           persistence.set('sync_log', log);
+          persistence.set('sync_log_rand', Math.random());
         }
         return RSVP.resolve(last_sync);
       });
@@ -1181,7 +1197,7 @@ var persistence = EmberObject.extend({
         }
         var message = (err && err.error) || "unspecified sync error";
         var statuses = statuses.uniq(function(s) { return s.id; });
-        var log = persistence.get('sync_log') || [];
+        var log = [].concat(persistence.get('sync_log') || []);
         log.push({
           user_id: user_name,
           manual: force,
@@ -1293,6 +1309,9 @@ var persistence = EmberObject.extend({
     });
   },
   board_lookup: function(id, safely_cached_boards, fresh_board_revisions) {
+    if(persistence.get('sync_progress') && persistence.get('sync_progress.canceled')) {
+      return RSVP.reject({error: 'canceled'});
+    }
     var lookups = persistence.get('sync_progress.key_lookups');
     var board_statuses = persistence.get('sync_progress.board_statuses');
     if(!lookups) {
@@ -1356,6 +1375,9 @@ var persistence = EmberObject.extend({
     });
   },
   queue_sync_action: function(action, method) {
+    if(persistence.get('sync_progress') && persistence.get('sync_progress.canceled')) {
+      return RSVP.reject({error: 'canceled'});
+    }
     var defer = RSVP.defer();
     defer.callback = method;
     defer.descriptor = action;

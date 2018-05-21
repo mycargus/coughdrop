@@ -5,6 +5,9 @@
   </div>
   <div class="modal-body">
     <div style='float: right;'>
+      {{#if persistence.syncing}}
+        <button class='btn btn-lg btn-default' {{action 'cancel_sync'}}>{{t "Cancel Sync" key='cancel_sync'}}</button>
+      {{/if}}
       <button class='btn btn-lg btn-default' {{action 'sync'}}>
         <span class={{refreshing_class}}></span>
         {{#if persistence.syncing}}

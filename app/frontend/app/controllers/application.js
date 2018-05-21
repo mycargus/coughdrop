@@ -78,6 +78,9 @@ export default Controller.extend({
         this.transitionToRoute('login');
       }
     },
+    cancel_sync: function() {
+      persistence.cancel_sync();
+    },
     index: function() {
       this.transitionToRoute('index');
     },
