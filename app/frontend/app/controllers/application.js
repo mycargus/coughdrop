@@ -162,6 +162,7 @@ export default Controller.extend({
       } else {
         this.jumpToBoard({
           key: path,
+          level: board.level,
           home_lock: board.home_lock
         });
       }
@@ -186,7 +187,12 @@ export default Controller.extend({
                 persistence.sync('self').then(null, function() { });
               }, 1000);
             }
-
+            _this.set('simple_board_header', false);
+            if(_this.get('setup_footer')) {
+              _this.send('setup_go', 'forward');
+            } else {
+              modal.success(i18n.t('board_set_as_home', "Great! This is now the user's home board!"), true);
+            }
           };
           if(option == 'starting') {
             // TODO: make a personal copy of the board for the user
@@ -199,7 +205,6 @@ export default Controller.extend({
                 user.set('home_board_pending', false);
                 modal.error(i18n.t('set_as_home_failed', "Home board update failed unexpectedly"));
               });
-              _this.send('setup_go', 'forward');
             }, function() {
               user.set('home_board_pending', false);
               modal.error(i18n.t('set_as_home_failed', "Home board update failed unexpectedly"));
@@ -212,7 +217,6 @@ export default Controller.extend({
             var _this = this;
             user.save().then(function() {
               done();
-              _this.send('setup_go', 'forward');
             }, function() {
               modal.error(i18n.t('set_as_home_failed', "Home board update failed unexpectedly"));
             });
@@ -397,8 +401,13 @@ export default Controller.extend({
       editManager.clear_paint_mode();
     },
     paint: function(fill, border, parts_of_speech) {
-      var part_of_speech = (parts_of_speech || [])[0];
-      editManager.set_paint_mode(fill, border, part_of_speech);
+      if(fill == 'level') {
+//        modal.open('modals/modeling-ideas', {users: users});
+        modal.open('modals/paint-level', {});
+      } else {
+        var part_of_speech = (parts_of_speech || [])[0];
+        editManager.set_paint_mode(fill, border, part_of_speech);
+      }
     },
     star: function() {
       var board = this.get('board').get('model');
@@ -418,6 +427,36 @@ export default Controller.extend({
       if(!app_state.get('edit_mode')) { return; }
       editManager.clear_paint_mode();
       modal.open('button-stash');
+    },
+    preview_levels: function() {
+      if(!app_state.get('edit_mode')) { return; }
+      editManager.preview_levels();
+    },
+    shift_level: function(direction) {
+      var levels = this.get('board.button_levels');
+      if(levels[0] != 1) { levels.unshift(1); }
+      if(levels[levels.length - 1] != 10) { levels.push(10); }
+      if(direction == 'done') {
+        editManager.clear_preview_levels();
+      } else if(direction == 'down') {
+        var lvl = Math.max(1, (this.get('board.current_level') || 10) - 1);
+        var new_level = null;
+        for(var idx = 0; idx < levels.length; idx++) {
+          if(levels[idx] <= lvl) { new_level = levels[idx]; }
+        }
+        this.set('board.preview_level', new_level);
+        this.set('board.model.display_level', new_level);
+        editManager.process_for_displaying();
+      } else if(direction == 'up') {
+        var lvl = Math.min(10, (this.get('board.current_level') || 10) + 1);
+        var new_level = null;
+        for(var idx = 0; idx < levels.length; idx++) {
+          if(!new_level && levels[idx] >= lvl) { new_level = levels[idx]; }
+        }
+        this.set('board.preview_level', new_level);
+        this.set('board.model.display_level', new_level);
+        editManager.process_for_displaying();
+      }
     },
     list_copies: function() {
       modal.open('board-copies', {board: this.get('board.model')});

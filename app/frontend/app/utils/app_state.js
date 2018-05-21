@@ -288,10 +288,14 @@ var app_state = EmberObject.extend({
   }.observes('currentUser.preferences.protected_usage'),
   set_root_board_state: function() {
     if(this.get('set_as_root_board_state') && this.get('currentBoardState')) {
+      stashes.persist('board_level', this.get('currentBoardState.default_level'));
       stashes.persist('root_board_state', this.get('currentBoardState'));
       this.set('set_as_root_board_state', false);
     }
   }.observes('set_as_root_board_state', 'currentBoardState'),
+  current_board_level: function() {
+    return stashes.get('board_level') || 10;
+  }.property('stashes.board_level'),
   board_url: function() {
     if(this.get('currentBoardState.key')) {
       return htmlSafe((capabilities.api_host || (location.protocol + "//" + location.host)) + "/" + this.get('currentBoardState.key'));
@@ -346,6 +350,9 @@ var app_state = EmberObject.extend({
     }
     var history = this.get_history();
     old_state = old_state || this.get('currentBoardState');
+    if(stashes.get('board_level')) {
+      old_state.level = stashes.get('board_level');
+    }
     history.push(old_state);
     stashes.log({
       action: 'open_board',
@@ -357,6 +364,9 @@ var app_state = EmberObject.extend({
     }
     this.controller.send('hide_temporary_sidebar');
     this.set_history([].concat(history));
+    if(new_state.level) {
+      stashes.persist('board_level', new_state.level);
+    }
     this.controller.transitionToRoute('board', new_state.key);
   },
   check_for_lock_on_board_state: function() {
@@ -448,6 +458,9 @@ var app_state = EmberObject.extend({
       button_triggered: opts.button_triggered
     });
     this.set_history([].concat(history));
+    if(state.level) {
+      stashes.persist('board_level', state.level);
+    }
     this.controller.transitionToRoute('board', state.key);
   },
   jump_to_root_board: function(options) {
@@ -464,6 +477,7 @@ var app_state = EmberObject.extend({
     if(state && state.key) {
       if(app_state.get('currentBoardState.key') != state.key) {
         buttonTracker.transitioning = true;
+        stashes.persist('board_level', state.level || state.default_level);
         this.controller.transitionToRoute('board', state.key);
         do_log = current && current.key && state.key != current.key;
       }
@@ -556,12 +570,17 @@ var app_state = EmberObject.extend({
     if(opts && opts.force) { current_mode = null; }
     if(mode == 'speak') {
       var board_state = app_state.get('currentBoardState');
+      var board_level = board_state && board_state.default_level;
+      // use the current board's level setting unless forcing the user's home board to be root
       if(opts && opts.override_state) {
         if(opts.temporary_home && board_state && board_state.id != opts.override_state.id) {
           temporary_root_state = board_state;
+        } else {
+          board_level = opts.override_state.level || board_level;
         }
         board_state = opts.override_state;
       }
+      stashes.persist('board_level', board_level);
       stashes.persist('root_board_state', board_state);
     }
     if(current_mode == mode) {
@@ -603,10 +622,12 @@ var app_state = EmberObject.extend({
     var $stash_hover = $("#stash_hover");
     $stash_hover.removeClass('on_button').data('button_id', null);
     editManager.clear_paint_mode();
+    editManager.clear_preview_levels();
   },
   home_in_speak_mode: function(opts) {
     opts = opts || {};
     var speak_mode_user = opts.user || app_state.get('currentUser');
+    // TODO: if preferred matches user's home board, pass the user's level instead of the board's default level
     var preferred = opts.force_board_state || (speak_mode_user && speak_mode_user.get('preferences.home_board')) || opts.fallback_board_state || stashes.get('root_board_state') || {key: 'example/yesno'};
     // TODO: same as above, in .toggle_mode
     if(speak_mode_user && !opts.reminded && speak_mode_user.get('expired')) {
@@ -614,6 +635,9 @@ var app_state = EmberObject.extend({
         opts.reminded = true;
         app_state.home_in_speak_mode(opts);
       });
+    }
+    if(preferred && speak_mode_user && preferred.id == speak_mode_user.get('preferences.home_board.id')) {
+      preferred = speak_mode_user.get('preferences.home_board');
     }
     // NOTE: text-direction is updated on board load, so it's ok that it's not known here
     this.toggle_mode('speak', {force: true, override_state: preferred});
@@ -746,9 +770,11 @@ var app_state = EmberObject.extend({
             var current = app_state.get('currentBoardState') || user_state;
             if(user_state && user_state.id != current.id) {
               stashes.persist('temporary_root_board_state', current);
+              stashes.persist('board_level', app_state.get('currentBoardState.default_level'));
               stashes.persist('root_board_state', user_state);
             } else {
               stashes.persist('temporary_root_board_state', null);
+              stashes.persist('board_level', current.level || current.default_level);
               stashes.persist('root_board_state', current);
             }
           }

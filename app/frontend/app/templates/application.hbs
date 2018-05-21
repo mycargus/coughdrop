@@ -4,7 +4,7 @@
   <div id="inner_header">
   {{#if app_state.speak_mode}}
     <span id="speak">
-      <button class="btn btn-default access" id="home_button" {{action "home"}}>
+      <button class="btn btn-default access" id="home_button" {{action "home"}} style='position: relative;'>
         <span class="sr-only">{{t "Home" key="home"}}</span>
         <span class="glyphicon glyphicon-home button_icon"></span>
         {{#if stashes.temporary_root_board_state}}
@@ -135,6 +135,9 @@
             {{#link-to 'user' app_state.current_board_user_name}}{{app_state.current_board_user_name}}{{/link-to}} /
             {{app_state.current_board_name}}
           {{/if}}
+          {{#if stashes.board_level}}
+            <span style='margin-left: 5px;'>L{{stashes.board_level}}</span>
+          {{/if}}
         </span>
       {{/unless}}
     {{/if}}
@@ -174,6 +177,19 @@
         <button class="btn btn-default drag_button" id="edit_stash_button" style="position: relative; width: 300px;">
           {{t "Copy Button to Stash" key="copy_button_to_stash"}}
         </button>
+      {{else if board.preview_levels}}
+        <button class="btn btn-default drag_button" {{action 'shift_level' 'down'}} style="position: relative; width: 50px;">
+          <span class='glyphicon glyphicon-chevron-left'></span>
+        </button>
+        <span style='font-size: 20px; margin: 0 10px; width: 90px; display: inline-block; text-align: center;'>
+          {{t "Level" key='level'}} {{board.current_level}}
+        </span>
+        <button class="btn btn-default drag_button" {{action 'shift_level' 'up'}} style="position: relative; width: 50px;">
+          <span class='glyphicon glyphicon-chevron-right'></span>
+        </button>
+        <button class="btn btn-info" {{action 'shift_level' 'done'}} style="position: relative; width: 100px;">
+          {{t "Done" key='done'}}
+        </button>
       {{else}}
         <button class={{no_paint_mode_class}} {{action "noPaint"}}><span class='wide'>{{t "&nbsp;&nbsp;Edit&nbsp;&nbsp;" key="edit"}}</span><span class='skinny glyphicon glyphicon-hand-up'></span></button>
         <span class="dropdown" style="display: inline-block;">
@@ -183,15 +199,15 @@
               {{{board.paintColor}}}
             {{/if}}
           </button>
-          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" style='width: 285px;'>
             {{#each swatches as |swatch|}}
               <li role="presentation">
-                <a role="menuitem" href="#" tabindex="-1" href="#" {{action "paint" swatch.fill swatch.border swatch.types}}>
+                <a role="menuitem" href="#" tabindex="-1" href="#" {{action "paint" swatch.fill swatch.border swatch.types}} style="float: left; width: 140px; clear: right; padding-top: 3px; padding-bottom: 3px;">
                   <span class="swatch" style={{swatch.style}}></span>
                   <span style="width: 70px; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: top;">{{swatch.color}}</span>
-                  {{#if swatch.hint}}
-                    <span class="text-muted" style="display: inline-block; vertical-align: top;">({{swatch.hint}})</span>
-                  {{/if}}
+                  <span class="text-muted" style="margin-left: 22px; display: block; margin-top: -5px; font-size: 14px; vertical-align: top;">
+                    {{swatch.hint}}&nbsp;
+                  </span>
                 </a>
               </li>
             {{/each}}
@@ -205,6 +221,14 @@
               <a role="menuitem" href="#" tabindex="-1" href="#" {{action "paint" "open"}} style="float: left; width: 140px; clear: right;"><span class="glyphicon glyphicon-plus-sign"></span> {{t "Re-Link" key="open"}}</a>
               <span style="clear: left;"></span>
             </li>
+            {{#if app_state.feature_flags.board_levels}}
+              <li role="presentation">
+                <a role="menuitem" href="#" tabindex="-1" href="#" {{action "paint" 'level'}}>
+                  <span class="glyphicon glyphicon-signal"></span>
+                  {{t "Level Modifications" key='level_modifications'}}
+                </a>
+              </li>
+            {{/if}}
           </ul>
         </span>
         <span class="wide_placeholder" style="padding-right: 10px;"></span>
@@ -261,6 +285,11 @@
             <li role="presentation">
               <a role="menuitem" href="#" tabindex="-1" {{action "openButtonStash"}}>{{t "Button Stash" key="button_stash"}}</a>
             </li>
+            {{#if board.button_levels}}
+              <li role="presentation">
+                <a role="menuitem" href="#" tabindex="-1" {{action "preview_levels"}}>{{t "Preview Levels" key="preview_levels"}}</a>
+              </li>
+            {{/if}}
             <li role="presentation really_skinny">
               <a role="menuitem" href="#" tabindex="-1" {{action "saveBoard"}}>{{t "Save Board" key="save_board"}}</a>
             </li>
@@ -488,6 +517,22 @@
         </a>
         <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" style="right: 0; left: inherit; text-align: left;">
           {{#if app_state.speak_mode}}
+            {{#if app_state.currentBoardState.id}}
+              {{#if simple_board_header}}
+                {{#if app_state.currentUser}}
+                  <li role="presentation" class='big' id='exit_speak_mode'>
+                    <a href="#" {{action "setAsHome" 'starting'}}>
+                      {{#if app_state.root_board_is_home}}
+                        {{t "Set as Home Board" key="set_as_home"}}
+                      {{else}}
+                        {{t "Make This my Home Board" key="set_as_home"}}
+                      {{/if}}
+                    </a>
+                  </li>
+                  <li class="divider"></li>
+                {{/if}}
+              {{/if}}
+            {{/if}}
             <li role="presentation" class='big' id='exit_speak_mode'>
               <a href="#" {{action "toggleSpeakMode"}}>{{t "Exit Speak Mode" key="exit_speak_mode"}}</a>
             </li>

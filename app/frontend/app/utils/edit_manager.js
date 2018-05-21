@@ -422,6 +422,11 @@ var editManager = EmberObject.extend({
         close_link: false,
         paint_id: Math.random()
       };
+    } else if(fill_color == 'level') {
+      this.paint_mode = {
+        level: border_color,
+        attribute: part_of_speech
+      };
     } else {
       var fill = window.tinycolor(fill_color);
       var border = null;
@@ -450,6 +455,18 @@ var editManager = EmberObject.extend({
       this.controller.set('paint_mode', false);
     }
   },
+  preview_levels: function() {
+    if(this.controller) {
+      this.controller.set('preview_levels_mode', true);
+    }
+  },
+  clear_preview_levels: function() {
+    if(this.controller) {
+      this.controller.set('preview_levels_mode', false);
+      this.controller.set('preview_level', null);
+      this.process_for_displaying();
+    }
+  },
   release_stroke: function() {
     if(this.paint_mode) {
       this.paint_mode.paint_id = Math.random();
@@ -474,6 +491,32 @@ var editManager = EmberObject.extend({
     if(this.paint_mode.close_link != null) {
       emberSet(button, 'link_disabled', this.paint_mode.close_link);
     }
+    if(this.paint_mode.level) {
+      var mods = $.extend({}, emberGet(button, 'level_modifications') || {});
+      var level = this.paint_mode.attribute.toString();
+      if(!mods.pre) { mods.pre = {}; }
+      if(this.paint_mode.level == 'hidden' && this.paint_mode.attribute) {
+        mods.pre.hidden = true;
+        for(var idx in mods) {
+          if(parseInt(idx, 10) > 0) { delete mods[idx]['hidden']; }
+          if(Object.keys(mods[idx]).length == 0) { delete mods[idx]; }
+        }
+        mods[level] = mods[level] || {};
+        mods[level].hidden = false;
+        emberSet(button, 'level_modifications', mods);
+      } else if(this.paint_mode.level == 'link_disabled' && this.paint_mode.attribute) {
+        mods.pre.link_disabled = true;
+        for(var idx in mods) {
+          if(parseInt(idx, 10) > 0) { delete mods[idx]['link_disabled']; }
+          if(Object.keys(mods[idx]).length == 0) { delete mods[idx]; }
+        }
+        mods[level] = mods[level] || {};
+        mods[level].link_disabled = false;
+        emberSet(button, 'level_modifications', mods);
+      } else if(this.paint_mode.level == 'clear') {
+        emberSet(button, 'level_modifications', null);
+      }
+    }
     if(this.paint_mode.part_of_speech) {
       if(!emberGet(button, 'part_of_speech') || emberGet(button, 'part_of_speech') == emberGet(button, 'suggested_part_of_speech')) {
         emberSet(button, 'part_of_speech', this.paint_mode.part_of_speech);
@@ -486,6 +529,8 @@ var editManager = EmberObject.extend({
     CoughDrop.log.track('processing for displaying');
     var controller = this.controller;
     var board = controller.get('model');
+    var board_level = controller.get('current_level') || stashes.get('board_level') || 10;
+    board.set('display_level', board_level);
     var buttons = board.translated_buttons(app_state.get('label_locale'), app_state.get('vocalization_locale'));
     var grid = board.get('grid');
     if(!grid) { return; }
@@ -515,7 +560,6 @@ var editManager = EmberObject.extend({
     // - if any *still* aren't reachable, mark them as broken
     // - do NOT make remote requests for the individual records???
 
-
     var resume_scanning = function() {
       runLater(function() {
         if(app_state.controller) {
@@ -529,7 +573,7 @@ var editManager = EmberObject.extend({
 
     if(app_state.get('speak_mode') && app_state.get('feature_flags.fast_render')) {
       controller.update_button_symbol_class();
-      if(board.get('fast_html') && board.get('fast_html.width') == controller.get('width') && board.get('fast_html.height') == controller.get('height') && board.get('current_revision') == board.get('fast_html.revision') && board.get('fast_html.label_locale') == app_state.get('label_locale')) {
+      if(board.get('fast_html') && board.get('fast_html.width') == controller.get('width') && board.get('fast_html.height') == controller.get('height') && board.get('current_revision') == board.get('fast_html.revision') && board.get('fast_html.label_locale') == app_state.get('label_locale') && board.get('fast_html.display_level') == board_level) {
         CoughDrop.log.track('already have fast render');
         resume_scanning();
         return;
@@ -543,6 +587,7 @@ var editManager = EmberObject.extend({
           width: controller.get('width'),
           extra_pad: controller.get('extra_pad'),
           inner_pad: controller.get('inner_pad'),
+          display_level: board_level,
           base_text_height: controller.get('base_text_height'),
           button_symbol_class: controller.get('button_symbol_class')
         });
@@ -677,6 +722,26 @@ var editManager = EmberObject.extend({
           newButton.hidden = !!currentButton.hidden;
           newButton.link_disabled = !!currentButton.link_disabled;
           newButton.add_to_vocalization = !!currentButton.add_to_vocalization;
+          if(currentButton.level_style) {
+            if(currentButton.level_style == 'none') {
+              emberSet(currentButton, 'level_modifications', null);
+            } else if(currentButton.level_style == 'basic' && (currentButton.hidden_level || currentButton.link_disabled_level)) {
+              var mods = emberGet(currentButton, 'level_modifications') || {};
+              mods.pre = mods.pre || {};
+              if(currentButton.hidden_level) {
+                mods.pre['hidden'] = true;
+                mods[currentButton.hidden_level.toString()] = {hidden: false};
+              }
+              if(currentButton.link_disabled_level) {
+                mods.pre['link_disabled'] = true;
+                mods[currentButton.link_disabled_level.toString()] = {link_disabled: false};
+              }
+              emberSet(currentButton, 'level_modifications', mods);
+            } else if(currentButton.level_json) {
+              emberSet(currentButton, 'level_modifications', JSON.parse(currentButton.level_json));
+            }
+          }
+          newButton.level_modifications = currentButton.level_modifications;
           newButton.home_lock = !!currentButton.home_lock;
           newButton.hide_label = !!currentButton.hide_label;
           newButton.blocking_speech = !!currentButton.blocking_speech;

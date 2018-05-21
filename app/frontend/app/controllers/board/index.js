@@ -505,6 +505,27 @@ export default Controller.extend({
   starAlt: function() {
     return this.get('model.starred') ? i18n.t('already_starred', "Already liked") : i18n.t('star_this_board', "Like this board");
   }.property('model.starred'),
+  current_level: function() {
+    return this.get('preview_level') ||  this.get('model.default_level') || stashes.get('board_level') || 10;
+  }.property('model.default_level', 'stashes.board_level', 'preview_level'),
+  button_levels: function() {
+    var levels = [];
+    (this.get('ordered_buttons') || []).forEach(function(row) {
+      row.forEach(function(button) {
+        var mods = button.get('level_modifications') || {};
+        for(var idx in mods) {
+          var lvl = parseInt(idx, 10);
+          if(lvl > 0 && levels.indexOf(lvl) == -1) {
+            levels.push(lvl);
+          }
+        }
+      });
+    });
+    return levels.uniq().sort();
+  }.property('ordered_buttons.@each.level_modifications'),
+  preview_levels: function() {
+    return this.get('app_state.edit_mode') && this.get('preview_levels_mode');
+  }.property('app_state.edit_mode', 'preview_levels_mode'),
   noUndo: true,
   noRedo: true,
   paint_mode: false,
@@ -519,6 +540,8 @@ export default Controller.extend({
         return "<span class='glyphicon glyphicon-remove-sign'></span>";
       } else if(mode.close_link === false) {
         return "<span class='glyphicon glyphicon-plus-sign'></span>";
+      } else if(mode.level) {
+        return "<span class='glyphicon glyphicon-signal'></span>";
       } else {
         return "<span class='swatch' style='width: 14px; height: 14px; border-color: " + mode.border + "; background-color: " + mode.fill + ";'></span>";
       }

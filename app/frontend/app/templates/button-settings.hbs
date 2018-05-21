@@ -15,6 +15,9 @@
           {{#if board.translations}}
             <li class={{if languageState 'active' 'inactive'}} {{action 'setState' "language"}}><a href="#">{{t "Language" key='language'}}</a></li>
           {{/if}}
+          {{#if app_state.feature_flags.board_levels}}
+            <li class={{if extrasState 'active' 'inactive'}} {{action 'setState' "extras"}}><a href="#">{{t "Extras" key='extras'}}</a></li>
+          {{/if}}
         </ul>
       </div>
       <div class="col-sm-9 content">
@@ -24,6 +27,7 @@
         {{partial "button-settings-action"}}
         {{partial "button-settings-sound"}}
         {{partial "button-settings-language"}}
+        {{partial "button-settings-extras"}}
       </div>
     </div>
   </div>

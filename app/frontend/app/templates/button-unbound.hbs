@@ -1,3 +1,4 @@
+<!-- TODO: I think this is never used anymore -->
 <div style={{button.computed_style}} class={{unbound button.computed_class}} data-id={{unbound button.id}} tabindex="0">
   {{#if button.pending}}
     <div class="pending">
@@ -18,6 +19,6 @@
     <audio style="display: none;" preload="auto" src={{button.local_sound_url}} rel={{unbound button.sound.url}}></audio>
   {{/if}}
   <div class={{button_symbol_class}}>
-    <span class={{if button.hide_label "button-label hide-label" "button-label"}}>{{unbound button.label}}</span>
+    <span class={{if button.hide_label "button-label hide-label" "button-label"}}>!{{unbound button.label}}</span>
   </div>
 </div>

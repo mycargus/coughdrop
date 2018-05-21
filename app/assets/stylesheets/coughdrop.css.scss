@@ -1728,6 +1728,12 @@ body.pretty_loader #loading_box {
   left: calc(10% + 5px); 
   padding: 3px;
 }
+.board.edit .button .levels {
+  position: absolute;
+  top: 5px;
+  left: 0;
+  font-size: 12px;
+}
 .button .label_dropdown {
   width: calc(20% + 1px);
   height: 20px;

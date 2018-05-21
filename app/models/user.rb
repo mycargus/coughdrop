@@ -236,7 +236,7 @@ class User < ActiveRecord::Base
     if self.settings['preferences']['home_board']
       self.settings['preferences']['progress']['home_board_set'] = true
       self.settings['all_home_boards'] ||= []
-      self.settings['all_home_boards'] << self.settings['preferences']['home_board']
+      self.settings['all_home_boards'] << self.settings['preferences']['home_board'].slice('key', 'id')
       self.settings['all_home_boards'] = self.settings['all_home_boards'].uniq
       # once a home board is set, start the timer
       if self.eval_account? && !self.settings['subscription']['eval_expires']
@@ -684,10 +684,11 @@ class User < ActiveRecord::Base
   
   def process_home_board(home_board, non_user_params)
     board = Board.find_by_path(home_board['id'])
-    json = self.settings['preferences']['home_board'].to_json
+    json = self.settings['preferences']['home_board'].slice('id', 'key').to_json
     if board && board.allows?(self, 'view')
       self.settings['preferences']['home_board'] = {
         'id' => board.global_id,
+        'level' => home_board['level'],
         'key' => board.key
       }
     elsif board && non_user_params['updater'] && board.allows?(non_user_params['updater'], 'share')
@@ -698,12 +699,13 @@ class User < ActiveRecord::Base
       end
       self.settings['preferences']['home_board'] = {
         'id' => board.global_id,
+        'level' => home_board['level'],
         'key' => board.key
       }
     else
       self.settings['preferences'].delete('home_board')
     end
-    if self.settings['preferences']['home_board'].to_json != json
+    if self.settings['preferences']['home_board'].slice('id', 'key').to_json != json
       notify('home_board_changed')
     end
   end
@@ -729,6 +731,7 @@ class User < ActiveRecord::Base
           brd = {
             'name' => board['name'] || record.settings['name'] || 'Board',
             'key' => board['key'],
+            'level' => board['level'],
             'image' => board['image'] || record.settings['image_url'] || 'https://s3.amazonaws.com/opensymbols/libraries/arasaac/board_3.png',
             'home_lock' => !!board['home_lock']
           }

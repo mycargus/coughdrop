@@ -9,6 +9,7 @@ import i18n from '../../utils/i18n';
 import CoughDrop from '../../app';
 import contentGrabbers from '../../utils/content_grabbers';
 import persistence from '../../utils/persistence';
+import {set as emberSet, get as emberGet} from '@ember/object';
 
 export default Route.extend({
   model: function(params) {
@@ -26,12 +27,14 @@ export default Route.extend({
     var _this = this;
     controller.set('model', model);
     controller.set('ordered_buttons', null);
+    controller.set('preview_level', null);
     model.set('show_history', false);
     model.load_button_set();
     app_state.set('currentBoardState', {
       id: model.get('id'),
       key: model.get('key'),
       name: model.get('name'),
+      default_level: model.get('current_level'),
       copy_version: model.get('copy_version'),
       integration_name: model.get('integration') && model.get('integration_name'),
       parent_key: model.get('parent_board_key'),
@@ -61,7 +64,9 @@ export default Route.extend({
       if(app_state.get('currentUser.preferences.home_board')) {
         app_state.toggle_home_lock(true);
       }
+      emberSet(state, 'level', emberGet(state, 'default_level'));
       stashes.persist('root_board_state', state);
+      stashes.persist('board_level', app_state.get('currentBoardState.default_level'));
       stashes.persist('temporary_root_board_state', null);
       app_state.set('temporary_root_board_key', null);
     }

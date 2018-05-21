@@ -191,8 +191,51 @@ var Button = EmberObject.extend({
     }
     return url;
   }.property('apps.web.launch_url'),
+  include_level_modifications: function() {
+    // level_modifications needs to include a "pre" state or a level 0 state
+    // so that no outside information is needed to ensure the button is rendered
+    // at the correct level, regardless of its currently-stored settings
+    // (i.e. the board's current default_level), otherwise when I slide the
+    // dial down to a lower level, it won't be clear exactly what that means.
+    // Also we need the system to be able to decide if a user has overridden
+    // any of the level-modified values (maybe a 'overrides' attribute to store these)
+  }.observes('board.current_level'),
+  levels_list: function() {
+    var levels = [];
+    var mods = this.get('level_modifications') || {};
+    for(var idx in mods) {
+      if(parseInt(idx, 10) > 0) {
+        levels.push(parseInt(idx, 10));
+      }
+    }
+    levels = levels.sort();
+    if(levels.length > 0) {
+      return "L" + levels.join(' ');
+    } else {
+      return null;
+    }
+  }.property('level_modifications'),
   fast_html: function() {
     var res = "";
+    if(this.get('board.display_level') && this.get('level_modifications')) {
+      if(this.get('board.display_level') == this.get('board.default_level')) {
+      } else {
+        var mods = this.get('level_modifications');
+        var level = this.get('board.display_level');
+        if(mods.pre) {
+          for(var key in mods.pre) {
+            this.set(key, mods.pre[key]);
+          }
+        }
+        for(var idx = 1; idx <= level; idx++) {
+          if(mods[idx]) {
+            for(var key in mods[idx]) {
+              this.set(key, mods[idx][key]);
+            }
+          }
+        }
+      }
+    }
     res = res + "<div style='" + this.get('computed_style') + "' class='" + this.get('computed_class') + "' data-id='" + this.get('id') + "' tabindex='0'>";
     if(this.get('pending')) {
       res = res + "<div class='pending'><img src='" + Ember.templateHelpers.path('images/spinner.gif') + "' /></div>";
@@ -217,7 +260,7 @@ var Button = EmberObject.extend({
 
     res = res + "</div>";
     return htmlSafe(res);
-  }.property('refresh_token', 'positioning', 'computed_style', 'computed_class', 'label', 'action_class', 'action_image', 'action_alt', 'image_holder_style', 'local_image_url', 'image_style', 'local_sound_url', 'sound.url', 'hide_label'),
+  }.property('refresh_token', 'positioning', 'computed_style', 'computed_class', 'label', 'action_class', 'action_image', 'action_alt', 'image_holder_style', 'local_image_url', 'image_style', 'local_sound_url', 'sound.url', 'hide_label', 'level_modifications', 'board.display_level'),
   image_holder_style: function() {
     var pos = this.get('positioning');
     return htmlSafe(Button.image_holder_style(pos));
@@ -451,7 +494,10 @@ var Button = EmberObject.extend({
     return ret;
   }
 });
-Button.attributes = ['label', 'background_color', 'border_color', 'image_id', 'sound_id', 'load_board', 'hide_label', 'completion'];
+Button.attributes = ['label', 'background_color', 'border_color', 'image_id', 'sound_id', 'load_board',
+            'hide_label', 'completion', 'hidden', 'link_disabled', 'vocalization', 'url', 'apps',
+            'integration', 'video', 'book', 'part_of_speech', 'external_id', 'add_to_vocalization',
+            'home_lock', 'blocking_speech', 'level_modifications'];
 
 Button.style = function(style) {
   var res = {};

@@ -34,6 +34,57 @@ export default modal.ModalController.extend({
       state = 'help';
       this.set('auto_help', true);
     }
+    if(!button.get('level_style')) {
+      if(!button.get('level_modifications') || Object.keys(button.get('level_modifications')).length == 0) {
+        button.set('level_style', 'none');
+      } else {
+        var mods = button.get('level_modifications');
+        var json = {};
+        var hidden_level = null, link_disabled_level = null;
+        var advanced = false;
+        var strip = function(list) { return list.filter(function(k) { return k != 'hidden' && k != 'link_disabled'; }) };
+        for(var idx in mods) {
+          if(idx == 'pre') {
+            var keys = Object.keys(mods[idx]).sort();
+            var extra_keys = strip(keys);
+            if(extra_keys.length > 0) {
+              advanced = true;
+            } else if(mods[idx]['hidden'] != undefined && mods[idx]['hidden'] != true) {
+              advanced = true;
+            } else if(mods[idx]['link_disabled'] != undefined & mods[idx]['link_disabled'] != true) {
+              advanced = true;
+            }
+            if(advanced) { json[idx] = mods[idx]; }
+          } else if(parseInt(idx, 10) > 0) {
+            var keys = Object.keys(mods[idx]).sort();
+            var extra_keys = strip(keys);
+            if(extra_keys.length > 0) {
+              advanced = true;
+            } else if(mods[idx]['hidden'] != undefined && (hidden_level || mods[idx]['hidden'] !== false)) {
+              advanced = true;
+            } else if(mods[idx]['link_disabled'] != undefined && (link_disabled_level || mods[idx]['link_disabled'] !== false)) {
+              advanced = true;
+            } else if(mods[idx]['hidden'] === false) {
+              hidden_level = parseInt(idx, 10);
+            } else if(mods[idx]['link_disabled'] === false) {
+              link_disabled_level = parseInt(idx, 10);
+            }
+            if(advanced) { json[idx] = mods[idx]; }
+          }
+        }
+        if(advanced) {
+          button.set('level_style', 'advanced');
+          button.set('level_json', JSON.stringify(json, null, 2));
+        } else if(hidden_level || link_disabled_level) {
+          button.set('level_style', 'basic');
+          button.set('hidden_level', hidden_level);
+          button.set('link_disabled_level', link_disabled_level);
+        } else {
+          button.set('level_style', 'none');
+        }
+      }
+    }
+
     this.set('state', state);
     this.set('original_image_license', $.extend({}, button.get('image.license')));
     this.set('original_sound_license', $.extend({}, button.get('sound.license')));
@@ -148,6 +199,20 @@ export default modal.ModalController.extend({
       {name: i18n.t('render_page', "Load a tool-rendered page"), id: 'render'}
     ];
   }.property(),
+  levelTypes: function() {
+    return [
+      {name: i18n.t('no_levels', "No Level Overrides"), id: 'none'},
+      {name: i18n.t('basic_levels', "Basic Level Overrides"), id: 'basic'},
+      {name: i18n.t('advanced_levels', "Custom Level Overrides"), id: 'advanced'}
+    ];
+  }.property(),
+  board_levels: CoughDrop.board_levels,
+  basic_level_style: function() {
+    return this.get('model.level_style') == 'basic';
+  }.property('model.level_style'),
+  advanced_level_style: function() {
+    return this.get('model.level_style') == 'advanced';
+  }.property('model.level_style'),
   tool_types: function() {
     var res = [];
     res.push({name: i18n.t('select_tool', "[Select Tool]"), id: null});
@@ -321,6 +386,9 @@ export default modal.ModalController.extend({
   }.property('state'),
   languageState: function() {
     return this.get('state') == 'language';
+  }.property('state'),
+  extrasState: function() {
+    return this.get('state') == 'extras';
   }.property('state'),
   special_modifier: function() {
     var voc = this.get('model.vocalization');

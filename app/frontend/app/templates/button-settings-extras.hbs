@@ -1,0 +1,39 @@
+<form class="form-horizontal">
+<div class={{if extrasState 'active' 'hidden'}}>
+    <div class="form-group">
+      <label for="levels" class="col-sm-2 control-label">{{t "Levels" key='levels'}}</label>
+      <div class="col-sm-10">
+        {{bound-select select_class="form-control" select_id="levels" content=levelTypes selection=model.level_style action=(action (mut model.level_style)) }}
+      </div>
+    </div>
+    {{#if basic_level_style}}
+      <div class='form-group'>
+        <label for='hidden_level' class='col-sm-offset-2 col-sm-4'>
+          {{t "Hide Until Level" key='hide_until_level'}}
+        </label>
+        <div class='col-sm-2'>
+          {{bound-select select_class="form-control" select_id="hidden_level" content=board_levels selection=model.hidden_level action=(action (mut model.hidden_level)) }}
+        </div>
+      </div>
+      {{#unless model.talkAction}}
+        <div class='form-group'>
+          <label for='link_disabled_level' class='col-sm-offset-2 col-sm-4'>
+            {{t "Disable Link Until Level" key='disable_link_until_level'}}
+          </label>
+          <div class='col-sm-2'>
+            {{bound-select select_class="form-control" select_id="link_disabled_level" content=board_levels selection=model.link_disabled_level action=(action (mut model.link_disabled_level)) }}
+          </div>
+        </div>
+      {{/unless}}
+    {{else if advanced_level_style}}
+      <div class='form-group'>
+        <div class='col-sm-2'>
+          <p class='form-control-static'>{{t "Level Settings" key='level_settings'}}</p>
+        </div>
+        <div class='col-sm-10'>
+          {{textarea class='form-control' value=model.level_json placeholder='level override configuration'}}
+        </div>
+      </div>
+    {{/if}}
+</div>
+</form>

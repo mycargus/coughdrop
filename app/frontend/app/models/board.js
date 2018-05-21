@@ -202,6 +202,9 @@ CoughDrop.Board = DS.Model.extend({
     result.some_missing = missing;
     return result;
   }.property('grid', 'buttons'),
+  levels: function() {
+    return this.get('buttons').filter(function(b) { return b.level_modifications; }).length > 0;
+  }.property('buttons@each.level_modifications'),
   without_lookups: function(callback) {
     this.set('no_lookups', true);
     callback();
@@ -707,6 +710,7 @@ CoughDrop.Board = DS.Model.extend({
     var button_html = function(button, pos) {
       var res = "";
       // TODO: sanitize all these for safety?
+
       var local_image_url = persistence.url_cache[(_this.get('image_urls') || {})[button.image_id] || 'none'] || (_this.get('image_urls') || {})[button.image_id] || 'none';
       var local_sound_url = persistence.url_cache[(_this.get('sound_urls') || {})[button.sound_id] || 'none'] || (_this.get('sound_urls') || {})[button.sound_id] || 'none';
       var opts = Button.button_styling(button, _this, pos);
@@ -744,15 +748,29 @@ CoughDrop.Board = DS.Model.extend({
       html = html + "\n<div class='button_row fast'>";
       row.forEach(function(button, j) {
         boundClasses.add_rule(button);
+        if(size.display_level && button.level_modifications) {
+          if(size.display_level == _this.get('default_level')) {
+          } else {
+            var mods = button.level_modifications;
+            var level = size.display_level;
+            console.log("mods at", mods, level);
+            if(mods.pre) {
+              for(var key in mods.pre) {
+                button[key] = mods.pre[key];
+              }
+            }
+            for(var idx = 1; idx <= level; idx++) {
+              if(mods[idx]) {
+                for(var key in mods[idx]) {
+                  button[key] = mods[idx][key];
+                }
+              }
+            }
+          }
+        }
         boundClasses.add_classes(button);
         var button_height = starting_height - (extra_pad * 2);
-        if(button_height > 30) {
-//          button_height = button_height;
-        }
         var button_width = starting_width - (extra_pad * 2);
-        if(button_width > 30) {
-//          button_width = button_width;
-        }
         var top = extra_pad + (i * starting_height) + inner_pad;
         var left = extra_pad + (j * starting_width) + inner_pad;
 

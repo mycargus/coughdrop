@@ -234,6 +234,20 @@ CoughDrop.registrationTypes = [
   {name: i18n.t('registration_type_teacher', "A teacher"), id: 'teacher'},
   {name: i18n.t('registration_type_other', "An aide, caregiver or other supporter"), id: 'other'}
 ];
+// https://saltillo.com/downloads/chat/hands-on-tools-strategies-for-enhancing-collaborative-aac-support-teams-resources-for-organized/AAC%20Ability%20Levels.pdf
+CoughDrop.board_levels = [
+  {name: i18n.t('unspecified', "[  ]"), id: ''},
+  {name: i18n.t('level_1', "1 - Minimal Targets"), id: '1'},
+  {name: i18n.t('level_2', "2 - Adding Basic Core"), id: '2'},
+  {name: i18n.t('level_3', "3 - Introducing Multiple Levels"), id: '3'},
+  {name: i18n.t('level_4', "4"), id: '4'},
+  {name: i18n.t('level_5', "5 - Core and Fringe Mix"), id: '5'},
+  {name: i18n.t('level_6', "6"), id: '6'},
+  {name: i18n.t('level_7', "7 - Broadening Fringe"), id: '7'},
+  {name: i18n.t('level_8', "8"), id: '8'},
+  {name: i18n.t('level_9', "9"), id: '9'},
+  {name: i18n.t('level_10', "10 - Full Vocabulary"), id: '10'},
+];
 CoughDrop.parts_of_speech = [
   {name: i18n.t('unspecified', "Unspecified"), id: ''},
   {name: i18n.t('noun', "Noun (dog, Dad)"), id: 'noun'},
@@ -259,7 +273,7 @@ CoughDrop.keyed_colors = [
   {border: "#dd0", fill: "#ffa", color: i18n.t('yellow', "Yellow"), hint: i18n.t('people', "people"), types: ['pronoun']},
   {border: "#6d0", fill: "#cfa", color: i18n.t('green', "Green"), hint: i18n.t('actions', "actions"), types: ['verb']},
   {fill: "#fca", color: i18n.t('orange', "Orange"), hint: i18n.t('nouns', "nouns"), types: ['noun', 'nominative']},
-  {fill: "#acf", color: i18n.t('blue', "Blue"), hint: i18n.t('describing_words', "describing words"), types: ['adjective']},
+  {fill: "#acf", color: i18n.t('blue', "Blue"), hint: i18n.t('describing_words', "describing"), types: ['adjective']},
   {fill: "#caf", color: i18n.t('purple', "Purple"), hint: i18n.t('questions', "questions"), types: ['question']},
   {fill: "#faa", color: i18n.t('red', "Red"), hint: i18n.t('negations', "negations"), types: ['negation', 'expletive', 'interjection']},
   {fill: "#fac", color: i18n.t('pink', "Pink"), hint: i18n.t('social_words', "social words"), types: ['preposition']},
