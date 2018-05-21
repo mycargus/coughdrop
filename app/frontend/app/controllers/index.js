@@ -462,6 +462,12 @@ export default Controller.extend({
         this.transitionToRoute('user.stats', user_name, {queryParams: {start: null, end: null, device_id: null, location_id: null, split: null, start2: null, end2: null, devicde_id2: null, location_id2: null}});
       }
     },
+    new_dashboard: function() {
+      var user = app_state.get('currentUser');
+      user.set('preferences.new_index', true);
+      user.save().then(null, function() { });
+      modal.success(i18n.t('revert_new_dashboard', "Welcome to the new, cleaner dashboard! If you're not a fan you can switch back on your Preferences page."));
+    },
     modeling_ideas: function(user_name) {
       var users = [];
       if(!user_name) {

@@ -374,8 +374,12 @@
                 {{/if}}
               </div>
             </div>
+          {{else}}
+            <button class='btn btn-primary btn-lg' style='width: 100%;' {{action 'new_dashboard'}}>{{t "Switch to the New Dashboard" key='switch_to_the_new_dashboard'}}</button>
           {{/unless}}
         {{/if}}
+      {{else}}
+        <button class='btn btn-primary' {{action 'new_dashboard'}}>{{t "Switch to the New Dashboard" key='switch_to_the_new_dashboard'}}</button>
       {{/if}}
       <h4>{{t "Notifications" key='messages'}}</h4>
       <div style="margin-left: 20px;">
