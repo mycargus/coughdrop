@@ -33,7 +33,13 @@
         {{/link-to}}
       {{/if}}
     {{/if}}
-    {{#if app_state.currentUser.preferences.home_board.key}}
+    {{#if app_state.currentUser.home_board_pending}}
+      <a class="list-group-item collapsible">
+        <span class="glyphicon glyphicon-home"></span>
+        {{t "current home board:" key='current_home_board'}}<br/>
+        <strong>{{t "copying %{brd}..." key='copying_board' brd=app_state.currentUser.home_board_pending}}</strong>
+      </a>
+    {{else if app_state.currentUser.preferences.home_board.key}}
       {{#if app_state.currentUser.supporter_role}}
         {{#link-to 'board' app_state.currentUser.preferences.home_board.key class="list-group-item half_size collapsible"}}
           <span class="glyphicon glyphicon-home"></span>
@@ -147,12 +153,6 @@
           </a>
         {{/if}}
       {{/if}}
-    {{else if app_state.currentUser.home_board_pending}}
-      <a class="list-group-item collapsible">
-        <span class="glyphicon glyphicon-home"></span>
-        {{t "current home board:" key='current_home_board'}}<br/>
-        <strong>{{t "copying %{brd}..." key='copying_board' brd=app_state.currentUser.home_board_pending}}</strong>
-      </a>
     {{else}}
       {{#link-to 'home-boards' class="list-group-item collapsible"}}
         <span class="glyphicon glyphicon-home"></span>

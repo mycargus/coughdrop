@@ -7,8 +7,8 @@
     <button class='btn btn-default btn-lg' disabled={{no_previous}} {{action 'previous'}} style='float: left;'><span class='glyphicon glyphicon-chevron-left'></span> Fewer Buttons</button>
     <button class='btn btn-default btn-lg' disabled={{no_next}} {{action 'next'}} style='float: right;'>More Buttons <span class='glyphicon glyphicon-chevron-right'></span></button>
     <div style='text-align: center;'>
-      <button class='btn btn-primary btn-lg'>{{t "Select This Layout" key='select_this_layout'}}</button>
-      <button class='btn btn-default btn-sm'>{{t "Let Me Browse On My Own" key='browse_on_my_own'}}</button>
+      <button class='btn btn-primary btn-lg' {{action 'select'}}>{{t "Select This Layout" key='select_this_layout'}}</button>
+      <button class='btn btn-default btn-sm' {{action 'advanced'}}>{{t "Let Me Browse On My Own" key='browse_on_my_own'}}</button>
     </div>
   {{else}}
     {{t "No layouts are available" key='no_layouts'}}

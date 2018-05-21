@@ -6,9 +6,11 @@ import CoughDrop from '../app';
 import speecher from '../utils/speecher';
 import persistence from '../utils/persistence';
 import app_state from '../utils/app_state';
+import editManager from '../utils/edit_manager';
 import progress_tracker from '../utils/progress_tracker';
 import capabilities from '../utils/capabilities';
 import Utils from '../utils/misc';
+import {set as emberSet, get as emberGet} from '@ember/object';
 
 CoughDrop.User = DS.Model.extend({
   didLoad: function() {
@@ -461,9 +463,35 @@ CoughDrop.User = DS.Model.extend({
       });
     }
     return res;
-  }, //.observes('permissions.supervise'),
+  },
   find_integration: function(key) {
     return CoughDrop.User.find_integration(this.get('id'), key);
+  },
+  copy_home_board: function(board) {
+    var user = this;
+    var board_key = emberGet(board, 'key');
+    var board_id = emberGet(board, 'id');
+    return new RSVP.Promise(function(resolve, reject) {
+      user.set('home_board_pending', board_key);
+      CoughDrop.store.findRecord('board', board_id).then(function(board) {
+        editManager.copy_board(board, 'links_copy_as_home', user, false).then(function() {
+          user.set('home_board_pending', false);
+          if(persistence.get('online') && persistence.get('auto_sync')) {
+            runLater(function() {
+              console.debug('syncing because home board changes');
+              persistence.sync('self').then(null, function() { });
+            }, 1000);
+          }
+          resolve();
+        }, function() {
+          user.set('home_board_pending', false);
+          reject({error: 'copy failed'});
+        });
+      }, function() {
+        user.set('home_board_pending', false);
+        reject({error: 'board not found'});
+      });
+    });
   },
   check_user_name: function() {
     if(this.get('watch_user_name_and_cookies')) {

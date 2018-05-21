@@ -191,7 +191,6 @@ var Button = EmberObject.extend({
     }
     return url;
   }.property('apps.web.launch_url'),
-  }.observes('board.current_level'),
   levels_list: function() {
     var levels = [];
     var mods = this.get('level_modifications') || {};

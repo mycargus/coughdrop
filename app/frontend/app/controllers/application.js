@@ -180,8 +180,8 @@ export default Controller.extend({
         var user = app_state.get('currentUser');
         var _this = this;
         if(user) {
-          var done = function() {
-            if(persistence.get('online') && persistence.get('auto_sync')) {
+          var done = function(sync) {
+            if(sync && persistence.get('online') && persistence.get('auto_sync')) {
               runLater(function() {
               console.debug('syncing because home board changes');
                 persistence.sync('self').then(null, function() { });
@@ -195,20 +195,10 @@ export default Controller.extend({
             }
           };
           if(option == 'starting') {
-            // TODO: make a personal copy of the board for the user
-            user.set('home_board_pending', emberGet(board, 'key'));
-            CoughDrop.store.findRecord('board', emberGet(board, 'id')).then(function(board) {
-              editManager.copy_board(board, 'links_copy_as_home', user, false).then(function() {
-                user.set('home_board_pending', false);
-                done();
-              }, function() {
-                user.set('home_board_pending', false);
-                modal.error(i18n.t('set_as_home_failed', "Home board update failed unexpectedly"));
-              });
-            }, function() {
-              user.set('home_board_pending', false);
+            user.copy_home_board(board).then(function() { }, function() {
               modal.error(i18n.t('set_as_home_failed', "Home board update failed unexpectedly"));
             });
+            done();
           } else {
             user.set('preferences.home_board', {
               id: emberGet(board, 'id'),
@@ -216,7 +206,7 @@ export default Controller.extend({
             });
             var _this = this;
             user.save().then(function() {
-              done();
+              done(true);
             }, function() {
               modal.error(i18n.t('set_as_home_failed', "Home board update failed unexpectedly"));
             });

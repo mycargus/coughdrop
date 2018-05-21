@@ -5,6 +5,8 @@ import contentGrabbers from '../utils/content_grabbers';
 import app_state from '../utils/app_state';
 import word_suggestions from '../utils/word_suggestions';
 import Utils from '../utils/misc';
+import modal from '../utils/modal';
+import i18n from '../utils/i18n';
 import CoughDrop from '../app';
 
 export default Component.extend({
@@ -142,8 +144,14 @@ export default Component.extend({
     var canvas = _this.element.getElementsByTagName('canvas')[0];
     if(canvas) { canvas.style.display = 'none'; }
     CoughDrop.store.query('board', {public: true, starred: true, user_id: 'example', per_page: 6, category: 'layout'}).then(function(data) {
-      _this.set('boards', data.map(function(b) { return b; }));
-      _this.set('status', null);
+      var res = data.map(function(b) { return b; });
+      if(res && res.length > 0) {
+        _this.set('boards', res);
+        _this.set('status', null);
+      } else {
+        _this.set('status', {error: true});
+        _this.sendAction('load_error');
+      }
     }, function(err) {
       _this.set('status', {error: true});
       _this.sendAction('load_error');
@@ -162,7 +170,19 @@ export default Component.extend({
     previous: function() {
       this.set('current_index', Math.max((this.get('current_index') || 0) - 1, 0));
     },
+    advanced: function() {
+      this.sendAction('advanced');
+    },
     select: function() {
+      var _this = this;
+      var user = app_state.get('currentUser');
+
+      if(_this.get('current_board.key')) {
+        user.copy_home_board(_this.get('current_board')).then(function() { }, function(err) {
+          modal.error(i18n.t('set_as_home_failed', "Home board update failed unexpectedly"));
+        });
+      }
+      _this.sendAction('select', _this.get('current_board'));
     },
     dismiss: function() {
       this.set('prompt', null);

@@ -3,8 +3,11 @@ import Controller from '@ember/controller';
 
 export default Controller.extend({
   actions: {
-    board_selection_error: function() {
+    show_advanced: function() {
       this.set('advanced', true);
+    },
+    select_board: function() {
+      this.transitionToRoute('index');
     }
   }
 });
