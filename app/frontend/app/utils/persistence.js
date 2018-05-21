@@ -2090,6 +2090,18 @@ setInterval(function() {
 }, 30000);
 
 persistence.DSExtend = {
+  grabRecord: function(type, id, opts) {
+    // 1. Try to peek for the record
+    //    - If peeked but no permissions defined, ignore it
+    //    - Otherwise return peeked result
+    // 2. Next try local persistence lookup
+    //    - If found, push the record and return it
+    // 3. Last try calling findRecord as before
+    // opts:
+    //    - any: allow peeked result even if incomplete
+    //    - local: fail instead of trying remote call
+    //    - remote: do a .reload unless it's a remote result
+  },
   findRecord: function(store, type, id) {
     var _this = this;
     var _super = this._super;

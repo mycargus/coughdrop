@@ -74,6 +74,7 @@ var CoughDrop = EmberApplication.extend({
   }
 });
 
+CoughDrop.grabRecord = persistence.DSExtend.grabRecord;
 CoughDrop.embedded = !!location.href.match(/embed=1/);
 CoughDrop.ad_referrer = (location.href.match(/\?ref=([^#]+)/) || [])[1];
 CoughDrop.referrer = document.referrer;
