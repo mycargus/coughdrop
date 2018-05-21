@@ -224,7 +224,8 @@ var app_state = EmberObject.extend({
     app_state.set('latest_board_id', null);
     app_state.set('login_modal', false);
     app_state.set('to_target', transition.targetName);
-    if(transition.targetName == 'board.index' && (app_state.get('from_route') || [])[0] == 'setup') {
+    var from_route = (app_state.get('from_route') || [])[0];
+    if(transition.targetName == 'board.index' && (from_route == 'setup' || from_route == 'home-boards')) {
       app_state.set('set_as_root_board_state', true);
     }
 

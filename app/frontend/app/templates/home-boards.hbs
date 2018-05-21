@@ -7,5 +7,5 @@
   </div>
 {{else}}
   <a href="#" {{action 'show_advanced'}}>{{t "Show Me More Choices" key='show_more_choices'}}</a>
-  {{board-selection-tool}}
+  {{board-selection-tool load_error='board_selection_error'}}
 {{/if}}
