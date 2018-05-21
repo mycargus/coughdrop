@@ -28,7 +28,7 @@ export default Component.extend({
       var _this = this;
       var index = 0;
       this.get('sorted_boards').forEach(function(b, idx) {
-        if(b.get('grid.rows') * b.get('grid.columns') > 30) {
+        if(b.get('grid.rows') * b.get('grid.columns') > 30 && index === 0) {
           index = idx;
         } else if(index == 0 && idx == _this.get('sorted_boards').length - 1) {
           index = idx;
