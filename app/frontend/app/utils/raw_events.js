@@ -1150,7 +1150,11 @@ var buttonTracker = EmberObject.extend({
       } else if(region.id == 'speak_menu') {
         return buttonTracker.element_wrap($target.closest("a")[0]);
       } else if(region.tagName == 'HEADER') {
-        return buttonTracker.element_wrap($target.closest(".btn,#button_list")[0]);
+        var $elem = $target.closest(".btn:not(.pass_through),#button_list")
+        if($elem.hasClass('pass_to_button_list')) {
+          $elem = $("#button_list");
+        }
+        return buttonTracker.element_wrap($elem[0]);
       } else if((region.className || "").match(/board/) || region.id == 'board_canvas') {
         return buttonTracker.button_from_point(event.clientX, event.clientY);
       } else if(region.id == 'integration_overlay') {
