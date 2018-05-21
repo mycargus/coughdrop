@@ -267,8 +267,9 @@ var app_state = EmberObject.extend({
     if(!this.get('currentBoardState')) {
       try {
         this.controller.set('footer', true);
-        if(this.get('to_target') && this.get('to_target') != 'setup') {
+        if(this.get('to_target') && this.get('to_target') != 'setup' && this.get('to_target') != 'home-boards') {
           this.controller.set('setup_footer', false);
+          this.controller.set('simple_board_header', false);
         }
       } catch(e) { }
     }

@@ -313,7 +313,7 @@
             </a>
           {{/unless}}
           {{#if app_state.currentBoardState.id}}
-            {{#if setup_footer}}
+            {{#if simple_board_header}}
               <a class="btn btn-default" href="#" {{action "toggleSpeakMode" 'goBrowsedHome'}} id="speak_mode" data-placement="bottom" data-trigger="manual">
                 <span class="wide">{{t "Try in Speak Mode" key="try_in_speak_mode"}}</span><span class="skinny real_skinny glyphicon glyphicon-volume-up"></span>
               </a>

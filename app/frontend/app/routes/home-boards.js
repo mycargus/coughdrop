@@ -2,10 +2,12 @@ import Ember from 'ember';
 import Route from '@ember/routing/route';
 import RSVP from 'rsvp';
 import persistence from '../utils/persistence';
+import app_state from '../utils/app_state';
 
 export default Route.extend({
   setupController: function(controller) {
     var _this = this;
+    app_state.controller.set('simple_board_header', true);
     function loadBoards() {
       if(persistence.get('online')) {
         controller.set('home_boards', {loading: true});
