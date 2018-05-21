@@ -387,7 +387,7 @@ class User < ActiveRecord::Base
         board.instance_variable_set('@skip_update_available_boards', true)
         # TODO: I *think* this is here because board permissions may change for
         # supervisors/supervisees when a user's home board changes
-        board.track_downstream_boards!(nil, nil, Time.now.to_i)
+        board.track_downstream_boards!(nil, nil, Board.last_scheduled_stamp || Time.now.to_i)
         Rails.logger.info("checking downstream boards for #{self.global_id}, #{board.global_id}")
         
         Board.select('id').find_all_by_global_id(board.settings['downstream_board_ids']).each do |downstream_board|

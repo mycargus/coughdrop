@@ -27,7 +27,7 @@ module UpstreamDownstream
     return unless @track_downstream_boards
     return if already_visited_ids.include?(self.global_id)
     already_visited_ids << self.global_id
-    trigger_stamp ||= Time.now.to_i
+    trigger_stamp ||= Board.last_scheduled_stamp || Time.now.to_i
 
     top_board = self
     # step 1: travel downstream, for every board id get its immediate children
