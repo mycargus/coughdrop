@@ -251,7 +251,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
       batch.each do |summary|
         # quick win with some basic, easy data to track
         total_keys.each do |key|
-          total.data['totals'][key] += summary.data['stats'][key]
+          total.data['totals'][key] += (summary.data['stats'] || {})[key]
         end
         (summary.data['modeled_session_events'] || {}).each do |total, cnt|
           total.data['modeled_session_events'][total] = (total.data['modeled_session_events'][total] || 0) + cnt

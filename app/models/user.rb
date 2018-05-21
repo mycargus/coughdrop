@@ -684,7 +684,7 @@ class User < ActiveRecord::Base
   
   def process_home_board(home_board, non_user_params)
     board = Board.find_by_path(home_board['id'])
-    json = self.settings['preferences']['home_board'].slice('id', 'key').to_json
+    json = (self.settings['preferences']['home_board'] || {}).slice('id', 'key').to_json
     if board && board.allows?(self, 'view')
       self.settings['preferences']['home_board'] = {
         'id' => board.global_id,
@@ -705,7 +705,7 @@ class User < ActiveRecord::Base
     else
       self.settings['preferences'].delete('home_board')
     end
-    if self.settings['preferences']['home_board'].slice('id', 'key').to_json != json
+    if (self.settings['preferences']['home_board'] || {}).slice('id', 'key').to_json != json
       notify('home_board_changed')
     end
   end

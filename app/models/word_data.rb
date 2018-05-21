@@ -153,8 +153,8 @@ class WordData < ActiveRecord::Base
     # make an API call to comm workshop to get activities for the words
     activities = []
     found_words = []
-    word_re = Regexp.new("\\b(" + suggestions.map{|s| s['word'] }.join('|') + ")\\b")
-    quote_re = Regexp.new("\"(" + suggestions.map{|s| s['word'] }.join('|') + ")\"")
+    word_re = Regexp.new("\\b(" + suggestions.map{|s| s['word'].sub(/\+/, '') }.join('|') + ")\\b")
+    quote_re = Regexp.new("\"(" + suggestions.map{|s| s['word'].sub(/\+/, '') }.join('|') + ")\"")
     suggestions.each_with_index do |suggestion, idx|
       next if found_words.length > 5
       word = suggestion['word']
