@@ -146,13 +146,15 @@ export default Controller.extend({
   filtered_orgs: function() {
     var filter = this.get('org_filter');
     if(!filter || filter == '') { return null; }
-    var re = new RegExp(filter, 'i');
     var res = [];
-    (this.get('sorted_orgs') || []).forEach(function(org) {
-      if(org.get('name').match(re)) {
-        res.push(org);
-      }
-    });
+    try {
+      var re = new RegExp(filter, 'i');
+      (this.get('sorted_orgs') || []).forEach(function(org) {
+        if(org.get('name').match(re)) {
+          res.push(org);
+        }
+      });
+    } catch(e) { }
     return res.slice(0, 10);
   }.property('sorted_orgs', 'org_filter'),
   refresh_users: function() {
