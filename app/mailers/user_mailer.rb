@@ -141,7 +141,7 @@ class UserMailer < ActionMailer::Base
             end
           end
           user_report.lost_words = (user_report.current_stats[:dwindling_words] || []).sort_by(&:last).reverse.map(&:first).join(', ')
-          user_report.gained_words = (user_report.current_stats[:emergent_words] || []).sort_by(:last).reverse.map(&:first).join(', ')
+          user_report.gained_words = (user_report.current_stats[:emergent_words] || []).sort_by(&:last).reverse.map(&:first).join(', ')
 
           if user_report.gained_words.length == 0
             # lost_percents = []
