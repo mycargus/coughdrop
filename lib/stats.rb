@@ -65,7 +65,7 @@ module Stats
       # if a word is used more than 7 times in the last few weeks, go ahead
       # and call it an emergent word
       # if a word has been dwindling
-      development_cutoff = key == 'emergent_words' ? 7 : 0.75
+      development_cutoff = key == 'emergent_words' ? 1 : 0.75
       res[key.to_sym] = {}
       list.each do |word, val|
         if val > development_cutoff
