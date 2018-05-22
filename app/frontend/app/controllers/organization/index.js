@@ -5,6 +5,7 @@ import persistence from '../../utils/persistence';
 import modal from '../../utils/modal';
 import Utils from '../../utils/misc';
 import i18n from '../../utils/i18n';
+import {set as emberSet, get as emberGet} from '@ember/object';
 
 export default Controller.extend({
   refresh_lists: function() {
@@ -117,6 +118,43 @@ export default Controller.extend({
       });
     }
   },
+  sorted_orgs: function() {
+    return this.get('orgs.data').map(function(o) { return o; }).sort(function(a, b) { 
+        if(a.get('name').toLowerCase() < b.get('name').toLowerCase()) {
+          return -1;
+        } else if(a.get('name').toLowerCase() > b.get('name').toLowerCase()) {
+          return 1;
+        } else {
+          return 0;
+        }
+    });
+  }.property('orgs.data'),
+  alphabetized_orgs: function() {
+    var orgs = this.get('sorted_orgs') || [];
+    var letters = [];
+    orgs.forEach(function(org) {
+      var letter_string = org.get('name').substring(0, 1).toUpperCase();
+      var letter = letters[letters.length - 1];
+      if((letter || {}).letter != letter_string) {
+        letter = {letter: letter_string, orgs: []};
+        letters.push(letter);
+      }
+      letter.orgs.push(org);
+    });
+    return letters;
+  }.property('sorted_orgs'),
+  filtered_orgs: function() {
+    var filter = this.get('org_filter');
+    if(!filter || filter == '') { return null; }
+    var re = new RegExp(filter, 'i');
+    var res = [];
+    (this.get('sorted_orgs') || []).forEach(function(org) {
+      if(org.get('name').match(re)) {
+        res.push(org);
+      }
+    });
+    return res.slice(0, 10);
+  }.property('sorted_orgs', 'org_filter'),
   refresh_users: function() {
     var _this = this;
     this.set('users.loading', true);
@@ -264,6 +302,7 @@ export default Controller.extend({
           }
           org.save().then(function() {
             _this.refresh_orgs();
+            _this.transitionToRoute('organization', org.get('id'));
           }, function(err) {
             console.log(err);
             modal.error(i18n.t('add_org_manager_failed', 'Adding organization manager failed unexpectedly'));
@@ -288,6 +327,9 @@ export default Controller.extend({
     },
     edit_org: function() {
       modal.open('edit-org', {org: this.get('model')});
+    },
+    toggle_letter: function(letter) {
+      emberSet(letter, 'expanded', !emberGet(letter, 'expanded'));
     }
   }
 });

@@ -331,23 +331,58 @@
           <p>
             {{t "organization" key='organizations' count=orgs.data.length}}
           </p>
+          <span style='display: block; width: 200px;'>
+            {{input type='text' value=org_filter class='form-control' placeholder='search orgs'}}
+          </span>
           <table class="table table-hover" style="width: 400px;">
             <tbody>
-              {{#each orgs.data as |org|}}
-                <tr>
-                  <td style='font-size: 20px;'>
-                    {{#link-to 'organization' org.id}}
-                      <span class='glyphicon glyphicon-paperclip' style="font-size: 25px; vertical-align: middle;"></span>
-                      {{org.name}}
-                    {{/link-to}}
-                  </td>
-                  <td>
-                    {{#unless org.admin}}
-                      <a href='#' {{action "remove_org" org}} class="glyphicon glyphicon-remove"><span class='text-hide'>remove</span></a>
-                    {{/unless}}
-                  </td>
-                </tr>
-              {{/each}}
+              {{#if filtered_orgs}}
+                {{#each filtered_orgs as |org|}}
+                    <tr>
+                      <td style='font-size: 20px;'>
+                        {{#link-to 'organization' org.id}}
+                          <span class='glyphicon glyphicon-paperclip' style="font-size: 25px; vertical-align: middle;"></span>
+                          {{org.name}}
+                        {{/link-to}}
+                      </td>
+                      <td>
+                        {{#unless org.admin}}
+                          <a href='#' {{action "remove_org" org}} class="glyphicon glyphicon-remove"><span class='text-hide'>remove</span></a>
+                        {{/unless}}
+                      </td>
+                    </tr>
+                {{/each}}
+              {{else}}
+                {{#each alphabetized_orgs as |letter|}}
+                  <tr>
+                    <td colspan="2">
+                      <a href="#" {{action 'toggle_letter' letter}}>
+                        <span  style='font-size: 20px;'>
+                         {{letter.letter}} - 
+                        </span> 
+                        {{t "org" count=letter.orgs.length key='n_orgs'}}
+                      </a>
+                    </td>
+                  </tr>
+                  {{#if letter.expanded}}
+                    {{#each letter.orgs as |org|}}
+                      <tr>
+                        <td style='font-size: 20px;'>
+                          {{#link-to 'organization' org.id}}
+                            <span class='glyphicon glyphicon-paperclip' style="font-size: 25px; vertical-align: middle;"></span>
+                            {{org.name}}
+                          {{/link-to}}
+                        </td>
+                        <td>
+                          {{#unless org.admin}}
+                            <a href='#' {{action "remove_org" org}} class="glyphicon glyphicon-remove"><span class='text-hide'>remove</span></a>
+                          {{/unless}}
+                        </td>
+                      </tr>
+                    {{/each}}
+                  {{/if}}
+                {{/each}}
+              {{/if}}
             </tbody>
           </table>
         {{else if orgs.loading}}
