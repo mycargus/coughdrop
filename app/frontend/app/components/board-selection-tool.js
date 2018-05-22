@@ -14,6 +14,7 @@ export default Component.extend({
     this.load_boards();
     this.set('current_index', null);
     this.set('prompt', true);
+    this.set('level_select', null);
   },
   didInsertElement: function() {
     var window_height = window.innerHeight;
@@ -176,13 +177,17 @@ export default Component.extend({
     select: function() {
       var _this = this;
       var user = app_state.get('currentUser');
-
-      if(_this.get('current_board.key')) {
-        user.copy_home_board(_this.get('current_board')).then(function() { }, function(err) {
-          modal.error(i18n.t('set_as_home_failed', "Home board update failed unexpectedly"));
-        });
+      var board = _this.get('current_board');
+      if(true || _this.get('current_level') || !board.get('levels')) {
+        if(_this.get('current_board.key')) {
+          user.copy_home_board(_this.get('current_board')).then(function() { }, function(err) {
+            modal.error(i18n.t('set_as_home_failed', "Home board update failed unexpectedly"));
+          });
+        }
+        _this.sendAction('select', _this.get('current_board'));  
+      } else {
+        _this.set('level_select', true);
       }
-      _this.sendAction('select', _this.get('current_board'));
     },
     dismiss: function() {
       this.set('prompt', null);
