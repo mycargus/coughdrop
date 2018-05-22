@@ -64,7 +64,7 @@
       </div>
       {{#unless app_state.button_list}}
         {{#if app_state.currentUser.preferences.blank_status}}
-          <button id='speak_mode_notification' class='btn btn-default pass_to_button_list' {{action 'speak_mode_notification'}}>
+          <button id='speak_mode_notification' class='btn btn-default pass_to_btn_list' {{action 'speak_mode_notification'}}>
             {{#if stashes.board_level}}
               <span style='color: #ddd; font-size: 12px; position: absolute; top: 10px; text-align: right;'>L{{stashes.board_level}}</span>
             {{/if}}
@@ -80,7 +80,7 @@
           </button>
         {{/if}}
       {{/unless}}
-      <button class="btn btn-default pass_to_button_list" {{action "speakOptions"}} id="speak_options"><span class="sr-only">{{t "speak options" key='speak_options'}}</span><span class="glyphicon glyphicon-chevron-down"></span></button>
+      <button class="btn btn-default pass_to_btn_list" {{action "speakOptions"}} id="speak_options"><span class="sr-only">{{t "speak options" key='speak_options'}}</span><span class="glyphicon glyphicon-chevron-down"></span></button>
       <button class="btn btn-default access skinnier" id="backspace_button" {{action "backspace"}}>
         <span class="sr-only">{{t "backspace" key='backspace'}}</span>
         <img src="{{path "images/delete.svg"}}"/>
