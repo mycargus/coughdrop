@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.05.22a";
+window.app_version = "2018.05.22b";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -8173,8 +8173,8 @@ e.set("weekly_stats",null),e.set("user_counts",null),t.default.ajax("/api/v1/org
 this.get("model.admin")&&(this.set("orgs.loading",!0),s.default.all_pages("organization",{q:"all"}).then(function(t){e.set("orgs.loading",null),e.set("orgs.data",t)},function(){e.set("orgs.loading",null),e.set("orgs.data",null)}))},sorted_orgs:function(){return this.get("orgs.data").map(function(e){return e}).sort(function(e,t){return e.get("name").toLowerCase()<t.get("name").toLowerCase()?-1:e.get("name").toLowerCase()>t.get("name").toLowerCase()?1:0})}.property("orgs.data"),alphabetized_orgs:function(){var e=[]
 return(this.get("sorted_orgs")||[]).forEach(function(t){var n=t.get("name").substring(0,1).toUpperCase(),s=e[e.length-1];(s||{}).letter!=n&&(s={letter:n,orgs:[]},e.push(s)),s.orgs.push(t)}),e}.property("sorted_orgs"),filtered_orgs:function(){var e=this.get("org_filter")
 if(!e||""==e)return null
-var t=new RegExp(e,"i"),n=[]
-return(this.get("sorted_orgs")||[]).forEach(function(e){e.get("name").match(t)&&n.push(e)}),n.slice(0,10)}.property("sorted_orgs","org_filter"),refresh_users:function(){var e=this
+var t=[]
+try{var n=new RegExp(e,"i");(this.get("sorted_orgs")||[]).forEach(function(e){e.get("name").match(n)&&t.push(e)})}catch(e){}return t.slice(0,10)}.property("sorted_orgs","org_filter"),refresh_users:function(){var e=this
 this.set("users.loading",!0)
 var n=this.get("model.id")
 t.default.ajax("/api/v1/organizations/"+n+"/users",{type:"GET",data:{recent:!0}}).then(function(t){e.set("users.loading",null),e.set("users.data",t.user),e.set("more_users",t.meta&&t.meta.next_url)},function(){e.set("users.loading",null),e.set("users.data",null)})},refresh_evals:function(){var e=this
@@ -10632,8 +10632,8 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+20998260"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+20998260"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+bc07934e"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+bc07934e"})
 ;
 
 
