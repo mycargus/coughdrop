@@ -140,45 +140,50 @@ class UserMailer < ActionMailer::Base
               user_report.total_buttons_delta = -1 * (user_report.current_stats[:total_buttons].to_f / user_report.pre_stats[:total_buttons].to_f * 100.0).round(0)
             end
           end
-          lost_percents = []
-          # TODO: this really shouldn't be in a mailer, put it in a lib or something
-          user_report.pre_stats[:words_by_frequency].each do |word|
-            pre_percent = word['count'].to_f / user_report.pre_stats[:total_words].to_f
-            found_word = user_report.current_stats[:words_by_frequency].detect{|w| w['text'] == word['text'] }
-            post_percent = found_word ? (found_word['count'].to_f / user_report.current_stats[:total_words].to_f) : 0.0
-            if post_percent < pre_percent
-              res = {
-                :text => word['text'],
-                :multiplier => pre_percent / post_percent
-              }
-              if post_percent == 0
-                res[:multiplier] = pre_percent * 100.0 * 10.0
-              end
-              lost_percents.push(res)
-            end
-          end
-          lost_percents = lost_percents.sort_by{|p| p[:multiplier] }.reverse
-          user_report.lost_words = lost_percents[0, 10].map{|p| p[:text] }.join(', ')
+          user_report.lost_words = user_report.current_stats[:dwindling_words].sort_by(&:last).reverse.map(&:first).join(', ')
+          user_report.gained_words = user_report.current_stats[:emergent_words].sort_by(:last).reverse.map(&:first).join(', ')
 
-          gained_percents = []
-          user_report.current_stats[:words_by_frequency].each do |word|
-            post_percent = word['count'].to_f / user_report.current_stats[:total_words].to_f
-            found_word = user_report.pre_stats[:words_by_frequency].detect{|w| w['text'] == word['text'] }
-            pre_percent = found_word ? (found_word['count'].to_f / user_report.pre_stats[:total_words].to_f) : 0.0
-            if post_percent > pre_percent
-              res = {
-                :text => word['text'],
-                :multiplier => post_percent / pre_percent
-              }
-              if pre_percent == 0
-                res[:multiplier] = post_percent * 100.0 * 10.0
-              end
-              gained_percents.push(res)
-            end
+          if user_report.gained_words.length == 0
+            # lost_percents = []
+            # # TODO: this really shouldn't be in a mailer, put it in a lib or something
+            # user_report.pre_stats[:words_by_frequency].each do |word|
+            #   pre_percent = word['count'].to_f / user_report.pre_stats[:total_words].to_f
+            #   found_word = user_report.current_stats[:words_by_frequency].detect{|w| w['text'] == word['text'] }
+            #   post_percent = found_word ? (found_word['count'].to_f / user_report.current_stats[:total_words].to_f) : 0.0
+            #   if post_percent < pre_percent
+            #     res = {
+            #       :text => word['text'],
+            #       :multiplier => pre_percent / post_percent
+            #     }
+            #     if post_percent == 0
+            #       res[:multiplier] = pre_percent * 100.0 * 10.0
+            #     end
+            #     lost_percents.push(res)
+            #   end
+            # end
+            # lost_percents = lost_percents.sort_by{|p| p[:multiplier] }.reverse
+            # user_report.lost_words = lost_percents[0, 10].map{|p| p[:text] }.join(', ')
+
+            # gained_percents = []
+            # user_report.current_stats[:words_by_frequency].each do |word|
+            #   post_percent = word['count'].to_f / user_report.current_stats[:total_words].to_f
+            #   found_word = user_report.pre_stats[:words_by_frequency].detect{|w| w['text'] == word['text'] }
+            #   pre_percent = found_word ? (found_word['count'].to_f / user_report.pre_stats[:total_words].to_f) : 0.0
+            #   if post_percent > pre_percent
+            #     res = {
+            #       :text => word['text'],
+            #       :multiplier => post_percent / pre_percent
+            #     }
+            #     if pre_percent == 0
+            #       res[:multiplier] = post_percent * 100.0 * 10.0
+            #     end
+            #     gained_percents.push(res)
+            #   end
+            # end
+            # gained_percents = gained_percents.sort_by{|p| p[:multiplier] }.reverse
+            # user_report.gained_words = gained_percents[0, 10].map{|p| p[:text] }.join(', ')
           end
-          gained_percents = gained_percents.sort_by{|p| p[:multiplier] }.reverse
-          user_report.gained_words = gained_percents[0, 10].map{|p| p[:text] }.join(', ')
-          
+
           # TODO: average goal status specific to the time range, plus delta
         end
       rescue Stats::StatsError => e

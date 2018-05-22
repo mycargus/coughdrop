@@ -19,29 +19,61 @@ module Stats
 
     days = {}
     all_stats = []
+    weekyear_dates = {}
+    word_development = {}
     options[:start_at].to_date.upto(options[:end_at].to_date) do |date|
       weekyear = (date.beginning_of_week(:sunday).cwyear * 100) + date.beginning_of_week(:sunday).cweek
-      summary = summary_lookups[weekyear]
-      day = summary && summary.data && summary.data['stats']['days'][date.to_s]
-      filtered_day_stats = nil
-      if day
-        filtered_day_stats = [day['total']]
-        if options[:device_ids] || options[:location_ids]
-          groups = day['group_counts'].select do |group|
-            (!options[:device_ids] || options[:device_ids].include?(group['device_id'])) && 
-            (!options[:location_ids] || options[:location_ids].include?(group['geo_cluster_id']) || options[:location_ids].include?(group['ip_cluster_id']))
+      weekyear_dates[weekyear] ||= []
+      weekyear_dates[weekyear] << date
+    end
+    date_distance = (week_end.to_date - week_start.to_date).to_f
+    summaries.find_in_batches(batch_size: 5) do |batch|
+      batch.each do |summary|
+        (weekyear_dates[summary.weekyear] || []).each do |date|
+          day = summary && summary.data && summary.data['stats']['days'][date.to_s]
+          filtered_day_stats = nil
+          if day
+            filtered_day_stats = [day['total']]
+            if options[:device_ids] || options[:location_ids]
+              groups = day['group_counts'].select do |group|
+                (!options[:device_ids] || options[:device_ids].include?(group['device_id'])) && 
+                (!options[:location_ids] || options[:location_ids].include?(group['geo_cluster_id']) || options[:location_ids].include?(group['ip_cluster_id']))
+              end
+              filtered_day_stats = groups
+            end
+          else
+            filtered_day_stats = [Stats.stats_counts([])]
           end
-          filtered_day_stats = groups
+          all_stats += filtered_day_stats
+          days[date.to_s] = usage_stats(filtered_day_stats)
         end
-      else
-        filtered_day_stats = [Stats.stats_counts([])]
+        track_word_development(word_development, summary, options[:start_at], date_distance)
+        weekyear_dates.delete(summary.weekyear)
       end
-      all_stats += filtered_day_stats
-      days[date.to_s] = usage_stats(filtered_day_stats)
+    end
+    weekyear_dates.each do |weekyear, dates|
+      dates.each do |date|
+        filtered_day_stats = [Stats.stats_counts([])]
+        all_stats += filtered_day_stats
+        days[date.to_s] = usage_stats(filtered_day_stats)
+      end
     end
     
     res = usage_stats(all_stats)
     res[:days] = days
+    word_development.each do |key, list|
+      # if a word is used more than 7 times in the last few weeks, go ahead
+      # and call it an emergent word
+      # if a word has been dwindling
+      development_cutoff = key == 'emergent_words' ? 7 : 0.75
+      res[key.to_sym] = {}
+      list.each do |word, val|
+        if val > development_cutoff
+          res[key.to_sym][word] = val
+        end
+      end
+    end
+    
     res[:start_at] = options[:start_at].to_time.utc.iso8601
     res[:end_at] = options[:end_at].to_time.utc.iso8601
     res[:cached] = true
@@ -151,6 +183,18 @@ module Stats
     sorted = list.sort
     len = sorted.length
     return (sorted[(len - 1) / 2] + sorted[len / 2]) / 2.0
+  end
+
+  def self.track_word_development(stats, summary, min_date, date_range)
+    date = WeeklyStatsSummary.weekyear_to_date(summary.weekyear)
+    history = ((date - min_date.to_date).to_f / (date_range.to_f)) ** 2
+    ['emergent_words', 'dwindling_words'].each do |cat|
+      (summary.data['stats'][cat] || []).each do |word, val|
+        stats[cat] ||= {}
+        stats[cat][word] ||= 0
+        stats[cat][word] += (val * (history)).round(3)
+      end
+    end    
   end
   
   def self.device_stats(sessions)
@@ -907,7 +951,7 @@ module Stats
       # used less than half as often as it is modeled, then flag it as important
       if cnt > 5 && cnt > (max_modeled * 0.8) && (all_word_counts[word] || 0) < (cnt / 2)
         res[:watchwords][:popular_modeled_words] ||= {}
-        res[:watchwords][:popular_modeled_words][word] = cnt.to_f / max_modeled.to_f
+        res[:watchwords][:popular_modeled_words][word] = (cnt.to_f / max_modeled.to_f).round(3)
       end
     end
 
@@ -922,7 +966,7 @@ module Stats
         if total_weeks > 5
           if (longview_core_words[word] || 0) < (total_weeks.to_f / 4.0)
             res[:watchwords][:infrequent_core_words] ||= {}
-            res[:watchwords][:infrequent_core_words][word] = 1.0 - ((longview_core_words[word] || 0).to_f / max_core_word.to_f)
+            res[:watchwords][:infrequent_core_words][word] = (1.0 - ((longview_core_words[word] || 0).to_f / max_core_word.to_f)).round(3)
           end
         end
       end
@@ -939,7 +983,7 @@ module Stats
             # history then mark it as an infrequence home word
             if total_weeks > 3 && (longview_core_words[word] || 0) < (total_weeks.to_f / 2.0)
               res[:watchwords][:infrequent_home_words] ||= {}
-              res[:watchwords][:infrequent_home_words][word] = 1.0 - ((longview_core_words[word] || 0).to_f / max_core_word.to_f)
+              res[:watchwords][:infrequent_home_words][word] = (1.0 - ((longview_core_words[word] || 0).to_f / max_core_word.to_f)).round(3)
             end
           end
         end
@@ -959,7 +1003,7 @@ module Stats
           res[:emergent_words][word] = all_word_counts[word] 
           if default_core.include?(word)
             res[:watchwords][:emergent_words] ||= {}
-            res[:watchwords][:emergent_words][word] = all_word_counts[word].to_f / (all_word_counts[word].to_f + (longview_core_words[word] || 1)).to_f
+            res[:watchwords][:emergent_words][word] = (all_word_counts[word].to_f / (all_word_counts[word].to_f + (longview_core_words[word] || 1)).to_f).round(3)
           end
         end
         
@@ -970,7 +1014,7 @@ module Stats
           res[:dwindling_words][word] = longview_core_words[word]
           if default_core.include?(word)
             res[:watchwords][:dwindling_words] ||= {}
-            res[:watchwords][:dwindling_words][word] = 1.0 - (all_word_counts[word].to_f / (all_word_counts[word].to_f + (longview_core_words[word] || 1)).to_f)
+            res[:watchwords][:dwindling_words][word] = (1.0 - (all_word_counts[word].to_f / (all_word_counts[word].to_f + (longview_core_words[word] || 1)).to_f)).round(3)
           end
         end
       end
@@ -978,7 +1022,7 @@ module Stats
     if res[:watchwords][:emergent_words]
       max = res[:watchwords][:emergent_words].to_a.map(&:last).max || 1.0
       res[:watchwords][:emergent_words].each do |word, cnt|
-        res[:watchwords][:emergent_words][word] = cnt.to_f / max.to_f
+        res[:watchwords][:emergent_words][word] = (cnt.to_f / max.to_f).round(3)
       end
     end
     # - (not here) basic core words based on a timeline from registration/daily_use
@@ -1002,6 +1046,7 @@ module Stats
           scored_words[word] ||= {:word => word, :score => 0, :reasons => []}
           cnt = 0 if cnt.respond_to?(:nan?) && cnt.nan?
           scored_words[word][:score] += cnt * score
+          scored_words[word][:score] = scored_words[word][:score].round(3)
           scored_words[word][:reasons] << key
         end
       end
