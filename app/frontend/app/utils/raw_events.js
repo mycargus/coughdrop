@@ -1151,7 +1151,7 @@ var buttonTracker = EmberObject.extend({
         return buttonTracker.element_wrap($target.closest("a")[0]);
       } else if(region.tagName == 'HEADER') {
         var $elem = $target.closest(".btn:not(.pass_through),#button_list")
-        if($elem.hasClass('pass_to_button_list')) {
+        if($elem.hasClass('pass_to_button_list') && allow_dwell === false) {
           $elem = $("#button_list");
         }
         return buttonTracker.element_wrap($elem[0]);
