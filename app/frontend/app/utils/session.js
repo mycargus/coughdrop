@@ -222,23 +222,25 @@ var session = EmberObject.extend({
   },
   invalidate: function(force) {
     var full_invalidate = force || !!(app_state.get('currentUser') || stashes.get_object('auth_settings', true) || session.auth_settings_fallback());
-    stashes.flush();
-    stashes.setup();
+    stashes.flush().then(null, function() { return RSVP.resolve(); }).then(function() {
+      stashes.setup();
 
-    if(full_invalidate) {
-      session.reload('/');
-    }
-    var _this = this;
-    runLater(function() {
-      session.set('isAuthenticated', false);
-      session.set('access_token', null);
-      session.set(' ', null);
-      session.set('user_id', null);
-      session.set('as_user_id', null);
+      // Give the session time to clear completely before reloading, otherwise they might
+      // not actually get logged out
+      runLater(function() {
+        if(full_invalidate) {
+          session.reload('/');
+        }
+        session.set('isAuthenticated', false);
+        session.set('access_token', null);
+        session.set(' ', null);
+        session.set('user_id', null);
+        session.set('as_user_id', null);
+      }, 300);
     });
+
   }
-}).create({
-});
+}).create({ });
 window.session = session;
 
 export default session;

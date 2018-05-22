@@ -113,10 +113,11 @@ var stashes = EmberObject.extend({
     if((!prefix || prefix == 'auth_') && ignore_prefix != 'auth_') {
       stashes.flush_db_id();
     }
+    var promise = RSVP.resolve();
     if(stash_capabilities && stash_capabilities.dbman) {
       var stash = {};
       stash.storageId = 'stash';
-      stash_capabilities.storage_store({store: 'settings', id: 'stash', record: stash});
+      promise = stash_capabilities.storage_store({store: 'settings', id: 'stash', record: stash});
     }
     for(var idx = 0, l = localStorage.length; idx < l; idx++) {
       var key = localStorage.key(idx);
@@ -132,6 +133,7 @@ var stashes = EmberObject.extend({
         }
       }
     }
+    return promise;
   },
   db_persist: function() {
     if(stash_capabilities && stash_capabilities.dbman) {
