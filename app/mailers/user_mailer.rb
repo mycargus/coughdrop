@@ -81,16 +81,16 @@ class UserMailer < ActionMailer::Base
     @supervisees = User.find_all_by_global_id(@user.supervised_user_ids)
     @log_duration = 'the last week'
     @log_period = 'week'
-    pre_start = 2.weeks.ago.beginning_of_week(:sunday)
-    pre_end = 1.week.ago.beginning_of_week(:sunday)
+    pre_start = 2.weeks.ago
+    pre_end = 1.week.ago
     if @user.settings['next_notification_delay'] == '2_weeks'
-      pre_start = 4.weeks.ago.beginning_of_week(:sunday)
-      pre_end = 2.weeks.ago.beginning_of_week(:sunday)
+      pre_start = 4.weeks.ago
+      pre_end = 2.weeks.ago
       @log_duration = 'the last two weeks'
       @log_period = 'two weeks'
     elsif @user.settings['next_notification_delay'] == '1_month'
-      pre_start = 2.months.ago.beginning_of_week(:sunday)
-      pre_end = 1.month.ago.beginning_of_week(:sunday)
+      pre_start = 2.months.ago
+      pre_end = 1.month.ago
       @log_duration = 'the last month'
       @log_period = 'month'
     end
