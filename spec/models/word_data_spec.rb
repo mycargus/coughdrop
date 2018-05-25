@@ -400,21 +400,399 @@ RSpec.describe WordData, :type => :model do
     end
   end
   
-  describe "basic_core_for" do
-    it "should have specs" do
-      write_this_test
+  describe "basic_core_list_for" do
+    it 'should return a list' do
+      res = WordData.basic_core_list_for(nil)
+      expect(res.length).to be > 10
     end
   end
   
   describe "activities_for" do
-    it "should have specs" do
-      write_this_test
+    it 'should return nothing for non-full-premium users' do
+      u = User.create
+      u.settings['target_words'] = {
+        'generated' => Time.now.iso8601,
+        'activities' => {
+          'generated' => Time.now.iso8601,
+          'words' => [
+            {'word' => 'good', 'locale' => 'en'},
+            {'word' => 'bad', 'locale' => 'en'}
+          ],
+          'list' => [
+            {'id' => '1', 'score' => 5},
+            {'id' => '2', 'score' => 3},
+            {'id' => '3', 'score' => 1}
+          ]
+        }
+      }
+      u.save!
+      res = WordData.activities_for(u)
+      expect(res).to eq({
+        'checked' => Time.now.iso8601,
+        'list' => [],
+        'words' => []
+      })
+    end
+
+    it 'should retrieve activities for the user' do
+      u = User.create
+      u.settings['subscription'] = {'never_expires' => true}
+      u.settings['target_words'] = {
+        'generated' => Time.now.iso8601,
+        'activities' => {
+          'generated' => Time.now.iso8601,
+          'words' => [
+            {'word' => 'good', 'locale' => 'en'},
+            {'word' => 'bad', 'locale' => 'en'}
+          ],
+          'list' => [
+            {'id' => '1', 'score' => 5},
+            {'id' => '2', 'score' => 3},
+            {'id' => '3', 'score' => 1}
+          ]
+        }
+      }
+      u.save!
+      res = WordData.activities_for(u)
+      expect(res.instance_variable_get('@fresh')).to eq(true)
+      expect(res).to eq({
+        'checked' => Time.now.iso8601,
+        'generated' => Time.now.iso8601,
+        'list' => [
+          {"id"=>"1", "score"=>5, "user_ids"=>[u.global_id]}, 
+          {"id"=>"2", "score"=>3, "user_ids"=>[u.global_id]}, 
+          {"id"=>"3", "score"=>1, "user_ids"=>[u.global_id]}
+        ],
+        'words' => [
+          {"word"=>"good", "locale"=>"en", "user_ids"=>[u.global_id]}, 
+          {"word"=>"bad", "locale"=>"en", "user_ids"=>[u.global_id]}
+        ]
+      })
+    end
+
+    it 'should include supervisees if specified' do
+      u = User.create
+      u.settings['subscription'] = {'never_expires' => true}
+      u.settings['target_words'] = {
+        'generated' => Time.now.iso8601,
+        'activities' => {
+          'generated' => Time.now.iso8601,
+          'words' => [
+            {'word' => 'good', 'locale' => 'en'},
+            {'word' => 'bad', 'locale' => 'en'}
+          ],
+          'list' => [
+            {'id' => '1', 'score' => 6},
+            {'id' => '2', 'score' => 3},
+            {'id' => '3', 'score' => 1}
+          ]
+        }
+      }
+      u.save!
+      u2 = User.create
+      u2.settings['subscription'] = {'never_expires' => true}
+      u2.settings['target_words'] = {
+        'generated' => Time.now.iso8601,
+        'activities' => {
+          'generated' => Time.now.iso8601,
+          'words' => [
+            {'word' => 'good', 'locale' => 'en'},
+            {'word' => 'most', 'locale' => 'en'}
+          ],
+          'list' => [
+            {'id' => '1', 'score' => 5},
+            {'id' => '4', 'score' => 4},
+            {'id' => '5', 'score' => 10}
+          ]
+        }
+      }
+      u2.save!
+      User.link_supervisor_to_user(u, u2)
+      res = WordData.activities_for(u.reload, true)
+      expect(res.instance_variable_get('@fresh')).to eq(true)
+      expect(res).to eq({
+        'generated' => Time.now.iso8601,
+        'checked' => Time.now.iso8601,
+        'list' => [
+          {"id"=>"1", "score"=>11, "user_ids"=>[u.global_id, u2.global_id]}, 
+          {"id"=>"5", "score"=>10, "user_ids"=>[u2.global_id]}, 
+          {"id"=>"4", "score"=>4, "user_ids"=>[u2.global_id]}, 
+          {"id"=>"2", "score"=>3, "user_ids"=>[u.global_id]}, 
+          {"id"=>"3", "score"=>1, "user_ids"=>[u.global_id]}
+        ],
+        'words' => [
+          {"word"=>"good", "locale"=>"en", "user_ids"=>[u.global_id, u2.global_id]}, 
+          {"word"=>"bad", "locale"=>"en", "user_ids"=>[u.global_id]}, 
+          {"word"=>"most", "locale"=>"en", "user_ids"=>[u2.global_id]}
+        ]
+      })
+    end
+
+    it 'should as fresh if all are fresh' do
+      u = User.create
+      u.settings['subscription'] = {'never_expires' => true}
+      u.settings['target_words'] = {
+        'generated' => Time.now.iso8601,
+        'activities' => {
+          'generated' => Time.now.iso8601,
+          'words' => [
+            {'word' => 'good', 'locale' => 'en'},
+            {'word' => 'bad', 'locale' => 'en'}
+          ],
+          'list' => [
+            {'id' => '1', 'score' => 6},
+            {'id' => '2', 'score' => 3},
+            {'id' => '3', 'score' => 1}
+          ]
+        }
+      }
+      u.save!
+      u2 = User.create
+      u2.settings['subscription'] = {'never_expires' => true}
+      u2.settings['target_words'] = {
+        'generated' => Time.now.iso8601,
+        'activities' => {
+          'generated' => Time.now.iso8601,
+          'words' => [
+            {'word' => 'good', 'locale' => 'en'},
+            {'word' => 'most', 'locale' => 'en'}
+          ],
+          'list' => [
+            {'id' => '1', 'score' => 5},
+            {'id' => '4', 'score' => 4},
+            {'id' => '5', 'score' => 10}
+          ]
+        }
+      }
+      u2.save!
+      User.link_supervisor_to_user(u, u2)
+      res = WordData.activities_for(u.reload, true)
+      expect(res.instance_variable_get('@fresh')).to eq(true)
+      expect(res).to eq({
+        'generated' => Time.now.iso8601,
+        'checked' => Time.now.iso8601,
+        'list' => [
+          {"id"=>"1", "score"=>11, "user_ids"=>[u.global_id, u2.global_id]}, 
+          {"id"=>"5", "score"=>10, "user_ids"=>[u2.global_id]}, 
+          {"id"=>"4", "score"=>4, "user_ids"=>[u2.global_id]}, 
+          {"id"=>"2", "score"=>3, "user_ids"=>[u.global_id]}, 
+          {"id"=>"3", "score"=>1, "user_ids"=>[u.global_id]}
+        ],
+        'words' => [
+          {"word"=>"good", "locale"=>"en", "user_ids"=>[u.global_id, u2.global_id]}, 
+          {"word"=>"bad", "locale"=>"en", "user_ids"=>[u.global_id]}, 
+          {"word"=>"most", "locale"=>"en", "user_ids"=>[u2.global_id]}
+        ]
+      })
+    end
+
+    it 'should not mark as fresh if one is more than 2 weeks old' do
+      u = User.create
+      u.settings['subscription'] = {'never_expires' => true}
+      u.settings['target_words'] = {
+        'generated' => Time.now.iso8601,
+        'activities' => {
+          'generated' => Time.now.iso8601,
+          'words' => [
+            {'word' => 'good', 'locale' => 'en'},
+            {'word' => 'bad', 'locale' => 'en'}
+          ],
+          'list' => [
+            {'id' => '1', 'score' => 6},
+            {'id' => '2', 'score' => 3},
+            {'id' => '3', 'score' => 1}
+          ]
+        }
+      }
+      u.save!
+      u2 = User.create
+      u2.settings['subscription'] = {'never_expires' => true}
+      u2.settings['target_words'] = {
+        'generated' => 4.weeks.ago.iso8601,
+        'activities' => {
+          'generated' => 3.weeks.ago.iso8601,
+          'words' => [
+            {'word' => 'good', 'locale' => 'en'},
+            {'word' => 'most', 'locale' => 'en'}
+          ],
+          'list' => [
+            {'id' => '1', 'score' => 5},
+            {'id' => '4', 'score' => 4},
+            {'id' => '5', 'score' => 10}
+          ]
+        }
+      }
+      u2.save!
+      User.link_supervisor_to_user(u, u2)
+      res = WordData.activities_for(u.reload, true)
+      expect(res.instance_variable_get('@fresh')).to eq(false)
+      expect(res).to eq({
+        'generated' => 3.weeks.ago.iso8601,
+        'checked' => Time.now.iso8601,
+        'list' => [
+          {"id"=>"1", "score"=>11, "user_ids"=>[u.global_id, u2.global_id]}, 
+          {"id"=>"5", "score"=>10, "user_ids"=>[u2.global_id]}, 
+          {"id"=>"4", "score"=>4, "user_ids"=>[u2.global_id]}, 
+          {"id"=>"2", "score"=>3, "user_ids"=>[u.global_id]}, 
+          {"id"=>"3", "score"=>1, "user_ids"=>[u.global_id]}
+        ],
+        'words' => [
+          {"word"=>"good", "locale"=>"en", "user_ids"=>[u.global_id, u2.global_id]}, 
+          {"word"=>"bad", "locale"=>"en", "user_ids"=>[u.global_id]}, 
+          {"word"=>"most", "locale"=>"en", "user_ids"=>[u2.global_id]}
+        ]
+      })
+    end
+
+    it 'should not mark as fresh if there is a newer generated set' do
+      u = User.create
+      u.settings['subscription'] = {'never_expires' => true}
+      u.settings['target_words'] = {
+        'generated' => Time.now.iso8601,
+        'activities' => {
+          'generated' => 1.week.ago,
+          'words' => [
+            {'word' => 'good', 'locale' => 'en'},
+            {'word' => 'bad', 'locale' => 'en'}
+          ],
+          'list' => [
+            {'id' => '1', 'score' => 6},
+            {'id' => '2', 'score' => 3},
+            {'id' => '3', 'score' => 1}
+          ]
+        }
+      }
+      u.save!
+      u2 = User.create
+      u2.settings['subscription'] = {'never_expires' => true}
+      u2.settings['target_words'] = {
+        'generated' => Time.now.iso8601,
+        'activities' => {
+          'generated' => Time.now.iso8601,
+          'words' => [
+            {'word' => 'good', 'locale' => 'en'},
+            {'word' => 'most', 'locale' => 'en'}
+          ],
+          'list' => [
+            {'id' => '1', 'score' => 5},
+            {'id' => '4', 'score' => 4},
+            {'id' => '5', 'score' => 10}
+          ]
+        }
+      }
+      u2.save!
+      User.link_supervisor_to_user(u, u2)
+      res = WordData.activities_for(u.reload, true)
+      expect(res.instance_variable_get('@fresh')).to eq(false)
     end
   end
-  
+
   describe "update_activities_for" do
-    it "should have specs" do
-      write_this_test
+    it 'should call for any supervisees' do
+      u = User.create
+      u2 = User.create
+      expect(u).to receive(:supervisees).and_return([u2]).at_least(1).times
+      expect(User).to receive(:find_by_global_id).with(u.global_id).and_return(u)
+      expect(WordData).to receive(:update_activities_for).with(u2.global_id, false)
+      expect(WordData).to receive(:update_activities_for).with(u.global_id, true).and_call_original
+      WordData.update_activities_for(u.global_id, true)
     end
+
+    it 'should generate a result' do
+      u = User.create
+      u.settings['subscription'] = {'never_expires' => true}
+      u.settings['target_words'] = {
+        'generated' => 3.hours.ago.iso8601,
+        'list' => [
+          {'word' => 'about', 'locale' => 'en'},
+          {'word' => 'flummox', 'locale' => 'en'}
+        ]
+      }
+      u.save!
+      expect(WordData).to receive(:core_and_fringe_for).with(u).and_return({
+        :reachable_for_user => ['about', 'more', 'want', 'like', 'not'],
+        :reachable_fringe_for_user => []
+      })
+      expect(WordData).to receive(:rand).and_return(1.0).at_least(1).times
+
+      expect(Typhoeus).to receive(:get).with("https://workshop.openaac.org/api/v1/words/about%3Aen").and_return(OpenStruct.new(body: {
+        'word' => {
+          'word' => 'about',
+          'locale' => 'en',
+          'learning_projects' => [{'id': 'lp1', 'text' => 'about something'}],
+          'activity_ideas' => [{'id': 'ai1', 'description' => 'about it'}],
+          'topic_starters' => [{'id' => 'ts1'}],
+          'books' => [{'id' => 'b1'}],
+          'videos' => [{'id' => 'v1'}],
+          'send_homes' => [{'id' => 'sh1'}]
+        }
+      }.to_json))
+      expect(Typhoeus).to receive(:get).with("https://workshop.openaac.org/api/v1/words/want%3Aen").and_return(OpenStruct.new(body: {
+        'word' => {
+          'word' => 'want',
+          'locale' => 'en',
+          'learning_projects' => [{'id': 'lp2', 'text' => 'I want to know about it, not'}],
+          'activity_ideas' => [{'id': 'ai2', 'description' => 'sometime'}],
+          'topic_starters' => [{'id' => 'ts2'}],
+          'books' => [{'id' => 'b2'}],
+          'videos' => [{'id' => 'v2'}],
+          'send_homes' => [{'id' => 'sh2'}]
+        }
+      }.to_json))
+      expect(Typhoeus).to receive(:get).with("https://workshop.openaac.org/api/v1/words/more%3Aen").and_return(OpenStruct.new(body: {
+      }.to_json))
+      expect(Typhoeus).to receive(:get).with("https://workshop.openaac.org/api/v1/words/like%3Aen").and_return(OpenStruct.new(body: {
+      }.to_json))
+      res = WordData.update_activities_for(u.global_id, false)
+      expect(u.reload.settings['target_words']['activities']).to eq({
+        'generated' => Time.now.iso8601,
+        'list' => [
+          {"id"=>"ai1", "description"=>"about it", "type"=>"activity_ideas", "word"=>"about", "locale"=>"en", "score"=>6.3}, 
+          {"id"=>"lp1", "text"=>"about something", "type"=>"learning_projects", "word"=>"about", "locale"=>"en", "score"=>6.3}, 
+          {"id"=>"sh1", "type"=>"send_homes", "word"=>"about", "locale"=>"en", "score"=>6.0}, 
+          {"id"=>"ts1", "type"=>"topic_starters", "word"=>"about", "locale"=>"en", "score"=>5.0}, 
+          {"id"=>"b1", "type"=>"books", "word"=>"about", "locale"=>"en", "score"=>5.0}, 
+          {"id"=>"v1", "type"=>"videos", "word"=>"about", "locale"=>"en", "score"=>5.0}, 
+          {"id"=>"lp2", "text"=>"I want to know about it, not", "type"=>"learning_projects", "word"=>"want", "locale"=>"en", "score"=>4.933}, 
+          {"id"=>"sh2", "type"=>"send_homes", "word"=>"want", "locale"=>"en", "score"=>4.333}, 
+          {"id"=>"ai2", "description"=>"sometime", "type"=>"activity_ideas", "word"=>"want", "locale"=>"en", "score"=>4.333}, 
+          {"id"=>"ts2", "type"=>"topic_starters", "word"=>"want", "locale"=>"en", "score"=>3.333}, 
+          {"id"=>"b2", "type"=>"books", "word"=>"want", "locale"=>"en", "score"=>3.333},
+          {"id"=>"v2", "type"=>"videos", "word"=>"want", "locale"=>"en", "score"=>3.333}, 
+        ],
+        'words' => [{"word"=>"about", "locale"=>"en", "reasons"=>nil}, {"word"=>"want", "locale"=>"en", "reasons"=>["fallback"]}]
+      })
+      expect(res).to eq({
+        'checked' => Time.now.iso8601,
+        'generated' => Time.now.iso8601,
+        'list' => [
+          {"id"=>"lp1", "text"=>"about something", "type"=>"learning_projects", "word"=>"about", "locale"=>"en", "score"=>6.3, "user_ids"=>[u.global_id]}, 
+          {"id"=>"ai1", "description"=>"about it", "type"=>"activity_ideas", "word"=>"about", "locale"=>"en", "score"=>6.3, "user_ids"=>[u.global_id]}, 
+          {"id"=>"sh1", "type"=>"send_homes", "word"=>"about", "locale"=>"en", "score"=>6.0, "user_ids"=>[u.global_id]}, 
+          {"id"=>"ts1", "type"=>"topic_starters", "word"=>"about", "locale"=>"en", "score"=>5.0, "user_ids"=>[u.global_id]}, 
+          {"id"=>"b1", "type"=>"books", "word"=>"about", "locale"=>"en", "score"=>5.0, "user_ids"=>[u.global_id]}, 
+          {"id"=>"v1", "type"=>"videos", "word"=>"about", "locale"=>"en", "score"=>5.0, "user_ids"=>[u.global_id]}, 
+          {"id"=>"lp2", "text"=>"I want to know about it, not", "type"=>"learning_projects", "word"=>"want", "locale"=>"en", "score"=>4.933, "user_ids"=>[u.global_id]}, 
+          {"id"=>"ai2", "description"=>"sometime", "type"=>"activity_ideas", "word"=>"want", "locale"=>"en", "score"=>4.333, "user_ids"=>[u.global_id]}, 
+          {"id"=>"sh2", "type"=>"send_homes", "word"=>"want", "locale"=>"en", "score"=>4.333, "user_ids"=>[u.global_id]}, 
+          {"id"=>"ts2", "type"=>"topic_starters", "word"=>"want", "locale"=>"en", "score"=>3.333, "user_ids"=>[u.global_id]}, 
+          {"id"=>"b2", "type"=>"books", "word"=>"want", "locale"=>"en", "score"=>3.333, "user_ids"=>[u.global_id]}, 
+          {"id"=>"v2", "type"=>"videos", "word"=>"want", "locale"=>"en", "score"=>3.333, "user_ids"=>[u.global_id]}
+        ],
+        'words' => [{"word"=>"about", "locale"=>"en", "reasons"=>nil, "user_ids"=>[u.global_id]}, {"word"=>"want", "locale"=>"en", "reasons"=>["fallback"], "user_ids"=>[u.global_id]}]
+      })
+    end
+
+    it 'should use existing activities_for result if still fresh' do
+      u = User.create
+      LogSession.create(log_type: 'activities', user_id: u.id)
+      res = {'words' => [{}, {}, {}, {}], 'generated' => 4.hours.ago.iso8601}
+      res.instance_variable_set('@fresh', true)
+      expect(WordData).to receive(:activities_for).with(u, false).and_return(res)
+      act = WordData.update_activities_for(u.global_id, false)
+      expect(act).to eq(res)
+    end
+
+    it 'should update based on the user activity_session data'
   end
 end

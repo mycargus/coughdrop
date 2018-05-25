@@ -20,12 +20,22 @@ describe UserBoardConnection, :type => :model do
   end
   
   it "should match parent_board_id to board's parent_board_id" do
-    write_this_test
+    u = User.create
+    b = Board.create(user: u, parent_board_id: 1114)
+    ubc = UserBoardConnection.create(board: b)
+    expect(ubc.parent_board_id).to eq(1114)
   end
   
   describe "root_board_id" do
-    it "should have specs" do
-      write_this_test
+    it 'should return the correct value' do
+      ubc = UserBoardConnection.new
+      expect(ubc.root_board_id).to eq(nil)
+      ubc.board_id = 4
+      expect(ubc.root_board_id).to eq(4)
+      ubc.parent_board_id = 3
+      expect(ubc.root_board_id).to eq(3)
+      ubc.board_id = nil
+      expect(ubc.root_board_id).to eq(3)
     end
   end
 

@@ -510,7 +510,6 @@ describe LogSession, :type => :model do
     end
     
     it "should persist modeling events back (as non-modeling events) to the modeler's account where possible" do
-      # write_this_test
       # TODO: should we implement this??
     end
   end

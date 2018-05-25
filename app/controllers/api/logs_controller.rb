@@ -58,6 +58,7 @@ class Api::LogsController < ApplicationController
   
   def show
     log = LogSession.find_by_global_id(params['id'])
+    return unless exists?(log, params['id'])
     user = log && log.user
     return unless allowed?(user, 'supervise')
     

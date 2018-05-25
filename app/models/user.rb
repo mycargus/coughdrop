@@ -688,9 +688,9 @@ class User < ActiveRecord::Base
     if board && board.allows?(self, 'view')
       self.settings['preferences']['home_board'] = {
         'id' => board.global_id,
-        'level' => home_board['level'],
         'key' => board.key
       }
+      self.settings['preferences']['home_board']['level'] = home_board['level'] if home_board['level']
     elsif board && non_user_params['updater'] && board.allows?(non_user_params['updater'], 'share')
       if non_user_params['async']
         board.schedule(:process_share, "add_deep-#{self.global_id}")
@@ -699,9 +699,9 @@ class User < ActiveRecord::Base
       end
       self.settings['preferences']['home_board'] = {
         'id' => board.global_id,
-        'level' => home_board['level'],
         'key' => board.key
       }
+      self.settings['preferences']['home_board']['level'] = home_board['level'] if home_board['level']
     else
       self.settings['preferences'].delete('home_board')
     end
@@ -731,10 +731,10 @@ class User < ActiveRecord::Base
           brd = {
             'name' => board['name'] || record.settings['name'] || 'Board',
             'key' => board['key'],
-            'level' => board['level'],
             'image' => board['image'] || record.settings['image_url'] || 'https://s3.amazonaws.com/opensymbols/libraries/arasaac/board_3.png',
             'home_lock' => !!board['home_lock']
           }
+          brd['level'] = board['level'] if board['level']
           valid_types = []
           if board['highlight_type'] == 'custom'
             valid_types = ['geos', 'ssids', 'times', 'places']

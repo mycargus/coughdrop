@@ -249,44 +249,114 @@ describe SecureSerialize, :type => :model do
   end
   
   describe "paper_trail_for_secure_column?" do
-    it "should have specs" do
-      write_this_test
+    it 'should return the correct value' do
+      expect(User.new.paper_trail_for_secure_column?).to eq(true)
+      expect(JobStash.new.paper_trail_for_secure_column?).to eq(false)
+      expect(Board.new.paper_trail_for_secure_column?).to eq(true)
     end
   end
+
   
   describe "load_secure_object" do
-    it "should have specs" do
-      write_this_test
+    it 'should load the secure object' do
+      u = User.new
+      u.id = 5
+      expect(u.instance_variable_get('@loaded_secure_object')).to_not eq(true)
+      
+      dump = GoSecure::SecureJson.dump({a: 1})
+      expect(u).to receive(:read_attribute).with(:settings).and_return(dump)
+      u.load_secure_object
+      expect(u.instance_variable_get('@secure_object')).to eq({'a' => 1})
+      expect(u.instance_variable_get('@loaded_secure_object')).to eq(true)
     end
-  end
-  
-  describe "mark_changed_secure_object_hash" do
-    it "should have specs" do
-      write_this_test
+
+    it 'should load an insecure object' do
+      u = User.new
+      u.id = 5
+      expect(u.instance_variable_get('@loaded_secure_object')).to_not eq(true)
+      
+      expect(u).to receive(:read_attribute).with(:settings).and_return({a: 1}.to_json)
+      u.load_secure_object
+      expect(u.instance_variable_get('@secure_object')).to eq({'a' => 1})
+      expect(u.instance_variable_get('@loaded_secure_object')).to eq(true)
     end
   end
   
   describe "rollback_to" do
-    it "should have specs" do
-      write_this_test
+    it 'should search for a previous version and roll back if found' do
+      PaperTrail.whodunnit = 'bob'
+      u = User.create
+      u.settings['bacon'] = true
+      u.save!
+      expect(PaperTrail::Version.count).to eq(2)
+      PaperTrail::Version.all.update_all(created_at: 6.weeks.ago)
+      u.settings['cheddar'] = 4
+      u.save!
+      u.settings['broccoli'] = 'cooked'
+      u.save!
+      u.reload
+      expect(PaperTrail::Version.count).to eq(4)
+      u.rollback_to(3.weeks.ago)
+      u.reload
+      expect(u.settings['bacon']).to eq(true)
+      expect(u.settings['broccoli']).to eq(nil)
+      expect(u.settings['cheddar']).to eq(nil)
     end
   end
-  
+
   describe "persist_secure_object" do
-    it "should have specs" do
-      write_this_test
+    it 'should persist the object correctly' do
+      u = User.create
+      u.instance_variable_set('@secure_object', {a: 1})
+      expect(u).to receive('settings_changed?').and_return(true).at_least(1).times
+      expect(u).to receive(:write_attribute) do |attr, data|
+        expect(attr).to eq(:settings)
+      end
+      u.persist_secure_object
     end
   end
-  
+
   describe "user_versions" do
-    it "should have specs" do
-      write_this_test
+    it 'should return only non-job version' do
+      PaperTrail.whodunnit = 'job:asdf'
+      u = User.create
+      u.settings['a'] = 1
+      u.save!
+      expect(PaperTrail::Version.count).to eq(0)
+      PaperTrail.whodunnit = 'bob'
+      u.settings['b'] = 2
+      u.save!
+      u.settings['c'] = 3
+      u.save!
+      expect(PaperTrail::Version.count).to eq(2)
+      versions = User.user_versions(u.global_id)
+      expect(versions.length).to eq(2)
     end
   end
-  
+
   describe "load_version" do
-    it "should have specs" do
-      write_this_test
+    it 'should load the version' do
+      PaperTrail.whodunnit = 'bob'
+      u = User.create
+      u.settings['a'] = 1
+      u.save!
+      u.settings['a'] = 2
+      u.save!
+      u.settings['b'] = 'asdf'
+      u.save!
+      versions = PaperTrail::Version.all
+      expect(versions.count).to eq(4)
+      obj = User.load_version(versions[0])
+      expect(obj).to eq(nil)
+      obj = User.load_version(versions[1])
+      expect(obj.settings['a']).to eq(1)
+      expect(obj.settings['b']).to eq(nil)
+      obj = User.load_version(versions[2])
+      expect(obj.settings['a']).to eq(2)
+      expect(obj.settings['b']).to eq(nil)
+      obj = User.load_version(versions[3])
+      expect(obj.settings['a']).to eq(2)
+      expect(obj.settings['b']).to eq('asdf')
     end
   end
 end

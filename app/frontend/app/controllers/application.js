@@ -395,7 +395,6 @@ export default Controller.extend({
     },
     paint: function(fill, border, parts_of_speech) {
       if(fill == 'level') {
-//        modal.open('modals/modeling-ideas', {users: users});
         modal.open('modals/paint-level', {});
       } else {
         var part_of_speech = (parts_of_speech || [])[0];

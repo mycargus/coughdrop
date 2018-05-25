@@ -82,7 +82,8 @@ class WordData < ActiveRecord::Base
     all_fresh = add_activities_for(user, res)
     if include_supervisees
       user.supervisees.each do |sup|
-        all_fresh = all_fresh && add_activities_for(sup, res)
+        sup_fresh = add_activities_for(sup, res)
+        all_fresh = all_fresh && sup_fresh
       end
     end
     res['list'] = res['list'].sort_by{|s| [s['score'], rand] }.reverse
@@ -117,7 +118,7 @@ class WordData < ActiveRecord::Base
       # TODO: created_at will tell us if a new goal was created, but not if it was just modified
       # and updated_at also gets modified regularly when goals have a badges attached, even
       # if they haven't actually been modified.
-      more_recent_goals = UserGoal.where(active: true, user_id: user.id).where(['created_at > ?', generated]).count
+      more_recent_goals = UserGoal.where(active: true, user_id: user.id).where(['created_at > ?', generated]).count > 0
       more_recent_activities = activities_session && activities_session.updated_at > generated
       return existing unless more_recent_goals || more_recent_activities
     end
@@ -177,9 +178,10 @@ class WordData < ActiveRecord::Base
             a['locale'] = locale
             a['score'] = 5 * (suggestions.length - idx) / suggestions.length.to_f
             a['score'] += 1 if ['learning_projects', 'activity_ideas', 'send_homes'].include?(key)
-            text = "#{suggestion['text']} #{suggestion['description']}"
+            text = "#{a['text']} #{a['description']}"
             a['score'] += 0.3 * text.scan(word_re).length
             a['score'] += 0.5 * text.scan(quote_re).length
+            a['score'] = a['score'].round(3)
           end
           activities += list
         end
@@ -220,11 +222,15 @@ class WordData < ActiveRecord::Base
     user.settings['target_words']['activities'] = {
       'generated' => Time.now.iso8601,
       'words' => found_words,
-      'list' => activities.sort_by{|a| [a['score'] || 0, rand] }.reverse[0, 25]
+      'list' => activities.sort_by{|a| [a['score'] || 0, WordData.rand] }.reverse[0, 25]
     }
     user.save
     
     activities_for(user, include_supervisees)
+  end
+
+  def self.rand
+    Random.rand
   end
   
 # word types:

@@ -257,8 +257,10 @@ describe WeeklyStatsSummary, :type => :model do
     end
     
     it 'should include word matches' do
+      user_ids = []
       6.times do
         u = User.create
+        user_ids << u.id
         d = Device.create
         s1 = LogSession.process_new({'events' => [
           {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'this', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 5},
@@ -273,11 +275,37 @@ describe WeeklyStatsSummary, :type => :model do
       
       sum = WeeklyStatsSummary.track_trends(sum.weekyear)
       expect(sum.data['word_pairs']).to eq({
-        "4ef675c7908e29474e184f185134bfd6"=>{"count"=>6, "a"=>"this", "b"=>"that", "user_count"=>6}, 
-        "51122eaf1983d05e75976c574d8530ef"=>{"count"=>6, "a"=>"that", "b"=>"then", "user_count"=>6}
+        "4ef675c7908e29474e184f185134bfd6"=>{"count"=>6, "a"=>"this", "b"=>"that", "user_ids"=>user_ids, 'user_count' => 6}, 
+        "51122eaf1983d05e75976c574d8530ef"=>{"count"=>6, "a"=>"that", "b"=>"then", "user_ids"=>user_ids, 'user_count' => 6}
+      })
+    end
+
+    it "should update a user's target_list if for the current week" do
+      u = User.create
+      d = Device.create
+      5.times do |i|
+        s1 = LogSession.process_new({'events' => [
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'good', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 10 - (i * 60)},
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'want', 'button_id' => 2, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 9 - (i * 60)},
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'like', 'button_id' => 3, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 8 - (i * 60)},
+          {'type' => 'button', 'modeling' => true, 'button' => {'spoken' => true, 'label' => 'like', 'button_id' => 4, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 7 - (i * 60)},
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'then', 'button_id' => 5, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 6 - (i * 60)},
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'wait', 'button_id' => 6, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 5 - (i * 60)},
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'like', 'button_id' => 7, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 4 - (i * 60)},
+          {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'like', 'button_id' => 8, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 3 - (i * 60)},
+          {'type' => 'button', 'modeling' => true, 'button' => {'spoken' => true, 'label' => 'with', 'button_id' => 9, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i}
+        ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+        WeeklyStatsSummary.update_for(s1.global_id)
+      end
+      
+      sum = WeeklyStatsSummary.last
+      expect(sum.data['stats']['watchwords']).to eq({
+        'popular_modeled_words' => {'with' => 1.0},
+        'suggestions' => []
       })
     end
     
+      
     it "should include goal data" do
       u = User.create
       tg = UserGoal.create(template: true, global: true, settings: {'summary' => 'template goal'})
@@ -628,13 +656,75 @@ describe WeeklyStatsSummary, :type => :model do
     end
   end
   
-  it "should update a user's target_list if for the current week" do
-    write_this_test
-  end
-  
   describe "word_trends" do
-    it "should have specs" do
-      write_this_test
+    it 'should return a trends object' do
+      res = WeeklyStatsSummary.word_trends('like')
+      expect(res).to eq({
+        :pairs => [],
+        :usage_count => 0.0,
+        :weeks => {}
+      })
+    end
+
+    it 'should combine values' do
+      cweek = Date.today.beginning_of_week(:sunday).cweek
+      cwyear = Date.today.beginning_of_week(:sunday).cwyear
+      current_weekyear = (cwyear * 100) + cweek
+      sum = WeeklyStatsSummary.create(weekyear: current_weekyear, user_id: 0, data: {
+        'totals' => {}, 
+        'available_words' => {'like' => ['1_1', '1_2'], 'most' => ['1_1']},
+        'home_board_user_ids' => ['1_1', '1_2'],
+        'word_counts' => {'like' => 10, 'most' => 15},
+        'word_matches' => {
+          'like' => [
+            {
+            'a' => 'like',
+            'b' => 'you',
+            'count' => 4,
+            'user_ids' => ['1_1', '1_2']
+            },
+            {
+            'a' => 'not',
+            'b' => 'like',
+            'count' => 10,
+            'user_ids' => ['1_1']
+            },
+          ]
+        }
+      })
+
+      cweek = 2.weeks.ago.to_date.beginning_of_week(:sunday).cweek
+      cwyear = 2.weeks.ago.to_date.beginning_of_week(:sunday).cwyear
+      old_weekyear = (cwyear * 100) + cweek
+      sum = WeeklyStatsSummary.create(weekyear: old_weekyear, user_id: 0, data: {
+        'totals' => {}, 
+        'available_words' => {'like' => ['1_1'], 'most' => ['1_1']},
+        'home_board_user_ids' => ['1_1', '1_2', '1_4'],
+        'word_counts' => {'like' => 5, 'most' => 3},
+        'word_matches' => {
+          'like' => [
+            {
+            'a' => 'like',
+            'b' => 'you',
+            'count' => 5,
+            'user_ids' => ['1_1', '1_4']
+            },
+          ]
+        }
+      })      
+      res = WeeklyStatsSummary.word_trends('like')
+      weeks = {}
+      weeks[current_weekyear] = {'available_for' => 1.0, 'usage_count' => 0.67}
+      weeks[old_weekyear] = {'available_for' => 0.33, 'usage_count' => 1.0}
+      expect(res).to eq({
+        :available_for => 0.67,
+        :pairs => [
+          {'a' => 'like', 'b' => 'you', 'partner' => 'you', 'users' => 1.0, 'usages' => 0.9},
+          {'a' => 'not', 'b' => 'like', 'partner' => 'not', 'users' => 0.33, 'usages' => 1.0},
+        ],
+        :usage_count => 0.75,
+        :weeks => weeks
+      })
     end
   end
 end

@@ -256,6 +256,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
         (summary.data['modeled_session_events'] || {}).each do |total, cnt|
           total.data['modeled_session_events'][total] = (total.data['modeled_session_events'][total] || 0) + cnt
         end
+        summary.data['stats'] ||= {}
         total.data['totals']['total_modeled_words'] += (summary.data['stats']['modeled_word_counts'] || {}).map(&:last).sum
         total.data['totals']['total_modeled_buttons'] += (summary.data['stats']['modeled_button_counts'] || {}).map{|k, h| h['count'] }.sum
         total.data['totals']['total_words'] += (summary.data['stats']['all_word_counts'] || {}).map(&:last).sum + summary.data['stats']['modeled_word_counts'].map(&:last).sum
@@ -405,7 +406,6 @@ class WeeklyStatsSummary < ActiveRecord::Base
     total_sums = sums.count.to_f
     word_pairs.each do |k, pair|
       pair[:user_count] = pair[:user_ids].uniq.length
-      pair.delete(:user_ids)
       # if at least 50 instances, or 1 in 500 have the pairing, let's include it
       if pair[:user_count] > 50 || (pair[:user_count] > 5 && (pair[:user_count].to_f / total_sums) > 0.002)
         total.data['word_pairs'][k] = pair
@@ -723,11 +723,13 @@ class WeeklyStatsSummary < ActiveRecord::Base
       usage = 0.0 if usage.nan?
       week = {
         'available_for' => avail,
-        'usage_count' => usage
+        'usage_count' => usage,
       }
+      week['home_board_users'] = home_board_user_ids.length if false
+      week['max_usage_count'] = max_usage_count if false
       res[:weeks][summary.weekyear] = week
       stash[:home_board_user_ids] += home_board_user_ids
-      stash[:user_ids] += summary.data['user_ids'] || []
+      stash[:user_ids] += summary.data['user_ids'] || summary.data['home_board_user_ids'] || []
       stash[:usage_count] += usage_count
       stash[:max_usage_count] += max_usage_count
 
@@ -738,7 +740,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
         found = res[:pairs].detect{|p| [p['a'], p['b']].sort == [pair['a'], pair['b']].sort }
         if found
           found['count'] += pair['count']
-          found['user_count'] += pair['user_count']
+          found['user_ids'] += pair['user_ids'] || []
         else
           res[:pairs] << pair
         end
@@ -748,14 +750,17 @@ class WeeklyStatsSummary < ActiveRecord::Base
     if stash[:available_user_ids]
       res[:available_for] = (stash[:available_user_ids].uniq.length.to_f / stash[:home_board_user_ids].uniq.length.to_f).round(2)
       res[:available_for] = 0.0 if res[:available_for].nan?
+      res[:home_board_users] = stash[:home_board_user_ids].uniq if false
     end
     res[:usage_count] = (stash[:usage_count].to_f / stash[:max_usage_count].to_f).round(2)
     res[:usage_count] = 0.0 if res[:usage_count].nan?
+    res[:max_usage_count] = stash[:max_usage_count] if false
     
     max_user_count = res[:pairs].map{|p| p['user_count'] || 0 }.max
     max_count = res[:pairs].map{|p| p['count'] || 0 }.max
     res[:pairs].each do |pair|
       uc = pair.delete('user_count')
+      uc = pair.delete('user_ids').uniq.length if pair['user_ids']
       c = pair.delete('count')
       pair['partner'] = pair['a'] == word ? pair['b'] : pair['a']
       pair['users'] = (uc.to_f / stash[:user_ids].uniq.length.to_f).round(2)

@@ -42,7 +42,7 @@ module JsonApi::UserVersion
     end
     json['modifier'] ||= {
       'description' => 'Unknown User',
-      'image' => "https://s3.amazonaws.com/#{bucket}/avatars/avatar-0.png"
+      'image' => "https://s3.amazonaws.com/#{ENV['STATIC_S3_BUCKET'] || "coughdrop"}/avatars/avatar-0.png"
     }
 
     json

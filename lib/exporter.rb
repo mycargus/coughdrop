@@ -126,6 +126,7 @@ More information about the file formats being used is available at https://www.o
         log_json_session(session, header, anonymized)
       end
     end
+    header[:anonymized] = true if anonymized
     header
   end
   
@@ -149,11 +150,12 @@ More information about the file formats being used is available at https://www.o
     session = {
       id: session_id,
       type: session_type,
-      started: log_session.started_at.utc.iso8601,
-      ended: log_session.ended_at.utc.iso8601,
+      started: time_shift((log_session.started_at || log_session.created_at)),
+      ended: time_shift((log_session.ended_at || log_session.updated_at)),
       device_id: device_id,
       events: []
     }
+    session[:anonymized] = true if anonymized
 
     if log_session.log_type == 'session'
       event_session(log_session, session, session_id, anonymized)
@@ -163,6 +165,7 @@ More information about the file formats being used is available at https://www.o
       assessment_session(log_session, session, session_id, anonymized)
     end
     header[:sessions] << session
+    header
   end
 
   def self.event_session(log_session, session, session_id, anonymized)
@@ -184,9 +187,11 @@ More information about the file formats being used is available at https://www.o
 
     log_session.data['events'].each_with_index do |event, idx|
       next if event['skip']
+      prev_event = log_session.data['events'][idx - 1] || event
+      next_event = log_session.data['events'][idx + 1] || event
       e = {
         id: "#{session_id}:#{idx}",
-        timestamp: Time.at(event['timestamp']).utc.iso8601
+        timestamp: time_shift(Time.at(event['timestamp']), Time.at(prev_event['timestamp']), Time.at(next_event['timestamp']))
       }
       if event['type'] == 'button' && event['button'] && event['button']['button_id'] == -1
         event['type'] = 'action'
@@ -217,8 +222,9 @@ More information about the file formats being used is available at https://www.o
           break
         end
         e['type'] = 'button'
-        e['button_id'] = anon("#{event['button']['button_id']}:#{event['button']['board']['id']}")
-        e['board_id'] = anon(event['button']['board']['id'])
+        board_id = (event['button']['board'] || {})['id'] || 'none'
+        e['button_id'] = anon("#{event['button']['button_id']}:#{board_id}")
+        e['board_id'] = anon(board_id)
         e['spoken'] = event['button']['spoken'] == true || event['button']['spoken'] == nil
         e['label'] = event['button']['label']
         e['vocalization'] = event['button']['vocalization'] if event['button']['vocalization'] && !event['button']['vocalization'].match(/^[\:\+]/)
@@ -229,7 +235,7 @@ More information about the file formats being used is available at https://www.o
           e['label'] = lookup(e['label'])
           e['vocalization'] = lookup(e['vocalization'])
         else
-          core_buttons["#{event['button']['button_id']}:#{event['button']['board']['id']}"] = true if e['core_word']
+          core_buttons["#{event['button']['button_id']}:#{board_id}"] = true if e['core_word']
         end
         e['actions'] = []
         if (event['button']['vocalization'] || '').match(/^[\:\+]/)
@@ -250,7 +256,7 @@ More information about the file formats being used is available at https://www.o
           elsif event['button']['vocalization'] == ':completion'
             # this shouldn't actually be possible, since there is no user-generated button to do this
             e['actions'] << lookup_text({:action => ':completion'}, lookup(event['button']['completion']))
-          elsif event['button']['vocalization'].match(/^\:/)
+          elsif (event['button']['vocalization'] || '').match(/^\:/)
             if mods[event['button']['vocalization']]
               e['actions'] << lookup_text({
                 :action => ':modification', 
@@ -307,7 +313,7 @@ More information about the file formats being used is available at https://www.o
             sentence << (button['vocalization'] || button['label'])
             res = {
               id: button['button_id'],
-              board_id: button['board']['id'],
+              board_id: (button['board'] || {})['id'] || 'none',
               label: button['label'],
             }
             res[:vocalization] = button['vocalization'] if button['vocalization']
@@ -338,12 +344,13 @@ More information about the file formats being used is available at https://www.o
 
       session[:events] << e
     end
+    session
   end
     
   def self.note_session(log_session, session, session_id, anonymized)
     event = {
       id: "#{session_id}:note",
-      timestamp: log_session.started_at.utc.iso8601, 
+      timestamp: time_shift(log_session.started_at), 
       author_name: log_session.author.user_name,
       author_url: "#{JsonApi::Json.current_host}/#{log_session.author.user_name}",
       text: ''
@@ -371,7 +378,7 @@ More information about the file formats being used is available at https://www.o
     log_session.data['assessment']['tallies'].each_with_index do |tally, idx|
       session[:events] << {
         id: "#{session_id}:#{idx}",
-        timestamp: Time.at(tally['timestamp']).utc.iso8601,
+        timestamp: time_shift(Time.at(tally['timestamp'])),
         correct: tally['correct']
       }
     end
@@ -385,6 +392,25 @@ More information about the file formats being used is available at https://www.o
     else
       @anonymizer = nil
       @lookups = nil
+    end
+    @time_offset = nil
+  end
+
+  def self.time_shift(time, before=nil, after=nil)
+    if @anonymizer
+      if !@time_offset
+        starter = Time.parse('2000-01-01T00:00:00.00Z')
+        @time_offset = time - starter
+      end
+      if before && after
+        before_diff = (time - before).abs.to_f / 2
+        after_diff = (after - time).abs.to_f / 2
+        ((time.to_time - @time_offset) + (rand * (before_diff + after_diff) - before_diff)).utc.iso8601
+      else
+        (time.to_time - @time_offset).utc.iso8601
+      end
+    else
+      time.utc.iso8601
     end
   end
   

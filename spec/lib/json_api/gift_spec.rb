@@ -36,7 +36,28 @@ describe JsonApi::Gift do
     end
     
     it "should include receiver information" do
-      write_this_test
+      g = GiftPurchase.create(:settings => {'hat' => 'black', 'seconds_to_add' => 2.years.to_i, 'total_codes' => 5})
+      expect(g.settings['codes']).to_not eq(nil)
+      expect(g.settings['codes'].length).to eq(5)
+      u = User.create
+      g.settings['admin_user_ids'] = [u.global_id]
+      g.save!
+      u2 = User.create
+      code = g.settings['codes'].to_a[1][0]
+      code2 = g.settings['codes'].to_a[0][0]
+      g.redeem_code!(code, u2)
+      expect(g.allows?(u, 'manage')).to eq(true)
+      json = JsonApi::Gift.build_json(g, :permissions => u)
+      expect(json['id']).to eq(g.code)
+      expect(json['codes'].length).to eq(5)
+      code = json['codes'].detect{|c| c[:code] == code }
+      expect(code).to_not eq(nil)
+      expect(code[:redeemed]).to eq(true)
+      expect(code[:receiver]['id']).to eq(u2.global_id)
+      expect(!!json['codes'][0]['redeemed']).to eq(false)
+      code = json['codes'].detect{|c| c[:code] == code2 }
+      expect(json['duration']).to eq('2 years')
+      expect(json['purchased']).to eq(false)
     end
   end
 end

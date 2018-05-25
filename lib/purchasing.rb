@@ -420,7 +420,7 @@ module Purchasing
     total = 0
     cancel_months = {}
     cancels = {}
-    puts "retrieving expired subscriptions..."
+    output "retrieving expired subscriptions..."
     Stripe::Subscription.list(:limit => 20, :status => 'canceled').auto_paging_each do |sub|
       cancels[sub['customer']] ||= []
       cancels[sub['customer']] << sub
@@ -431,16 +431,16 @@ module Purchasing
       total += 1
       cus_id = customer['id']
       email = customer['email']
-      puts "checking #{cus_id} #{email}"
+      output "checking #{cus_id} #{email}"
       if !customer
-        puts "\tcustomer not found"
+        output "\tcustomer not found"
         next
       end
       user_id = customer['metadata'] && customer['metadata']['user_id']
       user = user_id && User.find_by_global_id(user_id)
       if !user
         problems << "#{customer['id']} no user found"
-        puts "\tuser not found"
+        output "\tuser not found"
         next
       end
 
@@ -450,7 +450,7 @@ module Purchasing
       customer_active = false
       
       if customer_subs.length > 1
-        puts "\ttoo many subscriptions"
+        output "\ttoo many subscriptions"
         problems << "#{user.global_id} #{user.user_name} too many subscriptions"
       elsif user.long_term_purchase?
         subs = cancels[cus_id] || []
@@ -465,11 +465,11 @@ module Purchasing
           created = Time.at(customer['created'])
           str += ", subscribed #{created.iso8601}"
         end
-        puts str
+        output str
         if customer_subs.length > 0
           sub = customer_subs[0]
           if sub && (sub['status'] == 'active' || sub['status'] == 'trialing')
-            puts "\tconverted to long-term purchase, but still has a lingering subscription"
+            output "\tconverted to long-term purchase, but still has a lingering subscription"
             problems << "#{user.global_id} #{user.user_name} converted to long-term purchase, but still has a lingering subscription"
           end
         end
@@ -480,7 +480,7 @@ module Purchasing
         if user.settings['subscription'] && user.settings['subscription']['customer_id'] == cus_id
           check_cancels = true
           if user_active
-            puts "\tno subscription found, but expected (FREELOADER)" 
+            output "\tno subscription found, but expected (FREELOADER)" 
             problems << "#{user.global_id} #{user.user_name} no subscription found, but expected (FREELOADER)"
           end
           if user_active && with_side_effects
@@ -494,7 +494,7 @@ module Purchasing
             })
           else
             if user_active
-              puts "\tuser active without a subscription (huh?)" 
+              output "\tuser active without a subscription (huh?)" 
               problems << "#{user.global_id} #{user.user_name} user active without a subscription (huh?)"
             end
 
@@ -515,7 +515,7 @@ module Purchasing
             canceled = Time.at(sub['canceled_at'])
             created = Time.at(customer['created'])
             if canceled > 6.months.ago
-              puts "\tcanceled #{canceled.iso8601}, subscribed #{created.iso8601}, active #{user_active}" if canceled > 3.months.ago
+              output "\tcanceled #{canceled.iso8601}, subscribed #{created.iso8601}, active #{user_active}" if canceled > 3.months.ago
               cancel_months[(canceled.year * 100) + canceled.month] ||= []
               cancel_months[(canceled.year * 100) + canceled.month] << (canceled - created) / 1.month.to_i
             end
@@ -527,7 +527,7 @@ module Purchasing
           customer_active = sub['status'] == 'active'
           customer_active_ids << user.global_id if customer_active
           if user_active != customer_active
-            puts "\tcustomer is #{sub['status']} but user is #{user_active ? 'subscribed' : 'expired'}" 
+            output "\tcustomer is #{sub['status']} but user is #{user_active ? 'subscribed' : 'expired'}" 
             problems << "#{user.global_id} #{user.user_name} customer is #{sub['status']} but user is #{user_active ? 'subscribed' : 'expired'}"
           end
         else
@@ -536,7 +536,7 @@ module Purchasing
           # - otherwise we can ignore this customer record
           if user_active
             if sub['status'] == 'active' || sub['status'] == 'trialing'
-              puts "\tcustomer is #{sub['status']} but user is tied to a different customer record #{user.settings['subscription']['customer_id']}" 
+              output "\tcustomer is #{sub['status']} but user is tied to a different customer record #{user.settings['subscription']['customer_id']}" 
               problems << "#{user.global_id} #{user.user_name} but user is tied to a different customer record #{user.settings['subscription']['customer_id']}"
             end
           end
@@ -544,16 +544,20 @@ module Purchasing
       end
     end
     if problems.length > 0
-      puts "PROBLEMS:\n#{problems.join("\n")}\n"
+      output "PROBLEMS:\n#{problems.join("\n")}\n"
     end
-    puts "TOTALS: checked #{total}, paying customers (not trialing, not duplicates) #{customer_active_ids.uniq.length}, subscription users #{user_active_ids.uniq.length}"
+    output "TOTALS: checked #{total}, paying customers (not trialing, not duplicates) #{customer_active_ids.uniq.length}, subscription users #{user_active_ids.uniq.length}"
     cancel_months.each{|k, a| 
       res = []
       res << (cancel_months[k].sum / cancel_months[k].length.to_f).round(1) 
       res << (cancel_months[k].length)
       cancel_months[k] = res
     }
-    puts "CANCELS: #{cancel_months.to_a.sort_by(&:first).reverse.to_json}"
+    output "CANCELS: #{cancel_months.to_a.sort_by(&:first).reverse.to_json}"
+  end
+
+  def self.output(str)
+    puts str
   end
   
   def self.cancel_subscription(user_id, customer_id, subscription_id)

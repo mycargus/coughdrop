@@ -1052,7 +1052,6 @@ module Stats
       end
     end
     res[:watchwords][:suggestions] = scored_words.to_a.map(&:last).sort_by{|w| w[:score] || 0 }.reverse
-    
     res
   end
   
@@ -1124,13 +1123,15 @@ module Stats
               last_text = LogSession.event_text(last_button_event)
               if valid_words[text.downcase] && last_text && valid_words[last_text.downcase]
                 if (event['timestamp'] || 0) - (last_button_event['timestamp'] || 0) < 5.minutes.to_i
-                  hash = Digest::MD5.hexdigest(text + "::" + last_text)
-                  pairs[hash] ||= {
-                    'a' => last_text.downcase,
-                    'b' => text.downcase,
-                    'count' => 0
-                  }
-                  pairs[hash]['count'] += 1
+                  if last_text.downcase != text.downcase
+                    hash = Digest::MD5.hexdigest(text + "::" + last_text)
+                    pairs[hash] ||= {
+                      'a' => last_text.downcase,
+                      'b' => text.downcase,
+                      'count' => 0
+                    }
+                    pairs[hash]['count'] += 1
+                  end
                 end
               end
             end

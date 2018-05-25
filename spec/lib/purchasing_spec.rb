@@ -1662,8 +1662,260 @@ describe Purchasing do
     end
     
   describe "reconcile" do
-    it "should have specs" do
-      write_this_test
+    class Pager
+      def initialize(type)
+        @type = type
+      end
+
+      def auto_paging_each(&block)
+        # a - nothing
+        ua = User.create
+
+        # b - long-term and recurring
+        ub = User.create
+        ub.expires_at = 6.months.from_now
+        ub.settings['subscription'] = {'last_purchase_plan_id' => 'bbbbbb', 'customer_id' => 'bbb'}
+        ub.save!
+        raise "ub" unless ub.long_term_purchase?
+
+        # c - multiple active subscriptions
+        uc = User.create
+
+        # d - long-term normal
+        ud = User.create
+        ud.expires_at = 6.months.from_now
+        ud.settings['subscription'] = {'last_purchase_plan_id' => 'dddddd', 'customer_id' => 'ddd'}
+        ud.save!
+        raise "ud" unless ud.long_term_purchase?
+
+        # e - recurring with matching customer_id, no active subs on the customer
+        ue = User.create
+        ue.settings['subscription'] = {'customer_id' => 'eee', 'started' => 5.weeks.ago.iso8601}
+        ue.save!
+        raise "ue" unless ue.recurring_subscription?
+
+        # f - recurring with different customer_id, no active subs on the customer
+        uf = User.create
+        uf.settings['subscription'] = {'customer_id' => 'xxx', 'started' => 5.weeks.ago.iso8601}
+        uf.save!
+        raise "uf" unless uf.recurring_subscription?
+
+        # g - not recurring on the user, no active subs on the customer
+        ug = User.create
+        ug.settings['subscription'] = {'customer_id' => 'ggg'}
+        ug.save!
+        raise "ug" if ug.recurring_subscription?
+
+        # h - recurring and matching
+        uh = User.create
+        uh.settings['subscription'] = {'customer_id' => 'hhh', 'started' => 3.weeks.ago.iso8601}
+        uh.save!
+
+        # i - recurring and mismatched status
+        ui = User.create
+        ui.settings['subscription'] = {'customer_id' => 'iii', 'started' => 2.weeks.ago.iso8601}
+        ui.save!
+
+        # j - reucurring and mismatched customer_id
+        uj = User.create
+        uj.settings['subscription'] = {'customer_id' => 'www', 'started' => 2.weeks.ago.iso8601}
+        uj.save!
+
+        @users = [ua, ub, uc, ud, ue, uf, ug, uh, ui, uj]
+
+        if @type == :customers
+          [
+            {'id' => 'aaa', 'email' => 'a@example.com', 'metadata' => {'user_id' => ua.global_id}, 'created' => 12.months.ago.to_i, 'subscriptions' => []},
+            {'id' => 'bbb', 'email' => 'b@example.com', 'metadata' => {'user_id' => ub.global_id}, 'created' => 12.months.ago.to_i, 'subscriptions' => [{'status' => 'active'}]},
+            {'id' => 'ccc', 'email' => 'c@example.com', 'metadata' => {'user_id' => uc.global_id}, 'created' => 12.months.ago.to_i, 'subscriptions' => [{}, {}]},
+            {'id' => 'ddd', 'email' => 'd@example.com', 'metadata' => {'user_id' => ud.global_id}, 'created' => 12.months.ago.to_i, 'subscriptions' => []},
+            {'id' => 'eee', 'email' => 'e@example.com', 'metadata' => {'user_id' => ue.global_id}, 'created' => 12.months.ago.to_i, 'subscriptions' => []},
+            {'id' => 'fff', 'email' => 'f@example.com', 'metadata' => {'user_id' => uf.global_id}, 'created' => 12.months.ago.to_i, 'subscriptions' => []},
+            {'id' => 'ggg', 'email' => 'g@example.com', 'metadata' => {'user_id' => ug.global_id}, 'created' => 12.months.ago.to_i, 'subscriptions' => []},
+            {'id' => 'hhh', 'email' => 'h@example.com', 'metadata' => {'user_id' => uh.global_id}, 'created' => 12.months.ago.to_i, 'subscriptions' => [{'status' => 'active'}]},
+            {'id' => 'iii', 'email' => 'i@example.com', 'metadata' => {'user_id' => ui.global_id}, 'created' => 12.months.ago.to_i, 'subscriptions' => [{'status' => 'canceled'}]},
+            {'id' => 'jjj', 'email' => 'j@example.com', 'metadata' => {'user_id' => uj.global_id}, 'created' => 12.months.ago.to_i, 'subscriptions' => [{'status' => 'trialing'}]},
+          ].each{|u| block.call(u)}
+        elsif @type == :subscriptions
+          [
+            {'customer' => 'aaa', 'canceled_at' => 6.weeks.ago.to_i},
+            {'customer' => 'aaa', 'canceled_at' => 8.months.ago.to_i},
+            {'customer' => 'bbb', 'canceled_at' => 4.days.ago.to_i},
+            {'customer' => 'eee', 'canceled_at' => 4.weeks.ago.to_i},
+            {'customer' => 'ggg', 'canceled_at' => 8.months.ago.to_i}
+          ].each{|s| block.call(s)}
+        end
+      end
+    end
+
+    it "should make the correct calls" do
+      outputs = []
+      expect(Purchasing).to receive(:output) do |str|
+        outputs << str
+      end.at_least(1).times
+      cust = Pager.new(:customers)
+      expect(Stripe::Customer).to receive(:list).with(:limit => 10).and_return(cust)
+      expect(Stripe::Subscription).to receive(:list).with(:limit => 20, :status => 'canceled').and_return(Pager.new(:subscriptions))
+      Purchasing.reconcile
+      expect(outputs.length).to eq(24)
+      problems = outputs.detect{|o| o.match(/^PROBLEM/)}
+      expect(problems).to_not eq(nil)
+      problems = problems.split(/\n/)
+      users = cust.instance_variable_get('@users')
+      expect(problems.length).to eq(7)
+      expect(problems.detect{|p| p.match(users[0].global_id)}).to eq(nil)
+      expect(problems.detect{|p| p.match(users[1].global_id)}).to match(/still has a lingering subscription/)
+      expect(problems.detect{|p| p.match(users[2].global_id)}).to match(/too many subscriptions/)
+      expect(problems.detect{|p| p.match(users[3].global_id)}).to eq(nil)
+      expect(problems.detect{|p| p.match(users[4].global_id)}).to match(/FREELOADER/)
+      expect(problems.detect{|p| p.match(users[5].global_id)}).to eq(nil)
+      expect(problems.detect{|p| p.match(users[6].global_id)}).to eq(nil)
+      expect(problems.detect{|p| p.match(users[7].global_id)}).to eq(nil)
+      expect(problems.detect{|p| p.match(users[8].global_id)}).to match(/customer is canceled but user is subscribed/)
+      expect(problems.detect{|p| p.match(users[9].global_id)}).to match(/tied to a different customer record www/)
     end
   end
 end
+
+# def self.reconcile(with_side_effects=false)
+#   Stripe.api_key = ENV['STRIPE_SECRET_KEY']
+#   customers = Stripe::Customer.list(:limit => 10)
+#   customer_active_ids = []
+#   total = 0
+#   cancel_months = {}
+#   cancels = {}
+#   puts "retrieving expired subscriptions..."
+#   Stripe::Subscription.list(:limit => 20, :status => 'canceled').auto_paging_each do |sub|
+#     cancels[sub['customer']] ||= []
+#     cancels[sub['customer']] << sub
+#   end
+#   problems = []
+#   user_active_ids = []
+#   customers.auto_paging_each do |customer|
+#     total += 1
+#     cus_id = customer['id']
+#     email = customer['email']
+#     puts "checking #{cus_id} #{email}"
+#     if !customer
+#       puts "\tcustomer not found"
+#       next
+#     end
+#     user_id = customer['metadata'] && customer['metadata']['user_id']
+#     user = user_id && User.find_by_global_id(user_id)
+#     if !user
+#       problems << "#{customer['id']} no user found"
+#       puts "\tuser not found"
+#       next
+#     end
+
+#     customer_subs = customer['subscriptions'].to_a
+#     user_active = user.recurring_subscription?
+#     user_active_ids << user.global_id if user_active
+#     customer_active = false
+    
+#     if customer_subs.length > 1
+#       puts "\ttoo many subscriptions"
+#       problems << "#{user.global_id} #{user.user_name} too many subscriptions"
+#     elsif user.long_term_purchase?
+#       subs = cancels[cus_id] || []
+#       sub = subs[0]
+#       str = "\tconverted to a long-term purchase"
+
+#       if sub && sub['canceled_at']
+#         canceled = Time.at(sub['canceled_at'])
+#         str += " on #{canceled.iso8601}"
+#       end
+#       if sub && sub['created']
+#         created = Time.at(customer['created'])
+#         str += ", subscribed #{created.iso8601}"
+#       end
+#       puts str
+#       if customer_subs.length > 0
+#         sub = customer_subs[0]
+#         if sub && (sub['status'] == 'active' || sub['status'] == 'trialing')
+#           puts "\tconverted to long-term purchase, but still has a lingering subscription"
+#           problems << "#{user.global_id} #{user.user_name} converted to long-term purchase, but still has a lingering subscription"
+#         end
+#       end
+#     elsif customer_subs.length == 0 
+#       # if no active subscription, this is an old customer record
+#       check_cancels = false
+#       # if customer id matches, then we are properly aligned
+#       if user.settings['subscription'] && user.settings['subscription']['customer_id'] == cus_id
+#         check_cancels = true
+#         if user_active
+#           puts "\tno subscription found, but expected (FREELOADER)" 
+#           problems << "#{user.global_id} #{user.user_name} no subscription found, but expected (FREELOADER)"
+#         end
+#         if user_active && with_side_effects
+#           User.schedule(:subscription_event, {
+#             'unsubscribe' => true,
+#             'user_id' => user.global_id,
+#             'customer_id' => cus_id,
+#             'subscription_id' => object['id'],
+#             'cancel_others_on_update' => true,
+#             'source' => 'customer.reconciliation'
+#           })
+#         else
+#           if user_active
+#             puts "\tuser active without a subscription (huh?)" 
+#             problems << "#{user.global_id} #{user.user_name} user active without a subscription (huh?)"
+#           end
+
+#         end
+#       else
+#         # if customer id doesn't match on subscription hash then we don't really care,
+#         # since there are no subscriptions for this customer, we just shouldn't
+#         # track this as a cancellation
+#         if user_active
+#         else
+#           check_cancels = true
+#         end
+#       end
+#       if check_cancels
+#         subs = cancels[cus_id] || []
+#         sub = subs[0]
+#         if sub
+#           canceled = Time.at(sub['canceled_at'])
+#           created = Time.at(customer['created'])
+#           if canceled > 6.months.ago
+#             puts "\tcanceled #{canceled.iso8601}, subscribed #{created.iso8601}, active #{user_active}" if canceled > 3.months.ago
+#             cancel_months[(canceled.year * 100) + canceled.month] ||= []
+#             cancel_months[(canceled.year * 100) + canceled.month] << (canceled - created) / 1.month.to_i
+#           end
+#         end
+#       end
+#     else
+#       sub = customer_subs[0]
+#       if user.settings['subscription'] && user.settings['subscription']['customer_id'] == cus_id
+#         customer_active = sub['status'] == 'active'
+#         customer_active_ids << user.global_id if customer_active
+#         if user_active != customer_active
+#           puts "\tcustomer is #{sub['status']} but user is #{user_active ? 'subscribed' : 'expired'}" 
+#           problems << "#{user.global_id} #{user.user_name} customer is #{sub['status']} but user is #{user_active ? 'subscribed' : 'expired'}"
+#         end
+#       else
+#         # if customer id doesn't match on subscription hash:
+#         # - if the subscription is active, we have a problem
+#         # - otherwise we can ignore this customer record
+#         if user_active
+#           if sub['status'] == 'active' || sub['status'] == 'trialing'
+#             puts "\tcustomer is #{sub['status']} but user is tied to a different customer record #{user.settings['subscription']['customer_id']}" 
+#             problems << "#{user.global_id} #{user.user_name} but user is tied to a different customer record #{user.settings['subscription']['customer_id']}"
+#           end
+#         end
+#       end
+#     end
+#   end
+#   if problems.length > 0
+#     puts "PROBLEMS:\n#{problems.join("\n")}\n"
+#   end
+#   puts "TOTALS: checked #{total}, paying customers (not trialing, not duplicates) #{customer_active_ids.uniq.length}, subscription users #{user_active_ids.uniq.length}"
+#   cancel_months.each{|k, a| 
+#     res = []
+#     res << (cancel_months[k].sum / cancel_months[k].length.to_f).round(1) 
+#     res << (cancel_months[k].length)
+#     cancel_months[k] = res
+#   }
+#   puts "CANCELS: #{cancel_months.to_a.sort_by(&:first).reverse.to_json}"
+# end

@@ -791,8 +791,95 @@ describe Relinking, :type => :model do
   end
   
   describe "assert_copy_id" do
-    it "should have specs" do
-      write_this_test
+    it 'should return true if already a copy' do
+      u = User.create
+      a = Board.create(user: u)
+      expect(a.assert_copy_id).to eq(false)
+      a.settings['copy_id'] = 4
+      expect(a.assert_copy_id).to eq(true)
+    end
+
+    it 'should return false if no parent set' do
+      u = User.create
+      a = Board.create(user: u)
+      expect(a.assert_copy_id).to eq(false)
+    end
+
+    it 'should return false if no upstream board set' do
+      u = User.create
+      a = Board.create(user: u)
+      a.parent_board_id = 1
+      expect(a.assert_copy_id).to eq(false)
+    end
+
+    describe 'when all upstream parent boards match, and all upstream parents are for the same user' do
+      it 'should set itself as the parent if a top-page board' do
+        u = User.create
+        p = Board.create(user: u)
+        a = Board.create(user: u, key: "#{u.user_name}/top-page")
+        bs = []
+        15.times do |i|
+          bs << Board.create(user: u, parent_board_id: p.id)
+        end
+        a.settings['immediately_upstream_board_ids'] = bs.map(&:global_id)
+        a.parent_board_id = p.id
+        a.save!
+        expect(a.settings['copy_id']).to eq(nil)
+        expect(a.assert_copy_id).to eq(true)
+        expect(a.settings['copy_id']).to eq(a.global_id)
+        expect(a.settings['asserted_copy_id']).to eq(true)
+      end
+
+      it 'should set to the first copy_id found in the upstreams if any' do
+        u = User.create
+        p = Board.create(user: u)
+        a = Board.create(user: u)
+        bs = []
+        3.times do |i|
+          bs << Board.create(user: u, parent_board_id: p.id, settings: {'copy_id' => '123', 'asserted_copy_id' => true})
+        end
+        a.settings['immediately_upstream_board_ids'] = bs.map(&:global_id)
+        a.parent_board_id = p.id
+        a.save!
+        expect(a.settings['copy_id']).to eq(nil)
+        expect(a.assert_copy_id).to eq(true)
+        expect(a.settings['copy_id']).to eq('123')
+        expect(a.settings['asserted_copy_id']).to eq(true)
+      end
+
+      it 'should wrap them all together if created within 30 seconds of each other' do
+        u = User.create
+        p = Board.create(user: u)
+        a = Board.create(user: u)
+        bs = []
+        3.times do |i|
+          bs << Board.create(user: u, parent_board_id: p.id)
+        end
+        a.settings['immediately_upstream_board_ids'] = bs.map(&:global_id)
+        a.parent_board_id = p.id
+        a.save!
+        expect(a.settings['copy_id']).to eq(nil)
+        expect(a.assert_copy_id).to eq(true)
+        expect(a.settings['copy_id']).to eq(bs[0].global_id)
+        expect(a.settings['asserted_copy_id']).to eq(true)
+      end
+
+      it 'should set to the single upstream if only one' do
+        u = User.create
+        p = Board.create(user: u)
+        a = Board.create(user: u)
+        bs = []
+        bs << Board.create(user: u, parent_board_id: p.id)
+        Board.where(id: a.id).update_all(created_at: 3.hours.ago)
+
+        a.settings['immediately_upstream_board_ids'] = bs.map(&:global_id)
+        a.parent_board_id = p.id
+        a.save!
+        expect(a.settings['copy_id']).to eq(nil)
+        expect(a.assert_copy_id).to eq(true)
+        expect(a.settings['copy_id']).to eq(bs[0].global_id)
+        expect(a.settings['asserted_copy_id']).to eq(true)
+      end
     end
   end
 end

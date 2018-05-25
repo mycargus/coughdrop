@@ -933,15 +933,43 @@ describe Api::OrganizationsController, :type => :controller do
     end
     
     it "should generate home_boards report" do
-      write_this_test
+      token_user
+      b = Board.create(user: @user)
+      @user.process({'preferences' => {'home_board' => {'key' => b.key, 'id' => b.global_id}}})
+      Worker.process_queues
+      o = Organization.create(:admin => true)
+      o.add_manager(@user.user_name, false)
+      get :admin_reports, params: {:organization_id => o.global_id, :report => "home_boards"}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['stats']).to_not eq(nil)
     end
     
     it "should generate recent home boards report" do
-      write_this_test
+      token_user
+      b = Board.create(user: @user)
+      @user.process({'preferences' => {'home_board' => {'key' => b.key, 'id' => b.global_id}}})
+      Worker.process_queues
+      o = Organization.create(:admin => true)
+      o.add_manager(@user.user_name, false)
+      get :admin_reports, params: {:organization_id => o.global_id, :report => "recent_home_boards"}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['stats']).to_not eq(nil)
     end
     
     it "should generate subscriptions report" do
-      write_this_test
+      token_user
+      u = User.create
+      u.subscription_override('never_expires')
+      Worker.process_queues
+      expect(u.reload.full_premium?).to eq(true)
+      o = Organization.create(:admin => true)
+      o.add_manager(@user.user_name, false)
+      get :admin_reports, params: {:organization_id => o.global_id, :report => "subscriptions"}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['stats']).to_not eq(nil)
     end
     
     it "should generate overridden_parts_of_speech report" do

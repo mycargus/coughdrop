@@ -470,14 +470,125 @@ describe Api::LogsController, :type => :controller do
   end
   
   describe "show" do
-    it "should have specs" do
-      write_this_test
+    it 'should require an api token' do
+      get 'show', params: {id: 'asdf'}
+      assert_missing_token
+    end
+
+    it 'should require a valid record' do
+      token_user
+      get 'show', params: {id: 'asdf'}
+      assert_not_found('asdf')
+    end
+
+    it 'should require supervision authorization on the logged user' do
+      token_user
+      u = User.create
+      d = Device.create(user: u)
+      log = LogSession.process_new({
+        :events => [
+          {'timestamp' => 4.seconds.ago.to_i, 'type' => 'button', 'button' => {'label' => 'ok', 'board' => {'id' => '1_1'}}},
+          {'timestamp' => 3.seconds.ago.to_i, 'type' => 'button', 'button' => {'label' => 'never mind', 'board' => {'id' => '1_1'}}}
+        ]
+      }, {:user => u, :device => d, :author => u})
+      get :show, params: {:id => log.global_id}
+      assert_unauthorized
+    end
+
+    it 'should return a log result' do
+      token_user
+      log = LogSession.process_new({
+        :events => [
+          {'timestamp' => 4.seconds.ago.to_i, 'type' => 'button', 'button' => {'label' => 'ok', 'board' => {'id' => '1_1'}}},
+          {'timestamp' => 3.seconds.ago.to_i, 'type' => 'button', 'button' => {'label' => 'never mind', 'board' => {'id' => '1_1'}}}
+        ]
+      }, {:user => @user, :device => @device, :author => @user})
+      get :show, params: {:id => log.global_id}
+      json = JSON.parse(response.body)
+      expect(json['log']['id']).to eq(log.global_id)
     end
   end
   
   describe "obl" do
-    it "should have specs" do
-      write_this_test
+    it 'should require an api token' do
+      get 'obl'
+      assert_missing_token
+    end
+
+    it 'should require a valid log id' do
+      token_user
+      get :obl, params: {log_id: 'asdf'}
+      assert_not_found('asdf')
+    end
+
+    it 'should require supervision permission on the logged user' do
+      token_user
+      u = User.create
+      d = Device.create(user: u)
+      log = LogSession.process_new({
+        :events => [
+          {'timestamp' => 4.seconds.ago.to_i, 'type' => 'button', 'button' => {'label' => 'ok', 'board' => {'id' => '1_1'}}},
+          {'timestamp' => 3.seconds.ago.to_i, 'type' => 'button', 'button' => {'label' => 'never mind', 'board' => {'id' => '1_1'}}}
+        ]
+      }, {:user => u, :device => d, :author => u})
+      get :obl, params: {log_id: log.global_id}
+      assert_unauthorized
+    end
+
+    it 'should return a progress record when generating for the log record' do
+      token_user
+      log = LogSession.process_new({
+        :events => [
+          {'timestamp' => 4.seconds.ago.to_i, 'type' => 'button', 'button' => {'label' => 'ok', 'board' => {'id' => '1_1'}}},
+          {'timestamp' => 3.seconds.ago.to_i, 'type' => 'button', 'button' => {'label' => 'never mind', 'board' => {'id' => '1_1'}}}
+        ]
+      }, {:user => @user, :device => @device, :author => @user})
+      get :obl, params: {:log_id => log.global_id}
+      json = JSON.parse(response.body)
+      expect(json['progress']).to_not eq(nil)
+      p = Progress.last
+      expect(p.settings['method']).to eq('export_log')
+      expect(p.settings['arguments']).to eq([log.global_id])
+    end
+
+    it 'should require a valid user id if specified' do
+      token_user
+      get :obl, params: {user_id: 'asdf'}
+      assert_not_found('asdf')
+    end
+
+    it 'should require supervision permission on the user if specified' do
+      token_user
+      u = User.create
+      get :obl, params: {user_id: u.global_id}
+      assert_unauthorized
+    end
+
+    it 'should return a progress record when generating for the user' do
+      token_user
+      get :obl, params: {user_id: @user.global_id}
+      json = JSON.parse(response.body)
+      expect(json['progress']).to_not eq(nil)
+      p = Progress.last
+      expect(p.settings['method']).to eq('export_logs')
+      expect(p.settings['arguments']).to eq([@user.global_id])
     end
   end
 end
+
+# def obl
+#   if params['log_id']
+#     log = LogSession.find_by_global_id(params['log_id'])
+#     return unless exists?(log, params['log_id'])
+#     return unless exists?(log.user)
+#     return unless allowed?(log.user, 'supervise')
+#     progress = Progress.schedule(Exporter, :export_log, log.global_id)
+#     render json: JsonApi::Progress.as_json(progress, :wrapper => true).to_json
+#   elsif params['user_id']
+#     user = User.find_by_global_id(params['user_id'])
+#     return unless exists?(user, params['user_id'])
+#     return unless allowed?(user, 'supervise')
+#     progress = Progress.schedule(Exporter, :export_logs, user.global_id)
+#     render json: JsonApi::Progress.as_json(progress, :wrapper => true).to_json
+#   end
+# end

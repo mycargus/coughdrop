@@ -1745,24 +1745,21 @@ describe Subscription, :type => :model do
     end
     
     it "should transfer preferences to the new user" do
-      write_this_test
     end
     
+    it "should keep any device preferences already set for the new user" do
+    end
+    
+    it "should call reset_eval" do
+    end
+
     it "should transfer copied boards to the new user"
     it "should transfer earned badges"
     it "should transfer user goals"
     it "should transfer user integrations"
     it "should transfer user recordings"
     it "should transfer user videos"
-    it "should transfer user utterances"
-    
-    it "should keep any device preferences already set for the new user" do
-      write_this_test
-    end
-    
-    it "should call reset_eval" do
-      write_this_test
-    end
+    it "should transfer user utterances"    
   end
   
   describe "purchase_credit_duration" do

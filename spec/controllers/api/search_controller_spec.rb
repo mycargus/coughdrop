@@ -404,8 +404,24 @@ describe Api::SearchController, :type => :controller do
   end
   
   describe "audio" do
-    it "should have specs" do
-      write_this_test
+    it 'should not require an api token' do
+      expect(Typhoeus).to receive(:get).and_return(OpenStruct.new({
+        headers: {
+          'Content-Type' => 'audio/mp3'
+        },
+        body: 'asdf'
+      }))
+      get :audio, params: {text: 'asdf'}
+    end
+
+    it 'should make an external call' do
+      expect(Typhoeus).to receive(:get).with("http://translate.google.com/translate_tts?id=UTF-8&tl=en&q=#{URI.escape('bacon')}&total=1&idx=0&textlen=#{('bacon').length}&client=tw-ob", headers: {'Referer' => "https://translate.google.com/", 'User-Agent' => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"}).and_return(OpenStruct.new({
+        headers: {
+          'Content-Type' => 'audio/mp3'
+        },
+        body: 'asdf'
+      }))
+      get :audio, params: {text: 'bacon'}
     end
   end
 end
