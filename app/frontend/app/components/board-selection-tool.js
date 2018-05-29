@@ -178,13 +178,13 @@ export default Component.extend({
       var _this = this;
       var user = app_state.get('currentUser');
       var board = _this.get('current_board');
-      if(true || _this.get('current_level') || !board.get('levels')) {
+      if(_this.get('current_level') || !board.get('levels')) {
         if(_this.get('current_board.key')) {
           user.copy_home_board(_this.get('current_board')).then(function() { }, function(err) {
             modal.error(i18n.t('set_as_home_failed', "Home board update failed unexpectedly"));
           });
         }
-        _this.sendAction('select', _this.get('current_board'));  
+        _this.sendAction('select', _this.get('current_board'));
       } else {
         _this.set('level_select', true);
       }

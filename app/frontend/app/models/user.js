@@ -11,6 +11,7 @@ import progress_tracker from '../utils/progress_tracker';
 import capabilities from '../utils/capabilities';
 import Utils from '../utils/misc';
 import {set as emberSet, get as emberGet} from '@ember/object';
+import { later as runLater } from '@ember/runloop';
 
 CoughDrop.User = DS.Model.extend({
   didLoad: function() {
