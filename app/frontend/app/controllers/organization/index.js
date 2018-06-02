@@ -119,7 +119,7 @@ export default Controller.extend({
     }
   },
   sorted_orgs: function() {
-    return this.get('orgs.data').map(function(o) { return o; }).sort(function(a, b) { 
+    return this.get('orgs.data').map(function(o) { return o; }).sort(function(a, b) {
         if(a.get('name').toLowerCase() < b.get('name').toLowerCase()) {
           return -1;
         } else if(a.get('name').toLowerCase() > b.get('name').toLowerCase()) {
@@ -140,6 +140,7 @@ export default Controller.extend({
         letters.push(letter);
       }
       letter.orgs.push(org);
+      letter.expanded = (letter.orgs.length > 5);
     });
     return letters;
   }.property('sorted_orgs'),
