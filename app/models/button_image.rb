@@ -50,6 +50,7 @@ class ButtonImage < ActiveRecord::Base
     if !self.settings['suggestion'] && (self.settings['label'] || self.settings['search_term'])  && self.board && self.board.public
       ButtonImage.track_image_use({
         :search_term => self.settings['search_term'],
+        :locale => (self.board && self.board.settings['locale']) || 'en',
         :label => self.settings['label'],
         :suggestion => self.settings['suggestion'],
         :external_id => self.settings['external_id'],
@@ -64,12 +65,12 @@ class ButtonImage < ActiveRecord::Base
     if label && options[:external_id] && ENV['OPENSYMBOLS_TOKEN'] && options[:user_id]
       id = options[:external_id]
       # TODO: don't hard-code to this URL
-      # TODO: add a timeout for this, or it can hang for a very long time...
-      Typhoeus.post("https://opensymbols.herokuapp.com/api/v1/symbols/#{id}/use", body: {
+      Typhoeus.post("https://www.opensymbols.org/api/v1/symbols/#{id}/use", body: {
         access_token: ENV['OPENSYMBOLS_TOKEN'],
         user_id: GoSecure.sha512(options[:user_id], 'global_user_id')[0, 10],
+        locale: options[:locale],
         keyword: label
-      })
+      }, timeout: 10)
     end
   end
   

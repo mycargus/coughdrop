@@ -16,16 +16,18 @@ class BoardButtonImage < ActiveRecord::Base
   def self.connect(board_id, image_refs, options={})
     return if image_refs.blank?
     images_to_track = []
+    board = Board.find_by(id: board_id)
     found_images = ButtonImage.find_all_by_global_id(image_refs.map{|r| r[:id] })
     image_refs.each do |i|
       image_id = i[:id]
       image = found_images.detect{|i| i.global_id == image_id }
-      if image #TODO: ...and allowed to connect this image
+      if image # TODO: ...and allowed to connect this image
         bbi = BoardButtonImage.find_or_create_by!(:board_id => board_id, :button_image_id => image.id) 
         if options[:user_id]
           images_to_track << {
             :label => i[:label],
             :external_id => image.settings['external_id'],
+            :locale => (board && board.settings['locale']) || 'en',
             :user_id => options[:user_id]
           }
         end
