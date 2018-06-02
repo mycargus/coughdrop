@@ -19,6 +19,7 @@ module JsonApi::User
     
     if args.key?(:permissions)
       json['permissions'] = user.permissions_for(args[:permissions])
+      json['admin'] = true if Organization.admin_manager?(user)
     end
     
     if json['permissions'] && json['permissions']['supervise']
