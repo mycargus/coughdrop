@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.05.29";
+window.app_version = "2018.06.02";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -8170,7 +8170,7 @@ this.get("model.permissions.manage")&&this.refresh_logs()},refresh_logs:function
 n&&(this.set("logs",{loading:!0}),t.default.ajax("/api/v1/organizations/"+n+"/logs",{type:"GET"}).then(function(t){e.get("model.id")==n&&(e.set("logs.loading",null),e.set("logs.data",t.log))},function(){e.get("model.id")==n&&(e.set("logs.loading",null),e.set("logs.data",null))}))},refresh_logs_on_reload:function(){!this.get("model.permissions.manage")||this.get("logs.loading")||this.get("logs.data")||this.refresh_logs()}.observes("model.permissions.manage","logs.loading","logs.data"),loading_org:function(){return!this.get("model.permissions")}.property("model.permissions"),shown_view:function(){return this.get("selected_view")?this.get("selected_view"):this.get("model.admin")?"organizations":!this.get("managers.length")&&this.get("model.children_orgs.length")?"organizations":"managers"}.property("selected_view","model.admin","managers","model.children_orgs"),show_organizations:function(){return"organizations"==this.get("shown_view")}.property("shown_view"),show_managers:function(){return"managers"==this.get("shown_view")}.property("shown_view"),show_communicators:function(){return"communicators"==this.get("shown_view")}.property("shown_view"),show_evals:function(){return"evals"==this.get("shown_view")}.property("shown_view"),show_supervisors:function(){return"supervisors"==this.get("shown_view")}.property("shown_view"),first_log:function(){return(this.get("logs.data")||[])[0]}.property("logs.data"),recent_users:function(){return(this.get("logs.data")||[]).map(function(e){return e.user.id}).uniq().length}.property("logs.data"),recent_sessions:function(){return(this.get("logs.data")||[]).length}.property("logs.data"),no_licenses:function(){return!this.get("model.licenses_available")}.property("model.licenses_available"),no_eval_licenses:function(){return!this.get("model.eval_licenses_available")}.property("model.eval_licenses_available"),refresh_stats:function(){var e=this
 e.set("weekly_stats",null),e.set("user_counts",null),t.default.ajax("/api/v1/organizations/"+this.get("model.id")+"/stats",{type:"GET"}).then(function(t){e.set("weekly_stats",t.weeks),e.set("user_counts",t.user_counts)},function(){e.set("weekly_stats",{error:!0})})},refresh_orgs:function(){var e=this
 this.get("model.admin")&&(this.set("orgs.loading",!0),s.default.all_pages("organization",{q:"all"}).then(function(t){e.set("orgs.loading",null),e.set("orgs.data",t)},function(){e.set("orgs.loading",null),e.set("orgs.data",null)}))},sorted_orgs:function(){return this.get("orgs.data").map(function(e){return e}).sort(function(e,t){return e.get("name").toLowerCase()<t.get("name").toLowerCase()?-1:e.get("name").toLowerCase()>t.get("name").toLowerCase()?1:0})}.property("orgs.data"),alphabetized_orgs:function(){var e=[]
-return(this.get("sorted_orgs")||[]).forEach(function(t){var n=t.get("name").substring(0,1).toUpperCase(),s=e[e.length-1];(s||{}).letter!=n&&(s={letter:n,orgs:[]},e.push(s)),s.orgs.push(t)}),e}.property("sorted_orgs"),filtered_orgs:function(){var e=this.get("org_filter")
+return(this.get("sorted_orgs")||[]).forEach(function(t){var n=t.get("name").substring(0,1).toUpperCase(),s=e[e.length-1];(s||{}).letter!=n&&(s={letter:n,orgs:[]},e.push(s)),s.orgs.push(t),s.expanded=s.orgs.length>5}),e}.property("sorted_orgs"),filtered_orgs:function(){var e=this.get("org_filter")
 if(!e||""==e)return null
 var t=[]
 try{var n=new RegExp(e,"i");(this.get("sorted_orgs")||[]).forEach(function(e){e.get("name").match(n)&&t.push(e)})}catch(e){}return t.slice(0,10)}.property("sorted_orgs","org_filter"),refresh_users:function(){var e=this
@@ -10631,8 +10631,8 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+bf12ca15"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+bf12ca15"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+0b5edfb2"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+0b5edfb2"})
 ;
 
 
