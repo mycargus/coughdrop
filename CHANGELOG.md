@@ -2,6 +2,15 @@
 
 ## Master
 
+### 2018-06-01
+- modeling ideas (feature flag)
+- improvements to scanning and alternative access
+- clean up new index layout
+- improved board selection tool
+- minimize user tracking without opt-in
+- simplified badge and goal creation
+- improvements to admin interface
+
 ### 2017-12-05
 - optional simpler dashboard
 - fixes issues with scanning
