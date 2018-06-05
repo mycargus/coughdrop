@@ -8,6 +8,10 @@ module Renaming
   def collision_error?
     !!@collision_error
   end 
+
+  def invalid_name_error?
+    !!@invalid_name
+  end 
   
   def record_type
     @type ||= self.class.record_type
@@ -16,10 +20,14 @@ module Renaming
   def rename_to(to_key)
     to_key = to_key.downcase
     @collision_error = nil
+    @invalid_name = nil
     from_key = (record_type == 'board' ? self.key : self.user_name)
     record = self
     if self.class.find_by_path(to_key)
       @collision_error = true
+      return false
+    elsif to_key.match(/^\d/)
+      @invalid_name = true
       return false
     end
     if record_type == 'board'

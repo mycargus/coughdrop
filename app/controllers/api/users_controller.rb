@@ -162,7 +162,7 @@ class Api::UsersController < ApplicationController
     if params['new_key'] && params['old_key'] == user.user_name && user.rename_to(params['new_key'])
       render json: {rename: true, key: params['new_key']}.to_json
     else
-      api_error(400, {error: "user rename failed", key: params['key'], collision: user.collision_error?})
+      api_error(400, {error: "user rename failed", key: params['key'], invalid_name: user.invalid_name_error?, collision: user.collision_error?})
     end
   end
   
