@@ -140,7 +140,7 @@ export default Controller.extend({
         letters.push(letter);
       }
       letter.orgs.push(org);
-      letter.expanded = (letter.orgs.length > 5);
+      letter.expanded = (letter.orgs.length <= 5);
     });
     return letters;
   }.property('sorted_orgs'),
