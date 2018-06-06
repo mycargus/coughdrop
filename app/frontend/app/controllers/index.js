@@ -283,6 +283,24 @@ export default Controller.extend({
     });
     _this.set('supervisees_with_badges', sups);
   }.observes('app_state.currentUser', 'app_state.currentUser.supervisees', 'current_user_badges'),
+  modeling_ideas_available: function() {
+    if(app_state.get('feature_flags.badge_progress')) {
+      if(app_state.get('currentUser.supporter_role')) {
+        var any_premium_supervisees = false;
+        (app_state.get('currentUser.supervisees') || []).forEach(function(sup) {
+          if(emberGet(sup, 'premium')) {
+            any_premium_supervisees = true;
+          }
+        });
+        if(any_premium_supervisees) {
+          return true;
+        }
+      } else if(app_state.currentUser.full_premium) {
+        return true;
+      }
+    }
+    return false;
+  }.property('app_state.feature_flags.badge_progress', 'app_state.currentUser.supporter_role', 'app_state.currentUser.full_premium'),
   many_supervisees: function() {
     return (app_state.get('currentUser.supervisees') || []).length > 5;
   }.property('app_state.currentUser.supervisees'),
@@ -473,7 +491,9 @@ export default Controller.extend({
       if(!user_name) {
         if((app_state.get('currentUser.supervisees') || []).length > 0) {
           (app_state.get('currentUser.supervisees') || []).forEach(function(u) {
-            users.push(u);
+            if(emberGet(u, 'premium')) {
+              users.push(u);
+            }
           });
           // add all supervisees as users
         } else {

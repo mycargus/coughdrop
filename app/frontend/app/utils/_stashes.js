@@ -317,6 +317,13 @@ var stashes = EmberObject.extend({
           geo: geo,
           note: obj
         };
+      } else if(obj.modeling_activity_id) {
+        log_event = {
+          type: 'modeling_activity',
+          timestamp: timestamp,
+          user_id: user_id,
+          activity: obj
+        };
       } else {
         log_event = {
           type: 'action',

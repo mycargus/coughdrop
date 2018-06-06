@@ -12,6 +12,7 @@ import capabilities from '../utils/capabilities';
 import Utils from '../utils/misc';
 import {set as emberSet, get as emberGet} from '@ember/object';
 import { later as runLater } from '@ember/runloop';
+import stashes from '../utils/_stashes';
 
 CoughDrop.User = DS.Model.extend({
   didLoad: function() {
@@ -552,19 +553,36 @@ CoughDrop.User = DS.Model.extend({
       });
     }
     // if not possible or errored, check for a local copy in the dataCache
-    var promise_result = try_online.then(function(res) {
+    var try_local = try_online.then(function(res) {
       // persist to dataCache
       persistence.store('dataCache', res, 'word_activities/' + _this.get('id')).then(null, function() { });
       _this.set('word_activities', res);
       return RSVP.resolve(res);
     }, function() {
       return persistence.find('dataCache', 'word_activities/' + _this.get('id'));
-
       // look up a local copy
+    });
+    var promise_result = try_local.then(function(res) {
+      res.local_log = [];
+      return persistence.find('dataCache', 'word_log/' + _this.get('id')).then(function(list) {
+        res.local_log = list;
+        return res;
+      }, function() { return RSVP.resolve(res); });
     });
     promise_result.then(null, function() { });
     this.set('word_activities', {promise: promise_result});
     return promise_result;
+  },
+  log_word_activity: function(opts) {
+    opts.timestamp = stashes.current_timestamp();
+    var user_id = this.get('id');
+    stashes.log_event(opts, user_id);
+    persistence.find('dataCache', 'word_log/' + user_id).then(null, function() { return RSVP.resolve([]); }).then(function(list) {
+      var cutoff = parseInt(window.moment().add(-2, 'week').format('X'), 10);
+      list = list.filter(function(e) { return e.timestamp > cutoff; });
+      list.push(opts);
+      persistence.store('dataCache', list, 'word_log/' + user_id).then(null, function() { });
+    });
   }
 });
 CoughDrop.User.integrations_for = {};

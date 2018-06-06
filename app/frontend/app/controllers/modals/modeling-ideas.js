@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import modal from '../../utils/modal';
 import app_state from '../../utils/app_state';
+import stashes from '../../utils/_stashes';
 import i18n from '../../utils/i18n';
 import {set as emberSet, get as emberGet} from '@ember/object';
 import { later as runLater } from '@ember/runloop';
@@ -8,6 +9,20 @@ import { later as runLater } from '@ember/runloop';
 export default modal.ModalController.extend({
   opening: function() {
     var users = this.get('model.users');
+
+    var any_premium = false;
+    (users || []).forEach(function(u) {
+      if(emberGet(u, 'premium') || emberGet(u, 'full_premium')) {
+        any_premium = true;
+      }
+    });
+    if(!any_premium) {
+      var user_name = null;
+      if(users && users.length == 1) { user_name = emberGet(users[0], 'user_name'); }
+      modal.open('premium-required', {user_name: user_name, action: 'modeling-ideas'});
+      return;
+    }
+
     var user = app_state.get('currentUser');
     var _this = this;
     _this.set('activity_index', 0);
@@ -65,6 +80,34 @@ export default modal.ModalController.extend({
 
     var user_ids = (this.get('model.users') || []).mapBy('id');
     var middles = [];
+    var follow_ups = [];
+    var skips = {};
+    // For logs: skip if it's been dismissed, or if it's been attempted more than two weeks ago, 
+    // or if it's been completed -- but only if true for the all of the current user_ids.
+    var lists = [this.get('activities.local_log') || [], this.get('activities.log') || []];
+    var attempt_timeout_cutoff = parseInt(window.moment().add(-1, 'week').format('X'), 10);
+    var attempt_cooloff = parseInt(window.moment().add(-1, 'day').format('X'), 10);
+    lists.forEach(function(list) {
+      list.forEach(function(log) {
+        if(log.modeling_activity_id) {
+          var activity_user_ids = [].concat(log.modeling_user_ids || []).concat(log.related_user_ids || []);
+          console.log("marked for",log.modeling_activity_id, activity_user_ids);
+          var all_found = true;
+          user_ids.forEach(function(id) { if(activity_user_ids.indexOf(id) == -1) { all_found = false; } });
+          if(all_found) {
+            if(log.modeling_action == 'dismiss' || log.modeling_action == 'complete') {
+              skips[log.modeling_activity_id] = true;
+            } else if(log.modeling_action == 'attempt' && log.timestamp < attempt_timeout_cutoff) {
+              skips[log.modeling_activity_id] = true;
+            } else if(log.modeling_action == 'attempt' && log.timestamp > attempt_timeout_cutoff || log.timestamp < attempt_cooloff) {
+              follow_ups.push(log);
+            }
+          }
+        }  
+      });
+    })
+    follow_ups = follow_ups.sortBy('timestamp');
+    var found = null;
     (this.get('activities.list') || []).forEach(function(a) {
       emberSet(a, 'real', true);
       var types = {};
@@ -72,11 +115,17 @@ export default modal.ModalController.extend({
       emberSet(a, 'types', types);
       var valids = 0;
       a.user_ids.forEach(function(id) { if(user_ids.indexOf(id) !== -1) { valids++; } });
-      if(valids > 0 && res.length < (5 + empty_num)) {
-        if(user_ids.length > 1) {
-          emberSet(a, 'matching_users', valids);
+      if(valids > 0 && !skips[emberGet(a, 'id')]) {
+        if(follow_ups.find(function(log) { return log.modeling_activity_id == emberGet(a, 'id') })) {
+          emberSet(a, 'follow_up', true);
+          res.push(a)
+          empty_num++;
+        } else {
+          if(user_ids.length > 1) {
+            emberSet(a, 'matching_users', valids);
+          }
+          middles.push(a);
         }
-        middles.push(a);
       }
     });
     if(middles.length > 0 && !app_state.get('currentUser.preferences.progress.modeling_ideas_target_words_reviewed')) {
@@ -201,11 +250,21 @@ export default modal.ModalController.extend({
       this.set('activity_index', 0);
     },
     attempt: function() {
-      // TODO: push something to the log
+      app_state.get('currentUser').log_word_activity({
+        modeling_activity_id: this.get('current_activity.id'),
+        modeling_word: this.get('current_activity.word'),
+        modeling_user_ids: (this.get('model.users') || []).map(function(u) { return emberGet(u, 'id'); }),
+        modeling_action: 'attempt'
+      });
       this.set('current_activity.will_attempt', true);
     },
     dismiss: function() {
-      // TODO: push something to the log
+      app_state.get('currentUser').log_word_activity({
+        modeling_activity_id: this.get('current_activity.id'),
+        modeling_word: this.get('current_activity.word'),
+        modeling_user_ids: (this.get('model.users') || []).map(function(u) { return emberGet(u, 'id'); }),
+        modeling_action: 'dismiss'
+      });
       this.set('current_activity.dismissed', true);
     },
     video: function() {

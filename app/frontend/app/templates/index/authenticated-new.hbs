@@ -397,7 +397,7 @@
           </button>
         </div>
         {{#if app_state.currentUser.preferences.progress.intro_watched}}
-          {{#if app_state.feature_flags.badge_progress}}
+          {{#if modeling_ideas_available}}
             <div class='col-md-3 col-xs-4 big_button_holder'>
               <button id='nav_tertiary' class='btn big_button btn-default bottom_row' {{action 'modeling_ideas'}}>
                 <img src={{path 'images/modeling_ideas.svg'}} style='opacity: 0.9; filter: grayscale(60%);'/>

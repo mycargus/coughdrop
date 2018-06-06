@@ -77,6 +77,7 @@ class WordData < ActiveRecord::Base
     res = {
       'words' => [],
       'list' => [],
+      'log' => [],
       'checked' => Time.now.iso8601
     }
     all_fresh = add_activities_for(user, res)
@@ -86,6 +87,8 @@ class WordData < ActiveRecord::Base
         all_fresh = all_fresh && sup_fresh
       end
     end
+    session = LogSession.find_by(log_type: 'modeling_activities', user_id: user.id)
+    res['log'] = session.modeling_log if session
     res['list'] = res['list'].sort_by{|s| [s['score'], rand] }.reverse
     # If all the activity lists are more recent than the word lists they were derived
     # from, and all the activity lists were generated no less than two weeks ago,
