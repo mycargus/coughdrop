@@ -59,7 +59,7 @@ module Subscription
 
     self.expires_at = [self.expires_at, extra_expiration].compact.max
 
-    if self.settings['subscription']['last_purchase_id'] && !self.settings['subscription']['last_purchase_plan_id'].match(/free/)
+    if self.settings['subscription']['last_purchase_plan_id'] && !self.settings['subscription']['last_purchase_plan_id'].match(/free/)
       purchased = Time.parse(self.settings['subscription']['last_purchased']) rescue nil
       if purchased
         self.settings['past_purchase_durations'] ||= []

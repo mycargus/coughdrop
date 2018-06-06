@@ -908,7 +908,7 @@ module Stats
     longview_core_words = {}
     total_weeks = 0
     recent_weeks = 0
-    if user
+    if user && sessions[0]
       min_summary = (sessions[0].started_at - 6.months).to_date
       start_weekyear = (min_summary.cwyear * 100) + min_summary.cweek
       recent_cutoff = (sessions[0].started_at - 2.weeks).to_date
