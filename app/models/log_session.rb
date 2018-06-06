@@ -707,11 +707,107 @@ class LogSession < ActiveRecord::Base
     session.save!
     session
   end
+
+  def self.process_modeling_event(event, non_user_params)
+    session = LogSession.find_or_create_by(log_type: 'modeling_activities', user_id: non_user_params[:user].id)
+    session.author ||= non_user_params[:user]
+    session.device ||= non_user_params[:device]
+    session.data['events'] ||= []
+    if event['modeling_action'] == 'dismiss'
+      repeats = session.data['events'].select{|a| a['modeling_action'] == event['modeling_action'] && a['modeling_activity_id'] == event['modeling_activity_id']}.length
+      related = session.data['events'].select{|a| a['modeling_activity_id'] == event['activity_id'] }
+      repeats = related.select{|a| a['modeling_action'] == event['modeling_action'] }.length
+      event['repeats'] = repeats + 1
+      cutoff = 6.months.ago.to_i
+      event['related_user_ids'] = related.select{|a| (a['timestamp'] || 0) > cutoff || a['modeling_action'] == 'complete' }.map{|a| a['modeling_user_ids'] || [] }.flatten.uniq
+    end
+    session.data['events'] << event
+    session.save!
+    session
+  end
+
+  def modeling_log
+    raise "only valid for modeling_activities log types" unless self.log_type == 'modeling_activities'
+    activities = {}
+    skip_cutoff = 6.months.ago.to_i
+    session.data['events'].each do |event|
+      if event['modeling_activity_id'] && ((event['timestamp'] || 0) > skip_cutoff || event['modeling_action'] == 'complete')
+        activities[event['modeling_activity_id']] = event
+      end
+    end
+    activities.to_a.map(&:last).sort_by{|a| a['timestamp'] }
+  end
+
+  def self.check_possible_mergers
+    sql = ["SELECT a.id as log_id, b.id as ref_id from log_sessions as a, log_sessions as b WHERE a.id != b.id AND a.user_id = b.user_id AND a.author_id = b.author_id AND a.device_id = b.device_id AND a.started_at = b.started_at AND a.ended_at = b.ended_at AND a.started_at > ? AND a.created_at < ? LIMIT 100", 6.hours.ago, 15.minutes.ago]
+    res = ActiveRecord::Base.connection.execute(ActiveRecord::Base.send(:sanitize_sql_array, sql))
+    log_ids = res.map{|r| r['log_id'] }
+    log_ids = []
+    ref_ids = {}
+    res.each{|r| 
+      log_ids << r['log_id'] unless ref_ids[r['ref_id']]
+      ref_ids[r['ref_id']] = true;
+      ref_ids[r['log_id']] = true;
+  }
+    LogSession.where(id: log_ids).each do |session|
+      session.schedule(:check_for_merger)
+    end
+    log_ids.length
+  end
   
   def check_for_merger
-    # TODO: there's the possiblity of a race condition where two sets of logs
-    # for the same user get created in separate job processes, even though they
-    # should be part of the same session.
+    # TODO: remove this
+    return true unless Rails.env.test?
+    cutoff = (self.user && self.user.log_session_duration) || User.default_log_session_duration
+    matches = LogSession.where(log_type: 'session', user_id: self.user_id, author_id: self.author_id, device_id: self.device_id); matches.count
+    mergers = matches.where(['id != ?', self.id]).where(['ended_at >= ? AND ended_at <= ?', self.started_at - cutoff, self.ended_at + cutoff]).order('id')
+    mergers.each do |merger|
+      next if merger.id == self.id
+      # always merge the newer log into the older log
+      if self.id < merger.id
+        ids = (self.data['events'] || []).map{|e| e['id'] }.compact
+        merger.data['events'] ||= []
+        max_precision = 0
+        merger.data['events'].each do |e|
+          max_precision = [max_precision, e['timestamp'].to_s.split(/\./)[1].length].max
+        end
+        # remove dups based on timestamp or event data if timestamps aren't precise enough
+        kept_events = []
+        merger_user_id = self.data['events'].map{|e| e['user_id'] }.first
+        slices = ['type', 'percent_x', 'percent_y', 'timestamp', 'action', 'button', 'utterance']
+        merger.data['events'].each do |e|
+          json = e.slice(*slices).to_json if max_precision <= 1
+          found = !!self.data['events'].detect do |me|
+            if max_precision > 1
+              me['timestamp'] == e['timestamp']
+            else
+              me.slice(*slices).to_json == json
+            end
+          end
+          if !found
+            if e['user_id'] == merger_user_id
+              # replace any colliding event ids
+              e['id'] = (ids.max || 0) + 1 if merger.data['events'].detect{|me| me['id'] == e['id'] }
+              ids << e['id']
+              self.data['events'] << e
+            else
+              kept_events << e
+            end
+          end
+        end
+        self.save!
+        if kept_events.length > 0
+          merger.data['events'] = kept_events
+          merger.save!
+        else
+          merger.destroy
+        end
+        self.schedule_once(:check_for_merger)
+      else
+        merger.check_for_merger
+        return
+      end
+    end
   end
   
   def process_params(params, non_user_params)
@@ -728,6 +824,8 @@ class LogSession < ActiveRecord::Base
     # TODO: mark ip address as potentially inaccurate when log event is much after last event timestamp (i.e. catching up after offline)
     self.data ||= {}
     self.data['imported'] = true if non_user_params[:imported]
+    self.data['request_ids'] ||= [] if non_user_params[:request_id]
+    self.data['request_ids'] << non_user_params[:request_id] if non_user_params[:request_id]
     if non_user_params[:update_only]
       if params['events']
         self.data_will_change!

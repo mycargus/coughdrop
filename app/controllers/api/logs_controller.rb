@@ -75,7 +75,8 @@ class Api::LogsController < ApplicationController
       :author => @api_user,
       :ip_address => ip,
       :user => user,
-      :device => @api_device
+      :device => @api_device,
+      :request_id => request.env['HTTP_X_REQUEST_ID'] || request.headers['X-Request-ID']
     })
     if !log || log.errored?
       api_error(400, {error: "log creation failed", errors: log && log.processing_errors})

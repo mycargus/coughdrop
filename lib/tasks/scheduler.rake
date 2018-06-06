@@ -13,6 +13,12 @@ task :generate_log_summaries => :environment do
   puts "done. found #{res[:found]}, notified #{res[:notified]}"
 end
 
+task :check_for_log_mergers => :environment do
+  puts "Checking for logs to merge..."
+  res = LogSession.check_possible_mergers
+  puts "done. found #{res} possible logs"
+end
+
 task :push_remote_logs => :environment do
   puts "Finding and pushing remote logs..."
   res = LogSession.push_logs_remotely

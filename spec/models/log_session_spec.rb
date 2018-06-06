@@ -2117,4 +2117,349 @@ describe LogSession, :type => :model do
       })
     end
   end
+
+  describe "check_for_merger" do
+    it "should merge two matching logs" do
+      u = User.create
+      d = Device.create
+      time = Time.parse("2018-06-06T20:18:19Z")
+      ts = time.to_f
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 5}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts + 100},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 105}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+
+      expect(LogSession.count).to eq(2)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+
+      s1.check_for_merger
+
+      expect(LogSession.count).to eq(1)
+      s1.reload
+      expect(s1.data['events'].length).to eq(4)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2, 3, 4])
+    end
+
+    it "should intermingle events from two matching logs" do
+      u = User.create
+      d = Device.create
+      time = Time.parse("2018-06-06T20:18:19Z")
+      ts = time.to_f
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 105}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts + 30},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 205}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+
+      expect(LogSession.count).to eq(2)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s1.data['events'].map{|e| e['timestamp']}).to eq([ts, ts + 105])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].map{|e| e['timestamp']}).to eq([ts + 30, ts + 205])
+
+      s1.check_for_merger
+
+      expect(LogSession.count).to eq(1)
+      s1.reload
+      expect(s1.data['events'].length).to eq(4)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 3, 2, 4])
+      expect(s1.data['events'].map{|e| e['timestamp']}).to eq([ts, ts + 30, ts + 105, ts + 205])
+    end
+
+    it "should not merge two logs with different authors" do
+      u = User.create
+      u2 = User.create
+      d = Device.create
+      time = Time.parse("2018-06-06T20:18:19Z")
+      ts = time.to_f
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 105}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts + 30},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 205}
+      ]}, {:user => u, :author => u2, :device => d, :ip_address => '1.2.3.4'})
+
+      expect(LogSession.count).to eq(2)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+
+      s1.check_for_merger
+
+      expect(LogSession.count).to eq(2)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+    end
+
+    it "should not merge two logs with different devices" do
+      u = User.create
+      d2 = Device.create
+      d = Device.create
+      time = Time.parse("2018-06-06T20:18:19Z")
+      ts = time.to_f
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 105}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts + 30},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 205}
+      ]}, {:user => u, :author => u, :device => d2, :ip_address => '1.2.3.4'})
+
+      expect(LogSession.count).to eq(2)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+
+      s1.check_for_merger
+
+      expect(LogSession.count).to eq(2)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+    end
+
+    it "should not merge two logs with different users" do
+      u = User.create
+      u2 = User.create
+      d = Device.create
+      time = Time.parse("2018-06-06T20:18:19Z")
+      ts = time.to_f
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 105}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts + 30},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 205}
+      ]}, {:user => u2, :author => u, :device => d, :ip_address => '1.2.3.4'})
+
+      expect(LogSession.count).to eq(2)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+
+      s1.check_for_merger
+
+      expect(LogSession.count).to eq(2)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+    end
+
+    it "should not merge logs that are too far apart" do
+      User.default_log_session_duration
+      u = User.create
+      d = Device.create
+      time = Time.parse("2018-06-06T20:18:19Z")
+      ts = time.to_f
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 5}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts + 60 + User.default_log_session_duration},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 60 + User.default_log_session_duration}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+
+      expect(LogSession.count).to eq(2)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+
+      s1.check_for_merger
+
+      expect(LogSession.count).to eq(2)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+    end
+
+    it "should merge five overlapping logs" do
+      u = User.create
+      d = Device.create
+      time = Time.parse("2018-06-06T20:18:19Z")
+      ts = time.to_f
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 10}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts + 1},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 2}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s3 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts + 3},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 9}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s4 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts + 7},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 8}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s5 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts + 4},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 5}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+
+      expect(LogSession.count).to eq(5)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s3.data['events'].length).to eq(2)
+      expect(s3.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s4.data['events'].length).to eq(2)
+      expect(s4.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s5.data['events'].length).to eq(2)
+      expect(s5.data['events'].map{|e| e['id']}).to eq([1, 2])
+
+      s1.check_for_merger
+
+      expect(LogSession.count).to eq(1)
+      s1.reload
+      expect(s1.data['events'].length).to eq(10)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 9, 10, 7, 3, 4, 5, 6, 8, 2])
+      expect(s1.data['events'].map{|e| e['timestamp']}).to eq([ts, ts + 1, ts + 2, ts + 3, ts + 4, ts + 5, ts + 7, ts + 8, ts + 9, ts + 10])
+    end
+
+    it "should de-dup two copies of the same events" do
+      u = User.create
+      d = Device.create
+      time = Time.parse("2018-06-06T20:18:19Z")
+      ts = time.to_f
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 5}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 5}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+
+      expect(LogSession.count).to eq(2)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+
+      s1.check_for_merger
+
+      expect(LogSession.count).to eq(1)
+      s1.reload
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+    end
+
+    it "should keep the older session, even if called for the younger session" do
+      u = User.create
+      d = Device.create
+      time = Time.parse("2018-06-06T20:18:19Z")
+      ts = time.to_f
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 5}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 5}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+
+      expect(LogSession.count).to eq(2)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+
+      s2.check_for_merger
+
+      expect(LogSession.count).to eq(1)
+      s1.reload
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+    end
+
+    it "should partially merge logs when the new event has some from the same user and some from a different user" do
+      u = User.create
+      d = Device.create
+      time = Time.parse("2018-06-06T20:18:19Z")
+      ts = time.to_f
+      s1 = LogSession.process_new({'events' => [
+        {'user_id' => 'abc', 'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts},
+        {'user_id' => 'abc', 'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 5}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [
+        {'user_id' => 'abc', 'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts + 100},
+        {'user_id' => 'bcd', 'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 105}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+
+      expect(LogSession.count).to eq(2)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+
+      s1.check_for_merger
+
+      expect(LogSession.count).to eq(2)
+      s1.reload
+      expect(s1.data['events'].length).to eq(3)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2, 3])
+      s2.reload
+      expect(s2.data['events'].length).to eq(1)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([2])
+    end
+
+    it "should find dup logs in background task" do
+      u = User.create
+      d = Device.create
+      time = 20.minutes.ago
+      ts = time.to_f
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 5}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 5}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      LogSession.all.update_all(created_at: 20.minutes.ago)
+
+      expect(LogSession.count).to eq(2)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+
+      LogSession.check_possible_mergers
+      Worker.process_queues
+
+      expect(LogSession.count).to eq(1)
+      s1.reload
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+    end
+  end
 end
