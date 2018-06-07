@@ -2,6 +2,7 @@ import Ember from 'ember';
 import Component from '@ember/component';
 import $ from 'jquery';
 import capabilities from '../utils/capabilities';
+import modal from '../utils/modal';
 
 export default Component.extend({
   didRender: function() {
@@ -10,6 +11,7 @@ export default Component.extend({
       this.set('already_opened', true);
       this.sendAction('opening');
     }
+    this.set('auto_close', !!modal.auto_close);
 //     if(capabilities.mobile) {
       var height = $(window).height() - 50;
       $(this.get('element')).find(".modal-content").css('maxHeight', height).css('overflow', 'auto');
@@ -63,6 +65,10 @@ export default Component.extend({
         event.preventDefault();
         return this.sendAction();
       }
+    },
+    any_select: function() {
+      modal.auto_close = false;
+      this.set('auto_close', !!modal.auto_close);
     }
   }
 });

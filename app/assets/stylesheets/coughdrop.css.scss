@@ -407,6 +407,18 @@ h2 {
       margin-top: -15px;
     }
   }
+  .modal-content.auto_close {
+    .modal-header {
+      h1, h2, h3, h4 {
+        &:before {
+          content: "⌛ ";
+          display: 'inline-block';
+          filter: grayscale(100%);
+        }
+        opacity: 0.5;
+      }
+    }
+  }
 }
 .modal-header h3 {
   margin-top: 0;

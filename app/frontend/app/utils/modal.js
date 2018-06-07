@@ -222,6 +222,16 @@ modal.ModalController = Controller.extend({
       var controller = this;
       modal.last_controller = controller;
       controller.set('model', settings);
+      if(settings && settings.inactivity_timeout) {
+        modal.auto_close = true;
+        // after 15 seconds with no interaction, close this modal
+        runLater(function() {
+          if(modal.auto_close) {
+            modal.close(template);
+            modal.auto_close = false;
+          }
+        }, 15 * 1000);
+      }
       if(controller.opening) {
         controller.opening();
       }
