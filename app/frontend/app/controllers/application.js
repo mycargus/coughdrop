@@ -551,8 +551,12 @@ export default Controller.extend({
       this.transitionToRoute('setup', {queryParams: {page: order[current_index]}});
     },
     speak_mode_notification: function() {
-      if(app_state.get('user_badge')) {
-        modal.open('badge-awarded', {badge: {id: app_state.get('user_badge.id')}});
+      if(app_state.get('speak_mode_modeling_ideas.enabled')) {
+        modal.open('modals/modeling-ideas', {inactivity_timeout: true, users: [app_state.get('referenced_user')]});
+      } else if(app_state.get('user_badge')) {
+        modal.open('badge-awarded', {inactivity_timeout: true, badge: {id: app_state.get('user_badge.id')}});
+      } else if(app_state.get('speak_mode_modeling_ideas.timeout')) {
+        modal.open('modals/modeling-ideas', {inactivity_timeout: true, users: [app_state.get('referenced_user')]});
       }
     }
   },

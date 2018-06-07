@@ -956,6 +956,10 @@ var app_state = EmberObject.extend({
     }
   }.observes('currentUser'),
   speak_mode_handlers: function() {
+    if(session.get('isAuthenticated') && !app_state.get('currentUser.id')) {
+      // Don't run handlers on page reload until user is loaded
+      return;
+    }
     if(this.get('speak_mode')) {
       stashes.set('logging_enabled', !!(this.get('speak_mode') && this.get('currentUser.preferences.logging')));
       stashes.set('geo_logging_enabled', !!(this.get('speak_mode') && this.get('currentUser.preferences.geo_logging')));
@@ -975,6 +979,7 @@ var app_state = EmberObject.extend({
             speecher.speak_text(i18n.t('here_we_go', "here we go"), null, {volume: 0.1});
           }, 200);
         }
+        this.set('speak_mode_activities_at', (new Date()).getTime());
         if(this.get('currentUser.preferences.device.wakelock') !== false) {
           capabilities.wakelock('speak!', true);
         }
@@ -1060,8 +1065,41 @@ var app_state = EmberObject.extend({
         }
       }
     }
-    this.set('last_speak_mode', !!this.get('speak_mode'));
-  }.observes('speak_mode', 'currentUser.id', 'currentUser.preferences.logging'),
+    if(!session.get('isAuthenticated') || app_state.get('currentUser')) {
+      this.set('last_speak_mode', !!this.get('speak_mode'));
+    }
+  }.observes('speak_mode', 'currentUser.id', 'currentUser.preferences.logging', 'referenced_user.id'),
+  update_speak_mode_modeling_ideas: function() {
+    var _this = this;
+    var cutoff = (new Date()).getTime() - (45 * 1000);
+    // Try showing modeling ideas as an icon for like thirty seconds when
+    // first entering speak mode, if there are any. (if the user has already checked out
+    // modeling ideas at least once)
+    if(_this.get('speak_mode_activities_at') < cutoff) {
+      if(_this.get('speak_mode_modeling_ideas')) {
+        _this.set('speak_mode_modeling_ideas.enabled', false);
+        _this.set('speak_mode_modeling_ideas.timeout', true);
+      }
+      return;
+    }
+    if(!_this.get('speak_mode') || _this.get('referenced_user.id') === _this.get('speak_mode_modeling_ideas.user_id')) {
+      return;
+    }
+    if(_this.get('feature_flags.badge_progress') && _this.get('currentUser.preferences.progress.modeling_ideas_viewed')) {
+      if(_this.get('referenced_user.full_premium') && !_this.get('referenced_user.supporter_role')) {
+        _this.set('speak_mode_modeling_ideas', {user_id: _this.get('referenced_user.id')});      
+        _this.get('referenced_user').load_word_activities().then(function(activities) {
+          if(activities && activities.list && activities.list.length > 0) {
+            _this.set('speak_mode_modeling_ideas', {user_id: _this.get('referenced_user.id'), enabled: true});
+          }
+        }, function() { });
+      } else {
+        _this.set('speak_mode_modeling_ideas', false);
+      }
+    } else {
+      _this.set('speak_mode_modeling_ideas', false);      
+    }
+  }.observes('speak_mode', 'referenced_user.id', 'speak_mode_activities_at', 'short_refresh_stamp'),
   speak_mode: function() {
     return !!(stashes.get('current_mode') == 'speak' && this.get('currentBoardState'));
   }.property('stashes.current_mode', 'currentBoardState'),
