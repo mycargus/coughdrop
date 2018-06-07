@@ -9,6 +9,18 @@ import { htmlSafe } from '@ember/string';
 export default modal.ModalController.extend({
   opening: function() {
     this.load_badge();
+    if(this.get('model.user_id') && !this.get('model.badge')) {
+      this.send('user_badges');
+    }
+    this.set('has_modeling_activities', false);
+    if(this.get('model.speak_mode')) {
+      var _this = this;
+      app_state.get('referenced_user').load_word_activities().then(function(activities) {
+        if(activities && activities.list && activities.list.length > 0) {
+          _this.set('has_modeling_activities', true);
+        }
+      }, function() { });
+    }
   },
   load_badge: function() {
     var _this = this;
@@ -42,9 +54,10 @@ export default modal.ModalController.extend({
   load_user_badges: function() {
     var _this = this;
     if(_this.get('user_goals_and_badges')) {
+      var user_id = _this.get('model.badge.user_id') || _this.get('model.user_id');
       if(!_this.get('user_goals')) {
         _this.set('user_goals', {loading: true});
-        _this.store.query('goal', {user_id: _this.get('model.badge.user_id')}).then(function(goals) {
+        _this.store.query('goal', {user_id: user_id}).then(function(goals) {
           _this.set('user_goals', goals);
         }, function(err) {
           _this.set('user_goals', {error: true});
@@ -52,7 +65,7 @@ export default modal.ModalController.extend({
       }
       if(!_this.get('user_badges')) {
         _this.set('user_badges', {loading: true});
-        _this.store.query('badge', {user_id: _this.get('model.badge.user_id'), earned: true}).then(function(badges) {
+        _this.store.query('badge', {user_id: user_id, earned: true}).then(function(badges) {
           _this.set('user_badges', badges);
         }, function(err) {
           _this.set('user_badges', {error: true});
@@ -88,6 +101,9 @@ export default modal.ModalController.extend({
       _this.store.findRecord('user', user_id).then(function(user) {
         modal.open('new-goal', {user: user});
       });
+    },
+    modeling_ideas: function() {
+      modal.open('modals/modeling-ideas', {speak_mode: true, users: [app_state.get('referenced_user')]});
     }
   }
 });

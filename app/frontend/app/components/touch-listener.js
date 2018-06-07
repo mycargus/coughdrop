@@ -9,8 +9,10 @@ export default Component.extend({
   tagName: 'span',
   mouseDown: function() {
     this.sendAction('select');
+    return true;
   },
   touchStart: function() {
     this.sendAction('select');
+    return true;
   }
 });

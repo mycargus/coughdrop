@@ -414,8 +414,9 @@ h2 {
           content: "⌛ ";
           display: 'inline-block';
           filter: grayscale(100%);
+          opacity: 0.7;
         }
-        opacity: 0.5;
+        color: #888;
       }
     }
   }

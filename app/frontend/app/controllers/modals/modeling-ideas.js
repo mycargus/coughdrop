@@ -256,6 +256,7 @@ export default modal.ModalController.extend({
         modeling_user_ids: (this.get('model.users') || []).map(function(u) { return emberGet(u, 'id'); }),
         modeling_action: 'attempt'
       });
+      this.set('current_activity.follow_up', false);
       this.set('current_activity.will_attempt', true);
     },
     dismiss: function() {
@@ -281,6 +282,12 @@ export default modal.ModalController.extend({
     book: function() {
       var act = this.get('current_activity');
       modal.open('inline-book', {url: act.url});
+    },
+    badges: function() {
+      if(this.get('model.users.length') == 1) {
+        modal.open('badge-awarded', {speak_mode: true, user_id: emberGet(this.get('model.users')[0], 'id')});
+      }
+      
     }
   }
 });
