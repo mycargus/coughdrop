@@ -253,22 +253,45 @@ export default modal.ModalController.extend({
       app_state.get('currentUser').log_word_activity({
         modeling_activity_id: this.get('current_activity.id'),
         modeling_word: this.get('current_activity.word'),
+        modeling_locale: this.get('current_activity.locale'),
         modeling_user_ids: (this.get('model.users') || []).map(function(u) { return emberGet(u, 'id'); }),
         modeling_action: 'attempt'
       });
       this.set('current_activity.follow_up', false);
       this.set('current_activity.will_attempt', true);
+      this.set('current_activity.dismissed', false);
+      this.set('current_activity.completed', false);
+      this.set('current_activity.complete_score', null);
     },
     dismiss: function() {
       app_state.get('currentUser').log_word_activity({
         modeling_activity_id: this.get('current_activity.id'),
         modeling_word: this.get('current_activity.word'),
+        modeling_locale: this.get('current_activity.locale'),
         modeling_user_ids: (this.get('model.users') || []).map(function(u) { return emberGet(u, 'id'); }),
         modeling_action: 'dismiss'
       });
+      this.set('current_activity.will_attempt', false);
       this.set('current_activity.dismissed', true);
+      this.set('current_activity.completed', false);
+      this.set('current_activity.complete_score', null);
     },
-    video: function() {
+    complete: function(score) {
+      app_state.get('currentUser').log_word_activity({
+        modeling_activity_id: this.get('current_activity.id'),
+        modeling_word: this.get('current_activity.word'),
+        modeling_locale: this.get('current_activity.locale'),
+        modeling_user_ids: (this.get('model.users') || []).map(function(u) { return emberGet(u, 'id'); }),
+        modeling_action: 'complete',
+        modeling_action_score: score
+      });
+      this.set('current_activity.will_attempt', false);
+      this.set('current_activity.dismissed', false);
+      this.set('current_activity.completed', true);
+      var score_hash = {}; score_hash['score_' + score] = true;
+      this.set('current_activity.complete_score', score_hash);
+    },
+    video: function(attempting) {
       var url = this.get('current_activity.url');
 
       var youtube_regex = (/(?:https?:\/\/)?(?:www\.)?youtu(?:be\.com\/watch\?(?:.*?&(?:amp;)?)?v=|\.be\/)([\w \-]+)(?:&(?:amp;)?[\w\?=]*)?/);
@@ -276,11 +299,17 @@ export default modal.ModalController.extend({
       var youtube_id = youtube_match && youtube_match[1];
 
       if(youtube_id) {
+        if(attempting) {
+          this.send('attempt');
+        }
         modal.open('inline-video', {video: {type: 'youtube', id: youtube_id}});
       }
     },
     book: function() {
       var act = this.get('current_activity');
+      if(attempting) {
+        this.send('attempt');
+      }
       modal.open('inline-book', {url: act.url});
     },
     badges: function() {

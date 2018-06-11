@@ -99,16 +99,20 @@
       {{/if}}
       {{#if current_activity.types.books}}
         <p>{{t "Read the book together, taking time to use the target words to make observations, or to ask and answer questions." key='repeat_and_model_book'}}</p>
-        <button {{action 'book'}} class='btn btn-primary btn-lg'><span class='glyphicon glyphicon-book'></span> {{t "Read the Book" key='read_the_book'}}</button>
+        <button {{action 'book'}} class='btn btn-default btn-lg'><span class='glyphicon glyphicon-book'></span> {{t "Preview" key='preview'}}</button>
+        <button {{action 'book' true}} class='btn btn-primary btn-lg'><span class='glyphicon glyphicon-book'></span> {{t "Read the Book Together" key='read_the_book_together'}}</button>
       {{else if current_activity.types.videos}}
         <p>{{t "Watch the video together, looking for opportunities to use the target words to make observations or repeat from the video." key='repeat_and_model_video'}}</p>
-        <button {{action 'video'}} class='btn btn-primary btn-lg'><span class='glyphicon glyphicon-play-circle'></span> {{t "Watch the Video" key='watch_the_video'}}</button>
+        <button {{action 'video'}} class='btn btn-default btn-lg'><span class='glyphicon glyphicon-play-circle'></span> {{t "Preview" key='preview'}}</button>
+        <button {{action 'video' true}} class='btn btn-primary btn-lg'><span class='glyphicon glyphicon-play-circle'></span> {{t "Watch the Video Together" key='watch_the_video_together'}}</button>
       {{else if current_activity.types.topic_starters}}
         <div style='text-align: center;'>
           <img src={{current_activity.image.image_url}} class='fit_image' style='width: 100%; max-height: 500px;'/>
         </div>
       {{/if}}
-      {{#if current_activity.will_attempt}}
+      {{#if current_activity.completed}}
+        <div class='alert alert-info' style='font-size: 14px; margin-top: 10px;'>{{t "Thanks for reporting!" key='thanks_for_reporting'}}</div>
+      {{else if current_activity.will_attempt}}
         <div class='alert alert-info' style='font-size: 14px; margin-top: 10px;'>{{t "Thanks! Give this activity a try and we'll follow up later to see how it went!" key='follow_up_later'}}</div>
       {{else if current_activity.dismissed}}
         <div class='alert alert-info' style='font-size: 14px; margin-top: 10px;'>{{t "Thank you for the feedback, we'll keep adding new ideas!" key='thank_you_for_feedback'}}</div>
@@ -129,11 +133,29 @@
     <button class='btn btn-default btn-lg' {{action 'close'}}>{{t "Close" key='close'}}</button>
     {{#if current_activity.real}}
       {{#if current_activity.follow_up}}
-        <button class='btn btn-default btn-lg' {{action 'attempt'}}>{{t "Not Done Yet" key='not_done_yet'}}</button>
-      {{else}}
-        <button class='btn btn-default btn-lg' {{action 'attempt'}}>{{t "Great Idea!" key='great_idea'}}</button>
-        <button class='btn btn-default btn-lg' {{action 'dismiss'}}>{{t "Not a Good Fit" key='not_a_good_fit'}}</button>
-        <button class='btn btn-default btn-lg' {{action 'find'}}>{{t "Find" key='find_button'}}</button>
+        <button class={{if current_activity.will_attempt 'btn btn-primary btn-lg' 'btn btn-default btn-lg'}} {{action 'attempt'}}>{{t "Not Done Yet" key='not_done_yet'}}</button>
+        <button class={{if current_activity.dismissed 'btn btn-primary btn-lg' 'btn btn-default btn-lg'}} {{action 'dismiss'}}>{{t "Dismiss" key='dismiss'}}</button>
+        <div style='margin-top: 5px; margin-left: 89px;'>
+          <button class={{if current_activity.complete_score.score_1 "btn btn-primary face_button" "btn btn-default face_button"}} style='width: 80px;' {{action 'complete' 1}}>
+            <span class="face sad"></span>
+            {{t "We didn't<br>do it" key='we_didnt_do_it'}}
+          </button>
+          <button class={{if current_activity.complete_score.score_2 "btn btn-primary face_button" "btn btn-default face_button"}} style='width: 80px;' {{action 'complete' 2}}>
+            <span class="face neutral"></span>
+            {{t "We barely<br>did it" key='we_barely_did_it'}}
+          </button>
+          <button class={{if current_activity.complete_score.score_3 "btn btn-primary face_button" "btn btn-default face_button"}} style='width: 80px;' {{action 'complete' 3}}>
+            <span class="face happy"></span>
+            {{t "We did<br>good!" key='we_did_good'}}
+          </button>
+          <button class={{if current_activity.complete_score.score_4 "btn btn-primary face_button" "btn btn-default face_button"}} style='width: 80px;' {{action 'complete' 4}}>
+            <span class="face laugh"></span>
+            {{t "We did<br>awesome!" key='we_did_awesome'}}
+          </button>
+        </div>
+    {{else}}
+        <button class={{if current_activity.will_attempt 'btn btn-primary btn-lg' 'btn btn-default btn-lg'}} {{action 'attempt'}}>{{t "Great Idea!" key='great_idea'}}</button>
+        <button class={{if current_activity.dismissed 'btn btn-primary btn-lg' 'btn btn-default btn-lg'}} {{action 'dismiss'}}>{{t "Not a Good Fit" key='not_a_good_fit'}}</button>
       {{/if}}
     {{/if}}
     {{#if model.speak_mode}}

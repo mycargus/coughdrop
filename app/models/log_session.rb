@@ -726,7 +726,49 @@ class LogSession < ActiveRecord::Base
     end
     session.data['events'] << event
     session.save!
+    session.schedule(:process_external_callbacks)
     session
+  end
+
+  def process_external_callbacks
+    return unless self.log_type == 'modeling_activities'
+    updates = []
+
+    user_id = GoSecure.hmac("#{self.user.global_id}:#{self.user.created_at.iso8601}", Digest::MD5.hexdigest(self.global_id), 1)[0, 10]
+    # TODO: should we anonymize the user id and provide it in the login process to match it up?
+    self.data['events'].each do |event|
+      if !event['external_processed']
+        event['external_processed'] = true
+        updates << {
+          action: event['modeling_action'],
+          word: event['modeling_word'],
+          locale: event['modeling_locale'],
+          activity_id: event['modeling_activity_id'],
+          score: event['modeling_action_score']
+        }
+      end
+    end
+    if updates.length > 0
+      ui = UserIntegration.find_by(integration_key: 'communication_workshop')
+      if ui && ui.device && ui.device.developer_key_id
+        user_id = self.user.anonymized_identifier("external_for_#{ui.device.developer_key_id}")
+
+        res = Typhoeus.post("https://workshop.openaac.org/api/v1/external", body: {
+          integration_id: ui.device.developer_key.key,
+          integration_token: ui.device.developer_key.secret,
+          user_id: user_id,
+          updates: updates
+        }, timeout: 10)
+        json = JSON.parse(res.body) rescue nil
+        if json && json['accepted']
+          self.save!
+          return true
+        end
+      end
+      return false
+    else
+      return true
+    end
   end
 
   def modeling_log
