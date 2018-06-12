@@ -312,6 +312,16 @@ export default modal.ModalController.extend({
       }
       modal.open('inline-book', {url: act.url});
     },
+    make_goal: function() {
+      var _this = this;
+      modal.open('new-goal', {users: _this.get('model.users') }).then(function(res) {
+        if(res && res.get('id') && res.get('set_badges')) {
+          _this.transitionToRoute('user.goal', _this.get('model.user_name'), res.get('id'));
+        } else if(res) {
+          modal.success(i18n.t('goal_added', "Goal added! Check back with Modeling Ideas soon to see updated ideas based on the new goal."));
+        }
+      }, function() { });
+    },
     badges: function() {
       if(this.get('model.users.length') == 1) {
         modal.open('badge-awarded', {speak_mode: true, user_id: emberGet(this.get('model.users')[0], 'id')});

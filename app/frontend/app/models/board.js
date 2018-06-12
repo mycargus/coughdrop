@@ -204,7 +204,7 @@ CoughDrop.Board = DS.Model.extend({
   }.property('grid', 'buttons'),
   levels: function() {
     return this.get('buttons').filter(function(b) { return b.level_modifications; }).length > 0;
-  }.property('buttons@each.level_modifications'),
+  }.property('buttons.@each.level_modifications'),
   without_lookups: function(callback) {
     this.set('no_lookups', true);
     callback();

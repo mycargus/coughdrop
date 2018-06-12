@@ -1919,6 +1919,10 @@ body.pretty_loader #loading_box {
     content: "";
   }
 }
+.not_premium {
+  opacity: 0.5;
+  font-style: italic;
+}
 
 #scanner_axis_vertical {
   width: 3px;

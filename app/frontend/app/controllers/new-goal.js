@@ -4,6 +4,8 @@ import CoughDrop from '../app';
 import app_state from '../utils/app_state';
 import i18n from '../utils/i18n';
 import editManager from '../utils/edit_manager';
+import {set as emberSet, get as emberGet} from '@ember/object';
+import RSVP from 'rsvp';
 
 export default modal.ModalController.extend({
   opening: function() {
@@ -18,7 +20,16 @@ export default modal.ModalController.extend({
     if(this.get('model.browse')) {
       this.send('browse_goals');
     }
-    if(!this.get('model.user.goal')) {
+    if(this.get('model.users.length') == 1) {
+      this.set('model.user', this.get('model.users')[0]);
+      this.set('model.users', null);
+    }
+    if(this.get('model.users')) {
+      this.get('model.users').forEach(function(u) {
+        emberSet(u, 'not_premium', !emberGet(u, 'premium') && !emberGet(u, 'full_premium'));
+      });
+      this.set('goal.simple_type', 'words');
+    } else if(!this.get('model.user.goal')) {
       this.set('goal.primary', true);
     }
   },
@@ -42,6 +53,20 @@ export default modal.ModalController.extend({
     }
     return res;
   }.property('goal.simple_type'),
+  single_user: function() {
+    return !!this.get('model.user') || (this.get('model.users') || []).filter(function(u) { return !!emberGet(u, 'add_goal'); }).length == 1;
+  }.property('model.user', 'model.users', 'model.users.@each.add_goal'),
+  has_simple_content: function() {
+    if(this.get('goal.simple_type') == 'words') {
+      return (this.get('goal.strings_list') || '').length > 0;
+    } else if(this.get('goal.simple_type') == 'buttons') {
+      return parseInt(this.get('instance_count'), 10) > 0;
+    } else if(this.get('goal.simple_type') == 'modeling') {
+      return (this.get('goal.strings_list') || '').length > 0 || parseInt(this.get('instance_count'), 10) > 0;
+    } else {
+      return true;
+    }
+  }.property('goal.simple_type', 'goal.strings_list', 'goal.instance_count'),
   goal_simple_action: function() {
     var type = this.get('goal.simple_type');
     if(type == 'buttons') {
@@ -100,6 +125,10 @@ export default modal.ModalController.extend({
     save_goal: function() {
       var _this = this;
       var goal = this.get('goal');
+      var users = [this.get('model.user')];
+      if(this.get('model.users')) {
+        users = this.get('model.users').filter(function(u) { return emberGet(u, 'add_goal'); });
+      }
       if(this.get('selected_goal')) {
         goal = this.store.createRecord('goal');
         goal.set('template_id', this.get('selected_goal.id'));
@@ -154,12 +183,18 @@ export default modal.ModalController.extend({
           }
         }
       }
-      goal.set('user_id', this.get('model.user.id'));
       goal.set('active', true);
+      var promises = [];
+      users.forEach(function(u) {
+        var g = _this.store.createRecord('goal', goal.toJSON());
+        g.set('user_id', emberGet(u, 'id'));
+        promises.push(g.save());
+      });
+      goal.set('user_id', this.get('model.user.id'));
       // TODO: something about attaching the video
       _this.set('saving', true);
       _this.set('error', false);
-      goal.save().then(function() {
+      RSVP.all_wait(promises).then(function() {
         _this.set('saving', false);
         modal.close(goal);
       }, function() {

@@ -98,11 +98,11 @@
         <p>{{current_activity.description}}</p>
       {{/if}}
       {{#if current_activity.types.books}}
-        <p>{{t "Read the book together, taking time to use the target words to make observations, or to ask and answer questions." key='repeat_and_model_book'}}</p>
+        <p>{{t "Read the book together, taking time to model \"%{w}\"  and other target words to make observations, or to ask and answer questions." w=current_activity.word key='repeat_and_model_book'}}</p>
         <button {{action 'book'}} class='btn btn-default btn-lg'><span class='glyphicon glyphicon-book'></span> {{t "Preview" key='preview'}}</button>
         <button {{action 'book' true}} class='btn btn-primary btn-lg'><span class='glyphicon glyphicon-book'></span> {{t "Read the Book Together" key='read_the_book_together'}}</button>
       {{else if current_activity.types.videos}}
-        <p>{{t "Watch the video together, looking for opportunities to use the target words to make observations or repeat from the video." key='repeat_and_model_video'}}</p>
+        <p>{{t "Watch the video together, looking for opportunities to model \"%{w}\" and other target words to make observations or repeat from the video." w=current_activity.word key='repeat_and_model_video'}}</p>
         <button {{action 'video'}} class='btn btn-default btn-lg'><span class='glyphicon glyphicon-play-circle'></span> {{t "Preview" key='preview'}}</button>
         <button {{action 'video' true}} class='btn btn-primary btn-lg'><span class='glyphicon glyphicon-play-circle'></span> {{t "Watch the Video Together" key='watch_the_video_together'}}</button>
       {{else if current_activity.types.topic_starters}}
