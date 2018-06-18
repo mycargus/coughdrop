@@ -377,8 +377,8 @@ describe WeeklyStatsSummary, :type => :model do
   describe "trends" do
     it 'should include basic totals' do
       start = 1.month.ago.to_date
-      cweek = start.cweek
-      cwyear = start.cwyear
+      cweek = start.beginning_of_week(:sunday).cweek
+      cwyear = start.beginning_of_week(:sunday).cwyear
       cw1 = (cwyear * 100) + cweek
       cw2 = (cwyear * 100) + cweek + 1
       
@@ -506,8 +506,8 @@ describe WeeklyStatsSummary, :type => :model do
 
     it 'should include basic totals for each week' do
       start = 1.month.ago.to_date
-      cweek = start.cweek
-      cwyear = start.cwyear
+      cweek = start.beginning_of_week(:sunday).cweek
+      cwyear = start.beginning_of_week(:sunday).cwyear
       cw1 = (cwyear * 100) + cweek
       cw2 = (cwyear * 100) + cweek + 1
       
@@ -555,13 +555,13 @@ describe WeeklyStatsSummary, :type => :model do
     
     it 'should not include really old trend data' do
       start = 1.month.ago.to_date
-      cweek = start.cweek
-      cwyear = start.cwyear
+      cweek = start.beginning_of_week(:sunday).cweek
+      cwyear = start.beginning_of_week(:sunday).cwyear
       cw1 = (cwyear * 100) + cweek
       cw2 = (cwyear * 100) + cweek + 1
       start = 4.months.ago.to_date
-      cweek = start.cweek
-      cwyear = start.cwyear
+      cweek = start.beginning_of_week(:sunday).cweek
+      cwyear = start.beginning_of_week(:sunday).cwyear
       cw3 = (cwyear * 100) + cweek
       
       sum1 = WeeklyStatsSummary.create(:user_id => 0, :weekyear => cw1, :data => {
@@ -614,8 +614,8 @@ describe WeeklyStatsSummary, :type => :model do
     
     it 'should include extra data for admins' do
       start = 1.month.ago.to_date
-      cweek = start.cweek
-      cwyear = start.cwyear
+      cweek = start.beginning_of_week(:sunday).cweek
+      cwyear = start.beginning_of_week(:sunday).cwyear
       cw1 = (cwyear * 100) + cweek
       cw2 = (cwyear * 100) + cweek + 1
       

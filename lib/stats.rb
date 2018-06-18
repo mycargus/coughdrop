@@ -11,8 +11,8 @@ module Stats
     sanitize_find_options!(options, user)
     week_start = options[:start_at].utc.beginning_of_week(:sunday)
     week_end = options[:end_at].utc.end_of_week(:sunday)
-    start_weekyear = (week_start.to_date.cwyear * 100) + week_start.to_date.cweek
-    end_weekyear = (week_end.to_date.cwyear * 100) + week_end.to_date.cweek
+    start_weekyear = WeeklyStatsSummary.date_to_weekyear(week_start)
+    end_weekyear = WeeklyStatsSummary.date_to_weekyear(week_end)
     summaries = WeeklyStatsSummary.where(['user_id = ? AND weekyear >= ? AND weekyear <= ?', user.id, start_weekyear, end_weekyear])
     summary_lookups = {}
     summaries.each{|s| summary_lookups[s.weekyear] = s }
@@ -22,7 +22,7 @@ module Stats
     weekyear_dates = {}
     word_development = {}
     options[:start_at].to_date.upto(options[:end_at].to_date) do |date|
-      weekyear = (date.beginning_of_week(:sunday).cwyear * 100) + date.beginning_of_week(:sunday).cweek
+      weekyear = WeeklyStatsSummary.date_to_weekyear(date)
       weekyear_dates[weekyear] ||= []
       weekyear_dates[weekyear] << date
     end
@@ -30,7 +30,7 @@ module Stats
     summaries.find_in_batches(batch_size: 5) do |batch|
       batch.each do |summary|
         (weekyear_dates[summary.weekyear] || []).each do |date|
-          day = summary && summary.data && summary.data['stats']['days'][date.to_s]
+          day = summary && summary.data && ((summary.data['stats'] || {})['days'] || {})[date.to_s]
           filtered_day_stats = nil
           if day
             filtered_day_stats = [day['total']]
@@ -910,10 +910,10 @@ module Stats
     recent_weeks = 0
     if user && sessions[0]
       min_summary = (sessions[0].started_at - 6.months).to_date
-      start_weekyear = (min_summary.cwyear * 100) + min_summary.cweek
+      start_weekyear = WeeklyStatsSummary.date_to_weekyear(min_summary)
       recent_cutoff = (sessions[0].started_at - 2.weeks).to_date
-      recent_weekyear = (recent_cutoff.cwyear * 100) + recent_cutoff.cweek
-      end_weekyear = (sessions[0].started_at.to_date.cwyear * 100) + sessions[0].started_at.to_date.cweek
+      recent_weekyear = WeeklyStatsSummary.date_to_weekyear(recent_cutoff)
+      end_weekyear = WeeklyStatsSummary.date_to_weekyear(sessions[0].started_at)
       summaries = WeeklyStatsSummary.where(user_id: user.id).where(['weekyear >= ? AND weekyear <= ?', start_weekyear, end_weekyear]); summaries.count
       summaries.find_in_batches(batch_size: 5) do |batch|
         batch.each do |summary|

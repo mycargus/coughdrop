@@ -351,8 +351,8 @@ class UserBadge < ActiveRecord::Base
           date = stats_start - days_back
           later_date = [today, stats_start + days_back].max
         end
-        startweekyear = (date.cwyear * 100) + date.cweek
-        endweekyear = (later_date.cwyear * 100) + later_date.cweek
+        startweekyear = WeeklyStatsSummary.date_to_weekyear(date)
+        endweekyear = WeeklyStatsSummary.date_to_weekyear(later_date)
         summaries = summaries.where(['weekyear >= ? AND weekyear <= ?', startweekyear, endweekyear])
       end
       days = []
@@ -757,16 +757,17 @@ class UserBadge < ActiveRecord::Base
   def self.add_date_blocks(day_result, day_string)
     date = Date.parse(day_string)
     day_result[:date] = date
-    day_result[:weekyear] = date.cweek + (date.cwyear * 100)
+    day_result[:weekyear] = WeeklyStatsSummary.date_to_weekyear(date)
     next_weekyear = day_result[:weekyear] + 1
-    d = Date.new(date.year, 1, 1)
+    d = Date.new(day_result[:weekyear].to_s[0, 4].to_i, 1, 1)
     max_week = 52
     max_week = 53 if d.wday == 4 || (d.leap? && d.wday == 3)
     if next_weekyear % 100 > max_week
       next_weekyear -= max_week
       next_weekyear += 100
     end
-    day_result[:biweekyear] = (((date.cweek / 2).floor * 2) + 1) + (date.cwyear * 100)
+    wy = day_result[:weekyear].to_s
+    day_result[:biweekyear] = (wy[0, 4].to_i * 100) + (((wy[4, 2].to_i / 2).floor * 2) + 1)
     if day_result[:biweekyear] % 100 > 52
       day_result[:biweekyear] -= 52
       day_result[:biweekyear] += 100

@@ -146,7 +146,8 @@ class UserGoal < ActiveRecord::Base
     [[daily_sessions, 'daily'], [weekly_sessions, 'weekly'], [sessions, 'monthly']].each do |sessions, level|
       sessions.each do |session|
         key = session.started_at.utc.iso8601[0, 10]
-        key = "#{session.started_at.utc.to_date.cwyear}-#{session.started_at.utc.to_date.cweek.to_s.rjust(2, '0')}" if level == 'weekly'
+        weekyear = WeeklyStatsSummary.date_to_weekyear(session.started_at.utc).to_s
+        key = "#{weekyear[0, 4]}-#{weekyear[4, 2]}" if level == 'weekly'
         key = session.started_at.utc.iso8601[0, 7] if level == 'monthly'
         [key, 'totals'].each do |k|
           stats[level][k] ||= {}

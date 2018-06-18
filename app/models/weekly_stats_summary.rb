@@ -24,6 +24,15 @@ class WeeklyStatsSummary < ActiveRecord::Base
   def self.weekyear_to_date(weekyear)
     Date.commercial(weekyear / 100, weekyear % 100, 1) + 6
   end
+
+  def self.date_to_weekyear(date)
+    # weekyear logic is a little strange, but to be consistent, we calculate it based
+    # on the cweek and cwyear of the latest Sunday relative to the specified date
+    beg_date = date.to_date.beginning_of_week(:sunday)
+    cweek = beg_date.cweek
+    cwyear = beg_date.cwyear
+    (cwyear * 100) + cweek
+  end
   
   def update!
     summary = self
@@ -31,9 +40,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     user = User.find_by(id: self.user_id)
     start_at = WeeklyStatsSummary.weekyear_to_date(self.weekyear).beginning_of_week(:sunday)
     end_at = start_at.end_of_week(:sunday)
-    cweek = Date.today.beginning_of_week(:sunday).cweek
-    cwyear = Date.today.beginning_of_week(:sunday).cwyear
-    current_weekyear = (cwyear * 100) + cweek
+    current_weekyear = WeeklyStatsSummary.date_to_weekyear(Date.today)
     
     sessions = Stats.find_sessions((all ? 'all' : user.global_id), {:start_at => start_at, :end_at => end_at})
     
@@ -136,9 +143,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     # multiple weeks need to be updated 
     start_at = log_session.started_at.utc.beginning_of_week(:sunday)
     end_at = log_session.started_at.utc.end_of_week(:sunday)
-    cweek = start_at.to_date.cweek
-    cwyear = start_at.to_date.cwyear
-    weekyear = (cwyear * 100) + cweek
+    weekyear = WeeklyStatsSummary.date_to_weekyear(start_at)
 
     summary = WeeklyStatsSummary.find_or_create_by(:weekyear => weekyear, :user_id => (all ? 0 : log_session.user_id))
     summary.update!
@@ -174,9 +179,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     return unless log_session.user_id && log_session.started_at && log_session.data && log_session.data['stats']
     start_at = log_session.started_at.utc.beginning_of_week(:sunday)
     end_at = log_session.started_at.utc.end_of_week(:sunday)
-    cweek = start_at.to_date.cweek
-    cwyear = start_at.to_date.cwyear
-    weekyear = (cwyear * 100) + cweek
+    weekyear = WeeklyStatsSummary.date_to_weekyear(start_at)
 
     board_id_events.each do |board_id, board_clump|
       summary = WeeklyStatsSummary.find_or_create_by(:weekyear => weekyear, :board_id => board_id)
@@ -188,9 +191,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
   
   def self.track_trends(weekyear)
     start = 1.week.ago.to_date
-    cweek = start.cweek
-    cwyear = start.cwyear
-    nowweekyear = (cwyear * 100) + cweek
+    nowweekyear = WeeklyStatsSummary.date_to_weekyear(start)
     current_trends = weekyear >= nowweekyear
 
 
@@ -432,9 +433,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     res['weeks'] = {}
     stash = {}
     start = 3.months.ago.to_date
-    cweek = start.cweek
-    cwyear = start.cwyear
-    cutoffweekyear = (cwyear * 100) + cweek
+    cutoffweekyear = WeeklyStatsSummary.date_to_weekyear(start)
     stash[:total_session_seconds] = 0
     stash[:modeled_buttons] = 0.0
     stash[:total_buttons] = 0
@@ -690,9 +689,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
   def self.word_trends(word)
     word = word.downcase
     start = 8.weeks.ago.to_date
-    cweek = start.cweek
-    cwyear = start.cwyear
-    cutoffweekyear = (cwyear * 100) + cweek
+    cutoffweekyear = WeeklyStatsSummary.date_to_weekyear(start)
     earliest = nil
     latest = nil
     
