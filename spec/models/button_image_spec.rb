@@ -82,6 +82,7 @@ describe ButtonImage, :type => :model do
       }, user: u, board: b)
       expect(ButtonImage).to receive(:track_image_use).with({
         :search_term => 'bacon',
+        :locale => 'en',
         :label => 'pig',
         :suggestion => nil,
         :external_id => nil,
@@ -99,7 +100,7 @@ describe ButtonImage, :type => :model do
         'external_id' => '12356'
       }, user: u, board: b)
       expect(Typhoeus).to receive(:post) do |url, args|
-        expect(url).to eq("https://opensymbols.herokuapp.com/api/v1/symbols/12356/use")
+        expect(url).to eq("https://www.opensymbols.org/api/v1/symbols/12356/use")
         expect(args[:body][:access_token]).not_to eq(nil)
         expect(args[:body][:user_id]).not_to eq(nil)
       end
@@ -116,7 +117,7 @@ describe ButtonImage, :type => :model do
       }, user: u, board: b)
       i.save
       expect(Typhoeus).to receive(:post) do |url, args|
-        expect(url).to eq("https://opensymbols.herokuapp.com/api/v1/symbols/12356/use")
+        expect(url).to eq("https://www.opensymbols.org/api/v1/symbols/12356/use")
         expect(args[:body][:user_id]).not_to eq(nil)
         expect(args[:body][:user_id]).not_to eq(u.id)
         expect(args[:body][:user_id]).not_to eq(u.global_id)
@@ -134,7 +135,7 @@ describe ButtonImage, :type => :model do
         'external_id' => '12356'
       }, user: u, board: b)
       expect(Typhoeus).to receive(:post) do |url, args|
-        expect(url).to eq("https://opensymbols.herokuapp.com/api/v1/symbols/12356/use")
+        expect(url).to eq("https://www.opensymbols.org/api/v1/symbols/12356/use")
         expect(args[:body][:user_id]).not_to eq(nil)
         expect(args[:body][:user_id]).not_to eq(u.id)
         expect(args[:body][:user_id]).not_to eq(u.global_id)

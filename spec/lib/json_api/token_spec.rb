@@ -7,7 +7,7 @@ describe JsonApi::Token do
       d.generate_token!
       u = User.new(user_name: 'fred')
       hash = JsonApi::Token.as_json(u, d)
-      expect(hash.keys.sort).to eq(['access_token', 'scopes', 'token_type', 'user_id', 'user_name'])
+      expect(hash.keys.sort).to eq(['access_token', 'anonymized_user_id', 'scopes', 'token_type', 'user_id', 'user_name'])
       expect(hash['access_token']).to eq(d.token)
       expect(hash['token_type']).to eq('bearer')
       expect(hash['user_name']).to eq('fred')
@@ -20,9 +20,13 @@ describe JsonApi::Token do
       d.generate_token!
       u = User.new(user_name: 'fred')
       hash = JsonApi::Token.as_json(u, d)
-      expect(hash.keys.sort).to eq(['access_token', 'scopes', 'token_type', 'user_id', 'user_name'])
+      expect(hash.keys.sort).to eq(['access_token', 'anonymized_user_id', 'scopes', 'token_type', 'user_id', 'user_name'])
       expect(hash['access_token']).to eq(d.token)
       expect(hash['scopes']).to eq(['a', 'b'])
+    end
+
+    it "should return an anonymized keyed id that is unique to the developer key tied to the device" do
+      write_this_test
     end
   end
 end

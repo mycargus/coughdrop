@@ -2462,4 +2462,17 @@ describe LogSession, :type => :model do
       expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
     end
   end
+
+  describe "process_modeling_event" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
+
+  describe "process_external_callbacks" do
+    it "should have specs" do
+      write_this_test
+    end
+  end
+
 end

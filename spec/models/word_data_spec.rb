@@ -430,6 +430,7 @@ RSpec.describe WordData, :type => :model do
       expect(res).to eq({
         'checked' => Time.now.iso8601,
         'list' => [],
+        'log' => [],
         'words' => []
       })
     end
@@ -463,6 +464,7 @@ RSpec.describe WordData, :type => :model do
           {"id"=>"2", "score"=>3, "user_ids"=>[u.global_id]}, 
           {"id"=>"3", "score"=>1, "user_ids"=>[u.global_id]}
         ],
+        'log' => [],
         'words' => [
           {"word"=>"good", "locale"=>"en", "user_ids"=>[u.global_id]}, 
           {"word"=>"bad", "locale"=>"en", "user_ids"=>[u.global_id]}
@@ -520,6 +522,7 @@ RSpec.describe WordData, :type => :model do
           {"id"=>"2", "score"=>3, "user_ids"=>[u.global_id]}, 
           {"id"=>"3", "score"=>1, "user_ids"=>[u.global_id]}
         ],
+        'log' => [],
         'words' => [
           {"word"=>"good", "locale"=>"en", "user_ids"=>[u.global_id, u2.global_id]}, 
           {"word"=>"bad", "locale"=>"en", "user_ids"=>[u.global_id]}, 
@@ -578,6 +581,7 @@ RSpec.describe WordData, :type => :model do
           {"id"=>"2", "score"=>3, "user_ids"=>[u.global_id]}, 
           {"id"=>"3", "score"=>1, "user_ids"=>[u.global_id]}
         ],
+        'log' => [],
         'words' => [
           {"word"=>"good", "locale"=>"en", "user_ids"=>[u.global_id, u2.global_id]}, 
           {"word"=>"bad", "locale"=>"en", "user_ids"=>[u.global_id]}, 
@@ -636,6 +640,7 @@ RSpec.describe WordData, :type => :model do
           {"id"=>"2", "score"=>3, "user_ids"=>[u.global_id]}, 
           {"id"=>"3", "score"=>1, "user_ids"=>[u.global_id]}
         ],
+        'log' => [],
         'words' => [
           {"word"=>"good", "locale"=>"en", "user_ids"=>[u.global_id, u2.global_id]}, 
           {"word"=>"bad", "locale"=>"en", "user_ids"=>[u.global_id]}, 
@@ -779,6 +784,7 @@ RSpec.describe WordData, :type => :model do
           {"id"=>"b2", "type"=>"books", "word"=>"want", "locale"=>"en", "score"=>3.333, "user_ids"=>[u.global_id]}, 
           {"id"=>"v2", "type"=>"videos", "word"=>"want", "locale"=>"en", "score"=>3.333, "user_ids"=>[u.global_id]}
         ],
+        'log' => [],
         'words' => [{"word"=>"about", "locale"=>"en", "reasons"=>nil, "user_ids"=>[u.global_id]}, {"word"=>"want", "locale"=>"en", "reasons"=>["fallback"], "user_ids"=>[u.global_id]}]
       })
     end

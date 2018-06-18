@@ -28,6 +28,7 @@ describe BoardButtonImage, :type => :model do
       expect(ButtonImage).to receive(:track_image_use).with({
         'label' => "hat",
         'external_id' => nil,
+        'locale' => 'en',
         'user_id' => 1234
       })
       BoardButtonImage.connect(b.id, [{:id => i.global_id, :label => "hat"}], :user_id => 1234)
