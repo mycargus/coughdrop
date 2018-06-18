@@ -704,7 +704,7 @@ module Stats
     sanitize_find_options!(options)
     user = user_id && User.find_by_global_id(user_id)
     raise(StatsError, "user not found") unless user || user_id == 'all'
-    sessions = LogSession.where(['started_at > ? AND ended_at < ?', options[:start_at], options[:end_at]])
+    sessions = LogSession.where(['started_at > ? AND started_at < ?', options[:start_at], options[:end_at]])
     sessions = sessions.where({'user_id' => user.id}) unless user_id == 'all'
     if options[:device_ids]
       devices = Device.find_all_by_global_id(options[:device_ids]).select{|d| d.user_id == user.id }
