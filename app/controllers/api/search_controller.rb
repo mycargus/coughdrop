@@ -2,7 +2,13 @@ require 'mime/types'
 class Api::SearchController < ApplicationController
   before_action :require_api_token, :except => [:audio]
   def symbols
-    res = Typhoeus.get("https://www.opensymbols.org/api/v1/symbols/search?q=#{CGI.escape(params['q'])}", :ssl_verifypeer => false)
+    token = ENV['OPENSYMBOLS_TOKEN']
+    if false
+      # TODO: for now, don't combine them in non-protected searches even though it's coming
+      # from the same source, otherwise things can get confusing
+      token += ":pcs"
+    end
+    res = Typhoeus.get("https://www.opensymbols.org/api/v1/symbols/search?q=#{CGI.escape(params['q'])}&search_token=#{token}", :ssl_verifypeer => false)
     results = JSON.parse(res.body)
     results.each do |result|
       type = MIME::Types.type_for(result['extension'])[0]
@@ -14,7 +20,7 @@ class Api::SearchController < ApplicationController
     end
     render json: results.to_json
   end
-  
+
   def protected_symbols
     res = false
     ref_user = @api_user
