@@ -119,7 +119,7 @@ var stashes = EmberObject.extend({
       stash.storageId = 'stash';
       promise = stash_capabilities.storage_store({store: 'settings', id: 'stash', record: stash});
     }
-    for(var idx = 0, l = localStorage.length; idx < l; idx++) {
+    for(var idx = 0; idx < localStorage.length; idx++) {
       var key = localStorage.key(idx);
       if(key && key.indexOf(full_prefix) === 0) {
         if(ignore_prefix && key.indexOf(full_ignore_prefix) === 0) {
@@ -128,7 +128,7 @@ var stashes = EmberObject.extend({
             stashes.set(key.replace(stashes.prefix, ''), undefined);
             delete memory_stash[key.replace(stashes.prefix, '')];
             localStorage.removeItem(key);
-            idx--;
+            idx = -1;
           } catch(e) { }
         }
       }

@@ -228,14 +228,16 @@ var session = EmberObject.extend({
       // Give the session time to clear completely before reloading, otherwise they might
       // not actually get logged out
       runLater(function() {
-        if(full_invalidate) {
-          session.reload('/');
-        }
         session.set('isAuthenticated', false);
         session.set('access_token', null);
         session.set(' ', null);
         session.set('user_id', null);
         session.set('as_user_id', null);
+        if(full_invalidate) {
+          runLater(function() {
+            session.reload('/');
+          }, 300);
+        }
       }, 300);
     });
 
