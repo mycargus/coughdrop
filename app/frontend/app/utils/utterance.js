@@ -325,7 +325,7 @@ var utterance = EmberObject.extend({
   }.observes('list_vocalized', 'clear_on_vocalize'),
   test_voice: function(voiceURI, rate, pitch, volume) {
     rate = parseFloat(rate);
-    if(isNaN(rate)) { rate = speecher.default_rate(); }
+    if(isNaN(rate)) { rate = 1.0; }
     pitch = parseFloat(pitch);
     if(isNaN(pitch)) { pitch = 1.0; }
     volume = parseFloat(volume);

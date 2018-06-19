@@ -189,7 +189,7 @@ var speecher = EmberObject.extend({
     var agent = navigator.userAgent.toLowerCase();
     var ios = capabilities.system == 'iOS';
     var too_fast_voice = (ios && (capabilities.browser == 'Safari' || capabilities.browser == 'App') && (!capabilities.system_version || capabilities.system_version < 9.0));
-    if(too_fast_voice || (voiceURI && voiceURI.match(/tts/))) {
+    if(too_fast_voice || (voiceURI && voiceURI.match(/tts:/)) || voiceURI == 'force_default') {
       return 0.2;
     }
     return 1.0;
@@ -286,7 +286,7 @@ var speecher = EmberObject.extend({
     }
     opts.voiceURI = opts.voiceURI || this.voiceURI;
     opts.rate = opts.rate || this.rate || 1.0;
-    opts.rate = opts.rate * this.rate_multiplier(opts.voiceURI);
+    opts.rate = opts.rate;
     var _this = this;
     if(speecher.scope.speechSynthesis) {
       if(opts.interrupt !== false) {
@@ -311,6 +311,7 @@ var speecher = EmberObject.extend({
         voice = voice || voices.find(function(v) { return language && v.lang && v.lang.toLowerCase().split(/[-_]/)[0] == language; });
         voice = voice || voices.find(function(v) { return v['default']; });
       }
+      utterance.rate = utterance.rate * speecher.rate_multiplier((voice && voice.voiceURI) || opts.voiceURI);
 
       var speak_utterance = function() {
         speecher.last_utterance = utterance;
