@@ -1730,12 +1730,12 @@ describe UserBadge, type: :model do
       expect(UserBadge).to receive(:cluster_days).with(:monthyear, [{
         total: 3,
         date: Date.parse('Jun 7 2016'),
-        weekyear: 201623,
+        weekyear: 201622,
         biweekyear: 201623,
         monthyear: 201606,
         next: {
           date: Date.parse('June 8 2016'),
-          weekyear: 201624,
+          weekyear: 201623,
           biweekyear: 201625,
           monthyear: 201607
         }

@@ -162,15 +162,15 @@ describe UserGoal, type: :model do
         'negatives' => 0,
         'statuses' => [4]
       })
-      cweek = time1.utc.to_date.cweek.to_s
-      cweek = ('0' + cweek) if cweek.length == 1
-      expect(g.settings['stats']['weekly']["#{time1.utc.to_date.cwyear}-#{cweek}"]).to eq({
+      weekyear = WeeklyStatsSummary.date_to_weekyear(time1.utc).to_s
+      expect(g.settings['stats']['weekly']["#{weekyear[0, 4]}-#{weekyear[4, 2]}"]).to eq({
         'sessions' => 1,
         'positives' => 5,
         'negatives' => 6,
         'statuses' => []
       })
-      expect(g.settings['stats']['weekly']["#{time2.utc.to_date.cwyear}-#{time2.utc.to_date.cweek}"]).to eq(nil)
+      weekyear = WeeklyStatsSummary.date_to_weekyear(time2.utc).to_s
+      expect(g.settings['stats']['weekly']["#{weekyear[0, 4]}-#{weekyear[4, 2]}"]).to eq(nil)
       expect(g.settings['stats']['weighted_average_status']).to eq(4)
       expect(g.settings['stats']['weighted_percent_positive']).to eq(46.902654867256636)
     end
