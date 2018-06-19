@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.06.12a";
+window.app_version = "2018.06.19";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -9027,8 +9027,8 @@ a.get("enabled")&&(i=localStorage[a.prefix+e]&&JSON.parse(localStorage[a.prefix+
 e&&"auth_"!=e||"auth_"==t||a.flush_db_id()
 var l=Ember.RSVP.resolve()
 if(s&&s.dbman){var i={storageId:"stash"}
-l=s.storage_store({store:"settings",id:"stash",record:i})}for(var d=0,u=localStorage.length;d<u;d++){var c=localStorage.key(d)
-if(c&&0===c.indexOf(o))if(t&&0===c.indexOf(r));else try{a.set(c.replace(a.prefix,""),void 0),delete n[c.replace(a.prefix,"")],localStorage.removeItem(c),d--}catch(e){}}return l},db_persist:function(){if(s&&s.dbman){var e={}
+l=s.storage_store({store:"settings",id:"stash",record:i})}for(var d=0;d<localStorage.length;d++){var u=localStorage.key(d)
+if(u&&0===u.indexOf(o))if(t&&0===u.indexOf(r));else try{a.set(u.replace(a.prefix,""),void 0),delete n[u.replace(a.prefix,"")],localStorage.removeItem(u),d=-1}catch(e){}}return l},db_persist:function(){if(s&&s.dbman){var e={}
 for(var t in n)e[t]=JSON.stringify(n[t])
 e.storageId="stash",s.storage_store({store:"settings",id:"stash",record:e})}},persist:function(e,t){e&&(this.persist_object(e,t,!0),a.set(e,t),n[e]!=t&&(n[e]=t,Ember.run.debounce(this,this.db_persist,500)))},persist_object:function(e,t,n){a.persist_raw(e,JSON.stringify(t),n),"auth_settings"==e&&t.user_name&&(("true"==localStorage.enable_cookies||s&&s.installed_app)&&(document.cookie="authDBID="+t.user_name),window.kvstash&&window.kvstash.store&&window.kvstash.store("user_name",t.user_name))},flush_db_id:function(){document.cookie="authDBID=",window.kvstash&&window.kvstash.remove&&window.kvstash.remove("user_name")},persist_raw:function(e,t,n){n&&(e=a.prefix+e)
 try{localStorage[e]=t.toString()}catch(e){}},get_object:function(e,t){var n=null
@@ -10452,7 +10452,7 @@ var n=t.default.get_object("auth_settings",!0)||d.auth_settings_fallback()||{},s
 return a.default.tokens=a.default.tokens||{},n.access_token&&!d.get("isAuthenticated")?(d.set("isAuthenticated",!0),d.set("access_token",n.access_token),d.set("user_name",n.user_name),d.set("user_id",n.user_id),window.ga&&n.user_id&&(window.ga("set","userId",n.user_id),window.ga("send","event","authentication","user-id available")),d.set("as_user_id",n.as_user_id)):n.access_token||d.force_logout(l.default.t("session_lost","Session data has been lost, please log back in")),(e||null==a.default.tokens[s]&&!Ember.testing&&a.default.get("online"))&&(n.access_token||e?d.check_token(!0):d.set("tokenConfirmed",!1)),n},override:function(e){var n=d.restore()
 n.access_token=e.access_token,n.user_name=e.user_name,n.user_id=e.user_id,t.default.flush(),t.default.setup(),d.persist(n),d.reload("/")},reload:function(e){e?Ember.testing?console.error("would have redirected off the page"):s.default.installed_app?(location.href="#"+e,location.reload()):location.href=e:location.reload()},alert:function(e){function t(t){return e.apply(this,arguments)}return t.toString=function(){return e.toString()},t}(function(e){Ember.testing||alert(e)}),force_logout:function(e){if(!!(r.default.get("currentUser")||t.default.get_object("auth_settings",!0)||d.auth_settings_fallback()))i.default.route?i.default.open("force-logout",{message:e}):(d.alert(e),d.invalidate(!0))
 else{var n=t.default.get_object("auth_settings",!0)||d.auth_settings_fallback()||{};((r.default.get("currentUser.user_name")||"").match(/wahl/)||(n.user_name||"").match(/wahl/))&&d.alert(e),d.invalidate()}},invalidate:function(e){var n=e||!!(r.default.get("currentUser")||t.default.get_object("auth_settings",!0)||d.auth_settings_fallback())
-t.default.flush().then(null,function(){return Ember.RSVP.resolve()}).then(function(){t.default.setup(),Ember.run.later(function(){n&&d.reload("/"),d.set("isAuthenticated",!1),d.set("access_token",null),d.set(" ",null),d.set("user_id",null),d.set("as_user_id",null)},300)})}}).create({})
+t.default.flush().then(null,function(){return Ember.RSVP.resolve()}).then(function(){t.default.setup(),Ember.run.later(function(){d.set("isAuthenticated",!1),d.set("access_token",null),d.set(" ",null),d.set("user_id",null),d.set("as_user_id",null),n&&Ember.run.later(function(){d.reload("/")},300)},300)})}}).create({})
 window.session=d,e.default=d}),define("frontend/utils/speecher",["exports","frontend/utils/capabilities","frontend/utils/persistence","frontend/utils/tts_voices","frontend/utils/app_state","frontend/utils/i18n","frontend/utils/_stashes","frontend/utils/misc"],function(e,t,n,s,a,o,r,l){Object.defineProperty(e,"__esModule",{value:!0})
 var i=Ember.Object.extend({beep_url:"https://opensymbols.s3.amazonaws.com/beep.mp3",chimes_url:"https://opensymbols.s3.amazonaws.com/chimes.mp3",click_url:"https://opensymbols.s3.amazonaws.com/click.mp3",voices:[],text_direction:function(){var e=i.get("voices").find(function(e){return e.voiceURI==i.voiceURI}),t=e&&e.lang||navigator.language||"en-US"
 return o.default.text_direction(t)},refresh_voices:function(){for(var e=[],n=i.scope.speechSynthesis.getVoices(),a=0;a<n.length;a++)e.push((n._list||n)[a])
@@ -10470,7 +10470,7 @@ e.push({id:t.voiceURI||t.name+" "+t.lang,name:s,locale:a,lang:o,index:n})}),e.so
 return e.locale==t&&s.locale!=t?a=!0:s.locale==t&&e.locale!=t?o=!0:e.lang==n&&s.lang!=n?a=!0:s.lang==n&&e.lang!=n&&(o=!0),a?-1:o?1:e.index-s.index})}.property("voices"),check_readiness:function(){this.ready||t.default.tts.init(),this.ready=!0
 t.default.system},set_voice:function(e,t){var n,s;(this.pitch=e.pitch,this.volume=e.volume,this.rate=e.rate,this.voiceURI=null,e.voice_uri)&&((s=(n=i.get("voices")).find(function(t){return t.voiceURI==e.voice_uri}))?(this.voiceURI=s.voiceURI,this.voiceLang=s.lang):"force_default"==e.voice_uri?(this.voiceURI="force_default",this.voiceLang=navigator.language):!this.voiceURI&&n.length>0&&(this.voiceURI=n[0].voiceURI,this.voiceLang=n[0].lang))
 t&&t.enabled&&t.voice_uri&&(this.alternate_pitch=t.pitch,this.alternate_volume=t.volume,this.alternate_rate=t.rate,this.alternate_voiceURI=null,(s=(n=i.get("voices")).find(function(e){return e.voiceURI==t.voice_uri}))?(this.alternate_voiceURI=s.voiceURI,this.alternate_voiceLang=s.lang):"force_default"==t.voice_uri&&(this.alternate_voiceURI="force_default",this.alternate_voiceLang=navigator.language))},rate_multiplier:function(e){navigator.userAgent.toLowerCase()
-return"iOS"==t.default.system&&("Safari"==t.default.browser||"App"==t.default.browser)&&(!t.default.system_version||t.default.system_version<9)||e&&e.match(/tts/)?.2:1},speak_id:0,speak_text:function(e,n,s){if(s=s||{},(!this.speaking_from_collection||n)&&(!this.speaking||!1!==s.interrupt)){var a=!1
+return"iOS"==t.default.system&&("Safari"==t.default.browser||"App"==t.default.browser)&&(!t.default.system_version||t.default.system_version<9)||e&&e.match(/tts:/)||"force_default"==e?.2:1},speak_id:0,speak_text:function(e,n,s){if(s=s||{},(!this.speaking_from_collection||n)&&(!this.speaking||!1!==s.interrupt)){var a=!1
 if(n&&this.speaking_from_collection==n||(a=this.speaking,this.stop("text")),e){"I"==(e=(e=e.toString()).replace(/…/,"...")).replace(/\s+/g,"")&&(e="eye"),"went"==e.replace(/\s+/g,"")&&(e="wend")
 var o=this,r=this.speak_id++
 this.last_speak_id=r
@@ -10481,7 +10481,7 @@ if(s.alternate_voice&&(s.volume=this.alternate_volume||.75*(s.volume||1),s.pitch
 if(l!=d){var u=r.get("voices").filter(function(e){return e.lang&&e.lang.split(/[-_]/)[0].toLowerCase()==l})
 s.voiceURI=u[1]&&u[1].voiceURI||u[0]&&u[0].voiceURI||r.alternate_voiceURI}}if(s.volume=s.volume||this.volume||1,s.pitch=s.pitch||this.pitch||1,!s.voiceURI&&(s.voiceURI=this.voiceURI,a.default.get("vocalization_locale"))){l=a.default.get("vocalization_locale").split(/[-_]/)[0].toLowerCase(),d=(this.alternate_voiceLang||navigator.language).split(/[-_]/)[0].toLowerCase()
 if(l!=d){u=r.get("voices").filter(function(e){return e.lang&&e.lang.split(/[-_]/)[0].toLowerCase()==l})
-s.voiceURI=u[1]&&u[1].voiceURI||u[0]&&u[0].voiceURI||r.voiceURI}}s.voiceURI=s.voiceURI||this.voiceURI,s.rate=s.rate||this.rate||1,s.rate=s.rate*this.rate_multiplier(s.voiceURI)
+s.voiceURI=u[1]&&u[1].voiceURI||u[0]&&u[0].voiceURI||r.voiceURI}}s.voiceURI=s.voiceURI||this.voiceURI,s.rate=s.rate||this.rate||1,s.rate=s.rate
 r=this
 if(i.scope.speechSynthesis){!1!==s.interrupt&&(this.speaking=!0,this.speaking_from_collection=n)
 var c=new i.scope.SpeechSynthesisUtterance
@@ -10490,7 +10490,8 @@ var p=null
 if("force_default"!=s.voiceURI){var m=i.get("voices")
 p=(p=(p=m.find(function(e){return e.voiceURI==s.voiceURI}))||m.find(function(e){return e.name+" "+e.lang==s.voiceURI}))||m.find(function(e){return e.lang==s.voiceURI})
 var f=window.navigator.language.toLowerCase(),_=f&&f.split(/-/)[0]
-p=(p=(p=p||m.find(function(e){return f&&e.lang&&(e.lang.toLowerCase()==f||e.lang.toLowerCase().replace(/-/,"_")==f)}))||m.find(function(e){return _&&e.lang&&e.lang.toLowerCase().split(/[-_]/)[0]==_}))||m.find(function(e){return e.default})}var g=function(){if(i.last_utterance=c,"force_default"!=s.voiceURI){try{c.voice=p}catch(e){}p&&(c.lang=p.lang)}var t=function(){c.handled=!0,o()}
+p=(p=(p=p||m.find(function(e){return f&&e.lang&&(e.lang.toLowerCase()==f||e.lang.toLowerCase().replace(/-/,"_")==f)}))||m.find(function(e){return _&&e.lang&&e.lang.toLowerCase().split(/[-_]/)[0]==_}))||m.find(function(e){return e.default})}c.rate=c.rate*i.rate_multiplier(p&&p.voiceURI||s.voiceURI)
+var g=function(){if(i.last_utterance=c,"force_default"!=s.voiceURI){try{c.voice=p}catch(e){}p&&(c.lang=p.lang)}var t=function(){c.handled=!0,o()}
 c.addEventListener?(c.addEventListener("end",function(){console.log("ended"),t()}),c.addEventListener("error",function(){console.log("errored"),t()}),c.addEventListener("pause",function(){console.log("paused"),t()})):(c.onend=t,c.onerror=t,c.onpause=t),i.scope.speechSynthesis.speak(c),Ember.run.later(function(){c.handled||t()},1e3*Math.ceil(e.length/15)*4/(c.rate||1))}
 if(p&&p.voiceURI&&p.voiceURI.match(/^extra:/)){var h=p.voiceURI.replace(/^extra:/,"")
 Ember.run.later(function(){t.default.tts.speak_text(e,{voice_id:h,pitch:c.pitch,volume:c.volume,rate:c.rate}).then(function(){o()},function(e){console.log("system speak error"),console.log(e),g()})})}else if("iOS"!=t.default.system||!window.TTS||s.voiceURI&&"force_default"!=s.voiceURI&&"default"!=s.voiceURI&&!s.voiceURI.match(/tts:/)){var b=t.default.installed_app&&"Windows"==t.default.system?300:0
@@ -10618,7 +10619,7 @@ this.get("list_vocalized")?s.default.stop("all"):t.popObject(),n.default.log({ac
 for(var o=a.default.get("button_list"),r=o.map(function(e){return e.vocalization||e.label}).join(" "),l=[],i=0;i<o.length;i++)if(o[i].sound)l.push({sound:o[i].sound})
 else if(l.length&&l[l.length-1].text){var d=l.pop()
 l.push({text:d.text+" "+(o[i].vocalization||o[i].label),volume:e})}else l.push({text:o[i].vocalization||o[i].label,volume:e})
-n.default.log({text:r,button_triggered:t.button_triggered,buttons:n.default.get("working_vocalization")}),s.default.speak_collection(l,Math.round(99999*Math.random())+"-"+(new Date).getTime(),{override_volume:e}),this.set("list_vocalized",!0)},set_ghost_utterance:function(){n.default.persist("ghost_utterance",!(!this.get("list_vocalized")||!this.get("clear_on_vocalize")))}.observes("list_vocalized","clear_on_vocalize"),test_voice:function(e,n,a,o){n=parseFloat(n),isNaN(n)&&(n=s.default.default_rate()),a=parseFloat(a),isNaN(a)&&(a=1),o=parseFloat(o),isNaN(o)&&(o=1),s.default.speak_text(t.default.t("do_you_like_voice","Do you like my voice?"),"test-"+e,{volume:o,pitch:a,rate:n,voiceURI:e})}}).create({scope:window.polyspeech||window})
+n.default.log({text:r,button_triggered:t.button_triggered,buttons:n.default.get("working_vocalization")}),s.default.speak_collection(l,Math.round(99999*Math.random())+"-"+(new Date).getTime(),{override_volume:e}),this.set("list_vocalized",!0)},set_ghost_utterance:function(){n.default.persist("ghost_utterance",!(!this.get("list_vocalized")||!this.get("clear_on_vocalize")))}.observes("list_vocalized","clear_on_vocalize"),test_voice:function(e,n,a,o){n=parseFloat(n),isNaN(n)&&(n=1),a=parseFloat(a),isNaN(a)&&(a=1),o=parseFloat(o),isNaN(o)&&(o=1),s.default.speak_text(t.default.t("do_you_like_voice","Do you like my voice?"),"test-"+e,{volume:o,pitch:a,rate:n,voiceURI:e})}}).create({scope:window.polyspeech||window})
 e.default=r}),define("frontend/utils/word_suggestions",["exports","frontend/utils/persistence","frontend/utils/capabilities","frontend/utils/misc","frontend/utils/app_state","frontend/app"],function(e,t,n,s,a,o){Object.defineProperty(e,"__esModule",{value:!0})
 var r=Ember.Object.extend({load:function(){var e=this
 if(this.ngrams)return Ember.RSVP.resolve()
@@ -10649,8 +10650,8 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+b24d66e5"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+b24d66e5"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+1b234a88"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+1b234a88"})
 ;
 
 
