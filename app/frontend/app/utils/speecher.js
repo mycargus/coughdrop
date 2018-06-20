@@ -189,8 +189,10 @@ var speecher = EmberObject.extend({
     var agent = navigator.userAgent.toLowerCase();
     var ios = capabilities.system == 'iOS';
     var too_fast_voice = (ios && (capabilities.browser == 'Safari' || capabilities.browser == 'App') && (!capabilities.system_version || capabilities.system_version < 9.0));
-    if(too_fast_voice || (voiceURI && voiceURI.match(/tts:/)) || voiceURI == 'force_default') {
+    if(too_fast_voice) {
       return 0.2;
+    } else if((voiceURI && voiceURI.match(/tts:/)) || voiceURI == 'force_default') {
+      return 0.7;
     }
     return 1.0;
   },
