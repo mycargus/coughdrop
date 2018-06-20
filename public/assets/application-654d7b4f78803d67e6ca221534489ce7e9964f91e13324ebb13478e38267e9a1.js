@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.06.19a";
+window.app_version = "2018.06.19b";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -10470,7 +10470,8 @@ e.push({id:t.voiceURI||t.name+" "+t.lang,name:s,locale:a,lang:o,index:n})}),e.so
 return e.locale==t&&s.locale!=t?a=!0:s.locale==t&&e.locale!=t?o=!0:e.lang==n&&s.lang!=n?a=!0:s.lang==n&&e.lang!=n&&(o=!0),a?-1:o?1:e.index-s.index})}.property("voices"),check_readiness:function(){this.ready||t.default.tts.init(),this.ready=!0
 t.default.system},set_voice:function(e,t){var n,s;(this.pitch=e.pitch,this.volume=e.volume,this.rate=e.rate,this.voiceURI=null,e.voice_uri)&&((s=(n=i.get("voices")).find(function(t){return t.voiceURI==e.voice_uri}))?(this.voiceURI=s.voiceURI,this.voiceLang=s.lang):"force_default"==e.voice_uri?(this.voiceURI="force_default",this.voiceLang=navigator.language):!this.voiceURI&&n.length>0&&(this.voiceURI=n[0].voiceURI,this.voiceLang=n[0].lang))
 t&&t.enabled&&t.voice_uri&&(this.alternate_pitch=t.pitch,this.alternate_volume=t.volume,this.alternate_rate=t.rate,this.alternate_voiceURI=null,(s=(n=i.get("voices")).find(function(e){return e.voiceURI==t.voice_uri}))?(this.alternate_voiceURI=s.voiceURI,this.alternate_voiceLang=s.lang):"force_default"==t.voice_uri&&(this.alternate_voiceURI="force_default",this.alternate_voiceLang=navigator.language))},rate_multiplier:function(e){navigator.userAgent.toLowerCase()
-return"iOS"==t.default.system&&("Safari"==t.default.browser||"App"==t.default.browser)&&(!t.default.system_version||t.default.system_version<9)?.2:e&&e.match(/tts:/)||"force_default"==e?.7:1},speak_id:0,speak_text:function(e,n,s){if(s=s||{},(!this.speaking_from_collection||n)&&(!this.speaking||!1!==s.interrupt)){var a=!1
+var n="iOS"==t.default.system
+return n&&("Safari"==t.default.browser||"App"==t.default.browser)&&(!t.default.system_version||t.default.system_version<9)?.2:n&&(e&&e.match(/tts:/)||"force_default"==e)?.7:1},speak_id:0,speak_text:function(e,n,s){if(s=s||{},(!this.speaking_from_collection||n)&&(!this.speaking||!1!==s.interrupt)){var a=!1
 if(n&&this.speaking_from_collection==n||(a=this.speaking,this.stop("text")),e){"I"==(e=(e=e.toString()).replace(/…/,"...")).replace(/\s+/g,"")&&(e="eye"),"went"==e.replace(/\s+/g,"")&&(e="wend")
 var o=this,r=this.speak_id++
 this.last_speak_id=r
@@ -10650,8 +10651,8 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+7a6d8f58"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+7a6d8f58"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+acf86a16"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+acf86a16"})
 ;
 
 
