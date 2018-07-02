@@ -148,26 +148,28 @@ describe('speecher', function() {
     });
   });
 
-  describe("default_rate", function() {
+  describe("rate_multiplier", function() {
     it("should have reasonable default rates based on device", function() {
       var orig_s = capabilities.system;
       var orig_b = capabilities.browser;
       var orig_v = capabilities.system_version;
 
       capabilities.system = 'Android';
-      expect(speecher.default_rate()).toEqual(1.0);
+      expect(speecher.rate_multiplier()).toEqual(1.0);
       capabilities.browser = 'Safari';
-      expect(speecher.default_rate()).toEqual(1.0);
+      expect(speecher.rate_multiplier()).toEqual(1.0);
       capabilities.system_version = 6;
-      expect(speecher.default_rate()).toEqual(1.0);
+      expect(speecher.rate_multiplier()).toEqual(1.0);
       capabilities.system = 'iOS';
-      expect(speecher.default_rate()).toEqual(0.2);
+      expect(speecher.rate_multiplier()).toEqual(0.2);
       capabilities.system_version = 9.1;
-      expect(speecher.default_rate()).toEqual(1.0);
+      expect(speecher.rate_multiplier()).toEqual(1.0);
       capabilities.system_version = 8.0;
-      expect(speecher.default_rate()).toEqual(0.2);
+      expect(speecher.rate_multiplier()).toEqual(0.2);
       capabilities.browser = 'Web Browser';
-      expect(speecher.default_rate()).toEqual(1.0);
+      expect(speecher.rate_multiplier()).toEqual(1.0);
+      capabilities.system = 'iOS';
+      expect(speecher.rate_multiplier('tts:bacon')).toEqual(1.0);
 
       capabilities.system = orig_s;
       capabilities.browser = orig_b;

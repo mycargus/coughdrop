@@ -620,6 +620,8 @@ describe('stashes', function() {
       expect(last_event).toEqual({
         action: {},
         geo: null,
+        browser: capabilities.browser,
+        system: capabilities.system,
         timestamp: last_event.timestamp,
         type: 'action',
         user_id: 'asdf',
@@ -630,7 +632,11 @@ describe('stashes', function() {
       stashes.log_event({buttons: []}, 'asdf');
       expect(last_event).toEqual({
         geo: null,
+        browser: capabilities.browser,
+        system: capabilities.system,
         timestamp: last_event.timestamp,
+        browser: capabilities.browser,
+        system: capabilities.system,
         type: 'utterance',
         user_id: 'asdf',
         utterance: {buttons: []},
@@ -642,6 +648,8 @@ describe('stashes', function() {
       expect(last_event).toEqual({
         button: {button_id: 9},
         geo: null,
+        browser: capabilities.browser,
+        system: capabilities.system,
         timestamp: last_event.timestamp,
         type: 'button',
         user_id: 'asdf',
@@ -655,6 +663,8 @@ describe('stashes', function() {
         user_id: 'asdf',
         type: 'assessment',
         geo: null,
+        browser: capabilities.browser,
+        system: capabilities.system,
         timestamp: last_event.timestamp,
         window_width: 1234,
         window_height: 2345
@@ -663,6 +673,8 @@ describe('stashes', function() {
       stashes.log_event({note: 'haha'}, 'asdf');
       expect(last_event).toEqual({
         geo: null,
+        browser: capabilities.browser,
+        system: capabilities.system,
         type: 'note',
         user_id: 'asdf',
         timestamp: last_event.timestamp,
@@ -717,6 +729,8 @@ describe('stashes', function() {
       expect(last_event).toEqual({
         action: {},
         geo: null,
+        browser: capabilities.browser,
+        system: capabilities.system,
         timestamp: last_event.timestamp,
         type: 'action',
         user_id: 'asdf',
@@ -748,6 +762,8 @@ describe('stashes', function() {
       expect(last_event).toEqual({
         action: {},
         geo: null,
+        browser: capabilities.browser,
+        system: capabilities.system,
         timestamp: last_event.timestamp,
         type: 'action',
         user_id: 'asdf',
@@ -760,6 +776,8 @@ describe('stashes', function() {
       expect(last_event).toEqual({
         action: {},
         geo: null,
+        browser: capabilities.browser,
+        system: capabilities.system,
         timestamp: last_event.timestamp,
         type: 'action',
         user_id: 'asdf',
@@ -773,6 +791,8 @@ describe('stashes', function() {
       expect(last_event).toEqual({
         action: {},
         geo: null,
+        browser: capabilities.browser,
+        system: capabilities.system,
         timestamp: last_event.timestamp,
         type: 'action',
         user_id: 'asdf',
@@ -785,6 +805,8 @@ describe('stashes', function() {
       expect(last_event).toEqual({
         action: {},
         geo: null,
+        browser: capabilities.browser,
+        system: capabilities.system,
         timestamp: last_event.timestamp,
         type: 'action',
         user_id: 'asdf',
@@ -797,6 +819,8 @@ describe('stashes', function() {
       expect(last_event).toEqual({
         action: {},
         geo: null,
+        browser: capabilities.browser,
+        system: capabilities.system,
         timestamp: last_event.timestamp,
         type: 'action',
         user_id: 'asdf',

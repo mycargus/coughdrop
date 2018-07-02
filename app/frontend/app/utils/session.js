@@ -224,17 +224,21 @@ var session = EmberObject.extend({
     var full_invalidate = force || !!(app_state.get('currentUser') || stashes.get_object('auth_settings', true) || session.auth_settings_fallback());
     stashes.flush().then(null, function() { return RSVP.resolve(); }).then(function() {
       stashes.setup();
+      var later = function(callback, delay) { callback(); };
+      if(!Ember.testing) {
+        later = runLater;
+      }
 
       // Give the session time to clear completely before reloading, otherwise they might
       // not actually get logged out
-      runLater(function() {
+      later(function() {
         session.set('isAuthenticated', false);
         session.set('access_token', null);
         session.set(' ', null);
         session.set('user_id', null);
         session.set('as_user_id', null);
         if(full_invalidate) {
-          runLater(function() {
+          later(function() {
             session.reload('/');
           }, 300);
         }

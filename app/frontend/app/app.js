@@ -28,6 +28,9 @@ Ember.onerror = function(err) {
       console.error(JSON.stringify(err));
     }
   }
+  if(Ember.testing) {
+    throw(err);
+  }
 };
 
 // TODO: nice for catching unexpected errors, but it seems like

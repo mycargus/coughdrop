@@ -643,6 +643,9 @@ module Subscription
           alerts[:recent_less_active] += 1
         end
       end
+
+      # TODO: send out a two and one-month warning when account is 
+      # going to be deleted for inactivity (after 12 months of non-use)
       alerts
     end
 

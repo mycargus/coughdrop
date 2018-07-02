@@ -486,6 +486,7 @@ describe('session', function() {
       var flushed = false;
       stub(stashes, 'flush', function() {
         flushed = true;
+        return RSVP.resolve();
       });
       var setup = false;
       stub(stashes, 'setup', function() {
@@ -500,10 +501,11 @@ describe('session', function() {
       session.set('as_user_id', '12345');
       session.invalidate();
       expect(flushed).toEqual(true);
-      expect(setup).toEqual(true);
-      expect(reloaded).toEqual(true);
-      waitsFor(function() { return !session.get('isAuthenticated'); });
+      waitsFor(function() { return setup; });
       runs(function() {
+        expect(session.get('isAuthenticated')).toEqual(false);
+        expect(setup).toEqual(true);
+        expect(reloaded).toEqual(true);
         expect(session.get('access_token')).toEqual(null);
         expect(session.get('as_user_id')).toEqual(null);
       });

@@ -111,6 +111,19 @@ describe('utterance', function() {
       expect(computed.length).toEqual(1);
       expect(computed[0].label).toEqual("cantankerous");
     });
+
+    it("should properly handle buttons with multiple actions", function() {
+      var buttons = [
+        {label: "how", in_progress: true}, {vocalization: "+ever&& :space"}, {label: "are", vocalization: "+we"}, {label: "you", in_progress: true}, {label: "+r&&:home &&   +s"}, {label: "hippo"}, {vocalization: ":plural"}
+      ];
+      utterance.set('rawButtonList', buttons);
+      var computed = app_state.get('button_list');
+      expect(computed.length).toEqual(4);
+      expect(computed[0].label).toEqual("however");
+      expect(computed[1].label).toEqual("we");
+      expect(computed[2].label).toEqual("yours");
+      expect(computed[3].label).toEqual("hippos");
+    });
   });
 
   describe("modify_button", function() {
@@ -211,6 +224,12 @@ describe('utterance', function() {
       res = utterance.add_button(b3);
       expect(res.label).toEqual('tries');
     });
+
+    it("should support adding buttons with multiple vocalizations", function() {
+      var b = {label: "occupy", vocalization: "+w&&+a"};
+      var res = utterance.add_button(b);
+      expect(res.label).toEqual('wa');
+    })
   });
 
   describe("speak_button", function() {
@@ -283,7 +302,7 @@ describe('utterance', function() {
     it("should not log a clear event if specified", function() {
       var logged = false;
       stub(stashes, 'log', function(obj) { logged = obj.action == 'clear'; });
-      utterance.clear(null, true);
+      utterance.clear({skip_logging: true});
       expect(logged).toEqual(false);
     });
   });
