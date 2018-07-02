@@ -98,13 +98,19 @@
         <button class='btn btn-default' {{action "clear_sound"}}>{{t "Clear Sound" key='clear_sound'}}</button>
       {{else}}
         <div style="margin-bottom: 10px; text-align: center;">
-          {{#if special_modifier}}
-            <strong>{{special_modifier}}</strong> {{t "when selected" key='when_selected'}}
-          {{else if modifier}}
-            <strong>{{modifier}}</strong> {{t "modifier via Text-To-Speech" key='modifying_via_tts'}}
-            <span class="modifier_example_field">
-              {{input value=modifier_text class="form-control" id="modifier" placeholder="enter a word to hear it modified"}}
-            </span>
+          {{#if modifiers}}
+            {{#each modifiers as |mod|}}
+              {{#if mod.special}}
+                <strong>{{mod.special}}</strong> {{t "when selected" key='when_selected'}}<br/>
+              {{else if mod.modifier}}
+                <strong>{{mod.modifier}}</strong> {{t "modifier via Text-To-Speech" key='modifying_via_tts'}}<br/>
+              {{/if}}
+            {{/each}}
+            {{#if modifiers.any_basic}}
+              <span class="modifier_example_field">
+                {{input value=modifier_text class="form-control" id="modifier" placeholder="enter a word to hear it modified"}}
+              </span>
+            {{/if}}
           {{else}}
             {{#if model.vocalization}}
               <strong>"{{model.vocalization}}"</strong> {{t "via Text-To-Speech" key='via_tts'}}
@@ -113,7 +119,7 @@
             {{/if}}
           {{/if}}
         </div>
-        {{#unless special_modifier}}
+        {{#unless modifiers.none}}
           <div style="text-align: center;">
             <button type="button" {{action "testVocalization" this}} class="btn btn-default">{{t "Listen" key='listen'}}</button>
           </div>

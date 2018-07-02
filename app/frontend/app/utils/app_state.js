@@ -1471,11 +1471,15 @@ var app_state = EmberObject.extend({
 
     // only certain buttons should be added to the sentence box
     var button_to_speak = obj;
+    var specialty_button = null;
     var specialty = utterance.specialty_button(obj);
     var skip_speaking_by_default = !!(button.load_board || specialty || button_to_speak.special || button.url || button.apps || (button.integration && button.integration.action_type == 'render'));
     if(specialty) {
-      button_to_speak = $.extend({}, specialty);
-      button_to_speak.special = true;
+      specialty_button = $.extend({}, specialty);
+      specialty_button.special = true;
+      if(specialty.specialty_with_modifiers) {
+        button_to_speak = utterance.add_button(obj, button);
+      }
     } else if(skip_speaking_by_default && !button.add_to_vocalization) {
     } else {
       button_to_speak = utterance.add_button(obj, button);
@@ -1486,7 +1490,7 @@ var app_state = EmberObject.extend({
     if(obj.label) {
       var click_sound = function() {
         if(app_state.get('currentUser.preferences.click_buttons')) {
-          if(button_to_speak.vocalization == ':beep' || button_to_speak.vocalization == ':speak') {
+          if(specialty_button && specialty_button.has_sound) {
           } else {
             speecher.click();
           }
@@ -1599,20 +1603,25 @@ var app_state = EmberObject.extend({
           }
         }
       }
-    } else if(button_to_speak.special) {
-      if(button.vocalization == ':clear') {
-        app_state.controller.send('clear', {button_triggered: true});
-      } else if(button.vocalization == ':beep') {
-        app_state.controller.send('alert', {button_triggered: true});
-      } else if(button.vocalization == ':home') {
-        app_state.controller.send('home', {button_triggered: true});
-      } else if(button.vocalization == ':back') {
-        app_state.controller.send('back', {button_triggered: true});
-      } else if(button.vocalization == ':speak') {
-        app_state.controller.send('vocalize', {button_triggered: true});
-      } else if(button.vocalization == ':backspace') {
-        app_state.controller.send('backspace', {button_triggered: true});
-      }
+    } else if(specialty_button) {
+      var vocs = [];
+      (button.vocalization || '').split(/\s*&&\s*/).forEach(function(mod) {
+        if(mod && mod.length > 0) {
+          if(mod == ':clear') {
+            app_state.controller.send('clear', {button_triggered: true});
+          } else if(mod == ':beep') {
+            app_state.controller.send('alert', {button_triggered: true});
+          } else if(mod == ':home') {
+            app_state.controller.send('home', {button_triggered: true});
+          } else if(mod == ':back') {
+            app_state.controller.send('back', {button_triggered: true});
+          } else if(mod == ':speak') {
+            app_state.controller.send('vocalize', {button_triggered: true});
+          } else if(mod == ':backspace') {
+            app_state.controller.send('backspace', {button_triggered: true});
+          }
+        }
+      });
     } else if(button.integration && button.integration.action_type == 'webhook') {
       Button.extra_actions(button);
     } else if(button.integration && button.integration.action_type == 'render') {

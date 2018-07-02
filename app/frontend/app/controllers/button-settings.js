@@ -390,29 +390,46 @@ export default modal.ModalController.extend({
   extrasState: function() {
     return this.get('state') == 'extras';
   }.property('state'),
-  special_modifier: function() {
-    var voc = this.get('model.vocalization');
-    if([':clear', ':home', ':back', ':backspace', ':beep', ':speak'].indexOf(voc) >= 0) {
-      if(voc == ':clear') {
-        return i18n.t('clear_utterance', "Clear the current utterance");
-      } else if(voc == ':home') {
-        return i18n.t('home', "Jump to the current home board");
-      } else if(voc == ':back') {
-        return i18n.t('back', "Go back one board");
-      } else if(voc == ':backspace') {
-        return i18n.t('backspace', "Erase the last button from the utterance");
-      } else if(voc == ':beep') {
-        return i18n.t('beep', "Beep");
-      } else if(voc == ':speak') {
-        return i18n.t('speak', "Speak the full utterance");
-      }
+  modifiers: function() {
+    var voc = (this.get('model.vocalization') || "");
+    if(!voc || !voc.match(/^(:|\+)/)) {
+      return null;
     }
-    return null;
+    var parts = voc.split(/\s*&&\s*/);
+    var list = [];
+    var any_basic = false;
+    var specials = [':clear', ':home', ':back', ':backspace', ':beep', ':speak'];
+    parts.forEach(function(part) {
+      if(specials.indexOf(part) >= 0) {
+        var special = "unknown";
+        if(part == ':clear') {
+          special = i18n.t('clear_utterance', "Clear the current utterance");
+        } else if(part == ':home') {
+          special = i18n.t('home', "Jump to the current home board");
+        } else if(part == ':back') {
+          special = i18n.t('back', "Go back one board");
+        } else if(part == ':backspace') {
+          special = i18n.t('backspace', "Erase the last button from the utterance");
+        } else if(part == ':beep') {
+          special = i18n.t('beep', "Beep");
+        } else if(part == ':speak') {
+          special = i18n.t('speak', "Speak the full utterance");
+        }
+        list.push({modifier: part, special: special});
+      } else if(part.match(/^\+/)) {
+        list.push({basic: true, modifier: part});
+        any_basic = true;
+      } else {
+        list.push({modifier: part});
+      }
+    });
+    if(any_basic) {
+      emberSet(list, 'any_basic', true);
+    } else {
+      emberSet(list, 'none_basic', true);
+    }
+    return list;
   }.property('model.vocalization'),
-  modifier: function() {
-    var str = emberGet(this, 'model.vocalization') || emberGet(this, 'model.label') || "";
-    return str.match(/^\+|:/) && str;
-  }.property('model.label', 'model.vocalization'),
   ios_search: function() {
     return this.get('app_find_mode') == 'ios' || !this.get('app_find_mode');
   }.property('app_find_mode'),
@@ -658,10 +675,14 @@ export default modal.ModalController.extend({
     },
     testVocalization: function() {
       var text = this.get('model.vocalization') || this.get('model.label');
-      if(this.get('modifier') && this.get('modifier_text')) {
+      if(this.get('modifiers.length') && this.get('modifier_text')) {
         var b = Button.create({label: this.get('modifier_text')});
         var m = Button.create({label: this.get('modifier')});
-        var res = utterance.modify_button(b, m);
+        var res = b;
+        this.get('modifiers').forEach(function(mod) {
+          b.set('in_progress', true);
+          res = utterance.modify_button(res, Button.create({label: mod.modifier}));
+        })
         utterance.speak_text(res.get('label'));
       } else {
         utterance.speak_text(text);

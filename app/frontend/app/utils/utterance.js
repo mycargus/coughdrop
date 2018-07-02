@@ -117,54 +117,60 @@ var utterance = EmberObject.extend({
     altered.modifications = altered.modifications || [];
     altered.modifications.push(addition);
 
-    var text = addition.vocalization || addition.label;
-    var prior_text = (altered.vocalization || altered.label || '');
-    var prior_label = (altered.label || '');
-    if(text.match(/^\+/) && (altered.in_progress || !prior_text)) {
-      altered.vocalization = prior_text + text.substring(1);
-      altered.label = prior_label + text.substring(1);
-      altered.in_progress = true;
-    } else if(text == ':space') {
-      altered.in_progress = false;
-    } else if(text == ':complete' || text == ':predict') {
-
-      altered.vocalization = addition.completion;
-      altered.label = addition.completion;
-      if(addition.image) { altered.image = addition.image; }
-      altered.in_progress = false;
-    } else if(text == ':plural' || text == ':pluralize') {
-      altered.vocalization = i18n.pluralize(prior_text);
-      altered.label = i18n.pluralize(prior_label);
-      altered.in_progress = false;
-    } else if(text == ':singular' || text == ':singularize') {
-      altered.vocalization = i18n.singularize(prior_text);
-      altered.label = i18n.singularize(prior_label);
-      altered.in_progress = false;
-    } else if(text == ':comparative' || text == ':er') {
-      altered.vocalization = i18n.comparative(prior_text);
-      altered.label = i18n.comparative(prior_label);
-      altered.in_progress = false;
-    } else if(text == ':superlative' || text == ':est') {
-      altered.vocalization = i18n.superlative(prior_text);
-      altered.label = i18n.superlative(prior_label);
-      altered.in_progress = false;
-    } else if(text == ':verb-negation' || text == ':\'t' || text == ':n\t') {
-      altered.vocalization = i18n.verb_negation(prior_text);
-      altered.label = i18n.verb_negation(prior_label);
-      altered.in_progress = false;
-    } else if(text == ':possessive' || text == ':\'s') {
-      altered.vocalization = i18n.possessive(prior_text);
-      altered.label = i18n.possessive(prior_label);
-      altered.in_progress = false;
-    } else if(text == ':past' || text == ':ed') {
-      altered.vocalization = i18n.tense(prior_text, {simple_past: true});
-      altered.label = i18n.tense(prior_label, {simple_past: true});
-      altered.in_progress = false;
-    } else if(text == ':present-participle' || text == ':ing') {
-      altered.vocalization = i18n.tense(prior_text, {present_participle: true});
-      altered.label = i18n.tense(prior_label, {present_participle: true});
-      altered.in_progress = false;
-    }
+    var parts = (addition.vocalization || addition.label || '').split(/\s*&&\s*/);
+    parts.forEach(function(text) {
+      if(text && text.length > 0) {
+        var prior_text = (altered.vocalization || altered.label || '');
+        var prior_label = (altered.label || '');
+    
+        if(text.match(/^\+/) && (altered.in_progress || !prior_text)) {
+          altered.vocalization = prior_text + text.substring(1);
+          altered.label = prior_label + text.substring(1);
+          altered.in_progress = true;
+        } else if(text == ':space') {
+          altered.in_progress = false;
+        } else if(text == ':complete' || text == ':predict') {
+    
+          altered.vocalization = addition.completion;
+          altered.label = addition.completion;
+          if(addition.image) { altered.image = addition.image; }
+          altered.in_progress = false;
+        } else if(text == ':plural' || text == ':pluralize') {
+          altered.vocalization = i18n.pluralize(prior_text);
+          altered.label = i18n.pluralize(prior_label);
+          altered.in_progress = false;
+        } else if(text == ':singular' || text == ':singularize') {
+          altered.vocalization = i18n.singularize(prior_text);
+          altered.label = i18n.singularize(prior_label);
+          altered.in_progress = false;
+        } else if(text == ':comparative' || text == ':er') {
+          altered.vocalization = i18n.comparative(prior_text);
+          altered.label = i18n.comparative(prior_label);
+          altered.in_progress = false;
+        } else if(text == ':superlative' || text == ':est') {
+          altered.vocalization = i18n.superlative(prior_text);
+          altered.label = i18n.superlative(prior_label);
+          altered.in_progress = false;
+        } else if(text == ':verb-negation' || text == ':\'t' || text == ':n\t') {
+          altered.vocalization = i18n.verb_negation(prior_text);
+          altered.label = i18n.verb_negation(prior_label);
+          altered.in_progress = false;
+        } else if(text == ':possessive' || text == ':\'s') {
+          altered.vocalization = i18n.possessive(prior_text);
+          altered.label = i18n.possessive(prior_label);
+          altered.in_progress = false;
+        } else if(text == ':past' || text == ':ed') {
+          altered.vocalization = i18n.tense(prior_text, {simple_past: true});
+          altered.label = i18n.tense(prior_label, {simple_past: true});
+          altered.in_progress = false;
+        } else if(text == ':present-participle' || text == ':ing') {
+          altered.vocalization = i18n.tense(prior_text, {present_participle: true});
+          altered.label = i18n.tense(prior_label, {present_participle: true});
+          altered.in_progress = false;
+        }
+    
+      }
+    });
 
     var filler = 'https://s3.amazonaws.com/opensymbols/libraries/mulberry/pencil%20and%20paper%202.svg';
     altered.image = altered.image || filler;
@@ -174,13 +180,22 @@ var utterance = EmberObject.extend({
     return altered;
   },
   specialty_button: function(button) {
-    if(button.vocalization == ":beep" || button.vocalization == ":home" || button.vocalization == ":back" || button.vocalization == ":clear" || button.vocalization == ":speak" || button.vocalization == ":backspace") {
-      if(button.vocalization == ':beep' || button.vocalization == ':speak') {
-        button.has_sound = true;
+    var vocs = [];
+    (button.vocalization || '').split(/\s*&&\s*/).forEach(function(mod) {
+      if(mod && mod.length > 0) { vocs.push(mod); }
+    });
+    var specialty = null;
+    vocs.forEach(function(voc) {
+      if(voc == ":beep" || voc == ":home" || voc == ":back" || voc == ":clear" || voc == ":speak" || voc == ":backspace") {
+        if(voc == ':beep' || voc == ':speak') {
+          button.has_sound = true;
+        }
+        specialty = button;
+      } else if(voc.match(/^\+/) || voc.match(/^:/)) {
+        button.specialty_with_modifiers = true;
       }
-      return button;
-    }
-    return null;
+    });
+    return specialty;
   },
   add_button: function(button, original_button) {
     // clear if the sentence box was already spoken and auto-clear is enabled
