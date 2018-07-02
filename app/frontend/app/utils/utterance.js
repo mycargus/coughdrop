@@ -102,7 +102,7 @@ var utterance = EmberObject.extend({
     utterance.set('last_spoken_button', last_spoken_button);
     stashes.persist('working_vocalization', buttonList);
   }.observes('rawButtonList', 'rawButtonList.[]', 'rawButtonList.length', 'rawButtonList.@each.image'),
-  modifiers: [':plural', ':singular', ':comparative', ':er', ':superlative',
+  modifiers: [':plural', ':singular', ':comparative', ':er', ':superlative', ':verb-negation',
     ':est', ':possessive', ':\'s', ':past', ':ed', ':present-participle', ':ing', ':space', ':complete', ':predict'],
   modify_button: function(original, addition) {
     // TODO: I'm thinking maybe +s notation shouldn't append to word buttons, only :modify notation
@@ -148,7 +148,7 @@ var utterance = EmberObject.extend({
       altered.vocalization = i18n.superlative(prior_text);
       altered.label = i18n.superlative(prior_label);
       altered.in_progress = false;
-    } else if(text == ':verb-negation' || text == ':\'t') {
+    } else if(text == ':verb-negation' || text == ':\'t' || text == ':n\t') {
       altered.vocalization = i18n.verb_negation(prior_text);
       altered.label = i18n.verb_negation(prior_label);
       altered.in_progress = false;

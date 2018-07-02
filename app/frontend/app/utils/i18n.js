@@ -360,17 +360,23 @@ var i18n = EmberObject.extend({
     }
     return res;
   },
+  negatable_verbs: ['is', 'am', 'was', 'were', 'be', 'been', 'being', 'do', 'does', 'did', 'have', 'has',
+    'had', 'can', 'could', 'will', 'would', 'may', 'might', 'must', 'shall', 'should', 'are'],
   verb_negation: function(str) {
     // http://www.grammarly.com/handbook/sentences/negatives/
     // https://www.englishclub.com/vocabulary/contractions-negative.htm
     var check = str.toLowerCase();
     var res = null;
-    if(this.substitutions.verb_to_be_negations[check]) {
-      res = this.substitutions.verb_to_be_negations[check];
-    } else if(str.match(/n$/)) {
-      res = str + "'t";
+    if(this.negatable_verbs.indexOf(check)) {
+      if(this.substitutions.verb_to_be_negations[check]) {
+        res = this.substitutions.verb_to_be_negations[check];
+      } else if(str.match(/n$/)) {
+        res = str + "'t";
+      } else {
+        res = str + "n't";
+      }
     } else {
-      res = str + "n't";
+      res = "not " + str;
     }
     return res;
   },

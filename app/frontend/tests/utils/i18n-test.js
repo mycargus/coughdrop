@@ -211,6 +211,11 @@ describe("i18n", function() {
       expect(i18n.verb_negation('shall')).toEqual("shan't");
       expect(i18n.verb_negation('should')).toEqual("shouldn't");
       expect(i18n.verb_negation('are')).toEqual("aren't");
+      expect(i18n.verb_negation('laugh')).toEqual("not laugh");
+      expect(i18n.verb_negation('jump')).toEqual("not jump");
+      expect(i18n.verb_negation('be')).toEqual("not be");
+      expect(i18n.verb_negation('been')).toEqual("not been");
+      expect(i18n.verb_negation('being')).toEqual("not being");
     });
   });
 
@@ -232,6 +237,7 @@ describe("i18n", function() {
       expect(i18n.tense('play', {present_participle: true})).toEqual("playing");
       expect(i18n.tense('stay', {present_participle: true})).toEqual("staying");
       expect(i18n.tense('pray', {present_participle: true})).toEqual("praying");
+      expect(i18n.tense('log', {present_participle: true})).toEqual("logging");
 
       expect(i18n.tense('become', {present_participle: true})).toEqual("becoming");
       expect(i18n.tense('begin', {present_participle: true})).toEqual("beginning");
@@ -329,6 +335,9 @@ describe("i18n", function() {
       expect(i18n.tense('play', {simple_past: true})).toEqual("played");
       expect(i18n.tense('stay', {simple_past: true})).toEqual("stayed");
       expect(i18n.tense('pray', {simple_past: true})).toEqual("prayed");
+      expect(i18n.tense('dog', {simple_past: true})).toEqual("dogged");
+      expect(i18n.tense('red', {simple_past: true})).toEqual("redded");
+      expect(i18n.tense('my', {simple_past: true})).toEqual("myed");
 
       expect(i18n.tense('become', {simple_past: true})).toEqual("became");
       expect(i18n.tense('begin', {simple_past: true})).toEqual("began");
@@ -426,6 +435,7 @@ describe("i18n", function() {
       expect(i18n.tense('play', {simple_present: true})).toEqual("plays");
       expect(i18n.tense('stay', {simple_present: true})).toEqual("stays");
       expect(i18n.tense('pray', {simple_present: true})).toEqual("prays");
+      expect(i18n.tense('cat', {simple_present: true})).toEqual("cats");
 
       expect(i18n.tense('become', {simple_present: true})).toEqual("becomes");
       expect(i18n.tense('begin', {simple_present: true})).toEqual("begins");
@@ -518,6 +528,9 @@ describe("i18n", function() {
       expect(i18n.tense('play', {past_participle: true})).toEqual("played");
       expect(i18n.tense('stay', {past_participle: true})).toEqual("stayed");
       expect(i18n.tense('pray', {past_participle: true})).toEqual("prayed");
+      expect(i18n.tense('bucket', {past_participle: true})).toEqual("bucketed");
+      expect(i18n.tense('cat', {past_participle: true})).toEqual("catted");
+      expect(i18n.tense('I', {past_participle: true})).toEqual("Ied");
 
       expect(i18n.tense('become', {past_participle: true})).toEqual("become");
       expect(i18n.tense('begin', {past_participle: true})).toEqual("begun");
