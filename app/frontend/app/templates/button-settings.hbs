@@ -32,6 +32,12 @@
     </div>
   </div>
   <div class="modal-footer">
-    <a href="#" class="btn" {{action 'close'}}>{{t "Close" key='close'}}</a>
+    <a href="#" class="btn" {{action 'close'}} style='vertical-align: top;'>{{t "Close" key='close'}}</a>
+    <span style='float: right; margin: -5px 20px -5px -5px; display: inline-block; height: 63px; width: 124px; position: relative;'>
+      <a href="#" class='btn btn-default' {{action 'move' 'left'}} style='position: absolute; margin: 0; width: 40px; height: 40px; left: 0; top: calc(50% - 20px);'><span class='glyphicon glyphicon-arrow-left'></span></a>
+      <a href="#" class='btn btn-default' {{action 'move' 'up'}} style='position: absolute; margin: 0; width: 40px; height: 30px; left: calc(50% - 20px); top: 0;'><span class='glyphicon glyphicon-arrow-up'></span></a>
+      <a href="#" class='btn btn-default' {{action 'move' 'down'}} style='position: absolute; margin: 0; width: 40px; height: 30px; left: calc(50% - 20px); bottom: 0;'><span class='glyphicon glyphicon-arrow-down'></span></a>
+      <a href="#" class='btn btn-default' {{action 'move' 'right'}} style='position: absolute; margin: 0; width: 40px; height: 40px; right: 0; top: calc(50% - 20px);'><span class='glyphicon glyphicon-arrow-right'></span></a>
+    </span>
   </div>
 {{/modal-dialog}}

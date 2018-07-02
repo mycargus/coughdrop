@@ -505,6 +505,43 @@ export default modal.ModalController.extend({
         $elem.minicolors('show');
       }
     },
+    move: function(direction) {
+      var row = null, col = null;
+      var board = this.get('board');
+      var new_button_id = null;
+      var old_button_id = this.get('model.id');
+      var grid = editManager.get('controller.ordered_buttons') || this.get('board.grid.order') || [];
+      grid.forEach(function(list, r) {
+        (list || []).forEach(function(button_id, c) {
+          button_id = emberGet(button_id, 'id') || button_id;
+          if(button_id != null && old_button_id != undefined && button_id.toString() == old_button_id.toString()) {
+            row = r;
+            col = c;
+          }
+        })
+      })
+      if(row !== null && col !== null) {
+        if(direction == 'up') {
+          new_button_id = (grid[row - 1] || [])[col];
+        } else if(direction == 'down') {
+          new_button_id = (grid[row + 1] || [])[col];
+        } else if(direction == 'right') {
+          new_button_id = grid[row][col + 1];
+        } else if(direction == 'left') {
+          new_button_id = grid[row][col - 1];
+        }
+      }
+      if(new_button_id) {
+        new_button_id = emberGet(new_button_id, 'id') || new_button_id;
+        modal.close();
+        runLater(function() {
+          var button = editManager.find_button(new_button_id);
+          button.state = event || 'general';
+          modal.open('button-settings', {button: button, board: board});
+        }, 100);
+          
+      }
+    },
     setState: function(state) {
       this.set('state', state);
     },
