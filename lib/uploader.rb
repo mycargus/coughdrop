@@ -1,7 +1,7 @@
 require 's3'
 module Uploader
   S3_EXPIRATION_TIME=60*60
-  CONTENT_LENGTH_RANGE=100.megabytes.to_i
+  CONTENT_LENGTH_RANGE=200.megabytes.to_i
   
   def self.remote_upload(remote_path, local_path, content_type)
     params = remote_upload_params(remote_path, content_type)
@@ -14,6 +14,7 @@ module Uploader
     if res.success?
       return params[:upload_url] + remote_path
     else
+      raise res.body
       return nil
     end
   end
