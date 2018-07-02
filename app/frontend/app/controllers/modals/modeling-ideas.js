@@ -305,7 +305,7 @@ export default modal.ModalController.extend({
         modal.open('inline-video', {video: {type: 'youtube', id: youtube_id}});
       }
     },
-    book: function() {
+    book: function(attempting) {
       var act = this.get('current_activity');
       if(attempting) {
         this.send('attempt');
