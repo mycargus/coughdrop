@@ -62,16 +62,22 @@ class LogSession < ActiveRecord::Base
     spelling_sequence = []
     (self.data['events'] || []).each_with_index do |event, idx|
       next_event = self.data['events'][idx + 1]
-      if event['button'] && next_event && next_event['button'] && (next_event['button']['vocalization'] || "").match(/^:/)
+      parts = event['button'] && (event['button']['vocalization'] || "").split(/&&/).map{|v| v.strip }.select{|p| p.match(/^(\+|:)/)}
+      parts ||= []
+      next_parts = event['button'] && next_event && next_event['button'] && (next_event['button']['vocalization'] || "").split(/&&/).map{|v| v.strip }.select{|v| v.match(/^(\+|:)/)}
+      next_parts ||= []
+      if next_parts.any?{|p| p.match(/^:/) }
         event['modified_by_next'] = true
       end
       # if it's part of a spelling, add the letter(s) to the spelling sequence
-      if event['button'] && (event['button']['vocalization'] || "").match(/^\+/)
-        spelling_next = !!(next_event && next_event['button'] && (next_event['button']['vocalization'] || "").match(/^\+/))
+      if parts.any?{|p| p.match(/^\+/) }
+        spelling_next = !!next_parts.any?{|p| p.match(/^\+/)}
         event['modified_by_next'] ||= spelling_next
-        spelling_sequence << event['button']['vocalization'][1..-1]
+        parts.select{|p| p.match(/^\+/)}.each do |part|
+          spelling_sequence << part[1..-1]
+        end
       # if it's a modifier, mark the spelling sequence as tainted (it'll be handled by the completion, anyway)
-      elsif event['button'] && (event['button']['vocalization'] || "").match(/^:/)
+      elsif parts.any?{|p| p.match(/^:/) }
         spelling_sequence << ":"
       end
       
@@ -101,7 +107,7 @@ class LogSession < ActiveRecord::Base
         word = LogSession.event_text(event)
 
         speech ||= WordData.find_word(word)
-        if !speech && !event['modified_by_next'] && (event['spelling'] || event['button']['completion'] || !(event['button']['vocalization'] || "").match(/^[\+:]/))
+        if !speech && !event['modified_by_next'] && (event['spelling'] || event['button']['completion'] || !(event['button']['vocalization'] || "").strip.match(/^[\+:]/))
           speech = {'types' => ['other']}
           if event['button'] && event['button']['type'] == 'speak'
             RedisInit.default.hincrby('missing_words', word.to_s, 1) if RedisInit.default

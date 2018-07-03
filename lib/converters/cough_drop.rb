@@ -46,7 +46,12 @@ module Converters::CoughDrop
       }
       if original_button['vocalization']
         if original_button['vocalization'].match(/^(\:|\+)/)
-          button['action'] = original_button['vocalization']
+          if original_button['vocalization'].match(/&&/)
+            button['actions'] = original_button['vocalization'].split(/&&/).map{|v| v.strip }
+            button['action'] = button['actions'][0]
+          else
+            button['action'] = original_button['vocalization']
+          end
         else
           button['vocalization'] = original_button['vocalization']
         end
@@ -136,7 +141,7 @@ module Converters::CoughDrop
     hashes['images_hash_ids'] = obj['buttons'].map{|b| b && b['image_id'] }.compact
     hashes['sounds_hash_ids'] = obj['buttons'].map{|b| b && b['sound_id'] }.compact
     [['images_hash', ButtonImage], ['sounds_hash', ButtonSound]].each do |list, klass|
-      obj[list].each do |id, item|
+      (obj[list] || {}).each do |id, item|
         next unless hashes["#{list}_ids"].include?(item['id'])
         record = Converters::Utils.find_by_data_url(item['data_url'])
         if record
@@ -187,7 +192,9 @@ module Converters::CoughDrop
         'background_color' => button['background_color'],
         'hidden' => button['hidden']
       }
-      if button['action']
+      if button['actions']
+        new_button['vocalization'] = button['actions'].join(' && ')
+      elsif button['action']
         new_button['vocalization'] = button['action']
       elsif button['vocalization']
         new_button['vocalization'] = button['vocalization']

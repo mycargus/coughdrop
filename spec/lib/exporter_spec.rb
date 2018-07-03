@@ -264,6 +264,7 @@ describe Exporter do
         {'type' => 'action', 'action' => {'action' => 'open_board', 'new_id' => {'id' => 'qwer'}}, 'timestamp' => ts + 12, 'button_triggered' => true},
         {'type' => 'action', 'action' => {'action' => 'open_board'}, 'timestamp' => ts + 14, 'volume' => 0.9, 'ambient_light' => 500, 'screen_brightness' => 0.5},
         {'type' => 'button', 'button' => {'id' => 5, 'board' => {'id' => 'asdf'}, 'label' => 'good', 'vocalization' => ':beep', 'image' => 'http://www.example.com/pic.png'}, 'timestamp' => ts + 20},
+        {'type' => 'button', 'button' => {'id' => 55, 'board' => {'id' => 'asdf'}, 'label' => 'goody', 'vocalization' => ':beep &&   :home', 'image' => 'http://www.example.com/pic.png'}, 'timestamp' => ts + 21},
         {'type' => 'action', 'action' => {'action' => 'beep'}, 'timestamp' => ts + 20},
         {'type' => 'button', 'button' => {'id' => 6, 'board' => {'id' => 'asdf'}, 'label' => 'before', 'vocalization' => ':past-tense'}, 'timestamp' => ts + 25},
         {'type' => 'button', 'button' => {'id' => 7, 'board' => {'id' => 'asdf'}, 'completion' => 'happier', 'vocalization' => ':completion'}, 'timestamp' => ts + 30},
@@ -277,7 +278,7 @@ describe Exporter do
       s1.reload
 
       res = Exporter.event_session(s1, {events: []}, 'sesh', false)
-      expect(res[:events].length).to eq(15)
+      expect(res[:events].length).to eq(16)
       expect(JSON.parse(res[:events].to_json)).to eq(JSON.parse([
         {
           "id": "sesh:0",
@@ -461,6 +462,27 @@ describe Exporter do
         },
         {
           "id": "sesh:12",
+          "timestamp": "2017-04-07T06:00:21Z",
+          "type": "button",
+          "button_id": ":asdf",
+          "board_id": "asdf",
+          "spoken": true,
+          "label": "goody",
+          "image_url": "http://www.example.com/pic.png",
+          "core_word": false,
+          "actions": [
+            {
+              "action": ":beep",
+            },
+            {
+              "action": ":home"
+            }
+          ],
+          "modeling": false,
+          "ip_address": "1.2.3.4"
+        },
+        {
+          "id": "sesh:13",
           "timestamp": "2017-04-07T06:00:25Z",
           "type": "button",
           "button_id": ":asdf",
@@ -477,7 +499,7 @@ describe Exporter do
           "ip_address": "1.2.3.4"
         },
         {
-          "id": "sesh:13",
+          "id": "sesh:14",
           "timestamp": "2017-04-07T06:00:30Z",
           "type": "button",
           "button_id": ":asdf",
@@ -495,7 +517,7 @@ describe Exporter do
           "ip_address": "1.2.3.4"
         },
         {
-          "id": "sesh:14",
+          "id": "sesh:15",
           "timestamp": "2017-04-07T06:00:40Z",
           "type": "button",
           "button_id": ":asdf",
@@ -514,7 +536,7 @@ describe Exporter do
           "ip_address": "1.2.3.4"
         },
         {
-          "id": "sesh:15",
+          "id": "sesh:16",
           "timestamp": "2017-04-07T06:01:40Z",
           "type": "action",
           "action": ":bacon",
@@ -527,7 +549,7 @@ describe Exporter do
           "ip_address": "1.2.3.4"
         },
         {
-          "id": "sesh:16",
+          "id": "sesh:17",
           "timestamp": "2017-04-07T06:01:45Z",
           "type": "action",
           "action": ":prediction",
@@ -536,7 +558,7 @@ describe Exporter do
           "ip_address": "1.2.3.4"
         },
         {
-          "id": "sesh:17",
+          "id": "sesh:18",
           "timestamp": "2017-04-07T06:03:20Z",
           "type": "action",
           "action": ":open_board",

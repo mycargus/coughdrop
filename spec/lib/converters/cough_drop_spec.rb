@@ -124,7 +124,8 @@ describe Converters::CoughDrop do
       b.settings['buttons'] = [
         {'id' => 1, 'label' => 'chicken', 'vocalization' => '+chi'},
         {'id' => 2, 'label' => 'nuggets', 'vocalization' => ':space'},
-        {'id' => 3, 'label' => 'sauce', 'vocalization' => 'I like sauce'}
+        {'id' => 3, 'label' => 'sauce', 'vocalization' => 'I like sauce'},
+        {'id' => 4, 'label' => 'blink', 'vocalization' => ':space && +wi && :home'},
       ]
       b.settings['grid'] = {
         'rows' => 2,
@@ -145,7 +146,7 @@ describe Converters::CoughDrop do
         'columns' => 2,
         'order' => [[1, 2], [3, 2]]
       })
-      expect(json['buttons'].length).to eq(3)
+      expect(json['buttons'].length).to eq(4)
       expect(json['buttons'][0]).to eq({
         'id' => 1,
         'label' => 'chicken', 
@@ -164,6 +165,14 @@ describe Converters::CoughDrop do
         'id' => 3,
         'label' => 'sauce', 
         'vocalization' => "I like sauce",
+        'border_color' => 'rgb(170, 170, 170)',
+        'background_color' => 'rgb(255, 255, 255)'
+      })
+      expect(json['buttons'][3]).to eq({
+        'id' => 4,
+        'label' => 'blink', 
+        'action' => ':space',
+        'actions' => [':space', '+wi', ':home'],
         'border_color' => 'rgb(170, 170, 170)',
         'background_color' => 'rgb(255, 255, 255)'
       })
@@ -696,6 +705,30 @@ describe Converters::CoughDrop do
     end
   end
   
+  describe "from_external" do
+    it "should process multiple actions" do
+      u = User.create
+      json = {
+        'buttons' => [
+          {'id' => '2', 'label' => 'asdf', 'actions' => [':bacon', '+wee', ':home']},
+          {'id' => '3', 'label' => 'three'}
+        ],
+        'id' => 'asdfasdf'
+      }
+      board = Converters::CoughDrop.from_external(json, {'user' => u})
+      expect(board).to_not eq(nil)
+      expect(board.settings['buttons'].length).to eq(2)
+      expect(board.settings['buttons'][0]['label']).to eq('asdf')
+      expect(board.settings['buttons'][0]['vocalization']).to eq(':bacon && +wee && :home')
+      expect(board.settings['buttons'][1]['label']).to eq('three')
+      expect(board.settings['buttons'][1]['vocalization']).to eq(nil)
+    end
+
+    it "should support known boards" do
+      write_this_test
+    end
+  end
+
   describe "from_external_nested" do
     it "should parse" do
       u = User.create(:user_name => 'alfonso')

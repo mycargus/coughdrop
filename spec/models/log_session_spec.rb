@@ -200,9 +200,9 @@ describe LogSession, :type => :model do
         {'type' => 'button', 'button' => {'label' => 'cat'}, 'timestamp' => 1444994882}, 
         {'type' => 'button', 'button' => {'label' => 'f', 'vocalization' => '+f'}, 'timestamp' => 1444994883},
         {'type' => 'button', 'button' => {'label' => 'u', 'vocalization' => '+u'}, 'timestamp' => 1444994884},
-        {'type' => 'button', 'button' => {'label' => 'n', 'vocalization' => '+n'}, 'timestamp' => 1444994885},
+        {'type' => 'button', 'button' => {'label' => 'n', 'vocalization' => '+n&&:back'}, 'timestamp' => 1444994885},
         {'type' => 'button', 'button' => {'label' => 'n', 'vocalization' => '+n'}, 'timestamp' => 1444994886},
-        {'type' => 'button', 'button' => {'label' => 'y', 'vocalization' => '+y'}, 'timestamp' => 1444994887},
+        {'type' => 'button', 'button' => {'label' => 'y', 'vocalization' => '+y&&+boy'}, 'timestamp' => 1444994887},
       ]
       s = LogSession.process_new({'events' => events}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
       
@@ -220,7 +220,7 @@ describe LogSession, :type => :model do
       expect(s.data['events'][5]['modified_by_next']).to eq(true)
       expect(s.data['events'][5]['spelling']).to eq(nil)
       expect(s.data['events'][6]['modified_by_next']).to eq(false)
-      expect(s.data['events'][6]['spelling']).to eq('funny')
+      expect(s.data['events'][6]['spelling']).to eq('funnyboy')
     end
     
     it "should mark spelling finishes correctly" do
@@ -2341,8 +2341,8 @@ describe LogSession, :type => :model do
       expect(LogSession.count).to eq(1)
       s1.reload
       expect(s1.data['events'].length).to eq(10)
-      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 9, 10, 7, 3, 4, 5, 6, 8, 2])
       expect(s1.data['events'].map{|e| e['timestamp']}).to eq([ts, ts + 1, ts + 2, ts + 3, ts + 4, ts + 5, ts + 7, ts + 8, ts + 9, ts + 10])
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 3, 4, 5, 9, 10, 7, 8, 6, 2])
     end
 
     it "should de-dup two copies of the same events" do

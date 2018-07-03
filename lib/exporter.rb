@@ -199,6 +199,11 @@ More information about the file formats being used is available at https://www.o
           'action' => event['button']['vocalization'] || event['button']['label'],
           'text' => event['button']['completion'] || event['button']['label']
         }
+        if event['action']['action'].match(/&&/)
+          actions = event['action']['action'].split(/&&/).map{|m| m.strip }
+          event['action']['actions'] = actions
+          event['action']['action'] = actions[0]
+        end
       end
       if event['type'] == 'button'
         next_events = []
@@ -227,7 +232,9 @@ More information about the file formats being used is available at https://www.o
         e['board_id'] = anon(board_id)
         e['spoken'] = event['button']['spoken'] == true || event['button']['spoken'] == nil
         e['label'] = event['button']['label']
-        e['vocalization'] = event['button']['vocalization'] if event['button']['vocalization'] && !event['button']['vocalization'].match(/^[\:\+]/)
+        if event['button']['vocalization'] && !event['button']['vocalization'].strip.match(/^[\:\+]/)
+          e['vocalization'] = event['button']['vocalization'] 
+        end
         e['image_url'] = event['button']['image'] if event['button']['image'] && !anonymized
         e['core_word'] = !!event['button']['core_word'] if event['button']['core_word']
         e['core_word'] ||= WordData.core_for?(e['label'] || '', nil)
@@ -238,32 +245,36 @@ More information about the file formats being used is available at https://www.o
           core_buttons["#{event['button']['button_id']}:#{board_id}"] = true if e['core_word']
         end
         e['actions'] = []
-        if (event['button']['vocalization'] || '').match(/^[\:\+]/)
-          a = {:action => event['button']['vocalization']}
-          if mods[a[:action]]
-            a[:action] = ':modification'
-            a[:modification_type] = mods[a[:action]]
+        if (event['button']['vocalization'] || '').strip.match(/^[\:\+]/)
+          event['button']['vocalization'].split(/&&/).map{|v| v.strip }.each do |mod|
+            a = {:action => mod}
+            if mods[a[:action]]
+              a[:action] = ':modification'
+              a[:modification_type] = mods[a[:action]]
+            end
+            if a[:action].match(/^\+/) && anonymized
+              a[:action] = "+???" 
+              a[:redacted] = true
+            end
+            lookup_text(a, event['button']['completion'])
+            e['actions'] << a
           end
-          if a[:action].match(/^\+/) && anonymized
-            a[:action] = "+???" 
-            a[:redacted] = true
-          end
-          lookup_text(a, event['button']['completion'])
-          e['actions'] << a
         elsif event['button']['completion']
-          if event['button']['vocalization'] == ':space'
-            e['actions'] << lookup_text({:action => ':completion'}, lookup(event['button']['completion']))
-          elsif event['button']['vocalization'] == ':completion'
-            # this shouldn't actually be possible, since there is no user-generated button to do this
-            e['actions'] << lookup_text({:action => ':completion'}, lookup(event['button']['completion']))
-          elsif (event['button']['vocalization'] || '').match(/^\:/)
-            if mods[event['button']['vocalization']]
-              e['actions'] << lookup_text({
-                :action => ':modification', 
-                :modification_type => mods[event['button']['vocalization']]
-              }, lookup(event['button']['completion']))
-            else
+          (event['button']['vocalization'] || '').split(/&&/).map{|v| v.strip }.each do |mod|
+            if mod == ':space'
               e['actions'] << lookup_text({:action => ':completion'}, lookup(event['button']['completion']))
+            elsif mod == ':completion'
+              # this shouldn't actually be possible, since there is no user-generated button to do this
+              e['actions'] << lookup_text({:action => ':completion'}, lookup(event['button']['completion']))
+            elsif (mod || '').match(/^\:/)
+              if mods[mod]
+                e['actions'] << lookup_text({
+                  :action => ':modification', 
+                  :modification_type => mods[mod]
+                }, lookup(event['button']['completion']))
+              else
+                e['actions'] << lookup_text({:action => ':completion'}, lookup(mod))
+              end
             end
           end
         end
