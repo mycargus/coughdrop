@@ -254,7 +254,7 @@ describe Sharing, :type => :model do
       res = b.share_with(u3, true)
       b = Board.find(b.id)
       u = User.find(u.id)
-      expect(UserLink.links_for(u.reload)).to eq([{
+      expect(UserLink.links_for(u.reload).sort_by{|l| l['user_id'] }).to eq([{
         'user_id' => u2.global_id,
         'record_code' => Webhook.get_record_code(b),
         'type' => 'board_share',
