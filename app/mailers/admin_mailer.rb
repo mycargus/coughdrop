@@ -10,8 +10,9 @@ class AdminMailer < ActionMailer::Base
     end
   end
   
-  def opt_out(user_id)
+  def opt_out(user_id, reason)
     @user = User.find_by_global_id(user_id)
+    @reason = reason || 'unspecified'
     if ENV['NEW_REGISTRATION_EMAIL'] && @user
       mail(to: ENV['NEW_REGISTRATION_EMAIL'], subject: "CoughDrop - \"Opt-Out\" Requested")
     end

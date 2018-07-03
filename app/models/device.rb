@@ -139,6 +139,7 @@ class Device < ActiveRecord::Base
           do_save = true
         end
       end
+      User.where(['id = ? and updated_at < ?', self.user_id, 24.hours.ago]).update_all(updated_at: Time.now)
     end
     if app_version && self.settings['app_version'] != app_version
       self.settings['app_version'] = app_version

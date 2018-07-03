@@ -51,6 +51,10 @@ module Passwords
   def valid_password?(guess)
     self.settings ||= {}
     res = GoSecure.matches_password?(guess, self.settings['password'])
+    if res && self.schedule_deletion_at
+      self.schedule_deletion_at = nil
+      self.save
+    end
     if res && GoSecure.outdated_password?(self.settings['password'])
       self.generate_password(guess)
       self.save

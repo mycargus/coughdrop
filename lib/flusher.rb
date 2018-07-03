@@ -139,6 +139,14 @@ module Flusher
       flush_board(board.global_id, board.key, aggressive_flush)
     end
   end
+
+  def self.flush_deleted_users
+    users = User.where(['schedule_deletion_at < ?', Time.now]).limit(100)
+    users.each do |user|
+      Worker.schedule(Flusher, :flush_user_completely, user.global_id, user.user_name)
+    end
+    users.count
+  end
   
   def self.flush_user_completely(user_id, user_name)
     user = find_user(user_id, user_name)

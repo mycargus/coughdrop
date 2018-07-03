@@ -546,8 +546,8 @@ class User < ActiveRecord::Base
             'setting' => key,
             'timestamp' => Time.now.utc.iso8601
           }
-          if self.id && key == 'cookies' && params['preferences'] && params['preferences']['cookies'] == false
-            @opt_out = true
+          if self.id && key == 'cookies' && params['preferences'] && params['preferences']['cookies'] == false && self.settings['preferences']['coolies'] == true
+            @opt_out = 'disabled'
           end
         end
       end
@@ -839,7 +839,7 @@ class User < ActiveRecord::Base
       @email_changed = false
     end
     if @opt_out
-      AdminMailer.schedule_delivery(:opt_out, self.global_id)
+      AdminMailer.schedule_delivery(:opt_out, self.global_id, @opt_out)
       @opt_out = false
     end
     true

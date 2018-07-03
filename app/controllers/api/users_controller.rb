@@ -177,9 +177,12 @@ class Api::UsersController < ApplicationController
   def flush_user
     user = User.find_by_path(params['user_id'])
     return unless allowed?(user, 'delete')
-    return api_error(400, {'flushed' => 'false'}) unless user.user_name == params['user_name'] && user.global_id == params['user_id']
-    progress = Progress.schedule(Flusher, :flush_user_completely, user.global_id, user.user_name)
-    render json: JsonApi::Progress.as_json(progress, :wrapper => true)
+    return api_error(400, {'flushed' => 'false'}) unless user.user_name == params['user_name'] && user.global_id == params['confirm_user_id']
+    user.schedule_deletion_at = 36.hours.from_now
+    user.save
+    SubscriptionMailer.deliver_message(:account_deleted, user.global_id)
+    AdminMailer.schedule_delivery(:opt_out, user.global_id, 'deleted')
+    render json: {flushed: 'pending'}
   end
   
   def hide_device

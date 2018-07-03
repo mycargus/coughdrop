@@ -383,4 +383,57 @@ describe SubscriptionMailer, :type => :mailer do
       expect(html).to_not match(gift.code)
     end
   end
+
+  describe "deletion_warning" do
+    it "should generate the correct first warning" do
+      u = User.create(:settings => {'name' => 'fred', 'email' => 'fred@example.com'})
+      m = SubscriptionMailer.deletion_warning(u.global_id, 1)
+      expect(m.to).to eq([u.settings['email']])
+      expect(m.subject).to eq("CoughDrop - Account Deletion Notice")
+      
+      html = message_body(m, :html)
+      expect(html).to match(/inactive for a long time/)
+      expect(html).to match(/first warning/)
+      expect(html).to match(/"#{u.user_name}"/)
+      
+      text = message_body(m, :text)
+      expect(text).to match(/inactive for a long time/)
+      expect(text).to match(/first warning/)
+      expect(text).to match(/"#{u.user_name}"/)
+    end
+
+    it "should generate the correct final warning" do
+      u = User.create(:settings => {'name' => 'fred', 'email' => 'fred@example.com'})
+      m = SubscriptionMailer.deletion_warning(u.global_id, 2)
+      expect(m.to).to eq([u.settings['email']])
+      expect(m.subject).to eq("CoughDrop - Account Deletion Notice")
+      
+      html = message_body(m, :html)
+      expect(html).to match(/inactive for a long time/)
+      expect(html).to match(/final warning/)
+      expect(html).to match(/"#{u.user_name}"/)
+      
+      text = message_body(m, :text)
+      expect(text).to match(/inactive for a long time/)
+      expect(text).to match(/final warning/)
+      expect(text).to match(/"#{u.user_name}"/)
+    end
+  end
+
+  describe "account_deleted" do
+    it "should generate the correct warning" do
+      u = User.create(:settings => {'name' => 'fred', 'email' => 'fred@example.com'})
+      m = SubscriptionMailer.account_deleted(u.global_id)
+      expect(m.to).to eq([u.settings['email']])
+      expect(m.subject).to eq("CoughDrop - Account Deleted")
+      
+      html = message_body(m, :html)
+      expect(html).to match(/has been deleted/)
+      expect(html).to match(/"#{u.user_name}"/)
+      
+      text = message_body(m, :text)
+      expect(text).to match(/has been deleted/)
+      expect(text).to match(/"#{u.user_name}"/)
+    end
+  end
 end

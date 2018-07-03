@@ -132,6 +132,9 @@ export default Controller.extend({
           _this.load_webhooks();
         }
       });
+    },
+    delete_user: function() {
+      modal.open('modals/confirm-delete-user', {user: this.get('model')});
     }
   }
 });

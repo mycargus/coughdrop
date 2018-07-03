@@ -551,7 +551,7 @@ module Subscription
       
   module ClassMethods  
     def check_for_subscription_updates
-      alerts = {:approaching => 0, :approaching_emailed => 0, :upcoming => 0, :upcoming_emailed => 0, :expired => 0, :expired_emailed => 0, :expired_follow_up => 0, :recent_less_active => 0}
+      alerts = {:approaching => 0, :approaching_emailed => 0, :upcoming => 0, :upcoming_emailed => 0, :expired => 0, :expired_emailed => 0, :expired_follow_up => 0, :recent_less_active => 0, :pending_deletes => 0}
       
       # send out a one-month and three-month warning for long-term purchase subscriptions
       [1, 3].each do |num|
@@ -646,6 +646,34 @@ module Subscription
 
       # TODO: send out a two and one-month warning when account is 
       # going to be deleted for inactivity (after 12 months of non-use)
+      to_be_deleted = User.where(['updated_at < ?', 12.months.ago]).order('updated_at ASC').limit(100)
+      # to_be_deleted.each do |user|
+      [].each do |user|
+        updated = user.updated_at
+        user.settings['subscription'] ||= {}
+        last_warning = Time.parse(user.settings['subscription']['last_deletion_warning']) rescue Time.at(0)
+        if last_warning < 3.weeks.ago
+          var attempts = 1
+          if last_warning > 20.weeks.ago
+            attempts = (user.settings['subscription']['last_deletion_attempts'] || 0) + 1
+          end
+          if attempts > 2
+            user.schedule_deletion_at = 36.hours.from_now
+            user.save
+            SubscriptionMailer.deliver_message(:account_deleted, user.global_id)
+          else
+            SubscriptionMailer.deliver_message(:deletion_warning, user.global_id, attempts)
+            alerts[:pending_deletes] += 1
+            user.update_settings({
+              'subscription' => {
+                'last_deletion_warning' => Time.now.iso8601,
+                'last_deletion_attempts' => attempts
+              }
+            })
+          end
+          User.where(id: user.id).update_all(updated_at: 12.months.ago + 3.weeks)
+        end
+      end
       alerts
     end
 

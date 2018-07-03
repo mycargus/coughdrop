@@ -25,6 +25,12 @@ task :push_remote_logs => :environment do
   puts "done. updated #{res} logs"
 end
 
+task :flush_users => :environment do
+  puts "Finding users that need to be deleted..."
+  res = Flusher.flush_deleted_users
+  puts "done, deleted #{res} users" 
+end
+
 task :clean_old_deleted_boards => :environment do
   puts "Cleaning old deleted boards..."
   count = DeletedBoard.flush_old_records

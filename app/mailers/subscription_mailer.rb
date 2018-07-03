@@ -111,4 +111,15 @@ class SubscriptionMailer < ActionMailer::Base
       mail(to: ENV['NEW_REGISTRATION_EMAIL'], subject: subject)
     end
   end
+
+  def deletion_warning(user_id, attempts)
+    @user = User.find_by_global_id(user_id)
+    @attempt = attempts
+    mail_message(@user, "Account Deletion Notice")
+  end
+
+  def account_deleted(user_id)
+    @user = User.find_by_global_id(user_id)
+    mail_message(@user, "Account Deleted")
+  end
 end

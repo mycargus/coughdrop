@@ -315,4 +315,16 @@ describe Flusher do
       Flusher.flush_user_completely(u.global_id, u.user_name)
     end
   end
+
+  describe "flush_deleted_users" do
+    it "should flush deleted users" do
+      u = User.create
+      u2 = User.create(:schedule_deletion_at => 6.hours.ago)
+      u3 = User.create(:schedule_deletion_at => 6.hours.from_now)
+      Flusher.flush_deleted_users
+      expect(Worker.scheduled?(Flusher, :flush_user_completely, u.global_id, u.user_name)).to eq(false)
+      expect(Worker.scheduled?(Flusher, :flush_user_completely, u2.global_id, u2.user_name)).to eq(true)
+      expect(Worker.scheduled?(Flusher, :flush_user_completely, u3.global_id, u3.user_name)).to eq(false)
+    end
+  end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180509162835) do
+ActiveRecord::Schema.define(version: 20180703034716) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -392,11 +392,13 @@ ActiveRecord::Schema.define(version: 20180509162835) do
     t.datetime "next_notification_at"
     t.boolean  "possibly_full_premium"
     t.datetime "badges_updated_at"
+    t.datetime "schedule_deletion_at"
     t.index ["email_hash"], name: "index_users_on_email_hash", using: :btree
     t.index ["managed_organization_id"], name: "index_users_on_managed_organization_id", using: :btree
     t.index ["managing_organization_id"], name: "index_users_on_managing_organization_id", using: :btree
     t.index ["next_notification_at"], name: "index_users_on_next_notification_at", using: :btree
     t.index ["possibly_full_premium"], name: "index_users_on_possibly_full_premium", using: :btree
+    t.index ["schedule_deletion_at"], name: "index_users_on_schedule_deletion_at", using: :btree
     t.index ["user_name"], name: "index_users_on_user_name", unique: true, using: :btree
   end
 

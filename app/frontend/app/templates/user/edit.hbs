@@ -267,6 +267,9 @@
         <a href="#" class='btn btn-default' {{action 'manage_connections'}}>{{t "Manage Tools and Connections" key='manage_connections'}}</a>
       {{/if}}
     {{/if}}
+    {{#if model.permissions.delete}}
+      <a href="#" class='btn btn-default' {{action 'delete_user'}}>{{t "Delete My Account" key='delete_my_account'}}</a>
+    {{/if}}
   </div>
 {{else if session.isAuthenticated}}
   <p>{{t "It appears you don't have permission to access this user's information" key='not_allowed'}}</p>
