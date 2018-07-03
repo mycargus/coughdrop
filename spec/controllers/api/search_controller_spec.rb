@@ -14,7 +14,7 @@ describe Api::SearchController, :type => :controller do
         {'extension' => 'gif', 'name' => 'fred'}
       ]
       res = OpenStruct.new(:body => list.to_json)
-      expect(Typhoeus).to receive(:get).with("https://www.opensymbols.org/api/v1/symbols/search?q=hat", :ssl_verifypeer => false).and_return(res)
+      expect(Typhoeus).to receive(:get).with("https://www.opensymbols.org/api/v1/symbols/search?q=hat&search_token=#{ENV['OPENSYMBOLS_TOKEN']}", :ssl_verifypeer => false).and_return(res)
       get :symbols, params: {:q => 'hat'}
       expect(response).to be_success
       json = JSON.parse(response.body)
@@ -34,8 +34,8 @@ describe Api::SearchController, :type => :controller do
       ]
       res = OpenStruct.new(:body => list.to_json)
       res2 = OpenStruct.new(:body => list2.to_json)
-      expect(Typhoeus).to receive(:get).with("https://www.opensymbols.org/api/v1/symbols/search?q=hat", :ssl_verifypeer => false).and_return(res)
-      expect(Typhoeus).to receive(:get).with("https://www.opensymbols.org/api/v1/symbols/search?q=hats", :ssl_verifypeer => false).and_return(res2)
+      expect(Typhoeus).to receive(:get).with("https://www.opensymbols.org/api/v1/symbols/search?q=hat&search_token=#{ENV['OPENSYMBOLS_TOKEN']}", :ssl_verifypeer => false).and_return(res)
+      expect(Typhoeus).to receive(:get).with("https://www.opensymbols.org/api/v1/symbols/search?q=hats&search_token=#{ENV['OPENSYMBOLS_TOKEN']}", :ssl_verifypeer => false).and_return(res2)
       get :symbols, params: {:q => 'hat'}
       expect(response).to be_success
       json = JSON.parse(response.body)
