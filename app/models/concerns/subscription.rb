@@ -653,7 +653,7 @@ module Subscription
         user.settings['subscription'] ||= {}
         last_warning = Time.parse(user.settings['subscription']['last_deletion_warning']) rescue Time.at(0)
         if last_warning < 3.weeks.ago
-          var attempts = 1
+          attempts = 1
           if last_warning > 20.weeks.ago
             attempts = (user.settings['subscription']['last_deletion_attempts'] || 0) + 1
           end
@@ -664,7 +664,7 @@ module Subscription
           else
             SubscriptionMailer.deliver_message(:deletion_warning, user.global_id, attempts)
             alerts[:pending_deletes] += 1
-            user.update_settings({
+            user.update_setting({
               'subscription' => {
                 'last_deletion_warning' => Time.now.iso8601,
                 'last_deletion_attempts' => attempts
