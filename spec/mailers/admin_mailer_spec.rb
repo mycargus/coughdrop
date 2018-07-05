@@ -34,7 +34,7 @@ describe AdminMailer, :type => :mailer do
     it "should use the ENV recipient address" do
       u = User.create(:settings => {'email' => 'bob@example.com'})
       ENV['NEW_REGISTRATION_EMAIL'] = 'asdf@example.com'
-      m = AdminMailer.opt_out(u.global_id)
+      m = AdminMailer.opt_out(u.global_id, nil)
       expect(m.subject).to eq('CoughDrop - "Opt-Out" Requested')
       expect(m.to).to eq(['asdf@example.com'])
     end
@@ -42,7 +42,7 @@ describe AdminMailer, :type => :mailer do
     it "should generate a message" do
       u = User.create(:settings => {'email' => 'bob@example.com'})
       ENV['NEW_REGISTRATION_EMAIL'] = 'asdf@example.com'
-      m = AdminMailer.opt_out(u.global_id)
+      m = AdminMailer.opt_out(u.global_id, 'bacon')
       expect(m.subject).to eq('CoughDrop - "Opt-Out" Requested')
       expect(m.to).to eq(['asdf@example.com'])
 
@@ -54,7 +54,7 @@ describe AdminMailer, :type => :mailer do
     it "should be triggered by a user preference changing" do
       u = User.create(:settings => {'email' => 'bob@example.com'})
       expect(u.settings['preferences']['cookies']).to eq(true)
-      expect(AdminMailer).to receive(:schedule_delivery).with(:opt_out, u.global_id)
+      expect(AdminMailer).to receive(:schedule_delivery).with(:opt_out, u.global_id, 'disabled')
       u.process({'preferences' => {'cookies' => false}})
       Worker.process_queues
     end

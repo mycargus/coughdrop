@@ -546,7 +546,7 @@ class User < ActiveRecord::Base
             'setting' => key,
             'timestamp' => Time.now.utc.iso8601
           }
-          if self.id && key == 'cookies' && params['preferences'] && params['preferences']['cookies'] == false && self.settings['preferences']['coolies'] == true
+          if self.id && key == 'cookies' && params['preferences'] && params['preferences']['cookies'] == false && self.settings['preferences']['cookies'] == true
             @opt_out = 'disabled'
           end
         end
