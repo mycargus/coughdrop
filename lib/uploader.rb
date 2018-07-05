@@ -1,4 +1,6 @@
 require 's3'
+require 'accessible-books'
+
 module Uploader
   S3_EXPIRATION_TIME=60*60
   CONTENT_LENGTH_RANGE=200.megabytes.to_i
