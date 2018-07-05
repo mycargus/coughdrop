@@ -182,9 +182,10 @@ export default modal.ModalController.extend({
       _this.set('book_status', {loading: true});
       persistence.ajax("/api/v1/search/external_resources?source=tarheel_book&q=" + encodeURIComponent(id), {type: 'GET'}).then(function(list) {
         if(_this.get('model.book.id') == id) {
+          var image_page = list.find(function(page) { return !page.small_image; }) || {};
           _this.set('book_status', {
-            image: list[1].image,
-            content_type: list[1].image_content_type || 'image/jpeg',
+            image: image_page.image,
+            content_type: image_page.image_content_type || 'image/jpeg',
             title: list[0].title
           });
         }

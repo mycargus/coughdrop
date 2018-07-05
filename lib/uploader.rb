@@ -391,11 +391,7 @@ module Uploader
       if query.match(/^http/)
         url = query
       end
-      res = Typhoeus.get(url)
-      if res.headers['Location']
-        res = Typhoeus.get(res.headers['Location'])
-      end
-      results = JSON.parse(res.body)
+      results = AccessibleBooks.find_json(url)
       list = []
       results['pages'].each_with_index do |page, idx|
         list << {

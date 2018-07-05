@@ -17,6 +17,10 @@ GEM
   remote: https://rubygems.org/
   specs:
     CFPropertyList (3.0.0)
+    accessible-books (0.1.1)
+      json
+      nokogiri
+      typhoeus
     actioncable (5.0.0)
       actionpack (= 5.0.0)
       nio4r (~> 1.2)
@@ -162,7 +166,7 @@ GEM
     netrc (0.11.0)
     newrelic_rpm (3.17.1.326)
     nio4r (1.2.1)
-    nokogiri (1.8.3)
+    nokogiri (1.8.4)
       mini_portile2 (~> 2.3.0)
     nokogumbo (1.5.0)
       nokogiri
@@ -344,6 +348,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  accessible-books
   ar-octopus!
   aws-sdk
   aws-ses
