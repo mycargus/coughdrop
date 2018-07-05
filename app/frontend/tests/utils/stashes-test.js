@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } fro
 import { queryLog } from 'frontend/tests/helpers/ember_helper';
 import RSVP from 'rsvp';
 import stashes from '../../utils/_stashes';
+import capabilities from '../../utils/capabilities';
 import Ember from 'ember';
 import EmberObject from '@ember/object';
 import CoughDrop from 'frontend/app';
@@ -635,8 +636,6 @@ describe('stashes', function() {
         browser: capabilities.browser,
         system: capabilities.system,
         timestamp: last_event.timestamp,
-        browser: capabilities.browser,
-        system: capabilities.system,
         type: 'utterance',
         user_id: 'asdf',
         utterance: {buttons: []},
