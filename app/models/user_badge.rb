@@ -724,7 +724,7 @@ class UserBadge < ActiveRecord::Base
         unit_hash[unit_id][measure] = unit_id
         unit_hash[unit_id][:next] = {}
         unit_hash[unit_id][:next][measure] = day[:next][measure]
-        unit_hash[unit_id][:total] = (unit_hash[unit_id][:total] || 0) + day[:total]
+        unit_hash[unit_id][:total] = (unit_hash[unit_id][:total] || 0) + (day[:total] || 0)
         unit_hash[unit_id][:explanation] ||= ""
         unit_hash[unit_id][:explanation] += ", " if unit_hash[unit_id][:explanation].length > 0
         unit_hash[unit_id][:explanation] += day[:explanation] if day[:explanation]
