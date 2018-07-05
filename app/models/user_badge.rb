@@ -288,7 +288,7 @@ class UserBadge < ActiveRecord::Base
     res
   end
   
-  def self.check_goal_badges(user, goal, max_level, stats_start=nil, allow_forever_check=false)
+  def self.check_goal_badges(user, goal, max_level, stats_start=nil, allow_forever_check=false, verbose=false)
     return nil if !goal.badged?
     prior_earned = true
     assessment_badge = goal.settings['assessment_badge']
@@ -320,7 +320,7 @@ class UserBadge < ActiveRecord::Base
       measure_days = 1
       today = Date.today
       today_units = {}
-      add_date_blocks(today_units, today.iso8601)
+      UserBadge.add_date_blocks(today_units, today.iso8601)
       if badge_level['interval'] == 'weekyear'
         measure = :weekyear 
         measure_days = 7
@@ -362,13 +362,13 @@ class UserBadge < ActiveRecord::Base
           next unless summary.data && summary.data['stats'] && summary.data['stats']['days']
           summary.data['stats']['days'].each do |day_string, data|
             next if day_start && day_string < day_start
-            day_result = check_day_stats(badge_level, data)
+            day_result = UserBadge.check_day_stats(badge_level, data)
             if day_result
-              add_date_blocks(day_result, day_string) 
+              UserBadge.add_date_blocks(day_result, day_string) 
               days << day_result
             elsif level == 0
               day_result = {'empty' => true}
-              add_date_blocks(day_result, day_string) 
+              UserBadge.add_date_blocks(day_result, day_string) 
               days << day_result
             end
           end
@@ -377,7 +377,7 @@ class UserBadge < ActiveRecord::Base
       days = days.sort_by{|d| d[:date] }
 
       # clump into days, weeks, months, or whatever the specified unit is
-      units = cluster_days(measure, days)
+      units = UserBadge.cluster_days(measure, days)
       
       if level == 0
         # check each day and update the automated assessment for that day
@@ -415,7 +415,7 @@ class UserBadge < ActiveRecord::Base
       else
         # filter units to only those that meet the needed criteria
         units = units.select do |unit|
-          va = valid_unit(unit, badge_level)
+          va = UserBadge.valid_unit(unit, badge_level)
           unit[:explanation] = va[:explanation] if va.is_a?(Hash)
           va
         end
@@ -444,7 +444,7 @@ class UserBadge < ActiveRecord::Base
           end
         end
       end
-      date_blocks = clean_date_blocks(date_blocks)
+      date_blocks = UserBadge.clean_date_blocks(date_blocks)
       
       units.each_with_index do |unit, idx|
         samples = (unit[:matches] || []).map{|m| m[:samples] || []}.flatten.uniq
@@ -714,7 +714,9 @@ class UserBadge < ActiveRecord::Base
   
   def self.cluster_days(measure, days)
     units = days
-    if measure != :date
+    # clusterize all of them, since occasionally a duplicate day
+    # record can cause problems with calculations
+    if measure != :date || true
       unit_hash = {}
       days.each do |day|
         unit_id = day[measure]
