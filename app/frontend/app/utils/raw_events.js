@@ -1117,7 +1117,9 @@ var buttonTracker = EmberObject.extend({
       var icon_left = buttonTracker.dwell_icon_elem.style.left;
       buttonTracker.dwell_icon_elem.style.left = '-1000px';
     }
+    $(".dropdown-backdrop").hide();
     var $target = $(document.elementFromPoint(event.clientX, event.clientY));
+    $(".dropdown-backdrop").show();
     if(buttonTracker.dwell_elem) {
       buttonTracker.dwell_elem.style.left = left;
     }
@@ -1444,7 +1446,7 @@ var buttonTracker = EmberObject.extend({
     var target = event && event.target;
     var result = !!(target && (
                       target.tagName == 'INPUT' ||
-                      target.className == 'dropdown-backdrop' ||
+//                      target.className == 'dropdown-backdrop' ||
                       target.className == 'modal' ||
                       target.className == 'modal-dialog'
                     ));
@@ -1464,7 +1466,10 @@ var buttonTracker = EmberObject.extend({
     if(this.longPressEvent) {
       var selectable_wrap = this.find_selectable_under_event(this.longPressEvent, true);
       if(selectable_wrap) {
-        var event = $.Event('touchend', this.longPressEvent.originalTarget);
+        var target = this.longPressEvent.originalTarget || (this.longPressEvent.originalEvent || this.longPressEvent).target
+        var event = $.Event('touchend', target);
+        event.clientX = this.longPressEvent.clientX;
+        event.clientY = this.longPressEvent.clientY;
         buttonTracker.element_release(selectable_wrap, event);
         this.ignoreUp = true;
       }
