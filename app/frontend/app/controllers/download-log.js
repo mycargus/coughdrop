@@ -6,15 +6,19 @@ import persistence from '../utils/persistence';
 
 export default modal.ModalController.extend({
   opening: function() {
+    this.set('status', null);
     if(this.get('model.log')) {
       this.send('download');
     }
   },
   actions: {
-    download: function() {
+    download: function(type) {
       var _this = this;
       _this.set('status', {downloading: true});
       var params = _this.get('model.user') ? ("user_id=" + _this.get('model.user.id')) : ("log_id=" + _this.get('model.log.id'));
+      if(type == 'obla') {
+        params = params + "&anonymized=1";
+      }
       persistence.ajax('/api/v1/logs/obl?' + params, {method: 'GET'}).then(function(data) {
         progress_tracker.track(data.progress, function(event) {
           if(event.status == 'errored') {

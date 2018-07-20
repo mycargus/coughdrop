@@ -144,7 +144,7 @@ class Api::LogsController < ApplicationController
       user = User.find_by_global_id(params['user_id'])
       return unless exists?(user, params['user_id'])
       return unless allowed?(user, 'supervise')
-      progress = Progress.schedule(Exporter, :export_logs, user.global_id)
+      progress = Progress.schedule(Exporter, :export_logs, user.global_id, !!params['anonymized'])
       render json: JsonApi::Progress.as_json(progress, :wrapper => true).to_json
     end
   end

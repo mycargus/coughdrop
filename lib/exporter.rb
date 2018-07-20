@@ -313,7 +313,7 @@ More information about the file formats being used is available at https://www.o
         e['type'] = 'utterance'
         e['text'] = event['utterance']['text']
         sentence = []
-        e['buttons'] = event['utterance']['buttons'].map do |button|
+        e['buttons'] = ((event['utterance'] || {})['buttons'] || []).map do |button|
           if anonymized && !WordData.core_for?(button['label'] || '', nil) && (button['modified'] || !core_buttons["#{button['button_id']}:#{button['board']['id']}"])
             sentence << '????'
             {redacted: true}

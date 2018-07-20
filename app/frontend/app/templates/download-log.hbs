@@ -23,6 +23,7 @@
     {{else if model.user}}
       <p>{{t "CoughDrop will generate a file containing <b>a full history of the %{un}'s logs</b> which you can download and share with your team or upload into another system. If you have been using CoughDrop for a long time then this could take a while. Would you like to continue?" un=model.user.user_name key='confirm_user_log_download'}}</p>
       <button class='btn btn-primary' {{action 'download'}}>{{t "Generate Download (.obl)" key='generate_download'}}</button>
+      <button class='btn btn-default' {{action 'download' 'obla'}}>{{t "Generate .obla" key='generate_obla'}}</button>
     {{else}}
       <p>{{t "Missing Log Information" key='missing_log_information'}}</p>
     {{/if}}
