@@ -260,7 +260,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
         summary.data['stats'] ||= {}
         total.data['totals']['total_modeled_words'] += (summary.data['stats']['modeled_word_counts'] || {}).map(&:last).sum
         total.data['totals']['total_modeled_buttons'] += (summary.data['stats']['modeled_button_counts'] || {}).map{|k, h| h['count'] }.sum
-        total.data['totals']['total_words'] += (summary.data['stats']['all_word_counts'] || {}).map(&:last).sum + summary.data['stats']['modeled_word_counts'].map(&:last).sum
+        total.data['totals']['total_words'] += (summary.data['stats']['all_word_counts'] || {}).map(&:last).sum + (summary.data['stats']['modeled_word_counts'] || {}).map(&:last).sum
         total.data['totals']['total_buttons'] += (summary.data['stats']['all_button_counts'] || {}).map{|k, h| h['count'] }.sum + (summary.data['stats']['modeled_button_counts'] || {}).map{|k, h| h['count'] }.sum
         total.data['totals']['total_core_words'] += summary.data['stats']['core_words']['core'] || 0
         total.data['totals']['total_users'] += 1

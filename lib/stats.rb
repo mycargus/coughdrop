@@ -189,7 +189,7 @@ module Stats
     date = WeeklyStatsSummary.weekyear_to_date(summary.weekyear)
     history = ((date - min_date.to_date).to_f / (date_range.to_f)) ** 2
     ['emergent_words', 'dwindling_words'].each do |cat|
-      (summary.data['stats'][cat] || []).each do |word, val|
+      ((summary.data['stats'][cat] || {}) || []).each do |word, val|
         stats[cat] ||= {}
         stats[cat][word] ||= 0
         stats[cat][word] += (val * (history)).round(3)
@@ -957,8 +957,8 @@ module Stats
 
     # - basic core words that are available but not used often
     if recent_weeks > 0
-      max_core_word = core_word_counts.to_a.map(&:last).max || 1
-      min_core_word = core_word_counts.to_a.map(&:last).min || 1
+      max_core_word = [core_word_counts.to_a.map(&:last).max || 1, 1].max
+      min_core_word = [core_word_counts.to_a.map(&:last).min || 1, 1].max
       basic_core.each do |word|
         # if there are more than 5 weeks of data and the core word has never been used,
         # or has been used less than once every 4 weeks in the long-view history
@@ -1044,9 +1044,9 @@ module Stats
         # only suggest words that are actually reachable in the user's vocabulary
         if reachable_words.include?(word)
           scored_words[word] ||= {:word => word, :score => 0, :reasons => []}
-          cnt = 0 if cnt.respond_to?(:nan?) && cnt.nan?
+          cnt = 0 if cnt.respond_to?(:nan?) && cnt.nan? & cnt.finite?
           scored_words[word][:score] += cnt * score
-          scored_words[word][:score] = scored_words[word][:score].round(3)
+          scored_words[word][:score] = [scored_words[word][:score], 100.0].min.round(3)
           scored_words[word][:reasons] << key
         end
       end
