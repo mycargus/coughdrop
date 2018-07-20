@@ -68,6 +68,7 @@ export default Component.extend({
     },
     share_via: function(medium) {
       if(this.get('native.' + medium)) {
+        // TODO: download the image locally first??
         capabilities.sharing.share(medium, this.get('text'), this.get('url'), this.get('utterance.best_image_url'));
       } else if(medium == 'facebook') {
         capabilities.window_open(this.get('facebook_url'));

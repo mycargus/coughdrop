@@ -283,10 +283,11 @@ var capabilities;
               }
             }, 500);
             var dones = 0;
-            var valids = ['email', 'generic'];
+            var valids = ['generic'];
             if(window.cordova && window.cordova.plugins && window.cordova.plugins.clipboard && window.cordova.plugins.clipboard.copy) {
               valids.push('clipboard');
             }
+            if(capabilities.system == 'Android') { valids.push('email'); }
             var all_done = function() {
               dones++;
               if(dones >= checks.length) {
