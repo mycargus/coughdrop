@@ -183,7 +183,7 @@ class UserBadge < ActiveRecord::Base
     percent.to_f
   end
   
-  def self.check_for(user_id, stats_id=nil, allow_forever_check=false)
+  def self.check_for(user_id, stats_id=nil, allow_forever_check=false, verbose=false)
     user = User.find_by_path(user_id)
     stats = WeeklyStatsSummary.find_by_global_id(stats_id) if stats_id
     stats_start = WeeklyStatsSummary.weekyear_to_date(stats.weekyear) if stats
@@ -197,7 +197,8 @@ class UserBadge < ActiveRecord::Base
       earned_goal_badges = badges.select{|b| b.earned && b.user_goal_id == goal.id }.sort_by(&:level)
       max_level = earned_goal_badges[-1] ? earned_goal_badges[-1].level : 0
       next if max_level >= goal.settings['max_badge_level'] && !goal.settings['assessment_badge']
-      check_goal_badges(user, goal, max_level, stats_start, allow_forever_check)
+      puts "\n\nCHECKING #{goal.settings['summary']}" if verbose
+      check_goal_badges(user, goal, max_level, stats_start, allow_forever_check, verbose)
     end
   end
 
@@ -340,6 +341,8 @@ class UserBadge < ActiveRecord::Base
       elsif level == 0
         days_back = 7
       end
+      puts "  #{badge_level.to_json}" if verbose
+      puts "  #{measure.to_s} #{measure_days} going back #{days_back}" if verbose
       
       # TODO: sharding
       summaries = WeeklyStatsSummary.where(:user_id => user.id)
@@ -403,6 +406,7 @@ class UserBadge < ActiveRecord::Base
             }, {user: user, author: user, device: user.devices[0], automatic_assessment: true})
           end
           valid = valid_unit(unit, badge_level)
+          puts "  invalid unit at #{unit.to_json}" if !valid && verbose
           session.data['assessment']['tallies'][0]['correct'] = !!valid
           session.data['assessment']['totals']['correct'] = !!valid ? 1 : 0
           session.data['assessment']['totals']['incorrect'] = !!valid ? 0 : 1
@@ -417,6 +421,7 @@ class UserBadge < ActiveRecord::Base
         units = units.select do |unit|
           va = UserBadge.valid_unit(unit, badge_level)
           unit[:explanation] = va[:explanation] if va.is_a?(Hash)
+          puts "  invalid unit at #{unit.to_json}" if !va && verbose
           va
         end
       end
