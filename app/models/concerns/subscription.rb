@@ -644,11 +644,12 @@ module Subscription
         end
       end
 
-      # TODO: send out a two and one-month warning when account is 
+      # send out a two and one-month warning when account is 
       # going to be deleted for inactivity (after 12 months of non-use)
       to_be_deleted = User.where(['updated_at < ?', 12.months.ago]).order('updated_at ASC').limit(100)
       # to_be_deleted.each do |user|
-      [].each do |user|
+      to_be_deleted.each do |user|
+        next if user.user_name.match(/^testing/) && user.settings['email'] == 'testing@example.com'
         updated = user.updated_at
         user.settings['subscription'] ||= {}
         last_warning = Time.parse(user.settings['subscription']['last_deletion_warning']) rescue Time.at(0)
