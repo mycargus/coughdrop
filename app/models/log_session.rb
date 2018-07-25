@@ -799,7 +799,7 @@ class LogSession < ActiveRecord::Base
       log_ids << r['log_id'] unless ref_ids[r['ref_id']]
       ref_ids[r['ref_id']] = true;
       ref_ids[r['log_id']] = true;
-  }
+    }
     LogSession.where(id: log_ids).each do |session|
       session.schedule(:check_for_merger)
     end
@@ -807,53 +807,53 @@ class LogSession < ActiveRecord::Base
   end
   
   def check_for_merger
-    # TODO: remove this
-    return true unless Rails.env.test?
-    cutoff = (self.user && self.user.log_session_duration) || User.default_log_session_duration
-    matches = LogSession.where(log_type: 'session', user_id: self.user_id, author_id: self.author_id, device_id: self.device_id); matches.count
-    mergers = matches.where(['id != ?', self.id]).where(['ended_at >= ? AND ended_at <= ?', self.started_at - cutoff, self.ended_at + cutoff]).order('id')
+    log = self
+    cutoff = (log.user && log.user.log_session_duration) || User.default_log_session_duration
+    matches = LogSession.where(log_type: 'session', user_id: log.user_id, author_id: log.author_id, device_id: log.device_id); matches.count
+    mergers = matches.where(['id != ?', log.id]).where(['ended_at >= ? AND ended_at <= ?', log.started_at - cutoff, log.ended_at + cutoff]).order('id')
     mergers.each do |merger|
-      next if merger.id == self.id
+      next if merger.id == log.id
       # always merge the newer log into the older log
-      if self.id < merger.id
-        ids = (self.data['events'] || []).map{|e| e['id'] }.compact
+      if log.id < merger.id
+        ids = (log.data['events'] || []).map{|e| e['id'] }.compact
         merger.data['events'] ||= []
         max_precision = 0
         merger.data['events'].each do |e|
           max_precision = [max_precision, e['timestamp'].to_s.split(/\./)[1].length].max
         end
-        # remove dups based on timestamp or event data if timestamps aren't precise enough
+        # remove dups based on timestamp or (event data if timestamps aren't precise enough)
         kept_events = []
-        merger_user_id = self.data['events'].map{|e| e['user_id'] }.first
+        merger_user_id = log.data['events'].map{|e| e['user_id'] }.first
         slices = ['type', 'percent_x', 'percent_y', 'timestamp', 'action', 'button', 'utterance']
         merger.data['events'].each do |e|
           json = e.slice(*slices).to_json if max_precision <= 1
-          found = !!self.data['events'].detect do |me|
+          found = !!log.data['events'].detect do |me|
             if max_precision > 1
               me['timestamp'] == e['timestamp']
             else
               me.slice(*slices).to_json == json
             end
           end
+          # if not found in the existing events list, add it to the log or keep it
           if !found
             if e['user_id'] == merger_user_id
               # replace any colliding event ids
               e['id'] = (ids.max || 0) + 1 if merger.data['events'].detect{|me| me['id'] == e['id'] }
               ids << e['id']
-              self.data['events'] << e
+              log.data['events'] << e
             else
               kept_events << e
             end
           end
         end
-        self.save!
+        log.save!
         if kept_events.length > 0
           merger.data['events'] = kept_events
           merger.save!
         else
           merger.destroy
         end
-        self.schedule_once(:check_for_merger)
+        log.schedule_once(:check_for_merger)
       else
         merger.check_for_merger
         return
