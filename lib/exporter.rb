@@ -10,7 +10,7 @@ module Exporter
       file = Tempfile.new(['log', ext])
       file.write(JSON.pretty_generate(hash))
       file.close
-      Uploader.remote_upload("downloads/logs/user/#{Time.now.iso8601}/#{user.anonymized_identifier}/#{fn}", file.path, 'application/obl')
+      Uploader.remote_upload("downloads/logs/user/#{CGI.escape(Time.now.iso8601[0, 16])}/#{user.anonymized_identifier}/#{fn}", file.path, 'application/obl')
     end
   end
   
@@ -36,7 +36,7 @@ More information about the file formats being used is available at https://www.o
       export_logs(user.global_id, true, zipper)
       export_boards(user, zipper)
     end
-    Uploader.remote_upload("downloads/users/#{Time.now.iso8601}/#{user.user_name}/coughdrop-export-#{user.user_name}.zip", file.path, "application/zip")
+    Uploader.remote_upload("downloads/users/#{CGI.escape(Time.now.iso8601[0, 16])}/#{user.user_name}/coughdrop-export-#{user.user_name}.zip", file.path, "application/zip")
   end
   
   def self.export_boards(user, zipper=nil)
@@ -106,7 +106,7 @@ More information about the file formats being used is available at https://www.o
     file.write(JSON.pretty_generate(hash))
     file.close
     fn = (anonymized ? "aac-log-#{log_session.anonymized_identifier[0, 10]}" : "aac-log-#{log_session.global_id}") + ext
-    Uploader.remote_upload("downloads/logs/log/#{Time.now.iso8601}/#{log_session.anonymized_identifier}/#{fn}", file.path, 'application/obl')
+    Uploader.remote_upload("downloads/logs/log/#{CGI.escape(Time.now.iso8601[0, 16])}/#{log_session.anonymized_identifier}/#{fn}", file.path, 'application/obl')
   end
   
   def self.log_json(user, sessions, anonymized=false)
