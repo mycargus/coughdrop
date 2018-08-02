@@ -26,7 +26,11 @@ describe JsonApi::Token do
     end
 
     it "should return an anonymized keyed id that is unique to the developer key tied to the device" do
-      write_this_test
+      d = Device.create
+      d.developer_key_id = 14
+      u = User.new(user_name: 'fred')
+      hash = JsonApi::Token.as_json(u, d)
+      expect(hash['anonymized_user_id']).to eq(u.anonymized_identifier('external_for_14'))
     end
   end
 end

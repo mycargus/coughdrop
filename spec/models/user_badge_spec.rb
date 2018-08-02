@@ -847,7 +847,7 @@ describe UserBadge, type: :model do
       expect(g.badged?).to eq(true)
       expect(g.settings['max_badge_level']).to eq(0)
             
-      expect(UserBadge).to receive(:check_goal_badges).with(u, g, 0, nil, false)
+      expect(UserBadge).to receive(:check_goal_badges).with(u, g, 0, nil, false, false)
       UserBadge.check_for(u.global_id)
     end
     
@@ -871,7 +871,7 @@ describe UserBadge, type: :model do
       expect(g.settings['max_badge_level']).to eq(5)
       b = UserBadge.create(:user => u, :user_goal => g, level: 5, earned: true)
             
-      expect(UserBadge).to receive(:check_goal_badges).with(u, g, 5, nil, false)
+      expect(UserBadge).to receive(:check_goal_badges).with(u, g, 5, nil, false, false)
       UserBadge.check_for(u.global_id)
     end
     
@@ -1363,7 +1363,7 @@ describe UserBadge, type: :model do
       g.settings['badges'] = [{}, {}]
       g.save
       b = UserBadge.create(:user => u, :user_goal => g, :level => 1, :earned => true)
-      expect(UserBadge).to receive(:check_goal_badges).with(u, g, 1, nil, false)
+      expect(UserBadge).to receive(:check_goal_badges).with(u, g, 1, nil, false, false)
       UserBadge.check_for(u.global_id)
     end
 
@@ -1372,7 +1372,7 @@ describe UserBadge, type: :model do
       g = UserGoal.create(:user => u, :active => true)
       g.settings['badges'] = [{}, {}]
       g.save
-      expect(UserBadge).to receive(:check_goal_badges).with(u, g, 0, nil, false)
+      expect(UserBadge).to receive(:check_goal_badges).with(u, g, 0, nil, false, false)
       UserBadge.check_for(u.global_id)
     end
     
@@ -2417,11 +2417,11 @@ describe UserBadge, type: :model do
   describe "cluster_days" do
     it "should return the original list, sorted for date measures" do
       res = UserBadge.cluster_days(:date, [
-        {id: 1, date: 1},
-        {id: 2, date: 3},
-        {id: 3, date: 2}
+        {id: 1, date: 1, next: {date: 2}},
+        {id: 2, date: 3, next: {}},
+        {id: 3, date: 2, next: {date: 3}}
       ])
-      expect(res.map{|r| r[:id] }).to eq([1, 3, 2])
+      expect(res.map{|r| r[:date] }).to eq([1, 2, 3])
     end
     
     it "should return the sorted list clustered by the measure field" do

@@ -808,15 +808,12 @@ describe Api::UsersController, :type => :controller do
       expect(json['flushed']).to eq("false")
     end
     
-    it "should return a progress object" do
+    it "should return a result object" do
       token_user
-      post :flush_user, params: {:user_id => @user.global_id, :user_name => @user.user_name}
+      post :flush_user, params: {:user_id => @user.global_id, :confirm_user_id => @user.global_id, :user_name => @user.user_name}
       expect(response).to be_success
       json = JSON.parse(response.body)
-      progress = Progress.find_by_global_id(json['progress']['id'])
-      expect(progress.settings['class']).to eq('Flusher')
-      expect(progress.settings['method']).to eq('flush_user_completely')
-      expect(progress.settings['arguments']).to eq([@user.global_id, @user.user_name])
+      expect(json).to eq({'flushed' => 'pending'})
     end
   end
 
@@ -920,7 +917,7 @@ describe Api::UsersController, :type => :controller do
     it "should schedule token processing" do
       token_user
       p = Progress.create
-      expect(Progress).to receive(:schedule).with(@user, :process_subscription_token, {'code' => 'abc'}, 'monthly_6').and_return(p)
+      expect(Progress).to receive(:schedule).with(@user, :process_subscription_token, {'code' => 'abc'}, 'monthly_6', nil).and_return(p)
       post :subscribe, params: {:user_id => @user.global_id, :token => {'code' => 'abc'}, :type => 'monthly_6'}
       expect(response.success?).to eq(true)
       json = JSON.parse(response.body)
@@ -1052,6 +1049,23 @@ describe Api::UsersController, :type => :controller do
       expect(u.reload.settings['premium_voices']).to eq({'claimed' => [], 'allowed' => 1})
     end
     
+    it "should let admins add premium extras" do
+      token_user
+      u = User.create
+      o = Organization.create(:admin => true, :settings => {'total_licenses' => 1})
+      o.add_manager(@user.user_name, true)
+
+      expect(u.subscription_hash['extras_enabled']).to eq(nil)
+      
+      post :subscribe, params: {:user_id => u.global_id, :type => 'enable_extras'}
+      expect(response).to be_success
+      
+      json = JSON.parse(response.body)
+      expect(json['progress']).not_to eq(nil)
+      Worker.process_queues
+      expect(u.reload.subscription_hash['extras_enabled']).to eq(true)
+    end
+
     it "should not let non-admins add a premium voice" do
       token_user
       u = User.create
@@ -1087,7 +1101,7 @@ describe Api::UsersController, :type => :controller do
     it "should allow updating a subscription with no api token, but a confirmation code" do
       @user = User.create
       p = Progress.create
-      expect(Progress).to receive(:schedule).with(@user, :process_subscription_token, {'code' => 'abc'}, 'monthly_6').and_return(p)
+      expect(Progress).to receive(:schedule).with(@user, :process_subscription_token, {'code' => 'abc'}, 'monthly_6', nil).and_return(p)
       post :subscribe, params: {:user_id => @user.global_id, :confirmation => @user.registration_code, :token => {'code' => 'abc'}, :type => 'monthly_6'}
       expect(response.success?).to eq(true)
       json = JSON.parse(response.body)

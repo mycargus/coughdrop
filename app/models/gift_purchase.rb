@@ -12,14 +12,19 @@ class GiftPurchase < ActiveRecord::Base
   add_permissions('manage') {|user| (self.settings['admin_user_ids'] || []).include?(user.global_id) }
 
   def self.find_by_code(code)
-    code = (code || '').downcase.gsub(/o/, '0')
-    parts = code.split(/x/)
-    if parts.length > 1
-      gifts = GiftPurchase.where(["code LIKE ?", "#{parts[0]}%"])
-      gift = gifts.detect{|g| g.settings['total_codes'] && g.settings['codes'].has_key?(code) }
-    else
-      gift = GiftPurchase.where(:code => code, :active => true).first
+    code = (code || '').downcase
+    gift = GiftPurchase.find_by(code: code, active: true)
+    if !gift
+      code = code.gsub(/o/, '0')
+      parts = code.split(/x/)
+      if parts.length > 1
+        gifts = GiftPurchase.where(["code LIKE ?", "#{parts[0]}%"]).where(active: true)
+        gift = gifts.detect{|g| g.settings['total_codes'] && g.settings['codes'].has_key?(code) }
+      else
+        gift = GiftPurchase.where(:code => code, :active => true).first
+      end
     end
+    gift
   end
   
   def generate_defaults
@@ -46,12 +51,19 @@ class GiftPurchase < ActiveRecord::Base
     end
     true
   end
+
+  def code_verifier
+    GoSecure.sha512(self.code, 'gift_code_verifier')[0, 30]
+  end
   
   def gift_type
+    self.settings ||= {}
     if self.settings['total_codes']
       'multi_code'
     elsif self.settings['licenses']
       'bulk_purchase'
+    elsif self.settings['discount']
+      'discount'
     else
       'user_gift'
     end
@@ -112,14 +124,21 @@ class GiftPurchase < ActiveRecord::Base
       self.settings['giver_email'] ||= non_user_params['giver'].settings['email'] if non_user_params['giver'].settings['email']
     end
 
-    ['licenses', 'total_codes', 'amount', 'memo', 'email', 'organization', 'gift_name'].each do |arg|
+    ['licenses', 'total_codes', 'limit', 'discount', 'amount', 'memo', 'email', 'organization', 'gift_name'].each do |arg|
       self.settings[arg] = params[arg] if params[arg] && !params[arg].blank?
+    end
+
+    if params['discount'] && params['code']
+      self.code = params['code'].to_s.downcase
+    end
+    if params['expires']
+      self.settings['expires'] = Date.parse(params['expires'])
     end
     if params['org_id']
       org = Organization.find_by_global_id(params['org_id'])
       self.settings['org_id'] = org.global_id
     end
-    
+
     if non_user_params['giver'] && self.settings['licenses']
       self.settings['giver_email'] = non_user_params['giver'].settings['email'] if non_user_params['giver'].settings['email']
     end
@@ -137,19 +156,60 @@ class GiftPurchase < ActiveRecord::Base
 #  def self.redeem(code, user)
 #    Purchasing.redeem_gift(code, user)
 #  end
-  
-  def redeem_code!(code, user)
+
+  def redemption_state(code)
     if self.gift_type == 'multi_code'
       parts = code.split(/x/)
-      raise "invalid code" unless self.code[0, 4] == parts[0] && self.settings['codes'].has_key?(code)
-      raise "code already redeemed" if !self.active || self.settings['codes'][code] != nil
+      return {error: "invalid code"} unless self.code[0, 4] == parts[0] && self.settings['codes'].has_key?(code)
+      return {error: "code already redeemed"} if !self.active || self.settings['codes'][code] != nil
+      return {valid: true}
+    elsif self.gift_type == 'discount'
+      return {error: "invalid code"} unless self.code == code
+      return {error: "discount limit passed"} if self.settings['limit'] && (self.settings['activations'] || []).length >= self.settings['limit']
+      if self.settings['expires'] && self.settings['expires'] <= Date.today.iso8601
+        if self.active
+          self.active = false
+          self.save
+        end
+        return {error: "discount expired"} 
+      end
+      return {error: "all codes redeemed"} if !self.active
+      return {valid: true}
+    elsif self.gift_type == 'user_gift'
+      return {error: "invalid code"} unless self.code == code
+      return {error: 'already redeemed'} if !self.active
+      return {valid: true}
+    else
+      return {error: "invalid code"}
+    end
+  end
+
+  def discount_percent
+    if self.settings['discount']
+      [[1.0, self.settings['discount'].to_f].min, 0.0].max
+    else
+      1.0
+    end
+  end
+  
+  def redeem_code!(code, user)
+    redeem = redemption_state(code)
+    raise redeem[:error] if !redeem[:valid]
+    if self.gift_type == 'multi_code'
+      parts = code.split(/x/)
       self.settings['codes'][code] = {
         'redeemed_at' => Time.now.iso8601,
         'receiver_id' => user.global_id
       }
       self.active = false if self.settings['codes'].to_a.map(&:last).all?{|v| v != nil }
+    elsif self.gift_type == 'discount'
+      self.settings['activations'] ||= []
+      self.settings['activations'] << {
+        'receiver_id' => user.global_id,
+        'activated_at' => Time.now.iso8601
+      }
+      self.active = false if self.settings['limit'] && self.settings['activations'].length >= self.settings['limit']
     elsif self.gift_type == 'user_gift'
-      raise "invalid code" unless self.code == code
       self.active = false
       self.settings['receiver_id'] = user.global_id
       self.settings['redeemed_at'] = Time.now.iso8601

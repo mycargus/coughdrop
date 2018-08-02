@@ -16,11 +16,15 @@ describe JsonApi::Gift do
     it "should return appropriate attributes" do
       g = GiftPurchase.create(:settings => {'hat' => 'black', 'seconds_to_add' => 2.years.to_i})
       expect(JsonApi::Gift.build_json(g)).to eq({
-        'id' => g.code,
+        'id' => "#{g.code}y#{g.code_verifier}",
         'code' => g.code,
         'seconds' => 2.years.to_i,
         'duration' => '2 years',
         'gift_type' => 'user_gift',
+        'activated_discounts' => 0,
+        'discount' => 1.0,
+        'expires' => nil,
+        'limit' => nil,
         'redeemed_codes' => 0,
         'org_connected' => false,
         'total_codes' => nil,
@@ -48,7 +52,7 @@ describe JsonApi::Gift do
       g.redeem_code!(code, u2)
       expect(g.allows?(u, 'manage')).to eq(true)
       json = JsonApi::Gift.build_json(g, :permissions => u)
-      expect(json['id']).to eq(g.code)
+      expect(json['id']).to eq("#{g.code}y#{g.code_verifier}")
       expect(json['codes'].length).to eq(5)
       code = json['codes'].detect{|c| c[:code] == code }
       expect(code).to_not eq(nil)

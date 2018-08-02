@@ -246,5 +246,88 @@ describe GiftPurchase, :type => :model do
       expect(links[0]['state']['eval']).to eq(false)
       expect(g.active).to eq(true)
     end
+
+    it "should handle discount percents" do
+      g = GiftPurchase.create(settings: {'discount' => 0.5})
+      u = User.create
+      g.redeem_code!(g.code, u)
+      expect(g.settings['activations']).to eq([
+        {'receiver_id' => u.global_id, 'activated_at' => Time.now.iso8601}
+      ])
+    end
+  end
+
+  describe 'gift_type' do
+    it "should return the correct type" do
+      g = GiftPurchase.new
+      expect(g.gift_type).to eq('user_gift')
+      g.settings = {'total_codes' => 1}
+      expect(g.gift_type).to eq('multi_code')
+      g.settings = {'licenses' => 1}
+      expect(g.gift_type).to eq('bulk_purchase')
+      g.settings = {'discount' => 0.1}
+      expect(g.gift_type).to eq('discount')
+    end
+  end
+
+  describe 'redemption_state' do
+    it 'should handle multi_code stats' do
+      g = GiftPurchase.create(settings: {'total_codes' => 5})
+      expect(g.redemption_state(g.code)).to eq({error: 'invalid code'})
+      expect(g.redemption_state(g.settings['codes'].keys[0])).to eq({valid: true})
+      g.active = false
+      expect(g.redemption_state(g.settings['codes'].keys[0])).to eq({error: 'code already redeemed'})
+      g.active = true
+      g.settings['codes'][g.settings['codes'].keys[0]] = {}
+      expect(g.redemption_state(g.settings['codes'].keys[0])).to eq({error: 'code already redeemed'})
+    end
+
+    it 'should handle discount states' do
+      g = GiftPurchase.create(settings: {'discount' => 0.1})
+      expect(g.redemption_state(g.code)).to eq({valid: true})
+      expect(g.redemption_state('bacon')).to eq({error: 'invalid code'})
+      g.settings['limit'] = 0
+      expect(g.redemption_state(g.code)).to eq({error: 'discount limit passed'})
+      g.settings['limit'] = 1
+      expect(g.redemption_state(g.code)).to eq({valid: true})
+      g.settings['activations'] = [{}, {}]
+      expect(g.redemption_state(g.code)).to eq({error: 'discount limit passed'})
+      g.settings['limit'] = 100
+      g.settings['expires'] = 24.hours.from_now.iso8601
+      expect(g.redemption_state(g.code)).to eq({valid: true})
+      expect(g.active).to eq(true)
+      g.settings['expires'] = 6.days.ago.to_date.iso8601
+      expect(g.redemption_state(g.code)).to eq({error: 'discount expired', })
+      expect(g.active).to eq(false)
+      g.settings['expires'] = 2.days.from_now.to_date.iso8601
+      expect(g.redemption_state(g.code)).to eq({error: 'all codes redeemed'})
+      
+    end
+
+    it 'should gift codes' do
+      g = GiftPurchase.create
+      expect(g.redemption_state(g.code)).to eq({valid: true})
+      expect(g.redemption_state('bacon')).to eq({error: 'invalid code'})
+      g.active = false
+      expect(g.redemption_state(g.code)).to eq({error: 'already redeemed'})
+    end
+
+    it 'should fail for other code types' do
+      g = GiftPurchase.create(settings: {'licenses' => 1})
+      expect(g.redemption_state(g.code)).to eq({error: 'invalid code'})
+    end
+  end
+
+  describe 'discount_percent' do
+    it 'should return the correct value' do
+      g = GiftPurchase.create(settings: {'discount' => 0.5})
+      expect(g.discount_percent).to eq(0.5)
+      g.settings['discount'] = nil
+      expect(g.discount_percent).to eq(1.0)
+      g.settings['discount'] = 20
+      expect(g.discount_percent).to eq(1.0)
+      g.settings['discount'] = -0.1
+      expect(g.discount_percent).to eq(0.0)
+    end
   end
 end

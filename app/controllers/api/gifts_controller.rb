@@ -3,9 +3,11 @@ class Api::GiftsController < ApplicationController
   # TODO: implement throttling to prevent brute force gift lookup
 
   def show
-    gift = GiftPurchase.find_by_code(params['id'].gsub(/x/, '&'))
+    id, verifier = params['id'].split(/y/)
+    gift = GiftPurchase.find_by_code(id.gsub(/x/, '&'))
     return unless exists?(gift, params['id'])
     return unless allowed?(gift, 'view')
+    return allowed?(gift, 'never_allow') if id.length < 20 && verifier != gift.code_verifier
     render json: JsonApi::Gift.as_json(gift, :wrapper => true, :permissions => @api_user).to_json
   end
   
@@ -17,16 +19,16 @@ class Api::GiftsController < ApplicationController
   
   def create
     return unless allowed?(@api_user, 'admin_support_actions')
-    gift = GiftPurchase.process_new({
-      'licenses' => params['gift']['licenses'],
-      'total_codes' => params['gift']['total_codes'],
-      'amount' => params['gift']['amount'],
-      'memo' => params['gift']['memo'],
-      'email' => params['gift']['email'],
-      'organization' => params['gift']['organization'],
-      'org_id' => params['gift']['org_id'],
-      'gift_name' => params['gift']['gift_name']
-    }, {
+    code = params['gift']['code']
+    if code && GiftPurchase.where(code: code)
+      api_error 400, {error: 'code is taken'}
+      return
+    end
+    gift = GiftPurchase.process_new(
+    params['gift'].slice('licenses', 'total_codes', 'amount', 
+          'expires', 'limit', 'code', 'memo', 'email', 'organization', 
+          'org_id', 'gift_type', 'gift_name', 'discount'), 
+    {
       'giver' => @api_user,
       'email' => @api_user.settings['email'],
       'seconds' => params['gift']['seconds'].to_i

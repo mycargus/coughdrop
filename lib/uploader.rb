@@ -230,6 +230,12 @@ module Uploader
   end
   
   def self.fallback_image_url(image_id, library)
+    # TODO: if premium image isn't authorized, fall back to the
+    # default opensymbols result, but cache them somewhere for
+    # faster retrieval time. Also this poses problems when editing
+    # a board that has unauthorized premium symbols. Maybe just a 
+    # flash warning is enough there.
+    # Maybe we cache the user lookup so the redirects can happen faster..
     if library == 'lessonpix'
       return "https://lessonpix.com/drawings/#{image_id}/100x100/#{image_id}.png"
     else

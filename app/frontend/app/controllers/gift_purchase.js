@@ -81,6 +81,8 @@ export default Controller.extend({
               var str = i18n.t('card_declined', "Purchase failed, your card was declined. Please try a different card or contact support for help.");
               if(event.result.decline_code && event.result.decline_code == 'fraudulent') {
                 str = i18n.t('card_declined_by_billing', "Purchase failed, our billing system has flagged your card as high-risk. Please try a different card or contact support for help.");
+              } else if(event.result.decline_code && event.result.decline_code == 'stolen_card') {
+                str = i18n.t('card_declined_by_billing', "Purchase failed, our billing system has flagged your card as being stolen. Please try a different card or contact support for help.");
               }
               _this.set('purchase_error', str);
               _this.send('reset');

@@ -881,6 +881,24 @@ describe Api::OrganizationsController, :type => :controller do
       json = JSON.parse(response.body)
       expect(json).to eq({'user' => []})
     end
+
+    it "should generate extras report" do
+      token_user
+      o = Organization.create(:admin => true)
+      o.add_manager(@user.user_name, false)
+      ae1 = AuditEvent.create(:event_type => 'extras_added', :data => {'source' => 'asd'})
+      ae2 = AuditEvent.create(:data => {'source' => 'asd'})
+      ae3 = AuditEvent.create(:event_type => 'extras_added', :data => {'source' => 'asd'})
+      ae4 = AuditEvent.create(:event_type => 'extras_added', :data => {'source' => 'asdf'})
+      get :admin_reports, params: {:organization_id => o.global_id, :report => "extras"}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      ts = Time.now.strftime('%m-%Y')
+      expect(json['stats']).to eq({
+        "#{ts} asd" => 2,
+        "#{ts} asdf" => 1
+      })
+    end
     
     it "should generate new_users report" do
       token_user

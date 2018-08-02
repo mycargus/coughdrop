@@ -375,6 +375,8 @@ export default Controller.extend({
         this.set('subscription_settings', {action: action, type: i18n.t('communicator_trial', "Manually Set as Communicator Free Trial")});
       } else if(action == 'add_voice') {
         this.set('subscription_settings', {action: action, type: i18n.t('add_premium_voice', "Add 1 Premium Voice")});
+      } else if(action == 'enable_extras') {
+        this.set('subscription_settings', {action: action, type: i18n.t('enable_extras', "Enable Premium Symbols Access")});
       } else if(action == 'force_logout') {
         this.set('subscription_settings', {action: action, type: i18n.t('force_device_logout', "Force Logout on all Devices (this may cause the user to lose some logs)")});
       }

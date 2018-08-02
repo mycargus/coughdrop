@@ -724,9 +724,7 @@ describe Converters::CoughDrop do
       expect(board.settings['buttons'][1]['vocalization']).to eq(nil)
     end
 
-    it "should support known boards" do
-      write_this_test
-    end
+    it "should support known boards"
   end
 
   describe "from_external_nested" do

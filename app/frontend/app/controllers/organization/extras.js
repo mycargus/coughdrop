@@ -32,6 +32,7 @@ export default Controller.extend({
     {name: i18n.t('single_user_gift_code', "Single User Gift Code"), id: "user_gift"},
     {name: i18n.t('bulk_purchase', "Bulk License Purchase"), id: "bulk_purchase"},
     {name: i18n.t('gift_code_batch', "Gift Code Batch"), id: "multi_code"},
+    {name: i18n.t('discount_code', "Discount Code"), id: "discount"},
   ],
   current_gift_type: function() {
     var res = {};
@@ -77,6 +78,16 @@ export default Controller.extend({
         gift.set('memo', this.get('memo'));
         var years = parseFloat(this.get('duration')) || 5;
         gift.set('seconds', years * 365.25 * 24 * 60 * 60);
+      } else if(type == 'discount') {
+        var amount = parseFloat(this.get('discount_pct'));
+        if(amount <= 0 || isNaN(amount)) { return; }
+        if(amount > 1.0) { amount = amount / 100; }
+        gift.set('discount', amount);
+        gift.set('organization', this.get('org'));
+        gift.set('email', this.get('email'));
+        gift.set('expires', window.moment(this.get('expires'))._d);
+        gift.set('code', this.get('code'));
+        gift.set('limit', this.get('limit'));
       } else {
         var years = parseFloat(this.get('duration')) || 3;
         gift.set('seconds', years * 365.25 * 24 * 60 * 60);
@@ -86,7 +97,11 @@ export default Controller.extend({
       gift.save().then(function() {
         _this.load_gifts();
       }, function(err) {
-        modal.error(i18n.t('error_creating_gift', "There was an error creating the custom purchase"));
+        if(err && err.error == 'code is taken') {
+          modal.error(i18n.t('code_taken', "There was an error creating the custom purchase, that code has already been taken"));
+        } else {
+          modal.error(i18n.t('error_creating_gift', "There was an error creating the custom purchase"));
+        }
       });
     }
   }

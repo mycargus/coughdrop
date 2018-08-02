@@ -491,7 +491,7 @@ describe Stats do
       expect(ips[1][:ip_address]).to eq("0000:0000:0000:0000:0000:ffff:0102:0306")
       expect(ips[1][:readable_ip_address]).to eq("1.2.3.6")
       expect(ips[1][:total_sessions]).to eq(4)
-      expect(geos[0][:started_at]).to eq(s5.started_at.iso8601)
+      expect(geos[0][:started_at]).to be > ((s5.started_at - 5).iso8601)
       expect(geos[0][:ended_at]).to eq(s8.ended_at.iso8601)
     end
     
@@ -1191,7 +1191,9 @@ SOME SILLY GARBAGE
           {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'wait', 'button_id' => 6, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 5 - (i * 60)},
           {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'like', 'button_id' => 7, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 4 - (i * 60)},
           {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'like', 'button_id' => 8, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 3 - (i * 60)},
-          {'type' => 'button', 'modeling' => true, 'button' => {'spoken' => true, 'label' => 'with', 'button_id' => 9, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i}
+          {'type' => 'button', 'modeling' => true, 'button' => {'spoken' => true, 'label' => 'with', 'button_id' => 9, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i},
+          {'type' => 'button', 'modeling' => true, 'button' => {'spoken' => true, 'label' => 'with', 'button_id' => 9, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 2},
+          {'type' => 'button', 'modeling' => true, 'button' => {'spoken' => true, 'label' => 'with', 'button_id' => 9, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 4}
         ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
         sessions << s1
         WeeklyStatsSummary.update_for(s1.global_id)

@@ -125,6 +125,26 @@ describe Purchasing do
         expect(u.expires_at).to eq(exp + 5.years.to_i)
         expect(res[:data]).to eq({:purchase => true, :purchase_id => '12345', :valid => true})
       end
+
+      it 'should handle extras purchases' do
+        u = User.create
+        exp = u.expires_at
+        expect(SubscriptionMailer).to receive(:schedule_delivery).with(:extras_purchased, u.global_id)
+        
+        res = stripe_event_request 'charge.succeeded', {
+          'id' => '12345',
+          'customer' => '23456',
+          'metadata' => {
+            'user_id' => u.global_id,
+            'type' => 'extras'
+          }
+        }
+        u.reload
+        expect(u.subscription_hash['extras_enabled']).to eq(true)
+        expect(u.settings['subscription']['extras']['customer_id']).to eq('23456')
+        expect(u.settings['subscription']['extras']['purchase_id']).to eq('12345')
+        expect(res[:data]).to eq({:extras => true, :purchase_id => '12345', :valid => true})
+      end
     end
     
     describe "charge.failed" do
@@ -302,17 +322,14 @@ describe Purchasing do
     it "should error gracefully on invalid purchase amounts" do
       u = User.create
       
-      res = Purchasing.purchase(u, {'id' => 'token'}, 'monthly_12')
-      expect(res).to eq({:success => false, :error => "12 not valid for type monthly_12"});
-
       res = Purchasing.purchase(u, {'id' => 'token'}, 'monthly_2')
       expect(res).to eq({:success => false, :error => "2 not valid for type monthly_2"});
 
       res = Purchasing.purchase(u, {'id' => 'token'}, 'slp_long_term_25')
       expect(res).to eq({:success => false, :error => "25 not valid for type slp_long_term_25"});
 
-      res = Purchasing.purchase(u, {'id' => 'token'}, 'slp_long_term_200')
-      expect(res).to eq({:success => false, :error => "200 not valid for type slp_long_term_200"});
+      # res = Purchasing.purchase(u, {'id' => 'token'}, 'slp_long_term_200')
+      # expect(res).to eq({:success => false, :error => "200 not valid for type slp_long_term_200"});
 
       res = Purchasing.purchase(u, {'id' => 'token'}, 'slp_monthly_1')
       expect(res).to eq({:success => false, :error => "1 not valid for type slp_monthly_1"});
@@ -327,8 +344,8 @@ describe Purchasing do
       res = Purchasing.purchase(u, {'id' => 'token'}, 'long_term_100')
       expect(res).to eq({:success => false, :error => "100 not valid for type long_term_100"});
 
-      res = Purchasing.purchase(u, {'id' => 'token'}, 'long_term_350')
-      expect(res).to eq({:success => false, :error => "350 not valid for type long_term_350"});
+      # res = Purchasing.purchase(u, {'id' => 'token'}, 'long_term_350')
+      # expect(res).to eq({:success => false, :error => "350 not valid for type long_term_350"});
     end
     
     it "should allow discounts during a sale" do
@@ -384,6 +401,34 @@ describe Purchasing do
         error: 'no',
         decline_code: 'no way'
       })
+    end
+
+    it "should charge extras fee even on free purchase if specified" do
+      u = User.create
+      expect(Stripe::Charge).to receive(:create).with({
+        :amount => 2500,
+        :currency => 'usd',
+        :source => 'token',
+        :description => 'CoughDrop supporter account (plus premium symbols)',
+        :receipt_email => nil,
+        :metadata => {
+          'user_id' => u.global_id,
+          'plan_id' => 'slp_long_term_free',
+          'type' => 'license'
+        }
+      }).and_return({
+        'id' => '23456',
+        'customer' => '45678'
+      })
+
+      res = Purchasing.purchase(u, {'id' => 'token'}, 'slp_monthly_free_plus_extras');
+      Worker.process_queues
+      u.reload
+      expect(u.settings['subscription']).not_to eq(nil)
+      expect(u.settings['subscription']['extras']).to_not eq(nil)
+      expect(res).to eq({:success => true, :type => 'slp_long_term_free_plus_extras'})
+      expect(u.settings['subscription']['extras']['customer_id']).to eq('45678')
+      expect(u.settings['subscription']['extras']['purchase_id']).to eq('23456')
     end
 
     describe "subscription" do
@@ -442,6 +487,62 @@ describe Purchasing do
         expect(Purchasing).to receive(:cancel_other_subscriptions).with(u, '3457')
         Purchasing.purchase(u, {'id' => 'token'}, 'monthly_6')
       end
+
+      it "should immediately charge extras fee if specified" do
+        u = User.create
+        subs = OpenStruct.new({
+          'data' => [
+            OpenStruct.new({'status' => 'broken', 'id' => 'sub1'}),
+            OpenStruct.new({'status' => 'busted', 'id' => 'sub2'})
+          ],
+          'count' => 2,
+          'id' => '12345'
+        })
+        new_sub = OpenStruct.new({
+          'id' => '3456',
+          'customer' => '12345',
+          'status' => 'active'
+        })
+        cus = OpenStruct.new({
+          id: '12345',
+          subscriptions: subs,
+          default_source: 'deftoken'
+        })
+        expect(cus).to receive(:id).and_return('12345')
+        expect(Stripe::Customer).to receive(:create).with({
+          :metadata => {'user_id' => u.global_id},
+          :email => nil
+        }).and_return(cus)
+        expect(Stripe::Customer).to receive(:retrieve).and_return(cus).at_least(1).times
+        expect(cus.subscriptions).to receive(:create){|opts|
+          expect(opts).to eq({
+            :plan => 'monthly_6',
+            :source => 'token',
+            trial_end: (u.created_at + 60.days).to_i
+          })
+          subs.data.push(new_sub)
+        }.and_return(new_sub)
+
+        expect(Stripe::Charge).to receive(:create).with({
+          :amount => 2500,
+          :currency => 'usd',
+          :source => 'deftoken',
+          :customer => '12345',
+          :description => 'CoughDrop premium symbols access',
+          :receipt_email => nil,
+          :metadata => {
+            'user_id' => u.global_id,
+            'type' => 'extras'
+          }
+        }).and_return({
+          'id' => '87654',
+          'customer' => '12345'
+        })
+          
+        Purchasing.purchase(u, {'id' => 'token'}, 'monthly_6_plus_extras')
+        Worker.process_queues
+        expect(u.reload.subscription_hash['extras_enabled']).to eq(true)
+      end
       
       it "should trigger a subscription event for an existing customer record" do
         u = User.create
@@ -473,6 +574,7 @@ describe Purchasing do
           'subscription_id' => '3456',
           'customer_id' => '12345',
           'token_summary' => 'Unknown Card',
+          'purchase_amount' => 6,
           'plan_id' => 'monthly_6',
           'source' => 'new subscription',
           'cancel_others_on_update' => true
@@ -600,6 +702,7 @@ describe Purchasing do
           'user_id' => u.global_id,
           'subscribe' => true,
           'subscription_id' => 'sub2',
+          'purchase_amount' => 6,
           'customer_id' => '9876',
           'token_summary' => 'Unknown Card',
           'plan_id' => 'monthly_6',
@@ -645,7 +748,8 @@ describe Purchasing do
           :receipt_email => nil,
           :metadata => {
             'user_id' => u.global_id,
-            'plan_id' => 'long_term_150'
+            'plan_id' => 'long_term_150',
+            'type' => 'license'
           }
         }).and_return({
           'id' => '23456',
@@ -653,6 +757,29 @@ describe Purchasing do
         })
         expect(User).to receive(:subscription_event)
         Purchasing.purchase(u, {'id' => 'token'}, 'long_term_150')
+      end
+      
+      it "should add extras fee if specified" do
+        u = User.create
+        expect(Stripe::Charge).to receive(:create).with({
+          :amount => 17500,
+          :currency => 'usd',
+          :source => 'token',
+          :description => 'CoughDrop communicator license purchase (plus premium symbols)',
+          :receipt_email => nil,
+          :metadata => {
+            'user_id' => u.global_id,
+            'plan_id' => 'long_term_150',
+            'type' => 'license'
+          }
+        }).and_return({
+          'id' => '23456',
+          'customer' => '45678'
+        })
+        expect(User).to receive(:subscription_event)
+        Purchasing.purchase(u, {'id' => 'token'}, 'long_term_150_plus_extras')
+        Worker.process_queues
+        expect(u.reload.subscription_hash['extras_enabled']).to eq(true)
       end
 
       it "should create specify the email" do
@@ -667,7 +794,8 @@ describe Purchasing do
           :receipt_email => 'testing@example.com',
           :metadata => {
             'user_id' => u.global_id,
-            'plan_id' => 'long_term_150'
+            'plan_id' => 'long_term_150',
+            'type' => 'license'
           }
         }).and_return({
           'id' => '23456',
@@ -690,7 +818,8 @@ describe Purchasing do
           :receipt_email => nil,
           :metadata => {
             'user_id' => u.global_id,
-            'plan_id' => 'long_term_150'
+            'plan_id' => 'long_term_150',
+            'type' => 'license'
           }
         }).and_return({
           'id' => '23456',
@@ -710,7 +839,8 @@ describe Purchasing do
           :receipt_email => nil,
           :metadata => {
             'user_id' => u.global_id,
-            'plan_id' => 'long_term_150'
+            'plan_id' => 'long_term_150',
+            'type' => 'license'
           }
         }).and_return({
           'id' => '23456',
@@ -722,6 +852,7 @@ describe Purchasing do
           'purchase_id' => '23456',
           'customer_id' => '45678',
           'plan_id' => 'long_term_150',
+          'purchase_amount' => 150,
           'token_summary' => 'Unknown Card',
           'seconds_to_add' => 5.years.to_i,
           'source' => 'new purchase'
@@ -739,7 +870,8 @@ describe Purchasing do
           :receipt_email => nil,
           :metadata => {
             'user_id' => u.global_id,
-            'plan_id' => 'long_term_150'
+            'plan_id' => 'long_term_150',
+            'type' => 'license'
           }
         }).and_return({
           'id' => '23456',
@@ -751,6 +883,7 @@ describe Purchasing do
           'purchase_id' => '23456',
           'customer_id' => '45678',
           'plan_id' => 'long_term_150',
+          'purchase_amount' => 150,
           'token_summary' => 'Unknown Card',
           'seconds_to_add' => 5.years.to_i,
           'source' => 'new purchase'
@@ -991,6 +1124,91 @@ describe Purchasing do
       }))
       res = Purchasing.cancel_other_subscriptions(u, '4567')
       expect(res).to eq(true)
+    end
+  end
+
+  describe "purchase_extras" do
+    it 'should error on missing user' do
+      expect(Purchasing.purchase_extras('asdf', {})).to eq({success: false, error: 'user required'})
+    end
+
+    it 'should handle card error correctly' do
+      u = User.create
+      err = Stripe::CardError.new('a', 'b', 'c')
+      expect(err).to receive(:json_body).and_return(error: {code: 'asdf', decline_code: 'qwer'})
+      expect(Stripe::Charge).to receive(:create).and_raise(err)
+      res = Purchasing.purchase_extras('token', {'user_id' => u.global_id})
+      expect(res).to eq({success: false, error: 'asdf', decline_code: 'qwer'})
+    end
+
+    it 'should handle unexpected error correctly' do
+      u = User.create
+      expect(Stripe::Charge).to receive(:create).and_raise('asdf')
+      res = Purchasing.purchase_extras('token', {'user_id' => u.global_id})
+      expect(res).to eq({:success=>false, :error=>"unexpected_error", :error_message=>"asdf", :error_type=>false, :error_code=>"unknown"})
+    end
+
+    it 'should return success on purchase' do
+      u = User.create
+      expect(Stripe::Charge).to receive(:create).with({
+        :amount => 2500,
+        :currency => 'usd',
+        :source => 'token',
+        :customer => nil,
+        :receipt_email => u.settings['email'],
+        :description => "CoughDrop premium symbols access",
+        :metadata => {
+          'user_id' => u.global_id,
+          'type' => 'extras'
+        }
+      }).and_return({'id' => '1234', 'customer' => '4567'})
+      res = Purchasing.purchase_extras({'id' => 'token'}, {'user_id' => u.global_id})
+      expect(res).to eq({success: true, charge: 'immediate_purchase'})
+    end
+
+    it 'should create a new charge by default' do
+      u = User.create
+      expect(Stripe::Charge).to receive(:create).with({
+        :amount => 2500,
+        :currency => 'usd',
+        :source => 'token',
+        :customer => nil,
+        :receipt_email => u.settings['email'],
+        :description => "CoughDrop premium symbols access",
+        :metadata => {
+          'user_id' => u.global_id,
+          'type' => 'extras'
+        }
+      }).and_return({'id' => '1234', 'customer' => '4567'})
+      res = Purchasing.purchase_extras({'id' => 'token'}, {'user_id' => u.global_id})
+      expect(res).to eq({success: true, charge: 'immediate_purchase'})
+    end
+
+    it 'should fail gracefully on invalid token' do
+      u = User.create
+      res = Purchasing.purchase_extras('none', {'user_id' => u.global_id})
+      expect(res).to eq({success: false, error: 'token required without active subscription'})
+    end
+
+    it 'should use default billing settings if token is set to none' do
+      u = User.create
+      u.settings['subscription'] = {'customer_id' => '1234qwer'}
+      u.save
+      cus = {'id' => '1234qwer', 'default_source' => 'tokenny', 'subscriptions' => [{'status' => 'active'}]}
+      expect(Stripe::Customer).to receive(:retrieve).with('1234qwer').and_return(cus)
+      expect(Stripe::Charge).to receive(:create).with({
+        :amount => 2500,
+        :currency => 'usd',
+        :source => 'tokenny',
+        :customer => '1234qwer',
+        :receipt_email => u.settings['email'],
+        :description => "CoughDrop premium symbols access",
+        :metadata => {
+          'user_id' => u.global_id,
+          'type' => 'extras'
+        }
+      }).and_return({'id' => '1234', 'customer' => '4567'})
+      Purchasing.purchase_extras('none', {'user_id' => u.global_id})
     end
   end
   
@@ -1312,7 +1530,8 @@ describe Purchasing do
         :description => 'CoughDrop communicator license purchase',
         :metadata => {
           'user_id' => u.global_id,
-          'plan_id' => 'long_term_150'
+          'plan_id' => 'long_term_150',
+          'type' => 'license'
         }
       }).and_return({
         'id' => '23456',
@@ -1351,6 +1570,7 @@ describe Purchasing do
       :metadata => {
         'user_id' => u.global_id,
         'plan_id' => 'long_term_200',
+        'type' => 'license'
       }
     }).and_return({
       'id' => 'asdf',
@@ -1370,6 +1590,7 @@ describe Purchasing do
       'purchase' => true,
       'purchase_id' => 'asdf',
       'seconds_to_add' => 157788000,
+      'purchase_amount' => 200,
       'source' => 'new purchase',
       'token_summary' => 'Unknown Card',
       'user_id' => u.global_id
@@ -1465,7 +1686,8 @@ describe Purchasing do
       :receipt_email => nil,
       :metadata => {
         'user_id' => u.global_id,
-        'plan_id' => 'long_term_200'
+        'plan_id' => 'long_term_200',
+        'type' => 'license'
       }
     }).and_return({
       'id' => 'asdf',
@@ -1485,6 +1707,7 @@ describe Purchasing do
       'purchase' => true,
       'purchase_id' => 'asdf',
       'seconds_to_add' => 157788000,
+      'purchase_amount' => 200,
       'source' => 'new purchase',
       'token_summary' => 'Unknown Card',
       'user_id' => u.global_id
@@ -1503,22 +1726,26 @@ describe Purchasing do
     expect(Stripe::Charge).to receive(:create).with({
       :amount => 20000,
       :currency => 'usd',
-      :source => 'tokenasdfasdf',
+      :source => 'tokenasdfasdfjkl',
       :description => 'CoughDrop communicator license purchase',
       :receipt_email => nil,
       :metadata => {
         'user_id' => u.global_id,
-        'plan_id' => 'long_term_200'
+        'plan_id' => 'long_term_200',
+        'type' => 'license'
       }
     }).and_raise("You cannot use a Stripe token more than once")
-    Purchasing.purchase(u, {'id' => 'tokenasdfasdf'}, 'long_term_200')
+    Purchasing.purchase(u, {'id' => 'tokenasdfasdfjkl'}, 'long_term_200')
     expect(u.reload.subscription_events.length).to eq(13)
     expect(u.reload.subscription_events[9]['log']).to eq('purchase initiated')
-    expect(u.reload.subscription_events[9]['token']).to eq('tok..sdf')
+    expect(u.reload.subscription_events[9]['token']).to eq('tok..jkl')
     expect(u.reload.subscription_events[10]['log']).to eq('paid subscription')
     expect(u.reload.subscription_events[11]['log']).to eq('long-term - creating charge')
+    # expect(u.reload.subscription_events[12]['log']).to eq('persisting long-term purchase update')
+    # expect(u.reload.subscription_events[13]['log']).to eq('subscription event triggered remotely')
+    # expect(u.reload.subscription_events[14]['log']).to eq('subscription canceling')
     expect(u.reload.subscription_events[12]['error']).to eq('other_exception')
-    expect(u.reload.subscription_events[12]['err']).to match('You cannot use a Stripe token more than once')
+    
     expect(u.subscription_hash['grace_period']).to eq(false)
     expect(u.subscription_hash['active']).to eq(true)
     expect(u.subscription_hash['purchased']).to eq(true)
@@ -1660,6 +1887,8 @@ describe Purchasing do
         expect(u.subscription_events[0]['error']).to eq('yipe')
       end
     end
+
+
     
   describe "reconcile" do
     class Pager
@@ -1776,146 +2005,3 @@ describe Purchasing do
     end
   end
 end
-
-# def self.reconcile(with_side_effects=false)
-#   Stripe.api_key = ENV['STRIPE_SECRET_KEY']
-#   customers = Stripe::Customer.list(:limit => 10)
-#   customer_active_ids = []
-#   total = 0
-#   cancel_months = {}
-#   cancels = {}
-#   puts "retrieving expired subscriptions..."
-#   Stripe::Subscription.list(:limit => 20, :status => 'canceled').auto_paging_each do |sub|
-#     cancels[sub['customer']] ||= []
-#     cancels[sub['customer']] << sub
-#   end
-#   problems = []
-#   user_active_ids = []
-#   customers.auto_paging_each do |customer|
-#     total += 1
-#     cus_id = customer['id']
-#     email = customer['email']
-#     puts "checking #{cus_id} #{email}"
-#     if !customer
-#       puts "\tcustomer not found"
-#       next
-#     end
-#     user_id = customer['metadata'] && customer['metadata']['user_id']
-#     user = user_id && User.find_by_global_id(user_id)
-#     if !user
-#       problems << "#{customer['id']} no user found"
-#       puts "\tuser not found"
-#       next
-#     end
-
-#     customer_subs = customer['subscriptions'].to_a
-#     user_active = user.recurring_subscription?
-#     user_active_ids << user.global_id if user_active
-#     customer_active = false
-    
-#     if customer_subs.length > 1
-#       puts "\ttoo many subscriptions"
-#       problems << "#{user.global_id} #{user.user_name} too many subscriptions"
-#     elsif user.long_term_purchase?
-#       subs = cancels[cus_id] || []
-#       sub = subs[0]
-#       str = "\tconverted to a long-term purchase"
-
-#       if sub && sub['canceled_at']
-#         canceled = Time.at(sub['canceled_at'])
-#         str += " on #{canceled.iso8601}"
-#       end
-#       if sub && sub['created']
-#         created = Time.at(customer['created'])
-#         str += ", subscribed #{created.iso8601}"
-#       end
-#       puts str
-#       if customer_subs.length > 0
-#         sub = customer_subs[0]
-#         if sub && (sub['status'] == 'active' || sub['status'] == 'trialing')
-#           puts "\tconverted to long-term purchase, but still has a lingering subscription"
-#           problems << "#{user.global_id} #{user.user_name} converted to long-term purchase, but still has a lingering subscription"
-#         end
-#       end
-#     elsif customer_subs.length == 0 
-#       # if no active subscription, this is an old customer record
-#       check_cancels = false
-#       # if customer id matches, then we are properly aligned
-#       if user.settings['subscription'] && user.settings['subscription']['customer_id'] == cus_id
-#         check_cancels = true
-#         if user_active
-#           puts "\tno subscription found, but expected (FREELOADER)" 
-#           problems << "#{user.global_id} #{user.user_name} no subscription found, but expected (FREELOADER)"
-#         end
-#         if user_active && with_side_effects
-#           User.schedule(:subscription_event, {
-#             'unsubscribe' => true,
-#             'user_id' => user.global_id,
-#             'customer_id' => cus_id,
-#             'subscription_id' => object['id'],
-#             'cancel_others_on_update' => true,
-#             'source' => 'customer.reconciliation'
-#           })
-#         else
-#           if user_active
-#             puts "\tuser active without a subscription (huh?)" 
-#             problems << "#{user.global_id} #{user.user_name} user active without a subscription (huh?)"
-#           end
-
-#         end
-#       else
-#         # if customer id doesn't match on subscription hash then we don't really care,
-#         # since there are no subscriptions for this customer, we just shouldn't
-#         # track this as a cancellation
-#         if user_active
-#         else
-#           check_cancels = true
-#         end
-#       end
-#       if check_cancels
-#         subs = cancels[cus_id] || []
-#         sub = subs[0]
-#         if sub
-#           canceled = Time.at(sub['canceled_at'])
-#           created = Time.at(customer['created'])
-#           if canceled > 6.months.ago
-#             puts "\tcanceled #{canceled.iso8601}, subscribed #{created.iso8601}, active #{user_active}" if canceled > 3.months.ago
-#             cancel_months[(canceled.year * 100) + canceled.month] ||= []
-#             cancel_months[(canceled.year * 100) + canceled.month] << (canceled - created) / 1.month.to_i
-#           end
-#         end
-#       end
-#     else
-#       sub = customer_subs[0]
-#       if user.settings['subscription'] && user.settings['subscription']['customer_id'] == cus_id
-#         customer_active = sub['status'] == 'active'
-#         customer_active_ids << user.global_id if customer_active
-#         if user_active != customer_active
-#           puts "\tcustomer is #{sub['status']} but user is #{user_active ? 'subscribed' : 'expired'}" 
-#           problems << "#{user.global_id} #{user.user_name} customer is #{sub['status']} but user is #{user_active ? 'subscribed' : 'expired'}"
-#         end
-#       else
-#         # if customer id doesn't match on subscription hash:
-#         # - if the subscription is active, we have a problem
-#         # - otherwise we can ignore this customer record
-#         if user_active
-#           if sub['status'] == 'active' || sub['status'] == 'trialing'
-#             puts "\tcustomer is #{sub['status']} but user is tied to a different customer record #{user.settings['subscription']['customer_id']}" 
-#             problems << "#{user.global_id} #{user.user_name} but user is tied to a different customer record #{user.settings['subscription']['customer_id']}"
-#           end
-#         end
-#       end
-#     end
-#   end
-#   if problems.length > 0
-#     puts "PROBLEMS:\n#{problems.join("\n")}\n"
-#   end
-#   puts "TOTALS: checked #{total}, paying customers (not trialing, not duplicates) #{customer_active_ids.uniq.length}, subscription users #{user_active_ids.uniq.length}"
-#   cancel_months.each{|k, a| 
-#     res = []
-#     res << (cancel_months[k].sum / cancel_months[k].length.to_f).round(1) 
-#     res << (cancel_months[k].length)
-#     cancel_months[k] = res
-#   }
-#   puts "CANCELS: #{cancel_months.to_a.sort_by(&:first).reverse.to_json}"
-# end

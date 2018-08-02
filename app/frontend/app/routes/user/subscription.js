@@ -13,6 +13,8 @@ export default Route.extend({
   },
   setupController: function(controller, model) {
     controller.set('model', model);
+    controller.set('extras_status', null);
+    controller.set('show_premium_symbols', false);
     if(!model.get('permissions.edit') && controller.get('confirmation')) {
       controller.set('subscription', {loading: true});
       persistence.ajax('/api/v1/users/' + model.get('user_name') + '?confirmation=' + controller.get('confirmation'), {type: 'GET'}).then(function(res) {

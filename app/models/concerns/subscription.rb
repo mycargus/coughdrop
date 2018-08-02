@@ -144,7 +144,7 @@ module Subscription
   
   def transfer_subscription_to(user, skip_remote_update=false)
     transfer_keys = ['started', 'plan_id', 'subscription_id', 'token_summary', 'free_premium', 
-      'never_expires', 'seconds_left', 'customer_id', 'last_purchase_plan_id']
+      'never_expires', 'seconds_left', 'customer_id', 'last_purchase_plan_id', 'extras']
     did_change = false
     transfer_keys.each do |key|
       self.settings['subscription'] ||= {}
@@ -200,6 +200,7 @@ module Subscription
           self.settings['subscription']['started'] = nil if args['plan_id'] == 'monthly_free' || args['plan_id'] == 'slp_monthly_free'
           self.settings['subscription']['token_summary'] = args['token_summary']
           self.settings['subscription']['plan_id'] = args['plan_id']
+          self.settings['subscription']['purchase_amount'] = args['purchase_amount']
           self.settings['subscription']['eval_account'] = args['plan_id'] == 'eval_monthly_free'
           self.settings['subscription']['free_premium'] = args['plan_id'] == 'slp_monthly_free'
           self.settings['preferences']['role'] = role
@@ -250,6 +251,7 @@ module Subscription
           self.settings['subscription']['last_purchase_plan_id'] = args['plan_id']
           self.settings['subscription']['last_purchase_id'] = args['purchase_id']
           self.settings['subscription']['last_purchase_seconds_added'] = args['seconds_to_add']
+          self.settings['subscription']['purchase_amount'] = args['purchase_amount']
           self.settings['preferences']['role'] = role
           self.settings['preferences']['progress'] ||= {}
           self.settings['preferences']['progress']['subscription_set'] = true
@@ -271,12 +273,14 @@ module Subscription
   def redeem_gift_token(code)
     Purchasing.redeem_gift(code, self)
   end
-  
-  def process_subscription_token(token, type)
+
+  def process_subscription_token(token, type, code=nil)
     if type == 'unsubscribe'
       Purchasing.unsubscribe(self)
+    elsif type == 'extras'
+      Purchasing.purchase_extras(token, {'user_id' => self.global_id})
     else
-      Purchasing.purchase(self, token, type)
+      Purchasing.purchase(self, token, type, code)
     end
   end
   
@@ -295,6 +299,11 @@ module Subscription
     elsif type == 'force_logout'
       self.devices.each{|d| d.invalidate_keys! }
       true
+    elsif type == 'enable_extras'
+      User.purchase_extras({
+        'user_id' => self.global_id,
+        'source' => 'admin_override'
+      })
     elsif type == 'add_1' || type == 'communicator_trial'
       if type == 'communicator_trial'
         self.settings['preferences']['role'] = 'communicator'
@@ -414,17 +423,17 @@ module Subscription
   
   def transfer_eval_to(destination_user, current_device)
     device_key = current_device.unique_device_key
-    devices = destination_user.preferences['devices'] || {}
-    devices[device_key] = self.preferences['devices'][device_key] if self.preferences['devices'][device_key]
-    destination_user.preferences = self.preferences
-    destination_user.preferences['devices'] = devices
+    devices = destination_user.settings['preferences']['devices'] || {}
+    devices[device_key] = self.settings['preferences']['devices'][device_key] if self.settings['preferences']['devices'][device_key]
+    destination_user.settings['preferences'] = destination_user.settings['preferences'].merge(self.settings['preferences'])
+    destination_user.settings['preferences']['devices'] = devices
     destination_user.save
     # transfer usage logs to the new user
-    eval_start = Time.parse(self.settings['subscription']['eval_expires'] || 60.days.ago)
+    eval_start = Time.parse((self.settings['subscription'] || {})['eval_started'] || 60.days.ago.iso8601)
     WeeklyStatsSummary.where(user_id: self.id).where(['created_at > ?', eval_start]).each do |summary|
       summary.schedule(:update!)
     end
-    LogSession.where(user_id: self.global_id, log_type: ['session', 'note', 'assessment']).where(['started_at > ?', eval_start]).each do |session|
+    LogSession.where(user_id: self.id, log_type: ['session', 'note', 'assessment']).where(['started_at >= ?', eval_start]).each do |session|
       session.user_id = destination_user.id
       session.save
     end
@@ -533,6 +542,7 @@ module Subscription
         json['plan_id'] = self.settings['subscription']['plan_id']
       end
     end
+    json['extras_enabled'] = true if self.settings['subscription']['extras'] && self.settings['subscription']['extras']['enabled']
     json
   end
   
@@ -647,7 +657,6 @@ module Subscription
       # send out a two and one-month warning when account is 
       # going to be deleted for inactivity (after 12 months of non-use)
       to_be_deleted = User.where(['updated_at < ?', 12.months.ago]).order('updated_at ASC').limit(100)
-      # to_be_deleted.each do |user|
       to_be_deleted.each do |user|
         next if user.user_name.match(/^testing/) && user.settings['email'] == 'testing@example.com'
         updated = user.updated_at
@@ -680,6 +689,31 @@ module Subscription
 
     def default_eval_duration
       60
+    end
+
+    def purchase_extras(opts)
+      user = User.find_by_global_id(opts['user_id'])
+      raise "user not found" unless user
+      user.settings['subscription'] ||= {}
+      do_notify = !(user.settings['subscription']['extras'] && user.settings['subscription']['extras']['enabled'])
+      user.settings['subscription']['extras'] = (user.settings['subscription']['extras'] || {}).merge({
+        'enabled' => true,
+        'purchase_id' => opts['purchase_id'],
+        'customer_id' => opts['customer_id'],
+        'source' => opts['source']
+      })
+      user.settings['subscription']['extras']['sources'] ||= []
+      user.settings['subscription']['extras']['sources'] << {
+        'timestamp' => Time.now.to_i,
+        'customer_id' => opts['customer_id'],
+        'source' => opts['source']
+      }
+      user.save!
+      AuditEvent.create!(:event_type => 'extras_added', :summary => "#{user.user_name} activated extras", :data => {source: opts['source']})
+      if do_notify && opts['notify']
+        SubscriptionMailer.schedule_delivery(:extras_purchased, user.global_id)
+      end
+      true
     end
     
     def subscription_event(args)

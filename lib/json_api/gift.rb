@@ -7,7 +7,7 @@ module JsonApi::Gift
     
   def self.build_json(gift, args={})
     json = {}
-    json['id'] = gift.code
+    json['id'] = "#{gift.code}y#{gift.code_verifier}"
     json['gift_type'] = gift.gift_type
     json['created'] = gift.created_at.iso8601
     json['code'] = gift.code
@@ -16,6 +16,10 @@ module JsonApi::Gift
     json['licenses'] = gift.settings['licenses']
     json['total_codes'] = gift.settings['total_codes']
     json['redeemed_codes'] = (gift.settings['codes'] || {}).to_a.map(&:last).select{|v| v != nil }.length
+    json['activated_discounts'] = (gift.settings['activations'] || []).length
+    json['discount'] = gift.discount_percent
+    json['limit'] = gift.settings['limit']
+    json['expires'] = gift.settings['expires']
     json['org_connected'] = gift.gift_type == 'multi_codes' && !!gift.settings['org_id']
     json['active'] = gift.active
     json['purchased'] = gift.purchased?

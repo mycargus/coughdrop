@@ -112,6 +112,11 @@ class SubscriptionMailer < ActionMailer::Base
     end
   end
 
+  def extras_purchased(user_id)
+    @user = User.find_by_global_id(user_id)
+    mail_message(@user, "Premium Symbols Access Purchased")
+  end
+
   def deletion_warning(user_id, attempts)
     @user = User.find_by_global_id(user_id)
     @attempt = attempts

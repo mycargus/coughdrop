@@ -38,15 +38,16 @@ describe Uploader do
       expect(Uploader.remote_upload("bacon", f.path, "text/plaintext")).to eq("http://www.upload.com/bacon")
       f.unlink
     end
+
     it "should return nil if upload unsuccessful" do
       expect(Uploader).to receive(:remote_upload_params).with("bacon", "text/plaintext").and_return({
         :upload_params => {:a => 1, :b => 2},
         :upload_url => "http://www.upload.com/"
       })
-      res = OpenStruct.new(:success? => false)
+      res = OpenStruct.new(:success? => false, body: 'nothing')
       f = Tempfile.new("stash")
       expect(Typhoeus).to receive(:post).and_return(res)
-      expect(Uploader.remote_upload("bacon", f.path, "text/plaintext")).to eq(nil)
+      expect{ Uploader.remote_upload("bacon", f.path, "text/plaintext") }.to raise_error("nothing")
       f.unlink
     end
   end
@@ -662,7 +663,7 @@ describe Uploader do
     end
     
     it 'should return tarheel book pages' do
-      expect(Typhoeus).to receive(:get).with("https://tarheelreader.org/book-as-json/?slug=bacon-1").and_return(OpenStruct.new(headers: {}, body: {
+      expect(Typhoeus).to receive(:get).with("https://tarheelreader.org/book-as-json/?slug=bacon-1", {:followlocation=>true}).and_return(OpenStruct.new(headers: {}, body: {
         'slug' => 'bacon-1',
         'ID' => '12345',
         'link' => '/bacon',
@@ -713,7 +714,7 @@ describe Uploader do
     end
 
     it "should return custom book pages" do
-      expect(Typhoeus).to receive(:get).with("http://www.example.com/book.json").and_return(OpenStruct.new(headers: {}, body: {
+      expect(Typhoeus).to receive(:get).with("http://www.example.com/book.json", {:followlocation=>true}).and_return(OpenStruct.new(headers: {}, body: {
         "book_url": "http://github.com/whitmer",
         "author": "Brian",
         "attribution_url": "http://github.com/whitmer",

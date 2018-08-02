@@ -18,7 +18,7 @@ export default Controller.extend({
         list.push({id: 'new_users', name: i18n.t('new_users', "Signed up in the last 2 weeks") });
         list.push({id: 'recent_3', name: i18n.t('recent_3', "Signed up more than 3 weeks ago, used in the last week")});
         list.push({id: 'logged_2', name: i18n.t('logged_2', "Generated usage logs in the last 2 weeks")});
-        list.push({id: 'setup_but_expired', name: i18n.t('setup_but_expired', "Used initially but now expired")});
+//        list.push({id: 'setup_but_expired', name: i18n.t('setup_but_expired', "Used initially but now expired")});
         list.push({id: 'active_free_supervisor_without_supervisees_or_org', name: i18n.t('active_free_supervisor_without_supervisees_or_org', "Active free supervisors without any supervisees or org")});
         list.push({id: 'free_supervisor_with_supervisors', name: i18n.t('free_supervisor_with_supervisors', "Free supervisors with their own supervisors")});
         list.push({id: 'multiple_emails', name: i18n.t('multiple_emails', "Emails with multiple signups")});
@@ -30,6 +30,7 @@ export default Controller.extend({
         list.push({id: 'overridden_parts_of_speech', name: i18n.t('overridden_parts_of_speech', "Manually-set parts of speech")});
         list.push({id: 'missing_symbols', name: i18n.t('missing_symbols', "Search terms that don't return any matching symbols")});
         list.push({id: 'premium_voices', name: i18n.t('premium_voice_downloads', "Premium Voice Downloads")});
+        list.push({id: 'extras', name: i18n.t('extras_enabled', "Premium Symbol Activations")});
         list.push({id: 'feature_flags', name: i18n.t('feature_flags', "Beta/Feature Flags")});
         list.push({id: 'totals', name: i18n.t('record_totals', "Total counts")});
       } else {

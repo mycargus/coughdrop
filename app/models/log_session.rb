@@ -29,8 +29,8 @@ class LogSession < ActiveRecord::Base
     self.data['events'].sort_by!{|e| [e['timestamp'] || 0, (e['type'] == 'button' ? 0 : 1)] }
     last = self.data['events'].last
     first = self.data['events'].first
-    self.ended_at = last ? DateTime.strptime(last['timestamp'].to_s, '%s') : nil
-    self.started_at = first ? DateTime.strptime(first['timestamp'].to_s, '%s') : nil
+    self.ended_at = (last && last['timestamp']) ? DateTime.strptime(last['timestamp'].to_s, '%s') : nil
+    self.started_at = (first && first['timestamp']) ? DateTime.strptime(first['timestamp'].to_s, '%s') : nil
     if self.ended_at && self.started_at == self.ended_at && self.data['events']
       self.ended_at += 5
     end
@@ -147,7 +147,7 @@ class LogSession < ActiveRecord::Base
     self.data['event_note_count'] = event_notes
     self.has_notes = event_notes > 0
     self.data['touch_locations'] = hit_locations
-    self.log_type = 'session'
+    self.log_type = 'session' unless self.log_type == 'modeling_activities'
     if self.data['note']
       self.log_type = 'note'
       if self.data['note']['timestamp']

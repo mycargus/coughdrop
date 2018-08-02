@@ -16,6 +16,9 @@ Plan: <%= @subscription['plan_id'] %>
 <% elsif @subscription['purchased'] %>
 Subscription: Purchase<br/>
 Plan: <%= @subscription['plan_id'] %>
+<% if @user.settings['subscription'] && @user.settings['subscription']['purchase_amount'] %>
+Purchase Amount: $<%= @user.settings['subscription']['purchase_amount'] %><br/>
+<% end %>
 <% else %>
 Subscription: No subscription information provided (what the?)
 <% end %>

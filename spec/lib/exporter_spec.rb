@@ -679,11 +679,12 @@ describe Exporter do
             "id": "sesh:note",
             "timestamp": Time.now.utc.iso8601,
             "author_name": "no-name",
-            "author_url": "http://localhost:3000/no-name",
+            "author_url": hash[:events][0][:author_url],
             "text": "hello friend video recorded (5s)"
           }
         ]        
       })
+      expect(hash[:events][0][:author_url]).to match(/no-name/)
     end
   end
 
@@ -796,9 +797,8 @@ describe Exporter do
   end
 
   describe 'process_obl' do
+    it 'should have specs' do
+      expect{ Exporter.process_obl({}) }.to raise_error("not implemented")
+    end
   end
-#   def self.process_obl(hash)
-#     raise "not implemented"
-#   end
-# end
 end

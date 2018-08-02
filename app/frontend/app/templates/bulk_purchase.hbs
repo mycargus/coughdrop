@@ -3,6 +3,8 @@
     <h2>
       {{#if gift.gift_types.multi_code}}
         {{t "Gift Codes for" key='gift_codes'}}
+      {{else if gift.gift_types.discount}}
+        {{t "Discount Redemptions for" key='discounts_for'}}
       {{else}}
         {{t "CoughDrop Purchase, " key='coughdrop_purchase'}}
       {{/if}}
@@ -20,6 +22,15 @@
         {{/if}}
         {{t "has been set up with multiple gifts code for use within CoughDrop. You can distribute these gift codes to users who can enter them when they sign up to get free access to CoughDrop's communication features." key='multi_code_intro2'}}
         {{t "Each gift code includes <b>%{dur}</b> of free access to CoughDrop's cloud extras features." dur=gift.duration key='cloud_extras_duration'}}
+      </p>
+    {{else if gift.gift_types.discount}}
+      <span class="glyphicon glyphicon-scissors" style="font-size: 50px; float: left; margin: 5px 15px 5px 0;"></span>
+      <p style='margin-bottom: 20px;'>
+        {{t "Thank you for using CoughDrop! This organization" key='discounts_intro'}}
+        {{#if gift.organization}}
+          <b>( {{gift.organization}} )</b>
+        {{/if}}
+        {{t "has been granted a discounted rate to offer to its users. When people purchase a long-term license with CoughDrop they can enter the provided code to receive a discount on their purchase amount." key='discounts_intro2'}}
       </p>
     {{else}}
       <span class="glyphicon glyphicon-paperclip" style="font-size: 50px; float: left; margin: 5px 15px 5px 0;"></span>
@@ -58,6 +69,32 @@
         </li>
       {{/each}}
       </ul>
+    {{else if gift.gift_types.discount}}
+      <dl class='dl-horizontal'>
+        <dt>{{t "Organization" key='organizaton'}}</dt>
+          <dd>{{gift.organization}}</dd>
+        {{#if gift.email}}
+          <dt>{{t "Email" key='org_email'}}</dt>
+            <dd>{{gift.email}}</dd>
+        {{/if}}
+        <dt>{{t "Code" key='code'}}</dt>
+          <dd>{{gift.code}}</dd>
+        <dt>{{t "Discount" key='discount'}}</dt>
+          <dd>{{gift.discount_hundred}}% {{t "off" key='off'}}</dd>
+        {{#if gift.expires}}
+          <dt>{{t "Expires" key='expires'}}</dt>
+            <dd>{{date gift.expires 'day'}}</dd>
+        {{/if}}
+        <dt>{{t "Redeemed" key='redeemed'}}</dt>
+          <dd>
+            {{gift.activated_discounts}}
+            {{#if gift.limit}}
+              / {{gift.limit}}
+            {{/if}}
+            {{t "activations" key='activations'}}
+          </dd>
+        
+      </dl>
     {{else if gift.active}}
       {{#if subscription.purchase_complete}}
         <div style="margin: 50px 0;">

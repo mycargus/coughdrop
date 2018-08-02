@@ -461,7 +461,7 @@ class Organization < ActiveRecord::Base
       users
     end
   end
-  
+
   def eval_users(chainable=true)
     # TODO: get rid of this double-lookup
     users = self.attached_users('eval')

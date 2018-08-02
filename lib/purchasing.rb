@@ -14,94 +14,78 @@ module Purchasing
     previous = event['data'] && event['data']['previous_attributes']
     event_result = nil
     if object
-      if event['type'] == 'charge.succeeded'
-        valid = object['metadata'] && object['metadata']['user_id'] && object['metadata']['plan_id']
-        if valid
-          time = 5.years.to_i
-          User.schedule(:subscription_event, {
-            'purchase' => true,
+      if object && object['metadata'] && object['metadata']['type'] == 'extras'
+        data = {:extras => true, :purchase_id => object['id'], :valid => true}
+        if event['type'] == 'charge.succeeded'
+          User.schedule(:purchase_extras, {
             'user_id' => object['metadata'] && object['metadata']['user_id'],
             'purchase_id' => object['id'],
             'customer_id' => object['customer'],
-            'plan_id' => object['metadata'] && object['metadata']['plan_id'],
-            'seconds_to_add' => time,
-            'source' => 'charge.succeeded'
+            'source' => 'charge.succeeded',
+            'notify' => true
           })
+        else
+          data[:valid] = false
         end
-        data = {:purchase => true, :purchase_id => object['id'], :valid => !!valid}
-      elsif event['type'] == 'charge.failed'
-        valid = false
-        if object['customer']
-          customer = Stripe::Customer.retrieve(object['customer'])
-          valid = customer && customer['metadata'] && customer['metadata']['user_id']
+      else
+        if event['type'] == 'charge.succeeded'
+          valid = object['metadata'] && object['metadata']['user_id'] && object['metadata']['plan_id']
+          if valid
+            time = 5.years.to_i
+            User.schedule(:subscription_event, {
+              'purchase' => true,
+              'user_id' => object['metadata'] && object['metadata']['user_id'],
+              'purchase_id' => object['id'],
+              'customer_id' => object['customer'],
+              'plan_id' => object['metadata'] && object['metadata']['plan_id'],
+              'seconds_to_add' => time,
+              'source' => 'charge.succeeded'
+            })
+          end
+          data = {:purchase => true, :purchase_id => object['id'], :valid => !!valid}
+        elsif event['type'] == 'charge.failed'
+          valid = false
+          if object['customer']
+            customer = Stripe::Customer.retrieve(object['customer'])
+            valid = customer && customer['metadata'] && customer['metadata']['user_id']
 
-          if valid
-            User.schedule(:subscription_event, {
-              'user_id' => customer['metadata'] && customer['metadata']['user_id'],
-              'purchase_failed' => true,
-              'source' => 'charge.failed'
-            })
-          end
-        end
-        data = {:purchase => false, :notified => true, :valid => !!valid}
-      elsif event['type'] == 'charge.dispute.created'
-        charge = Stripe::Charge.retrieve(object['id'])
-        if charge
-          valid = charge['metadata'] && charge['metadata']['user_id']
-          if valid
-            User.schedule(:subscription_event, {
-              'user_id' => charge['metadata'] && charge['metadata']['user_id'],
-              'chargeback_created' => true,
-              'source' => 'charge.dispute.created'
-            })
-          end
-          data = {:dispute => true, :notified => true, :valid => !!valid}
-        end
-      elsif event['type'] == 'customer.updated'
-        customer = Stripe::Customer.retrieve(object['id'])
-        valid = customer && customer['metadata'] && customer['metadata']['user_id']
-        previous = event['data'] && event['data']['previous_attributes'] && event['data']['previous_attributes']['metadata'] && event['data']['previous_attributes']['metadata']['user_id']
-        if valid && previous
-          prior_user = User.find_by_global_id(previous)
-          new_user = User.find_by_global_id(valid)
-          if prior_user && new_user && prior_user.settings['subscription'] && prior_user.settings['subscription']['customer_id'] == object['id']
-            # TODO: move to background job..
-            prior_user.transfer_subscription_to(new_user, true)
-          end
-        end
-      elsif event['type'] == 'customer.subscription.created'
-        customer = Stripe::Customer.retrieve(object['customer'])
-        valid = customer && customer['metadata'] && customer['metadata']['user_id'] && object['plan'] && object['plan']['id']
-        if valid
-          User.schedule(:subscription_event, {
-            'subscribe' => true,
-            'user_id' => customer['metadata'] && customer['metadata']['user_id'],
-            'customer_id' => object['customer'],
-            'subscription_id' => object['id'],
-            'plan_id' => object['plan'] && object['plan']['id'],
-            'cancel_others_on_update' => true,
-            'source' => 'customer.subscription.created'
-          })
-        end
-        data = {:subscribe => true, :valid => !!valid}
-      elsif event['type'] == 'customer.subscription.updated'
-        customer = Stripe::Customer.retrieve(object['customer'])
-        valid = customer && customer['metadata'] && customer['metadata']['user_id']
-        if object['status'] == 'unpaid' || object['status'] == 'canceled'
-          if previous && previous['status'] && previous['status'] != 'unpaid' && previous['status'] != 'canceled'
             if valid
               User.schedule(:subscription_event, {
-                'unsubscribe' => true,
                 'user_id' => customer['metadata'] && customer['metadata']['user_id'],
-                'customer_id' => object['customer'],
-                'subscription_id' => object['id'],
-                'cancel_others_on_update' => false,
-                'source' => 'customer.subscription.updated'
+                'purchase_failed' => true,
+                'source' => 'charge.failed'
               })
             end
-            data = {:unsubscribe => true, :valid => !!valid}
           end
-        elsif object['status'] == 'active' || object['status'] == 'trialing'
+          data = {:purchase => false, :notified => true, :valid => !!valid}
+        elsif event['type'] == 'charge.dispute.created'
+          charge = Stripe::Charge.retrieve(object['id'])
+          if charge
+            valid = charge['metadata'] && charge['metadata']['user_id']
+            if valid
+              User.schedule(:subscription_event, {
+                'user_id' => charge['metadata'] && charge['metadata']['user_id'],
+                'chargeback_created' => true,
+                'source' => 'charge.dispute.created'
+              })
+            end
+            data = {:dispute => true, :notified => true, :valid => !!valid}
+          end
+        elsif event['type'] == 'customer.updated'
+          customer = Stripe::Customer.retrieve(object['id'])
+          valid = customer && customer['metadata'] && customer['metadata']['user_id']
+          previous = event['data'] && event['data']['previous_attributes'] && event['data']['previous_attributes']['metadata'] && event['data']['previous_attributes']['metadata']['user_id']
+          if valid && previous
+            prior_user = User.find_by_global_id(previous)
+            new_user = User.find_by_global_id(valid)
+            if prior_user && new_user && prior_user.settings['subscription'] && prior_user.settings['subscription']['customer_id'] == object['id']
+              # TODO: move to background job..
+              prior_user.transfer_subscription_to(new_user, true)
+            end
+          end
+        elsif event['type'] == 'customer.subscription.created'
+          customer = Stripe::Customer.retrieve(object['customer'])
+          valid = customer && customer['metadata'] && customer['metadata']['user_id'] && object['plan'] && object['plan']['id']
           if valid
             User.schedule(:subscription_event, {
               'subscribe' => true,
@@ -110,32 +94,64 @@ module Purchasing
               'subscription_id' => object['id'],
               'plan_id' => object['plan'] && object['plan']['id'],
               'cancel_others_on_update' => true,
-              'source' => 'customer.subscription.updated'
+              'source' => 'customer.subscription.created'
             })
           end
           data = {:subscribe => true, :valid => !!valid}
+        elsif event['type'] == 'customer.subscription.updated'
+          customer = Stripe::Customer.retrieve(object['customer'])
+          valid = customer && customer['metadata'] && customer['metadata']['user_id']
+          if object['status'] == 'unpaid' || object['status'] == 'canceled'
+            if previous && previous['status'] && previous['status'] != 'unpaid' && previous['status'] != 'canceled'
+              if valid
+                User.schedule(:subscription_event, {
+                  'unsubscribe' => true,
+                  'user_id' => customer['metadata'] && customer['metadata']['user_id'],
+                  'customer_id' => object['customer'],
+                  'subscription_id' => object['id'],
+                  'cancel_others_on_update' => false,
+                  'source' => 'customer.subscription.updated'
+                })
+              end
+              data = {:unsubscribe => true, :valid => !!valid}
+            end
+          elsif object['status'] == 'active' || object['status'] == 'trialing'
+            if valid
+              User.schedule(:subscription_event, {
+                'subscribe' => true,
+                'user_id' => customer['metadata'] && customer['metadata']['user_id'],
+                'customer_id' => object['customer'],
+                'subscription_id' => object['id'],
+                'plan_id' => object['plan'] && object['plan']['id'],
+                'cancel_others_on_update' => true,
+                'source' => 'customer.subscription.updated'
+              })
+            end
+            data = {:subscribe => true, :valid => !!valid}
+          end
+        elsif event['type'] == 'customer.subscription.deleted'
+          customer = Stripe::Customer.retrieve(object['customer'])
+          valid = customer && customer['metadata'] && customer['metadata']['user_id']
+          if valid
+            User.schedule(:subscription_event, {
+              'unsubscribe' => true,
+              'user_id' => customer['metadata'] && customer['metadata']['user_id'],
+              'customer_id' => object['customer'],
+              'subscription_id' => object['id'],
+              'source' => 'customer.subscription.deleted'
+            })
+          end
+          data = {:unsubscribe => true, :valid => !!valid}
+        elsif event['type'] == 'ping'
+          data = {:ping => true, :valid => true}
         end
-      elsif event['type'] == 'customer.subscription.deleted'
-        customer = Stripe::Customer.retrieve(object['customer'])
-        valid = customer && customer['metadata'] && customer['metadata']['user_id']
-        if valid
-          User.schedule(:subscription_event, {
-            'unsubscribe' => true,
-            'user_id' => customer['metadata'] && customer['metadata']['user_id'],
-            'customer_id' => object['customer'],
-            'subscription_id' => object['id'],
-            'source' => 'customer.subscription.deleted'
-          })
-        end
-        data = {:unsubscribe => true, :valid => !!valid}
-      elsif event['type'] == 'ping'
-        data = {:ping => true, :valid => true}
       end
     end
     {:data => data, :status => 200}
   end
   
   def self.add_token_summary(token)
+    return token unless token.is_a?(Hash)
     token['summary'] = "Unknown Card"
     brand = token['card'] && token['card']['brand']
     last4 = token['card'] && token['card']['last4']
@@ -150,35 +166,49 @@ module Purchasing
     token['summary']
   end
 
-  def self.purchase(user, token, type)
+  def self.extras_cost
+    ENV['EXTRAS_COST'] || 25
+  end
+
+  def self.purchase(user, token, type, discount_code=nil)
     # TODO: record basic card information ("Visa ending in 4242" for references)
     user && user.log_subscription_event({:log => 'purchase initiated', :token => "#{token['id'][0,3]}..#{token['id'][-3,3]}", :type => type})
     Stripe.api_key = ENV['STRIPE_SECRET_KEY']
     if type.match(/^slp_/) && type.match(/free/)
-      user.update_subscription({
-        'subscribe' => true,
-        'subscription_id' => 'free',
-        'customer_id' => 'free',
-        'plan_id' => 'slp_monthly_free'
-      })
-      Purchasing.cancel_other_subscriptions(user, 'all')
-      return {success: true, type: type}
+      if type.match(/plus_extras/)
+        type = 'slp_long_term_free_plus_extras'
+      else
+        user.update_subscription({
+          'subscribe' => true,
+          'subscription_id' => 'free',
+          'customer_id' => 'free',
+          'plan_id' => 'slp_monthly_free'
+        })
+        Purchasing.cancel_other_subscriptions(user, 'all')
+        return {success: true, type: type}
+      end
     end
     user && user.log_subscription_event({:log => 'paid subscription'})
-    amount = type.sub(/_plus_trial/, '').split(/_/)[-1].to_i
+    amount = type.sub(/_plus_trial/, '').sub(/_plus_extras/, '').split(/_/)[-1].to_i
+    include_extras = type.match(/plus_extras/)
+    extras_added = false
     valid_amount = true
     description = type
     if type.match(/^slp_monthly/)
-      valid_amount = false unless [3, 4, 5].include?(amount)
-      description = "CoughDrop supporter monthly subscription"
+      valid_amount = false # unless [3, 4, 5].include?(amount)
+      description = "CoughDrop supporter account"
     elsif type.match(/^slp_long_term/)
-      valid_amount = false unless [50, 100, 150].include?(amount)
-      description = "CoughDrop supporter license purchase"
+      valid_amount = false unless amount >= 50 #[50, 100, 150].include?(amount)
+      if type.match(/free/)
+        amount = 0
+        valid_amount = true
+      end
+      description = "CoughDrop supporter account"
     elsif type.match(/^monthly/)
-      valid_amount = false unless [3, 4, 5, 6, 7, 8, 9, 10].include?(amount)
+      valid_amount = false unless amount >= 6 #[3, 4, 5, 6, 7, 8, 9, 10].include?(amount)
       description = "CoughDrop communicator monthly subscription"
     elsif type.match(/^long_term/)
-      valid_amount = false unless [150, 200, 250, 300].include?(amount)
+      valid_amount = false unless amount >= 150 #[150, 200, 250, 300].include?(amount)
       valid_amount = true if amount == 100 && self.active_sale?
       description = "CoughDrop communicator license purchase"
     else
@@ -188,38 +218,64 @@ module Purchasing
       user && user.log_subscription_event({:error => true, :log => 'invalid_amount'})
       return {success: false, error: "#{amount} not valid for type #{type}"}
     end
-    plan_id = type
+    plan_id = type.sub(/_plus_trial/, '').sub(/_plus_extras/, '')
     add_token_summary(token)
     begin
       if type.match(/long_term/)
         user && user.log_subscription_event({:log => 'long-term - creating charge'})
+        if discount_code
+          gift = GiftPurchase.find_by_code(discount_code) rescue nil
+          return {success: false, error: "Invalid gift/discount code", code: discount_code} unless gift
+          amount *= (1.0 - gift.discount_percent)
+        end
+        if include_extras
+          amount += self.extras_cost 
+          description += " (plus premium symbols)"
+        end
+    
+        return {success: false, error: "Charge amount is zero"} if amount <= 0
         charge = Stripe::Charge.create({
-          :amount => (amount * 100),
+          :amount => (amount * 100).to_i,
           :currency => 'usd',
           :source => token['id'],
           :description => description,
           :receipt_email => (user && user.external_email_allowed?) ? (user && user.settings && user.settings['email']) : nil,
           :metadata => {
             'user_id' => user.global_id,
-            'plan_id' => plan_id
+            'plan_id' => plan_id,
+            'type' => 'license'
           }
         })
+        if include_extras
+          extras_added = {:customer_id => charge['customer'], :purchase_id => charge['id']}
+        end
         time = 5.years.to_i
         user && user.log_subscription_event({:log => 'persisting long-term purchase update'})
-        User.subscription_event({
-          'purchase' => true,
-          'user_id' => user.global_id,
-          'purchase_id' => charge['id'],
-          'customer_id' => charge['customer'],
-          'token_summary' => token['summary'],
-          'plan_id' => plan_id,
-          'seconds_to_add' => time,
-          'source' => 'new purchase'
-        })
+        if plan_id.match(/free/)
+          user.update_subscription({
+            'subscribe' => true,
+            'subscription_id' => 'free',
+            'customer_id' => 'free',
+            'plan_id' => 'slp_monthly_free'
+          })
+        else
+          User.subscription_event({
+            'purchase' => true,
+            'user_id' => user.global_id,
+            'purchase_id' => charge['id'],
+            'customer_id' => charge['customer'],
+            'token_summary' => token['summary'],
+            'purchase_amount' => amount,
+            'plan_id' => plan_id,
+            'seconds_to_add' => time,
+            'source' => 'new purchase'
+          })
+        end
         cancel_other_subscriptions(user, 'all')
       else
         user && user.log_subscription_event({:log => 'monthly subscription'})
         customer = nil
+        one_time_amount = amount
         if user.settings['subscription'] && user.settings['subscription']['customer_id'] && user.settings['subscription']['customer_id'] != 'free'
           user && user.log_subscription_event({:log => 'retrieving existing customer'})
           customer = Stripe::Customer.retrieve(user.settings['subscription']['customer_id']) rescue nil
@@ -252,12 +308,38 @@ module Purchasing
             sub = customer.subscriptions.create({
               :plan => plan_id,
               :source => token['id'],
-              # TODO: uncomment this to let people finish their free trial before being charged
               :trial_end => trial_end
             })
           end
-          customer = Stripe::Customer.retrieve(customer.id)
+          customer = Stripe::Customer.retrieve(customer['id'])
           any_sub = customer.subscriptions.data.detect{|s| s.status == 'active' || s.status == 'trialing' }
+          if include_extras
+            one_time_amount += self.extras_cost
+            charge_id = nil
+            if customer['default_source']
+              charge = Stripe::Charge.create({
+                :amount => (self.extras_cost * 100),
+                :currency => 'usd',
+                :customer => customer['id'],
+                :source => customer['default_source'],
+                :receipt_email => user.settings['email'],
+                :description => "CoughDrop premium symbols access",
+                :metadata => {
+                  'user_id' => user.global_id,
+                  'type' => 'extras'
+                }
+              })
+              charge_id = charge['id']
+            else
+              Stripe::InvoiceItem.create({
+                amount: (self.extras_cost * 100),
+                currency: 'usd',
+                customer: customer['id'],
+                description: 'CoughDrop premium symbols access'
+              })
+            end
+            extras_added = {:customer_id => customer.id, :purchase_id => charge_id}
+          end
           raise "no valid subscription found" unless any_sub
           user && user.log_subscription_event({:log => 'persisting subscription update'})
           updated = User.subscription_event({
@@ -266,6 +348,7 @@ module Purchasing
             'subscription_id' => sub['id'],
             'customer_id' => sub['customer'],
             'token_summary' => token['summary'],
+            'purchase_amount' => one_time_amount,
             'plan_id' => plan_id,
             'cancel_others_on_update' => true,
             'source' => 'new subscription'
@@ -283,13 +366,77 @@ module Purchasing
       type = (err.respond_to?('[]') && err[:type])
       code = (err.respond_to?('[]') && err[:code]) || 'unknown'
       user && user.log_subscription_event({:error => 'other_exception', :err => err.to_s + err.backtrace[0].to_s })
-      return {success: false, error: 'unexpected_error', error_message: err.to_s, error_type: type, error_code: code}
+      return {success: false, :trace => err.backtrace, error: 'unexpected_error', error_message: err.to_s, error_type: type, error_code: code}
+    end
+    if extras_added
+      User.schedule(:purchase_extras, {
+        'user_id' => user.global_id,
+        'customer_id' => extras_added[:customer_id],
+        'purchase_id' => extras_added[:purchase_id],
+        'source' => 'purchase.include',
+        'notify' => false
+      })
     end
     {success: true, type: type}
   end
   
   def self.active_sale?
     !!(ENV['CURRENT_SALE'] && ENV['CURRENT_SALE'].to_i > Time.now.to_i)
+  end
+
+  def self.purchase_extras(token, opts)
+    user = opts['user_id'] && User.find_by_global_id(opts['user_id'])
+    return {success: false, error: 'user required'} unless user
+    Stripe.api_key = ENV['STRIPE_SECRET_KEY']
+    amount = self.extras_cost
+    add_token_summary(token)
+    charge_type = false
+    begin
+      customer = Stripe::Customer.retrieve(user.settings['subscription']['customer_id']) if user && user.settings['subscription'] && user.settings['subscription']['customer_id']
+      # TODO: this is disabled for now, it's cleaner to just send everyone through the same purchase workflow
+      # but it would be an easier sale if customers didn't have to do this
+      if token == 'none' && customer && customer['subscriptions'].to_a.any?{|s| s['status'] == 'active' || s['status'] == 'trialing' }
+        if customer['default_source']
+          # charge the customer immediately if possible
+          token = {'id' => customer['default_source'], 'customer_id' => customer['id']}
+        end
+        # TODO: you can create an InvoiceItem to add to an existing subscription
+        # if for some reason a default_source is not defined, is this necessary?
+      end
+      if !charge_type && token != 'none'
+        charge = Stripe::Charge.create({
+          :amount => (amount * 100),
+          :currency => 'usd',
+          :source => token['id'],
+          :customer => token['customer_id'],
+          :receipt_email => user.settings['email'],
+          :description => "CoughDrop premium symbols access",
+          :metadata => {
+            'user_id' => user.global_id,
+            'type' => 'extras'
+          }
+        })
+        charge_type = 'immediate_purchase'
+        User.schedule(:purchase_extras, {
+          'user_id' => user.global_id,
+          'purchase_id' => charge['id'],
+          'customer_id' => charge['customer'],
+          'source' => 'purchase.standalone',
+          'notify' => true
+        })
+      elsif !charge_type
+        return {success: false, error: 'token required without active subscription'}
+      end
+    rescue Stripe::CardError => err
+      json = err.json_body
+      err = json[:error]
+      return {success: false, error: err[:code], decline_code: err[:decline_code]}
+    rescue => err
+      type = (err.respond_to?('[]') && err[:type])
+      code = (err.respond_to?('[]') && err[:code]) || 'unknown'
+      return {success: false, error: 'unexpected_error', error_message: err.to_s, error_type: type, error_code: code}
+    end 
+    {success: true, charge: charge_type}   
   end
   
   def self.purchase_gift(token, opts)

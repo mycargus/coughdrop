@@ -185,6 +185,7 @@ Coughdrop::Application.routes.draw do
     get "boardversions" => "boards#history"
     get "userversions" => "users#history"
     
+    get 'gifts/code_check' => 'purchasing#code_check'
     resources :gifts
     
     resources :sounds do

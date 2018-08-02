@@ -19,6 +19,53 @@ export default Controller.extend({
       modal.success(msg);
       this.get('subscription').reset();
     },
+    premium_symbols: function(show) {
+      this.set('show_premium_symbols', !!show);
+    },
+    purchase_premium_symbols: function() {
+      var user = this.get('model');
+      var _this = this;
+      var subscribe = function(token) {
+        _this.set('extras_status', {confirming: true});
+        persistence.ajax('/api/v1/users/' + user.get('user_name') + '/subscription', {
+          type: 'POST',
+          data: {
+            token: token,
+            type: 'extras'
+          }
+        }).then(function(data) {
+          progress_tracker.track(data.progress, function(event) {
+            if(event.status == 'errored') {
+              _this.set('extras_status', {error: true});
+            } else if(event.status == 'finished' && event.result && event.result.success === false && event.result.error == 'card_declined') {
+              _this.set('extras_status', {error: true, declined: true});
+            } else if(event.result && event.result.success === false) {
+              _this.set('extras_status', {error: true});
+            } else if(event.status == 'finished') {
+              user.reload().then(function() {
+                _this.set('extras_status', null);
+                _this.set('show_premium_symbols', false);
+                modal.success(i18n.t('extras_purchased', "Success! You now have access to premium symbols in CoughDrop!"));
+              }, function() {
+                _this.set('extras_status', {error: true, user_error: true});
+              });
+            }
+          });
+        }, function(err) {
+          console.log(err);
+          console.error('purchase_subscription_start_failed');
+        });
+      };
+
+      var subscription = Subscription.create({user: app_state.get('currentUser')});
+      subscription.set('user_type', 'communicator');
+      subscription.set('subscription_type', 'extras');
+      subscription.set('subscription_amount', 'long_term_custom');
+      subscription.set('subscription_custom_amount', 25);
+      Subscription.purchase(subscription).then(function(result) {
+        subscribe(result, subscription.get('subscription_custom_amount'));
+      });
+    },
     approve_or_reject_org: function(approve) {
       var user = this.get('model');
       var type = this.get('edit_permission') ? 'add_edit' : 'add';

@@ -4,6 +4,7 @@ import CoughDrop from 'frontend/app';
 import Subscription from '../../utils/subscription';
 import Ember from 'ember';
 import EmberObject from '@ember/object';
+import RSVP from 'rsvp';
 
 describe('subscription', function() {
   it("should initialize with reasonable values", function() {
@@ -131,9 +132,15 @@ describe('subscription', function() {
       expect(s.get('valid')).toEqual(true);
       s.set('subscription_custom_amount', '10');
       expect(s.get('valid')).toEqual(true);
+
+      s.set('subscription_type', 'extras');
+      expect(s.get('valid')).toEqual(false);
+      s.set('subscription_amount', 'long_term_custom');
+      expect(s.get('valid')).toEqual(false);
+      s.set('subscription_custom_amount', 25);
+      expect(s.get('valid')).toEqual(true);
     });
   });
-
 
   it("should process settings and return correct descriptions", function() {
     db_wait(function() {
@@ -169,6 +176,21 @@ describe('subscription', function() {
       expect(s.get('subscription_plan_description')).toEqual('free forever');
   });
 
+  it('should add extras price for long-term purchases to amount_in_cents', function() {
+    db_wait(function() {
+      var s = Subscription.create();
+      s.set('subscription_type', 'long_term');
+      s.set('user_type', 'communicator');
+      s.set('subscription_amount', 'long_term_200');
+      expect(s.get('amount_in_cents')).toEqual(20000);
+      s.set('extras', true);
+      expect(s.get('amount_in_cents')).toEqual(22500);
+
+      s.set('discount_percent', 0.3);
+      expect(s.get('amount_in_cents')).toEqual(16500);
+    });
+  });
+
   it("should initialize the purchasing system", function() {
     db_wait(function() {
       var handler = {};
@@ -195,6 +217,57 @@ describe('subscription', function() {
         window.StripeCheckout = null;
         window.stripe_public_key = old_key;
       });
+    });
+  });
+
+  describe('check_gift', function() {
+    it('should update gift_status correctly', function() {
+      db_wait(function() {
+        stub(persistence, 'ajax', function(url, opts) {
+          return RSVP.reject({});
+        });
+        var s = Subscription.create();
+        s.check_gift();
+        expect(s.get('gift_status')).toEqual({checking: true});
+        waitsFor(function() { return s.get('gift_status.error')});
+        runs();
+      });
+    });
+    it('should update gift_status error', function() {
+      db_wait(function() {
+        stub(persistence, 'ajax', function(url, opts) {
+          expect(url).toEqual('/api/v1/gifts/code_check?code=bacon');
+          return RSVP.resolve({valid: false});
+        });
+        var s = Subscription.create();
+        s.set('gift_code', 'bacon');
+        s.check_gift();
+        expect(s.get('gift_status')).toEqual({checking: true});
+        waitsFor(function() { return s.get('gift_status.error')});
+        runs();
+      });
+    });
+
+    it('should apply the returned percent', function() {
+      db_wait(function() {
+        stub(persistence, 'ajax', function(url, opts) {
+          if(url == '/api/v1/gifts/code_check?code=12345') {
+            return RSVP.resolve({valid: true, discount_percent: 0.5});
+          } else {
+            return RSVP.reject({});
+          }
+        })
+        var s = Subscription.create();
+        s.set('gift_code', '12345');
+        s.check_gift();
+        expect(s.get('gift_status')).toEqual({checking: true});
+        waitsFor(function() { return !s.get('gift_status')});
+        runs(function() {
+          expect(s.get('discount_percent')).toEqual(0.5);
+          expect(s.get('subscription_type')).toEqual('long_term');
+          expect(s.get('subscription_amount')).toEqual('long_term_200');
+        });
+      })
     });
   });
 
@@ -818,4 +891,42 @@ describe('subscription', function() {
       });
     });
   });
+
+  describe('description', function() {
+    it('should return ths correct value', function() {
+      db_wait(function() {
+        var s = Subscription.create();
+        expect(s.get('description')).toEqual('CoughDrop supporting-role 5-year purchase');
+        s.set('user_type', 'communicator');
+        expect(s.get('description')).toEqual('CoughDrop monthly subscription');
+        s.set('subscription_type', 'long_term');
+        expect(s.get('description')).toEqual('CoughDrop 5-year purchase');
+        s.set('subscription_type', 'extras');
+        expect(s.get('description')).toEqual('CoughDrop premium symbols');
+        s.set('val');
+        expect(s.get('description')).toEqual('CoughDrop evaluation account');
+        s.set('subscription_type', 'monthly');
+        expect(s.get('description')).toEqual('CoughDrop monthly evaluation account');
+        s.set('user_type', 'supporter');
+        s.set('subscription_type', 'monthly');
+        expect(s.get('description')).toEqual('CoughDrop supporting-role');
+        s.set('extras', true);
+        expect(s.get('description')).toEqual('CoughDrop supporting-role Plus Premium Symbols');
+      })
+    });
+  });
+
+  describe('purchase_description', function() {
+    it('should return the correct value', function() {
+      db_wait(function() {
+        var s = Subscription.create();
+        expect(s.get('purchase_description')).toEqual('Purchase');
+        s.set('subscription_type', 'monthly');
+        expect(s.get('purchase_description')).toEqual('Subscribe');
+        s.set('subscription_amount', 'slp_monthly_free');
+        expect(s.get('purchase_description')).toEqual('Purchase');
+      })
+    });
+  })
 });
+

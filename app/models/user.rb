@@ -294,7 +294,7 @@ class User < ActiveRecord::Base
       self.possibly_full_premium ||= rand(10) == 1
     end
     @do_track_boards = true if !self.id
-    
+
     true
   end
 

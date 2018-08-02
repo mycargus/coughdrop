@@ -1324,23 +1324,29 @@ module Stats
   def self.totals(date)
     date = Date.parse(date) if date.is_a?(String)
     date ||= Date.today
+    prev_month = date << 1
     res = {}
     puts "querying..."
     res[:users] = User.where(['created_at < ?', date]).count
-    puts "users: #{res[:users]}"
+    puts "users: #{res[:users]} #{res[:new_users]}"
     res[:boards] = Board.where(['created_at < ?', date]).count
-    puts "boards: #{res[:boards]}"
+    res[:new_boards] = Board.where(['created_at < ? AND created_at >= ?', date, prev_month]).count
+    puts "boards: #{res[:boards]} #{res[:new_boards]}"
     res[:logs] = LogSession.where(:log_type => 'session').where(['created_at < ?', date]).count
-    puts "logs: #{res[:logs]}"
-    seconds = LogSession.where(:log_type => 'session').where(['started_at > ? AND started_at < ?', date - 30.days, date]).sum('EXTRACT(epoch FROM (ended_at - started_at))')
+    res[:new_logs] = LogSession.where(:log_type => 'session').where(['created_at < ? AND created_at >= ?', date, prev_month]).count
+    puts "logs: #{res[:logs]} #{res[:new_logs]}"
+    seconds = LogSession.where(:log_type => 'session').where(['started_at > ? AND started_at < ?', prev_month, date]).sum('EXTRACT(epoch FROM (ended_at - started_at))')
     res[:hours] = (seconds / 3600.0).round(2)
-    res[:hours_users] = LogSession.where(:log_type => 'session').where(['started_at > ? AND started_at < ?', date - 30.days, date]).distinct.count('user_id')
+    res[:hours_users] = LogSession.where(:log_type => 'session').where(['started_at > ? AND started_at < ?', prev_month, date]).distinct.count('user_id')
     puts "log hours: #{res[:hours]} for #{res[:hours_users]} users"
     res[:premium_users] = User.where(['created_at < ?', date]).where(:possibly_full_premium => true).select(&:full_premium?).count
     puts "premium_users: #{res[:premium_users]}"
     res[:communicators] = 0
+    res[:new_communicators] = 0
     User.where(['created_at < ?', date]).find_in_batches(:batch_size => 100).each do |batch|
-      res[:communicators] += batch.select(&:communicator_role?).select{|u| !u.supporter_registration? }.count
+      comms = batch.select(&:communicator_role?).select{|u| !u.supporter_registration? }
+      res[:communicators] += comms.count
+      res[:new_communicators] += comms.select{|u| u.created_at > prev_month }.count
     end
     puts "communicators: #{res[:communicators]}"
     maps = {:android => [], :ios => [], :windows => [], :browser => []}

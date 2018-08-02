@@ -32,24 +32,24 @@ describe Api::GiftsController, :type => :controller do
     
     it "should return a gift record" do
       token_user
-      g = GiftPurchase.create
+      g = GiftPurchase.create(code: '5710897589375081751728957215782317582713057231857239751907582')
       get :show, params: {:id => g.code}
       expect(response.success?).to eq(true)
       json = JSON.parse(response.body)
       expect(response.code).to eq("200")
-      expect(json['gift']['id']).to eq(g.code)
+      expect(json['gift']['id']).to eq("#{g.code}y#{g.code_verifier}")
     end
     
     it "should be forgiving on capitalization and o's for 0's" do
       token_user
       g = GiftPurchase.new
-      g.code = 'abcd000'
+      g.code = 'abcd0002587208957238957230895782375892735729087823758723895720397238578923709827057237'
       g.save
-      get :show, params: {:id => 'ABcD0Oo'}
+      get :show, params: {:id => 'ABcD0Oo2587208957238957230895782375892735729087823758723895720397238578923709827057237'}
       expect(response.success?).to eq(true)
       json = JSON.parse(response.body)
       expect(response.code).to eq("200")
-      expect(json['gift']['id']).to eq(g.code)
+      expect(json['gift']['id']).to eq("#{g.code}y#{g.code_verifier}")
     end
   end
   
@@ -103,7 +103,7 @@ describe Api::GiftsController, :type => :controller do
       }}
       expect(response).to be_success
       json = JSON.parse(response.body)
-      gift = GiftPurchase.find_by_code(json['gift']['id'])
+      gift = GiftPurchase.find_by_code(json['gift']['code'])
       expect(gift).to_not eq(nil)
       expect(json['gift']['code']).to eq(gift.code)
       expect(json['gift']['email']).to eq('org@example.com')
@@ -125,7 +125,7 @@ describe Api::GiftsController, :type => :controller do
       }}
       expect(response).to be_success
       json = JSON.parse(response.body)
-      gift = GiftPurchase.find_by_code(json['gift']['id'])
+      gift = GiftPurchase.find_by_code(json['gift']['code'])
       expect(gift).to_not eq(nil)
       expect(json['gift']['code']).to eq(gift.code)
       expect(json['gift']['email']).to eq(nil)

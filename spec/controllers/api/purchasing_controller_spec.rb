@@ -38,4 +38,40 @@ describe Api::PurchasingController, :type => :controller do
       expect(json['progress']).not_to eq(nil)
     end
   end
+  describe "code_check" do
+    it "should require valid gift" do
+      get :code_check, params: {code: 'asdf'}
+      assert_error('code not recognized', 400)
+    end
+
+    it "should require valid gift type" do
+      g = GiftPurchase.create(settings: {'licenses' => 4})
+      expect(g.gift_type).to eq('bulk_purchase')
+      get :code_check, params: {code: g.code}
+      assert_error('invalid code')
+    end
+
+    it "should error on invalid redemption state" do
+      g = GiftPurchase.create
+      expect(GiftPurchase).to receive(:find_by_code).with('bacon').and_return(g)
+      expect(g).to receive(:redemption_state).with('bacon').and_return({valid: false, error: 'no no no'})
+      get :code_check, params: {code: 'bacon'}
+      expect(response.success?).to eq(true)
+      json = JSON.parse(response.body)
+      expect(json['valid']).to eq(false)
+      expect(json['error']).to eq('no no no')
+    end
+
+    it "should succeed on valid redemption state" do
+      g = GiftPurchase.create
+      expect(GiftPurchase).to receive(:find_by_code).with('bacon').and_return(g)
+      expect(g).to receive(:redemption_state).with('bacon').and_return({valid: true})
+      get :code_check, params: {code: 'bacon'}
+      expect(response.success?).to eq(true)
+      json = JSON.parse(response.body)
+      expect(json['valid']).to eq(true)
+      expect(json['type']).to eq('user_gift')
+      expect(json['discount_percent']).to eq(1.0)
+    end
+  end
 end

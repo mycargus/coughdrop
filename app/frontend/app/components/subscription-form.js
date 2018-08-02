@@ -11,6 +11,9 @@ import i18n from '../utils/i18n';
 
 export default Component.extend({
   update_classes: Subscription.obs_func.observes.apply(Subscription.obs_func, Subscription.obs_properties),
+  app_state: function() {
+    return app_state;
+  }.property(),
   didInsertElement: function() {
     if(this.$().width() < 850) {
       this.$().addClass('skinny_subscription');
@@ -92,6 +95,9 @@ export default Component.extend({
     check_pricing: function() {
       this.set('see_pricing', true);
     },
+    check_gift: function() {
+      this.get('subscription').check_gift();
+    },
     purchase: function() {
       var subscription = this.get('subscription');
       var user = this.get('user');
@@ -102,13 +108,17 @@ export default Component.extend({
         return;
       }
       var _this = this;
-      var subscribe = function(token, type) {
+      var subscribe = function(token, type, code) {
         subscription.set('finalizing_purchase', true);
+        if(subscription.get('extras')) {
+          type = type + "_plus_extras";
+        }
         persistence.ajax('/api/v1/users/' + user.get('user_name') + '/subscription', {
           type: 'POST',
           data: {
             token: token,
             type: type,
+            code: code,
             confirmation: subscription.get('confirmation')
           }
         }).then(function(data) {
@@ -126,10 +136,18 @@ export default Component.extend({
               var str = i18n.t('card_declined', "Purchase failed, your card was declined. Please try a different card or contact support for help.");
               if(event.result.decline_code && event.result.decline_code == 'fraudulent') {
                 str = i18n.t('card_declined_by_billing', "Purchase failed, our billing system has flagged your card as high-risk. Please try a different card or contact support for help.");
+              } else if(event.result.decline_code && event.result.decline_code == 'stolen_card') {
+                str = i18n.t('card_declined_by_billing_stolen', "Purchase failed, our billing system has flagged your card as being stolen. Please try a different card or contact support for help.");
               }
+
               _this.sendAction('subscription_error', str);
               _this.send('reset');
               console.log(event);
+            } else if (event.result && event.result.success === false) {
+              _this.sendAction('subscription_error', i18n.t('user_subscription_update_failed', "Purchase failed. Please try again or contact support for help."));
+              _this.send('reset');
+              console.log(event);
+              console.error('purchase_other_error');
             } else if(event.status == 'finished') {
               if(user.get('preferences')) {
                 user.reload().then(function() {
@@ -159,12 +177,12 @@ export default Component.extend({
         });
       };
 
-      if(subscription.get('gift_type')) {
+      if(subscription.get('gift_code') && subscription.get('communicator_type') && subscription.get('long_term_subscription') && subscription.get('amount_in_dollars') == 0) {
         subscribe({code: subscription.get('gift_code')}, 'gift_code');
       } else {
         Subscription.purchase(subscription).then(function(result) {
           console.error('purchase_promise_resolved');
-          subscribe(result, subscription.get('subscription_amount_plus_trial'));
+          subscribe(result, subscription.get('subscription_amount_plus_trial'), subscription.get('gift_code'));
         }, function() {
           modal.error(i18n.t('purchasing_not_completed', "There was an unexpected problem completing your purchase"));
           console.error('purchase_promise_rejected');

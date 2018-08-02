@@ -689,19 +689,22 @@
           <div class="well" style="max-width: 500px;">
             <span class="glyphicon glyphicon-usd" style="font-size: 50px; float: left;"></span>
             <div style="margin-bottom: 5px; margin-top: -5px;">
-            {{model.id}} - {{model.email}} - {{subscription.subscription_plan_description}}
-            {{#if model.subscription.expires}}
-              {{t " -- expires" key='dash_expires'}}
-              {{date model.subscription.expires 'day'}}
-            {{/if}}
-            {{#if model.purchase_duration}}
-              <br/>{{t "premium user for %{n} years" n=model.purchase_duration key='paid_for_n_years'}}
-            {{/if}}
-            {{#if model.premium_voices}}
+              {{model.id}} - {{model.email}} - {{subscription.subscription_plan_description}}
+              {{#if model.subscription.expires}}
+                {{t " -- expires" key='dash_expires'}}
+                {{date model.subscription.expires 'day'}}
+              {{/if}}
+              {{#if model.purchase_duration}}
+                <br/>{{t "premium user for %{n} years" n=model.purchase_duration key='paid_for_n_years'}}
+              {{/if}}
               <div>
-                {{t "premium voice" count=model.premium_voices.allowed key='premium_voices_count'}}{{t ", %{cnt} used" key='comma_premium_voices_used' cnt=model.premium_voices.claimed.length}}
+                {{#if model.premium_voices}}
+                  {{t "premium voice" count=model.premium_voices.allowed key='premium_voices_count'}}{{t ", %{cnt} used" key='comma_premium_voices_used' cnt=model.premium_voices.claimed.length}}
+                {{/if}}
+                {{#if model.subscription.extras_enabled}}
+                  {{t " + premium symbols enabled" key='extras_enabled'}}
+                {{/if}}
               </div>
-            {{/if}}
             </div>
             {{#if subscription_settings.type}}
               <div>
@@ -726,6 +729,7 @@
                   <li><a href="#" {{action 'set_subscription' 'manual_supporter'}}>{{t "Set as Free Supporter" key='set_as_free_supporter'}}</a></li>
                   <li><a href="#" {{action 'set_subscription' 'communicator_trial'}}>{{t "Set as Free Trial Communicator" key='set_as_free_trial_communicator'}}</a></li>
                   <li><a href="#" {{action 'set_subscription' 'add_1'}}>{{t "Add 1 Month" key='add_one_month'}}</a></li>
+                  <li><a href="#" {{action 'set_subscription' 'enable_extras'}}>{{t "Enable Premium Symbols" key='enable_premium_symbols'}}</a></li>
                   <li><a href="#" {{action 'set_subscription' 'add_voice'}}>{{t "Add Premium Voice" key='add_premium_voice'}}</a></li>
                   <li><a href="#" {{action 'set_subscription' 'force_logout'}}>{{t "Force Logout" key='force_logout'}}</a></li>
                 </ul>

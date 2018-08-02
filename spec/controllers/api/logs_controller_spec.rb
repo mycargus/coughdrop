@@ -434,6 +434,8 @@ describe Api::LogsController, :type => :controller do
       json = JSON.parse(response.body)
       expect(json['log']).to_not eq(nil)
     end
+
+    it "should import obl data"
   end
   
   describe "trends" do
@@ -571,7 +573,7 @@ describe Api::LogsController, :type => :controller do
       expect(json['progress']).to_not eq(nil)
       p = Progress.last
       expect(p.settings['method']).to eq('export_logs')
-      expect(p.settings['arguments']).to eq([@user.global_id])
+      expect(p.settings['arguments']).to eq([@user.global_id, false])
     end
   end
 end

@@ -2464,15 +2464,226 @@ describe LogSession, :type => :model do
   end
 
   describe "process_modeling_event" do
-    it "should have specs" do
-      write_this_test
+    it "should create a modeling log session if not created" do
+      u = User.create
+      d = Device.create(user: u)
+      s = LogSession.find_by(log_type: 'modeling_activities', user_id: u.id)
+      expect(s).to eq(nil)
+
+      LogSession.process_modeling_event({
+        'asdf' => true
+      }, {
+        user: u, device: d
+      })
+      s = LogSession.find_by(log_type: 'modeling_activities', user_id: u.id)
+      expect(s).to_not eq(nil)
+    end
+
+    it "should reuse an existing modeling log session for the user" do
+      u = User.create
+      d = Device.create(user: u)
+      s = LogSession.create(user: u, author: u, device: d, log_type: 'modeling_activities', user_id: u.id)
+      LogSession.process_modeling_event({
+        'asdf' => true
+      }, {
+        user: u, device: d
+      })
+      expect(LogSession.where(log_type: 'modeling_activities', user_id: u.id).count).to eq(1)
+      s.reload
+      expect(s.data['events'].length).to eq(1)
+    end
+
+    it "should process an activation event" do
+      u = User.create
+      d = Device.create(user: u)
+
+      LogSession.process_modeling_event({
+        'asdf' => true
+      }, {
+        user: u, device: d
+      })
+      s = LogSession.find_by(log_type: 'modeling_activities', user_id: u.id)
+      expect(s).to_not eq(nil)
+      expect(s.data['events'].length).to eq(1)
+    end
+
+    it "should handle a dismissal event, including updating any previus action events" do
+      u = User.create
+      d = Device.create(user: u)
+
+      LogSession.process_modeling_event({
+        'modeling_action' => 'dismiss',
+        'modeling_activity_id' => '1f',
+        'modeling_user_ids' => ['1']
+      }, {
+        user: u, device: d
+      })
+      s = LogSession.find_by(log_type: 'modeling_activities', user_id: u.id)
+      expect(s).to_not eq(nil)
+      expect(s.data['events'].length).to eq(1)
+
+      LogSession.process_modeling_event({
+        'modeling_action' => 'start',
+        'modeling_activity_id' => '1f',
+        'repeats' => 0,
+        'timestamp' => 1,
+        'modeling_user_ids' => ['1', '2', '3']
+      }, {
+        user: u, device: d
+      })
+      s.reload
+      expect(s.data['events'].length).to eq(2)
+      
+      LogSession.process_modeling_event({
+        'modeling_action' => 'dismiss',
+        'modeling_activity_id' => '1f',
+        'timestamp' => 6.hours.ago.to_i,
+        'modeling_user_ids' => ['1', '2']
+      }, {
+        user: u, device: d
+      })
+      s.reload
+      expect(s.data['events'].length).to eq(3)
+      expect(s.data['events'][-1]).to eq({
+        'modeling_action' => 'dismiss',
+        'modeling_activity_id' => '1f',
+        'repeats' => 1,
+        'id' => 3,
+        'timestamp' => 6.hours.ago.to_i,
+        'modeling_user_ids' => ['1', '2'],
+        'related_user_ids' => []
+      })
+    end
+
+    it "should schedule process_external_callbacks" do
+      u = User.create
+      d = Device.create(user: u)
+
+      LogSession.process_modeling_event({
+        'asdf' => true
+      }, {
+        user: u, device: d
+      })
+      s = LogSession.find_by(log_type: 'modeling_activities', user_id: u.id)
+      expect(s).to_not eq(nil)
+      expect(s.data['events'].length).to eq(1)
+      expect(Worker.scheduled?(LogSession, :perform_action, {'id' => s.id, 'method' => 'process_external_callbacks', 'arguments' => []})).to eq(true)
     end
   end
 
   describe "process_external_callbacks" do
-    it "should have specs" do
-      write_this_test
+    it "should use the same user_id as returned in a Token api call" do
+      user = User.create
+      dk = DeveloperKey.create
+      device = Device.create(user: user, developer_key_id: dk.id)
+      ui = UserIntegration.create(device: device, integration_key: 'communication_workshop')
+      s = LogSession.create(user: user, author: user, device: device)
+      s.log_type = 'modeling_activities'
+      s.data = {'events' => [
+        {'modeling_action' => 'asdf', 'modeling_word' => 'with', 'modeling_locale' => 'en', 'modeling_activity_id' => '123'},
+        {'modeling_action' => 'jkl', 'modeling_word' => 'with', 'modeling_locale' => 'en', 'modeling_activity_id' => '123', 'modeling_action_score' => 4},
+      ]}
+      token = JsonApi::Token.as_json(user, device)
+      user_id = token['anonymized_user_id']
+      expect(Typhoeus).to receive(:post).with("https://workshop.openaac.org/api/v1/external", body: {
+        integration_id: dk.key,
+        integration_token: dk.secret,
+        user_id: user_id,
+        updates: [{
+          action: 'asdf',
+          word: 'with',
+          locale: 'en',
+          activity_id: '123',
+          score: nil       
+        }, {
+          action: 'jkl',
+          word: 'with',
+          locale: 'en',
+          activity_id: '123',
+          score: 4       
+        }]
+      }, timeout: 10).and_return(OpenStruct.new(body: {
+        accepted: true
+      }.to_json))
+      expect(s.process_external_callbacks).to eq(true)
+      expect(s.data['events'].map{|e| e['external_processed']}).to eq([true, true])
+    end
+
+    it "should only update if any external events haven't been processed" do
+      user = User.create
+      dk = DeveloperKey.create
+      device = Device.create(user: user, developer_key_id: dk.id)
+      ui = UserIntegration.create(device: device, integration_key: 'communication_workshop')
+      s = LogSession.create(user: user, author: user, device: device)
+      s.log_type = 'modeling_activities'
+      s.data = {'events' => [
+        {'external_processed' => true, 'modeling_action' => 'asdf', 'modeling_word' => 'with', 'modeling_locale' => 'en', 'modeling_activity_id' => '123'},
+        {'external_processed' => true, 'modeling_action' => 'jkl', 'modeling_word' => 'with', 'modeling_locale' => 'en', 'modeling_activity_id' => '123', 'modeling_action_score' => 4},
+      ]}
+      token = JsonApi::Token.as_json(user, device)
+      user_id = token['anonymized_user_id']
+      expect(Typhoeus).to_not receive(:post)
+      expect(s.process_external_callbacks).to eq(true)
+    end
+    
+    it "should send the modeling information to the communication_workshop endpoint if specified" do
+      user = User.create
+      dk = DeveloperKey.create
+      device = Device.create(user: user, developer_key_id: dk.id)
+      ui = UserIntegration.create(device: device, integration_key: 'communication_workshop')
+      s = LogSession.create(user: user, author: user, device: device)
+      s.log_type = 'modeling_activities'
+      s.data = {'events' => [
+        {'modeling_action' => 'asdf', 'modeling_word' => 'with', 'modeling_locale' => 'en', 'modeling_activity_id' => '123'},
+        {'external_processed' => true, 'modeling_action' => 'jkl', 'modeling_word' => 'with', 'modeling_locale' => 'en', 'modeling_activity_id' => '123', 'modeling_action_score' => 4},
+      ]}
+      user_id = user.anonymized_identifier("external_for_#{device.developer_key_id}")
+      expect(Typhoeus).to receive(:post).with("https://workshop.openaac.org/api/v1/external", body: {
+        integration_id: dk.key,
+        integration_token: dk.secret,
+        user_id: user_id,
+        updates: [{
+          action: 'asdf',
+          word: 'with',
+          locale: 'en',
+          activity_id: '123',
+          score: nil       
+        }]
+      }, timeout: 10).and_return(OpenStruct.new(body: {
+        accepted: true
+      }.to_json))
+      expect(s.process_external_callbacks).to eq(true)
+    end
+
+    it "should not update on error" do
+      user = User.create
+      dk = DeveloperKey.create
+      device = Device.create(user: user, developer_key_id: dk.id)
+      ui = UserIntegration.create(device: device, integration_key: 'communication_workshop')
+      s = LogSession.create(user: user, author: user, device: device)
+      s.user = user
+      s.log_type = 'modeling_activities'
+      s.data = {'events' => [
+        {'modeling_action' => 'asdf', 'modeling_word' => 'with', 'modeling_locale' => 'en', 'modeling_activity_id' => '123'},
+        {'external_processed' => true, 'modeling_action' => 'jkl', 'modeling_word' => 'with', 'modeling_locale' => 'en', 'modeling_activity_id' => '123', 'modeling_action_score' => 4},
+      ]}
+      user_id = user.anonymized_identifier("external_for_#{device.developer_key_id}")
+      expect(Typhoeus).to receive(:post).with("https://workshop.openaac.org/api/v1/external", body: {
+        integration_id: dk.key,
+        integration_token: dk.secret,
+        user_id: user_id,
+        updates: [{
+          action: 'asdf',
+          word: 'with',
+          locale: 'en',
+          activity_id: '123',
+          score: nil       
+        }]
+      }, timeout: 10).and_return(OpenStruct.new(body: {
+        accepted: false
+      }.to_json))
+      expect(s).to_not receive(:save!)
+      expect(s.process_external_callbacks).to eq(false)
     end
   end
-
 end

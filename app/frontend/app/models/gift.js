@@ -15,6 +15,9 @@ CoughDrop.Gift = DS.Model.extend({
   gift_type: DS.attr('string'),
   total_codes: DS.attr('number'),
   redeemed_codes: DS.attr('number'),
+  activated_discounts: DS.attr('number'),
+  limit: DS.attr('number'),
+  expires: DS.attr('date'),
   org_connected: DS.attr('boolean'),
   codes: DS.attr('raw'),
   active: DS.attr('boolean'),
@@ -24,6 +27,10 @@ CoughDrop.Gift = DS.Model.extend({
   email: DS.attr('string'),
   memo: DS.attr('string'),
   amount: DS.attr('number'),
+  discount: DS.attr('number'),
+  discount_hundred: function() {
+    return (this.get('discount') || 1.0) * 100;
+  }.property('discount'),
   update_gift_types: function() {
     var res = {};
     res[this.get('gift_type') || 'user_gift'] = true;

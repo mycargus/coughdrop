@@ -221,6 +221,14 @@ class Api::OrganizationsController < ApplicationController
         stats[str] ||= 0
         stats[str] += 1
       end
+    elsif params['report'] == 'extras'
+      extras = AuditEvent.where(['created_at > ? AND event_type = ?', 6.months.ago, 'extras_added'])
+      stats = {}
+      extras.each do |event|
+        str = "#{event.created_at.strftime('%m-%Y')} #{event.data['source']}"
+        stats[str] ||= 0
+        stats[str] += 1
+      end
     elsif params['report'] == 'feature_flags'
       available = FeatureFlags::AVAILABLE_FRONTEND_FEATURES
       enabled = FeatureFlags::ENABLED_FRONTEND_FEATURES

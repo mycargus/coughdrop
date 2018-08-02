@@ -41,6 +41,12 @@
                 {{else}}
                   <span class='glyphicon glyphicon-ok'></span>
                 {{/if}}
+              {{else if gift.gift_types.discount}}
+                {{#if gift.active}}
+                  <span class='glyphicon glyphicon-scissors'></span>
+                {{else}}
+                  <span class='glyphicon glyphicon-ok'></span>
+                {{/if}}
               {{else}}
                 {{#if gift.active}}
                   <span class='glyphicon glyphicon-heart'></span>
@@ -75,6 +81,22 @@
               <div class='text-muted' style='font-size: 12px; margin-left: 15px;'>
                 {{#if gift.active}}
                   {{gift.redeemed_codes}} {{t "redeemed" key='redeemed'}}
+                {{else}}
+                  {{t "fully redeemed," key='fully_redeemed'}}
+                {{/if}}
+                {{t "created" key='created'}}
+                {{date gift.created 'day'}}
+              </div>
+            {{else if gift.gift_types.discount}}
+              <a href="/purchase/{{gift.id}}">
+                {{gift.code}}
+                ({{gift.organization}})<br/>
+                {{#if gift.discount}}{{gift.discount_hundred}}% {{t "off" key='off'}}{{/if}}
+                {{#if gift.expires}}{{t "exp" key='expires'}} {{date gift.expires 'day'}}{{/if}}
+              </a>
+              <div class='text-muted' style='font-size: 12px; margin-left: 15px;'>
+                {{#if gift.active}}
+                  {{gift.activated_discounts}}{{#if gift.limit}} / {{gift.limit}}{{/if}} {{t "redeemed" key='redeemed'}}
                 {{else}}
                   {{t "fully redeemed," key='fully_redeemed'}}
                 {{/if}}
@@ -121,6 +143,25 @@
             {{input value=memo placeholder="memo" class="form-control inline input-sm"}}
           </span>
           <button class="btn btn-default btn-sm" {{action "add_gift" 'purchase'}}>{{t "Create Purchase Page" key='create_purchase_page'}}</button>
+        </div>
+      {{else if current_gift_type.discount}}
+        <div style='margin-top: 15px;'>
+          <div style='margin-bottom: 5px;'>
+            {{input value=org placeholder="org name" class="form-control inline inline-masquerade input-sm"}}
+            {{input value=email placeholder="org email" class="form-control inline inline-masquerade input-sm"}}
+          </div>
+          <div style='margin-bottom: 5px;'>
+            {{input value=code placeholder="code" class="form-control inline inline-masquerade input-sm"}}
+            {{input value=discount_pct placeholder="10%" class="form-control inline inline-masquerade input-sm"}}
+          </div>
+          <div style='margin-bottom: 5px;'>
+            {{input value=limit placeholder="limit # of uses" class="form-control inline inline-masquerade input-sm"}}
+          </div>
+          <span style='display: inline-block; width: 304px;'>
+            <span style='width: 150px; display: inline-block; text-align: right; padding-right: 5px;'>{{t "expires (optional)" key='expires_optional'}}</span>
+            {{input type='date' value=expires placeholder="(optional)" class="form-control inline inline-masquerade input-sm"}}
+          </span>
+          <button class="btn btn-default btn-sm" {{action "add_gift" 'discount'}}>{{t "Create Discount Code" key='create_discount_code'}}</button>
         </div>
       {{else if current_gift_type.multi_code}}
         <div style='margin-top: 15px;'>

@@ -3,6 +3,18 @@ class Api::PurchasingController < ApplicationController
     res = Purchasing.subscription_event(request)
     render json: res[:data], :status => res[:status]
   end
+
+  def code_check
+    gift = GiftPurchase.find_by_code(params['code'])
+    return api_error 400, {error: "code not recognized"} unless gift
+    return api_error 400, {error: "invalid code"} if gift.gift_type == 'bulk_purchase'
+    redeem = gift.redemption_state(params['code'])
+    if !redeem[:valid]
+      render json: {valid: false, error: redeem[:error]}
+    else
+      render json: {valid: true, type: gift.gift_type, discount_percent: gift.discount_percent}
+    end
+  end
   
   def purchase_gift
     return api_error 400, {error: "invalid purchase token"} unless params['token'] && params['token']['id']
