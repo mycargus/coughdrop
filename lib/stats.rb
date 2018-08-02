@@ -189,7 +189,7 @@ module Stats
     date = WeeklyStatsSummary.weekyear_to_date(summary.weekyear)
     history = ((date - min_date.to_date).to_f / (date_range.to_f)) ** 2
     ['emergent_words', 'dwindling_words'].each do |cat|
-      ((summary.data['stats'][cat] || {}) || []).each do |word, val|
+      (((summary.data || {})['stats'] || {})[cat] || []).each do |word, val|
         stats[cat] ||= {}
         stats[cat][word] ||= 0
         stats[cat][word] += (val * (history)).round(3)
