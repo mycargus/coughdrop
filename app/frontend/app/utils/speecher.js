@@ -381,7 +381,7 @@ var speecher = EmberObject.extend({
           text: utterance.text,
           rate: (utterance.rate || 1.0) * 1.3,
           locale: (voice && voice.lang)
-        }, function() {
+        }).then(function() {
           callback();
         }, function(err) {
           speak_utterance();
