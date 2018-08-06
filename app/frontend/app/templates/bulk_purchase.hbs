@@ -95,6 +95,22 @@
           </dd>
         
       </dl>
+      <ul class='list-group'>
+      {{#each gift.activations as |activation|}}
+        <li class='list-group-item'>
+          <span class='text-muted'>
+            {{#link-to 'user' code.receiver.user_name}}
+              {{#if code.receiver.avatar_url}}
+                <img src={{code.receiver.avatar_url}} style='height: 20px; opacity: 0.5;' />
+              {{/if}}
+              {{code.receiver.user_name}}
+            {{/link-to}}
+            {{t "redeemed" key='redeemed'}}
+            {{date code.activated_at 'day'}}
+          </span>
+        </li>
+      {{/each}}
+      </ul>
     {{else if gift.active}}
       {{#if subscription.purchase_complete}}
         <div style="margin: 50px 0;">

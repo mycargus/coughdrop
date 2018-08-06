@@ -63,5 +63,22 @@ describe JsonApi::Gift do
       expect(json['duration']).to eq('2 years')
       expect(json['purchased']).to eq(false)
     end
+
+    it 'should include receiver information for discount codes' do
+      g = GiftPurchase.create(:settings => {'discount' => 0.5, 'limit' => 15})
+      u = User.create
+      g.redeem_code!(g.code, u)
+      u2 = User.create
+      g.redeem_code!(g.code, u2)
+
+      g.settings['admin_user_ids'] = [u.global_id]
+      u.save!
+      json = JsonApi::Gift.build_json(g, :permissions => u)
+      expect(json['activations'].length).to eq(2)
+      expect(json['activations'][0][:activated_at]).to be > 5.minutes.ago.utc.iso8601
+      expect(json['activations'][0][:receiver]['user_name']).to eq(u.user_name)
+      expect(json['activations'][1][:activated_at]).to be > 5.minutes.ago.utc.iso8601
+      expect(json['activations'][1][:receiver]['user_name']).to eq(u2.user_name)
+    end
   end
 end

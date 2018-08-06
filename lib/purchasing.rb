@@ -265,6 +265,7 @@ module Purchasing
             'purchase_id' => charge['id'],
             'customer_id' => charge['customer'],
             'token_summary' => token['summary'],
+            'discount_code' => discount_code,
             'purchase_amount' => amount,
             'plan_id' => plan_id,
             'seconds_to_add' => time,

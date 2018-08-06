@@ -33,20 +33,36 @@ module JsonApi::Gift
       json['permissions'] = gift.permissions_for(args[:permissions])
     end
 
-    if gift.settings['codes'] && json['permissions'] && json['permissions']['manage']
-      user_ids = gift.settings['codes'].map{|k, c| c && c['receiver_id'] }
+    if gift.settings['activations'] && json['permissions'] && json['permissions']['manage']
+      user_ids = gift.settings['activations'].map{|k, c| c && c['receiver_id'] }
       users = {}
       User.find_all_by_global_id(user_ids.uniq).each do |user|
-        users[user.global_id] = user
       end
-      json['codes'] = gift.settings['codes'].map do |key, code|
-        user_json = code && users[code['receiver_id']] && JsonApi::User.build_json(users[code['receiver_id']], :limited_identity => true)
-        {
-          code: key,
-          redeemed: !!code,
-          redeemed_at: code && code['redeemed_at'],
-          receiver: user_json ? user_json : nil
-        }
+    end
+    ['activations', 'codes'].each do |list|
+      if gift.settings[list] && json['permissions'] && json['permissions']['manage']
+        user_ids = gift.settings[list].map{|k, c| (c && c['receiver_id']) || (k && k['receiver_id'])}
+        users = {}
+        User.find_all_by_global_id(user_ids.uniq).each do |user|
+          users[user.global_id] = user
+        end
+        json[list] = gift.settings[list].map do |key, code|
+          if list == 'codes'
+            user_json = code && users[code['receiver_id']] && JsonApi::User.build_json(users[code['receiver_id']], :limited_identity => true)
+            {
+              code: key,
+              redeemed: !!code,
+              redeemed_at: code && code['redeemed_at'],
+              receiver: user_json ? user_json : nil
+            }
+          else
+            user_json = users[key['receiver_id']] && JsonApi::User.build_json(users[key['receiver_id']], :limited_identity => true)
+            {
+              activated_at: key['activated_at'],
+              receiver: user_json ? user_json : nil
+            }
+          end
+        end
       end
     end
 

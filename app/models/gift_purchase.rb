@@ -206,13 +206,13 @@ class GiftPurchase < ActiveRecord::Base
       self.settings['activations'] ||= []
       self.settings['activations'] << {
         'receiver_id' => user.global_id,
-        'activated_at' => Time.now.iso8601
+        'activated_at' => Time.now.utc.iso8601
       }
       self.active = false if self.settings['limit'] && self.settings['activations'].length >= self.settings['limit']
     elsif self.gift_type == 'user_gift'
       self.active = false
       self.settings['receiver_id'] = user.global_id
-      self.settings['redeemed_at'] = Time.now.iso8601
+      self.settings['redeemed_at'] = Time.now.utc.iso8601
     else
       raise "invalid code"
     end

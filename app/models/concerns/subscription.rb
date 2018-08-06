@@ -250,6 +250,7 @@ module Subscription
           self.settings['subscription']['last_purchased'] = Time.now.iso8601
           self.settings['subscription']['last_purchase_plan_id'] = args['plan_id']
           self.settings['subscription']['last_purchase_id'] = args['purchase_id']
+          self.settings['subscription']['discount_code'] = args['discount_code'] if args['discount_code']
           self.settings['subscription']['last_purchase_seconds_added'] = args['seconds_to_add']
           self.settings['subscription']['purchase_amount'] = args['purchase_amount']
           self.settings['preferences']['role'] = role
@@ -695,7 +696,7 @@ module Subscription
       user = User.find_by_global_id(opts['user_id'])
       raise "user not found" unless user
       user.settings['subscription'] ||= {}
-      do_notify = !(user.settings['subscription']['extras'] && user.settings['subscription']['extras']['enabled'])
+      first_enabling = !(user.settings['subscription']['extras'] && user.settings['subscription']['extras']['enabled'])
       user.settings['subscription']['extras'] = (user.settings['subscription']['extras'] || {}).merge({
         'enabled' => true,
         'purchase_id' => opts['purchase_id'],
@@ -709,8 +710,10 @@ module Subscription
         'source' => opts['source']
       }
       user.save!
-      AuditEvent.create!(:event_type => 'extras_added', :summary => "#{user.user_name} activated extras", :data => {source: opts['source']})
-      if do_notify && opts['notify']
+      if first_enabling
+        AuditEvent.create!(:event_type => 'extras_added', :summary => "#{user.user_name} activated extras", :data => {source: opts['source']})
+      end
+      if first_enabling && opts['notify']
         SubscriptionMailer.schedule_delivery(:extras_purchased, user.global_id)
       end
       true
