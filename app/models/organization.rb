@@ -24,6 +24,8 @@ class Organization < ActiveRecord::Base
   def generate_defaults
     self.settings ||= {}
     self.settings['name'] ||= "Unnamed Organization"
+    self.schedule(:org_assertions, 'all', nil) if self.settings['extras'] && @processed
+    @processed = false
     true
   end
   
@@ -67,10 +69,41 @@ class Organization < ActiveRecord::Base
     link.data['state']['added'] ||= Time.now.iso8601
     link.data['state']['full_manager'] = true if full
     link.save!
+    self.schedule(:org_assertions, user.global_id, 'manager')
     self.touch
     true
   rescue ActiveRecord::StaleObjectError
     self.schedule(:add_manager, user_key, full)
+  end
+
+  def org_assertions(user_id, user_type)
+    if user_type == 'user' || user_type == 'supervisor' || user_id == 'all'
+      if self.settings['extras']
+        users = []
+        if user_id == 'all'
+          users += self.supervisors.select{|u| !self.pending_supervisor?(u) }
+          users += self.sponsored_users.select{|u| !self.pending_user?(u) }
+          users += self.eval_users.select{|u| !self.pending_user?(u) }
+        else
+          user = User.find_by_global_id(user_id)
+          if user
+            if user_type == 'user' && self.sponsored_users.include?(user) && !self.pending_user?(user)
+              users = [user]
+            elsif user_type == 'supervisor' && self.supervisors.include?(user) && !self.pending_supervisor?(user)
+              users = [user]
+            end
+          end
+        end
+        users.each do |user|
+          self.settings['extras_activations'] ||= []
+          if !user.subscription_hash['extras_enabled']
+            User.purchase_extras({'user_id' => user.global_id, 'source' => 'org_added'})
+            self.settings['extras_activations'] << {user_id: user.global_id, activated_at: Time.now.iso8601}
+          end
+          self.save
+        end
+      end
+    end
   end
   
   def remove_manager(user_key)
@@ -114,6 +147,7 @@ class Organization < ActiveRecord::Base
     link.data['state']['pending'] = pending unless link.data['state']['pending'] == false
     link.data['state']['added'] ||= Time.now.iso8601
     link.save
+    self.schedule(:org_assertions, user.global_id, 'supervisor')
     self.touch
     true
   rescue ActiveRecord::StaleObjectError
@@ -126,6 +160,7 @@ class Organization < ActiveRecord::Base
       link = UserLink.generate(user, self, 'org_supervisor')
       link.data['state']['pending'] = false
       link.save
+      self.schedule(:org_assertions, user.global_id, 'supervisor')
     end
 #     if user.settings['supervisor_for'] && user.settings['supervisor_for'][self.global_id]
 #       self.add_supervisor(user.user_name, false)
@@ -135,6 +170,7 @@ class Organization < ActiveRecord::Base
   
   def reject_supervisor(user)
     UserLink.remove(user, self, 'org_supervisor')
+    self.schedule(:org_assertions, user.global_id, 'supervisor')
 #     if user.settings['supervisor_for'] && user.settings['supervisor_for'][self.global_id]
 #       self.remove_supervisor(user.user_name)
 #       user.settings['supervisor_for'].delete(self.global_id)
@@ -557,6 +593,7 @@ class Organization < ActiveRecord::Base
   def add_user(user_key, pending, sponsored=true, eval_account=false)
     user = User.find_by_path(user_key)
     raise "invalid user, #{user_key}" unless user
+    raise "invalid settings" if eval_account && !sponsored
     # for_different_org ||= user.settings && user.settings['managed_by'] && (user.settings['managed_by'].keys - [self.global_id]).length > 0
     # raise "already associated with a different organization" if for_different_org
     if eval_account
@@ -670,6 +707,7 @@ class Organization < ActiveRecord::Base
         }, false)
       end
     end
+    self.settings['extras'] = params[:extras] unless params[:extras] == nil
     if params[:licenses_expire]
       time = Time.parse(params[:licenses_expire])
       self.settings['licenses_expire'] = time.iso8601
@@ -729,6 +767,7 @@ class Organization < ActiveRecord::Base
         return false
       end
     end
+    @processed = true
     true
   end
 end

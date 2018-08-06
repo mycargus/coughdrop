@@ -32,6 +32,7 @@ CoughDrop.Organization = DS.Model.extend({
   total_users: DS.attr('number'),
   total_managers: DS.attr('number'),
   total_supervisors: DS.attr('number'),
+  extras: DS.attr('boolean'),
   licenses_expire: DS.attr('string'),
   created: DS.attr('date'),
   children_orgs: DS.attr('raw'),

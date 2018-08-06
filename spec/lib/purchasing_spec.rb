@@ -851,6 +851,7 @@ describe Purchasing do
           'user_id' => u.global_id,
           'purchase_id' => '23456',
           'customer_id' => '45678',
+          'discount_code' => nil,
           'plan_id' => 'long_term_150',
           'purchase_amount' => 150,
           'token_summary' => 'Unknown Card',
@@ -882,6 +883,7 @@ describe Purchasing do
           'user_id' => u.global_id,
           'purchase_id' => '23456',
           'customer_id' => '45678',
+          'discount_code' => nil,
           'plan_id' => 'long_term_150',
           'purchase_amount' => 150,
           'token_summary' => 'Unknown Card',
@@ -1586,6 +1588,7 @@ describe Purchasing do
     expect(u.reload.subscription_events[6]['log']).to eq('subscription event triggered remotely')
     expect(u.reload.subscription_events[6]['args']).to eq({
       'customer_id' => nil,
+      'discount_code' => nil,
       'plan_id' => 'long_term_200',
       'purchase' => true,
       'purchase_id' => 'asdf',
@@ -1703,6 +1706,7 @@ describe Purchasing do
     expect(u.reload.subscription_events[6]['log']).to eq('subscription event triggered remotely')
     expect(u.reload.subscription_events[6]['args']).to eq({
       'customer_id' => 'asdf',
+      'discount_code' => nil,
       'plan_id' => 'long_term_200',
       'purchase' => true,
       'purchase_id' => 'asdf',

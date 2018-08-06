@@ -252,7 +252,7 @@ describe GiftPurchase, :type => :model do
       u = User.create
       g.redeem_code!(g.code, u)
       expect(g.settings['activations']).to eq([
-        {'receiver_id' => u.global_id, 'activated_at' => Time.now.iso8601}
+        {'receiver_id' => u.global_id, 'activated_at' => Time.now.utc.iso8601}
       ])
     end
   end

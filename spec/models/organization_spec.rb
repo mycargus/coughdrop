@@ -1428,5 +1428,149 @@ describe Organization, :type => :model do
       end
     end
   end
-  
+
+  describe "org_assertions" do
+    it "should add extras for all sponsored users, evals and supervisors" do
+      o = Organization.create(settings: {'total_eval_licenses' => 5, 'total_licenses' => 5})
+      u1 = User.create
+      o.add_user(u1.user_name, false, false, false)
+      u2 = User.create
+      o.add_user(u2.user_name, false, true, false)
+      u3 = User.create
+      o.add_user(u3.user_name, true, true, false)
+      u4 = User.create
+      o.add_user(u4.user_name, false, true, true)
+      u5 = User.create
+      o.add_supervisor(u5.user_name, false)
+      u6 = User.create
+      o.add_supervisor(u6.user_name, true)
+      u7 = User.create
+      o.add_manager(u7.user_name)
+      Worker.process_queues
+      o.process({'extras' => true}, {'updater' => u1})
+      expect(o.reload.settings['extras']).to eq(true)
+      expect(Worker.scheduled?(Organization, :perform_action, {id: o.id, method: 'org_assertions', arguments: ['all', nil]})).to eq(true)
+      Worker.process_queues
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
+      expect(u2.reload.subscription_hash['extras_enabled']).to eq(true)
+      expect(u2.settings['subscription']['extras'].except('sources')).to eq({
+        'customer_id' => nil,
+        'enabled' => true,
+        'purchase_id' => nil,
+        'source' => 'org_added'
+      })
+      expect(u3.reload.subscription_hash['extras_enabled']).to eq(nil)
+      expect(u4.reload.subscription_hash['extras_enabled']).to eq(true)
+      expect(u5.reload.subscription_hash['extras_enabled']).to eq(true)
+      expect(u6.reload.subscription_hash['extras_enabled']).to eq(nil)
+      expect(u7.reload.subscription_hash['extras_enabled']).to eq(nil)
+      expect(AuditEvent.where(event_type: 'extras_added').count).to eq(3)
+    end
+
+    it "should get called automatically on org update" do
+      o = Organization.create(settings: {'total_eval_licenses' => 5, 'total_licenses' => 5})
+      u1 = User.create
+      o.process({'extras' => true}, {'updater' => u1})
+      expect(o.reload.settings['extras']).to eq(true)
+      expect(Worker.scheduled?(Organization, :perform_action, {id: o.id, method: 'org_assertions', arguments: ['all', nil]})).to eq(true)
+    end
+
+    it "should get scheduled when new user is added" do
+      o = Organization.create(settings: {'total_licenses' => 5, 'extras' => true})
+      u1 = User.create
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
+      Worker.process_queues
+      o.add_user(u1.user_name, false, true)
+      expect(Worker.scheduled?(Organization, :perform_action, {id: o.id, method: 'org_assertions', arguments: [u1.global_id, 'user']})).to eq(true)
+      Worker.process_queues
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(true)
+    end
+
+    it "should get scheduled on a new supervisor" do
+      o = Organization.create(settings: {'total_licenses' => 5, 'extras' => true})
+      u1 = User.create
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
+      Worker.process_queues
+      o.add_supervisor(u1.user_name, false)
+      expect(Worker.scheduled?(Organization, :perform_action, {id: o.id, method: 'org_assertions', arguments: [u1.global_id, 'supervisor']})).to eq(true)
+      Worker.process_queues
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(true)
+    end
+
+    it "should get scheduled on a new admin" do
+      o = Organization.create(settings: {'total_licenses' => 5, 'extras' => true})
+      u1 = User.create
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
+      Worker.process_queues
+      o.add_manager(u1.user_name, true)
+      expect(Worker.scheduled?(Organization, :perform_action, {id: o.id, method: 'org_assertions', arguments: [u1.global_id, 'manager']})).to eq(true)
+      Worker.process_queues
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
+    end
+
+    it "should not add extras for org managers" do
+      o = Organization.create(settings: {'total_licenses' => 5, 'extras' => true})
+      u1 = User.create
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
+      Worker.process_queues
+      o.add_manager(u1.user_name, true)
+      expect(Worker.scheduled?(Organization, :perform_action, {id: o.id, method: 'org_assertions', arguments: [u1.global_id, 'manager']})).to eq(true)
+      Worker.process_queues
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
+    end
+
+    it "should not add extras if extras are not enabled for the org" do
+      o = Organization.create(settings: {'total_licenses' => 5, 'extras' => false})
+      u1 = User.create
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
+      Worker.process_queues
+      o.add_user(u1.user_name, false, true)
+      expect(Worker.scheduled?(Organization, :perform_action, {id: o.id, method: 'org_assertions', arguments: [u1.global_id, 'user']})).to eq(true)
+      Worker.process_queues
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
+    end
+
+    it "should not get scheduled for a pending user" do
+      o = Organization.create(settings: {'total_licenses' => 5, 'extras' => true})
+      u1 = User.create
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
+      Worker.process_queues
+      o.add_user(u1.user_name, true, true)
+      expect(Worker.scheduled?(Organization, :perform_action, {id: o.id, method: 'org_assertions', arguments: [u1.global_id, 'user']})).to eq(true)
+      Worker.process_queues
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
+    end
+
+    it "should get scheduled when a pending user finally accepts" do
+      o = Organization.create(settings: {'total_licenses' => 5, 'extras' => true})
+      u1 = User.create
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
+      Worker.process_queues
+      o.add_user(u1.user_name, true, true)
+      expect(Worker.scheduled?(Organization, :perform_action, {id: o.id, method: 'org_assertions', arguments: [u1.global_id, 'user']})).to eq(true)
+      Worker.process_queues
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
+
+      u1.reload.process({'supervisor_key' => "approve-org"})
+      expect(Worker.scheduled?(Organization, :perform_action, {id: o.id, method: 'org_assertions', arguments: [u1.global_id, 'user']})).to eq(true)
+      Worker.process_queues
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(true)
+    end
+
+    it "should not get scheduled for a pending supervisor" do
+      o = Organization.create(settings: {'total_licenses' => 5, 'extras' => true})
+      u1 = User.create
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
+      Worker.process_queues
+      o.add_supervisor(u1.user_name, true)
+      expect(Worker.scheduled?(Organization, :perform_action, {id: o.id, method: 'org_assertions', arguments: [u1.global_id, 'supervisor']})).to eq(true)
+      Worker.process_queues
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
+
+      o.approve_supervisor(u1)
+      expect(Worker.scheduled?(Organization, :perform_action, {id: o.id, method: 'org_assertions', arguments: [u1.global_id, 'supervisor']})).to eq(true)
+      Worker.process_queues
+      expect(u1.reload.subscription_hash['extras_enabled']).to eq(true)
+    end
+  end
 end

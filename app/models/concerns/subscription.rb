@@ -110,6 +110,8 @@ module Subscription
         link.data['state']['pending'] = !!pending unless pending == nil
         link.data['state']['sponsored'] = !!sponsored unless sponsored == nil
         link.data['state']['eval'] = !!eval_account unless eval_account == nil
+        new_org.schedule(:org_assertions, self.global_id, 'user')
+
         if sponsored && !pending
           self.expires_at = nil
           self.schedule(:process_subscription_token, 'token', 'unsubscribe')

@@ -1773,12 +1773,12 @@ describe Subscription, :type => :model do
     end
     
     it "should revert to the org default home board if set" do
-      o = Organization.create
+      o = Organization.create(settings: {'total_eval_licenses' => 5})
       u = User.create
       b = Board.create(user: u, public: true)
       o.settings['default_home_board'] = {'key' => b.key, 'id' => b.global_id}
       o.save
-      o.add_user(u.user_name, false, false, true)
+      o.add_user(u.user_name, false, true, true)
       u.reload
       u.reset_eval(nil)
       expect(u.settings['preferences']['home_board']).to eq({'key' => b.key, 'id' => b.global_id})
