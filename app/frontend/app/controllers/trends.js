@@ -62,12 +62,12 @@ export default Controller.extend({
     var systems = attr || {};
     var total = 0;
     for(var idx in systems) {
-      if(idx != 'max_value' && systems[idx]) {
+      if(idx != 'max_value' && systems[idx] != null) {
         total = total + systems[idx];
       }
     }
     for(var idx in systems) {
-      if(idx != 'max_value' && systems[idx]) {
+      if(idx != 'max_value' && systems[idx] != null) {
         var pct =  Math.round(systems[idx] / total * 100);
         if(pct < 1) { pct = "<1"; }
           var obj = {
