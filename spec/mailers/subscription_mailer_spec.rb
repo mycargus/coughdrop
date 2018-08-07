@@ -6,7 +6,7 @@ describe SubscriptionMailer, :type => :mailer do
       u = User.create(:settings => {'name' => 'fred', 'email' => 'fred@example.com'})
       m = SubscriptionMailer.one_day_until_expiration(u.global_id)
       expect(m.to).to eq([u.settings['email']])
-      expect(m.subject).to eq("CoughDrop - Billing Notice")
+      expect(m.subject).to eq("CoughDrop - Trial Ending")
       
       html = message_body(m, :html)
       expect(html).to match(/set to expire/)
@@ -44,7 +44,7 @@ describe SubscriptionMailer, :type => :mailer do
       u = User.create(:settings => {'name' => 'fred', 'email' => 'fred@example.com'})
       m = SubscriptionMailer.one_week_until_expiration(u.global_id)
       expect(m.to).to eq([u.settings['email']])
-      expect(m.subject).to eq("CoughDrop - Billing Notice")
+      expect(m.subject).to eq("CoughDrop - Trial Ending")
       
       html = message_body(m, :html)
       expect(html).to match(/will conclude soon/)
