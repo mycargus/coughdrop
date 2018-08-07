@@ -23,6 +23,12 @@ Giver: <%= @gift.settings['giver_email'] %><br/>
 <% if @gift.settings['plan_id'] %>
   Plan: <%= @gift.settings['plan_id'] %><br/>
 <% end %>
+<% if @gift.settings['include_extras'] %>
+  Extras: Premium Symbols Included
+<% end %>
+<% if @gift.settings['extra_donation'] %>
+  Extras: Donated Additional License
+<% end %>
 Cloud Extras For: <%= @gift.duration %><br/><br/>
 <% end %>
 

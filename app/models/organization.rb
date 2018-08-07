@@ -24,7 +24,7 @@ class Organization < ActiveRecord::Base
   def generate_defaults
     self.settings ||= {}
     self.settings['name'] ||= "Unnamed Organization"
-    self.schedule(:org_assertions, 'all', nil) if self.settings['extras'] && @processed
+    self.schedule(:org_assertions, 'all', nil) if self.settings['include_extras'] && @processed
     @processed = false
     true
   end
@@ -78,7 +78,7 @@ class Organization < ActiveRecord::Base
 
   def org_assertions(user_id, user_type)
     if user_type == 'user' || user_type == 'supervisor' || user_id == 'all'
-      if self.settings['extras']
+      if self.settings['include_extras']
         users = []
         if user_id == 'all'
           users += self.supervisors.select{|u| !self.pending_supervisor?(u) }
@@ -707,7 +707,7 @@ class Organization < ActiveRecord::Base
         }, false)
       end
     end
-    self.settings['extras'] = params[:extras] unless params[:extras] == nil
+    self.settings['include_extras'] = params[:include_extras] unless params[:include_extras] == nil
     if params[:licenses_expire]
       time = Time.parse(params[:licenses_expire])
       self.settings['licenses_expire'] = time.iso8601

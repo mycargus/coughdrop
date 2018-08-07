@@ -1231,7 +1231,39 @@ describe Purchasing do
       expect(res[:success]).to eq(false)
       expect(res[:error]).to eq("100 not valid for type long_term_100")
     end
-    
+
+    it "should error on purchase amount that is too low based on additional options" do
+      ENV['CURRENT_SALE'] = nil
+
+      res = Purchasing.purchase_gift({}, {'type' => 'long_term_150'})
+      expect(res[:success]).to eq(false)
+      expect(res[:error]).to eq("unexpected_error")
+
+      res = Purchasing.purchase_gift({}, {'type' => 'long_term_150', 'extras' => true, 'donate' => true})
+      expect(res[:success]).to eq(false)
+      expect(res[:error]).to eq("150 not valid for type long_term_150")
+
+      res = Purchasing.purchase_gift({}, {'type' => 'long_term_175', 'extras' => true})
+      expect(res[:success]).to eq(false)
+      expect(res[:error]).to eq("unexpected_error")
+
+      res = Purchasing.purchase_gift({}, {'type' => 'long_term_175', 'extras' => true, 'donate' => true})
+      expect(res[:success]).to eq(false)
+      expect(res[:error]).to eq("175 not valid for type long_term_175")
+
+      res = Purchasing.purchase_gift({}, {'type' => 'long_term_200', 'extras' => false, 'donate' => true})
+      expect(res[:success]).to eq(false)
+      expect(res[:error]).to eq("unexpected_error")
+
+      res = Purchasing.purchase_gift({}, {'type' => 'long_term_200', 'extras' => true, 'donate' => true})
+      expect(res[:success]).to eq(false)
+      expect(res[:error]).to eq("200 not valid for type long_term_200")
+
+      res = Purchasing.purchase_gift({}, {'type' => 'long_term_225', 'extras' => true, 'donate' => true})
+      expect(res[:success]).to eq(false)
+      expect(res[:error]).to eq("unexpected_error")
+    end
+
     it "should allow discounts during a sale" do
       ENV['CURRENT_SALE'] = nil
 
@@ -1320,6 +1352,42 @@ describe Purchasing do
         'purchase_id' => '23456'
       })
     end
+
+    it "should include additional options on gift if specified" do
+      u = User.create
+      expect(Stripe::Charge).to receive(:create).with({
+        :amount => 50000,
+        :currency => 'usd',
+        :source => 'token',
+        :receipt_email=>"bob@example.com",
+        :description => 'sponsored CoughDrop license',
+        :metadata => {
+          'giver_id' => u.global_id,
+          'giver_email' => 'bob@example.com',
+          'plan_id' => 'long_term_custom_500'
+        }
+      }).and_return({
+        'customer' => '12345',
+        'id' => '23456'
+      })
+      g = GiftPurchase.new
+      expect(GiftPurchase).to receive(:process_new).with({}, {
+        'giver' => u,
+        'email' => 'bob@example.com',
+        'seconds' => 5.years.to_i
+      }).and_return(g)
+      res = Purchasing.purchase_gift({'id' => 'token'}, {'type' => 'long_term_custom_500', 'extras' => true, 'donate' => true, 'user_id' => u.global_id, 'email' => 'bob@example.com'})
+      expect(res).to eq({:success => true, :type => 'long_term_custom_500'})
+      expect(g.reload.settings).to eq({
+        'customer_id' => '12345',
+        'token_summary' => 'Unknown Card',
+        'plan_id' => 'long_term_custom_500',
+        'purchase_id' => '23456',
+        'include_extras' => true,
+        'extra_donation' => true
+      })
+    end
+    
     
     it "should trigger a notification on success" do
       u = User.create
@@ -1464,6 +1532,30 @@ describe Purchasing do
       expect(res[:success]).to eq(true)
       u.reload
       expect(u.expires_at).to eq(exp + 3.years.to_i)
+    end
+
+    it "should add extras for the user if specified on the gift" do
+      g = GiftPurchase.create(:settings => {'seconds_to_add' => 3.years.to_i, 'include_extras' => true})
+      u = User.create
+      exp = u.expires_at
+      
+      res = Purchasing.redeem_gift(g.code, u)
+      expect(res[:success]).to eq(true)
+      u.reload
+      expect(u.expires_at).to eq(exp + 3.years.to_i)
+      expect(u.subscription_hash['extras_enabled']).to eq(true)
+    end
+
+    it "should not add extras for the user if not specified on the gift" do
+      g = GiftPurchase.create(:settings => {'seconds_to_add' => 3.years.to_i})
+      u = User.create
+      exp = u.expires_at
+      
+      res = Purchasing.redeem_gift(g.code, u)
+      expect(res[:success]).to eq(true)
+      u.reload
+      expect(u.expires_at).to eq(exp + 3.years.to_i)
+      expect(u.subscription_hash['extras_enabled']).to eq(nil)
     end
     
     it "should trigger notifications for the recipient and giver" do

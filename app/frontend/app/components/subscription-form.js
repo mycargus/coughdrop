@@ -110,7 +110,7 @@ export default Component.extend({
       var _this = this;
       var subscribe = function(token, type, code) {
         subscription.set('finalizing_purchase', true);
-        if(subscription.get('extras')) {
+        if(subscription.get('extras') && type != 'gift_code') {
           type = type + "_plus_extras";
         }
         persistence.ajax('/api/v1/users/' + user.get('user_name') + '/subscription', {

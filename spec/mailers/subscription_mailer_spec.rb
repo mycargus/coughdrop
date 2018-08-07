@@ -382,6 +382,40 @@ describe SubscriptionMailer, :type => :mailer do
       expect(html).to match(/Amount: \$12345/)
       expect(html).to_not match(gift.code)
     end
+
+    it "should specify additional options only if defined on the gift" do
+      ENV['NEW_REGISTRATION_EMAIL'] = "nobody@example.com"
+      giver = User.create(:settings => {'email' => 'fred@example.com'})
+      recipient = User.create(:settings => {'email' => 'susan@example.com'})
+      
+      gift = GiftPurchase.process_new({}, {
+        'giver' => giver,
+        'email' => 'bob@example.com',
+        'seconds' => 3.years.to_i,
+      })
+      gift.save
+      
+      m = SubscriptionMailer.gift_updated(gift.global_id, 'purchase')
+      expect(m.to).to eq(['nobody@example.com'])
+      expect(m.subject).to eq("CoughDrop - Gift Purchased")
+
+      html = m.body.to_s
+      expect(html).to match(/Giver: #{giver.user_name}/)
+      expect(html).to_not match(/Extras:/)
+
+
+      gift.settings['include_extras'] = true
+      gift.settings['extra_donation'] = true
+      gift.save
+      m = SubscriptionMailer.gift_updated(gift.global_id, 'purchase')
+      expect(m.to).to eq(['nobody@example.com'])
+      expect(m.subject).to eq("CoughDrop - Gift Purchased")
+
+      html = m.body.to_s
+      expect(html).to match(/Giver: #{giver.user_name}/)
+      expect(html).to match(/Extras: Premium Symbols Included/)
+      expect(html).to match(/Extras: Donated Additional License/)
+    end
   end
 
   describe "deletion_warning" do

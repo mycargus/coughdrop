@@ -20,6 +20,7 @@ module JsonApi::Gift
     json['discount'] = gift.discount_percent
     json['limit'] = gift.settings['limit']
     json['expires'] = gift.settings['expires']
+    json['include_extras'] = gift.settings['include_extras']
     json['org_connected'] = gift.gift_type == 'multi_codes' && !!gift.settings['org_id']
     json['active'] = gift.active
     json['purchased'] = gift.purchased?

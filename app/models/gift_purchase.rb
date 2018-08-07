@@ -124,13 +124,18 @@ class GiftPurchase < ActiveRecord::Base
       self.settings['giver_email'] ||= non_user_params['giver'].settings['email'] if non_user_params['giver'].settings['email']
     end
 
-    ['licenses', 'total_codes', 'limit', 'discount', 'amount', 'memo', 'email', 'organization', 'gift_name'].each do |arg|
+    ['licenses', 'total_codes', 'limit', 'discount', 'amount', 
+            'memo', 'email', 'organization', 'gift_name'].each do |arg|
       self.settings[arg] = params[arg] if params[arg] && !params[arg].blank?
+    end
+    ['include_extras', 'extra_donation'].each do |arg|
+      self.settings[arg] = non_user_params[arg] if non_user_params[arg] && !non_user_params[arg].blank?
     end
 
     if params['discount'] && params['code']
       self.code = params['code'].to_s.downcase
     end
+
     if params['expires']
       self.settings['expires'] = Date.parse(params['expires'])
     end

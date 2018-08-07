@@ -23,6 +23,7 @@ module JsonApi::Organization
       json['total_users'] = 0
       json['total_managers'] = 0
       json['total_supervisors'] = 0
+      json['include_extras'] = org.settings['include_extras']
       user_ids = []
       UserLink.links_for(org).each do |link|
         if link['type'] == 'org_manager'

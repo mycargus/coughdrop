@@ -450,6 +450,10 @@ module Purchasing
     seconds = 5.years.to_i
 
     gift = GiftPurchase.find_by_code(opts['code']) if opts['code']
+    cutoff = 150
+    cutoff = 100 if self.active_sale?
+    cutoff += 25 if opts['extras']
+    cutoff += 50 if opts['donate']
 
     if type.match(/^long_term_custom/)
       if gift && gift.settings['amount']
@@ -458,12 +462,11 @@ module Purchasing
           description += ", #{gift.settings['memo']}"
         end
       else
-        valid_amount = false unless amount > 100 && (amount % 50) == 0
+        valid_amount = false unless amount > cutoff
         description = "sponsored CoughDrop license"
       end
     elsif type.match(/^long_term/)
-      valid_amount = false unless [150, 200, 250, 300].include?(amount)
-      valid_amount = true if amount == 100 && self.active_sale?
+      valid_amount = false unless amount >= cutoff
       description = "sponsored CoughDrop license"
     else
       return {success: false, error: "unrecognized purchase type, #{type}"}
@@ -493,6 +496,8 @@ module Purchasing
       gift.process({}, {
         'customer_id' => charge['customer'],
         'token_summary' => token['summary'],
+        'include_extras' => opts['extras'],
+        'extra_donation' => opts['donate'],
         'plan_id' => type,
         'purchase_id' => charge['id'],
       })
@@ -530,6 +535,12 @@ module Purchasing
       'code' => code,
       'seconds_to_add' => gift.settings['seconds_to_add'].to_i
     })
+    if gift.settings['include_extras']
+      User.purchase_extras({
+        'user_id' => user.global_id,
+        'source' => 'gift.redeemed'
+      })
+    end
     if res
       {success: true, redeemed: true, code: code}
     else

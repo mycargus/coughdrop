@@ -19,6 +19,7 @@ export default Controller.extend({
     }
     res.set('user_type', 'communicator');
     res.set('subscription_type', 'long_term_gift');
+    res.set('subscription_amount', 'long_term_200');
     var _this = this;
     runLater(function() {
       _this.update_classes();
@@ -69,6 +70,8 @@ export default Controller.extend({
           data: {
             token: token,
             type: type,
+            extras: subscription.get('extras'),
+            donate: subscription.get('donate'),
             email: _this.get('subscription.email')
           }
         }).then(function(data) {

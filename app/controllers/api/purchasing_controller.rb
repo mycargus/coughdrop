@@ -12,7 +12,7 @@ class Api::PurchasingController < ApplicationController
     if !redeem[:valid]
       render json: {valid: false, error: redeem[:error]}
     else
-      render json: {valid: true, type: gift.gift_type, discount_percent: gift.discount_percent}
+      render json: {valid: true, type: gift.gift_type, discount_percent: gift.discount_percent, extras: gift.settings['include_extras']}
     end
   end
   
@@ -20,7 +20,9 @@ class Api::PurchasingController < ApplicationController
     return api_error 400, {error: "invalid purchase token"} unless params['token'] && params['token']['id']
     token = params['token']
     user_id = @api_user && @api_user.global_id
-    progress = Progress.schedule(GiftPurchase, :process_subscription_token, token.to_unsafe_h, {'type' => params['type'], 'code' => params['code'], 'email' => params['email'], 'user_id' => user_id})
+    extras = params['extras'] == true || params['extras'] == 'true'
+    donate = params['donate'] == true || params['donate'] == 'true'
+    progress = Progress.schedule(GiftPurchase, :process_subscription_token, token.to_unsafe_h, {'type' => params['type'], 'code' => params['code'], 'email' => params['email'], 'user_id' => user_id, 'extras' => extras, 'donate' => donate})
     render json: JsonApi::Progress.as_json(progress, :wrapper => true)
   end
 end

@@ -164,6 +164,11 @@
                   </td>
                 {{/if}}
               </tr>
+            {{else if subscription.free_extras}}
+              {{#if subscription.extras}}
+                <td colspan='2'>{{t "premium symbols included" key='premium_symbols_included'}}</td>
+                <td colspan='2' class='separator semi_dim'></td>
+              {{/if}}
             {{/unless}}
           {{/if}}
           <tr>
@@ -265,7 +270,9 @@
                 {{/if}}
               {{/if}})
             {{else if subscription.extras}}
-              {{t "(process one-time $25 fee)" key='process_one_time_extras'}}
+              {{#unless subscription.free_extras}}
+                {{t "(process one-time $25 fee)" key='process_one_time_extras'}}
+              {{/unless}}
             {{/if}}
             {{#if subscription.user.grace_period}}
               {{#if subscription.monthly_subscription}}

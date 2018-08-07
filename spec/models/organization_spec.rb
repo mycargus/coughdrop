@@ -1447,8 +1447,8 @@ describe Organization, :type => :model do
       u7 = User.create
       o.add_manager(u7.user_name)
       Worker.process_queues
-      o.process({'extras' => true}, {'updater' => u1})
-      expect(o.reload.settings['extras']).to eq(true)
+      o.process({'include_extras' => true}, {'updater' => u1})
+      expect(o.reload.settings['include_extras']).to eq(true)
       expect(Worker.scheduled?(Organization, :perform_action, {id: o.id, method: 'org_assertions', arguments: ['all', nil]})).to eq(true)
       Worker.process_queues
       expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
@@ -1470,13 +1470,13 @@ describe Organization, :type => :model do
     it "should get called automatically on org update" do
       o = Organization.create(settings: {'total_eval_licenses' => 5, 'total_licenses' => 5})
       u1 = User.create
-      o.process({'extras' => true}, {'updater' => u1})
-      expect(o.reload.settings['extras']).to eq(true)
+      o.process({'include_extras' => true}, {'updater' => u1})
+      expect(o.reload.settings['include_extras']).to eq(true)
       expect(Worker.scheduled?(Organization, :perform_action, {id: o.id, method: 'org_assertions', arguments: ['all', nil]})).to eq(true)
     end
 
     it "should get scheduled when new user is added" do
-      o = Organization.create(settings: {'total_licenses' => 5, 'extras' => true})
+      o = Organization.create(settings: {'total_licenses' => 5, 'include_extras' => true})
       u1 = User.create
       expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
       Worker.process_queues
@@ -1487,7 +1487,7 @@ describe Organization, :type => :model do
     end
 
     it "should get scheduled on a new supervisor" do
-      o = Organization.create(settings: {'total_licenses' => 5, 'extras' => true})
+      o = Organization.create(settings: {'total_licenses' => 5, 'include_extras' => true})
       u1 = User.create
       expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
       Worker.process_queues
@@ -1498,7 +1498,7 @@ describe Organization, :type => :model do
     end
 
     it "should get scheduled on a new admin" do
-      o = Organization.create(settings: {'total_licenses' => 5, 'extras' => true})
+      o = Organization.create(settings: {'total_licenses' => 5, 'include_extras' => true})
       u1 = User.create
       expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
       Worker.process_queues
@@ -1509,7 +1509,7 @@ describe Organization, :type => :model do
     end
 
     it "should not add extras for org managers" do
-      o = Organization.create(settings: {'total_licenses' => 5, 'extras' => true})
+      o = Organization.create(settings: {'total_licenses' => 5, 'include_extras' => true})
       u1 = User.create
       expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
       Worker.process_queues
@@ -1520,7 +1520,7 @@ describe Organization, :type => :model do
     end
 
     it "should not add extras if extras are not enabled for the org" do
-      o = Organization.create(settings: {'total_licenses' => 5, 'extras' => false})
+      o = Organization.create(settings: {'total_licenses' => 5, 'include_extras' => false})
       u1 = User.create
       expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
       Worker.process_queues
@@ -1531,7 +1531,7 @@ describe Organization, :type => :model do
     end
 
     it "should not get scheduled for a pending user" do
-      o = Organization.create(settings: {'total_licenses' => 5, 'extras' => true})
+      o = Organization.create(settings: {'total_licenses' => 5, 'include_extras' => true})
       u1 = User.create
       expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
       Worker.process_queues
@@ -1542,7 +1542,7 @@ describe Organization, :type => :model do
     end
 
     it "should get scheduled when a pending user finally accepts" do
-      o = Organization.create(settings: {'total_licenses' => 5, 'extras' => true})
+      o = Organization.create(settings: {'total_licenses' => 5, 'include_extras' => true})
       u1 = User.create
       expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
       Worker.process_queues
@@ -1558,7 +1558,7 @@ describe Organization, :type => :model do
     end
 
     it "should not get scheduled for a pending supervisor" do
-      o = Organization.create(settings: {'total_licenses' => 5, 'extras' => true})
+      o = Organization.create(settings: {'total_licenses' => 5, 'include_extras' => true})
       u1 = User.create
       expect(u1.reload.subscription_hash['extras_enabled']).to eq(nil)
       Worker.process_queues

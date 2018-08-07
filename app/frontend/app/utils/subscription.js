@@ -302,15 +302,23 @@ var Subscription = EmberObject.extend({
         if(this.get('discount_percent') && this.get('communicator_type') && this.get('long_term_subscription')) {
           num = Math.max(0, num * (1 - this.get('discount_percent')));
         }
-        if(this.get('extras') && this.get('long_term_subscription')) {
+        if(this.get('extras') && !this.get('free_extras') && this.get('long_term_subscription')) {
           num = num + (25 * 100);
+        }
+        if(this.get('subscription_type') == 'long_term_gift') {
+          if(this.get('extras') && !this.get('free_extras')) {
+            num = num + (25 * 100);
+          }
+          if(this.get('donate')) {
+            num = num + (50 * 100);
+          }
         }
         return num;
       }
     } else {
       return null;
     }
-  }.property('subscription_amount', 'valid', 'extras', 'communicator_type', 'long_term_subscription', 'discount_percent'),
+  }.property('subscription_amount', 'valid', 'extras', 'donate', 'communicator_type', 'long_term_subscription', 'discount_percent', 'subscription_type'),
   amount_in_dollars: function() {
     return (this.get('amount_in_cents') || 0) / 100;
   }.property('amount_in_cents'),
@@ -321,11 +329,16 @@ var Subscription = EmberObject.extend({
     persistence.ajax('/api/v1/gifts/code_check?code=' + code, {
       type: 'GET'
     }).then(function(res) {
-      // AJAX call, set full_gift=true if completely paid
       var num = 1.0;
       if(res.valid) {
         _this.set('discount_percent', res.discount_percent);
         _this.set('subscription_type', 'long_term');
+        if(res.extras) {
+          _this.set('extras', true);
+          _this.set('free_extras', true);
+        } else {
+          _this.set('free_extras', false);
+        }
         _this.set('subscription_amount', 'long_term_200');
         _this.set('gift_status', null);
       } else {
