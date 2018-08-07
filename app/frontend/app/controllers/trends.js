@@ -57,39 +57,36 @@ export default Controller.extend({
       return res;
     }
   }.property('trends.board_locales', 'showing_private_info'),
-  systems: function() {
+  compute_breakdown(attr) {
     var res = [];
-    var systems = this.get('trends.device.systems') || {};
+    var systems = attr || {};
+    var total = 0;
     for(var idx in systems) {
-      if(idx != 'max_value') {
-        var obj = {
+      if(idx != 'max_value' && systems[idx]) {
+        total = total + systems[idx];
+      }
+    }
+    for(var idx in systems) {
+      if(idx != 'max_value' && systems[idx]) {
+        var pct =  Math.round(systems[idx] / total * 100);
+        if(pct < 1) { pct = "<1"; }
+          var obj = {
           name: idx,
-          percent: Math.round(systems[idx] * 100)
+          percent: pct
         };
         if(systems.max_value) {
-          obj.total = systems[idx] * systems.max_value;
+          obj.total = Math.round(systems[idx] * systems.max_value);
         }
         res.push(obj);
       }
     }
     return res;
+  },
+  systems: function() {
+    return this.compute_breakdown(this.get('trends.device.systems') || {});
   }.property('trends.device.systems'),
   access_methods: function() {
-    var res = [];
-    var systems = this.get('trends.device.access_methods') || {};
-    for(var idx in systems) {
-      if(idx != 'max_value') {
-        var obj = {
-          name: idx,
-          percent: Math.round(systems[idx] * 100)
-        };
-        if(systems.max_value) {
-          obj.total = systems[idx] * systems.max_value;
-        }
-        res.push(obj);
-      }
-    }
-    return res;  
+    return this.compute_breakdown(this.get('trends.device.access_methods') || {});
   }.property('trends.device.access_methods'),
   common_boards: function() {
     var hash = this.get('trends.board_usages');
