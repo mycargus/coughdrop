@@ -72,6 +72,7 @@ export default Controller.extend({
         if(pct < 1) { pct = "<1"; }
           var obj = {
           name: idx,
+          num: systems[idx] || 0,
           percent: pct
         };
         if(systems.max_value) {
@@ -80,7 +81,7 @@ export default Controller.extend({
         res.push(obj);
       }
     }
-    return res;
+    return res.sort(function(a, b) { return b.num - a.num; });
   },
   systems: function() {
     return this.compute_breakdown(this.get('trends.device.systems') || {});
