@@ -94,8 +94,8 @@ export default Controller.extend({
     var pairs = this.get('trends.word_pairs') || {};
     for(var idx in pairs) {
       var pair = pairs[idx];
-      pair.num = pair.pct;
-      pair.percent = Math.round(pair.pct * 1000) / 10;
+      pair.num = pair.percent;
+      pair.percent = Math.round(pair.percent * 1000) / 10;
       res.push(pair);
     }
     res = res.sort(function(a, b) { return b.num - a.num; })
