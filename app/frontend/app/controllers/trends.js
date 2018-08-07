@@ -95,7 +95,7 @@ export default Controller.extend({
     for(var idx in pairs) {
       var pair = pairs[idx];
       pair.num = pair.percent;
-      pair.percent = Math.round(pair.percent * 1000) / 10;
+      pair.pct = Math.round(pair.percent * 1000) / 10;
       res.push(pair);
     }
     res = res.sort(function(a, b) { return b.num - a.num; })
