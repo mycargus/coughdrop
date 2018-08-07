@@ -199,6 +199,28 @@
         {{/if}}
       </div>
 
+      <div class='col-sm-6' style='margin-bottom: 50px;'>
+        <h4>{{t "Common Word Pairings" key='common_word_pairs'}}</h4>
+        {{#if word_pairs}}
+          <div style='max-height: 300px; overflow: auto;'>
+            <div class="list-group">
+              {{#each word_pairs as |pair|}}
+                <span class='list-group-item'>
+                  {{pair.a}} - {{pair.b}}
+                  <span class='text-muted'>
+                    {{#if showing_private_info}}
+                      ({{pair.pct}}%)
+                    {{/if}}
+                  </span>
+                </span>
+              {{/each}}
+            </div>
+          </div>
+        {{else}}
+          {{t "None available" key='none_available'}}
+        {{/if}}
+      </div>
+      
       <div class='col-sm-6'>
         <p>{{t "Isn't data great? Usually when we see a little bit, it makes us think of more questions to ask, and we want to dig in deeper. There's always more to learn, more research we can do to help communicators succeed." key='data_summary_1'}}</p>
         <p>{{t "Did you know we have over <b>%{cnt}</b> communicators who have opted in to sharing their anonymized usage data with researchers? We work with AAC research organizations and institutions to discover valuable trends and insights that can help move the industry forward." key='data_summary_2' cnt=trends.research_communicators}}</p>

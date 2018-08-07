@@ -89,6 +89,18 @@ export default Controller.extend({
   access_methods: function() {
     return this.compute_breakdown(this.get('trends.device.access_methods') || {});
   }.property('trends.device.access_methods'),
+  word_pairs: function() {
+    var res = [];
+    var pairs = this.get('trends.word_pairs') || {};
+    for(var idx in pairs) {
+      var pair = pairs[idx];
+      pair.num = pair.pct;
+    }
+    res = res.sort(function(a, b) { return b.num - a.num; })
+    if(!this.get('showing_private_info')) {
+      res = res.slice(0, 10);
+    }
+  }.property('trends.word_pairs', 'showing_private_info'),
   common_boards: function() {
     var hash = this.get('trends.board_usages');
     var tally = this.get('trends.max_board_usage_count') || 1000;
