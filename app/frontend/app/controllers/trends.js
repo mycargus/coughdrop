@@ -100,6 +100,7 @@ export default Controller.extend({
     if(!this.get('showing_private_info')) {
       res = res.slice(0, 10);
     }
+    return res;
   }.property('trends.word_pairs', 'showing_private_info'),
   common_boards: function() {
     var hash = this.get('trends.board_usages');
