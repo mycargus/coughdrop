@@ -95,6 +95,7 @@ export default Controller.extend({
     for(var idx in pairs) {
       var pair = pairs[idx];
       pair.num = pair.pct;
+      res.push(pair);
     }
     res = res.sort(function(a, b) { return b.num - a.num; })
     if(!this.get('showing_private_info')) {
