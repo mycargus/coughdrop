@@ -660,13 +660,15 @@ class WeeklyStatsSummary < ActiveRecord::Base
       max_word_pair = stash[:word_pairs].map{|k, p| p['count'] }.max || 0.0
       res[:max_word_pair] = max_word_pair if include_admin
       stash[:word_pairs].each do |k, pair|
-        res[:word_pairs] ||= {}
-        res[:word_pairs][k] = {
-          'a' => pair['a'],
-          'b' => pair['b'],
-          'percent' => (pair['count'].to_f / max_word_pair.to_f * 2.0).round(1) / 2.0
-        }
-        res[:word_pairs][k]['percent'] = 0.0 if res[:word_pairs][k]['percent'].nan?
+        if pair['a'] != pair['b']
+          res[:word_pairs] ||= {}
+          res[:word_pairs][k] = {
+            'a' => pair['a'],
+            'b' => pair['b'],
+            'percent' => (pair['count'].to_f / max_word_pair.to_f * 10.0).round(1) / 10.0
+          }
+          res[:word_pairs][k]['percent'] = 0.0 if res[:word_pairs][k]['percent'].nan?
+        end
       end
     end
     
@@ -676,7 +678,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
       max_val = hash.to_a.map(&:last).max || 0.0
       res[:device][pref][:max_value] = max_val if include_admin
       hash.each do |k, v|
-        res[:device][pref][k] = (v.to_f / max_val.to_f * 2.0).round(1) / 2.0
+        res[:device][pref][k] = (v.to_f / max_val.to_f * 5.0).round(1) / 5.0
       end
     end
     
