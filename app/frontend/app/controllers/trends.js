@@ -57,6 +57,40 @@ export default Controller.extend({
       return res;
     }
   }.property('trends.board_locales', 'showing_private_info'),
+  systems: function() {
+    var res = [];
+    var systems = this.get('trends.device.systems') || {};
+    for(var idx in systems) {
+      if(idx != 'max_value') {
+        var obj = {
+          name: idx,
+          percent: Math.round(systems[idx] * 100)
+        };
+        if(systems.max_value) {
+          obj.total = systems[idx] * systems.max_value;
+        }
+        res.push(obj);
+      }
+    }
+    return res;
+  }.property('trends.device.systems'),
+  access_methods: function() {
+    var res = [];
+    var systems = this.get('trends.device.access_methods') || {};
+    for(var idx in systems) {
+      if(idx != 'max_value') {
+        var obj = {
+          name: idx,
+          percent: Math.round(systems[idx] * 100)
+        };
+        if(systems.max_value) {
+          obj.total = systems[idx] * systems.max_value;
+        }
+        res.push(obj);
+      }
+    }
+    return res;  
+  }.property('trends.device.access_methods'),
   common_boards: function() {
     var hash = this.get('trends.board_usages');
     var tally = this.get('trends.max_board_usage_count') || 1000;

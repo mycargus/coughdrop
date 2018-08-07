@@ -326,12 +326,14 @@ class WeeklyStatsSummary < ActiveRecord::Base
         # generate a one-way hash of the pairing and 
         # add the timestamp and user_id (if not already added) for the hash.
         (summary.data['stats']['word_pairs'] || {}).each do |k, pair|
-          word_pairs[k] ||= {}
-          word_pairs[k][:count] = (word_pairs[k][:count] || 0) + pair['count']
-          word_pairs[k][:user_ids] ||= []
-          word_pairs[k][:user_ids] << summary.user_id
-          word_pairs[k]['a'] = pair['a']
-          word_pairs[k]['b'] = pair['b']
+          if pair['a'] && pair['a'] != pair['b']
+            word_pairs[k] ||= {}
+            word_pairs[k][:count] = (word_pairs[k][:count] || 0) + pair['count']
+            word_pairs[k][:user_ids] ||= []
+            word_pairs[k][:user_ids] << summary.user_id
+            word_pairs[k]['a'] = pair['a']
+            word_pairs[k]['b'] = pair['b']
+          end
         end
         
         Stats::DEVICE_PREFERENCES.each do |pref|

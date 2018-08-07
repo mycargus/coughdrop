@@ -102,12 +102,13 @@
         {{/unless}}
       {{/if}}
 
-      <div class='col-sm-6' style='margin-bottom: 50px;'>
+      <div class='col-sm-12' style='margin-bottom: 50px;'>
         <h4>{{t "Most-Common Words" key='most_common_words'}}</h4>
-        {{stats/word-cloud stats=word_cloud_stats zoom=1 short=true}}
+        {{stats/word-cloud stats=word_cloud_stats zoom=1}}
       </div>
 
       {{stats/core-usage trends=trends}}
+      {{stats/modeling-frequency trends=trends}}
 
       <div class='col-sm-6' style='margin-bottom: 50px;'>
         <h4>{{t "Common Home Boards" key='common_home_boards'}}</h4>
@@ -129,7 +130,6 @@
         {{/if}}
       </div>
 
-      {{stats/modeling-frequency trends=trends}}
 
       <div class='col-sm-6' style='margin-bottom: 50px;'>
         <h4>{{t "Most-Commonly-Used Boards" key='most_common_boards'}}</h4>
@@ -157,8 +157,16 @@
           <div style='max-height: 300px; overflow: auto;'>
             <div class="list-group">
               {{#each systems as |system|}}
-                {{system.name}}
-                <span class='text-muted'>({{system.pct}}%)</span>
+                <span class='list-group-item'>
+                  {{system.name}}
+                  <span class='text-muted'>
+                    {{#if showing_private_info}}
+                      ({{delimit system.total}})
+                    {{else}}
+                      ({{system.percent}}%)
+                    {{/if}}
+                  </span>
+                </span>
               {{/each}}
             </div>
           </div>
@@ -173,8 +181,16 @@
           <div style='max-height: 300px; overflow: auto;'>
             <div class="list-group">
               {{#each access_methods as |access|}}
-                {{access.name}}
-                <span class='text-muted'>({{access.pct}}%)</span>
+                <span class='list-group-item'>
+                  {{access.name}}
+                  <span class='text-muted'>
+                    {{#if showing_private_info}}
+                      ({{delimit access.total}})
+                    {{else}}
+                      ({{access.percent}}%)
+                    {{/if}}
+                  </span>
+                </span>
               {{/each}}
             </div>
           </div>
