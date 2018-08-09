@@ -980,6 +980,7 @@ var app_state = EmberObject.extend({
           }, 200);
         }
         this.set('speak_mode_activities_at', (new Date()).getTime());
+        this.set('speak_mode_modeling_ideas', null);
         if(this.get('currentUser.preferences.device.wakelock') !== false) {
           capabilities.wakelock('speak!', true);
         }

@@ -177,7 +177,7 @@ var modal = EmberObject.extend({
     var _this = this;
     runLater(function() {
       var timeout = below_header ? 500 : 1500;
-      if(opts.timeout) { timeout = opts.timeout; }
+      if(opts && opts.timeout) { timeout = opts.timeout; }
       modal.route.render('flash-message', { into: 'application', outlet: 'flash-message'});
       if(!sticky) {
         runLater(function() {
