@@ -781,7 +781,7 @@ class LogSession < ActiveRecord::Base
     raise "only valid for modeling_activities log types" unless self.log_type == 'modeling_activities'
     activities = {}
     skip_cutoff = 6.months.ago.to_i
-    session.data['events'].each do |event|
+    self.data['events'].each do |event|
       if event['modeling_activity_id'] && ((event['timestamp'] || 0) > skip_cutoff || event['modeling_action'] == 'complete')
         activities[event['modeling_activity_id']] = event
       end
