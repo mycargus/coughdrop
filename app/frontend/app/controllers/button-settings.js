@@ -275,11 +275,11 @@ export default modal.ModalController.extend({
     if(this.get('lessonpix_enabled')) {
       res.push({name: i18n.t('lessonpix_images', "LessonPix Images"), id: 'lessonpix'});
     }
-//    if(app_state.get('feature_flags.premium_symbols')) {
+    if(app_state.get('feature_flags.premium_symbols')) {
       if(this.get('premium_symbols')) {
         res.push({name: i18n.t('pcs_images', "PCS (BoardMaker) Images"), id: 'pcs'});
       }
-  //  }
+     }
     if(window.flickr_key) {
       res.push({name: i18n.t('flickr', "Flickr Creative Commons"), id: 'flickr'});
     }
@@ -296,11 +296,11 @@ export default modal.ModalController.extend({
     if(!this.get('lessonpix_enabled')) {
       res.push({name: i18n.t('lessonpix_images', "LessonPix Images"), id: 'lessonpix_required'});
     }
-//    if(app_state.get('feature_flags.premium_symbols')) {
+    if(app_state.get('feature_flags.premium_symbols')) {
       if(!this.get('premium_symbols')) {
         res.push({name: i18n.t('pcs_images', "PCS (BoardMaker) Images"), id: 'pcs_required'});
       }
-  //  }
+    }
 
 //    res.push({name: i18n.t('openclipart', "OpenClipart"), id: 'openclipart'});
 
