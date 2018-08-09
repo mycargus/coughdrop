@@ -1812,6 +1812,31 @@ describe User, :type => :model do
       expect(u.external_email_allowed?).to eq(false)
     end
   end
+
+  describe 'enabled_protected_sources' do
+    it 'should return the cached value if any' do
+      u = User.new
+      expect(u).to receive(:get_cached).with('protected_sources').and_return([])
+      expect(u.enabled_protected_sources).to eq([])
+    end
+
+    it 'should return the correct list of sources' do
+      u = User.new
+      expect(u).to receive(:get_cached).with('protected_sources').and_return(nil)
+      expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return(true)
+      expect(u).to receive(:subscription_hash).and_return({'extras_enabled' => true})
+      expect(u.enabled_protected_sources).to eq(['lessonpix', 'pcs'])
+    end
+
+    it 'should persist the result to the cache' do
+      u = User.new
+      expect(u).to receive(:get_cached).with('protected_sources').and_return(nil)
+      expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return(true)
+      expect(u).to receive(:subscription_hash).and_return({'extras_enabled' => true})
+      expect(u).to receive(:set_cached).with('protected_sources', ['lessonpix', 'pcs']).and_return(nil)
+      expect(u.enabled_protected_sources).to eq(['lessonpix', 'pcs'])
+    end
+  end
   
   describe "user_token" do
     it 'should return the correct value' do

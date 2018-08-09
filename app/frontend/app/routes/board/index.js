@@ -35,6 +35,7 @@ export default Route.extend({
       key: model.get('key'),
       name: model.get('name'),
       default_level: model.get('current_level'),
+      has_fallbacks: model.get('has_fallbacks'),
       copy_version: model.get('copy_version'),
       integration_name: model.get('integration') && model.get('integration_name'),
       parent_key: model.get('parent_board_key'),

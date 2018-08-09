@@ -7,10 +7,13 @@ module Sharing
     if !user
       add_processing_error("user #{user_name} not found while trying to share")
       return false
-    elsif self.protected_material?
+    elsif self.unshareable?
+      # TODO: if sharing with a supervisor, it's ok
+      add_processing_error("user #{user_name} does not have access to the protected material on this board")
+      return false
       sources = self.settings['protected']['media_sources'] || ['lessonpix']
-      user_integration_keys = UserIntegration.integration_keys_for(user)
-      if (user_integration_keys & sources) != sources
+      user_sources = (user && user.enabled_protected_sources) || []
+      if (user_sources & sources) != sources
         add_processing_error("user #{user_name} does not have access to the protected material on this board")
         return false
       end

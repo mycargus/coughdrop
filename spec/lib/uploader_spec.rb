@@ -208,9 +208,75 @@ describe Uploader do
     it 'should make a remote request' do
       res = OpenStruct.new(body: [
       ].to_json)
-      expect(Typhoeus).to receive(:get).with('https://www.opensymbols.org/api/v1/symbols/search?q=bacon+repo%3Aarasaac', :ssl_verifypeer => false).and_return(res)
+      expect(Typhoeus).to receive(:get).with("https://www.opensymbols.org/api/v1/symbols/search?q=bacon+repo%3Aarasaac&search_token=#{ENV['OPENSYMBOLS_TOKEN']}", :ssl_verifypeer => false).and_return(res)
       images = Uploader.find_images('bacon', 'arasaac', nil)
       expect(images).to eq([])
+    end
+
+    it 'should pass the search token' do
+      res = OpenStruct.new(body: [
+      ].to_json)
+      expect(Typhoeus).to receive(:get).with("https://www.opensymbols.org/api/v1/symbols/search?q=bacon+repo%3Aarasaac&search_token=#{ENV['OPENSYMBOLS_TOKEN']}", :ssl_verifypeer => false).and_return(res)
+      images = Uploader.find_images('bacon', 'arasaac', nil)
+      expect(images).to eq([])
+    end
+
+    it 'should allow searching all public images via opensymbols key' do
+      res = OpenStruct.new(body: [
+      ].to_json)
+      expect(Typhoeus).to receive(:get).with("https://www.opensymbols.org/api/v1/symbols/search?q=bacon&search_token=#{ENV['OPENSYMBOLS_TOKEN']}", :ssl_verifypeer => false).and_return(res)
+      images = Uploader.find_images('bacon', 'opensymbols', nil)
+      expect(images).to eq([])
+    end
+
+    it 'should not allow searching for pcs and marking results as from a protected source if not authorized for the user' do
+      res = OpenStruct.new(body: [
+      ].to_json)
+      u = User.create
+      expect(Typhoeus).to receive(:get).with("https://www.opensymbols.org/api/v1/symbols/search?q=bacon+repo%3Apcs&search_token=#{ENV['OPENSYMBOLS_TOKEN']}", :ssl_verifypeer => false).and_return(res)
+      images = Uploader.find_images('bacon', 'pcs', u)
+      expect(images).to eq([])
+    end
+    
+    it 'should allow searching for pcs and marking results as from a protected source' do
+      res = OpenStruct.new(body: [
+        {
+          'image_url' => 'http://www.example.com/pic.png',
+          'extension' => 'png',
+          'width' => '200',
+          'height' => '200',
+          'id' => '123',
+          'license' => 'public_domain',
+          'license_url' => 'http://www.example.com/cc0',
+          'source_url' => 'http://www.example.com/pics',
+          'author' => 'bob',
+          'author_url' => 'http://www.example.com/bob'
+        }
+      ].to_json)
+      u = User.create
+      User.purchase_extras({'user_id' => u.global_id})
+      u.reload
+      expect(Typhoeus).to receive(:get).with("https://www.opensymbols.org/api/v1/symbols/search?q=bacon+repo%3Apcs&search_token=#{ENV['OPENSYMBOLS_TOKEN']}:pcs", :ssl_verifypeer => false).and_return(res)
+      images = Uploader.find_images('bacon', 'pcs', u)
+      expect(images).to eq([{
+        'url' => 'http://www.example.com/pic.png',
+        'thumbnail_url' => 'http://www.example.com/pic.png',
+        'content_type' => 'image/png',
+        'width' => '200',
+        'height' => '200',
+        'external_id' => '123',
+        'public' => true,
+        'protected' => true,
+        'protected_source' => 'pcs',
+        'license' => {
+          'type' => 'public_domain',
+          'copyright_notice_url' => 'http://www.example.com/cc0',
+          'source_url' => 'http://www.example.com/pics',
+          'author_name' => 'bob',
+          'author_url' => 'http://www.example.com/bob',
+          'uneditable' => true
+        }
+      }])
     end
     
     it 'should parse results' do
@@ -228,7 +294,7 @@ describe Uploader do
           'author_url' => 'http://www.example.com/bob'
         }
       ].to_json)
-      expect(Typhoeus).to receive(:get).with('https://www.opensymbols.org/api/v1/symbols/search?q=bacon+repo%3Aarasaac', :ssl_verifypeer => false).and_return(res)
+      expect(Typhoeus).to receive(:get).with("https://www.opensymbols.org/api/v1/symbols/search?q=bacon+repo%3Aarasaac&search_token=#{ENV['OPENSYMBOLS_TOKEN']}", :ssl_verifypeer => false).and_return(res)
       images = Uploader.find_images('bacon', 'arasaac', nil)
       expect(images).to eq([{
         'url' => 'http://www.example.com/pic.png',
@@ -238,6 +304,8 @@ describe Uploader do
         'height' => '200',
         'external_id' => '123',
         'public' => true,
+        'protected' => false,
+        'protected_source' => nil,
         'license' => {
           'type' => 'public_domain',
           'copyright_notice_url' => 'http://www.example.com/cc0',
@@ -333,6 +401,7 @@ describe Uploader do
           'external_id' => '2345',
           'public' => false,
           'protected' => true,
+          'protected_source' => 'lessonpix',
           'license' => {
             'type' => 'private',
             'source_url' => "http://lessonpix.com/pictures/2345/good+pic",
@@ -478,6 +547,7 @@ describe Uploader do
           'external_id' => '2345',
           'public' => false,
           'protected' => true,
+          'protected_source' => 'lessonpix',
           'license' => {
             'type' => 'private',
             'source_url' => "http://lessonpix.com/pictures/2345/good+pic",

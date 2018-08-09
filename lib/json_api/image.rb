@@ -9,13 +9,23 @@ module JsonApi::Image
     json = {}
     json['id'] = image.global_id
     json['url'] = image.best_url
-#    json['url'] = image.settings['cached_copy_url'] || image.settings['fallback_copy_url'] || image.url
-    ['pending', 'content_type', 'width', 'height', 'source_url'].each do |key|
-      json[key] = image.settings[key]
+    settings = image.settings
+    protected_source = !!image.protected?
+    allowed_sources = args[:allowed_sources]
+    allowed_sources ||= args[:permissions] && args[:permissions].enabled_protected_sources
+    allowed_sources ||= []
+    if settings && protected_source && !allowed_sources.include?(settings['protected_source'])
+      settings = settings['fallback'] || {}
+      json['url'] = Uploader.fronted_url(settings['url'])
+      json['fallback'] = true
+      protected_source = false
     end
-    json['protected'] = !!image.protected?
-    json['protected_source'] = image.settings['protected_source'] if json['protected']
-    json['license'] = OBF::Utils.parse_license(image.settings['license'])
+    ['pending', 'content_type', 'width', 'height', 'source_url'].each do |key|
+      json[key] = settings[key]
+    end
+    json['protected'] = protected_source
+    json['protected_source'] = settings['protected_source'] if json['protected']
+    json['license'] = OBF::Utils.parse_license(settings['license'])
     if (args[:data] || !image.url) && image.data
       json['url'] = image.data
     end

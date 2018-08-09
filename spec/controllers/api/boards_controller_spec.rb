@@ -1262,7 +1262,11 @@ describe Api::BoardsController, :type => :controller do
       expect(response).to be_success
       json = JSON.parse(response.body)
       expect(json['board']['protected']).to eq(true)
-      expect(json['board']['public']).to eq(false)
+      expect(json['board']['public']).to eq(true)
+
+      b.reload
+      b.settings['protected']['vocabulary'] = true
+      b.save
 
       put :update, params: {:id => b.global_id, :board => {
         'public' => true,
@@ -1284,6 +1288,10 @@ describe Api::BoardsController, :type => :controller do
       expect(json['board']['protected']).to eq(true)
       expect(json['board']['public']).to eq(false)
 
+      b.reload
+      b.settings['protected'].delete('vocabulary')
+      b.save
+
       put :update, params: {:id => b.global_id, :board => {
         'public' => true,
         'buttons' => [
@@ -1301,7 +1309,7 @@ describe Api::BoardsController, :type => :controller do
       expect(response).to be_success
       json = JSON.parse(response.body)
       expect(json['board']['protected']).to eq(false)
-      expect(json['board']['public']).to eq(false)
+      expect(json['board']['public']).to eq(true)
     end
   end
 end

@@ -41,7 +41,26 @@ class ButtonImage < ActiveRecord::Base
   
   def track_image_use_later
     schedule(:track_image_use)
+    if self.settings && self.settings['protected'] && !self.settings['fallback']
+      if self.settings['button_label'] || self.settings['search_term']
+        schedule(:generate_fallback)
+      end
+    end
     true
+  end
+
+  def generate_fallback(force=false)
+    if self.settings['protected'] && (!self.settings['fallback'] || force)
+      term = self.settings['button_label'] || self.settings['search_term']
+      if term
+        schedule(:generate_fallback)
+        image = (Uploader.find_images(term, 'opensymbols', self.user) || [])[0]
+        if image
+          self.settings['fallback'] = image
+          self.save
+        end
+      end
+    end
   end
   
   def track_image_use
@@ -101,6 +120,7 @@ class ButtonImage < ActiveRecord::Base
       self.settings['protected'] = params['ext_coughdrop_protected'] if params['ext_coughdrop_protected'] != nil
       self.settings['finding_user_name'] = params['finding_user_name'] if params['finding_user_name']
       self.settings['suggestion'] = params['suggestion'] if params['suggestion']
+      self.settings['button_label'] = params['button_label'] if params['button_label']
       self.settings['search_term'] = params['search_term'] if params['search_term']
       self.settings['external_id'] = params['external_id'] if params['external_id']
       self.public = params['public'] if params['public'] != nil

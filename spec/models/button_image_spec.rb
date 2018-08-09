@@ -143,6 +143,64 @@ describe ButtonImage, :type => :model do
       end
       i.track_image_use
     end
+
+    it 'should schedule generate_fallback if image is protected' do
+      u = User.create
+      b = Board.create(user: u, :public => true)
+      i = ButtonImage.create(settings: {
+        protected: true,
+        button_label: 'cheddar',
+        protected_source: 'bacon'
+      }, user: u, board: b, url: 'http://www.example.com/pic.png')
+      expect(Worker.scheduled?(ButtonImage, :perform_action, {id: i.id, method: 'generate_fallback', arguments: []})).to eq(true)
+    end
+
+    it 'should not schedule generate_fallback for non-protected images' do
+      u = User.create
+      b = Board.create(user: u, :public => true)
+      i = ButtonImage.create(settings: {
+        protected: false,
+        button_label: 'cheddar',
+        protected_source: 'bacon'
+      }, user: u, board: b, url: 'http://www.example.com/pic.png')
+      expect(Worker.scheduled?(ButtonImage, :perform_action, {id: i.id, method: 'generate_fallback', arguments: []})).to eq(false)
+    end
+  end
+
+  # def generate_fallback(force=false)
+  #   if self.settings['protected'] && (!self.settings['fallback'] || force)
+  #     term = self.settings['button_label'] || self.settings['search_term']
+  #     if term
+  #       schedule(:generate_fallback)
+  #       image = (Uploader.find_images(term, 'opensymbols', self.user) || [])[0]
+  #       if image
+  #         self.settings['fallback'] = image
+  #         self.save
+  #       end
+  #     end
+  #   end
+  # end
+  describe "generate_fallback" do
+    it 'should not generate a fallback for non-protected images' do
+      i = ButtonImage.new(settings: {
+        'protected' => false,
+        'button_label' => 'bacon',
+      })
+      expect(Uploader).to_not receive(:find_images)
+      i.generate_fallback
+      expect(i.settings['fallback']).to eq(nil)
+    end
+
+    it 'should lookup a public image matching the image label or search term' do
+      i = ButtonImage.new(settings: {
+        'protected' => true,
+        'button_label' => 'bacon',
+      })
+      expect(Uploader).to receive(:find_images).with('bacon', 'opensymbols', nil).and_return([{a: 1}])
+      i.generate_fallback
+      expect(i.settings['fallback']).to_not eq(nil)
+      expect(i.settings['fallback']['a']).to eq(1)
+    end
   end
 
   describe "process_params" do

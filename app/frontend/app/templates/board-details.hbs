@@ -45,7 +45,15 @@
         <dd>
           {{license-attribution license=model.license}}
           {{#if model.protected_material}}
-            <div><em>{{t "This board contains protected material, and cannot be made public" key='board_contains_protected_material'}}</em></div>
+            <div style='margin-bottom: 10px; margin-top: 5px;'>
+              {{#if model.has_fallbacks}}
+                <em>{{t "This board uses premium assets which you don't have access to so you will see free images and sounds which may not perfectly match the author's intent" key='protected_fallback_material'}}</em>
+              {{else if model.no_sharing}}
+                <em>{{t "This board contains protected material, and cannot be made public" key='board_contains_protected_material'}}</em>
+              {{else}}
+                <em>{{t "This board contains protected material which cannot be made public. If this board is shared or made public, users without proper access will see free images and sounds instead which may not perfectly match the author's intent." key='board_contains_protected_material_will_use_fallbacks'}}</em>
+              {{/if}}
+            </div>
           {{/if}}
         </dd>
       <dt>{{t "People Using" key='people_using'}}</dt>

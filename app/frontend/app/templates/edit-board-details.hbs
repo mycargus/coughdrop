@@ -87,10 +87,15 @@
       <div class="form-group">
         <label for="public" class="col-sm-3 control-label">{{t "Visibility" key='visibility'}}</label>
         <div class="col-sm-9">
-          {{#if model.protected_material}}
+          {{#if model.no_sharing}}
             <em class='form-control-static'>{{t "Boards with protected content can't be made public" key='protected_boards_no_public'}}</em>
           {{else}}
             {{bound-select select_class="form-control" select_id="license" content=public_options selection=model.visibility action=(action (mut model.visibility)) }}
+            {{#unless model.visibility_setting.private}}
+              {{#if model.protected_material}}
+                <em>{{t "NOTE: Users who do not have access to premium content on this board will see free alternatives instead, which may not exactly match the author's intent." key='premium_public_fallbacks_warning'}}</em>
+              {{/if}}
+            {{/unless}}
           {{/if}}
         </div>
       </div>

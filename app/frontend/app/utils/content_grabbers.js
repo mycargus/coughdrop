@@ -671,6 +671,9 @@ var pictureGrabber = EmberObject.extend({
       search = function(str) { return _this.protected_search(str, library, user_name, fallback); };
     } else if(library == 'openclipart') {
       search = _this.openclipart_search;
+    } else if(library == 'pcs') {
+      text = text + " premium_repo:pcs"
+//      search = function(str) { return _this.open_symbols_search(str, 'pcs'); }
     }
     return search(text);
   },
@@ -964,6 +967,8 @@ var pictureGrabber = EmberObject.extend({
       i.src = preview.url;
     });
 
+    var button = editManager.find_button(_this.get('model.id'));
+    var label = button && button.label;
     var save_image = image_load.then(function(data) {
       var image = CoughDrop.store.createRecord('image', {
         url: persistence.normalize_url(preview.url),
@@ -972,12 +977,12 @@ var pictureGrabber = EmberObject.extend({
         height: data.height,
         external_id: preview.external_id,
         search_term: preview.search_term,
+        button_label: label,
         license: preview.license,
         protected: preview.protected,
         protected_source: preview.protected_source,
         finding_user_name: preview.finding_user_name
       });
-      var _this = this;
       return contentGrabbers.save_record(image);
     });
     return save_image;

@@ -41,6 +41,7 @@ CoughDrop.Board = DS.Model.extend({
   translations: DS.attr('raw'),
   categories: DS.attr('raw'),
   home_board: DS.attr('boolean'),
+  has_fallbacks: DS.attr('boolean'),
   valid_id: function() {
     return !!(this.get('id') && this.get('id') != 'bad');
   }.property('id'),
@@ -457,6 +458,11 @@ CoughDrop.Board = DS.Model.extend({
   multiple_copies: function() {
     return this.get('copies') > 1;
   }.property('copies'),
+  visibility_setting: function() {
+    var res = {};
+    res[this.get('visibility')] = true;
+    return res;
+  }.property('visibility'),  
   create_copy: function(user, make_public) {
     var board = CoughDrop.store.createRecord('board', {
       parent_board_id: this.get('id'),
@@ -599,6 +605,9 @@ CoughDrop.Board = DS.Model.extend({
     });
     return !!protect;
   }.property('protected', 'local_images_with_license', 'local_sounds_with_license'),
+  no_sharing: function() {
+    return !!this.get('protected_sources.board');
+  }.property('protected_sources'),
   protected_sources: function() {
     var res = {};
     if(this.get('protected_material')) {

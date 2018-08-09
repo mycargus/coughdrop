@@ -267,6 +267,7 @@ module Uploader
           'external_id' => obj['image_id'],
           'public' => false,
           'protected' => true,
+          'protected_source' => 'lessonpix',
           'license' => {
             'type' => 'private',
             'source_url' => "http://lessonpix.com/pictures/#{obj['image_id']}/#{CGI.escape(obj['title'] || '')}",
@@ -340,9 +341,16 @@ module Uploader
         end
       end
       return list
-    elsif ['noun-project', 'sclera', 'arasaac', 'mulberry', 'tawasol', 'twemoji'].include?(library)
-      str = "#{keyword} repo:#{library}"
-      res = Typhoeus.get("https://www.opensymbols.org/api/v1/symbols/search?q=#{CGI.escape(str)}", :ssl_verifypeer => false)
+    elsif ['noun-project', 'sclera', 'arasaac', 'mulberry', 'tawasol', 'twemoji', 'opensymbols', 'pcs'].include?(library)
+      str = keyword.to_s
+      str += " repo:#{library}" unless library == 'opensymbols'
+      token = ENV['OPENSYMBOLS_TOKEN']
+      protected_source = nil
+      if library == 'pcs' && user && user.subscription_hash['extras_enabled']
+        token += ":pcs"
+        protected_source = 'pcs'
+      end
+      res = Typhoeus.get("https://www.opensymbols.org/api/v1/symbols/search?q=#{CGI.escape(str)}&search_token=#{token}", :ssl_verifypeer => false)
       results = JSON.parse(res.body)
       results.each do |result|
         if result['extension']
@@ -361,6 +369,8 @@ module Uploader
           'height' => obj['height'],
           'external_id' => obj['id'],
           'public' => true,
+          'protected' => !!protected_source,
+          'protected_source' => protected_source,
           'license' => {
             'type' => obj['license'],
             'copyright_notice_url' => obj['license_url'],

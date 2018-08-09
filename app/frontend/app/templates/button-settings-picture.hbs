@@ -92,8 +92,16 @@
     {{else}}
       {{#if missing_library}}
         <div style="margin: 10px 0 10px 0;">
-          <img src="https://s3.amazonaws.com/coughdrop/icons/lessonpix.png" style='width: 50px; float: left; margin-right: 10px; margin-bottom: 5px;'/>
-          {{t "LessonPix is a paid third-party symbol library with over 33,000 symbols. If you have a <a href='http://lessonpix.com' target='_blank'>LessonPix account</a> you can <b>connect it to your CoughDrop account in your User Profile</b>, and then you and any supervisors will be able to add LessonPix symbols to your boards." key='lessonpix_detailer'}}
+          {{#if missing_library.lessonpix}}
+            <img src="https://s3.amazonaws.com/coughdrop/icons/lessonpix.png" style='width: 50px; float: left; margin-right: 10px; margin-bottom: 5px;'/>
+            {{t "LessonPix is a paid third-party symbol library with over 33,000 symbols. If you have a <a href='http://lessonpix.com' target='_blank'>LessonPix account</a> you can <b>connect it to your CoughDrop account in your User Profile</b>, and then you and any supervisors will be able to add LessonPix symbols to your boards." key='lessonpix_detailer'}}
+          {{else if missing_library.pcs}}
+            <img src="https://s3.amazonaws.com/coughdrop/icons/pcs.png" style='width: 50px; float: left; margin-right: 10px; margin-bottom: 5px;'/>
+            {{t "PCS is a paid third-party symbol library supported by Tobii Dynavix with over 18,000 symbols. CoughDrop users can purchase access to PCS symbols as an upgrade on their"  key='pcs_explainer'}}
+            {{#link-to 'user.subscription' app_state.currentUser.user_name}}billing page{{/link-to}}.
+          {{else}}
+            {{t "Premium symbol support required" key='premium_symbols_required'}}
+          {{/if}}
         </div>
         <button type='button' class='btn btn-default' {{action 'word_art'}}>{{t "Make Word Art" key='make_word_art'}}</button>
         <button type="button" class='btn btn-default' {{action "clearImageWork"}}>{{t "Cancel" key='cancel'}}</button>

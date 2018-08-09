@@ -253,7 +253,7 @@ class Board < ActiveRecord::Base
     
     self.settings['license'] ||= {type: 'private'}
     # self.name = self.settings['name']
-    if self.protected_material?
+    if self.unshareable?
       self.public = false unless self.settings['protected'] && self.settings['protected']['demo'] && !self.parent_board_id
     elsif self.public == nil
       if self.user && self.user.premium?
@@ -271,6 +271,13 @@ class Board < ActiveRecord::Base
   
   def fully_listed?
     self.public && (!self.settings || !self.settings['unlisted'])
+  end
+
+  def unshareable?
+    if self.settings && self.settings['protected']
+      return true if self.settings['protected']['vocabulary']
+    end
+    false
   end
   
   def protected_material?
@@ -516,7 +523,7 @@ class Board < ActiveRecord::Base
       if !parent_board
         add_processing_error('parent board not found')
         return false
-      elsif parent_board.protected_material? && !non_user_params[:allow_copying_protected_boards]
+      elsif parent_board.unshareable? && !non_user_params[:allow_copying_protected_boards]
         add_processing_error('cannot copy protected boards')
         return false
       end
@@ -752,9 +759,10 @@ class Board < ActiveRecord::Base
     return res if res
     res = {}
     bis = self.button_images
-    ButtonImage.cached_copy_urls(bis, user)
+    protected_sources = (user && user.enabled_protected_sources) || []
+    ButtonImage.cached_copy_urls(bis, user, nil, protected_sources)
     
-    res['images'] = bis.map{|i| JsonApi::Image.as_json(i) }
+    res['images'] = bis.map{|i| JsonApi::Image.as_json(i, :allowed_sources => protected_sources) }
     res['sounds'] = self.button_sounds.map{|s| JsonApi::Sound.as_json(s) }
     set_cached(key, res)
     res
@@ -824,8 +832,9 @@ class Board < ActiveRecord::Base
       updated_board_ids << self.global_id
       self.settings['buttons'].each do |button|
         if button['label'] || button['vocalization']
-          image_data = Uploader.find_images(button['label'] || button['vocalization'], library, author)[0]
+          image_data = (Uploader.find_images(button['label'] || button['vocalization'], library, author) || [])[0]
           if image_data
+            image_data['button_label'] = button['label']
             bi = ButtonImage.process_new(image_data, {user: author})
             button['image_id'] = bi.global_id
             @buttons_changed = 'swapped images'

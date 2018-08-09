@@ -50,6 +50,53 @@ describe Api::SearchController, :type => :controller do
       expect(hash['hat']).to eq('1')
       expect(hash['hats']).to eq(nil)
     end
+
+    it 'should not allow searching for pcs symbols if not allowed' do
+      token_user
+      list = [
+        {'extension' => 'png', 'name' => 'bob'},
+        {'extension' => 'gif', 'name' => 'fred'}
+      ]
+      res = OpenStruct.new(:body => list.to_json)
+      get :symbols, params: {:q => 'hat premium_repo:pcs'}
+      assert_error('premium search not allowed')
+    end
+
+    it "should search for pcs symbols if allowed" do
+      token_user
+      User.purchase_extras({'user_id' => @user.global_id})
+      list = [
+        {'extension' => 'png', 'name' => 'bob'},
+        {'extension' => 'gif', 'name' => 'fred'}
+      ]
+      res = OpenStruct.new(:body => list.to_json)
+      expect(Typhoeus).to receive(:get).with("https://www.opensymbols.org/api/v1/symbols/search?q=hat+repo%3Apcs&search_token=#{ENV['OPENSYMBOLS_TOKEN']}:pcs", :ssl_verifypeer => false).and_return(res)
+      get :symbols, params: {:q => 'hat premium_repo:pcs'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json).to eq([
+        {'extension' => 'png', 'protected' => true, 'protected_source' => 'pcs', 'content_type' => 'image/png', 'name' => 'bob', 'thumbnail_url' => nil},
+        {'extension' => 'gif', 'protected' => true, 'protected_source' => 'pcs', 'content_type' => 'image/gif', 'name' => 'fred', 'thumbnail_url' => nil}
+      ])
+    end
+
+    it "should mark protected symbols as such when found via search" do
+      token_user
+      User.purchase_extras({'user_id' => @user.global_id})
+      list = [
+        {'extension' => 'png', 'name' => 'bob'},
+        {'extension' => 'gif', 'name' => 'fred'}
+      ]
+      res = OpenStruct.new(:body => list.to_json)
+      expect(Typhoeus).to receive(:get).with("https://www.opensymbols.org/api/v1/symbols/search?q=hat+repo%3Apcs&search_token=#{ENV['OPENSYMBOLS_TOKEN']}:pcs", :ssl_verifypeer => false).and_return(res)
+      get :symbols, params: {:q => 'hat premium_repo:pcs'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json).to eq([
+        {'extension' => 'png', 'protected' => true, 'protected_source' => 'pcs', 'content_type' => 'image/png', 'name' => 'bob', 'thumbnail_url' => nil},
+        {'extension' => 'gif', 'protected' => true, 'protected_source' => 'pcs', 'content_type' => 'image/gif', 'name' => 'fred', 'thumbnail_url' => nil}
+      ])
+    end
   end
   
   describe "protected_symbols" do

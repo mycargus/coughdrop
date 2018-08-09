@@ -245,8 +245,19 @@ module Uploadable
       end
     end
 
-    def cached_copy_urls(records, user, allow_fallbacks=true)
-      lessonpix_ok = user && Uploader.lessonpix_credentials(user)
+    def cached_copy_urls(records, user, allow_fallbacks=true, protected_sources=nil)
+      # returns a mapping of canonical URLs to cached or
+      # fallback URLs (we locally cache results from third-party
+      # image libraries like lessonpix) . Also stores on any 
+      # records that have
+      # a cached result, a reference to the cached and fallback URLs
+      
+      sources = {}
+      if protected_sources
+        protected_sources.each{|s| sources[s.to_sym] = true}
+      else
+        sources[:lessonpix] = true if user && Uploader.lessonpix_credentials(user)
+      end
       lookups = {}
       caches = {}
       fallbacks = {}
@@ -257,7 +268,7 @@ module Uploadable
         if !record.is_a?(String) && record.settings['cached_copy_url']
           if ref[:library] == 'lessonpix'
             fallbacks[url] = Uploader.fallback_image_url(ref[:image_id], ref[:library])
-            if lessonpix_ok
+            if sources[:lessonpix]
               caches[url] = record.settings['cached_copy_url']
             end
           end
@@ -265,7 +276,7 @@ module Uploadable
           if url && Uploader.protected_remote_url?(url)
             if ref[:library] == 'lessonpix'
               fallbacks[url] = Uploader.fallback_image_url(ref[:image_id], ref[:library])
-              if lessonpix_ok
+              if sources[:lessonpix]
                 lookups[ref[:url]] = url
               end
             end

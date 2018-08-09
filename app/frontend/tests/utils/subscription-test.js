@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, waitsFor, runs, stub } fro
 import { db_wait } from 'frontend/tests/helpers/ember_helper';
 import CoughDrop from 'frontend/app';
 import Subscription from '../../utils/subscription';
+import persistence from '../../utils/persistence';
 import Ember from 'ember';
 import EmberObject from '@ember/object';
 import RSVP from 'rsvp';

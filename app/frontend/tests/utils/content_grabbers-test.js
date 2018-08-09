@@ -317,6 +317,12 @@ describe("contentGrabbers", function() {
     });
   });
 
+  describe("picture_search", function() {
+    it("should search for pcs symbols correctly", function() {
+      expect('test').toEqual('todo');
+    });
+  });
+
   describe("upload_to_remote", function() {
     it("should return a promise", function() {
       var params = {

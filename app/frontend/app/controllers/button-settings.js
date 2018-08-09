@@ -102,6 +102,7 @@ export default modal.ModalController.extend({
     var supervisees = [];
     this.set('has_supervisees', app_state.get('sessionUser.supervisees.length') > 0);
     var _this = this;
+    _this.set('premium_symbols', app_state.get('currentUser.subscription.extras_enabled'));
     _this.set('lessonpix_enabled', false);
     var find_integration = null;
     if(this.get('board.user_name') == app_state.get('currentUser.user_name')) {
@@ -251,7 +252,13 @@ export default modal.ModalController.extend({
     }
   }.observes('model.integration.user_integration_id'),
   missing_library: function() {
-    return this.get('image_library') == 'lessonpix_required';
+    var res = false;
+    if(this.get('image_library') == 'lessonpix_required') {
+      res = {lessonpix: true};
+    } else if(this.get('image_library') == 'pcs_required') {
+      res = {pcs: true};
+    }
+    return res;
   }.property('image_library'),
   current_library: function() {
     var res = {};
@@ -265,6 +272,14 @@ export default modal.ModalController.extend({
     var res = [
       {name: i18n.t('open_symbols', "opensymbols.org (default)"), id: 'opensymbols'}
     ];
+    if(this.get('lessonpix_enabled')) {
+      res.push({name: i18n.t('lessonpix_images', "LessonPix Images"), id: 'lessonpix'});
+    }
+//    if(app_state.get('feature_flags.premium_symbols')) {
+      if(this.get('premium_symbols')) {
+        res.push({name: i18n.t('pcs_images', "PCS (BoardMaker) Images"), id: 'pcs'});
+      }
+  //  }
     if(window.flickr_key) {
       res.push({name: i18n.t('flickr', "Flickr Creative Commons"), id: 'flickr'});
     }
@@ -278,17 +293,20 @@ export default modal.ModalController.extend({
     if(window.giphy_key) {
       res.push({name: i18n.t('giphy_asl', "GIPHY ASL Signs"), id: 'giphy_asl'});
     }
-    if(this.get('lessonpix_enabled')) {
-      res.push({name: i18n.t('lessonpix_images', "LessonPix Images"), id: 'lessonpix'});
-    } else {
+    if(!this.get('lessonpix_enabled')) {
       res.push({name: i18n.t('lessonpix_images', "LessonPix Images"), id: 'lessonpix_required'});
     }
+//    if(app_state.get('feature_flags.premium_symbols')) {
+      if(!this.get('premium_symbols')) {
+        res.push({name: i18n.t('pcs_images', "PCS (BoardMaker) Images"), id: 'pcs_required'});
+      }
+  //  }
 
 //    res.push({name: i18n.t('openclipart', "OpenClipart"), id: 'openclipart'});
 
     if(res.length == 1) { return []; }
     return res;
-  }.property('lessonpix_enabled'),
+  }.property('lessonpix_enabled', 'premium_symbols'),
   load_user_integrations: function() {
     var user_id = this.get('model.integration_user_id') || 'self';
     var _this = this;

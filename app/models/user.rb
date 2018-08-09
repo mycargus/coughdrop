@@ -844,6 +844,17 @@ class User < ActiveRecord::Base
     end
     true
   end
+
+  def enabled_protected_sources
+    res = get_cached('protected_sources')
+    return res if res
+    self.settings ||= {}
+    res = []
+    res << 'lessonpix' if self && Uploader.lessonpix_credentials(self)
+    res << 'pcs' if self && self.subscription_hash['extras_enabled']
+    set_cached('protected_sources', res)
+    res
+  end
   
   def add_user_notification(args)
     args = args.with_indifferent_access

@@ -17,6 +17,7 @@ export default modal.ModalController.extend({
     }, function(err) {
       _this.set('hierarchy', {error: true});
     });
+    _this.set('premium_symbols_enabled', app_state.get('currentUser.subscription.extras_enabled'));
     app_state.get('currentUser').find_integration('lessonpix').then(function(res) {
       _this.set('lessonpix_enabled', true);
       if(stashes.get('last_image_library') == 'lessonpix') { _this.set('image_library', 'lessonpix'); }
@@ -35,8 +36,11 @@ export default modal.ModalController.extend({
     if(this.get('lessonpix_enabled')) {
       res.push({id: 'lessonpix', name: i18n.t('lessonpix', "LessonPix")});
     }
+    if(this.get('premium_symbols_enabled')) {
+      res.push({id: 'pcs', name: i18n.t('pcs', "PCS (BoardMaker)")});
+    }
     return res;
-  }.property('lessonpix_enabled'),
+  }.property('lessonpix_enabled', 'premium_symbols_enabled'),
   actions: {
     swap: function() {
       var _this = this;

@@ -656,7 +656,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
       end
     end
     
-    if stash[:word_pairs] && include_admin
+    if stash[:word_pairs]
       max_word_pair = stash[:word_pairs].map{|k, p| p['count'] }.max || 0.0
       res[:max_word_pair] = max_word_pair if include_admin
       stash[:word_pairs].each do |k, pair|

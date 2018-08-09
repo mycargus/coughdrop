@@ -91,8 +91,14 @@ module JsonApi::Board
       json['board'] ||= {}
       json['board']['image_urls'] = {}
       json['board']['sound_urls'] = {}
-      json['images'].each{|i| json['board']['image_urls'][i['id']] = i['url'] }
-      json['sounds'].each{|i| json['board']['sound_urls'][i['id']] = i['url'] }
+      json['images'].each{|i| 
+        json['board']['image_urls'][i['id']] = i['url'] 
+        json['board']['has_fallbacks'] = true if i['fallback']
+      }
+      json['sounds'].each{|i| 
+        json['board']['sound_urls'][i['id']] = i['url'] 
+        json['board']['has_fallbacks'] = true if i['fallback']
+      }
     end
     if args.key?(:permissions)
       json['board']['translations'] = board.settings['translations'] if board.settings['translations']

@@ -96,7 +96,11 @@ export default Controller.extend({
     app_state.toggle_mode('edit');
 
     var board = this.get('model');
-    board.save().then(null, function(err) {
+    board.save().then(function(brd) {
+      if(brd.get('protected_material') && brd.get('visibility') != 'private') {
+        modal.notice(i18n.t('remember_fallbacks', "This board has premium content, any users who access it without premium access will see free alternatives instead."), true, false, {timeout: 5000});
+      }
+    }, function(err) {
       console.error(err);
       modal.error(i18n.t('board_save_failed', "Failed to save board"));
     });
@@ -172,6 +176,8 @@ export default Controller.extend({
           show_description = show_description + " - private";
         }
       }
+    } else if(this.get('model.has_fallbacks')) {
+      show_description = show_description + " - fallback resources used";
     }
     if(show_description) {
       topHeight = topHeight + 30;

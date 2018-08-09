@@ -36,5 +36,47 @@ describe JsonApi::Image do
       expect(json['meta']).not_to eq(nil)
       expect(json['meta']['remote_upload']).not_to eq(nil)
     end
+
+    it 'should revert to a fallback image if the protected_source is not in the provided list' do
+      i = ButtonImage.new(url: 'http://www.example.com/pic.png', settings: {'protected' => true, 'protected_source' => 'asdf'})
+      hash = JsonApi::Image.build_json(i, :allowed_sources => ['qwert'])
+      expect(hash['url']).to eq(nil)
+      expect(hash['protected']).to eq(false)
+      expect(hash['protected_source']).to eq(nil)
+      expect(hash['fallback']).to eq(true)
+    end
+
+    it 'should revert to a fallback image if no list provided and the user does not have access to the protected_source' do
+      u = User.create
+      User.purchase_extras({'user_id' => u.global_id})
+      u.reload
+      i = ButtonImage.new(url: 'http://www.example.com/pic.png', settings: {'protected' => true, 'protected_source' => 'asdf'})
+      hash = JsonApi::Image.build_json(i, :permissions => u)
+      expect(hash['url']).to eq(nil)
+      expect(hash['protected']).to eq(false)
+      expect(hash['protected_source']).to eq(nil)
+      expect(hash['fallback']).to eq(true)
+    end
+
+    it 'should return the actual image if allowed for the user' do
+      u = User.create
+      User.purchase_extras({'user_id' => u.global_id})
+      u.reload
+      i = ButtonImage.new(url: 'http://www.example.com/pic.png', settings: {'protected' => true, 'protected_source' => 'pcs'})
+      hash = JsonApi::Image.build_json(i, :permissions => u)
+      expect(hash['url']).to eq('http://www.example.com/pic.png')
+      expect(hash['protected']).to eq(true)
+      expect(hash['protected_source']).to eq('pcs')
+      expect(hash['fallback']).to eq(nil)
+    end
+
+    it 'should return the actual image if in the provided list' do
+      i = ButtonImage.new(url: 'http://www.example.com/pic.png', settings: {'protected' => true, 'protected_source' => 'asdf'})
+      hash = JsonApi::Image.build_json(i, :allowed_sources => ['asdf'])
+      expect(hash['url']).to eq('http://www.example.com/pic.png')
+      expect(hash['protected']).to eq(true)
+      expect(hash['protected_source']).to eq('asdf')
+      expect(hash['fallback']).to eq(nil)
+    end
   end
 end

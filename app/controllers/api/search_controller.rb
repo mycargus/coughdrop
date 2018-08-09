@@ -3,10 +3,17 @@ class Api::SearchController < ApplicationController
   before_action :require_api_token, :except => [:audio]
   def symbols
     token = ENV['OPENSYMBOLS_TOKEN']
-    if false
-      # TODO: for now, don't combine them in non-protected searches even though it's coming
-      # from the same source, otherwise things can get confusing
-      token += ":pcs"
+    protected_source = nil
+    if params['q'].match(/premium_repo:pcs$/) 
+      if @api_user && @api_user.subscription_hash['extras_enabled']
+        params['q'].sub!(/premium_repo:pcs$/, 'repo:pcs')
+        # TODO: for now, don't combine them in non-protected searches even though it's coming
+        # from the same source, otherwise things can get confusing
+        token += ":pcs"
+        protected_source = 'pcs'
+      else
+        return api_error 400, {error: 'premium search not allowed'}
+      end
     end
     res = Typhoeus.get("https://www.opensymbols.org/api/v1/symbols/search?q=#{CGI.escape(params['q'])}&search_token=#{token}", :ssl_verifypeer => false)
     results = JSON.parse(res.body)
@@ -14,6 +21,10 @@ class Api::SearchController < ApplicationController
       type = MIME::Types.type_for(result['extension'])[0]
       result['content_type'] = type.content_type
       result['thumbnail_url'] ||= result['image_url']
+      if protected_source
+        result['protected'] = true 
+        result['protected_source'] = protected_source
+      end
     end
     if results.empty? && params['q'] && RedisInit.default
       RedisInit.default.hincrby('missing_symbols', params['q'].to_s, 1)
