@@ -262,9 +262,9 @@ class WeeklyStatsSummary < ActiveRecord::Base
         total.data['totals']['total_modeled_buttons'] += (summary.data['stats']['modeled_button_counts'] || {}).map{|k, h| h['count'] }.sum
         total.data['totals']['total_words'] += (summary.data['stats']['all_word_counts'] || {}).map(&:last).sum + (summary.data['stats']['modeled_word_counts'] || {}).map(&:last).sum
         total.data['totals']['total_buttons'] += (summary.data['stats']['all_button_counts'] || {}).map{|k, h| h['count'] }.sum + (summary.data['stats']['modeled_button_counts'] || {}).map{|k, h| h['count'] }.sum
-        total.data['totals']['total_core_words'] += summary.data['stats']['core_words']['core'] || 0
+        total.data['totals']['total_core_words'] += (summary.data['stats']['core_words'] || {})['core'] || 0
         total.data['totals']['total_users'] += 1
-        summary.data['stats']['all_word_counts'].each do |word, cnt|
+        (summary.data['stats']['all_word_counts'] || {}).each do |word, cnt|
           if word && valid_words[word.downcase]
             total.data['word_counts'][word.downcase] = (total.data['word_counts'][word.downcase] || 0) + cnt 
           end

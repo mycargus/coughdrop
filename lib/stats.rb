@@ -1044,8 +1044,9 @@ module Stats
         # only suggest words that are actually reachable in the user's vocabulary
         if reachable_words.include?(word)
           scored_words[word] ||= {:word => word, :score => 0, :reasons => []}
-          cnt = 0 if cnt.respond_to?(:nan?) && cnt.nan? & cnt.finite?
-          scored_words[word][:score] += cnt * score
+          val = cnt * score
+          val = 0 if val.respond_to?(:nan?) && (cnt.nan? || !cnt.finite?)
+          scored_words[word][:score] += val
           scored_words[word][:score] = [scored_words[word][:score], 100.0].min.round(3)
           scored_words[word][:reasons] << key
         end
