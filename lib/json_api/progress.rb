@@ -10,7 +10,10 @@ module JsonApi::Progress
     json['id'] = progress.global_id
     json['status_url'] = "#{JsonApi::Json.current_host}/api/v1/progress/#{json['id']}"
     json['status'] = progress.settings['state']
-    if progress.started_at
+    if progress.started_at && !progress.finished_at && progress.updated_at && progress.updated_at < 2.hours.ago
+      json['status'] = 'errored' 
+      json['result'] = {'error' => 'progress job is taking too long, possibly crashed'}
+    elsif progress.started_at
       json['started_at'] = progress.started_at.iso8601
     end
     if progress.finished_at
