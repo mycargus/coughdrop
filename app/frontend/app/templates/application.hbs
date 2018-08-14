@@ -487,7 +487,7 @@
     {{/if}}
     </span>
   {{/if}}
-    <span id="identity" class={{if app_state.speak_mode 'advanced_selection undwellable'}}>
+    <span id="identity" class={{if app_state.speak_mode 'advanced_selection undwellable' 'advanced_selection'}}>
       <span class="dropdown" style="display: inline-block;" class={{if app_state.super_no_linky 'hidden'}}>
         <a class={{if persistence.online 'btn btn-default online' 'btn btn-default offline'}} id='identity_button' href="#" data-toggle="dropdown">
           {{#if app_state.currentUser}}
