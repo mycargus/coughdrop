@@ -1117,9 +1117,21 @@ var buttonTracker = EmberObject.extend({
       var icon_left = buttonTracker.dwell_icon_elem.style.left;
       buttonTracker.dwell_icon_elem.style.left = '-1000px';
     }
-    $(".dropdown-backdrop").hide();
+    var $dropdown = $(".dropdown-backdrop")
+    if($dropdown.length > 0) {
+      $dropdown.hide();
+    }
     var $target = $(document.elementFromPoint(event.clientX, event.clientY));
-    $(".dropdown-backdrop").show();
+    if($dropdown.length > 0) {
+      $dropdown.show();      
+    }
+    // If the identity dropdown is open and the user taps somewhere 
+    // else on the screen, close the identity dropdown
+    if($target.closest('#identity').length == 0 && $dropdown.length > 0) {
+      if($target.closest('#identity ul').length == 0) {
+        $target = $("#identity_button");
+      }
+    }
     if(buttonTracker.dwell_elem) {
       buttonTracker.dwell_elem.style.left = left;
     }

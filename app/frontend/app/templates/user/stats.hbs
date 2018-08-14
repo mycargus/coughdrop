@@ -119,7 +119,7 @@
       {{#unless usage_stats2}}
         <div class="row" style="margin-top: 10px;">
           <div class="col-sm-12">
-            {{#link-to 'user.logs' model.user_name (query-params start=usage_stats.start_date_field end=usage_stats.end_date_field location_id=controller.location_id device_id=controller.device_id type='session') class='btn btn-default'}}
+            {{#link-to 'user.logs' model.user_name (query-params start=usage_stats.start_date_field end=usage_stats.end_date_field location_id=controller.location_id device_id=controller.device_id highlighted=null type='session') class='btn btn-default'}}
               {{t "Log Entries for this Report" key='log_entries_for_report'}}
             {{/link-to}}
             {{#if app_state.feature_flags.snapshots}}

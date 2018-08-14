@@ -92,25 +92,22 @@ class Api::LogsController < ApplicationController
     user = User.find_by_path(params['user_id'])
     return unless exists?(user, params['user_id'])
     return unless allowed?(user, 'supervise')
-    if !params['lam'] && !params['content']
-      api_error(400, {error: 'missing content for import'})
-      return
-    end
-    
-    events = Stats.process_lam(params['lam'] || params['content'], user)
-    log = LogSession.process_as_follow_on({'events' => events}, {
-      :imported => true,
-      :author => @api_user,
-      :user => user,
-      :device => @api_device
-    })
-    if !log || log.errored?
-      api_error(400, {error: "log import failed", errors: log && log.processing_errors})
+    if params['url'] || params['content']
+      type = 'unspecified'
+      type = 'obl' if params['type'] == 'obl'
+      type = 'lam' if params['type'] == 'lam'
+      progress = Progress.schedule(Exporter, :process_log, params['url'] || params['content'], type, user.global_id, @api_user.global_id, @api_device.global_id)
+      render json: JsonApi::Progress.as_json(progress, :wrapper => true).to_json
     else
-      render json: JsonApi::Log.as_json(log, :wrapper => true).to_json
+      remote_path = "imports/logs/#{@api_user.global_id}/upload-#{GoSecure.nonce('filename')}.txt"
+      content_type = "text/plain"
+      upload_params = Uploader.remote_upload_params(remote_path, content_type)
+      url = upload_params[:upload_url] + remote_path
+      upload_params[:success_url] = "/api/v1/logs/import?user_id=#{params['user_id']}&type=#{params['type']}&url=#{CGI.escape(url)}"
+      render json: {'remote_upload' => upload_params}.to_json
     end
   end
-  
+
   def update
     log = LogSession.find_by_global_id(params['id'])
     user = log && log.user

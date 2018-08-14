@@ -122,6 +122,66 @@ export default Controller.extend({
     },
     clearLogs: function() {
       modal.open('confirm-delete-logs', {user: this.get('model')});
+    },
+    generate: function() {
+      var _this = this;
+      modal.open('modals/manual-log').then(function(res) {
+        if(res && res.words && res.words.length > 0 && res.date) {
+          var text = res.words;
+          // manual-entered data by a user, one button label per line, with a date and time field
+          // convert it to obl and import it, yo
+          var json = {
+            format: 'open-board-log-0.1',
+            source: 'user-entry',
+            locale: 'en',
+            sessions: [{
+              id: 'session1',
+              type: 'log',
+              events: []
+            }]
+          };
+          var date = res.date;
+          var start = date;
+          var timestamp = date.getTime() / 1000;
+          var lines = text.split(/\n/);
+          lines.forEach(function(line) {
+            if(line && line.length > 0) {
+              json.sessions[0].events.push({
+                id: "e" + timestamp,
+                type: 'button',
+                label: line,
+                spoken: true,
+                timestamp: (new Date(timestamp * 1000)).toISOString()
+              })
+              timestamp = timestamp + 5;
+            }
+          });
+          var end = new Date(timestamp * 1000);
+          json.sessions[0].started = start.toISOString();
+          json.sessions[0].ended = end.toISOString();
+          var str = btoa(JSON.stringify(json));
+          var file = contentGrabbers.data_uri_to_blob("data:text/plain;base64," + str);
+          _this.send('import', file);
+        }
+      }, function() { });
+    },
+    import: function(file) {
+      var progressor = EmberObject.create();
+      var _this = this;
+      modal.open('modals/importing-logs', progressor);
+      // do the hard stuff
+      var log_type = 'unspecified';
+      var progress = contentGrabbers.upload_for_processing(file, '/api/v1/logs/import', {type: log_type, user_id: _this.get('model.id')}, progressor);
+
+      progress.then(function(logs) {
+        modal.close('importing-logs');
+        if(logs.length == 1) {
+          _this.transitionToRoute('user.log', _this.get('model.user_name'), logs[0]);
+        } else {
+          _this.send('refresh');
+          modal.success(i18n.t('sounds_imported', "Your logs have been imported!"));
+        }
+      }, function() { });
     }
   }
 });

@@ -451,8 +451,105 @@ More information about the file formats being used is available at https://www.o
     end
     hash
   end
-  
-  def self.process_obl(hash)
-    raise "not implemented"
+
+  def self.process_log(data, type, user_id, author_id, device_id)
+    sessions = nil
+    if data.match(/^http/)
+      data = Typhoeus.get(data).body
+    end
+    user = User.find_by_path(user_id)
+    raise "invalid user" unless user
+    author = User.find_by_path(author_id)
+    raise "invalid author" unless author
+    device = Device.find_by_global_id(device_id)
+    raise "invalid device" unless device
+    if type == 'unspecified'
+      json = JSON.parse(data) rescue nil
+      type = 'obl' if json
+      type ||= 'lam'
+    end
+    if type == 'lam'
+      events = Stats.process_lam(data, user)
+      log = LogSession.process_as_follow_on({'events' => events}, {
+        :imported => true,
+        :author => author,
+        :user => user,
+        :device => device
+      })
+      if !log || log.errored?
+        raise "log import failed"
+      else
+        sessions = [log]
+      end
+    elsif type == 'obl'
+      sessions = Exporter.process_obl(data, user, author, device)
+    else
+      raise "unrecognized type #{type}"
+    end
+    sessions.map(&:global_id)
+  end
+    
+  def self.process_obl(str, user, author, device)
+    hash = JSON.parse(str) rescue nil
+    sessions = []
+    raise "invalid JSON" unless hash
+    raise 'invalid format' unless hash['format'] && hash['format'].match(/^open-board-log/)
+    (hash['sessions'] || []).each do |session|
+      log_session = LogSession.new(user: user, author: author, device: device)
+      if session['type'] == 'log'
+        log_session.log_type = 'session'
+        log_session.data = {'events' => [], 'imported' => true}
+        started = Time.parse(session['started'])
+        latest = started
+        session['events'].each_with_index do |event, idx|
+          time = Time.parse(event['timestamp']) rescue nil
+          time ||= latest + 1
+          log_event = {
+            'id' => event['id'] || "e#{idx}", 
+            'timestamp' => time.to_i,
+            
+          }
+          log_event['modeling'] = true if event['modeling']
+          log_event['system'] = event['system'] if event['system'] && event['system'].is_a?(String)
+          log_event['volume'] = event['volume'] if event['volume'].is_a?(Numeric) && event['volume'] >= 0 && event['volume'] <= 1.0
+          log_event['screen_brightness'] = event['screen_brightness'] if event['screen_brightness'].is_a?(Numeric) && event['screen_brightness'] >= 0 && event['volume'] <= 1.0
+          log_event['ambient_light'] = event['ambient_light'] if event['ambient_light'].is_a?(Numeric) && event['ambient_light'] >= 0 && event['ambient_light'] <= 500000
+          log_event['window_width'] = event['window_width'] if event['window_width'].is_a?(Numeric) && event['window_width'] > 0
+          log_event['window_height'] = event['window_height'] if event['window_height'].is_a?(Numeric) && event['window_height'] > 0
+          log_event['ip_address'] = event['ip_address'] if event['ip_address'].is_a?(String)
+          log_event['ssid'] = event['ssid'] if event['ssid'].is_a?(String)
+          log_event['geo'] = event['geo'] if event['geo'].is_a?(Array) && event['geo'].length >= 2 && event['geo'].length <= 3 && event['geo'].map(&:to_f) == event['geo']
+          log_event['orientation'] = event['orientation'] if event['orientation'].is_a?(Array) && event['orientation']['alpha'].is_a?(Numeric) && event['orientation']['beta'].is_a?(Numeric) && event['orientation']['gamma'].is_a?(Numeric) && event['orientation']['layout'].is_a?(String)
+          log_event['percent_x'] = event['percent_x'] if event['percent_x'].is_a?(Numeric) && event['percent_x'] >= 0 && event['percent_x'] <= 1.0
+          log_event['percent_y'] = event['percent_y'] if event['percent_y'].is_a?(Numeric) && event['percent_y'] >= 0 && event['percent_y'] <= 1.0
+          
+          if event['type'] == 'button'
+            log_event['button'] = {
+              'label' => event['label'],
+              'spoken' => event['spoken'],
+            }
+            log_event['button']['button_id'] = event['button_id'] if event['button_id']
+            log_event['button']['board_id'] = event['board_id'] if event['board_id']
+            log_event['button']['vocalization'] = event['vocalization'] if event['vocalization']
+            log_event['button']['image'] = event['image_url'] if event['image_url']
+            log_event['button']['core_word'] = event['core_word'] if event['core_word'] != nil    
+            # TODO: add button actions to obl processing
+          elsif event['type'] == 'action'
+            # TODO: add action events to obl processing
+          elsif event['type'] == 'utterance'
+            # TODO: add utterance events to obl processing
+          else
+            raise "unsupported event type, #{event['type']}"
+          end
+          log_session.data['events'] << log_event
+          latest = time
+        end
+        log_session.save!
+        sessions << log_session
+      else
+        raise "log type #{session['type']} not implemented yet"
+      end
+    end
+    sessions
   end
 end

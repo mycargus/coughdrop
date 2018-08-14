@@ -240,6 +240,10 @@ var contentGrabbers = EmberObject.extend({
       boardGrabber.file_selected(board);
     } else if(type == 'recording') {
       soundGrabber.recording_selected(zip || sound);
+    } else if(type == 'log') {
+      if(contentGrabbers.log_controller) {
+        contentGrabbers.log_controller.send('import', files[0]);
+      }
     } else {
       alert(i18n.t('bad_file', "bad file"));
     }
@@ -2255,6 +2259,7 @@ $(document).on('change', '#image_upload,#sound_upload,#board_upload,#avatar_uplo
   if(event.target.id == 'avatar_upload') { type = 'avatar'; }
   if(event.target.id == 'badge_upload') { type = 'badge'; }
   if(event.target.id == 'recording_upload') { type = 'recording'; }
+  if(event.target.id == 'log_upload') { type = 'log'; }
   var files = event.target.files;
   contentGrabbers.file_selected(type, files);
 }).on('paste', function(event) {

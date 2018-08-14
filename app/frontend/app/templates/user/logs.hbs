@@ -60,10 +60,24 @@
     <button class="btn btn-default" {{action "exportLogs"}}>{{t "Export Logs" key='export_logs'}}</button>
     -->
     {{#if model.permissions.edit}}
-      <button class='btn btn-small btn-default' {{action "recordNote" "text"}}>{{t "New Note" key='new_note'}}</button>
-      {{#if app_state.feature_flags.assessments}}
-        <button class='btn btn-small btn-default' {{action "quick_assessment"}}>{{t "Quick Assessment" key='quick_assessment'}}</button>
-      {{/if}}
+      <div class="btn-group dropup">
+        <button class='btn btn-default dropdown-toggle' data-toggle="dropdown" aria-expanded="false">
+          {{t "Add..." key='new'}} <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+          <li><a href="#" {{action 'recordNote'}}><strong>{{t "New Note" key='new_note'}}</strong></a></li>
+          {{#if app_state.feature_flags.assessments}}
+            <li><a href="#" {{action 'quick_assessment'}}>{{t "Quick Assessment" key='quick_assessment'}}</a></li>
+          {{/if}}
+          <li><a href="#" {{action 'generate'}}>{{t "Manually Add Session" key='manually_add_session'}}</a></li>
+          <li style='position: relative;'>
+            <a href="#" {{action 'import_session'}}>
+              {{t "Import Session(s)" key='import_sessions'}}
+            </a>
+            <input type='file' style='opacity: 0; position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; cursor: pointer;' id='log_upload'/>
+          </li>
+        </ul>
+      </div>
     {{/if}}
     <button type="button" {{action "obl_export"}} class='btn btn-default'>{{t "Download Log File" key='download_log_file'}}</button>
     <button class="btn btn-default" {{action "clearLogs"}}>{{t "Clear All Logs" key='clear_all_logs'}}</button>
