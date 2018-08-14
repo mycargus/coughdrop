@@ -418,24 +418,47 @@ describe Api::LogsController, :type => :controller do
       assert_unauthorized
     end
     
-    it "should error if no content provided" do
+    it "should return upload parameters if no url defined" do
       token_user
       post 'import', params: {:user_id => @user.global_id}
-      expect(response).to_not be_success
+      expect(response).to be_success
       json = JSON.parse(response.body)
-      expect(json['error']).to eq('missing content for import')
+      expect(json['remote_upload']).to_not eq(nil)
     end
     
     it "should process the data" do
       token_user
-      expect(Stats).to receive(:process_lam).with('some content', @user).and_return([{}])
-      post 'import', params: {:user_id => @user.global_id, :content => "some content"}
+      post 'import', params: {:user_id => @user.global_id, :type => 'lam', :url => "some content"}
       expect(response).to be_success
       json = JSON.parse(response.body)
-      expect(json['log']).to_not eq(nil)
+      expect(json['progress']).to_not eq(nil)
+      progress = Progress.find_by_global_id(json['progress']['id'])
+      expect(progress.settings['class']).to eq('Exporter')
+      expect(progress.settings['method']).to eq('process_log')
+      expect(progress.settings['arguments']).to eq(['some content', 'lam', @user.global_id, @user.global_id, @user.devices[0].global_id])
     end
 
-    it "should import obl data"
+    it "should import obl data" do
+      token_user
+      post 'import', params: {:user_id => @user.global_id, :type => 'obl', :url => "some content"}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['progress']).to_not eq(nil)
+      progress = Progress.find_by_global_id(json['progress']['id'])
+      expect(progress.settings['class']).to eq('Exporter')
+      expect(progress.settings['method']).to eq('process_log')
+      expect(progress.settings['arguments']).to eq(['some content', 'obl', @user.global_id, @user.global_id, @user.devices[0].global_id])
+    end
+    
+    it "should return a progress object" do
+      token_user
+      post 'import', params: {:user_id => @user.global_id, :type => 'lam', :url => "some content"}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['progress']).to_not eq(nil)
+      progress = Progress.find_by_global_id(json['progress']['id'])
+      expect(progress).to_not eq(nil)
+    end
   end
   
   describe "trends" do

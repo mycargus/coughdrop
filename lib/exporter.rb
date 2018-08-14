@@ -519,7 +519,7 @@ More information about the file formats being used is available at https://www.o
           log_event['ip_address'] = event['ip_address'] if event['ip_address'].is_a?(String)
           log_event['ssid'] = event['ssid'] if event['ssid'].is_a?(String)
           log_event['geo'] = event['geo'] if event['geo'].is_a?(Array) && event['geo'].length >= 2 && event['geo'].length <= 3 && event['geo'].map(&:to_f) == event['geo']
-          log_event['orientation'] = event['orientation'] if event['orientation'].is_a?(Array) && event['orientation']['alpha'].is_a?(Numeric) && event['orientation']['beta'].is_a?(Numeric) && event['orientation']['gamma'].is_a?(Numeric) && event['orientation']['layout'].is_a?(String)
+          log_event['orientation'] = event['orientation'] if event['orientation'].is_a?(Hash) && event['orientation']['alpha'].is_a?(Numeric) && event['orientation']['beta'].is_a?(Numeric) && event['orientation']['gamma'].is_a?(Numeric) && event['orientation']['layout'].is_a?(String)
           log_event['percent_x'] = event['percent_x'] if event['percent_x'].is_a?(Numeric) && event['percent_x'] >= 0 && event['percent_x'] <= 1.0
           log_event['percent_y'] = event['percent_y'] if event['percent_y'].is_a?(Numeric) && event['percent_y'] >= 0 && event['percent_y'] <= 1.0
           

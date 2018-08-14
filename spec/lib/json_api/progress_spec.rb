@@ -32,5 +32,14 @@ describe JsonApi::Progress do
       expect(JsonApi::Progress.build_json(p).keys).to be_include('finished_at')
       expect(JsonApi::Progress.build_json(p).keys).to be_include('result')
     end
+
+    it "should flag a progress as errored if it got stuck" do
+      p  = Progress.new(settings: {})
+      p.updated_at = 6.hours.ago
+      p.started_at = 6.hours.ago
+      hash = JsonApi::Progress.build_json(p)
+      expect(hash['status']).to eq('errored')
+      expect(hash['result']['error']).to eq('progress job is taking too long, possibly crashed')
+    end
   end
 end

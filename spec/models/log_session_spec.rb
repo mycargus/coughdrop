@@ -387,6 +387,45 @@ describe LogSession, :type => :model do
       expect(s.data['events'][2]['spelling']).to eq('fz')
       expect(s.data['events'][2]['parts_of_speech']).to eq({'types' => ['other']})
     end
+
+    it "should generate highlight summary" do
+      u = User.create
+      d = Device.create
+      events = [
+        {'type' => 'button', 'highlighted' => true, 'button' => {'label' => 'ruxl', 'type' => 'speak'}, 'timestamp' => 1444994881}, 
+        {'type' => 'button', 'button' => {'label' => 'f', 'vocalization' => '+f', 'type' => 'speak'}, 'timestamp' => 1444994883},
+        {'type' => 'button', 'highlighted' => true, 'button' => {'label' => 'u', 'vocalization' => '+z', 'type' => 'speak'}, 'timestamp' => 1444994884}
+      ]
+      s = LogSession.process_new({'events' => events}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      expect(s.highlighted).to eq(true)
+      expect(s.data['highlight_summary']).to eq('ruxl u')
+    end
+
+    it "should properly mark session as highlighted" do
+      u = User.create
+      d = Device.create
+      events = [
+        {'type' => 'button', 'highlighted' => true, 'button' => {'label' => 'ruxl', 'type' => 'speak'}, 'timestamp' => 1444994881}, 
+        {'type' => 'button', 'button' => {'label' => 'f', 'vocalization' => '+f', 'type' => 'speak'}, 'timestamp' => 1444994883},
+        {'type' => 'button', 'highlighted' => true, 'button' => {'label' => 'u', 'vocalization' => '+z', 'type' => 'speak'}, 'timestamp' => 1444994884}
+      ]
+      s = LogSession.process_new({'events' => events}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      expect(s.highlighted).to eq(true)
+      expect(s.data['highlight_summary']).to eq('ruxl u')
+    end
+
+    it "should include ellipses in highlight summary when appropriate" do
+      u = User.create
+      d = Device.create
+      events = [
+        {'type' => 'button', 'highlighted' => true, 'button' => {'label' => 'ruxl', 'type' => 'speak'}, 'timestamp' => 1444994881}, 
+        {'type' => 'button', 'button' => {'label' => 'f', 'vocalization' => '+f', 'type' => 'speak'}, 'timestamp' => 1444994883},
+        {'type' => 'button', 'highlighted' => true, 'button' => {'label' => 'u', 'vocalization' => '+z', 'type' => 'speak'}, 'timestamp' => 1444995884}
+      ]
+      s = LogSession.process_new({'events' => events}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      expect(s.highlighted).to eq(true)
+      expect(s.data['highlight_summary']).to eq('ruxl.. u')
+    end
   end
   
   describe "generate_stats" do

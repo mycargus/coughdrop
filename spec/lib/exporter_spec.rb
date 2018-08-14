@@ -796,9 +796,281 @@ describe Exporter do
     end
   end
 
+  describe "process_log" do
+    it "should error no no user" do
+      expect { Exporter.process_log('asdf', 'whatever', nil, nil, nil) }.to raise_error('invalid user')
+    end
+    
+    it "should error on no author" do
+      u = User.create
+      expect { Exporter.process_log('asdf', 'whatever', u.global_id, nil, nil) }.to raise_error('invalid author')
+    end
+
+    it "should error no no device" do
+      u = User.create
+      expect { Exporter.process_log('asdf', 'whatever', u.global_id, u.global_id, nil) }.to raise_error('invalid device')
+    end
+
+    it "should process a LAM file and return the session" do
+      u = User.create
+      d = Device.create(user: u)
+      expect(Stats).to receive(:process_lam).with('asdf', u).and_return([])
+      s = LogSession.create(user: u, author: u, device: d)
+      expect(LogSession).to receive(:process_as_follow_on).with({
+        'events' => []
+      }, {:imported => true, :author => u, :user => u, :device => d}).and_return(s)
+      res = Exporter.process_log('asdf', 'lam', u.global_id, u.global_id, d.global_id)
+      expect(res).to eq([s.global_id])
+    end
+
+    it 'should error when processing an invalid LAM' do
+      u = User.create
+      d = Device.create(user: u)
+      expect(Stats).to receive(:process_lam).with('asdf', u).and_return([])
+      expect(LogSession).to receive(:process_as_follow_on).with({
+        'events' => []
+      }, {:imported => true, :author => u, :user => u, :device => d}).and_return(nil)
+      expect { Exporter.process_log('asdf', 'lam', u.global_id, u.global_id, d.global_id) }.to raise_error("log import failed")
+    end
+
+    it "should process an OBL file and return the sessions" do
+      u = User.create
+      d = Device.create(user: u)
+      expect(Exporter).to receive(:process_obl).with('asdf', u, u, d).and_return([u, d])
+      res = Exporter.process_log('asdf', 'obl', u.global_id, u.global_id, d.global_id)
+      expect(res).to eq([u.global_id, d.global_id])
+    end
+
+    it "should retrieve a URL if specified" do
+      u = User.create
+      d = Device.create(user: u)
+      expect(Exporter).to receive(:process_obl).with('asdf', u, u, d).and_return([u, d])
+      expect(Typhoeus).to receive(:get).with('http://www.example.com/file.obl').and_return(OpenStruct.new(body: 'asdf'))
+      res = Exporter.process_log('http://www.example.com/file.obl', 'obl', u.global_id, u.global_id, d.global_id)
+      expect(res).to eq([u.global_id, d.global_id])
+    end
+
+    it "should discern the type if possible" do
+      u = User.create
+      d = Device.create(user: u)
+      expect(Exporter).to receive(:process_obl).with({hello: true}.to_json, u, u, d).and_return([u, d])
+      res = Exporter.process_log({hello: true}.to_json, 'unspecified', u.global_id, u.global_id, d.global_id)
+      expect(res).to eq([u.global_id, d.global_id])
+    end
+
+    it "should error on unrecognized type" do
+      u = User.create
+      d = Device.create(user: u)
+      expect { Exporter.process_log({hello: true}.to_json, 'whatever', u.global_id, u.global_id, d.global_id) }.to raise_error("unrecognized type whatever")
+    end
+  end
+
   describe 'process_obl' do
-    it 'should have specs' do
-      expect{ Exporter.process_obl({}) }.to raise_error("not implemented")
+    it "should error in invalid json" do
+      expect { Exporter.process_obl("asdf", nil, nil, nil) }.to raise_error("invalid JSON")
+    end
+
+    it "should error on json without proper format field" do
+      expect { Exporter.process_obl({}.to_json, nil, nil, nil) }.to raise_error("invalid format")
+    end
+
+    it "should create session objects for each session" do
+      u = User.create
+      d = Device.create(user: u)
+      json = {
+        format: 'open-board-log-0.1',
+        sessions: [
+          {
+            type: 'log',
+            started: "2018-08-14T20:22:25.499Z",
+            events: [
+              {type: 'button', label: 'hat', spoken: true},
+              {type: 'button', label: 'cat'},
+              {type: 'button', label: 'scat', spoken: true},
+            ]
+          }
+        ]
+      }.to_json
+      res = Exporter.process_obl(json, u, u, d)
+      expect(res.length).to eq(1)
+      expect(res[0].data['events'].length).to eq(3)
+      expect(res[0].data['events'][0]['id']).to eq('e0')
+      expect(res[0].data['events'][0]['timestamp']).to eq(1534278146)
+      expect(res[0].data['events'][0]['button']['label']).to eq('hat')
+      expect(res[0].data['events'][0]['button']['spoken']).to eq(true)
+
+      expect(res[0].data['events'][1]['id']).to eq('e1')
+      expect(res[0].data['events'][1]['timestamp']).to eq(1534278147)
+      expect(res[0].data['events'][1]['button']['label']).to eq('cat')
+      expect(res[0].data['events'][1]['button']['spoken']).to eq(nil)
+
+      expect(res[0].data['events'][2]['id']).to eq('e2')
+      expect(res[0].data['events'][2]['timestamp']).to eq(1534278148)
+      expect(res[0].data['events'][2]['button']['label']).to eq('scat')
+      expect(res[0].data['events'][2]['button']['spoken']).to eq(true)
+    end
+
+    it "should error on non-log sessions" do
+      u = User.create
+      d = Device.create(user: u)
+      json = {
+        format: 'open-board-log-0.1',
+        sessions: [
+          {
+            type: 'bacon',
+            started: "2018-08-14T20:22:25.499Z",
+            events: [
+              {type: 'button', label: 'hat', spoken: true},
+              {type: 'button', label: 'cat'},
+              {type: 'button', label: 'scat', spoken: true},
+            ]
+          }
+        ]
+      }.to_json
+      expect { Exporter.process_obl(json, u, u, d) }.to raise_error('log type bacon not implemented yet')
+    end
+
+    it "should process session attributes" do
+      u = User.create
+      d = Device.create(user: u)
+      json = {
+        format: 'open-board-log-0.1',
+        sessions: [
+          {
+            type: 'log',
+            started: "2018-08-14T20:22:25.499Z",
+            events: [
+              {type: 'button', label: 'hat', spoken: true},
+              {type: 'button', label: 'cat'},
+              {type: 'button', label: 'scat', spoken: true},
+            ]
+          }
+        ]
+      }.to_json
+      res = Exporter.process_obl(json, u, u, d)
+      expect(res.length).to eq(1)
+      expect(res[0].data['events'].length).to eq(3)
+      expect(res[0].data['events'][0]['id']).to eq('e0')
+      expect(res[0].data['events'][0]['timestamp']).to eq(1534278146)
+      expect(res[0].data['events'][0]['button']['label']).to eq('hat')
+      expect(res[0].data['events'][0]['button']['spoken']).to eq(true)
+
+      expect(res[0].data['events'][1]['id']).to eq('e1')
+      expect(res[0].data['events'][1]['timestamp']).to eq(1534278147)
+      expect(res[0].data['events'][1]['button']['label']).to eq('cat')
+      expect(res[0].data['events'][1]['button']['spoken']).to eq(nil)
+
+      expect(res[0].data['events'][2]['id']).to eq('e2')
+      expect(res[0].data['events'][2]['timestamp']).to eq(1534278148)
+      expect(res[0].data['events'][2]['button']['label']).to eq('scat')
+      expect(res[0].data['events'][2]['button']['spoken']).to eq(true)
+    end
+
+    it "should process the event list attributes" do
+      u = User.create
+      d = Device.create(user: u)
+      json = {
+        format: 'open-board-log-0.1',
+        sessions: [
+          {
+            type: 'log',
+            started: "2018-08-14T20:22:25.499Z",
+            events: [
+              {
+                id: 'whatever1',
+                timestamp: "2018-08-14T20:22:55.499Z",
+                type: 'button', 
+                label: 'hat', 
+                spoken: true, 
+                modeling: true, 
+                system: 'iOS', 
+                volume: 0.5, 
+                screen_brightness: 0.8, 
+                ambient_light: 1200, 
+                window_width: 400, 
+                window_height: 500, 
+                ip_address: '1.2.3.4', 
+                ssid: 'bacon', 
+                geo: [1.2, 2.3, 100], 
+                orientation: {alpha: 0.5, beta: 300.0, gamma: 20.4, layout: 'landscape'},
+                percent_x: 0.44,
+                percent_y: 0.27,
+                button_id: '1234',
+                board_id: '2345',
+                vocalization: 'buttons rock', 
+                image_url: 'http://www.example.com/pic.png',
+                core_word: true
+              },
+              {
+                type: 'button', 
+                label: 'cat', 
+                spoken: false, 
+                modeling: false, 
+                system: 1234, 
+                volume: 22, 
+                screen_brightness: -4, 
+                ambient_light: -10, 
+                window_with: 0, 
+                window_height: 0, 
+                ip_address: 16, 
+                ssid: 33, 
+                geo: [1.2, 2.3, 100, 4, 3], 
+                orientation: {alpha: 0.5, gamma: 20.4, layout: 'landscape'},
+                percent_x: 1.44,
+                percent_y: 5.27,
+              }
+            ]
+          }
+        ]
+      }.to_json
+      res = Exporter.process_obl(json, u, u, d)
+      expect(res.length).to eq(1)
+      expect(res[0].data['events'].length).to eq(2)
+      expect(res[0].data['events'][0]['id']).to eq('whatever1')
+      expect(res[0].data['events'][0]['timestamp']).to eq(1534278175)
+      expect(res[0].data['events'][0]['button']['label']).to eq('hat')
+      expect(res[0].data['events'][0]['button']['spoken']).to eq(true)
+      expect(res[0].data['events'][0]['button']['button_id']).to eq('1234')
+      expect(res[0].data['events'][0]['button']['board_id']).to eq('2345')
+      expect(res[0].data['events'][0]['button']['vocalization']).to eq('buttons rock')
+      expect(res[0].data['events'][0]['button']['image']).to eq('http://www.example.com/pic.png')
+      expect(res[0].data['events'][0]['button']['core_word']).to eq(true)
+      expect(res[0].data['events'][0]['modeling']).to eq(true)
+      expect(res[0].data['events'][0]['system']).to eq('iOS')
+      expect(res[0].data['events'][0]['volume']).to eq(0.5)
+      expect(res[0].data['events'][0]['screen_brightness']).to eq(0.8)
+      expect(res[0].data['events'][0]['ambient_light']).to eq(1200)
+      expect(res[0].data['events'][0]['window_width']).to eq(400)
+      expect(res[0].data['events'][0]['window_height']).to eq(500)
+      expect(res[0].data['events'][0]['ip_address']).to eq('1.2.3.4')
+      expect(res[0].data['events'][0]['ssid']).to eq('bacon')
+      expect(res[0].data['events'][0]['geo']).to eq([1.2, 2.3, 100])
+      expect(res[0].data['events'][0]['orientation']).to eq({'alpha' => 0.5, 'beta' => 300.0, 'gamma' => 20.4, 'layout' => 'landscape'})
+      expect(res[0].data['events'][0]['percent_x']).to eq(0.44)
+      expect(res[0].data['events'][0]['percent_y']).to eq(0.27)
+
+      expect(res[0].data['events'][1]['id']).to eq('e1')
+      expect(res[0].data['events'][1]['timestamp']).to eq(1534278176)
+      expect(res[0].data['events'][1]['button']['label']).to eq('cat')
+      expect(res[0].data['events'][1]['button']['spoken']).to eq(false)
+      expect(res[0].data['events'][1]['button']['button_id']).to eq(nil)
+      expect(res[0].data['events'][1]['button']['board_id']).to eq(nil)
+      expect(res[0].data['events'][1]['button']['vocalization']).to eq(nil)
+      expect(res[0].data['events'][1]['button']['image']).to eq(nil)
+      expect(res[0].data['events'][1]['button']['core_word']).to eq(nil)
+      expect(res[0].data['events'][1]['modeling']).to eq(nil)
+      expect(res[0].data['events'][1]['system']).to eq(nil)
+      expect(res[0].data['events'][1]['volume']).to eq(nil)
+      expect(res[0].data['events'][1]['screen_brightness']).to eq(nil)
+      expect(res[0].data['events'][1]['ambient_light']).to eq(nil)
+      expect(res[0].data['events'][1]['window_width']).to eq(nil)
+      expect(res[0].data['events'][1]['window_height']).to eq(nil)
+      expect(res[0].data['events'][1]['ip_address']).to eq(nil)
+      expect(res[0].data['events'][1]['ssid']).to eq(nil)
+      expect(res[0].data['events'][1]['geo']).to eq(nil)
+      expect(res[0].data['events'][1]['orientation']).to eq(nil)
+      expect(res[0].data['events'][1]['percent_x']).to eq(nil)
+      expect(res[0].data['events'][1]['percent_y']).to eq(nil)
     end
   end
 end
