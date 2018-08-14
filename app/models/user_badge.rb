@@ -464,6 +464,8 @@ class UserBadge < ActiveRecord::Base
           if idx > 0 && unit[measure] == (units[idx - 1][:next][measure])
             streak += 1
           else
+            puts "  streak broken after #{units[idx - 1][:next][measure]}" if verbose && idx > 0
+            puts "  #{unit[idx - 1].to_json}" if verbose
             start_date = unit[measure]
             streak = 1
           end
@@ -471,6 +473,7 @@ class UserBadge < ActiveRecord::Base
             last_percent = streak.to_f / badge_level['consecutive_units'].to_f
           end
           if streak >= badge_level['consecutive_units']
+            puts "streak complete!" if verbose
             earned = {
               :started => start_date,
               :ended => unit[measure],
