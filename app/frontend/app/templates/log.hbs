@@ -35,6 +35,13 @@
       {{log.assessment.description}}<br/>
       {{log.assessment.summary}}
     {{else}}
+      {{#if log.highlighted}}
+      <div style='margin-bottom: 5px;'>
+        <span style='font-size: 16px; padding: 5px 10px; border-radius: 5px; background: #ffc;'>
+          {{log.highlight_summary}}  
+        </span>
+      </div>
+      {{/if}}
       <span style="white-space: pre-line;">{{log.summary}}</span>
     {{/if}}
   </td>

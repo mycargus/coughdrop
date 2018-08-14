@@ -3,10 +3,13 @@ import Controller from '@ember/controller';
 import { later as runLater } from '@ember/runloop';
 import $ from 'jquery';
 import modal from '../../utils/modal';
+import i18n from '../../utils/i18n';
+import contentGrabbers from '../../utils/content_grabbers';
 import app_state from '../../utils/app_state';
+import EmberObject from '@ember/object';
 
 export default Controller.extend({
-  queryParams: ['type', 'start', 'end', 'device_id', 'location_id'],
+  queryParams: ['type', 'start', 'end', 'highlighted', 'device_id', 'location_id'],
   reset_params: function() {
     var _this = this;
     _this.set('model', {});
@@ -28,13 +31,13 @@ export default Controller.extend({
   }.property('model.user_name'),
   refresh_on_params_change: function() {
     this.send('refresh');
-  }.observes('type', 'start', 'end', 'device_id', 'location_id'),
+  }.observes('type', 'start', 'end', 'device_id', 'location_id', 'highlighted'),
   messages_only: function() {
     return this.get('type') == 'note';
   }.property('type'),
   all_logs: function() {
-    return !this.get('filtered_results') && (!this.get('type') || this.get('type') == 'all');
-  }.property('type', 'filtered_results'),
+    return !this.get('filtered_results') && (!this.get('type') || this.get('type') == 'all') && this.get('highlighted') != '1';
+  }.property('type', 'filtered_results', 'highlighted'),
   actions: {
     obl_export: function() {
       modal.open('download-log', {user: this.get('model')});
@@ -61,6 +64,9 @@ export default Controller.extend({
       var args = {user_id: this.get('model.id')};
       if(this.get('type') && this.get('type') != 'all') {
         args.type = this.get('type');
+      }
+      if(this.get('highlighted') == '1') {
+        args.highlighted = true;
       }
       if(this.get('start')) { args.start = this.get('start'); }
       if(this.get('end')) { args.end = this.get('end'); }

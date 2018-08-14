@@ -18,6 +18,9 @@ class Api::LogsController < ApplicationController
     if params['type'] != 'all'
       logs = logs.where(:log_type => params['type'])
     end
+    if params['highlighted']
+      logs = logs.where(:highlighted => true)
+    end
     if params['goal_id']
       goal = UserGoal.find_by_global_id(params['goal_id'])
       if goal && goal.user == user

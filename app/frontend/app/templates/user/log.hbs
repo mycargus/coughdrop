@@ -48,7 +48,7 @@
       {{else}}
         <div class="panel-heading">{{t "Device" key='device'}}</div>
         <div class="panel-body">
-          {{#link-to 'user.stats' user.user_name (query-params start=null end=null location_id=null device_id=model.device.id split=null start2=null end2=null device_id2=null location_id2=null)}}
+          {{#link-to 'user.stats' user.user_name (query-params highlighted=null start=null end=null location_id=null device_id=model.device.id split=null start2=null end2=null device_id2=null location_id2=null)}}
             {{model.device.name}}
           {{/link-to}}
         </div>
@@ -137,13 +137,13 @@
           <th>{{t "Summary" key='summary'}}</th>
           <th>{{t "Delay" key='delay'}}</th>
           <th>{{t "Board" key='board'}}</th>
-          <th style="width: 80px;">{{t "Notes" key='notes'}}</th>
+          <th style="width: 100px;">{{t "Notes" key='notes'}}</th>
         </tr>
       </thead>
       <tbody>
         {{#each model.processed_events as |event|}}
           <tr class={{if event.long_delay 'long_delay'}}>
-            <td style='white-space: nowrap;'>
+            <td style={{if event.highlighted 'white-space: nowrap; background: #ffc;' 'white-space: nowrap;'}}>
               <span class={{event.type_class}} title={{event.type}}>
                 <span class="sr-only">{{event.type}}</span>
               </span>
@@ -153,7 +153,7 @@
                 </span>
               {{/if}}
             </td>
-            <td>
+            <td style={{if event.highlighted 'background: #ffc;'}}>
               <span class={{event.part_of_speech_class}} title={{event.part_of_speech}}>
                 <span class="sr-only">{{event.part_of_speech}}</span>
               </span>
@@ -186,13 +186,26 @@
               {{/if}}
             </td>
             <td style="text-align: right;">
-              {{#if event.note_count}}
-                <a href="#" {{action 'toggle_notes' event.id}}><span class="label label-primary">{{event.note_count}}</span></a>
+              {{#if event.highlighted}}
+                <button {{action 'highlight' event.id false}} class='btn btn-warning btn-sm' style='margin: -8px -5px -6px 5px; width: 35px;' >
+                  <span class='glyphicon glyphicon-star'></span>
+                </button>
+              {{else}}
+                <button {{action 'highlight' event.id true}} class='btn btn-default btn-sm' style='margin: -8px -5px -6px 5px; width: 35px;' >
+                  <span class='glyphicon glyphicon-star-empty'></span>
+                </button>
               {{/if}}
-              <button {{action 'toggle_notes' event.id 'add'}} class='btn btn-default btn-sm' style="margin: -8px 0 -6px 5px;">
-                <span class='glyphicon glyphicon-plus'></span>
-                <span class='sr-only'>{{t "add comment" key='add_comment'}}</span>
-              </button>
+              {{#if event.note_count}}
+                <button {{action 'toggle_notes' event.id}} class='btn btn-primary btn-sm' style="margin: -8px 0 -6px 5px; width: 35px; font-weight: bold;">
+                  {{event.note_count}}
+                  <span class='sr-only'>{{t "add comment" key='add_comment'}}</span>
+                </button>
+              {{else}}
+                <button {{action 'toggle_notes' event.id 'add'}} class='btn btn-default btn-sm' style="opacity: 0.8; margin: -8px 0 -6px 5px; width: 35px;">
+                  <span class='glyphicon glyphicon-comment'></span>
+                  <span class='sr-only'>{{t "add comment" key='add_comment'}}</span>
+                </button>
+              {{/if}}
             </td>
           </tr>
           {{#if event.show_notes}}
@@ -241,11 +254,11 @@
         {{/if}}
         {{#if model.geo_cluster_id}}
           <br/>
-          {{#link-to 'user.logs' model.user.user_name (query-params start='' end='' location_id=model.geo_cluster_id device_id='' type='session') class='btn btn-default'}}
+          {{#link-to 'user.logs' model.user.user_name (query-params highlighted=null start='' end='' location_id=model.geo_cluster_id device_id='' type='session') class='btn btn-default'}}
             {{t "more entries" key='see_more'}}
           {{/link-to}}
 
-          {{#link-to 'user.stats' model.user.user_name (query-params start=null end=null location_id=model.geo_cluster_id device_id=null split=null start2=null end2=null device_id2=null location_id2=null type='session') class='btn btn-default'}}
+          {{#link-to 'user.stats' model.user.user_name (query-params highlighted=null start=null end=null location_id=model.geo_cluster_id device_id=null split=null start2=null end2=null device_id2=null location_id2=null type='session') class='btn btn-default'}}
             {{t "filtered report" key='see_stats'}}
           {{/link-to}}
         {{/if}}
@@ -257,11 +270,11 @@
           {{/if}}
           {{#if model.ip_cluster_id}}
             <br/>
-            {{#link-to 'user.logs' model.user.user_name (query-params start='' end='' location_id=model.ip_cluster_id device_id='' type='session') class='btn btn-default'}}
+            {{#link-to 'user.logs' model.user.user_name (query-params highlighted=null start='' end='' location_id=model.ip_cluster_id device_id='' type='session') class='btn btn-default'}}
               {{t "more entries" key='see_more'}}
             {{/link-to}}
 
-            {{#link-to 'user.stats' model.user.user_name (query-params start=null end=null location_id=model.ip_cluster_id device_id=null split=null start2=null end2=null device_id2=null location_id2=null type='session') class='btn btn-default'}}
+            {{#link-to 'user.stats' model.user.user_name (query-params highlighted=null start=null end=null location_id=model.ip_cluster_id device_id=null split=null start2=null end2=null device_id2=null location_id2=null type='session') class='btn btn-default'}}
               {{t "filtered report" key='see_stats'}}
             {{/link-to}}
           {{/if}}

@@ -64,6 +64,8 @@ module JsonApi::Log
 
     json['event_note_count'] = log.data['event_note_count'] || 0
     json['summary'] = log.data['event_summary']
+    json['highlight_summary'] = log.data['highlight_summary']
+    json['highlighted'] = log.highlighted
     json
   end
   
@@ -97,6 +99,7 @@ module JsonApi::Log
       entry = {}
       entry['id'] = event['id']
       entry['timestamp'] = event['timestamp']
+      entry['highlighted'] = event['highlighted'] if event['highlighted']
       if event['button']
         entry['type'] = 'button'
         entry['spoken'] = !!event['button']['spoken']

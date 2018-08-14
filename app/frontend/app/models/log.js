@@ -25,6 +25,8 @@ export default DS.Model.extend({
   user_id: DS.attr('string'),
   timestamp: DS.attr('number'),
   assessment: DS.attr('raw'),
+  highlighted: DS.attr('boolean'),
+  highlight_summary: DS.attr('string'),
   notify: DS.attr('boolean'),
   next_log_id: DS.attr('string'),
   previous_log_id: DS.attr('string'),
@@ -204,6 +206,16 @@ export default DS.Model.extend({
           id: ++max_id,
           note: text
         });
+      }
+    });
+    this.set('events', events);
+    this.save().then(null, function() { });
+  },
+  highlight: function(event_id, do_highlight) {
+    var events = [].concat(this.get('events') || []);
+    events.forEach(function(event) {
+      if(event.id == event_id) {
+        emberSet(event, 'highlighted', do_highlight);
       }
     });
     this.set('events', events);

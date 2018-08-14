@@ -53,6 +53,7 @@ class LogSession < ActiveRecord::Base
     self.data['utterance_word_count'] = utterances.map{|u| u['utterance']['text'].split(/\s+/).length }.sum
     
     last_stamp = nil
+    last_highlight_stamp = nil
     max_diff = (60.0 * 10.0)
     max_dots = 5
     str = ""
@@ -60,6 +61,7 @@ class LogSession < ActiveRecord::Base
     event_notes = 0
     ids = (self.data['events'] || []).map{|e| e['id'] }.compact
     spelling_sequence = []
+    highlight_words = []
     (self.data['events'] || []).each_with_index do |event, idx|
       next_event = self.data['events'][idx + 1]
       parts = event['button'] && (event['button']['vocalization'] || "").split(/&&/).map{|v| v.strip }.select{|p| p.match(/^(\+|:)/)}
@@ -142,6 +144,16 @@ class LogSession < ActiveRecord::Base
         dots = "." + dots if diff > 10
         str += dots + event_string
       end
+      if event['highlighted']
+        last_highlight_stamp ||= stamp
+        diff = [0.0, [stamp - last_highlight_stamp, max_diff].min].max
+        highlight_string = event_string
+        if diff >= max_diff
+          highlight_words << ".."
+        end
+        highlight_words << highlight_string 
+        last_highlight_stamp = stamp
+      end
       last_stamp = stamp
     end
     self.data['event_note_count'] = event_notes
@@ -212,6 +224,8 @@ class LogSession < ActiveRecord::Base
       end
     end
     self.data['event_summary'] = str
+    self.highlighted = true if highlight_words.length > 0
+    self.data['highlight_summary'] = highlight_words.join(' ').gsub(/ \.\./, '..')
     self.data['nonce'] ||= GoSecure.nonce('log_nonce')
     
     if (!self.geo_cluster_id || !self.ip_cluster_id) && (!self.last_cluster_attempt_at || self.last_cluster_attempt_at < 12.hours.ago)
@@ -878,6 +892,7 @@ class LogSession < ActiveRecord::Base
     self.data['request_ids'] ||= [] if non_user_params[:request_id]
     self.data['request_ids'] << non_user_params[:request_id] if non_user_params[:request_id]
     if non_user_params[:update_only]
+      self.highlighted = params['highlighted'] if params['highlighted'] != nil
       if params['events']
         self.data_will_change!
         self.data['events'].each do |e|
@@ -913,6 +928,7 @@ class LogSession < ActiveRecord::Base
               ids << note['id']
             end
             e['notes'] = new_notes
+            e['highlighted'] = !!pe['highlighted']
           end
         end
       end

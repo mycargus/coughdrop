@@ -13,7 +13,7 @@
         {{#link-to 'user.index' model.user_name}}{{t "summary" key='summary'}}{{/link-to}}
       </li>
       <li role="presentation">
-        {{#link-to 'user.stats' model.user_name (query-params start=null end=null location_id=null device_id=null split=null start2=null end2=null device_id2=null location_id2=null)}}{{t "reports" key='reports'}}{{/link-to}}
+        {{#link-to 'user.stats' model.user_name (query-params highlighted=null start=null end=null location_id=null device_id=null split=null start2=null end2=null device_id2=null location_id2=null)}}{{t "reports" key='reports'}}{{/link-to}}
       </li>
       {{#if app_state.feature_flags.goals}}
         <li role="presentation">
@@ -54,7 +54,7 @@
       <div class="btn-group-vertical" style="width: 100%;">
         <!-- TODO: since we're not using ids these won't add 'active' class until clicked. need workaround -->
         {{#link-to 'user.index' model.user_name class="btn btn-default"}}{{t "summary" key='summary'}}{{/link-to}}
-        {{#link-to 'user.stats' model.user_name (query-params start=null end=null location_id=null device_id=null split=null start2=null end2=null device_id2=null location_id2=null) class="btn btn-default"}}{{t "reports" key='reports'}}{{/link-to}}
+        {{#link-to 'user.stats' model.user_name (query-params highlighted=null start=null end=null location_id=null device_id=null split=null start2=null end2=null device_id2=null location_id2=null) class="btn btn-default"}}{{t "reports" key='reports'}}{{/link-to}}
         {{#if app_state.feature_flags.goals}}
           {{#link-to 'user.goals' model.user_name class='btn btn-default'}}{{t "goals" key='goals'}}{{/link-to}}
         {{/if}}

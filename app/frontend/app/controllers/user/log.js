@@ -111,6 +111,9 @@ export default Controller.extend({
       }
       $("input[data-event_id='" + event_id + "']").val("");
     },
+    highlight: function(event_id, do_highlight) {
+        this.get('model').highlight(event_id, !!do_highlight);
+    },
     draw_charts: function() {
       this.draw_charts();
     }
