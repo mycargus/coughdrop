@@ -23,6 +23,15 @@ CoughDrop.Stats = EmberObject.extend({
       six_months_ago: six_months_ago
     };
   },
+  days_sorted: function() {
+    var res = [];
+    for(var day in (this.get('days') || {})) {
+      var day_data = this.get('days')[day];
+      day_data.day = day;
+      res.push(day_data);
+    }
+    return res.sort(function(a, b) { a.day.localeCompare(b.day); });
+  }.property('days'),
   check_known_filter: function() {
     var date_strings = this.date_strings();
     if(this.get('snapshot_id')) {

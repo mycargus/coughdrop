@@ -34,15 +34,14 @@ export default Component.extend({
           raw_data[0].push(i18n.t('modeled_words', "Modeled Words"));
         }
         var max_words = 0;
-        for(var day in stats.get('days')) {
-          var day_data = stats.get('days')[day];
-          var row = [day, day_data.total_words, day_data.unique_words];
+        stats.get('days_sorted').forEach(function(day_data) {
+          var row = [day_data.day, day_data.total_words, day_data.unique_words];
           if(stats.get('modeled_words')) {
             row.push(day_data.modeled_words);
           }
           raw_data.push(row);
           max_words = Math.max(max_words, day_data.total_words || 0);
-        }
+        });
         if(ref_stats) {
           for(var day in ref_stats.get('days')) {
             var day_data = ref_stats.get('days')[day];
