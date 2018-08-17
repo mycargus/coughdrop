@@ -2251,7 +2251,7 @@ document.addEventListener('dragover', function(event) {
     event.preventDefault();
   }
 });
-$(document).on('change', '#image_upload,#sound_upload,#board_upload,#avatar_upload,#video_upload,#badge_upload,#recording_upload', function(event) {
+$(document).on('change', '#image_upload,#sound_upload,#board_upload,#avatar_upload,#video_upload,#badge_upload,#recording_upload,#log_upload', function(event) {
   var type = 'image';
   if(event.target.id == 'sound_upload') { type = 'sound'; }
   if(event.target.id == 'video_upload') { type = 'video'; }

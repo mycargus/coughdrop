@@ -4,6 +4,7 @@ import modal from '../utils/modal';
 import app_state from '../utils/app_state';
 import i18n from '../utils/i18n';
 import persistence from '../utils/persistence';
+import stashes from '../utils/_stashes';
 import CoughDrop from '../app';
 
 export default modal.ModalController.extend({
@@ -12,11 +13,16 @@ export default modal.ModalController.extend({
     this.set('has_supervisees', app_state.get('sessionUser.supervisees.length') > 0);
     this.set('loading', false);
     this.set('error', false);
+    this.set('app_state', app_state);
+    this.set('model.level', stashes.get('board_level'));
     this.set('currently_selected_id', null);
     if(supervisees.length === 0) {
       this.set('currently_selected_id', 'self');
     }
   },
+  board_levels: function() {
+    return CoughDrop.board_levels;
+  }.property(),
   user_board: function() {
     var for_user_id = this.get('currently_selected_id');
     this.set('self_currently_selected', for_user_id == 'self');
@@ -45,9 +51,12 @@ export default modal.ModalController.extend({
         if(!boards || boards.length === 0) {
           boards = window.user_preferences.any_user.default_sidebar_boards;
         }
+        var level = parseInt(this.get('model.level'), 10);
+        if(!level || level < 1 || level > 10) { level = null; }
         boards.unshift({
           name: board.name,
           key: board.key,
+          level: level,
           home_lock: !!board.home_lock,
           image: board.image
         });

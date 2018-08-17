@@ -132,12 +132,13 @@
     </dl>
     {{#if model.permissions.edit}}
       {{#if app_state.feature_flags.translation}}
-        <button class='btn btn-default' {{action 'translate'}}>{{t "Translate this Board" key='translate_this_board'}}</button>
+        <button class='btn btn-default' {{action 'translate'}}>{{t "Translate Board" key='translate_this_board'}}</button>
       {{/if}}
       <button class='btn btn-default' {{action 'swap_images'}}>{{t "Swap Images" key='swap_images_for_this_board'}}</button>
       {{#if app_state.feature_flags.audio_recordings}}
         <button class='btn btn-default' {{action 'batch_recording'}}>{{t "Record Messages" key='record_messages'}}</button>
       {{/if}}
+      <button class='btn btn-default' {{action "delete"}}>{{t "Delete Board" key="delete_board"}}</button>
     {{/if}}
   </div>
   <div class="modal-footer">

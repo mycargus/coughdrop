@@ -44,6 +44,9 @@ export default modal.ModalController.extend({
     renameBoard: function() {
       modal.open('rename-board', {board: this.get('model')});
     },
+    delete: function(decision) {
+      modal.open('confirm-delete-board', {board: this.get('model'), redirect: true});
+    },
     button_set_words: function() {
       modal.open('button-set', {board: this.get('model'), button_set: this.get('model.button_set')});
     },

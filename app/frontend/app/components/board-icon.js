@@ -59,7 +59,7 @@ export default Component.extend({
           _this.sendAction('action', board);
         });
       } else {
-        app_state.home_in_speak_mode({force_board_state: {key: board.get('key'), id: board.get('id'), level: board.get('current_level')}});
+        app_state.home_in_speak_mode({force_board_state: {key: board.get('key'), id: board.get('id')}});
       }
     }
   }

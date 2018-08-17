@@ -4,13 +4,16 @@ import modal from '../utils/modal';
 import app_state from '../utils/app_state';
 import editManager from '../utils/edit_manager';
 import persistence from '../utils/persistence';
+import stashes from '../utils/_stashes';
 import CoughDrop from '../app';
 
 export default modal.ModalController.extend({
   opening: function() {
     this.set('has_supervisees', app_state.get('sessionUser.supervisees.length') > 0);
     this.set('currently_selected_id', null);
+    this.set('app_state', app_state);
     this.set('status', null);
+    this.set('board_level', stashes.get('board_level'));
   },
   owned_by_user: function() {
     var board_user_name = this.get('model.board.user_name');
@@ -32,6 +35,9 @@ export default modal.ModalController.extend({
   multiple_users: function() {
     return !!this.get('has_supervisees');
   }.property('has_supervisees'),
+  board_levels: function() {
+    return CoughDrop.board_levels;
+  }.property(),
   pending: function() {
     return this.get('status.updating') || this.get('status.copying');
   }.property('status.updating', 'status.copying'),
@@ -54,22 +60,19 @@ export default modal.ModalController.extend({
     done: function() {
       var _this = this;
       _this.set('status', null);
-      modal.close();
-      if(persistence.get('online')) {
-        runLater(function() {
-          console.debug('syncing because set as home');
-          persistence.sync('self').then(null, function() { });
-        }, 1000);
-      }
+      modal.close({updated: true});
     },
     set_as_home: function(for_user_id) {
       var for_user_id = this.get('currently_selected_id') || 'self';
       var _this = this;
       var board = this.get('model.board');
       _this.set('status', {updating: true});
+      var level = parseInt(this.get('board_level'), 10);
+      if(!level || level < 1 || level > 10) { level = null; }
 
       CoughDrop.store.findRecord('user', for_user_id).then(function(user) {
         user.set('preferences.home_board', {
+          level: level,
           id: board.get('id'),
           key: board.get('key')
         });

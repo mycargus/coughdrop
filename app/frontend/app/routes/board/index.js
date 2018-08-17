@@ -34,7 +34,6 @@ export default Route.extend({
       id: model.get('id'),
       key: model.get('key'),
       name: model.get('name'),
-      default_level: model.get('current_level'),
       has_fallbacks: model.get('has_fallbacks'),
       copy_version: model.get('copy_version'),
       integration_name: model.get('integration') && model.get('integration_name'),
@@ -60,6 +59,7 @@ export default Route.extend({
       app_state.set('vocalization_locale', stashes.get('vocalization_locale'));
     }
     if(CoughDrop.embedded && !app_state.get('speak_mode')) {
+      // Embedded mode should only operate in Speak Mode, so force it
       var state = app_state.get('currentBoardState');
       app_state.toggle_mode('speak', {override_state: state});
       if(app_state.get('currentUser.preferences.home_board')) {
@@ -67,7 +67,7 @@ export default Route.extend({
       }
       emberSet(state, 'level', emberGet(state, 'default_level'));
       stashes.persist('root_board_state', state);
-      stashes.persist('board_level', app_state.get('currentBoardState.default_level'));
+      stashes.persist('board_level', state.level);
       stashes.persist('temporary_root_board_state', null);
       app_state.set('temporary_root_board_key', null);
     }

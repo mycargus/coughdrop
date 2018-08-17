@@ -12,9 +12,15 @@
       </p>
       {{user-select select_id="currently_selected_id" buttons=true selection=currently_selected_id action=(action (mut currently_selected_id)) }}
     {{/if}}
+    {{#if model.board.levels}}
+      {{#if app_state.feature_flags.board_levels}}
+        <label for="board_level"><strong>{{t "Communication Level" key='communication_level'}}</strong></label><br/>
+        {{bound-select select_class="form-control" select_id="board_level" content=board_levels selection=board_level action=(action (mut board_level)) }}
+      {{/if}}
+    {{/if}}
     {{#if owned_by_user}}
       {{#unless multiple_users}}
-        <p>{{t "Would you like to set <b>%{board_key}</b> as your new home board?" key='confirm_set_as_home' board_key=model.board.key}}</p>
+        <p>{{t "Would you like to set <b>%{board_key}</b> as your home board?" key='confirm_set_as_home' board_key=model.board.key}}</p>
       {{/unless}}
     {{else}}
       <p>

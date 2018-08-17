@@ -194,7 +194,7 @@ export default Controller.extend({
       this.set('model.fast_html', null);
       editManager.process_for_displaying();
     }
-  }.observes('app_state.speak_mode', 'app_state.edit_mode', 'model.word_suggestions', 'model.description', 'app_state.sidebar_pinned', 'app_state.currentUser.preferences.word_suggestion_images', 'text_position'),
+  }.observes('app_state.speak_mode', 'app_state.edit_mode', 'model.word_suggestions', 'model.description', 'app_state.sidebar_pinned', 'app_state.currentUser.preferences.word_suggestion_images', 'text_position', 'stashes.board_level'),
   board_style: function() {
     return htmlSafe("position: relative; height: " + (this.get('height') + 5) + "px");
   }.property('height'),
@@ -512,7 +512,7 @@ export default Controller.extend({
     return this.get('model.starred') ? i18n.t('already_starred', "Already liked") : i18n.t('star_this_board', "Like this board");
   }.property('model.starred'),
   current_level: function() {
-    return this.get('preview_level') ||  this.get('model.default_level') || stashes.get('board_level') || 10;
+    return this.get('preview_level') || stashes.get('board_level') || this.get('model.default_level') || 10;
   }.property('model.default_level', 'stashes.board_level', 'preview_level'),
   button_levels: function() {
     var levels = [];

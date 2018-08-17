@@ -23,6 +23,7 @@ export default modal.ModalController.extend({
     button.load_image();
     button.load_sound();
     this.set('board', this.get('model.board'));
+    this.set('last_values', null);
     this.set('model', button);
     button.set('translations_hash', this.get('board').translations_for_button(button.id));
     this.set('handle_updates', true);
@@ -136,6 +137,21 @@ export default modal.ModalController.extend({
       label: this.get('model.label')
     });
   }.observes('model.label'),
+  update_hidden: function(obj, attr) {
+    var hash = {'model.hidden': 'hidden', 'model.link_disabled': 'link_disabled'};
+    var ref = hash[attr];
+    var vals = this.get('last_values') || {};
+    if(this.get('model.id') && ref) {
+      var mod = vals[this.get('model.id')] || {};
+      if(mod[ref] == undefined) {
+      } else if(mod[ref] != this.get(attr)) {
+        Button.set_attribute(this.get('model'), ref, this.get(attr));
+      }
+      mod[ref] = this.get(attr);
+      vals[this.get('model.id')] = mod;
+      this.set('last_values', vals);
+    }
+  }.observes('model', 'model.id', 'model.hidden', 'model.link_disabled'),
   buttonActions: function() {
     var res = [
       {name: i18n.t('talk', "Add button to the vocalization box"), id: "talk"},

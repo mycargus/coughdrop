@@ -65,6 +65,9 @@ export default Controller.extend({
     oldBoard.set('copy_name', decision.board_name);
     return modal.open('copying-board', {board: oldBoard, action: decision.action, user: decision.user, shares: decision.shares, make_public: decision.make_public, translate_locale: decision.translate_locale});
   },
+  board_levels: function() {
+    return CoughDrop.board_levels.slice(1, 11);
+  }.property(),
   actions: {
     invalidateSession: function() {
       session.invalidate(true);
@@ -177,26 +180,30 @@ export default Controller.extend({
       }
       var board_user_name = emberGet(board, 'key').split(/\//)[1];
       var needs_confirmation = app_state.get('currentUser.supervisees') || board_user_name != app_state.get('currentUser.user_name');
+      var done = function(sync) {
+        if(sync && persistence.get('online') && persistence.get('auto_sync')) {
+          _this.set('simple_board_header', false);
+          runLater(function() {
+          console.debug('syncing because home board changes');
+            persistence.sync('self').then(null, function() { });
+          }, 1000);
+          if(_this.get('setup_footer')) {
+            _this.send('setup_go', 'forward');
+          } else {
+            modal.success(i18n.t('board_set_as_home', "Great! This is now the user's home board!"), true);
+          }
+        }
+      }
       if(needs_confirmation && !option) {
-        modal.open('set-as-home', {board: board});
+        modal.open('set-as-home', {board: board}).then(function(res) {
+          if(res && res.updated) {
+            done(true);
+          }
+        }, function() { });
       } else {
         var user = app_state.get('currentUser');
         var _this = this;
         if(user) {
-          var done = function(sync) {
-            if(sync && persistence.get('online') && persistence.get('auto_sync')) {
-              runLater(function() {
-              console.debug('syncing because home board changes');
-                persistence.sync('self').then(null, function() { });
-              }, 1000);
-            }
-            _this.set('simple_board_header', false);
-            if(_this.get('setup_footer')) {
-              _this.send('setup_go', 'forward');
-            } else {
-              modal.success(i18n.t('board_set_as_home', "Great! This is now the user's home board!"), true);
-            }
-          };
           if(option == 'starting') {
             user.copy_home_board(board).then(function() { }, function() {
               modal.error(i18n.t('set_as_home_failed', "Home board update failed unexpectedly"));
@@ -205,6 +212,7 @@ export default Controller.extend({
           } else {
             user.set('preferences.home_board', {
               id: emberGet(board, 'id'),
+              level: stashes.get('board_level'),
               key: emberGet(board, 'key')
             });
             var _this = this;
@@ -222,9 +230,44 @@ export default Controller.extend({
       modal.open('add-to-sidebar', {board: {
         name: board.get('name'),
         key: board.get('key'),
+        levels: board.get('levels'),
         home_lock: false,
         image: board.get('image_url')
       }});
+    },
+    adjust_level: function(direction) {
+      var prior_level = parseInt(this.get('board.current_level'), 10);
+      var level = prior_level || 10;
+      if(direction == 'plus') {
+        level = Math.min(10, level + 1);
+      } else {
+        level = Math.max(1, level - 1);
+      }
+      if(level != prior_level) {
+        this.send('set_level', level);
+      }
+      // Can't think of a cleaner way to prevent the dropdown
+      // from closing when hitting plus or minus, but still
+      // closing if they hit outside the dropdown
+      $("#level_dropdown").attr('data-toggle', '');
+      setTimeout(function() {
+        $("#level_dropdown").attr('data-toggle', 'dropdown');
+      }, 500);
+    },
+    set_level: function(level) {
+      stashes.persist('board_level', level);
+      this.set('board.preview_level', level);
+      this.set('board.model.display_level', level);
+      editManager.process_for_displaying();
+    },
+    clear_overrides: function() {
+      if(this.get('board.model.permissions.edit')) {
+        this.get('board.model').clear_overrides().then(function() {
+          editManager.process_for_displaying();
+        }, function() {
+          modal.error(i18n.t('error_clearing_overrides', "There was an unexpected error while clearing overrides"));
+        })
+      }
     },
     stopMasquerading: function() {
       var data = session.restore();
@@ -312,18 +355,6 @@ export default Controller.extend({
         board: this.get('board').get('model'),
         include_other_boards: include_other_boards
       });
-    },
-    deleteBoard: function(decision) {
-      if(!decision) {
-        this.send('confirmDeleteBoard');
-      } else {
-        modal.close(decision != 'cancel');
-        if(decision == 'cancel') { return; }
-        var board = this.get('board').get('model');
-        board.deleteRecord();
-        board.save().then(null, function() { });
-        this.transitionToRoute('index');
-      }
     },
     shareBoard: function() {
       modal.open('share-board', {board: this.get('board.model')});

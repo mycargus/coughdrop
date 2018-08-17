@@ -213,15 +213,24 @@ var Button = EmberObject.extend({
       } else {
         var mods = this.get('level_modifications');
         var level = this.get('board.display_level');
+        if(mods.override) {
+          for(var key in mods.override) {
+            this.set(key, mods.override[key]);
+          }
+        }
         if(mods.pre) {
           for(var key in mods.pre) {
-            this.set(key, mods.pre[key]);
+            if(!mods.override || !mods.override[key]) {
+              this.set(key, mods.pre[key]);
+            }
           }
         }
         for(var idx = 1; idx <= level; idx++) {
           if(mods[idx]) {
             for(var key in mods[idx]) {
-              this.set(key, mods[idx][key]);
+              if(!mods.override || !mods.override[key]) {
+                this.set(key, mods[idx][key]);
+              }
             }
           }
         }
@@ -711,6 +720,20 @@ Button.resource_from_url = function(url) {
     }
   }
   return null;
+};
+
+Button.set_attribute = function(button, attribute, value) {
+  emberSet(button, attribute, value);
+  var mods = emberGet(button, 'level_modifications');
+  if(!mods) { return; }
+  var mods = $.extend({}, mods || {});
+  for(var key in mods) {
+    if(parseInt(key, 10) > 0 && mods[key] && mods[key][attribute] != undefined) {
+      mods.override = mods.override || {};
+      mods.override[attribute] = value;
+    }
+  }
+  emberSet(button, 'level_modifications', mods);
 };
 
 Button.extra_actions = function(button) {

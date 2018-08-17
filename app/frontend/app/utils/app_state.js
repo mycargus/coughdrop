@@ -289,8 +289,11 @@ var app_state = EmberObject.extend({
     stashes.persist('protected_user', protect_user);
   }.observes('currentUser.preferences.protected_usage'),
   set_root_board_state: function() {
+    // When browsing boards from the "select a home board" interface,
+    // automatically set them as the temporary root board for browsing
     if(this.get('set_as_root_board_state') && this.get('currentBoardState')) {
       stashes.persist('board_level', this.get('currentBoardState.default_level'));
+      console.log("root state", stashes.get('board_level'));
       stashes.persist('root_board_state', this.get('currentBoardState'));
       this.set('set_as_root_board_state', false);
     }
@@ -507,7 +510,7 @@ var app_state = EmberObject.extend({
     if(preferred && current) {
       emberSet(preferred, 'text_direction', current.text_direction);
     }
-
+    
     if(!app_state.get('speak_mode')) {
       // if it's in the speak-mode-user's board set, keep the original home board,
       // otherwise set the current board to home for now
@@ -572,17 +575,78 @@ var app_state = EmberObject.extend({
     if(opts && opts.force) { current_mode = null; }
     if(mode == 'speak') {
       var board_state = app_state.get('currentBoardState');
-      var board_level = board_state && board_state.default_level;
       // use the current board's level setting unless forcing the user's home board to be root
+      var board_level = board_state && board_state.default_level;
+      if(!board_state) {
+        // if we're not launching from a currently-viewed board, clear stashed level,
+        // which will feel less arbitrary, at least
+        stashes.persist('board_level', null);
+      }
+
+      var user = app_state.get('referenced_speak_mode_user') || app_state.get('currentUser');
+      if(user && current_mode != 'speak') {
+        var level = {};
+        var state = board_state || opts.override_state;
+        // If already on a board, and board level is set to something,
+        // if the current board matches the user's home or sidebar, then
+        // ask if they want to update their level preference
+        if(user.get('preferences.home_board.id') == state.id) {
+          level.preferred = user.get('preferences.home_board.level');
+          level.source = 'home';
+        } else {
+          (user.get('preferences.sidebar_boards') || []).forEach(function(board) {
+            if(board && board.id == state.id) {
+              level.preferred = board.level;
+              level.source = 'sidebar';
+            }
+          });
+        }
+        if(level.preferred) {
+          // If the user has a preference for the currently-launching board,
+          // then we take that into account. If already on a board, do the
+          // asking thing. If not launching from a board, just use the
+          // user's preference.
+          if(board_state && stashes.get('board_level') && stashes.get('board_level') != level.preferred) {
+            level.current = stashes.get('board_level');
+            console.error('Need to confirm level setting', level);
+            stashes.persist('board_level', level.current);
+            if(opts.override_state) {
+              opts.override_state = $.extend({}, opts.override_state, {level: level.current});
+            }
+            board_level = level.current;
+          } else {
+            stashes.persist('board_level', level.preferred);
+            if(opts.override_state) {
+              opts.override_state = $.extend({}, opts.override_state, {level: level.preferred});
+            }
+            board_level = level.preferred;
+          }
+        }
+      }
+
       if(opts && opts.override_state) {
         if(opts.temporary_home && board_state && board_state.id != opts.override_state.id) {
+          // If not currently on the override_state board,
+          // set the current board as temporary home, and the override_state
+          // board as the actual hom
           temporary_root_state = board_state;
         } else {
-          board_level = opts.override_state.level || board_level;
+          // If starting on the user's home board, use that level
+          // unless a different one has already been set
+          if(opts.temporary_home || stashes.get('board_level')) {
+            board_level = null;
+          } else {
+            board_level = opts.override_state.level || board_level;
+          }
         }
+        // override_state becomes root_board_state if defined, otherwise use currentBoardState
         board_state = opts.override_state;
       }
-      stashes.persist('board_level', board_level);
+
+      if(board_level) {
+        stashes.persist('board_level', board_level);
+        console.log("toggling", stashes.get('board_level'));
+      }
       stashes.persist('root_board_state', board_state);
     }
     if(current_mode == mode) {
@@ -630,6 +694,7 @@ var app_state = EmberObject.extend({
     opts = opts || {};
     var speak_mode_user = opts.user || app_state.get('currentUser');
     // TODO: if preferred matches user's home board, pass the user's level instead of the board's default level
+    stashes.persist('board_level', null);
     var preferred = opts.force_board_state || (speak_mode_user && speak_mode_user.get('preferences.home_board')) || opts.fallback_board_state || stashes.get('root_board_state') || {key: 'example/yesno'};
     // TODO: same as above, in .toggle_mode
     if(speak_mode_user && !opts.reminded && speak_mode_user.get('expired')) {
@@ -639,9 +704,10 @@ var app_state = EmberObject.extend({
       });
     }
     if(preferred && speak_mode_user && preferred.id == speak_mode_user.get('preferences.home_board.id')) {
-      preferred = speak_mode_user.get('preferences.home_board');
+      preferred = speak_mode_user.get('preferences.home_board') || preferred;
     }
     // NOTE: text-direction is updated on board load, so it's ok that it's not known here
+    // preferred should include the user's home board setting
     this.toggle_mode('speak', {force: true, override_state: preferred});
     this.controller.transitionToRoute('board', preferred.key);
   },
@@ -759,10 +825,13 @@ var app_state = EmberObject.extend({
           }
           app_state.set('referenced_speak_mode_user', u);
           stashes.persist('referenced_speak_mode_user_id', (u && u.get('id')));
-          if(jump_home) {
+          var user_state = u.get('preferences.home_board');
+          var current = app_state.get('currentBoardState') || user_state;
+          if(jump_home || (user_state && current && user_state.id == current.id)) {
             _this.home_in_speak_mode({
               user: u,
-              fallback_board_state: app_state.get('sessionUser.preferences.home_board')
+              reminded: !jump_home,
+              fallback_board_state: user_state || app_state.get('sessionUser.preferences.home_board')
             });
           } else {
             if(!app_state.get('speak_mode')) {
@@ -770,15 +839,7 @@ var app_state = EmberObject.extend({
             }
             var user_state = u.get('preferences.home_board');
             var current = app_state.get('currentBoardState') || user_state;
-            if(user_state && user_state.id != current.id) {
-              stashes.persist('temporary_root_board_state', current);
-              stashes.persist('board_level', app_state.get('currentBoardState.default_level'));
-              stashes.persist('root_board_state', user_state);
-            } else {
-              stashes.persist('temporary_root_board_state', null);
-              stashes.persist('board_level', current.level || current.default_level);
-              stashes.persist('root_board_state', current);
-            }
+            stashes.persist('temporary_root_board_state', current);
           }
         }, function() {
           modal.error(i18n.t('user_retrive_failed', "Failed to retrieve user for Speak Mode"));

@@ -480,16 +480,16 @@ var editManager = EmberObject.extend({
     });
     var button = this.find_button(id);
     if(this.paint_mode.border) {
-      emberSet(button, 'border_color', this.paint_mode.border);
+      Button.set_attribute(button, 'border_color', this.paint_mode.border);
     }
     if(this.paint_mode.fill) {
-      emberSet(button, 'background_color', this.paint_mode.fill);
+      Button.set_attribute(button, 'background_color', this.paint_mode.fill);
     }
     if(this.paint_mode.hidden != null) {
-      emberSet(button, 'hidden', this.paint_mode.hidden);
+      Button.set_attribute(button, 'hidden', this.paint_mode.hidden);
     }
     if(this.paint_mode.close_link != null) {
-      emberSet(button, 'link_disabled', this.paint_mode.close_link);
+      Button.set_attribute(button, 'link_disabled', this.paint_mode.close_link);
     }
     if(this.paint_mode.level) {
       var mods = $.extend({}, emberGet(button, 'level_modifications') || {});

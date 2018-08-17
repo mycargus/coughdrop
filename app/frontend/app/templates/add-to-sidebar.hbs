@@ -30,9 +30,20 @@
           {{icon-select selection=model.board.image action=(action (mut model.board.image)) }}
         </div>
       </div>
+      {{#if model.board.levels}}
+        {{#if app_state.feature_flags.board_levels}}
+          <div class="form-group">
+            <label for="level" class="col-sm-2 control-label">{{t "Level" key='level'}}</label>
+            <div class="col-sm-10">
+              {{bound-select select_class="form-control" select_id="level" content=board_levels selection=model.level action=(action (mut model.level)) }}
+            </div>
+          </div>
+        {{/if}}
+      {{/if}}
       <div class="form-group">
-        <div class="col-sm-10 col-sm-offset-2">
-          <label>
+        <label for="home" class="col-sm-2 control-label">{{t "Home" key='home'}}</label>
+        <div class="col-sm-10">
+          <label id='home'>
             {{input type='checkbox' checked=model.board.home_lock}}
             {{t "Set as temporary Home when loaded from the sidebar" key='set_home_lock'}}
           </label>

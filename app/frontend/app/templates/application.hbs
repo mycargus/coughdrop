@@ -67,7 +67,7 @@
           <!-- TODO: these popups should be dwellable, but if opened via dwell they should auto-close after like ten seconds -->
           <button id='speak_mode_notification' class='btn btn-default' {{action 'speak_mode_notification'}}>
             {{#if stashes.board_level}}
-              <span style='color: #ddd; font-size: 12px; position: absolute; top: 10px; text-align: right;'>L{{stashes.board_level}}</span>
+              <span style='color: #ddd; font-size: 12px; position: absolute; top: 3px; text-align: right;'>L{{stashes.board_level}}</span>
             {{/if}}
             {{#if app_state.speak_mode_modeling_ideas.enabled}}
               <span class='notification' style='height: 100%; position: absolute; top: 5px; left: 0; right: 0; bottom: 5px; height: auto;'>
@@ -372,26 +372,60 @@
                 {{/if}}
               {{/if}}
               {{#if app_state.currentUser}}
-                {{#if board.model.multiple_copies}}
-                  <span style="margin-right: -1px;">
-                  <a href="#" class='btn btn-info' {{action 'list_copies'}}>
-                    <span class="wide">{{t "Copies" key="copies"}}</span><span class="skinny real_skinny glyphicon glyphicon-file"></span>
-                  </a>
-                  </span>
-                {{else if board.model.copy.key}}
-                  <!-- TODO: no idea why this is necessary -->
-                  <span style="margin-right: -1px;">
-                  {{#link-to 'board' board.model.copy.key class='btn btn-info'}}
-                    <span class="wide">{{t "My Copy" key="my_copy"}}</span><span class="skinny real_skinny glyphicon glyphicon-file"></span>
-                  {{/link-to}}
-                  </span>
-                {{else if board.model.original.key}}
-                  <!-- TODO: no idea why this is necessary -->
-                  <span style="margin-right: -1px;">
-                  {{#link-to 'board' board.model.original.key class='btn btn-info'}}
-                    <span class="wide">{{t "Original" key="original"}}</span><span class="skinny real_skinny glyphicon glyphicon-certificate"></span>
-                  {{/link-to}}
-                  </span>
+
+                {{#if board.model.levels}}
+                  {{#if app_state.feature_flags.board_levels}}
+                    <span class="dropdown" style="display: inline-block;">
+                      <a class='btn btn-default' id='level_dropdown' data-toggle="dropdown" href="#" >
+                        <span style='padding: 8px; border-radius: 100px; border: 1px solid #96ceff; background: #eaf5ff; margin-left: -5px'>L{{board.current_level}}</span>
+                        <b class="caret"></b>
+                      </a>
+                      <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                        <li role="presentation">
+                          <button class='skippy btn btn-default' {{action 'adjust_level' 'minus'}}><span class='glyphicon glyphicon-plus'></span></button>
+                          <span style='display: inline-block; width: 200px; vertical-align: top; text-align: center;'>
+                            {{t "Board Communication" key='board_level'}}<br/>
+                            <b>{{t "Level" key='level'}} {{board.current_level}}</b>
+                          </span>
+                          <button class='skippy btn btn-default' {{action 'adjust_level' 'plus'}}><span class='glyphicon glyphicon-plus'></span></button>
+                        </li>
+                        <li>
+                          <div style='width: calc(100% - 10px); font-size: 12px; white-space: normal; margin: 5px 10px;'>
+                            {{t "Some boards are built with progressive levels in mind, so you can start basic and grow the vocabulary over time without having to rebuild everything. Find a level that works for your communicator, you can easily change it later." key='board_levels_explainer'}}
+                          </div>
+                        </li>
+                        {{#if board.model.has_overrides}}
+                          {{#if board.model.permissions.edit}}
+                            <li>
+                              <button class='btn btn-default' style='width: 100%;' {{action 'clear_overrides'}}>{{t "Clear Level Overrides" key='clear_level_overrides'}}</button>
+                            </li>
+                          {{/if}}
+                        {{/if}}
+                      </ul>
+                    </span>
+                  {{/if}}
+                {{else}}
+                  {{#if board.model.multiple_copies}}
+                    <span style="margin-right: -1px;">
+                    <a href="#" class='btn btn-info' {{action 'list_copies'}}>
+                      <span class="wide">{{t "Copies" key="copies"}}</span><span class="skinny real_skinny glyphicon glyphicon-file"></span>
+                    </a>
+                    </span>
+                  {{else if board.model.copy.key}}
+                    <!-- TODO: no idea why this is necessary -->
+                    <span style="margin-right: -1px;">
+                    {{#link-to 'board' board.model.copy.key class='btn btn-info'}}
+                      <span class="wide">{{t "My Copy" key="my_copy"}}</span><span class="skinny real_skinny glyphicon glyphicon-file"></span>
+                    {{/link-to}}
+                    </span>
+                  {{else if board.model.original.key}}
+                    <!-- TODO: no idea why this is necessary -->
+                    <span style="margin-right: -1px;">
+                    {{#link-to 'board' board.model.original.key class='btn btn-info'}}
+                      <span class="wide">{{t "Original" key="original"}}</span><span class="skinny real_skinny glyphicon glyphicon-certificate"></span>
+                    {{/link-to}}
+                    </span>
+                  {{/if}}
                 {{/if}}
 
                 {{#if board.model.permissions.edit}}
@@ -473,10 +507,20 @@
                   <li role="presentation">
                     <a role="menuitem" tabindex="-1" href="#" {{action "printBoard"}}>{{t "Print Board" key="print_board"}}</a>
                   </li>
-                  {{#if board.model.permissions.edit}}
-                    <li role="presentation">
-                      <a role="menuitem" tabindex="-1" href="#" {{action "deleteBoard"}}>{{t "Delete Board" key="delete_board"}}</a>
-                    </li>
+                  {{#if board.model.levels}}
+                    {{#if board.model.multiple_copies}}
+                      <li role="presentation">
+                        <a role='menuitem' tabindex='-1' href="#" {{action 'list_copies'}}>{{t "View Copies" key="view_copies"}}</a>
+                      </li>
+                    {{else if board.model.copy.key}}
+                      <li role="presentation">
+                        {{#link-to 'board' board.model.copy.key role='menuitem' tabindex='-1'}}{{t "View My Copy" key="view_my_copy"}}{{/link-to}}
+                      </li>
+                    {{else if board.model.original.key}}
+                      <li role="presentation">
+                        {{#link-to 'board' board.model.original.key role='menuitem' tabindex='-1'}}{{t "View Original" key="original_board"}}{{/link-to}}
+                      </li>
+                    {{/if}}
                   {{/if}}
                 </ul>
               </span>

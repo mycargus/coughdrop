@@ -204,8 +204,19 @@ CoughDrop.Board = DS.Model.extend({
     return result;
   }.property('grid', 'buttons'),
   levels: function() {
-    return this.get('buttons').filter(function(b) { return b.level_modifications; }).length > 0;
+    return !!this.get('buttons').find(function(b) { return b.level_modifications; });
   }.property('buttons.@each.level_modifications'),
+  has_overrides: function() {
+    return !!this.get('buttons').find(function(b) { return b.level_modifications && b.level_modifications.override; });
+  }.property('buttons.@each.level_modifications'),
+  clear_overrides: function() {
+    this.get('buttons').forEach(function(button) {
+      if(button && button.level_modifications && button.level_modifications.override) {
+        delete button.level_modifications.override;
+      }
+    })
+    return this.save();
+  },
   without_lookups: function(callback) {
     this.set('no_lookups', true);
     callback();
@@ -758,20 +769,30 @@ CoughDrop.Board = DS.Model.extend({
       row.forEach(function(button, j) {
         boundClasses.add_rule(button);
         if(size.display_level && button.level_modifications) {
-          if(size.display_level == _this.get('default_level')) {
+          var do_show = false;
+          if(do_show && size.display_level == _this.get('default_level')) {
           } else {
             var mods = button.level_modifications;
             var level = size.display_level;
-            console.log("mods at", mods, level);
+            // console.log("mods at", mods, level);
+            if(mods.override) {
+              for(var key in mods.override) {
+                button[key] = mods.override[key];
+              }
+            }
             if(mods.pre) {
               for(var key in mods.pre) {
-                button[key] = mods.pre[key];
+                if(!mods.override || !mods.override[key]) {
+                  button[key] = mods.pre[key];
+                }
               }
             }
             for(var idx = 1; idx <= level; idx++) {
               if(mods[idx]) {
                 for(var key in mods[idx]) {
-                  button[key] = mods[idx][key];
+                  if(!mods.override || !mods.override[key]) {
+                    button[key] = mods[idx][key];
+                  }
                 }
               }
             }
