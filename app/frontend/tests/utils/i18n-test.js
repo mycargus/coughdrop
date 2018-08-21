@@ -337,7 +337,7 @@ describe("i18n", function() {
       expect(i18n.tense('pray', {simple_past: true})).toEqual("prayed");
       expect(i18n.tense('dog', {simple_past: true})).toEqual("dogged");
       expect(i18n.tense('red', {simple_past: true})).toEqual("redded");
-      expect(i18n.tense('my', {simple_past: true})).toEqual("myed");
+      expect(i18n.tense('my', {simple_past: true})).toEqual("mied");
 
       expect(i18n.tense('become', {simple_past: true})).toEqual("became");
       expect(i18n.tense('begin', {simple_past: true})).toEqual("began");

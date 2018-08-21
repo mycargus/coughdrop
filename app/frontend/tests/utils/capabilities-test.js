@@ -123,7 +123,7 @@ describe("capabilities", function() {
         waitsFor(function() { return attempt >= 4; });
         runs(function() {
           expect(deleted_databases).toEqual([db_key, other]);
-          expect(capabilities.dbman.db_error_event.attempt >= 3).toEqual(true);
+          expect((capabilities.dbman.db_error_event || {}).attempt >= 3).toEqual(true);
         });
         stub(capabilities.idb, 'webkitGetDatabaseNames', function() {
           var res = {};

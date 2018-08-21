@@ -5,6 +5,7 @@ import $ from 'jquery';
 import RSVP from 'rsvp';
 import DS from 'ember-data';
 import CoughDrop from '../app';
+import CoughDropImage from '../models/image';
 import i18n from '../utils/i18n';
 import persistence from '../utils/persistence';
 import app_state from '../utils/app_state';
@@ -67,8 +68,8 @@ CoughDrop.Buttonset = DS.Model.extend({
         match_level = match_level || (button.label && word_suggestions.edit_distance(str, button.label) < Math.max(str.length, button.label.length) * 0.5 && 1);
         if(match_level) {
           button = $.extend({}, button, {match_level: match_level});
-          if(button.image) {
-            button.image = CoughDrop.Image.personalize_url(button.image, app_state.get('currentUser.user_token'));
+          if(button.image && CoughDropImage.personalize_url) {
+            button.image = CoughDropImage.personalize_url(button.image, app_state.get('currentUser.user_token'));
           }
           var image = images.findBy('id', button.image_id);
           if(image) {

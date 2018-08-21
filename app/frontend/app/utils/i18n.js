@@ -367,7 +367,7 @@ var i18n = EmberObject.extend({
     // https://www.englishclub.com/vocabulary/contractions-negative.htm
     var check = str.toLowerCase();
     var res = null;
-    if(this.negatable_verbs.indexOf(check)) {
+    if(this.negatable_verbs.indexOf(check) != -1) {
       if(this.substitutions.verb_to_be_negations[check]) {
         res = this.substitutions.verb_to_be_negations[check];
       } else if(str.match(/n$/)) {

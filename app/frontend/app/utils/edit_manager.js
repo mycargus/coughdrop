@@ -213,6 +213,7 @@ var editManager = EmberObject.extend({
     this.controller.set('ordered_buttons', newState);
   },
   find_button: function(id) {
+    if(!this.controller || !this.controller.get) { return []; }
     var ob = this.controller.get('ordered_buttons') || [];
     for(var idx = 0; idx < ob.length; idx++) {
       for(var jdx = 0; jdx < ob[idx].length; jdx++) {

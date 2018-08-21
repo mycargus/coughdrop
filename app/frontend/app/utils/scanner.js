@@ -386,7 +386,7 @@ var scanner = EmberObject.extend({
       event_type: 'click',
       selection_type: 'scanner'
     });
-    if(!track.proceed) { return; }
+    if(!track || !track.proceed) { return; }
 
     if(scanner.options && scanner.options.scan_mode == 'axes') {
       // progress to next scanning mode, or trigger select event at the coords
