@@ -560,10 +560,18 @@ footer .wide_links {
   > span {
     position: absolute; 
     width: 100%; 
-    top: 10px; 
+    top: 22px; 
     left: 0;
     height: 30px;
     white-space: nowrap;
+  }
+}
+.badge_earned {
+  img {
+    height: 60px; 
+    width: 60px; 
+    object-fit: contain; 
+    object-position: center;    
   }
 }
 #speak_options {

@@ -12,6 +12,8 @@ export default modal.ModalController.extend({
     if(this.get('model.user_id') && !this.get('model.badge')) {
       this.send('user_badges');
     }
+    this.set('user_goals', null);
+    this.set('user_badges', null);
     this.set('has_modeling_activities', false);
     if(this.get('model.speak_mode')) {
       var _this = this;

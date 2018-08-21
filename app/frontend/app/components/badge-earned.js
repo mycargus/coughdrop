@@ -11,18 +11,18 @@ export default Component.extend({
     var res = '';
     if(this.get('big')) {
     } else if(this.get('inline')) {
-      res = 'margin-top: -14px; text-align: right; opacity: 0.7;';
+      res = 'text-align: right; opacity: 0.7;';
     } else {
-      res = 'margin-top: -30px; margin-left: -10px; margin-bottom: -50px;';
+      res = 'margin-top: -10px; margin-bottom: -70px;';
     }
     return htmlSafe(res);
   }.property('big', 'inline'),
   image_style: function() {
     var res = '';
     if(this.get('big')) {
-      res = 'height: 80px; width: 80px; object-fit: contain; object-position: center;';
+      res = 'height: 80px; width: 80px;';
     } else {
-      res = 'height: 60px; width: 60px; object-fit: contain; object-position: center;';
+      res = '';
     }
     return htmlSafe(res);
   }.property('big'),

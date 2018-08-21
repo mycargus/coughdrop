@@ -59,7 +59,7 @@ CoughDrop.Badge = DS.Model.extend({
       var str = "";
       var progress = this.get('progress') || 0;
       if(badge_level.consecutive_units) {
-        str = i18n.t('n_consecutive_units', "consecutive " + unit_string, {count: Math.round(badge_level.consecutive_units * (1 - progress) * unit_multiplier)});
+        str = i18n.t('n_consecutive_units', /*"consecutive " +*/ unit_string, {count: Math.round(badge_level.consecutive_units * (1 - progress) * unit_multiplier)});
       } else if(badge_level.matching_units) {
         str = i18n.t('n_units', unit_string, {count: Math.round(badge_level.matching_units * (1 - progress) * unit_multiplier)});
       } else if(badge_level.matching_instances) {

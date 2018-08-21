@@ -38,6 +38,9 @@ header {
       }
     }
   }
+  #speak_mode_notification {
+
+  }
   #button_list {
     height: 63px;
     min-width: 100px;
@@ -137,7 +140,13 @@ header {
         > span {
           top: 17px;
         }
-      }
+        .badge_earned {
+          img {
+            height: 40px; 
+            width: 40px; 
+          }
+        }
+              }
     }
     &.tiny {
       height: 50px;
@@ -229,6 +238,13 @@ header {
         > span {
           top: 6px;
         }
+        .badge_earned {
+          img {
+            height: 30px; 
+            width: 30px; 
+          }
+        }
+                
       }
       .button_icon {
         font-size: 15px;
