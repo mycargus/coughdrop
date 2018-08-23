@@ -4,24 +4,85 @@
   {{else if status.error}}
     {{t "Error Loading Layouts" key='error_loading_layouts'}}
   {{else if boards}}
-    <button class='btn btn-default btn-lg' disabled={{no_previous}} {{action 'previous'}} style='float: left;'><span class='glyphicon glyphicon-chevron-left'></span> Fewer Buttons</button>
-    <button class='btn btn-default btn-lg' disabled={{no_next}} {{action 'next'}} style='float: right;'>More Buttons <span class='glyphicon glyphicon-chevron-right'></span></button>
+    {{#if base_level}}
+      <button class='btn btn-default btn-lg' disabled={{no_previous}} {{action 'previous'}} style='float: left;'>
+        <span class='glyphicon glyphicon-chevron-left'></span> 
+        {{#if level_select}}
+          {{t "Fewer Buttons" key='fewer_buttons'}}
+        {{else}}
+          {{t "Bigger Buttons" key='bigger_buttons'}}
+        {{/if}}
+      </button>
+      <button class='btn btn-default btn-lg' disabled={{no_next}} {{action 'next'}} style='float: right;'>
+        {{#if level_select}}
+          {{t "More Buttons" key='more_buttons'}}
+        {{else}}
+          {{t "Smaller Buttons" key='smaller_buttons'}}
+        {{/if}}
+        <span class='glyphicon glyphicon-chevron-right'></span>
+      </button>
+    {{/if}}
     <div style='text-align: center;'>
-      <button class='btn btn-primary btn-lg' {{action 'select'}}>{{t "Select This Layout" key='select_this_layout'}}</button>
-      <button class='btn btn-default btn-sm' {{action 'advanced'}}>{{t "Let Me Browse On My Own" key='browse_on_my_own'}}</button>
+      {{#if level_select}}
+        <button class='btn btn-primary btn-lg' {{action 'select'}}>{{t "Make This My Home Board" key='make_this_my_home_board'}}
+          {{#if current_level}}
+            (L{{current_level}})
+          {{else if base_level}}
+            (L{{base_level}})
+          {{/if}}
+        </button>
+        <button class='btn btn-default btn-sm' {{action 'deselect'}}>{{t "Change Layouts" key='change_layouts'}}</button>
+      {{else}}
+        {{#if base_level}}
+          <button class='btn btn-primary btn-lg' {{action 'select'}}>{{t "Select This Layout" key='select_this_layout'}}</button>
+        {{/if}}
+        <button class='btn btn-default btn-sm' {{action 'advanced'}}>{{t "Let Me Browse On My Own" key='browse_on_my_own'}}</button>
+      {{/if}}
     </div>
   {{else}}
     {{t "No layouts are available" key='no_layouts'}}
   {{/if}}
 </div>
-{{#if prompt}}
-  <div style='position: absolute; width: 100%;'>
-    <div style='width: 400px; max-width: 80vw; margin: -20px auto 0; background: #fff; border: 2px solid #aaa; border-radius: 10px; padding: 10px; font-size: 16px; box-shadow: 1px 1px 10px, -1px -1px 10px;'>
-      {{t "Let's get you a home board! First thing, how many buttons can the communicator reliably use? Too few and it won't grow with them, but too many may be hard as well.<br/><br/>Remember that you can always hide buttons if a large board is overwhelming at first, but it's harder to change the grid size later." key='grid_prompt'}}
-      <div style='text-align: center; margin-top: 15px;'>
-        <button class='btn btn-lg btn-primary' {{action 'dismiss'}}>{{t "Got It" key='got_it'}}</button>
+{{#if base_level}}
+  {{#if prompt}}
+    <div style='position: absolute; width: 100%;'>
+      <div style='width: 400px; max-width: 80vw; margin: -20px auto 0; background: #fff; border: 2px solid #aaa; border-radius: 10px; padding: 10px; font-size: 16px; box-shadow: 1px 1px 10px, -1px -1px 10px;'>
+        {{#if level_select}}
+          {{t "Great! Here's what your home board will look like right now. If you want, you can fine-tune it to show fewer or more button to start off. You can start at a basic level with only a few buttons, or show everything right away.<br/><br/>You can easily change the number of buttons shown later by adjusting the level for the communicator." key='button_count_prompt'}}
+        {{else}}
+          {{t "Splendid! Next let's figure out what size of buttons will work best! Too big and there won't be room to grow with them, but too many may be hard as well -- try to find the smallest size that your communicator can reliably use.<br/><br/>Remember that you can always hide buttons if a large board is overwhelming at first, but it's harder to change the grid size later." key='grid_prompt'}}
+        {{/if}}
+        <div style='text-align: center; margin-top: 15px;'>
+          <button class='btn btn-lg btn-primary' {{action 'dismiss'}}>{{t "Got It" key='got_it'}}</button>
+        </div>
+      </div>
+    </div>
+  {{/if}}
+  {{#if current_board}}
+    {{board-preview-canvas board=current_board size='selection' show_links=level_select base_level=base_level current_level=current_level}}
+  {{/if}}
+{{else}}
+  <div style='margin: 10px auto; max-width: 600px;'>
+    <p>{{t "Let's get you a home board! First thing, how many buttons do you want to start with? This will depend on how comfortable the communicator is with speech apps, and with making choices. Don't worry, this will be easy to adjust later." key='base_level_prompt'}}</p>
+    <div class='row' class='grid_choices' style='margin-top: 30px;'>
+      <div class='col-sm-4'>
+        <button class='btn btn-default' {{action 'set_base_level' 1}}>
+          <img src={{path 'images/grid-few.svg'}} />
+          {{t "A Few Buttons" key='a_few_buttons'}}
+        </button>
+      </div>
+      <div class='col-sm-4'>
+        <button class='btn btn-default' {{action 'set_base_level' 5}}>
+          <img src={{path 'images/grid-some.svg'}} />
+          {{t "Some Buttons" key='some_buttons'}}
+        </button>
+      </div>
+      <div class='col-sm-4'>
+        <button class='btn btn-default' {{action 'set_base_level' 10}}>
+          <img src={{path 'images/grid-full.svg'}} />
+          {{t "All Buttons" key='all_buttons'}}
+        </button>
       </div>
     </div>
   </div>
 {{/if}}
-<canvas style='width: 100%; height: calc(100% - 55px); display: none;'></canvas>

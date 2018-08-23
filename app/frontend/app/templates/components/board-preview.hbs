@@ -64,7 +64,7 @@
   </div>
   {{#if include_canvas}}
     <div class='col-sm-8'>
-      <canvas width='800' height='600' style='width: 100%; height: calc(70vh - 140px); border: 1px solid #ccc; padding: 2px; border-radius: 5px;'></canvas>
+      {{board-preview-canvas board=model show_links=true size='modal'}}
     </div>
   {{/if}}
 </div>
