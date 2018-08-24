@@ -32,6 +32,14 @@ export default Component.extend({
     this.set('height', (window_height - top));
     elem.style.height = this.get('height') + "px";
   },
+  update_level_buttons: function() {
+    var _this = this;
+    if(this.get('current_board.id')) {
+      this.get('current_board').load_button_set().then(function(bs) {
+        _this.set('level_buttons', bs.buttons_for_level(_this.get('current_board.id'), _this.get('current_level') || _this.get('base_level')));
+      })
+    }
+  }.observes('current_board', 'base_level', 'current_level'),
   update_current_board: function() {
     this.size_element();
     if(this.get('current_index') == undefined && this.get('sorted_boards.length')) {
@@ -47,6 +55,12 @@ export default Component.extend({
       _this.set('current_index', index);
     }
     this.set('current_board', this.get('sorted_boards')[this.get('current_index')]);
+    var _this = this;
+    if(this.get('current_board')) {
+      this.get('current_board').load_button_set().then(function(bs) {
+        _this.set('current_button_set', bs);
+      });
+    }
   }.observes('sorted_boards', 'current_index'),
   update_sorted_boards: function() {
     var res = (this.get('boards') || []).sort(function(a, b) {
@@ -105,6 +119,18 @@ export default Component.extend({
           current = this.get('min_level');
         }
         var level = levels.find(function(l) { return l > current; });
+        var board = this.get('current_board');
+        var bs = this.get('current_button_set');
+        if(bs && board) {
+          var prior_count = bs.buttons_for_level(board.get('id'), current);
+          var same = true;
+          while(same) {
+            current++;
+            var count = bs.buttons_for_level(board.get('id'), current);
+            same = current < level && count == prior_count;
+          }
+          level = current;
+        }
         if(level >= this.get('max_level')) {
           level = 10;
         }
@@ -121,6 +147,20 @@ export default Component.extend({
           current = this.get('max_level');
         }
         var level = levels.filter(function(l) { return l < current; }).pop();
+        var board = this.get('current_board');
+        var bs = this.get('current_button_set');
+        if(bs && board) {
+          current--;
+          var prior_count = bs.buttons_for_level(board.get('id'), current);
+          var same = true;
+          while(same) {
+            current--;
+            var count = bs.buttons_for_level(board.get('id'), current);
+            same = current > level && count == prior_count;
+          }
+          if(current > 1) { current++; }
+          level = current;
+        }
         this.set('current_level', level || 10);
       } else {
         this.set('current_index', Math.max((this.get('current_index') || 0) - 1, 0));

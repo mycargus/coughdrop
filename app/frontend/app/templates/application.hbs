@@ -382,15 +382,22 @@
                       </a>
                       <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                         <li role="presentation">
-                          <button class='skippy btn btn-default' {{action 'adjust_level' 'minus'}}><span class='glyphicon glyphicon-plus'></span></button>
+                          <button class='skippy btn btn-default' {{action 'adjust_level' 'minus'}}><span class='glyphicon glyphicon-minus'></span></button>
                           <span style='display: inline-block; width: 200px; vertical-align: top; text-align: center;'>
                             {{t "Board Communication" key='board_level'}}<br/>
-                            <b>{{t "Level" key='level'}} {{board.current_level}}</b>
+                            {{#if level_description}}
+                              <b>{{t "Level" key='level'}} {{level_description}}</b>
+                            {{else}}
+                              <b>{{t "Level" key='level'}} {{board.current_level}}</b>
+                            {{/if}}
+                            {{#if level_buttons}}
+                              <div style='font-size: 12px;'>{{t "visible button" key='n_buttons' count=level_buttons}}</div>
+                            {{/if}}
                           </span>
                           <button class='skippy btn btn-default' {{action 'adjust_level' 'plus'}}><span class='glyphicon glyphicon-plus'></span></button>
                         </li>
                         <li>
-                          <div style='width: calc(100% - 10px); font-size: 12px; white-space: normal; margin: 5px 10px;'>
+                          <div style='width: calc(100% - 10px); font-size: 12px; white-space: normal; margin: 15px 10px 5px;'>
                             {{t "Some boards are built with progressive levels in mind, so you can start basic and grow the vocabulary over time without having to rebuild everything. Find a level that works for your communicator, you can easily change it later." key='board_levels_explainer'}}
                           </div>
                         </li>

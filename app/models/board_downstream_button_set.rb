@@ -123,6 +123,20 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
         # add all buttons
         board_to_visit.settings['buttons'].each_with_index do |button, idx|
           image = images.detect{|i| button['image_id'] == i.global_id }
+          visible_level = 1
+          linked_level = 1
+          if button['level_modifications'] && button['level_modifications']['pre'] && button['level_modifications']['pre']['hidden']
+            visible_level = button['level_modifications'].select{|l, mod| mod['hidden'] == false }.map(&:first).sort.first.to_i || 10
+            if button['level_modifications']['override'] && button['level_modifications']['override']['hidden'] == false
+              visible_level = 1
+            end
+          end
+          if button['level_modifications'] && button['level_modifications']['pre'] && button['level_modifications']['pre']['link_disabled']
+            linked_level = button['level_modifications'].select{|l, mod| mod['link_disabled'] == false }.map(&:first).sort.first.to_i || 1
+            if button['level_modifications']['override'] && button['level_modifications']['override']['link_disabled'] == false
+              linked_level = 1
+            end
+          end
           button_data = {
             'id' => button['id'],
             'locale' => board_to_visit.settings['locale'] || 'en',
@@ -130,6 +144,8 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
             'board_key' => board_to_visit.key,
             'hidden' => !!button['hidden'],
             'hidden_link' => !!bv[:hidden],
+            'visible_level' => visible_level,
+            'linked_level' => linked_level,
             'image' => image && image.url,
             'image_id' => button['image_id'],
             'sound_id' => button['sound_id'],

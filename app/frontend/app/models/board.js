@@ -430,6 +430,7 @@ CoughDrop.Board = DS.Model.extend({
   downstream_board_ids: DS.attr('raw'),
   immediately_upstream_boards: DS.attr('number'),
   unlinked_buttons: DS.attr('number'),
+  button_levels: DS.attr('raw'),
   forks: DS.attr('number'),
   total_buttons: DS.attr('number'),
   shared_users: DS.attr('raw'),

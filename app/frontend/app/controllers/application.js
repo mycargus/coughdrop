@@ -68,6 +68,20 @@ export default Controller.extend({
   board_levels: function() {
     return CoughDrop.board_levels.slice(1, 11);
   }.property(),
+  level_description: function() {
+    var level = this.get('board.current_level');
+    var desc = (this.get('board_levels').find(function(l) { return l.id.toString() == level.toString(); }) || {}).name;
+    if(desc) { desc = htmlSafe(desc.replace(/-/, '<br/>')); }
+    return null; //desc;
+  }.property('board_levels', 'board.current_level'),
+  update_level_buttons: function() {
+    var _this = this;
+    if(this.get('board.model')) {
+      this.get('board.model').load_button_set().then(function(bs) {
+        _this.set('level_buttons', bs.buttons_for_level(_this.get('board.model.id'), _this.get('board.current_level')));
+      });
+    }
+  }.observes('board.current_level', 'board.model.button_set'),
   actions: {
     invalidateSession: function() {
       session.invalidate(true);

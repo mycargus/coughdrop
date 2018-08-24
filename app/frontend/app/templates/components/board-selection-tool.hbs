@@ -1,4 +1,4 @@
-<div style='height: 50px;'>
+<div >
   {{#if status.loading}}
     {{t "Loading Layouts..." key='loading_layouts'}}
   {{else if status.error}}
@@ -25,13 +25,22 @@
     <div style='text-align: center;'>
       {{#if level_select}}
         <button class='btn btn-primary btn-lg' {{action 'select'}}>{{t "Make This My Home Board" key='make_this_my_home_board'}}
-          {{#if current_level}}
-            (L{{current_level}})
-          {{else if base_level}}
-            (L{{base_level}})
-          {{/if}}
         </button>
         <button class='btn btn-default btn-sm' {{action 'deselect'}}>{{t "Change Layouts" key='change_layouts'}}</button>
+        <div>
+          {{current_board.name}},
+          <b>{{t "Level " key='level'}}
+            {{#if current_level}}
+              {{current_level}}
+            {{else if base_level}}
+              {{base_level}}
+            {{/if}}
+          </b>
+          {{#if level_buttons}}
+            ( {{t "visible button" key='n_buttons' count=level_buttons}}
+            {{t "available" key='available'}} )
+          {{/if}}
+        </div>
       {{else}}
         {{#if base_level}}
           <button class='btn btn-primary btn-lg' {{action 'select'}}>{{t "Select This Layout" key='select_this_layout'}}</button>

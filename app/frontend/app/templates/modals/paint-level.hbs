@@ -17,7 +17,7 @@
       {{#if level_select}}
         <div class="form-group">
           <label for="paint_level" class="col-sm-3 control-label">{{t "Update At Level" key='update_at_level'}}</label>
-          <div class="col-sm-2">
+          <div class="col-sm-9">
             {{bound-select select_class="form-control" select_id="paint_level" content=paint_levels selection=paint_level action=(action (mut paint_level)) }}
           </div>
         </div>

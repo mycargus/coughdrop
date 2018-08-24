@@ -132,10 +132,12 @@ export default Component.extend({
                   if(!button.hidden && show_links) {
                     context.clip();
                     if(button.load_board || button.url || button.apps || button.integration) {
-                      context.beginPath();
-                      context.arc(x + button_width - pad, y + pad, button_width / 8, 0, 2*Math.PI);
-                      context.fillStyle = context.strokeStyle;
-                      context.fill();
+                      if(!button.link_disabled) {
+                        context.beginPath();
+                        context.arc(x + button_width - pad, y + pad, button_width / 8, 0, 2*Math.PI);
+                        context.fillStyle = context.strokeStyle;
+                        context.fill();
+                      }
                     }
                     if(button.label) {
                       context.fillStyle = '#000';

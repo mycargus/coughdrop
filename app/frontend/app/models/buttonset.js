@@ -27,6 +27,40 @@ CoughDrop.Buttonset = DS.Model.extend({
     } catch(e) { }
     this.set('buttons', buttons);
   }.observes('buttons_json'),
+  buttons_for_level: function(board_id, level) {
+    var board_ids = {};
+    var boards_to_check = [{id: board_id}];
+    var buttons = this.get('buttons') || [];
+    var count = 0;
+    while(boards_to_check.length > 0) {
+      var board_to_check = boards_to_check.shift();
+      board_ids[board_to_check.id] = true;
+      buttons.forEach(function(button) {
+        if(button.board_id == board_to_check.id) {
+          var visible = !button.hidden;
+          var linked = !!button.link_disabled;
+          if(button.visible_level) {
+            visible = button.visible_level <= level;
+          }
+          if(button.linked_level) {
+            linked = button.linked_level <= level;
+          }
+          if(visible) {
+            if(button.linked_board_id && linked) {
+              if(!board_ids[button.linked_board_id]) {
+                console.log("adding" , button.linked_board_key, button);
+                board_ids[button.linked_board_id] = true;
+                boards_to_check.push({id: button.linked_board_id});
+              }
+            } else {
+              count++;
+            }
+          }
+        }
+      });
+    }
+    return count;
+  },
   find_buttons: function(str, from_board_id, user, include_home_and_sidebar) {
     if(str.length === 0) { return RSVP.resolve([]); }
     var buttons = this.get('buttons') || [];
