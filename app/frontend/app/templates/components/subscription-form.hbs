@@ -87,8 +87,8 @@
                 <td colspan='2'>{{t "premium symbols already added" key='premium_symbols_added'}}</td>
                 <td colspan='2' class='separator semi_dim'>{{t "premium symbols already added" key='premium_symbols_added'}}</td>
               {{else}}
-                <td colspan='2'>{{t "add premium symbols for $25" key='add_premium_symbols'}}</td>
-                <td colspan='2' class='separator semi_dim'>{{t "add premium symbols for $25" key='add_premium_symbols'}}</td>
+                <td colspan='2'>{{t "add premium symbols from PCS for $25" key='add_premium_symbols'}}</td>
+                <td colspan='2' class='separator semi_dim'>{{t "add premium symbols from PCS for $25" key='add_premium_symbols'}}</td>
               {{/if}}
             </tr>
           {{/if}}
@@ -150,7 +150,7 @@
                     {{#if subscription.communicator_type}}
                       <label>
                         {{input type='checkbox' checked=subscription.extras}}
-                        {{t "add premium symbols for $25" key='add_premium_symbols'}}
+                        {{t "add premium symbols from PCS for $25" key='add_premium_symbols'}}
                       </label>
                     {{/if}}
                   </td>
@@ -158,7 +158,7 @@
                     {{#if subscription.supporter_type}}
                       <label>
                         {{input type='checkbox' checked=subscription.extras}}
-                        {{t "add premium symbols for $25" key='add_premium_symbols'}}
+                        {{t "add premium symbols from PCS for $25" key='add_premium_symbols'}}
                       </label>
                     {{/if}}
                   </td>

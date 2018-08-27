@@ -40,7 +40,7 @@
       {{t "You haven't purchased CoughDrop yet. Currently you're running a free trial, hopefully you're learning a lot and getting excited for what CoughDrop can do! Your trial will end" key='trial_ending'}} <span style='white-space: nowrap;'>{{date subscription.user.subscription.expires}}</span>.
     {{/if}}
     {{#if subscription.user.subscription.extras_enabled}}
-      <p style='margin-top: 20px;'>{{t "Your account also has access to premium symbols, so you can search through and include additional symbol libraries in your boards." key='premium_symbols_enabled'}}</p>
+      <p style='margin-top: 20px;'>{{t "Your account also has access to premium symbols, so you can search through and include additional symbols from PCS in your boards." key='premium_symbols_enabled'}}</p>
     {{/if}}
     <div style="clear: left;"></div>
     <p style="margin-top: 10px;">
@@ -91,7 +91,7 @@
     {{#if show_premium_symbols}}
       <h4>{{t "Premium Symbols" key='premium_symbols'}}</h4>
       <p>{{t "CoughDrop's default symbol libraries are a collection of great, open-licensed images that can be shared publicly and used on lots of different projects. However, sometimes you may need a specific symbol library that communicators have been using longer." key='premium_symbols_explainer_1'}}</p>
-      <p>{{t "If that's the case, you can purchase access to additional premium symbols through our partners by paying a one-time $25 fee to grant access to these symbols." key='premium_symbols_explainer_2'}}</p>
+      <p>{{t "If that's the case, you can purchase access to additional premium symbols from PCS by paying a one-time $25 fee to grant access to these symbols." key='premium_symbols_explainer_2'}}</p>
       <div>
         {{#if extras_status.confirming}}
           <p>{{t "Confirming Purchase..." key='confirming_purchase'}}</p>
