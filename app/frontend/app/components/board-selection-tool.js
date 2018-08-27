@@ -193,9 +193,7 @@ export default Component.extend({
       if(levels.indexOf(1) == -1) { levels.push(1); }
       this.set('min_level', 1);
       this.set('max_level', max);
-      console.log("levels", levels.sort());
       this.set('levels', levels.sort());
-      this.set('current_level', null);
   
       if(_this.get('current_level') || !board.get('levels')) {
         if(_this.get('current_board.key')) {
@@ -205,6 +203,7 @@ export default Component.extend({
         }
         _this.sendAction('select', _this.get('current_board'));
       } else {
+        _this.set('current_level', _this.get('base_level'));
         _this.set('level_select', true);
         _this.set('prompt', true);
         if(!board.get('image_urls')) {
@@ -214,6 +213,7 @@ export default Component.extend({
     },
     deselect: function() {
       this.set('level_select', false);
+      this.set('current_level', null);
     },
     set_base_level: function(level) {
       this.set('base_level', level);

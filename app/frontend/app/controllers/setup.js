@@ -275,6 +275,9 @@ export default Controller.extend({
       runLater(function() {
         app_state.controller.send('setup_go', 'forward');
       });
+    },
+    choose_board: function() {
+      this.transitionToRoute('home-boards');
     }
   }
 });

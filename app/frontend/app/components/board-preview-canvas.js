@@ -23,6 +23,8 @@ export default Component.extend({
   render_canvas: function() {
     if(this.get('size') == 'modal') {
       this.element.style.height = 'calc(70vh - 140px)';
+    } else if(this.get('show_links')) {
+      this.element.style.height = 'calc(100% - 70px)';
     } else {
       this.element.style.height = 'calc(100% - 55px)';
     }

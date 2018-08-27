@@ -6,7 +6,11 @@
     <p>{{t "First thing's first, make a note of your username (<b>%{un}</b>), you can use it to log in using the free iOS, Android and Windows apps, or using any web browser. That's right, you can edit boards, practice and view reports from any computer with a web browser!" un=app_state.currentUser.user_name key='intro_3'}}</p>
   {{/if}}
   <p>{{t "Next we'd like to start by teaching you a little about AAC (Augmentative and Alternative Communication), and then help make sure you've got CoughDrop set up correctly. Hit \"Next\" in the bottom corner to get started." key='intro_2'}}</p>
-  <div style='text-align: right;'>
+  <div style='float: left'>
+    <button class='btn btn-default btn-lg' {{action 'choose_board'}}>{{t "Skip For Now, Just<br/>Help Me Choose a Board" key='skip_to_board_choice'}}</button>
+  </div>
+  <div style='float: right;'>
     <span class='glyphicon glyphicon-arrow-right' style='font-size: 70px; transform: rotate(45deg);'></span>
   </div>
+  <div style='clear: both;'></div>
 </div>
