@@ -469,14 +469,17 @@ CoughDrop.User = DS.Model.extend({
   find_integration: function(key) {
     return CoughDrop.User.find_integration(this.get('id'), key);
   },
-  copy_home_board: function(board) {
+  copy_home_board: function(board, swap_images) {
     var user = this;
     var board_key = emberGet(board, 'key');
     var board_id = emberGet(board, 'id');
+    var preferred_symbols = user.get('preferences.preferred_symbols') || 'original';
     return new RSVP.Promise(function(resolve, reject) {
       user.set('home_board_pending', board_key);
       CoughDrop.store.findRecord('board', board_id).then(function(board) {
-        editManager.copy_board(board, 'links_copy_as_home', user, false).then(function() {
+        var swap_library = null;
+        if(swap_images && preferred_symbols && preferred_symbols != 'original') { swap_library = user.get('preferences.preferred_symbols'); }
+        editManager.copy_board(board, 'links_copy_as_home', user, false, swap_library).then(function() {
           user.set('home_board_pending', false);
           if(persistence.get('online') && persistence.get('auto_sync')) {
             runLater(function() {

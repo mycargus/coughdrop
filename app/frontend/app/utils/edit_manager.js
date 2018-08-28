@@ -922,7 +922,7 @@ var editManager = EmberObject.extend({
       this.badgeEditingCallback(data);
     }
   },
-  copy_board: function(old_board, decision, user, make_public) {
+  copy_board: function(old_board, decision, user, make_public, swap_library) {
     return new RSVP.Promise(function(resolve, reject) {
       var ids_to_copy = old_board.get('downstream_board_ids_to_copy') || [];
       var save = old_board.create_copy(user, make_public);
@@ -974,6 +974,7 @@ var editManager = EmberObject.extend({
               old_board_id: old_board.get('id'),
               new_board_id: board.get('id'),
               update_inline: (decision == 'modify_links_update'),
+              swap_library: swap_library,
               ids_to_copy: ids_to_copy.join(','),
               make_public: make_public
             }

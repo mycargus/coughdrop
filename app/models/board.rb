@@ -828,11 +828,16 @@ class Board < ActiveRecord::Base
     user_local_id ||= self.user_id
     return {done: true, swapped: false, reason: 'mismatched user'} if user_local_id != self.user_id
     return {done: true, swapped: false, reason: 'no library specified'} if !library || library.blank?
+    return {done: true, swapped: false, reason: 'not authorized to access premium library'} if library == 'pcs' && (!author || !author.subscription_hash['extras_enabled'])
+
     if (board_ids.blank? || board_ids.include?(self.global_id))
       updated_board_ids << self.global_id
+      words = self.settings['buttons'].map{|b| [b['label'], b['vocalization']] }.flatten.compact.uniq
+      defaults = Uploader.default_images(library, words, self.settings['locale'] || 'en', author)
       self.settings['buttons'].each do |button|
         if button['label'] || button['vocalization']
-          image_data = (Uploader.find_images(button['label'] || button['vocalization'], library, author) || [])[0]
+          image_data = defaults[button['label'] || button['vocalization']]
+          image_data ||= (Uploader.find_images(button['label'] || button['vocalization'], library, author) || [])[0]
           if image_data
             image_data['button_label'] = button['label']
             bi = ButtonImage.process_new(image_data, {user: author})
@@ -848,7 +853,12 @@ class Board < ActiveRecord::Base
     visited_board_ids << self.global_id
     downstreams = self.settings['immediately_downstream_board_ids'] - visited_board_ids
     Board.find_all_by_path(downstreams).each do |brd|
-      brd.swap_images(library, author, board_ids, user_local_id, visited_board_ids, updated_board_ids)
+      if board_ids.instance_variable_get('@skip_keyboard') && brd.key.match(/keyboard$/)
+        # When swapping images, don't touch the keyboards, 
+        # there's no point and the pic will get weird via search
+      else
+        brd.swap_images(library, author, board_ids, user_local_id, visited_board_ids, updated_board_ids)
+      end
       visited_board_ids << brd.global_id
     end
     {done: true, library: library, board_ids: board_ids, visited: visited_board_ids.uniq, updated: updated_board_ids.uniq}

@@ -29,6 +29,11 @@ export default Component.extend({
     var elem = this.element;
     var rect = elem.getBoundingClientRect();
     var top = rect.top;
+    var footer = document.getElementById('setup_footer');
+    if(footer) {
+      var rect = footer.getBoundingClientRect();
+      window_height = window_height - rect.height + 5;
+    }
     this.set('height', (window_height - top));
     elem.style.height = this.get('height') + "px";
   },
@@ -197,7 +202,7 @@ export default Component.extend({
   
       if(_this.get('current_level') || !board.get('levels')) {
         if(_this.get('current_board.key')) {
-          user.copy_home_board(_this.get('current_board')).then(function() { }, function(err) {
+          user.copy_home_board(_this.get('current_board'), true).then(function() { }, function(err) {
             modal.error(i18n.t('set_as_home_failed', "Home board update failed unexpectedly"));
           });
         }

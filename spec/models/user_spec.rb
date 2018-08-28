@@ -576,7 +576,7 @@ describe User, :type => :model do
       b = Board.create(:user => u)
       b2 = Board.create(:user => u)
       expect(Board).to receive(:replace_board_for).with(u, {:valid_ids => nil, :starting_old_board => b, :starting_new_board => b2, :update_inline => true, :authorized_user => nil, :make_public => false})
-      u.replace_board(b.global_id, b2.global_id, [], true)
+      u.replace_board(old_board_id: b.global_id, new_board_id: b2.global_id, ids_to_copy: [], update_inline: true)
     end
 
     it "should make public if specified" do
@@ -584,7 +584,7 @@ describe User, :type => :model do
       b = Board.create(:user => u)
       b2 = Board.create(:user => u)
       expect(Board).to receive(:replace_board_for).with(u, {:valid_ids => nil, :starting_old_board => b, :starting_new_board => b2, :update_inline => true, :authorized_user => nil, :make_public => true})
-      u.replace_board(b.global_id, b2.global_id, [], true, true)
+      u.replace_board(old_board_id: b.global_id, new_board_id: b2.global_id, ids_to_copy: [], update_inline: true, make_public: true)
     end
   end
     
@@ -594,7 +594,7 @@ describe User, :type => :model do
       b = Board.create(:user => u)
       b2 = Board.create(:user => u)
       expect(Board).to receive(:copy_board_links_for).with(u, {:valid_ids => nil, :starting_old_board => b, :starting_new_board => b2, :authorized_user => nil, :make_public => false})
-      u.copy_board_links(b.global_id, b2.global_id)
+      u.copy_board_links(old_board_id: b.global_id, new_board_id: b2.global_id)
     end
     
     it "should make public if specified" do
@@ -602,7 +602,7 @@ describe User, :type => :model do
       b = Board.create(:user => u)
       b2 = Board.create(:user => u)
       expect(Board).to receive(:copy_board_links_for).with(u, {:valid_ids => nil, :starting_old_board => b, :starting_new_board => b2, :authorized_user => nil, :make_public => true})
-      u.copy_board_links(b.global_id, b2.global_id, [], true)
+      u.copy_board_links(old_board_id: b.global_id, new_board_id: b2.global_id, ids_to_copy: [], make_public: true)
     end
 
     it "should use correct whodunnit user" do

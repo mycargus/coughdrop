@@ -302,7 +302,7 @@ class Api::UsersController < ApplicationController
     return unless allowed?(user, 'edit') && allowed?(old_board, 'view') && allowed?(new_board, 'view')
     
     make_public = params['make_public'] && params['make_public'] == '1' || params['make_public'] == 'true' || params['make_public'] == true
-    progress = Progress.schedule(user, :replace_board, params['old_board_id'], params['new_board_id'], params['ids_to_copy'], params['update_inline'], make_public, user_for_paper_trail)
+    progress = Progress.schedule(user, :replace_board, {old_board_id: params['old_board_id'], new_board_id: params['new_board_id'], ids_to_copy: params['ids_to_copy'], update_inline: params['update_inline'], make_public: make_public, user_for_paper_trail: user_for_paper_trail})
     render json: JsonApi::Progress.as_json(progress, :wrapper => true)
   end
   
@@ -314,7 +314,14 @@ class Api::UsersController < ApplicationController
     return unless allowed?(user, 'edit') && allowed?(old_board, 'view') && allowed?(new_board, 'view')
     
     make_public = params['make_public'] && params['make_public'] == '1' || params['make_public'] == 'true' || params['make_public'] == true
-    progress = Progress.schedule(user, :copy_board_links, params['old_board_id'], params['new_board_id'], params['ids_to_copy'], make_public, user_for_paper_trail)
+    progress = Progress.schedule(user, :copy_board_links, {
+        old_board_id: params['old_board_id'], 
+        new_board_id: params['new_board_id'], 
+        ids_to_copy: params['ids_to_copy'], 
+        make_public: make_public, 
+        user_for_paper_trail: user_for_paper_trail,
+        swap_library: params['swap_library']      
+    })
     render json: JsonApi::Progress.as_json(progress, :wrapper => true)
   end
   

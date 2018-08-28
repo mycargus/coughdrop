@@ -193,7 +193,8 @@ export default Controller.extend({
         board = stashes.get('root_board_state') || this.get('board').get('model');
       }
       var board_user_name = emberGet(board, 'key').split(/\//)[1];
-      var needs_confirmation = app_state.get('currentUser.supervisees') || board_user_name != app_state.get('currentUser.user_name');
+      var preferred_symbols = app_state.get('currentUser.preferences.preferred_symbols') || 'original';
+      var needs_confirmation = app_state.get('currentUser.supervisees') || preferred_symbols != 'original' || board_user_name != app_state.get('currentUser.user_name');
       var done = function(sync) {
         if(sync && persistence.get('online') && persistence.get('auto_sync')) {
           _this.set('simple_board_header', false);
@@ -206,6 +207,10 @@ export default Controller.extend({
           } else {
             modal.success(i18n.t('board_set_as_home', "Great! This is now the user's home board!"), true);
           }
+        } else {
+          if(_this.get('setup_footer')) {
+            _this.send('setup_go', 'forward');
+          }          
         }
       }
       if(needs_confirmation && !option) {
@@ -219,7 +224,7 @@ export default Controller.extend({
         var _this = this;
         if(user) {
           if(option == 'starting') {
-            user.copy_home_board(board).then(function() { }, function() {
+            user.copy_home_board(board, true).then(function() { }, function() {
               modal.error(i18n.t('set_as_home_failed', "Home board update failed unexpectedly"));
             });
             done();

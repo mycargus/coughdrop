@@ -784,7 +784,7 @@ describe Relinking, :type => :model do
     parent.save
     Worker.process_queues
     
-    parent.reload.replace_board(level1.global_id, new_level1.global_id)
+    parent.reload.replace_board({old_board_id: level1.global_id, new_board_id: new_level1.global_id})
     Worker.process_queues
     
     expect(parent.settings['preferences']['home_board']['id']).not_to eq(level0.global_id)

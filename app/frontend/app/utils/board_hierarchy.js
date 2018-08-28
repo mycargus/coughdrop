@@ -72,6 +72,8 @@ var BoardHierarchy = EmberObject.extend({
             }
           } else if(!hierarchy_board.get('selected')) {
             sub_board.set('selected', false);
+          } else if(_this.get('options.prevent_keyboard') && sub_board.get('key').match(/keyboard$/)) {
+            sub_board.set('selected', false);
           }
           traversed_boards[board_id].get('children').push(sub_board);
         } else {

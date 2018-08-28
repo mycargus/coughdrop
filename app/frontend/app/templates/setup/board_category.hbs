@@ -1,5 +1,9 @@
-<div class='col-sm-10 col-sm-offset-1'>
-  <p>{{t "Now let's start looking at some vocabulary sets. In CoughDrop we call these \"boards\". There are a number of different types of boards you can choose from, depending on the functional level and needs of your communicator. Feel free to browse the lists below. When you find one you like, hit \"Select This Set as my Home Board\" to make it the communicator's \"home board\", which is what the communicator will see every time they first load the app." key='boards_explainer'}}</p>
-  <p>{{t "Nervous you'll pick the wrong board? Don't fret! You can easily change things later." key='easy_to_change_later'}}</p>
-</div>
-{{board-picker}}
+{{#if advanced}}
+  <div class='col-sm-10 col-sm-offset-1'>
+    <p>{{t "In CoughDrop vocabulary sets are made up of a collection of \"boards\". There are a number of different types of boards you can choose from, depending on the functional level and needs of your communicator. When you find one you like, hit \"Make This My Home Board\" to make it the communicator's \"home board\", which is what the communicator will see every time they first load the app." key='boards_explainer'}}</p>
+    <p>{{t "Nervous you'll pick the wrong board? Don't fret! You can easily change things later." key='easy_to_change_later'}}</p>
+  </div>
+  {{board-picker}}
+{{else}}
+  {{board-selection-tool load_error='show_advanced' advanced='show_advanced' select='select_board'}}
+{{/if}}

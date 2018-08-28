@@ -41,9 +41,15 @@
     {{/unless}}
   </div>
   <div class="col-sm-5">
-    <a href="http://blog.mycoughdrop.com/coughdrop-and-lessonpix-team-up-for-aac-2/" target='_blank' style='position: absolute; top: -39px; right: 60px;'>
-      <img src="{{path 'images/lessonpix-coughdrop.png'}}" style='height: 90px;' />
-    </a>
+    {{#if app_state.feature_flags.premium_symbols}}
+      <a href="#" target='_blank' style='position: absolute; top: -39px; right: 60px;'>
+        <img src="{{path 'images/pcs-coughdrop.png'}}" style='height: 90px;' />
+      </a>
+    {{else}}
+      <a href="http://blog.mycoughdrop.com/coughdrop-and-lessonpix-team-up-for-aac-2/" target='_blank' style='position: absolute; top: -39px; right: 60px;'>
+        <img src="{{path 'images/lessonpix-coughdrop.png'}}" style='height: 90px;' />
+      </a>
+    {{/if}}
     <img src="{{path 'images/preview.png'}}" style="width: 100%; margin-top: 40px;"/>
   </div>
   {{#unless app_state.installed_app}}

@@ -83,6 +83,25 @@ export default Controller.extend({
     }
     return res;
   }.property('fake_user.preferences.auto_home_return', 'app_state.currentUser.preferences.auto_home_return'),
+  symbols: function() {
+    var res = {};
+    var user = app_state.get('currentUser') || this.get('fake_user');
+    if(user.get('preferences.preferred_symbols')) {
+      res[user.get('preferences.preferred_symbols')] = true;
+    } else {
+      res.original = true;
+    }
+    return res;
+  }.property('fake_user.preferences.preferred_symbols', 'app_state.currentUser.preferences.preferred_symbols'),
+  premium_but_not_allowed: function() {
+    return this.get('symbols.pcs') && !this.get('app_state.currentUser.subscription.extras_enabled');
+  }.property('app_state.currentUser.subscription.extras_enabled', 'symbols.pcs'),
+  lessonpix_but_not_allowed: function() {
+    return this.get('symbols.lessonpix') && !this.get('lessonpix_enabled');
+  }.property('symbols.lessonpix', 'lessonpix_enabled'),
+  no_scroll: function() {
+    return !this.get('advanced') && this.get('page') == 'board_category';
+  }.property('advanced', 'page'),
   notification: function() {
     var res = {};
     var user = app_state.get('currentUser') || this.get('fake_user');
@@ -195,14 +214,21 @@ export default Controller.extend({
         }
       }));
     }
+    var _this = this;
     if(app_state.get('currentUser')) {
       this.set('cell', app_state.get('currentUser.cell_phone'));
-      var _this = this;
       ['vocalize_buttons', 'vocalize_linked_buttons', 'auto_home_return'].forEach(function(pref) {
         _this.set(pref, app_state.get('currentUser.preferences.' + pref));
       });
+
+      if(this.get('page') == 'symbols') {
+        app_state.get('currentUser').find_integration('lessonpix').then(function(res) {
+          _this.set('lessonpix_enabled', true);
+        }, function(err) { });
+      }
     }
     app_state.controller.set('setup_page', this.get('page'));
+    this.set('advanced', false);
     $('html,body').scrollTop(0);
   }.observes('page'),
   actions: {
@@ -278,6 +304,15 @@ export default Controller.extend({
     },
     choose_board: function() {
       this.transitionToRoute('home-boards');
+    },
+    show_advanced: function() {
+      this.set('advanced', true);
+    },
+    select_board: function(board) {
+      app_state.controller.send('setup_go', 'forward');
+    },
+    show_more_symbols: function() {
+      this.set('showing_more_symbols', true);
     }
   }
 });

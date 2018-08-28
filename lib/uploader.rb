@@ -242,6 +242,55 @@ module Uploader
       return nil
     end
   end
+
+  def self.default_images(library, words, locale, user)
+    if ['noun-project', 'sclera', 'arasaac', 'mulberry', 'tawasol', 'twemoji', 'opensymbols', 'pcs'].include?(library)
+      token = ENV['OPENSYMBOLS_TOKEN']
+      protected_source = nil
+      if library == 'pcs' && user && user.subscription_hash['extras_enabled']
+        token += ":pcs"
+        protected_source = 'pcs'
+      end
+      url = "https://www.opensymbols.org/api/v2/repositories/#{library}/defaults"
+      res = Typhoeus.post(url, body: {
+        words: words,
+        locale: locale,
+        search_token: token
+      }.to_json, headers: { 'Accept-Encoding' => 'application/json', 'Content-Type' => 'application/json' }, timeout: 10, :ssl_verifypeer => false)
+      results = {}
+      results = JSON.parse(res.body) unless res.code >= 400
+      hash = {}
+      results.each do |word, result|
+        if result['extension']
+          type = MIME::Types.type_for(result['extension'])[0]
+          result['content_type'] = type.content_type
+        end
+      end
+      results.each do |word, obj|
+        hash[word] = {
+          'url' => obj['image_url'],
+          'thumbnail_url' => obj['image_url'],
+          'content_type' => obj['content_type'],
+          'width' => obj['width'],
+          'height' => obj['height'],
+          'external_id' => obj['id'],
+          'public' => true,
+          'protected' => !!protected_source,
+          'protected_source' => protected_source,
+          'license' => {
+            'type' => obj['license'],
+            'copyright_notice_url' => obj['license_url'],
+            'source_url' => obj['source_url'],
+            'author_name' => obj['author'],
+            'author_url' => obj['author_url'],
+            'uneditable' => true
+          }
+        }        
+      end
+      return hash
+    end
+    {}
+  end
   
   def self.find_images(keyword, library, user)
     return false if (keyword || '').strip.blank? || (library || '').strip.blank?

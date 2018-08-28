@@ -211,6 +211,7 @@ class User < ActiveRecord::Base
         'board_jump_delay' => 500,
         'default_sidebar_boards' => default_sidebar_boards,
         'blank_status' => false,
+        'preferred_symbols' => 'original',
         'word_suggestion_images' => true,
         'hidden_buttons' => 'grid',
         'symbol_background' => 'clear'
@@ -485,7 +486,7 @@ class User < ActiveRecord::Base
       'goal_notifications', 'word_suggestion_images', 'hidden_buttons',
       'speak_on_speak_mode', 'ever_synced', 'folder_icons', 'allow_log_reports',
       'symbol_background', 'disable_button_help', 'click_buttons', 'prevent_hide_buttons',
-      'new_index', 'debounce', 'cookies']
+      'new_index', 'debounce', 'cookies', 'preferred_symbols']
   CONFIRMATION_PREFERENCE_PARAMS = ['logging', 'geo_logging', 'allow_log_reports', 'cookies']
 
   PROGRESS_PARAMS = ['setup_done', 'intro_watched', 'profile_edited', 'preferences_edited', 
@@ -1033,7 +1034,15 @@ class User < ActiveRecord::Base
     end
   end
   
-  def replace_board(starting_old_board_id, starting_new_board_id, ids_to_copy=[], update_inline=false, make_public=false, whodunnit=nil)
+  def replace_board(opts)
+    opts = opts.with_indifferent_access
+    starting_old_board_id = opts[:old_board_id]
+    starting_new_board_id = opts[:new_board_id]
+    ids_to_copy = opts[:ids_to_copy] || []
+    update_inline = opts[:update_inline] || false
+    make_public = opts[:make_public] || false
+    whodunnit = opts[:user_for_paper_trail] || nil
+
     prior = PaperTrail.whodunnit
     PaperTrail.whodunnit = whodunnit if whodunnit
     starting_old_board = Board.find_by_path(starting_old_board_id)
@@ -1051,7 +1060,15 @@ class User < ActiveRecord::Base
     PaperTrail.whodunnit = prior
   end
   
-  def copy_board_links(starting_old_board_id, starting_new_board_id, ids_to_copy=[], make_public=false, whodunnit=nil)
+  def copy_board_links(opts)
+    opts = opts.with_indifferent_access
+    starting_old_board_id = opts[:old_board_id]
+    starting_new_board_id = opts[:new_board_id]
+    ids_to_copy = opts[:ids_to_copy] || []
+    make_public = opts[:make_public] || false
+    whodunnit = opts[:user_for_paper_trail] || nil
+    swap_library = opts[:swap_library]
+
     prior = PaperTrail.whodunnit
     PaperTrail.whodunnit = whodunnit if whodunnit
     starting_old_board = Board.find_by_path(starting_old_board_id)
@@ -1068,10 +1085,17 @@ class User < ActiveRecord::Base
     ids.each do |id|
       updated_ids << change_hash[id].global_id if change_hash[id]
     end
-    {
+    res = {
       'affected_board_ids' => ids.uniq,
       'new_board_ids' => updated_ids.uniq
     }
+    if swap_library
+      ids = res['new_board_ids']
+      ids.instance_variable_set('@skip_keyboard', true)
+      starting_new_board.swap_images(swap_library, self, ids)
+      res['swap_library'] = swap_library
+    end
+    res
   ensure
     PaperTrail.whodunnit = prior
   end

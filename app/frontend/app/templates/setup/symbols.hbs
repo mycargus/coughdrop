@@ -1,82 +1,187 @@
 <div class='col-sm-10 col-sm-offset-1'>
-  <p>{{t "Here in a moment we'll show you some different styles of home boards you can pick from. Before we do, let's decide on a couple things. Keep in mind that you can always change these settings later under \"Preferences\"." key='start_deciding'}}</p>
+  <p>{{t "Here in a moment we'll show you some different options for home boards you can use. Before we do, let's decide on a couple things. Keep in mind that you can always change these settings later under \"Preferences\"." key='start_deciding'}}</p>
 </div>
 <div class='row'>
-<div class='col-sm-5 col-sm-offset-1'>
-  <div class='setup_setting'>
-    <label>{{t "How do you want buttons to appear?" key='text_placement'}}</label>
-    <div class="btn-group-vertical" style="width: 100%;">
-      <a href="#" class={{if text_position.text_on_top 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'device.button_text_position' 'top'}} >{{t "Pictures with text above" key='text_above_pictures'}}</a>
-      <a href="#" class={{if text_position.text_on_bottom 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'device.button_text_position' 'bottom'}} >{{t "Pictures with text below" key='text_below_pictures'}}</a>
-      <a href="#" class={{if text_position.text_only 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'device.button_text_position' 'text_only'}} >{{t "Text only (no pictures)" key='no_pictures'}}</a>
+  <div class='col-sm-5 col-sm-offset-1'>
+    <div class='setup_setting'>
+      <label>{{t "How do you want buttons to appear?" key='text_placement'}}</label>
+      <div class="btn-group-vertical" style="width: 100%;">
+        <a href="#" class={{if text_position.text_on_top 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'device.button_text_position' 'top'}} >{{t "Pictures with text above" key='text_above_pictures'}}</a>
+        <a href="#" class={{if text_position.text_on_bottom 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'device.button_text_position' 'bottom'}} >{{t "Pictures with text below" key='text_below_pictures'}}</a>
+        <a href="#" class={{if text_position.text_only 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'device.button_text_position' 'text_only'}} >{{t "Text only (no pictures)" key='no_pictures'}}</a>
+      </div>
     </div>
   </div>
-
-  <p>{{t "If you're not sure what to do, \"pictures with text above\" is a good default, it will allow the communicator to recognize intents based on pictures, and help develop literacy by learning the corresponding words over time." key='text_above_suggestion'}}</p>
-</div>
-<div class='col-sm-5' style='padding-top: 50px;'>
-  <div style='width: 200px; height: 200px; border-radius: 10px; border: 3px solid rgb(0, 98, 246); text-align: center; margin: 0 auto; background-color: rgb(144, 189, 255);'>
-    {{#if text_position.text_only}}
-      <div style='font-size: 25px; text-align: center; margin-top: 80px;'>
-        {{t "happy" key='happy'}}
-      </div>
-    {{else}}
-      {{#if text_position.text_on_top}}
-        <div style='font-size: 25px; text-align: center;'>
+  <div class='col-sm-5' style='padding-top: 50px;'>
+    <div style='width: 200px; height: 200px; border-radius: 10px; border: 3px solid rgb(0, 98, 246); text-align: center; margin: 0 auto; background-color: rgb(144, 189, 255); float: left; margin-right: 15px;'>
+      {{#if text_position.text_only}}
+        <div style='font-size: 25px; text-align: center; margin-top: 80px;'>
           {{t "happy" key='happy'}}
         </div>
-      {{/if}}
-      {{#if background.white}}
-        <img src='https://s3.amazonaws.com/opensymbols/libraries/arasaac/happy.png' style='width: 150px; height: 150px; background: #fff;'/>
       {{else}}
-        <img src='https://s3.amazonaws.com/opensymbols/libraries/arasaac/happy.png' style='width: 150px; height: 150px;'/>
+        {{#if text_position.text_on_top}}
+          <div style='font-size: 25px; text-align: center;'>
+            {{t "happy" key='happy'}}
+          </div>
+        {{/if}}
+        {{#if symbols.twemoji}}
+          <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/twemoji/1f60a.svg' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{else if symbols.noun_project}}
+          <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/Happy_213_g.svg' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{else if symbols.tawasol}}
+          <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/tawasol/Happy%20(M).png' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{else if symbols.pcs}}
+          <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/pcs/00047/5fc50fd308c61df38e26e426845a6c055b9b900f2fec0936f916bf104172ab020da82c0a598c7df0d834310223644d93ffb2e802e0df75b6a6c0dcb61a6fe3f0/00047.svg' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{else if symbols.lessonpix}}
+          <img src='https://lessonpix.com/drawings/13748/150x150/13748.png' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{else}}
+          <img src='https://s3.amazonaws.com/opensymbols/libraries/arasaac/happy.png' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{/if}}
+        {{#if text_position.text_on_bottom}}
+          <div style='font-size: 25px; text-align: center;'>
+            {{t "happy" key='happy'}}
+          </div>
+        {{/if}}
       {{/if}}
-      {{#if text_position.text_on_bottom}}
-        <div style='font-size: 25px; text-align: center;'>
-          {{t "happy" key='happy'}}
-        </div>
-      {{/if}}
-    {{/if}}
+    </div>
+    <p style='font-size: 16px;'>{{t "If you're not sure what to do, \"pictures with text above\" is a good default, it will allow the communicator to recognize intents based on pictures, and help develop literacy by learning the corresponding words over time." key='text_above_suggestion'}}</p>
   </div>
-</div>
 </div>
 {{#unless text_position.text_only}}
 <div class='row'>
-<div class='col-sm-5 col-sm-offset-1'>
-  <div class='setup_setting'>
-    <label>{{t "How do you want pictures to display?" key='symbol_background'}}</label>
-    <div class="btn-group-vertical" style="width: 100%;">
-      <a href="#" class={{if background.clear 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'device.symbol_background' 'clear'}} >{{t "With a background matching the button" key='clear_background'}}</a>
-      <a href="#" class={{if background.white 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'device.symbol_background' 'white'}} >{{t "Always with a white background" key='white_background'}}</a>
+  <div class='col-sm-5 col-sm-offset-1'>
+    <div class='setup_setting'>
+      <label>{{t "How do you want pictures to display?" key='symbol_background'}}</label>
+      <div class="btn-group-vertical" style="width: 100%;">
+        <a href="#" class={{if background.clear 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'device.symbol_background' 'clear'}} >{{t "With a background matching the button" key='clear_background'}}</a>
+        <a href="#" class={{if background.white 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'device.symbol_background' 'white'}} >{{t "Always with a white background" key='white_background'}}</a>
+      </div>
+    </div>
+
+  </div>
+  <div class='col-sm-5' style='padding-top: 50px;'>
+    <div style='width: 200px; height: 200px; border-radius: 10px; border: 3px solid rgb(246, 98, 0); text-align: center; margin: 0 auto; background-color: rgb(255, 189, 144); float: left; margin-right: 15px;'>
+      {{#if text_position.text_only}}
+        <div style='font-size: 25px; text-align: center; margin-top: 80px;'>
+          {{t "frog" key='frog'}}
+        </div>
+      {{else}}
+        {{#if text_position.text_on_top}}
+          <div style='font-size: 25px; text-align: center;'>
+            {{t "frog" key='frog'}}
+          </div>
+        {{/if}}
+        {{#if symbols.twemoji}}
+          <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/twemoji/1f438.svg' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{else if symbols.noun_project}}
+          <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/Green-frog_582_g.svg' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{else if symbols.tawasol}}
+          <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/tawasol/Frog.png' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{else if symbols.pcs}}
+          <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/pcs/02086/70f88a99a243736c9f554808cbff30c26a8b74a25f06d58e31dd392a89f6586ebe03d6ff2d617e71e98c3901689c833d56e96e5e48dbb1cf51da8336d46b5728/02086.svg' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{else if symbols.lessonpix}}
+          <img src='https://lessonpix.com/drawings/1283/150x150/1283.png' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{else}}
+          <img src='https://s3.amazonaws.com/opensymbols/libraries/arasaac/frog.png' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{/if}}
+        {{#if text_position.text_on_bottom}}
+          <div style='font-size: 25px; text-align: center;'>
+            {{t "frog" key='frog'}}
+          </div>
+        {{/if}}
+      {{/if}}
+    </div>
+    <p style='font-size: 16px;'>{{t "For most users, matching the button color will work well and looks cleaner, but for some communicators having a white background on all images will help with contrast and recognition." key='background_suggestion'}}</p>
+  </div>
+</div>
+<div class='row'>
+  <div class='col-sm-5 col-sm-offset-1'>
+    <div class='setup_setting'>
+      <label>{{t "Which symbols do you prefer?" key='text_placement'}}</label>
+      <div class="btn-group-vertical" style="width: 100%; text-align: left;">
+        <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class={{if symbols.original 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'original'}} >
+          <img src="https://d18vdu4p71yql0.cloudfront.net/libraries/twemoji/2b50.svg" style='height: 40px; width: 40px; margin: -20px 0;'/>
+          {{t "Whichever symbols the board author used" key='original'}}
+        </a>
+        <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class={{if symbols.lessonpix 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'lessonpix'}} >
+          <img src="https://s3.amazonaws.com/coughdrop/icons/lessonpix.png" style='width: 40px; height: 40px; margin: -20px 0;' />
+          {{t "LessonPix symbol library" key='lessonpix'}}
+        </a>
+        {{#if app_state.feature_flags.premium_symbols}}
+          <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class={{if symbols.pcs 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'pcs'}} >
+            <img src="https://d18vdu4p71yql0.cloudfront.net/libraries/pcs/03251/051ba316632f5cab0bfe793ae5ca84fb8635073147393d25fccc45d282b64b7fdd35880c3a8d155469fc6def2ca3936920582ab0fcf0d2d49bb352dedf75958c/03251.svg" style='width: 40px; height: 40px; margin: -20px 0;' />
+            {{t "PCS Symbols by Tobii" key='pcs'}}
+          </a>
+        {{/if}}
+        {{#unless showing_more_symbols}}
+          <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class='btn btn-lg btn-default' {{action 'show_more_symbols'}} >
+            <img src="https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/chevron-down_213_730207.svg" style='width: 40px; height: 40px; margin: -20px 0;' />
+            {{t "Show more libraries" key='show_more_libraries'}}
+          </a>
+        {{else}}
+          <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class={{if symbols.opensymbols 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'opensymbols'}} >
+            <img src="http://www.opensymbols.org/find.png" style='height: 40px; width: 40px; margin: -20px 0;'/>
+            {{t "Opensymbols.org free symbol libraries" key='opensymbols'}}
+          </a>
+          <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class={{if symbols.twemoji 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'twemoji'}} >
+            <img src="https://d18vdu4p71yql0.cloudfront.net/libraries/twemoji/1f33c.svg" style='height: 40px; width: 40px; margin: -20px 0;' />
+            {{t "Emoji icons (authored by Twitter)" key='twemoji'}}
+          </a>
+          <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class={{if symbols.noun_project 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'noun-project'}} >
+            <img src="https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/News-a876209382.svg" style='width: 40px; height: 40px; margin: -20px 0;' />
+            {{t "The Noun Project black outlines" key='noun_project'}}
+          </a>
+          <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class={{if symbols.arasaac 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'arasaac'}} >
+            <img src="https://d18vdu4p71yql0.cloudfront.net/libraries/arasaac/hello_1.png" style='width: 40px; height: 40px; margin: -20px 0;' />
+            {{t "ARASAAC free symbols" key='arasaac'}}
+          </a>
+          <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class={{if symbols.tawasol 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'tawasol'}} >
+            <img src="https://d18vdu4p71yql0.cloudfront.net/libraries/tawasol/142-to%20hug.png" style='width: 40px; height: 40px; margin: -20px 0;' />
+            {{t "Tawasol symbol library" key='tawasol'}}
+          </a>
+        {{/unless}}
+      </div>
     </div>
   </div>
-
-  <p>{{t "For most users, matching the button color will work well and looks cleaner, but for some communicators having a white background on all images will help with contrast and recognition." key='background_suggestion'}}</p>
-</div>
-<div class='col-sm-5' style='padding-top: 50px;'>
-  <div style='width: 200px; height: 200px; border-radius: 10px; border: 3px solid rgb(246, 98, 0); text-align: center; margin: 0 auto; background-color: rgb(255, 189, 144);'>
-    {{#if text_position.text_only}}
-      <div style='font-size: 25px; text-align: center; margin-top: 80px;'>
-        {{t "frog" key='frog'}}
-      </div>
-    {{else}}
-      {{#if text_position.text_on_top}}
-        <div style='font-size: 25px; text-align: center;'>
-          {{t "frog" key='frog'}}
+  <div class='col-sm-5' style='padding-top: 50px;'>
+    <div style='width: 200px; height: 200px; border-radius: 10px; border: 3px solid rgb(102, 221, 0); text-align: center; margin: 0 auto; background-color: rgb(204, 255, 170); float: left; margin-right: 15px;'>
+      {{#if text_position.text_only}}
+        <div style='font-size: 25px; text-align: center; margin-top: 80px;'>
+          {{t "like" key='like'}}
         </div>
-      {{/if}}
-      {{#if background.white}}
-        <img src='https://s3.amazonaws.com/opensymbols/libraries/arasaac/frog.png' style='width: 150px; height: 150px; background: #fff;'/>
       {{else}}
-        <img src='https://s3.amazonaws.com/opensymbols/libraries/arasaac/frog.png' style='width: 150px; height: 150px;'/>
+        {{#if text_position.text_on_top}}
+          <div style='font-size: 25px; text-align: center;'>
+            {{t "like" key='like'}}
+          </div>
+        {{/if}}
+        {{#if symbols.twemoji}}
+          <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/twemoji/1f499.svg' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{else if symbols.noun_project}}
+          <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/like_9767_dd14ee88-7789-43b7-958d-c8d44a3e1458.svg' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{else if symbols.tawasol}}
+          <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/tawasol/65-Play.png' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{else if symbols.pcs}}
+          <img src='https://d18vdu4p71yql0.cloudfront.net/libraries/pcs/03250/1d9b330d61e2802a0ba74277fadf21c73d0454e943b1d2bed18f262066feba269e190591f375152e82a0041642988c930e06b370474aef29d375643af1c92d1b/03250.svg' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{else if symbols.lessonpix}}
+          <img src='https://lessonpix.com/drawings/113947/150x150/113947.png' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{else}}
+          <img src='https://s3.amazonaws.com/opensymbols/libraries/arasaac/to%20like.png' style={{if background.white 'width: 150px; height: 150px; background: #fff;' 'width: 150px; height: 150px;'}}/>
+        {{/if}}
+        {{#if text_position.text_on_bottom}}
+          <div style='font-size: 25px; text-align: center;'>
+            {{t "like" key='like'}}
+          </div>
+        {{/if}}
       {{/if}}
-      {{#if text_position.text_on_bottom}}
-        <div style='font-size: 25px; text-align: center;'>
-          {{t "frog" key='frog'}}
-        </div>
-      {{/if}}
+    </div>
+    {{#if premium_but_not_allowed}}
+      <p class='text-warning' style='font-size: 16px;'>{{t "NOTE: You will need to purchase the premium symbols upgrade on your billing page before you can use these symbols." key='premium_upgrade_required'}}</p>
+    {{else if lessonpix_but_not_allowed}}
+      <p class='text-warning' style='font-size: 16px;'>{{t "NOTE: You will need to connect your LessonPix account to your CoughDrop account on your Profile page before you can use these symbols." key='lessonpix_upgrade_required'}}</p>
+    {{else}}
+      <p style='font-size: 16px;'>{{t "Some communicators already have practice or experience with certain symbol libraries, and CoughDrop can automatically swap symbols in a user's boards based on what they're familiar with. If you're not sure, just leave it as whatever the board author used." key='symbols_suggestion'}}</p>
     {{/if}}
   </div>
-</div>
 </div>
 {{/unless}}
