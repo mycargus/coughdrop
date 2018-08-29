@@ -37,8 +37,8 @@ class WeeklyStatsSummary < ActiveRecord::Base
   def update!
     summary = self
     all = false
-    user = User.find_by(id: self.user_id)
-    start_at = WeeklyStatsSummary.weekyear_to_date(self.weekyear).beginning_of_week(:sunday)
+    user = User.find_by(id: summary.user_id)
+    start_at = WeeklyStatsSummary.weekyear_to_date(summary.weekyear).beginning_of_week(:sunday)
     end_at = start_at.end_of_week(:sunday)
     current_weekyear = WeeklyStatsSummary.date_to_weekyear(Date.today)
     
@@ -86,7 +86,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     total_stats.merge!(Stats.sensor_stats(sessions))
     total_stats.merge!(Stats.time_block_use_for_sessions(sessions))
     total_stats.merge!(Stats.parts_of_speech_stats(sessions))
-    target_words = Stats.target_words(user, sessions, current_weekyear == self.weekyear)
+    target_words = Stats.target_words(user, sessions, current_weekyear == summary.weekyear)
     total_stats.merge!(target_words)
     
     total_stats[:word_pairs] = Stats.word_pairs(sessions)
@@ -252,6 +252,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
       batch.each do |summary|
         # quick win with some basic, easy data to track
         total_keys.each do |key|
+          total.data['totals'][key] ||= 0
           total.data['totals'][key] += (summary.data['stats'] || {})[key] || 0
         end
         (summary.data['modeled_session_events'] || {}).each do |total, cnt|

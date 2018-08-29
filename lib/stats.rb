@@ -974,16 +974,19 @@ module Stats
     
     home_board = Board.find_by_path(user.settings['preferences'] && user.settings['preferences']['home_board'] && user.settings['preferences']['home_board']['id'])
     if home_board
-      home_board.settings['buttons'].each do |button|
-        word = (button['vocalization'] || button['label'] || '').downcase
-        if word && (!button['load_board'] || button['link_disabled']) && !button['hidden']
-          if default_core.include?(word)
-            # If there are more than 3 weeks of data and the home board core word has
-            # never been used or has been used less than once every 2 weeks in the long-view
-            # history then mark it as an infrequence home word
-            if total_weeks > 3 && (longview_core_words[word] || 0) < (total_weeks.to_f / 2.0)
-              res[:watchwords][:infrequent_home_words] ||= {}
-              res[:watchwords][:infrequent_home_words][word] = (1.0 - ((longview_core_words[word] || 0).to_f / max_core_word.to_f)).round(3)
+      max_core_word = [core_word_counts.to_a.map(&:last).max || 1, 1].max
+      if max_core_word && max_core_word > 0
+        home_board.settings['buttons'].each do |button|
+          word = (button['vocalization'] || button['label'] || '').downcase
+          if max_word && (!button['load_board'] || button['link_disabled']) && !button['hidden']
+            if default_core.include?(word)
+              # If there are more than 3 weeks of data and the home board core word has
+              # never been used or has been used less than once every 2 weeks in the long-view
+              # history then mark it as an infrequence home word
+              if total_weeks > 3 && (longview_core_words[word] || 0) < (total_weeks.to_f / 2.0)
+                res[:watchwords][:infrequent_home_words] ||= {}
+                res[:watchwords][:infrequent_home_words][word] = (1.0 - ((longview_core_words[word] || 0).to_f / max_core_word.to_f)).round(3)
+              end
             end
           end
         end
