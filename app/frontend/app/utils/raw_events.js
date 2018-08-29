@@ -1118,18 +1118,20 @@ var buttonTracker = EmberObject.extend({
       buttonTracker.dwell_icon_elem.style.left = '-1000px';
     }
     var $dropdown = $(".dropdown-backdrop")
-    if($dropdown.length > 0) {
+    var $open_identity_dropdown = $("#identity .dropdown.open");
+    if($dropdown.length > 0 && $open_identity_dropdown.length > 0) {
       $dropdown.hide();
     }
     var $target = $(document.elementFromPoint(event.clientX, event.clientY));
-    if($dropdown.length > 0) {
+    var $target_dropdown = $target.closest('.dropdown.open');
+    if($dropdown.length > 0 && $open_identity_dropdown.length > 0) {
       $dropdown.show();      
     }
     // If the identity dropdown is open and the user taps somewhere 
     // else on the screen, close the identity dropdown
-    if($target.closest('#identity').length == 0 && $dropdown.length > 0) {
-      if($target.closest('#identity ul').length == 0) {
-        $target = $("#identity_button");
+    if($target_dropdown.length == 0 && $dropdown.length > 0) {
+      if($target.closest('.dropdown.open ul').length == 0 && $open_identity_dropdown.length > 0) {
+        $target = $(".dropdown.open > a");
       }
     }
     if(buttonTracker.dwell_elem) {
