@@ -36,7 +36,19 @@ export default modal.ModalController.extend({
     return !!this.get('has_supervisees');
   }.property('has_supervisees'),
   board_levels: function() {
-    return CoughDrop.board_levels;
+    return [
+      {name: i18n.t('unspecified', "[  ]"), id: ''},
+      {name: i18n.t('level_1', "Level 1"), id: '1'},
+      {name: i18n.t('level_2', "Level 2"), id: '2'},
+      {name: i18n.t('level_3', "Level 3"), id: '3'},
+      {name: i18n.t('level_4', "Level 4"), id: '4'},
+      {name: i18n.t('level_5', "Level 5"), id: '5'},
+      {name: i18n.t('level_6', "Level 6"), id: '6'},
+      {name: i18n.t('level_7', "Level 7"), id: '7'},
+      {name: i18n.t('level_8', "Level 8"), id: '8'},
+      {name: i18n.t('level_9', "Level 9"), id: '9'},
+      {name: i18n.t('level_10', "Level 10"), id: '10'},
+    ];
   }.property(),
   pending: function() {
     return this.get('status.updating') || this.get('status.copying');
