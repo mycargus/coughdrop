@@ -99,43 +99,43 @@
     <div class='setup_setting'>
       <label>{{t "Which symbols do you prefer?" key='text_placement'}}</label>
       <div class="btn-group-vertical" style="width: 100%; text-align: left;">
-        <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class={{if symbols.original 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'original'}} >
+        <a href="#" style='text-align: left; padding: 14px 20px;' class={{if symbols.original 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'original'}} >
           <img src="https://d18vdu4p71yql0.cloudfront.net/libraries/twemoji/2b50.svg" style='height: 40px; width: 40px; margin: -20px 0;'/>
-          {{t "Whichever symbols the board author used" key='original'}}
+          {{t "Use the board's original symbols" key='original'}}
         </a>
-        <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class={{if symbols.lessonpix 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'lessonpix'}} >
+        <a href="#" style='text-align: left; padding: 14px 20px;' class={{if symbols.opensymbols 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'opensymbols'}} >
+          <img src="http://www.opensymbols.org/find.png" style='height: 40px; width: 40px; margin: -20px 0;'/>
+          {{t "Opensymbols.org free symbol libraries" key='opensymbols'}}
+        </a>
+        <a href="#" style='text-align: left; padding: 14px 20px;' class={{if symbols.lessonpix 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'lessonpix'}} >
           <img src="https://s3.amazonaws.com/coughdrop/icons/lessonpix.png" style='width: 40px; height: 40px; margin: -20px 0;' />
           {{t "LessonPix symbol library" key='lessonpix'}}
         </a>
         {{#if app_state.feature_flags.premium_symbols}}
-          <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class={{if symbols.pcs 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'pcs'}} >
+          <a href="#" style='text-align: left; padding: 14px 20px;' class={{if symbols.pcs 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'pcs'}} >
             <img src="https://d18vdu4p71yql0.cloudfront.net/libraries/pcs/03251/051ba316632f5cab0bfe793ae5ca84fb8635073147393d25fccc45d282b64b7fdd35880c3a8d155469fc6def2ca3936920582ab0fcf0d2d49bb352dedf75958c/03251.svg" style='width: 40px; height: 40px; margin: -20px 0;' />
             {{t "PCS Symbols by Tobii" key='pcs'}}
           </a>
         {{/if}}
         {{#unless showing_more_symbols}}
-          <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class='btn btn-lg btn-default' {{action 'show_more_symbols'}} >
+          <a href="#" style='text-align: left; padding: 14px 20px;' class='btn btn-lg btn-default' {{action 'show_more_symbols'}} >
             <img src="https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/chevron-down_213_730207.svg" style='width: 40px; height: 40px; margin: -20px 0;' />
             {{t "Show more libraries" key='show_more_libraries'}}
           </a>
         {{else}}
-          <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class={{if symbols.opensymbols 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'opensymbols'}} >
-            <img src="http://www.opensymbols.org/find.png" style='height: 40px; width: 40px; margin: -20px 0;'/>
-            {{t "Opensymbols.org free symbol libraries" key='opensymbols'}}
-          </a>
-          <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class={{if symbols.twemoji 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'twemoji'}} >
+          <a href="#" style='text-align: left; padding: 14px 20px;' class={{if symbols.twemoji 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'twemoji'}} >
             <img src="https://d18vdu4p71yql0.cloudfront.net/libraries/twemoji/1f33c.svg" style='height: 40px; width: 40px; margin: -20px 0;' />
             {{t "Emoji icons (authored by Twitter)" key='twemoji'}}
           </a>
-          <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class={{if symbols.noun_project 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'noun-project'}} >
+          <a href="#" style='text-align: left; padding: 14px 20px;' class={{if symbols.noun_project 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'noun-project'}} >
             <img src="https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/News-a876209382.svg" style='width: 40px; height: 40px; margin: -20px 0;' />
             {{t "The Noun Project black outlines" key='noun_project'}}
           </a>
-          <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class={{if symbols.arasaac 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'arasaac'}} >
+          <a href="#" style='text-align: left; padding: 14px 20px;' class={{if symbols.arasaac 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'arasaac'}} >
             <img src="https://d18vdu4p71yql0.cloudfront.net/libraries/arasaac/hello_1.png" style='width: 40px; height: 40px; margin: -20px 0;' />
             {{t "ARASAAC free symbols" key='arasaac'}}
           </a>
-          <a href="#" style='text-align: left; padding: 14px 20px; margin-left: 20px;' class={{if symbols.tawasol 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'tawasol'}} >
+          <a href="#" style='text-align: left; padding: 14px 20px;' class={{if symbols.tawasol 'btn btn-lg btn-primary' 'btn btn-lg btn-default'}} {{action 'set_preference' 'preferred_symbols' 'tawasol'}} >
             <img src="https://d18vdu4p71yql0.cloudfront.net/libraries/tawasol/142-to%20hug.png" style='width: 40px; height: 40px; margin: -20px 0;' />
             {{t "Tawasol symbol library" key='tawasol'}}
           </a>
@@ -180,7 +180,7 @@
     {{else if lessonpix_but_not_allowed}}
       <p class='text-warning' style='font-size: 16px;'>{{t "NOTE: You will need to connect your LessonPix account to your CoughDrop account on your Profile page before you can use these symbols." key='lessonpix_upgrade_required'}}</p>
     {{else}}
-      <p style='font-size: 16px;'>{{t "Some communicators already have practice or experience with certain symbol libraries, and CoughDrop can automatically swap symbols in a user's boards based on what they're familiar with. If you're not sure, just leave it as whatever the board author used." key='symbols_suggestion'}}</p>
+      <p style='font-size: 16px;'>{{t "Some communicators already have practice or experience with certain symbol libraries, and CoughDrop can automatically swap symbols in a user's boards based on what they're familiar with. If you're not sure, you can just use the board's original symbols and everything will work fine." key='symbols_suggestion'}}</p>
     {{/if}}
   </div>
 </div>
