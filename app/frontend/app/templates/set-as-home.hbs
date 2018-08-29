@@ -15,15 +15,16 @@
     {{#if model.board.levels}}
       {{#if app_state.feature_flags.board_levels}}
         <label for="board_level"><strong>{{t "Communication Level" key='communication_level'}}</strong></label><br/>
+        <p class='text-muted'>{{t "This board supports multiple display levels. You can set it to a starting level that makes sense for the communicator. Don't worry, it's easy to change later." key='board_level_explainer'}}</p>
         {{bound-select select_class="form-control" select_id="board_level" content=board_levels selection=board_level action=(action (mut board_level)) }}
       {{/if}}
     {{/if}}
     {{#if owned_by_user}}
       {{#unless multiple_users}}
-        <p>{{t "Would you like to set <b>%{board_key}</b> as your home board?" key='confirm_set_as_home' board_key=model.board.key}}</p>
+        <p style='margin-top: 20px;'>{{t "Would you like to set <b>%{board_key}</b> as your home board?" key='confirm_set_as_home' board_key=model.board.key}}</p>
       {{/unless}}
     {{else}}
-      <p>
+      <p style='margin-top: 20px;'>
         {{t "This board is owned by someone else. You will probably want to make a new copy to allow for personalization and edits, but you can also just use the existing board if you don't plan to make changes." key='copy_or_keep'}}
       </p>
     {{/if}}
