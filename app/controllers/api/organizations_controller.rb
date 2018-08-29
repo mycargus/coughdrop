@@ -123,7 +123,11 @@ class Api::OrganizationsController < ApplicationController
       if params['report'].match(/recent/)
         home_connections = home_connections.where(['updated_at > ?', 3.months.ago])
       end
-      counts = home_connections.group('(parent_board_id | board_id)').count
+      counts = home_connections.group('parent_board_id').count
+      home_connections.where(parent_board_id: nil).group('board_id').count.each do |id, cnt|
+        counts[id] ||= 0
+        counts[id] += cnt
+      end
       board_ids = counts.map(&:first)
       boards = Board.where(:id => board_ids)
       boards_by_id = {}
