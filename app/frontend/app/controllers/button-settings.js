@@ -97,6 +97,8 @@ export default modal.ModalController.extend({
     this.set('board_search_type', stashes.get('last_board_search_type') || fallback);
     if(!(stashes.get('last_image_library') || "").match(/required/)) {
       this.set('image_library', stashes.get('last_image_library'));
+    } else if(app_state.get('currentUser.preferences.preferred_symbols')) {
+      this.set('image_library', app_state.get('currentUser.preferences.preferred_symbols'));
     }
     this.set('model.image_field', this.get('model.label'));
 
