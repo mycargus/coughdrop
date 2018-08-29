@@ -978,7 +978,7 @@ module Stats
       if max_core_word && max_core_word > 0
         home_board.settings['buttons'].each do |button|
           word = (button['vocalization'] || button['label'] || '').downcase
-          if max_word && (!button['load_board'] || button['link_disabled']) && !button['hidden']
+          if max_core_word && (!button['load_board'] || button['link_disabled']) && !button['hidden']
             if default_core.include?(word)
               # If there are more than 3 weeks of data and the home board core word has
               # never been used or has been used less than once every 2 weeks in the long-view

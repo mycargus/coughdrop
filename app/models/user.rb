@@ -384,7 +384,7 @@ class User < ActiveRecord::Base
         # TODO: sharding
         UserBoardConnection.find_or_create_by(:board_id => board.id, :user_id => self.id, :home => hash[:home]) do |rec|
           board_added = true
-          UserBoardConnection.where(board_id: board.id).update_all(parent_board_id: board.parent_board_id)
+          UserBoardConnection.where(board_id: rec.id).update_all(parent_board_id: rec.parent_board_id)
         end
         board.instance_variable_set('@skip_update_available_boards', true)
         # TODO: I *think* this is here because board permissions may change for
@@ -399,7 +399,7 @@ class User < ActiveRecord::Base
             UserBoardConnection.find_or_create_by(:board_id => downstream_board.id, :user_id => self.id) do |rec|
               board_added = true
               downstream_board_added = true
-              UserBoardConnection.where(board_id: downstream_board.id).update_all(parent_board_id: downstream_board.parent_board_id)
+              UserBoardConnection.where(board_id: rec.id).update_all(parent_board_id: rec.parent_board_id)
             end
             # When a user updated their home board/sidebar, all linked boards will have updated
             # tallies for popularity, home_popularity, etc.

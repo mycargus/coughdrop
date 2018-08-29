@@ -267,6 +267,7 @@ module Uploader
         end
       end
       results.each do |word, obj|
+        next unless words.include?(word)
         hash[word] = {
           'url' => obj['image_url'],
           'thumbnail_url' => obj['image_url'],

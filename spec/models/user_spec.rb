@@ -602,7 +602,8 @@ describe User, :type => :model do
       b = Board.create(:user => u)
       b2 = Board.create(:user => u)
       expect(Board).to receive(:copy_board_links_for).with(u, {:valid_ids => nil, :starting_old_board => b, :starting_new_board => b2, :authorized_user => nil, :make_public => true})
-      u.copy_board_links(old_board_id: b.global_id, new_board_id: b2.global_id, ids_to_copy: [], make_public: true)
+      res = u.copy_board_links(old_board_id: b.global_id, new_board_id: b2.global_id, ids_to_copy: [], make_public: true)
+      expect(res.keys).to eq(['affected_board_ids', 'new_board_ids'])
     end
 
     it "should use correct whodunnit user" do
@@ -630,7 +631,7 @@ describe User, :type => :model do
         expect(pending_replacements[1][0]).to eq(b1a)
         expect(action).to eq('update_inline')
       end
-      u3.copy_board_links(b1.global_id, b2.global_id, [], false, "user:#{u2.global_id}")
+      u3.copy_board_links(old_board_id: b1.global_id, new_board_id: b2.global_id, ids_to_copy: [], make_public: false, user_for_paper_trail: "user:#{u2.global_id}")
     end
     
     it "should make sub-boards public if specified" do
@@ -643,11 +644,23 @@ describe User, :type => :model do
       b1.save!
       b1.track_downstream_boards!
       b3 = b1.copy_for(u1)
-      u1.copy_board_links(b1.global_id, b3.global_id, [], true, "user:#{u1.global_id}")
+      u1.copy_board_links(old_board_id: b1.global_id, new_board_id: b3.global_id, ids_to_copy: [], make_public: true, user_for_paper_trail: "user:#{u1.global_id}")
       expect(Board.count).to eq(4)
       b4 = Board.last
       expect(b4.parent_board_id).to eq(b2.id)
       expect(b4.public).to eq(true)
+    end
+
+    it 'should swap the library images if specified' do
+      u = User.create
+      b = Board.create(:user => u)
+      b2 = Board.create(:user => u)
+      expect(Board).to receive(:copy_board_links_for).with(u, {:valid_ids => nil, :starting_old_board => b, :starting_new_board => b2, :authorized_user => nil, :make_public => false})
+      expect(Board).to receive(:find_by_path).with(b.global_id).and_return(b)
+      expect(Board).to receive(:find_by_path).with(b2.global_id).and_return(b2)
+      expect(b2).to receive(:swap_images).with('bacon', u, [b2.global_id])
+      res = u.copy_board_links(old_board_id: b.global_id, new_board_id: b2.global_id, swap_library: 'bacon')
+      expect(res['swap_library']).to eq('bacon')
     end
   end
  

@@ -237,7 +237,7 @@ describe Uploader do
       images = Uploader.find_images('bacon', 'pcs', u)
       expect(images).to eq([])
     end
-    
+
     it 'should allow searching for pcs and marking results as from a protected source' do
       res = OpenStruct.new(body: [
         {
@@ -558,6 +558,104 @@ describe Uploader do
           }
         }
       ])
+    end
+  end
+
+  describe 'default_images' do
+    it 'should to nothing on invalid library' do
+      expect(Typhoeus).to_not receive(:post)
+      res = Uploader.default_images('bacon', [], 'en', nil)
+      expect(res).to eq({})
+    end
+
+    it 'should make an API call to look for images' do
+      expect(Typhoeus).to receive(:post).with('https://www.opensymbols.org/api/v2/repositories/arasaac/defaults', body: {
+        words: ['a', 'b', 'c'],
+        locale: 'en',
+        search_token: "#{ENV['OPENSYMBOLS_TOKEN']}"
+      }.to_json, headers: { 'Accept-Encoding' => 'application/json', 'Content-Type' => 'application/json' }, timeout: 10, :ssl_verifypeer => false).and_return(OpenStruct.new({
+        body: {
+          'a' => {},
+          'b' => {},
+          'd' => {}
+         }.to_json,
+        code: 200
+      }))
+      res = Uploader.default_images('arasaac', ['a', 'b', 'c'], 'en', nil)
+      expect(res.keys).to eq(['a', 'b'])
+    end
+
+    it 'should properly format any matching results' do
+      expect(Typhoeus).to receive(:post).with('https://www.opensymbols.org/api/v2/repositories/arasaac/defaults', body: {
+        words: ['a', 'b', 'c'],
+        locale: 'en',
+        search_token: "#{ENV['OPENSYMBOLS_TOKEN']}"
+      }.to_json, headers: { 'Accept-Encoding' => 'application/json', 'Content-Type' => 'application/json' }, timeout: 10, :ssl_verifypeer => false).and_return(OpenStruct.new({
+        body: {
+          'a' => {
+            'image_url' => 'http://www.example.com/pic.png',
+            'content_type' => 'image/png',
+            'width' => 200,
+            'height' => 200,
+            'id' => 'aaaa',
+            'license' => 'private',
+            'license_url' => 'http://www.example.com/license',
+            'source_url' => 'http://www.example.com/pic',
+            'author' => 'bob',
+            'author_url' => 'http://www.example.com/bob'
+          },
+          'b' => {
+            'image_url' => 'http://www.example.com/pic2.png',
+            'extension' => '.png',
+            'width' => 300,
+            'height' => 300,
+            'id' => 'bbbb'
+          },
+          'd' => {}
+         }.to_json,
+        code: 200
+      }))
+      res = Uploader.default_images('arasaac', ['a', 'b', 'c'], 'en', nil)
+      expect(res).to eq({
+        'a' => {"url"=>"http://www.example.com/pic.png", "thumbnail_url"=>"http://www.example.com/pic.png", "content_type"=>"image/png", "width"=>200, "height"=>200, "external_id"=>"aaaa", "public"=>true, "protected"=>false, "protected_source"=>nil, "license"=>{"type"=>"private", "copyright_notice_url"=>"http://www.example.com/license", "source_url"=>"http://www.example.com/pic", "author_name"=>"bob", "author_url"=>"http://www.example.com/bob", "uneditable"=>true}},
+        'b' => {"url"=>"http://www.example.com/pic2.png", "thumbnail_url"=>"http://www.example.com/pic2.png", "content_type"=>"image/png", "width"=>300, "height"=>300, "external_id"=>"bbbb", "public"=>true, "protected"=>false, "protected_source"=>nil, "license"=>{"type"=>nil, "copyright_notice_url"=>nil, "source_url"=>nil, "author_name"=>nil, "author_url"=>nil, "uneditable"=>true}}
+      })
+    end
+
+    it 'should not send premium library token if not enabled' do
+      u = User.create
+      expect(Typhoeus).to receive(:post).with('https://www.opensymbols.org/api/v2/repositories/pcs/defaults', body: {
+        words: ['a', 'b', 'c'],
+        locale: 'en',
+        search_token: "#{ENV['OPENSYMBOLS_TOKEN']}"
+      }.to_json, headers: { 'Accept-Encoding' => 'application/json', 'Content-Type' => 'application/json' }, timeout: 10, :ssl_verifypeer => false).and_return(OpenStruct.new({
+        body: {}.to_json,
+        code: 200
+      }))
+      res = Uploader.default_images('pcs', ['a', 'b', 'c'], 'en', u)
+      expect(res.keys).to eq([])
+    end
+
+    it 'should search premium libraries if enabled' do
+      u = User.create
+      User.purchase_extras({
+        'user_id' => u.global_id,
+        'source' => 'admin_override'
+      })
+      expect(Typhoeus).to receive(:post).with('https://www.opensymbols.org/api/v2/repositories/pcs/defaults', body: {
+        words: ['a', 'b', 'c'],
+        locale: 'en',
+        search_token: "#{ENV['OPENSYMBOLS_TOKEN']}:pcs"
+      }.to_json, headers: { 'Accept-Encoding' => 'application/json', 'Content-Type' => 'application/json' }, timeout: 10, :ssl_verifypeer => false).and_return(OpenStruct.new({
+        body: {
+          'a' => {},
+          'b' => {},
+          'd' => {}
+         }.to_json,
+        code: 200
+      }))
+      res = Uploader.default_images('pcs', ['a', 'b', 'c'], 'en', u.reload)
+      expect(res.keys).to eq(['a', 'b'])
     end
   end
 

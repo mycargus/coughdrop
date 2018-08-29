@@ -2158,6 +2158,66 @@ describe Board, :type => :model do
       res = b.swap_images('bacon', u, [])
       expect(res).to eq({done: true, library: 'bacon', board_ids: [], updated: [b.global_id], visited: [b.global_id]})
     end
+
+    it 'should do nothing when asking for premium images but not enabled' do
+      u = User.create
+      b = Board.create(:user => u)
+      b.settings['buttons'] = [
+        {'id' => 1, 'label' => 'hats', 'image_id' => 'whatever'},
+        {'id' => 2, 'label' => 'cats', 'image_id' => 'another'}
+      ]
+      b.save
+      res = b.swap_images('pcs', u, [])
+      expect(res).to eq({done: true, swapped: false, reason: "not authorized to access premium library"})
+    end
+
+    it 'should look up default images for a quicker lookup process' do
+      u = User.create
+      b = Board.create(:user => u)
+      b.settings['buttons'] = [
+        {'id' => 1, 'label' => 'hats', 'image_id' => 'whatever'},
+        {'id' => 2, 'label' => 'cats', 'image_id' => 'another'}
+      ]
+      b.save
+      expect(Uploader).to receive(:default_images).with('bacon', ['hats', 'cats'], 'en', u).and_return({
+        'cats' => {
+          'url' => 'http://www.example.com/pic.png',
+          'content_type' => 'image/png'
+        }
+      })
+      expect(Uploader).to receive(:find_images).with('hats', 'bacon', u).and_return([])
+      expect(Uploader).to_not receive(:find_images).with('cats', 'bacon', u)
+      res = b.swap_images('bacon', u, [])
+      expect(res).to eq({done: true, library: 'bacon', board_ids: [], updated: [b.global_id], visited: [b.global_id]})
+    end
+
+    it 'should skip keyboard boards if specified' do
+      u = User.create
+      b = Board.create(:user => u)
+      b2 = Board.create(:user => u, :key => "#{u.user_name}/keyboard")
+      b3 = Board.create(:user => u)
+      b.process({'buttons' => [
+        {'id' => 1, 'label' => 'cats', 'load_board' => {'id' => b2.global_id, 'key' => b2.key}}
+      ]}, {user: u})
+      b2.process({'buttons' => [
+        {'id' => 2, 'label' => 'hats', 'load_board' => {'id' => b3.global_id, 'key' => b3.key}}
+      ]}, {user: u})
+      b3.process({'buttons' => [
+        {'id' => 3, 'label' => 'flats'}
+      ]}, {user: u})
+      Worker.process_queues
+      expect(b.reload.settings['downstream_board_ids']).to eq([b2.global_id, b3.global_id])
+      expect(b2.reload.settings['downstream_board_ids']).to eq([b3.global_id])
+      
+      expect(Uploader).to_not receive(:find_images).with('hats', 'bacon', u)
+      expect(Uploader).to receive(:find_images).with('cats', 'bacon', u).and_return([{
+        'url' => 'http://www.example.com/cat.png', 'content_type' => 'image/png'
+      }])
+      expect(Uploader).to_not receive(:find_images).with('flats', 'bacon', u)
+      list = [b.global_id, b2.global_id, b3.global_id]
+      list.instance_variable_set('@skip_keyboard', true)
+      res = b.swap_images('bacon', u, list)
+    end
     
     it 'should not error on buttons with no images' do
       u = User.create

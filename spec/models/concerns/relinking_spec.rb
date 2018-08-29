@@ -411,7 +411,7 @@ describe Relinking, :type => :model do
       expect(leave_alone.reload.child_boards.count).to eq(0)
       expect(old.reload.child_boards.count).to eq(1)
     end
-    
+
     it "should traverse all the way upstream" do
       u = User.create
       level0 = Board.create(:user => u, :public => true, :settings => {'name' => 'level0'})
