@@ -25,6 +25,7 @@ export default modal.ModalController.extend({
   },
   libraries: function() {
     var res = [];
+    res.push({id: 'opensymbols', name: i18n.t('opensymbols', 'OpenSymbols.org')});
     res.push({id: 'arasaac', name: i18n.t('arasaac', 'ArasAAC')});
     res.push({id: 'twemoji', name: i18n.t('twemoji', 'Twitter Emoji')});
     res.push({id: 'noun-project', name: i18n.t('noun_project', 'Noun Project')});
