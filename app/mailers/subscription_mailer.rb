@@ -22,8 +22,8 @@ class SubscriptionMailer < ActionMailer::Base
     d = @user.devices[0]
     ip = d && d.settings['ip_address']
     @location = nil
-    if ip
-      url = "http://freegeoip.net/json/#{ip}"
+    if ip && ENV['IPSTACK_KEY']
+      url = "http://api.ipstack.com/#{ip}?access_key=#{ENV['IPSTACK_KEY']}"
       begin
         res = Typhoeus.get(url)
         json = JSON.parse(res.body)
