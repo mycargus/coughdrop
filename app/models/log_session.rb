@@ -313,7 +313,16 @@ class LogSession < ActiveRecord::Base
       self.data['stats']['session_seconds'] = (self.ended_at - self.started_at).to_i
       self.data['events'].each do |event|
         self.data['stats']['modeling_events'] ||= 0
-        self.data['stats']['modeling_events'] += 1 if event['modeling']
+        if event['modeling']
+          self.data['stats']['modeling_events'] += 1 
+          modeling_user_id = event['session_user_id']
+          modeling_user_id ||= self.related_global_id(self.author_id) if self.author_id != self.user_id
+          modeling_user_id ||= self.related_global_id(self.user_id)
+          self.data['stats']['modeling_user_ids'] ||= {}
+          self.data['stats']['modeling_user_ids'][modeling_user_id] ||= 0
+          self.data['stats']['modeling_user_ids'][modeling_user_id] += 1
+          self.data['stats']
+        end
         self.data['stats']['system'] ||= event['system']
         self.data['stats']['browser'] ||= event['browser']
         self.data['stats']['window_width'] ||= event['window_width'] if event['window_width'] && event['window_width'] > 0

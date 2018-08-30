@@ -528,6 +528,21 @@ describe LogSession, :type => :model do
       expect(day['modeled_core_words']).to eq({'not_core' => 1})
       expect(day['modeled_parts_of_speech']).to eq({'other' => 1})
     end
+
+    it 'should track modeling user id tallies' do
+      u = User.create
+      d = Device.create
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'modeling' => true, 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 5},
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 3},
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 1},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      
+      day = s1.data['stats']
+      expect(day['modeling_events']).to eq(1)
+      expect(day['modeling_user_ids'][u.global_id]).to eq(1)
+    end
     
     it "should not include modeling events in regular stats" do
       u = User.create

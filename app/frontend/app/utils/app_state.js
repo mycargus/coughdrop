@@ -1025,6 +1025,7 @@ var app_state = EmberObject.extend({
       stashes.set('logging_enabled', !!(this.get('speak_mode') && this.get('currentUser.preferences.logging')));
       stashes.set('geo_logging_enabled', !!(this.get('speak_mode') && this.get('currentUser.preferences.geo_logging')));
       stashes.set('speaking_user_id', this.get('currentUser.id'));
+      stashes.set('session_user_id', this.get('sessionUser.id'));
 
       var geo_enabled = app_state.get('currentUser.preferences.geo_logging') || app_state.get('sidebar_boards').find(function(b) { return b.highlight_type == 'locations' || b.highlight_type == 'custom'; });
       if(geo_enabled) {

@@ -313,6 +313,7 @@ module Stats
       :total_words => 0,
       :unique_words => 0,
       :modeled_words => 0,
+      :modeling_user_names => {},
       :words_by_frequency => [],
       :buttons_by_frequency => [],
       :modeled_words_by_frequency => [],
@@ -339,6 +340,12 @@ module Stats
     all_locations = nil
     goals = {}
     button_chains = {}
+
+    user_id_map = {}
+    user_ids = stats_list.map{|s| (s[:modeling_user_ids] || s['modeling_user_ids'] || {}).keys}.flatten.uniq
+    User.find_all_by_global_id(user_ids).each do |user|
+      user_id_map[user.global_id] = user.user_name
+    end
 
     stats_list.each do |stats|
       stats = stats.with_indifferent_access
@@ -386,6 +393,16 @@ module Stats
       (stats[:modeled_word_counts] || {}).each do |word, cnt|
         modeled_word_counts[word.downcase] ||= 0
         modeled_word_counts[word.downcase] += cnt
+      end
+      if stats[:modeling_user_ids]
+        stats[:modeling_user_ids].each do |user_id, count|
+          user_name = user_id_map[user_id] || 'unknown'
+          res[:modeling_user_names][user_name] ||= 0
+          res[:modeling_user_names][user_name] += count
+        end
+      elsif stats[:modeled_button_counts]
+        res[:modeling_user_names]['unknown'] ||= 0
+        res[:modeling_user_names]['unknown'] += stats[:modeled_button_counts].to_a.map{|ref, button| button['count'] || 0 }.sum
       end
       if stats[:all_word_sequence]
 #        all_word_sequences << stats[:all_word_sequence].join(' ')
@@ -551,6 +568,17 @@ module Stats
           stats[:modeled_word_counts][word.downcase] ||= 0
           stats[:modeled_word_counts][word.downcase] += cnt
         end
+        user_ids = session.data['stats']['modeling_user_ids']
+        if !user_ids
+          user_ids = {}
+          count = session.data['modeled_events'] || session.data['stats']['modeled_button_counts'].map{|ref, button| button['count'] || 0 }.sum
+          user_ids[session.related_global_id(session.author_id || session.user_id)] = count
+        end
+        user_ids.each do |user_id, count|
+          stats[:modeling_user_ids][user_id] ||= 0
+          stats[:modeling_user_ids][user_id] += count
+        end
+
         if session.data['goal']
           goal = session.data['goal']
           stats[:goals] ||= {}
@@ -609,6 +637,10 @@ module Stats
           total_stats[:modeled_word_counts][word.downcase] ||= 0
           total_stats[:modeled_word_counts][word.downcase] += cnt
         end
+        (stats[:modeling_user_ids] || {}).each do |user_id, cnt|
+          total_stats[:modeling_user_ids][user_id] ||= 0
+          total_stats[:modeling_user_ids][user_id] += cnt
+        end
         (stats[:goals] || {}).each do |id, goal|
           total_stats[:goals] ||= {}
           total_stats[:goals][id] ||= {
@@ -652,6 +684,7 @@ module Stats
     stats[:all_word_sequences] = []
     stats[:modeled_button_counts] = {}
     stats[:modeled_word_counts] = {}
+    stats[:modeling_user_ids] = {}
     stats[:device] = {
       :access_methods => {},
       :voice_uris => {},

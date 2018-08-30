@@ -364,6 +364,7 @@ describe Stats do
       expect(res[:total_words]).to eq(3)
       expect(res[:modeled_buttons]).to eq(3)
       expect(res[:modeled_words]).to eq(5)
+      expect(res[:modeling_user_names]).to eq({'no-name' => 3})
       
       expect(res[:days].length).to eq(4)
       day = res[:days][Date.today.to_s]

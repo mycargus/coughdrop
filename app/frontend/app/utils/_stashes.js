@@ -275,7 +275,7 @@ var stashes = EmberObject.extend({
       }, '*');
     }
   },
-  log_event: function(obj, user_id) {
+  log_event: function(obj, user_id, session_user_id) {
     var timestamp = stashes.current_timestamp();
     var geo = null;
     if(stashes.geo && stashes.get('geo.latest') && stashes.get('geo_logging_enabled')) { // TODO: timeout if it's been too long?
@@ -352,13 +352,13 @@ var stashes = EmberObject.extend({
       if(stashes.screen_brightness) {
         log_event.screen_brightness = stashes.screen_brightness;
       }
-      if(stashes.get('referenced_user_id')) {
-        log_event.referenced_user_id = stashes.get('referenced_user_id');
-      }
       if(stashes.get('modeling') || (log_event.button && log_event.button.modeling)) {
         log_event.modeling = true;
       } else if(stashes.last_selection && stashes.last_selection.modeling && stashes.last_selection.ts > ((new Date()).getTime() - 500)) {
         log_event.modeling = true;
+      }
+      if(log_event.modeling && session_user_id && session_user_id != user_id) {
+        log_event.session_user_id = session_user_id;
       }
       log_event.window_width = window.outerWidth;
       log_event.window_height= window.outerHeight;
@@ -462,7 +462,7 @@ var stashes = EmberObject.extend({
     if(stashes.get('referenced_speak_mode_user_id')) {
       user_id = stashes.get('referenced_speak_mode_user_id');
     }
-    return stashes.log_event(obj, user_id);
+    return stashes.log_event(obj, user_id, stashes.get('session_user_id'));
   },
   push_log: function(only_if_convenient) {
     var usage_log = stashes.get('usage_log');
