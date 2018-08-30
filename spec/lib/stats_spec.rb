@@ -23,6 +23,7 @@ describe Stats do
         :modeled_buttons => 0,
         :modeled_words => 0,
         :modeled_session_events => {},
+        :modeling_user_names => {},
         :total_words => 0,
         :unique_words => 0,
         :touch_locations => {},

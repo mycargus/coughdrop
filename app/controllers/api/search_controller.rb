@@ -112,12 +112,12 @@ class Api::SearchController < ApplicationController
     Rails.logger.warn("proxying #{params['url']}")
     uri ||= URI.parse(URI.escape(params['url']))
     # TODO: add timeout for slow requests
-    request = Typhoeus::Request.new(uri.to_s, followlocation: true, follow_location: true)
+    request = Typhoeus::Request.new(uri.to_s, followlocation: true)
     begin
       content_type, body = get_url_in_chunks(request)
       if content_type == 'redirect'
         uri = URI.parse(body)
-        request = Typhoeus::Request.new(uri.to_s, followlocation: true, follow_location: true)
+        request = Typhoeus::Request.new(uri.to_s, followlocation: true)
         content_type, body = get_url_in_chunks(request)
       end
     rescue BadFileError => e

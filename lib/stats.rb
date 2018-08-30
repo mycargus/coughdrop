@@ -571,7 +571,7 @@ module Stats
         user_ids = session.data['stats']['modeling_user_ids']
         if !user_ids
           user_ids = {}
-          count = session.data['modeled_events'] || session.data['stats']['modeled_button_counts'].map{|ref, button| button['count'] || 0 }.sum
+          count = session.data['modeled_events'] || (session.data['stats']['modeled_button_counts'] || []).map{|ref, button| button['count'] || 0 }.sum
           user_ids[session.related_global_id(session.author_id || session.user_id)] = count
         end
         user_ids.each do |user_id, count|
