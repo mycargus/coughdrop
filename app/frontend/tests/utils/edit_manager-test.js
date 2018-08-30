@@ -2525,6 +2525,10 @@ describe('editManager', function() {
       });
     });
 
+    it('should include the swap_library if specified', function() {
+      expect('test').toEqual('todo');
+    });
+
     it("should return the newly-created board in the copy_board promise resolution", function() {
       app_state.set('currentBoardState', {id: '1_1'});
       stub(modal, 'flash', function() { });
