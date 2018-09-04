@@ -10,6 +10,7 @@ module JsonApi::Image
     json['id'] = image.global_id
     json['url'] = image.best_url
     settings = image.settings
+    settings['protected_source'] ||= 'lessonpix' if settings['license'] && settings['license']['source_url'] && settings['license']['source_url'].match(/lessonpix/)
     protected_source = !!image.protected?
     allowed_sources = args[:allowed_sources]
     allowed_sources ||= args[:permissions] && args[:permissions].enabled_protected_sources
