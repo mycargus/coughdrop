@@ -527,8 +527,9 @@ export default Controller.extend({
         }
       });
     });
-    return levels.uniq().sort();
-  }.property('ordered_buttons.@each.level_modifications'),
+    this.set('levels_change', false);
+    return levels.uniq().sort(function(a, b) { return a - b; });
+  }.property('ordered_buttons.@each.level_modifications', 'levels_change'),
   preview_levels: function() {
     return this.get('app_state.edit_mode') && this.get('preview_levels_mode');
   }.property('app_state.edit_mode', 'preview_levels_mode'),

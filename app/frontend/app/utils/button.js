@@ -206,6 +206,20 @@ var Button = EmberObject.extend({
       return null;
     }
   }.property('level_modifications'),
+  apply_level: function(level) {
+    var mods = this.get('level_modifications') || {};
+    var _this = this;
+    var keys = ['pre'];
+    for(var idx = 0; idx <= level; idx++) { keys.push(idx); }
+    keys.push('override');
+    keys.forEach(function(key) {
+      if(mods[key]) {
+        for(var attr in mods[key]) {
+          _this.set(attr, mods[key][attr]);
+        }
+      }
+    });
+  },
   fast_html: function() {
     var res = "";
     if(this.get('board.display_level') && this.get('level_modifications')) {

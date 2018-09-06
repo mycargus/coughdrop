@@ -426,7 +426,8 @@ var editManager = EmberObject.extend({
     } else if(fill_color == 'level') {
       this.paint_mode = {
         level: border_color,
-        attribute: part_of_speech
+        attribute: part_of_speech,
+        paint_id: Math.random()
       };
     } else {
       var fill = window.tinycolor(fill_color);
@@ -465,7 +466,16 @@ var editManager = EmberObject.extend({
     if(this.controller) {
       this.controller.set('preview_levels_mode', false);
       this.controller.set('preview_level', null);
-      this.process_for_displaying();
+      this.apply_preview_level(10);
+    }
+  },
+  apply_preview_level: function(level) {
+    if(this.controller) {
+      this.controller.get('ordered_buttons').forEach(function(row) {
+        row.forEach(function(button) {
+          button.apply_level(level);
+        });
+      });
     }
   },
   release_stroke: function() {
@@ -504,7 +514,11 @@ var editManager = EmberObject.extend({
         }
         mods[level] = mods[level] || {};
         mods[level].hidden = false;
-        emberSet(button, 'level_modifications', mods);
+        Button.set_attribute(button, 'level_modifications', mods);
+//        emberSet(button, 'level_modifications', mods);
+        // TODO: controller/boards/index#button_levels wasn't picking up this
+        // change automatically, had to add explicit notification, not sure why
+        editManager.controller.set('levels_change', true);
       } else if(this.paint_mode.level == 'link_disabled' && this.paint_mode.attribute) {
         mods.pre.link_disabled = true;
         for(var idx in mods) {

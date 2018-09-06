@@ -488,7 +488,7 @@ export default Controller.extend({
         }
         this.set('board.preview_level', new_level);
         this.set('board.model.display_level', new_level);
-        editManager.process_for_displaying();
+        editManager.apply_preview_level(new_level);
       } else if(direction == 'up') {
         var lvl = Math.min(10, (this.get('board.current_level') || 10) + 1);
         var new_level = null;
@@ -497,7 +497,7 @@ export default Controller.extend({
         }
         this.set('board.preview_level', new_level);
         this.set('board.model.display_level', new_level);
-        editManager.process_for_displaying();
+        editManager.apply_preview_level(new_level);
       }
     },
     list_copies: function() {
