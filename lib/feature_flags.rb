@@ -4,13 +4,10 @@ module FeatureFlags
               'video_recording', 'goals', 'app_connections', 'translation', 'geo_sidebar',
               'modeling', 'edit_before_copying', 'core_reports', 'lessonpix',
               'audio_recordings', 'fast_render', 'badge_progress', 'board_levels', 'premium_symbols']
-  # NOTE: chrome filesystem has a different expiration policy than the datastore, and
-  # it appears to be more aggressive, so it is probably not a good solution. At least,
-  # that's how it seems after having it enabled on the windows app. Removed as a flag.
   ENABLED_FRONTEND_FEATURES = ['subscriptions', 'assessments', 'custom_sidebar', 'snapshots',
               'video_recording', 'goals', 'modeling', 'geo_sidebar', 'edit_before_copying',
               'core_reports', 'lessonpix', 'translation', 'fast_render',
-              'audio_recordings', 'app_connections', 'enable_all_buttons']
+              'audio_recordings', 'app_connections', 'enable_all_buttons', 'badge_progress']
   DISABLED_CANARY_FEATURES = []
   FEATURE_DATES = {
     'word_suggestion_images' => 'Jan 21, 2017',
