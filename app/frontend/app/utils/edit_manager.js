@@ -868,7 +868,6 @@ var editManager = EmberObject.extend({
               external_id: image.id,
               license: license
             };
-
             var save = contentGrabbers.pictureGrabber.save_image_preview(preview);
 
             save.then(function(image) {
