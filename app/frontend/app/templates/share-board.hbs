@@ -36,7 +36,7 @@
       </div>
     {{else}}
       <p>{{t "This board is private, only shared users, supervisors and admins can see it." key='board_is_private_limited_users'}}</p>
-      {{#if board.protected_material}}
+      {{#if board.no_sharing}}
         <p>{{t "This board contains protected material, and can't be made public. However, you can share it with other users who have purchased access to the same content." key='protected_material_shareable'}}</p>
       {{else if board.permissions.edit}}
         {{#if error_confirming_public_board}}
@@ -44,6 +44,9 @@
         {{/if}}
         {{#if confirm_public_board}}
           <p>{{t "Are you sure you want to make this board public? Anyone will be able to search for and see it. This is not recommended for boards containing any personal information." key='confirm_make_public'}}</p>
+          {{#if board.protected_material}}
+            <p class='text-warning'>{{t "NOTE: This board has premium content, any users who access it without the same premium access will see free alternatives instead." key='protected_material_reminder'}}</p>
+          {{/if}}
           <button class='btn btn-default' {{action 'make_public' 'confirm'}}>{{t "Make the Board Public" key='make_it_public'}}</button>
           <button class='btn btn-default' {{action 'make_public' 'cancel'}}>{{t "Cancel" key='cancel'}}</button>
         {{else}}

@@ -76,6 +76,9 @@
         </div>
       {{/if}}
     {{/if}}
+    {{#if board.protected_material}}
+      <p class='text-warning'>{{t "NOTE: This board has premium content, any users who access it without the same premium access will see free alternatives instead." key='premium_content_reminder'}}</p>
+    {{/if}}
   </div>
   <div class="modal-footer">
     {{#if home_board}}

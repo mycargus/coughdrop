@@ -981,7 +981,7 @@ var pictureGrabber = EmberObject.extend({
         height: data.height,
         external_id: preview.external_id,
         search_term: preview.search_term,
-        button_label: label,
+        button_label: label || preview.suggestion,
         license: preview.license,
         protected: preview.protected,
         protected_source: preview.protected_source,

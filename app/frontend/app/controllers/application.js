@@ -39,16 +39,20 @@ export default Controller.extend({
       modal.error(i18n.t('need_online_for_copying', "You must be connected to the Internet to make copies of boards."));
       return RSVP.reject();
     }
-    if(oldBoard.get('protected_material')) {
-      modal.error(i18n.t('cant_copy_protected_boards', "This board contains purchased content, and can't be copied."));
-      return RSVP.reject();
-    }
     // If a board has any sub-boards or if the current user has any supervisees,
     // or if the board is in the current user's board set,
     // then there's a confirmation step before copying.
 
     // ALSO ask if copy should be public, if the source board is public
     var needs_decision = (oldBoard.get('linked_boards') || []).length > 0;
+    if(oldBoard.get('protected_material')) {
+      if(oldBoard.get('no_sharing')) {
+        modal.error(i18n.t('cant_copy_protected_boards', "This board contains purchased content which can't be copied."));
+        return RSVP.reject();
+      } else {
+        needs_decision = true;
+      }
+    }
     var _this = this;
     needs_decision = needs_decision || (app_state.get('currentUser.supervisees') || []).length > 0;
     needs_decision = needs_decision || (app_state.get('currentUser.stats.board_set_ids') || []).indexOf(oldBoard.get('id')) >= 0;
