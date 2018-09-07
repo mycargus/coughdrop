@@ -168,6 +168,7 @@ export default Controller.extend({
           modal.notice(i18n.t('already_temporary_home', "This board was set as the home board temporarily. To cancel hit the icon in the top right corner and select 'Release Home Lock'."), true);
         } else {
           modal.notice(i18n.t('already_home', "You are already on the home board. To exit Speak Mode hit the icon in the top right corner."), true);
+          this.send('highlight_button');
         }
       } else {
         if(stashes.get('sticky_board') && app_state.get('speak_mode')) {
