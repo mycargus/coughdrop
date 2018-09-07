@@ -3713,7 +3713,7 @@ body:-ms-fullscreen {
 }
  
 
-@media (min-width: 875px) {
+@media (min-width: 915px) {
   h1 span, h1 span.label {
     display: inline;
   }
@@ -3921,6 +3921,11 @@ body:-ms-fullscreen {
 .really_skinny {
   display: none;
 }
+@media (max-width: 450px) {
+  .not_pretty_skinny {
+    display: none;
+  }
+}
 @media (max-width: 400px) {
   .really_skinny {
     display: inline;
@@ -3937,7 +3942,7 @@ body:-ms-fullscreen {
   }
 }
 
-@media (min-width: 768px) {
+@media (min-width: 790px) {
   #header_line_2 {
     display: block;
   }
