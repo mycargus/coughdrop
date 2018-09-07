@@ -259,7 +259,7 @@ CoughDrop.Buttonset = DS.Model.extend({
             } else if(a.label.toLowerCase() < b.label.toLowerCase()) {
               return -1;
             } else {
-              return 0;
+              return (a.current_depth || 0) - (b.current_depth || 0);
             }
           }
         }

@@ -2283,9 +2283,10 @@ $(document).on('change', '#image_upload,#sound_upload,#board_upload,#avatar_uplo
 }).on('drop', function(event) {
   event.preventDefault();
   event.stopPropagation();
-  if($(event.target).closest('.button').length > 0) {
+  var $button = $(event.target).closest('.button');
+  if($button.length > 0) {
     $('.button.drop_target').removeClass('drop_target');
-    var id = $(this).attr('data-id');
+    var id = $button.attr('data-id');
     contentGrabbers.content_dropped(id, event.dataTransfer);
   } else if(document.getElementById('find_picture')) {
     if(pictureGrabber.controller.get('model.id')) {
