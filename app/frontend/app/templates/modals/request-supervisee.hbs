@@ -1,0 +1,35 @@
+{{#modal-dialog action="close" opening='opening' closing='closing'}}
+  <div class="modal-header">
+    <button type="button" class="close" {{action 'close'}}>&times;</button>
+    <h3>
+      {{t "Request User Access" key='request_user_access'}}
+    </h3>
+  </div>
+  <div class="modal-body">
+    {{#if app_state.currentUser.supervisor_role}}
+      {{#if app_state.currentUser.managing_supervision_orgs}}
+        <p class='text-warning'>{{t "NOTE: Your account is tied to a CoughDrop organization. Before you add yourself as a supervisor to communicators in your organization, check with your administrator to see if it would be better to add you to the communicator's room instead." key='check_for_room_org'}}</p>
+      {{/if}}
+      <p>{{t "</p>
+    {{else}}
+      <p>{{t "You are not signed up as a supervisor, and so cannot request to be added as a supervisor for another user." key='not_supervisor'}}</p>
+    {{/if}}
+    <p>
+      {{#unless model.status.errored}}
+        <img src="{{path 'images/spinner.gif'}}" style="float: left; padding-right: 15px;"/>
+      {{/unless}}
+      {{#if model.status.errored}}
+        {{t "There was an error importing your logs. Please make sure you uploaded a valid file and try again." key='bad_logs_import'}}
+      {{else}}
+        {{#if model.status.finished}}
+          {{t "Import finished!" key='import_board_finished'}}
+        {{else}}
+          {{t "Importing logs, this could take a few minutes..." key='importing_logs_please_wait'}}
+        {{/if}}
+      {{/if}}
+    </p>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn" {{action 'close'}}>{{t "Close" key='close'}}</a>
+  </div>
+{{/modal-dialog}}
