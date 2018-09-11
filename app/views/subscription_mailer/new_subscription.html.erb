@@ -19,6 +19,9 @@ Plan: <%= @subscription['plan_id'] %>
 <% if @user.settings['subscription'] && @user.settings['subscription']['purchase_amount'] %>
 Purchase Amount: $<%= @user.settings['subscription']['purchase_amount'] %><br/>
 <% end %>
+<% if @user.subscription_hash['extras_enabled'] %>
+Extras: Purchased Premium Symbols
+<% end %>
 <% if @user.settings['subscription'] && @user.settings['subscription']['discount_code'] %>
 Discount Code: <%= @user.settings['subscription']['discount_code'] %>
 <% end %>
