@@ -204,7 +204,7 @@ CoughDrop.Board = DS.Model.extend({
     return result;
   }.property('grid', 'buttons'),
   levels: function() {
-    return !!this.get('buttons').find(function(b) { return b.level_modifications; });
+    return !!(this.get('buttons') || []).find(function(b) { return b.level_modifications; });
   }.property('buttons.@each.level_modifications'),
   has_overrides: function() {
     return !!this.get('buttons').find(function(b) { return b.level_modifications && b.level_modifications.override; });
