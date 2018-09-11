@@ -61,6 +61,156 @@ CoughDrop.Buttonset = DS.Model.extend({
     }
     return count;
   },
+  redepth: function(from_board_id) {
+    var buttons = this.get('buttons') || [];
+    var new_buttons = [];
+    var boards_to_check = [{id: from_board_id, depth: 0}];
+    var found_boards = [];
+    var check_button = function(b) {
+      if(b.board_id == board_to_check.id) {
+        var new_b = $.extend({}, b, {depth: board_to_check.depth});
+        new_buttons.push(new_b);
+        if(b.linked_board_id && found_boards.indexOf(b.linked_board_id) == -1) {
+          found_boards.push(b.linked_board_id);
+          boards_to_check.push({id: b.linked_board_id, depth: board_to_check.depth + 1});
+        }
+      }
+    };
+    while(boards_to_check.length > 0) {
+      var board_to_check = boards_to_check.shift();
+      buttons.forEach(CoughDrop.Buttonset.check_button);
+      // make sure to keep the list breadth-first!
+      boards_to_check.sort(function(a, b) { return b.depth - a.depth; });
+    }
+    buttons = new_buttons;
+
+  },
+  find_sequence: function(str, from_board_id, user, include_home_and_sidebar) {
+    if(str.length === 0) { return RSVP.resolve([]); }
+    var query = str.toLowerCase();
+    var buttons = this.get('buttons') || [];
+    var images = CoughDrop.store.peekAll('image');
+
+    var partial_matches = [];
+    var all_buttons_enabled = true;
+    var parts = query.split(/\s+/);
+    var cnt = 0;
+
+    // check each button individually
+    buttons.forEach(function(button, idx) {
+      var lookups = [button.label, button.vocalization];
+      var found_some = false;
+      // check for a match on either the label or vocalization
+      lookups.forEach(function(label) {
+        if(found_some || !label) { return true; }
+        var label_parts = label.toLowerCase().split(/\s+/);
+        var jdx = 0;
+        var running_totals = [];
+        var total_edit_distance = 0;
+        // iterate through all the parts of the query, looking for
+        // any whole or partial matches
+        parts.forEach(function(part, jdx) {
+          // compare the first word in the button label
+          // with each word in the query
+          running_totals.push({
+            keep_looking: true,
+            start_part: jdx,
+            next_part: jdx,
+            label_part: 0,
+            total_edit_distance: 0
+          });
+          running_totals.forEach(function(tot) {
+            // if the label is still matching along the query
+            // from where it started to the end of the label,
+            // then add it as a partial match
+            if(tot.keep_looking && tot.next_part == jdx) {
+              if(!label_parts[tot.label_part]) {
+                // if the label is done, but there's more words
+                // in the query, we have a partial match
+              } else {
+                // if we're not outside the bounds for edit
+                // distance, keep going for this starting point
+                var distance = word_suggestions.edit_distance(part, label_parts[tot.label_part]);
+                if(distance < Math.max(part.length, label_parts[tot.label_part].length) * 0.75) {
+                  tot.label_part++;
+                  tot.next_part++;
+                  tot.total_edit_distance = tot.total_edit_distance + distance;
+                } else {
+                  tot.keep_looking = false;
+                }
+              }
+              if(!label_parts[tot.label_part]) {
+                // if we got to the end of the label, we have a 
+                // partial match, otherwise there was more to 
+                // the label when the query ended, so no match
+                tot.valid = true;
+                tot.keep_looking = false;
+              }
+            }
+          });
+        });
+        var matches = running_totals.filter(function(tot) { return tot.valid && tot.label_part == label_parts.length; });
+        matches.forEach(function(match) {
+          found_some = true;
+          partial_matches.push({
+            total_edit_distance: match.total_edit_distance,
+            text: label,
+            part_start: match.start_part,
+            part_end: match.next_part,
+            button: button
+          });
+        });
+      });
+    });
+    partial_matches = partial_matches.sort(function(a, b) { 
+      if(a.total_edit_distance == b.total_edit_distance) {
+        return a.button.depth - b.button.depth;
+      }
+      return a.total_edit_distance - b.total_edit_distance; 
+    });
+
+    // Include sidebar and home boards if specified
+
+    // Check all permutations, score for shortest access distance
+    // combined with shorted edit distance
+    var combos = [{text: "", next_part: 0, steps: [], total_edit_distance: 0, total_steps: 0}];
+    // for 1 part, include 30-50 matches
+    // for 2 parts, include 20 matches per level
+    // for 3 parts, include 10 matches per level
+    // for 4 parts, include 5 matches per level
+    // for 5 parts, include 3 matches per level
+    var matches_per_level = Math.floor(Math.max(3, Math.min(1 / Math.log(parts.length / 1.4 - 0.17) * Math.log(100), 50)));
+    parts.forEach(function(part, part_idx) {
+      var starters = partial_matches.filter(function(m) { return m.part_start == part_idx; });
+      starters = starters.slice(0, matches_per_level);
+      var new_combos = [];
+      combos.forEach(function(combo) {
+        if(combo.next_part == part_idx) {
+          starters.forEach(function(starter) {
+            var dup = $.extend({}, combo);
+            dup.steps = [].concat(dup.steps);
+            dup.steps.push(starter.button);
+            dup.text = dup.text + (dup.text == "" ? "" : " ") + starter.text;
+            dup.next_part = part_idx + (starter.part_end - starter.part_start);
+            dup.total_edit_distance = dup.total_edit_distance + starter.total_edit_distance;
+            dup.total_steps = dup.total_steps + starter.button.depth;
+            new_combos.push(dup);
+          });
+        } else {
+          new_combos.push(combo);
+        }
+      });
+      combos = new_combos;
+    });
+    combos = combos.sort(function(a, b) {
+      var a_score = a.total_edit_distance + (a.total_steps * 3);
+      if(a.total_edit_distance == 0) { a_score = a_score / 5; }
+      var b_score = b.total_edit_distance + (b.total_steps * 3);
+      if(b.total_edit_distance == 0) { b_score = b_score / 5; }
+      return a_score - b_score; 
+    });
+    return combos.slice(0, 10);
+  },
   find_buttons: function(str, from_board_id, user, include_home_and_sidebar) {
     if(str.length === 0) { return RSVP.resolve([]); }
     var buttons = this.get('buttons') || [];
@@ -72,26 +222,7 @@ CoughDrop.Buttonset = DS.Model.extend({
 
     if(from_board_id && from_board_id != this.get('id')) {
       // re-depthify all the buttons based on the starting board
-      var new_buttons = [];
-      var boards_to_check = [{id: from_board_id, depth: 0}];
-      var found_boards = [];
-      var check_button = function(b) {
-        if(b.board_id == board_to_check.id) {
-          var new_b = $.extend({}, b, {depth: board_to_check.depth});
-          new_buttons.push(new_b);
-          if(b.linked_board_id && found_boards.indexOf(b.linked_board_id) == -1) {
-            found_boards.push(b.linked_board_id);
-            boards_to_check.push({id: b.linked_board_id, depth: board_to_check.depth + 1});
-          }
-        }
-      };
-      while(boards_to_check.length > 0) {
-        var board_to_check = boards_to_check.shift();
-        buttons.forEach(check_button);
-        // make sure to keep the list breadth-first!
-        boards_to_check.sort(function(a, b) { return b.depth - a.depth; });
-      }
-      buttons = new_buttons;
+      buttons = this.redepth(from_board_id);
     }
 
     buttons.forEach(function(button, idx) {
