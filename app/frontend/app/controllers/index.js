@@ -262,7 +262,7 @@ export default Controller.extend({
         b = null;
       }
       // If no badge for the current user use the supervisee if there's only one
-      if(!b && app_state.get('currentUser.supervisees').length == 1) {
+      if(!b && (app_state.get('currentUser.supervisees') || []).length == 1) {
         var sup = app_state.get('currentUser.supervisees')[0];
         if(sup.premium) {
           b = _this.best_badge(for_users[emberGet(sup, 'id')], (sup.goal || {}).id)

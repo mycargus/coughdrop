@@ -471,7 +471,7 @@ var editManager = EmberObject.extend({
   },
   apply_preview_level: function(level) {
     if(this.controller) {
-      this.controller.get('ordered_buttons').forEach(function(row) {
+      (this.controller.get('ordered_buttons') || []).forEach(function(row) {
         row.forEach(function(button) {
           button.apply_level(level);
         });
