@@ -78,7 +78,7 @@ CoughDrop.Buttonset = DS.Model.extend({
     };
     while(boards_to_check.length > 0) {
       var board_to_check = boards_to_check.shift();
-      buttons.forEach(CoughDrop.Buttonset.check_button);
+      buttons.forEach(check_button);
       // make sure to keep the list breadth-first!
       boards_to_check.sort(function(a, b) { return b.depth - a.depth; });
     }
@@ -173,12 +173,13 @@ CoughDrop.Buttonset = DS.Model.extend({
 
     // Check all permutations, score for shortest access distance
     // combined with shorted edit distance
-    var combos = [{text: "", next_part: 0, steps: [], total_edit_distance: 0, total_steps: 0}];
+    var combos = [{text: "", next_part: 0, parts_covered: 0, steps: [], total_edit_distance: 0, total_steps: 0}];
     // for 1 part, include 30-50 matches
     // for 2 parts, include 20 matches per level
     // for 3 parts, include 10 matches per level
     // for 4 parts, include 5 matches per level
     // for 5 parts, include 3 matches per level
+
     var matches_per_level = Math.floor(Math.max(3, Math.min(1 / Math.log(parts.length / 1.4 - 0.17) * Math.log(100), 50)));
     parts.forEach(function(part, part_idx) {
       var starters = partial_matches.filter(function(m) { return m.part_start == part_idx; });
@@ -192,6 +193,7 @@ CoughDrop.Buttonset = DS.Model.extend({
             dup.steps.push(starter.button);
             dup.text = dup.text + (dup.text == "" ? "" : " ") + starter.text;
             dup.next_part = part_idx + (starter.part_end - starter.part_start);
+            dup.parts_covered = dup.parts_covered + (starter.part_end - starter.part_start);
             dup.total_edit_distance = dup.total_edit_distance + starter.total_edit_distance;
             dup.total_steps = dup.total_steps + starter.button.depth;
             new_combos.push(dup);
@@ -199,15 +201,44 @@ CoughDrop.Buttonset = DS.Model.extend({
         } else {
           new_combos.push(combo);
         }
+        // include what-if for skipping the current step,
+        // as in, if I search for "I want to sleep" but the user 
+        // doesn't have "to" then it should match for "I want sleep"
+        // and preferably rank it higher than "I want top sleep", for example
+        // (maybe add 1 edit distance point for dropped words)
+        var dup = $.extend({}, combo);
+        dup.next_part = part_idx + 1;
+        new_combos.push(dup);
       });
       combos = new_combos;
     });
+    // when searching for "I want to sleep" sort as follows:
+    // - I want to sleep
+    // - I want sleep
+    // - I want top sleep
+    // - I walk to sleep
+    // - want sleep
+    // - want
+    // - sleep
+    // If there are enough errorless matches, show those first,
+    // then sort results w/ >50% coverage by edit distance and steps
+    // then sort the rest by edit distance and steps
+    // then sort by number of words covered (bonus for > 50% coverage)
+    // finally by number of button hits required
+    var cutoff = parts.length / 2;
     combos = combos.sort(function(a, b) {
       var a_score = a.total_edit_distance + (a.total_steps * 3);
       if(a.total_edit_distance == 0) { a_score = a_score / 5; }
       var b_score = b.total_edit_distance + (b.total_steps * 3);
       if(b.total_edit_distance == 0) { b_score = b_score / 5; }
-      return a_score - b_score; 
+      var a_scores = [a.total_edit_distance ? 1 : 0, a.parts_covered > cutoff ? (parts.length - a.parts_covered + a_score) : 0, parts.length - a.parts_covered + a_score, a.steps.length];
+      var b_scores = [b.total_edit_distance ? 1 : 0, b.parts_covered > cutoff ? (parts.length - b.parts_covered + b_score) : 0, parts.length - b.parts_covered + b_score, b.steps.length];
+      for(var idx = 0; idx < a_scores.length; idx++) {
+        if(a_scores[idx] != b.scores[idx]) {
+          return a_scores[idx] - b_scores[idx];
+        }
+      }
+      return 0;
     });
     return combos.slice(0, 10);
   },
