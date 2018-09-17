@@ -280,6 +280,10 @@ class LogSession < ActiveRecord::Base
     self.data['stats']['modeled_parts_of_speech'] = {}
     self.data['stats']['core_words'] = {}
     self.data['stats']['modeled_core_words'] = {}
+    self.data['stats']['parts_of_speech_combinations'] = {}
+    self.data['stats']['board_keys'] = {}
+    self.data['stats']['time_blocks'] = {}
+    self.data['stats']['modeled_time_blocks'] = {}
     self.data['stats']['all_volumes'] = []
     self.data['stats']['all_ambient_light_levels'] = []
     self.data['stats']['all_screen_brightness_levels'] = []
@@ -311,6 +315,9 @@ class LogSession < ActiveRecord::Base
     
     if self.data['events'] && self.started_at && self.ended_at
       self.data['stats']['session_seconds'] = (self.ended_at - self.started_at).to_i
+
+
+      last_button_event = nil
       self.data['events'].each do |event|
         self.data['stats']['modeling_events'] ||= 0
         if event['modeling']
@@ -327,6 +334,19 @@ class LogSession < ActiveRecord::Base
         self.data['stats']['browser'] ||= event['browser']
         self.data['stats']['window_width'] ||= event['window_width'] if event['window_width'] && event['window_width'] > 0
         self.data['stats']['window_height'] ||= event['window_height'] if event['window_height'] && event['window_height'] > 0
+
+        if event['type'] == 'button' && event['button'] && event['button']['board']
+          key = event['button']['board']['key']
+          self.data['stats']['board_keys'][key] ||= 0
+          self.data['stats']['board_keys'][key] += 1
+        end
+        if event['timestamp']
+          timed_block = event['timestamp'].to_i / 15
+          key = event['modeling'] ? 'modeled_time_blocks' : 'time_blocks'
+          self.data['stats'][key][timed_block] ||= 0
+          self.data['stats'][key][timed_block] += 1
+        end
+
         if !event['modeling'] && event['type'] == 'utterance'
           self.data['stats']['utterances'] += 1
           self.data['stats']['utterance_words'] += event['utterance']['text'].split(/\s+/).length
@@ -368,8 +388,31 @@ class LogSession < ActiveRecord::Base
               end
             end
           end
+
+          pairs = {}
+          text = LogSession.event_text(event)
+          if text && text.length > 0 && (event['button']['spoken'] || event['button']['for_speaking'])
+            if last_button_event
+              last_text = LogSession.event_text(last_button_event)
+              if valid_words[text.downcase] && last_text && valid_words[last_text.downcase]
+                if (event['timestamp'] || 0) - (last_button_event['timestamp'] || 0) < 5.minutes.to_i
+                  if last_text.downcase.strip != text.downcase.strip
+                    hash = Digest::MD5.hexdigest(text + "::" + last_text)
+                    pairs[hash] ||= {
+                      'a' => last_text.downcase,
+                      'b' => text.downcase,
+                      'count' => 0
+                    }
+                    pairs[hash]['count'] += 1
+                  end
+                end
+              end
+            end
+            last_button_event = event
+          end
+          self.data['stats']['word_pairs'] = pairs
         end
-      
+        
         self.data['stats']['all_volumes'] << (event['volume'] * 100).to_f if event['volume']
         self.data['stats']['all_ambient_light_levels'] << event['ambient_light'].to_f if event['ambient_light']
         self.data['stats']['all_screen_brightness_levels'] << (event['screen_brightness'] * 100).to_f if event['screen_brightness']
@@ -389,6 +432,9 @@ class LogSession < ActiveRecord::Base
           self.data['stats'][core_key][event['core_word'] ? 'core' : 'not_core'] += 1
         end
       end
+
+      self.generate_speech_combinations
+      self.generate_button_usage
       self.generate_sensor_stats
     end
     if self.data['assessment'] && self.started_at && self.ended_at
@@ -528,6 +574,89 @@ class LogSession < ActiveRecord::Base
           'portrait-secondary' => session.data['stats']['all_orientations'].select{|o| o['layout'] == 'portrair-secondary' }.length
         }
       }
+    end
+  end
+
+  def generate_speech_combinations
+    prior_parts = []
+    sequences = {}
+    self.data['events'].each do |event|
+      if event['type'] == 'action' && event['action'] == 'clear'
+        prior_parts = []
+      elsif event['type'] == 'utterance'
+        prior_parts = []
+      elsif event['modified_by_next']
+      else
+        if event['parts_of_speech'] && event['parts_of_speech']['types']
+          current_part = event['parts_of_speech']
+          if prior_parts[-1] && prior_parts[-1]['types'] && prior_parts[-2] && prior_parts[-2]['types']
+            from_from = prior_parts[-2]['types'][0]
+            from = prior_parts[-1]['types'][0]
+            to = current_part['types'][0]
+            sequences[from_from + "," + from + "," + to] ||= 0
+            sequences[from_from + "," + from + "," + to] += 1
+            sequences[from_from + "," + from] -= 1 if sequences[from_from + "," + from]
+            sequences.delete(from_from + "," + from) if sequences[from_from + "," + from] == 0
+            sequences[from + "," + to] ||= 0
+            sequences[from + "," + to] += 1
+          elsif prior_parts[-1] && prior_parts[-1]['types']
+            from = prior_parts[-1]['types'][0]
+            to = current_part['types'][0]
+            sequences[from + "," + to] ||= 0
+            sequences[from + "," + to] += 1
+          end
+        end
+        prior_parts << event['parts_of_speech']
+      end
+    end
+    self.data['stats']['parts_of_speech_combinations'] = sequences
+  end
+
+  def generate_button_usage
+    current_chain = []
+    last_timestamp = nil
+    last_button_id = nil
+    self.data['stats']['buttons_used'] = {
+      'button_ids' => [], 'button_chains' => {}
+    }
+    self.data['events'].each do |event|
+      if event['type'] == 'button'
+        button = event['button']
+        if !event['modeling'] && button
+          button_text = LogSession.event_text(event)
+
+          if button_text && button_text.length > 0 && (event['button']['spoken'] || event['button']['for_speaking'])
+            button_key = "#{button['board']['id']}:#{button['button_id']}"
+            self.data['stats']['buttons_used']['button_ids'] << button_key
+            
+            # If less than 2 minutes since the last hit, let's add it to the button sequence,
+            # and we'll go ahead and stop counting if it's the same button multiple times
+            if (!last_button_id || last_button_id != button_key) && (!last_timestamp || (event['timestamp'] - last_timestamp) < (2 * 60))
+              current_chain << button_text
+              if current_chain.length >= 3
+                sequence = current_chain[-3, 3]
+                sequence_key = sequence.join(', ')
+                self.data['stats']['buttons_used']['button_chains'][sequence_key] = (self.data['stats']['buttons_used']['button_chains'][sequence_key] || 0) + 1
+                if current_chain.length >= 4
+                  sequence = current_chain[-4, 4]
+                  sequence_key = sequence.join(', ')
+                  self.data['stats']['buttons_used']['button_chains'][sequence_key] = (self.data['stats']['buttons_used']['button_chains'][sequence_key] || 0) + 1
+                end
+              end
+            end
+            last_timestamp = event['timestamp']
+            last_button_id = button_key
+          end
+        else
+          last_timestamp = nil
+          last_button_id = nil
+          current_chain = []
+        end
+      elsif event['type'] == 'utterance' || (event['type'] == 'action' && event['action']['action'] == 'clear')
+        last_timestamp = nil
+        last_button_id = nil
+        current_chain = []
+      end
     end
   end
   

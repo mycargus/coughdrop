@@ -41,6 +41,7 @@ ActiveRecord::Schema.define(version: 20180814163541) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.index ["board_id"], name: "index_board_button_images_on_board_id", using: :btree
+    t.index ["button_image_id"], name: "index_board_button_images_on_button_image_id", using: :btree
   end
 
   create_table "board_button_sounds", force: :cascade do |t|
@@ -128,7 +129,7 @@ ActiveRecord::Schema.define(version: 20180814163541) do
     t.datetime "updated_at"
     t.string   "cluster_type", limit: 255
     t.string   "cluster_hash", limit: 255
-    t.index ["cluster_type", "cluster_hash"], name: "index_cluster_locations_on_cluster_type_and_cluster_hash", unique: true, using: :btree
+    t.index ["cluster_type", "cluster_hash"], name: "index_cluster_locations_on_cluster_type_and_hash", unique: true, using: :btree
   end
 
   create_table "contact_messages", force: :cascade do |t|
