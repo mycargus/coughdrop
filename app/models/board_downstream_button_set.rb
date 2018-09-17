@@ -3,6 +3,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
   include Async
   include GlobalId
   include SecureSerialize
+  include ExtraData
   secure_serialize :data
   belongs_to :board
   replicated_model
@@ -12,11 +13,14 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
   def generate_defaults
     self.data ||= {}
     @buttons = nil
-    self.data['board_ids'] = self.buttons.map{|b| b['board_id'] }.compact.uniq
-    self.data['linked_board_ids'] = self.buttons.map{|b| b['linked_board_id'] }.compact.uniq
-    self.data['button_count'] = self.buttons.length
-    self.data['board_count'] = self.buttons.map{|b| b['board_id'] }.uniq.length
-    self.data.delete('json_response')
+    unless skip_extra_data_processing?
+      self.data['board_ids'] = self.buttons.map{|b| b['board_id'] }.compact.uniq
+      self.data['linked_board_ids'] = self.buttons.map{|b| b['linked_board_id'] }.compact.uniq
+      self.data['button_count'] = self.buttons.length
+      self.data['board_count'] = self.buttons.map{|b| b['board_id'] }.uniq.length
+      self.data.delete('json_response')
+    end
+    true
   end
   
   def cached_json_response
@@ -42,6 +46,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
       visited_sources << brd.global_id
       bs = BoardDownstreamButtonSet.find_by_global_id(brd.data['source_id'])
       if bs && !bs.data['source_id']
+        bs.assert_extra_data
         @buttons = bs.buttons_starting_from(self.related_global_id(self.board_id))
         if brd.data['source_id'] != bs.global_id
           brd.data['source_id'] = bs.global_id
@@ -254,6 +259,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
     board = Board.find_by_path(board_key) if board_key
     button_set = board && board.board_downstream_button_set
     return nil unless button_set
+    button_set.assert_extra_data
     res = {'words' => [], 'word_map' => {}}
     
     # TODO: include images with attribution

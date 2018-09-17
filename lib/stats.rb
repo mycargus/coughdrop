@@ -1234,6 +1234,7 @@ module Stats
   def self.lam_entries(session)
     lines = []
     date = nil
+    session.assert_extra_data
     (session.data['events'] || []).each do |event|
       # TODO: timezones
       time = Time.at(event['timestamp'])

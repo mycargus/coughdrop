@@ -95,6 +95,8 @@ module JsonApi::Log
       json['log']['daily_use'] = events.sort_by{|e| e['date'] }
     end
 
+    # TODO: this needs to be handled by the local client eventually
+    log.assert_extra_data
     (log.data['events'] || []).each do |event|
       entry = {}
       entry['id'] = event['id']

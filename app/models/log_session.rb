@@ -24,6 +24,7 @@ class LogSession < ActiveRecord::Base
 
   def generate_defaults
     self.data ||= {}
+    return true if skip_extra_data_processing?
     self.data['events'] ||= []
     # if two events share the same timestamp, put the buttons before the actions
     self.data['events'].sort_by!{|e| [e['timestamp'] || 0, (e['type'] == 'button' ? 0 : 1)] }
@@ -263,6 +264,7 @@ class LogSession < ActiveRecord::Base
   
   def generate_stats
     self.data['stats'] ||= {}
+    return true if skip_extra_data_processing?
     self.data['stats']['session_seconds'] = 0
     self.data['stats']['utterances'] = 0.0
     self.data['stats']['utterance_words'] = 0.0
@@ -960,11 +962,13 @@ class LogSession < ActiveRecord::Base
   
   def check_for_merger
     log = self
+    log.assert_extra_data
     cutoff = (log.user && log.user.log_session_duration) || User.default_log_session_duration
     matches = LogSession.where(log_type: 'session', user_id: log.user_id, author_id: log.author_id, device_id: log.device_id); matches.count
     mergers = matches.where(['id != ?', log.id]).where(['ended_at >= ? AND ended_at <= ?', log.started_at - cutoff, log.ended_at + cutoff]).order('id')
     mergers.each do |merger|
       next if merger.id == log.id
+      merger.assert_extra_data
       # always merge the newer log into the older log
       if log.id < merger.id
         ids = (log.data['events'] || []).map{|e| e['id'] }.compact
@@ -1033,6 +1037,7 @@ class LogSession < ActiveRecord::Base
       self.highlighted = params['highlighted'] if params['highlighted'] != nil
       if params['events']
         self.data_will_change!
+        self.assert_extra_data # TODO: cleaner way to do this?
         self.data['events'].each do |e|
           pe = params['events'].detect{|ev| ev['id'] == e['id'] && ev['timestamp'].to_f == e['timestamp'] }
           if !e['id']
@@ -1077,6 +1082,7 @@ class LogSession < ActiveRecord::Base
       ids = (self.data['events'] || []).map{|e| e['id'] }.max || 0
       ip_address = non_user_params[:ip_address]
       if params['events']
+        self.assert_extra_data
         self.data['events'] ||= []
         ref_user_ids = params['events'].map{|e| e['referenced_user_id'] }.compact.uniq
         valid_ref_user_ids = {}
