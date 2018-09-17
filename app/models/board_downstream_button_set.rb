@@ -43,7 +43,13 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
       bs = BoardDownstreamButtonSet.find_by_global_id(brd.data['source_id'])
       if bs && !bs.data['source_id']
         @buttons = bs.buttons_starting_from(self.related_global_id(self.board_id))
+        if brd.data['source_id'] != bs.global_id
+          brd.data['source_id'] = bs.global_id
+          brd.save
+        end
         return @buttons
+      else
+        brd = bs
       end
     end
     if self.data['buttons']
@@ -72,12 +78,17 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
     end
     res
   end
+
+  def has_buttons_defined?
+    self.data && (self.data['buttons'] || self.data['extra_url'])
+  end
   
   def self.update_for(board_id)
     board = Board.find_by_global_id(board_id)
     if board
       set = BoardDownstreamButtonSet.find_or_create_by(:board_id => board.id) rescue nil
       set ||= BoardDownstreamButtonSet.find_or_create_by(:board_id => board.id)
+      set.data['source_id'] = nil if set.data['source_id'] == set.global_id
       
       existing_board_ids = (set.data || {})['linked_board_ids'] || []
       Board.find_batches_by_global_id(board.settings['immediately_upstream_board_ids'] || [], :batch_size => 3) do |brd|
@@ -85,10 +96,10 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
         bs = brd.board_downstream_button_set
         set.data['found_upstream_set'] = true if bs
         linked_board_ids = bs && (bs.data['linked_board_ids'] || bs.buttons.map{|b| b['linked_board_id'] }.compact.uniq)
-        if bs && bs.data['buttons'] && linked_board_ids.include?(board.global_id)
+        if bs && bs.has_buttons_defined? && linked_board_ids.include?(board.global_id)
           # legacy lists don't correctly filter linked board ids
-          valid_button = bs.buttons.detect{|b| b['linked_board_id'] == board.global_id && !b['hidden'] && !b['link_disabled'] }
-          if valid_button
+          valid_button = bs.buttons.detect{|b| b['linked_board_id'] == board.global_id } # && !b['hidden'] && !b['link_disabled'] }
+          if valid_button && bs != set
             set.data['source_id'] = bs.global_id
             set.data['buttons'] = nil
             set.save
@@ -96,8 +107,8 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
           end
         elsif bs && bs.data['source_id'] && linked_board_ids.include?(board.global_id)
           # legacy lists don't correctly filter linked board ids
-          valid_button = bs.buttons.detect{|b| b['linked_board_id'] == board.global_id && !b['hidden'] && !b['link_disabled'] }
-          if valid_button
+          valid_button = bs.buttons.detect{|b| b['linked_board_id'] == board.global_id } # && !b['hidden'] && !b['link_disabled'] }
+          if valid_button && bs.data['source_id'] != set.global_id
             set.data['source_id'] = bs.data['source_id']
             set.data['buttons'] = nil
             set.save
@@ -161,15 +172,15 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
           if button['load_board'] && button['load_board']['id']
             linked_board = boards_hash[button['load_board']['id']]
             linked_board ||= Board.find_by_global_id(button['load_board']['id'])
-            # hidden or disabled links shouldn't be tracked
-            if linked_board && !button['hidden'] && !button['link_disabled']
+            # hidden or disabled links shouldn't be tracked (why not???)
+            if linked_board # && !button['hidden'] && !button['link_disabled']
               button_data['linked_board_id'] = linked_board.global_id
               button_data['linked_board_key'] = linked_board.key
             end
             # mark the first link to each board as "preferred"
             # TODO: is this a good idea? is there a better strategy? It honestly
             # shouldn't happen that much, having multiple links to the same board
-            if linked_board && !linked_board_ids.include?(linked_board.global_id) && !button['hidden'] && !button['link_disabled']
+            if linked_board && !linked_board_ids.include?(linked_board.global_id) # && !button['hidden'] && !button['link_disabled']
               button_data['preferred_link'] = true
               linked_board_ids << button['load_board']['id']
               boards_to_visit << {:board_id => linked_board.global_id, :depth => bv[:depth] + 1, :hidden => (bv[:hidden] || button['hidden'] || button['link_disabled']), :index => idx} if !visited_board_ids.include?(linked_board.global_id)
@@ -203,6 +214,39 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
       end
     end
     false
+  end
+
+  def self.reconcile
+    wasted = 0
+    destroyed = 0
+    BoardDownstreamButtonSet.where('id > 7000').find_in_batches(batch_size: 10) do |batch|
+      batch.each do |button_set|
+        if button_set.data['buttons']
+          size = button_set.data.to_json.length
+          board = button_set.board
+          puts "#{button_set.global_id} #{board ? board.key : 'NO BOARD'} #{size}"
+          if !board
+            puts "  no board!"
+            button_set.destroy
+            destroyed += size
+          elsif (board.settings['immediately_upstream_board_ids'] || []).length > 0
+            if size > 20000
+              if button_set.data['source_id'] == button_set.global_id
+                button_set.data['source_id'] = nil 
+                button_set.save
+                bs = BoardDownstreamButtonSet.update_for(board.global_id)                
+              end
+              # bs = BoardDownstreamButtonSet.update_for(board.global_id)
+              # bs_size = bs.data.to_json.length
+              # if bs_size < size
+              #   puts "  -#{size - bs_size}"
+              #   wasted += size - bs_size
+              # end
+            end
+          end
+        end
+      end
+    end
   end
   
   def self.word_map_for(user)
