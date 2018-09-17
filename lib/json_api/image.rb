@@ -13,7 +13,7 @@ module JsonApi::Image
     settings['protected_source'] ||= 'lessonpix' if settings['license'] && settings['license']['source_url'] && settings['license']['source_url'].match(/lessonpix/)
     protected_source = !!image.protected?
     allowed_sources = args[:allowed_sources]
-    allowed_sources ||= args[:permissions] && args[:permissions].enabled_protected_sources
+    allowed_sources ||= args[:permissions] && args[:permissions].enabled_protected_sources(true)
     allowed_sources ||= []
     if settings && protected_source && !allowed_sources.include?(settings['protected_source'])
       settings = settings['fallback'] || {}

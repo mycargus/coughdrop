@@ -753,13 +753,14 @@ class Board < ActiveRecord::Base
     DeletedBoard.process(self)
   end
   
+  # TODO: this is wrongly-named, it should be images_and_sounds_for
   def buttons_and_images_for(user)
     key = "buttons_and_images/#{user ? user.cache_key : 'nobody'}"
     res = get_cached(key)
     return res if res
     res = {}
     bis = self.button_images
-    protected_sources = (user && user.enabled_protected_sources) || []
+    protected_sources = (user && user.enabled_protected_sources(true)) || []
     ButtonImage.cached_copy_urls(bis, user, nil, protected_sources)
     
     res['images'] = bis.map{|i| JsonApi::Image.as_json(i, :allowed_sources => protected_sources) }
