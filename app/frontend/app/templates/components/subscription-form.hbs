@@ -251,6 +251,12 @@
             {{/unless}}
           {{/if}}
           <button type="submit" rel='activate' class="btn btn-lg btn-primary">
+            {{#if subscription.discount_percent}}
+              <div style='font-weight: bold;'>
+                <span class='glyphicon glyphicon-ok-sign'></span>
+                {{t "Discount Applied!" key='discount_applied'}}
+              </div>
+            {{/if}}
             {{#if subscription.user.grace_period}}
               {{t "Activate Account" key='activate_account'}}
             {{else}}

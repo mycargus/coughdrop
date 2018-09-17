@@ -16,9 +16,6 @@
         <span class='glyphicon glyphicon-user' style="float: left; font-size: 30px; margin-right: 10px;"></span>
         {{t "Your account is being sponsored by the organization, <b>%{org}</b>. We hope everything is going well for you and CoughDrop is making a difference!" key='org_managed' org=subscription.user.managing_org.name}}
       {{/if}}
-    {{else if subscription.user_expired}}
-      <span class='glyphicon glyphicon-exclamation-sign' style="float: left; font-size: 30px; margin-right: 10px;"></span>
-      {{t "Your premium account has expired. Please select a new billing option." key='subscription_expired'}}
     {{else if subscription.user.subscription.started}}
       {{#if subscription.user_expiring}}
         <span class='glyphicon glyphicon-time' style="float: left; font-size: 30px; margin-right: 10px;"></span>
@@ -35,6 +32,23 @@
         <span class='glyphicon glyphicon-calendar' style="float: left; font-size: 30px; margin-right: 10px;"></span>
         {{t "You've purchased a CoughDrop license, thank you! We hope everything is going well for you and CoughDrop is making a difference! You can use CoughDrop as long as you like, and in addition you have free access to cloud extras like reporting and team communication through " key='long_term_explanation' plan=subscription.subscription_plan_description}} <span style='white-space: nowrap;'>{{date subscription.user.subscription.expires}}</span>
       {{/if}}
+    {{else if subscription.user.subscription.grace_period}}
+      <span class='glyphicon glyphicon-info-sign' style="float: left; font-size: 30px; margin-right: 10px;"></span>
+      {{t "You haven't purchased CoughDrop yet. Currently you're running a free trial, hopefully you're learning a lot and getting excited for what CoughDrop can do! Your trial will end" key='trial_ending'}} <span style='white-space: nowrap;'>{{date subscription.user.subscription.expires}}</span>.
+    {{else if subscription.user.subscription.free_premium}}
+      {{#if subscription.user.supporter_role}}
+        <span class='glyphicon glyphicon-info-sign' style="float: left; font-size: 30px; margin-right: 10px;"></span>
+        {{t "You are signed up for a free supervisor account. Thank you for supporting communicators using CoughDrop! This account is limited to being used as a support account, so some features will only work if you are connected to a paid communicator. If you plan to use this as a communication account you should purchase a paid account instead." key='free_premium_consider_purchasing'}}
+      {{else}}
+        <span class='glyphicon glyphicon-info-sign' style="float: left; font-size: 30px; margin-right: 10px;"></span>
+        {{t "Thank you for purchasing CoughDrop! You do not currently have an active subscription. Don't worry, you can still use CoughDrop as a robust, cloud-based communication system, but the cloud extras are currently disabled for your account. If you need those features please consider purchasing an ongoing subscription." key='free_premium_consider_subscribing'}}
+      {{/if}}
+    {{else if subscription.user_expired}}
+      <span class='glyphicon glyphicon-exclamation-sign' style="float: left; font-size: 30px; margin-right: 10px;"></span>
+      {{t "Your premium account has expired. Please select a new billing option." key='subscription_expired'}}
+    {{else if subscription.user.subscription.full_premium}}
+      <span class='glyphicon glyphicon-info-sign' style="float: left; font-size: 30px; margin-right: 10px;"></span>
+      {{t "Thank you for purchasing CoughDrop! This account has cloud extra features enabled and is fully functional. We hope CoughDrop is working well for you!" key='full_premium'}}
     {{else}}
       <span class='glyphicon glyphicon-info-sign' style="float: left; font-size: 30px; margin-right: 10px;"></span>
       {{t "You haven't purchased CoughDrop yet. Currently you're running a free trial, hopefully you're learning a lot and getting excited for what CoughDrop can do! Your trial will end" key='trial_ending'}} <span style='white-space: nowrap;'>{{date subscription.user.subscription.expires}}</span>.
