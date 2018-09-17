@@ -52,6 +52,13 @@ class ButtonImage < ActiveRecord::Base
   def generate_fallback(force=false)
     if self.settings['protected'] && (!self.settings['fallback'] || force)
       term = self.settings['button_label'] || self.settings['search_term']
+      if !term
+        # fallback for legacy button images
+        bbi = BoardButtonImage.where(button_image_id: self.id).order('id').first
+        board = bbi && bbi.board
+        button = board.settings['buttons'].detect{|b| b['image_id'] == self.global_id}
+        term = button && button['label']
+      end
       if term
         schedule(:generate_fallback)
         image = (Uploader.find_images(term, 'opensymbols', self.user) || [])[0]
