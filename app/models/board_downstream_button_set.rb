@@ -239,16 +239,20 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
               if button_set.data['source_id'] == button_set.global_id
                 button_set.data['source_id'] = nil 
                 button_set.save
-                bs = BoardDownstreamButtonSet.update_for(board.global_id)                
               end
-              # bs = BoardDownstreamButtonSet.update_for(board.global_id)
-              # bs_size = bs.data.to_json.length
-              # if bs_size < size
-              #   puts "  -#{size - bs_size}"
-              #   wasted += size - bs_size
-              # end
+              bs = BoardDownstreamButtonSet.update_for(board.global_id)
+              bs_size = bs.data.to_json.length
+              if bs_size < size
+                puts "  -#{size - bs_size}"
+                wasted += size - bs_size
+              end
             end
           end
+        elsif button_set.data['source_id'] == button_set.global_id
+          button_set.data['source_id'] = nil 
+          button_set.save
+          bs = BoardDownstreamButtonSet.update_for(button_set.board.global_id)                
+          puts "  mismatched source"
         end
       end
     end
