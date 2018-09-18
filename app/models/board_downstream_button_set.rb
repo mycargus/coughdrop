@@ -221,10 +221,10 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
     false
   end
 
-  def self.reconcile
+  def self.reconcile(start_id = 0)
     wasted = 0
     destroyed = 0
-    BoardDownstreamButtonSet.where('id > 7000').find_in_batches(batch_size: 10) do |batch|
+    BoardDownstreamButtonSet.where("id > #{start_id}").find_in_batches(batch_size: 10) do |batch|
       batch.each do |button_set|
         if button_set.data['buttons']
           size = button_set.data.to_json.length
@@ -252,6 +252,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
         end
       end
     end
+    puts "wasted #{wasted / 1.megabyte}Mb, destroyed #{destroyed / 1.megabyte}Mb"
   end
   
   def self.word_map_for(user)
