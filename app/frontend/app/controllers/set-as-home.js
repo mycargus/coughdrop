@@ -5,6 +5,7 @@ import app_state from '../utils/app_state';
 import editManager from '../utils/edit_manager';
 import persistence from '../utils/persistence';
 import stashes from '../utils/_stashes';
+import i18n from '../utils/i18n';
 import CoughDrop from '../app';
 
 export default modal.ModalController.extend({

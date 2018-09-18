@@ -4,6 +4,7 @@ import CoughDrop from '../app';
 import modal from '../utils/modal';
 import app_state from '../utils/app_state';
 import persistence from '../utils/persistence';
+import $ from 'jquery';
 import { htmlSafe } from '@ember/string';
 import { later as runLater } from '@ember/runloop';
 
@@ -71,7 +72,7 @@ export default Component.extend({
         context.font = text_height + "px Arial";
         context.textAlign = 'center';
         var handle_button = function(button_id) {
-            var button = Ember.$.extend({}, buttons[button_id] || {});
+            var button = $.extend({}, buttons[button_id] || {});
             if(!button_id || !buttons[button_id]) {
               button.hidden = true;
             }
