@@ -1829,13 +1829,13 @@ describe User, :type => :model do
   describe 'enabled_protected_sources' do
     it 'should return the cached value if any' do
       u = User.new
-      expect(u).to receive(:get_cached).with('protected_sources').and_return([])
+      expect(u).to receive(:get_cached).with('protected_sources/false').and_return([])
       expect(u.enabled_protected_sources).to eq([])
     end
 
     it 'should return the correct list of sources' do
       u = User.new
-      expect(u).to receive(:get_cached).with('protected_sources').and_return(nil)
+      expect(u).to receive(:get_cached).with('protected_sources/false').and_return(nil)
       expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return(true)
       expect(u).to receive(:subscription_hash).and_return({'extras_enabled' => true})
       expect(u.enabled_protected_sources).to eq(['lessonpix', 'pcs'])
@@ -1843,11 +1843,25 @@ describe User, :type => :model do
 
     it 'should persist the result to the cache' do
       u = User.new
-      expect(u).to receive(:get_cached).with('protected_sources').and_return(nil)
+      expect(u).to receive(:get_cached).with('protected_sources/false').and_return(nil)
       expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return(true)
       expect(u).to receive(:subscription_hash).and_return({'extras_enabled' => true})
-      expect(u).to receive(:set_cached).with('protected_sources', ['lessonpix', 'pcs']).and_return(nil)
+      expect(u).to receive(:set_cached).with('protected_sources/false', ['lessonpix', 'pcs']).and_return(nil)
       expect(u.enabled_protected_sources).to eq(['lessonpix', 'pcs'])
+    end
+
+    it "should optionally include supervisee sources" do
+      u = User.new
+      expect(u).to receive(:get_cached).with('protected_sources/true').and_return(nil)
+      u2 = User.new
+      expect(u2).to receive(:get_cached).with('protected_sources/false').and_return(nil)
+      expect(u).to receive(:supervisees).and_return([u2])
+      expect(Uploader).to receive(:lessonpix_credentials).with(u2).and_return(true)
+      expect(Uploader).to receive(:lessonpix_credentials).with(u).and_return(false)
+      expect(u2).to receive(:subscription_hash).and_return({'extras_enabled' => true})
+      expect(u).to receive(:set_cached).with('protected_sources/true', ['lessonpix', 'pcs']).and_return(nil)
+      expect(u2).to receive(:set_cached).with('protected_sources/false', ['lessonpix', 'pcs']).and_return(nil)
+      expect(u.enabled_protected_sources(true)).to eq(['lessonpix', 'pcs'])
     end
   end
   

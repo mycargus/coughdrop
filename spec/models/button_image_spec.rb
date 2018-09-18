@@ -167,19 +167,6 @@ describe ButtonImage, :type => :model do
     end
   end
 
-  # def generate_fallback(force=false)
-  #   if self.settings['protected'] && (!self.settings['fallback'] || force)
-  #     term = self.settings['button_label'] || self.settings['search_term']
-  #     if term
-  #       schedule(:generate_fallback)
-  #       image = (Uploader.find_images(term, 'opensymbols', self.user) || [])[0]
-  #       if image
-  #         self.settings['fallback'] = image
-  #         self.save
-  #       end
-  #     end
-  #   end
-  # end
   describe "generate_fallback" do
     it 'should not generate a fallback for non-protected images' do
       i = ButtonImage.new(settings: {
@@ -196,6 +183,23 @@ describe ButtonImage, :type => :model do
         'protected' => true,
         'button_label' => 'bacon',
       })
+      expect(Uploader).to receive(:find_images).with('bacon', 'opensymbols', nil).and_return([{a: 1}])
+      i.generate_fallback
+      expect(i.settings['fallback']).to_not eq(nil)
+      expect(i.settings['fallback']['a']).to eq(1)
+    end
+
+    it "should dig for a search term if none is provided" do
+      u = User.create
+      i = ButtonImage.create(settings: {
+        'protected' => true
+      })
+      b = Board.create(user: u)
+      b.settings['buttons'] = [{
+        'id' => '11', 'label' => 'bacon', 'image_id' => i.global_id
+      }]
+      b.save
+      BoardButtonImage.create(board_id: b.id, button_image_id: i.id)
       expect(Uploader).to receive(:find_images).with('bacon', 'opensymbols', nil).and_return([{a: 1}])
       i.generate_fallback
       expect(i.settings['fallback']).to_not eq(nil)

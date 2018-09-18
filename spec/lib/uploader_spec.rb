@@ -278,6 +278,20 @@ describe Uploader do
         }
       }])
     end
+
+    it 'should not allow searching PCS if a superisee has access but not the user' do
+      res = OpenStruct.new(body: [
+      ].to_json)
+      u = User.create
+      u2 = User.create
+      User.purchase_extras({'user_id' => u2.global_id})
+      u.reload
+      u2.reload
+
+      expect(Typhoeus).to receive(:get).with("https://www.opensymbols.org/api/v1/symbols/search?q=bacon+repo%3Apcs&search_token=#{ENV['OPENSYMBOLS_TOKEN']}", :ssl_verifypeer => false).and_return(res)
+      images = Uploader.find_images('bacon', 'pcs', u)
+      expect(images).to eq([])
+    end
     
     it 'should parse results' do
       res = OpenStruct.new(body: [
@@ -413,7 +427,7 @@ describe Uploader do
         }
       ])
     end
-    
+
     it "should handle giphy searches" do
       ENV['GIPHY_KEY'] = 'giphy'
       expect(Typhoeus).to receive(:get).with("http://api.giphy.com/v1/gifs/search?q=%23asl+bacon&api_key=giphy").and_return(OpenStruct.new({

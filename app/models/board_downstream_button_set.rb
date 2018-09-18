@@ -48,9 +48,9 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
       if bs && !bs.data['source_id']
         bs.assert_extra_data
         @buttons = bs.buttons_starting_from(self.related_global_id(self.board_id))
-        if brd.data['source_id'] != bs.global_id
-          brd.data['source_id'] = bs.global_id
-          brd.save
+        if self.data['source_id'] != bs.global_id
+          self.data['source_id'] = bs.global_id
+          self.save
         end
         return @buttons
       else

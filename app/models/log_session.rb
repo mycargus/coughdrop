@@ -4,6 +4,7 @@ class LogSession < ActiveRecord::Base
   include GlobalId
   include SecureSerialize
   include Notifier
+  include ExtraData
   belongs_to :user
   belongs_to :author, :class_name => User
   belongs_to :ip_cluster, :class_name => ClusterLocation
@@ -284,12 +285,14 @@ class LogSession < ActiveRecord::Base
     self.data['stats']['modeled_core_words'] = {}
     self.data['stats']['parts_of_speech_combinations'] = {}
     self.data['stats']['board_keys'] = {}
+    self.data['stats']['word_pairs'] = {}
     self.data['stats']['time_blocks'] = {}
     self.data['stats']['modeled_time_blocks'] = {}
     self.data['stats']['all_volumes'] = []
     self.data['stats']['all_ambient_light_levels'] = []
     self.data['stats']['all_screen_brightness_levels'] = []
     self.data['stats']['all_orientations'] = []
+    valid_words = WordData.standardized_words
     if self.device && self.user
       device_prefs = self.user.settings['preferences']['devices'][self.device.device_key]
       if device_prefs
@@ -412,7 +415,13 @@ class LogSession < ActiveRecord::Base
             end
             last_button_event = event
           end
-          self.data['stats']['word_pairs'] = pairs
+          pairs.each do |pair, hash|
+            if self.data['stats']['word_pairs'][pair]
+              self.data['stats']['word_pairs'][pair]['count'] += hash['count']
+            else
+              self.data['stats']['word_pairs'][pair] = hash
+            end
+          end
         end
         
         self.data['stats']['all_volumes'] << (event['volume'] * 100).to_f if event['volume']
@@ -627,7 +636,7 @@ class LogSession < ActiveRecord::Base
         if !event['modeling'] && button
           button_text = LogSession.event_text(event)
 
-          if button_text && button_text.length > 0 && (event['button']['spoken'] || event['button']['for_speaking'])
+          if button_text && button_text.length > 0 && button['board'] && (event['button']['spoken'] || event['button']['for_speaking'])
             button_key = "#{button['board']['id']}:#{button['button_id']}"
             self.data['stats']['buttons_used']['button_ids'] << button_key
             
@@ -1262,6 +1271,60 @@ class LogSession < ActiveRecord::Base
           User.where(:id => user.id).update_all(:next_notification_at => user.next_notification_schedule)
         end
       end
+    end
+    res
+  end
+
+  def self.extra_data_public_transform(events)
+    res = []
+    (events || []).each do |event|
+      entry = {}
+      entry['id'] = event['id']
+      entry['timestamp'] = event['timestamp']
+      entry['highlighted'] = event['highlighted'] if event['highlighted']
+      if event['button']
+        entry['type'] = 'button'
+        entry['spoken'] = !!event['button']['spoken']
+        entry['summary'] = event['button']['label']
+        if entry['summary'] == ':complete' && event['button']['completion']
+          entry['summary'] += " (#{event['button']['completion']})"
+        end
+        entry['parts_of_speech'] = event['parts_of_speech']
+        if event['button']['percent_x'] && event['button']['percent_y'] && event['button']['board']
+          entry['touch_percent_x'] = event['button']['percent_x']
+          entry['touch_percent_y'] = event['button']['percent_y']
+          entry['board'] = event['button']['board']
+        end
+      elsif event['action']
+        entry['type'] = 'action'
+        entry['summary'] = "[#{event['action']['action']}]"
+        if event['action']['action'] == 'open_board'
+          entry['new_board'] = event['action']['new_id']
+        end
+      elsif event['utterance']
+        entry['type'] = 'utterance'
+        entry['summary'] = "[vocalize]"
+        entry['utterance_text'] = event['utterance']['text']
+      else
+        entry['type'] = 'other'
+        entry['summary'] = "unrecognized event"
+      end
+      if event['modeling']
+        entry['modeling'] = true
+      end
+      if event['notes']
+        entry['notes'] = event['notes'].map do |n|
+          {
+            'id' => n['id'],
+            'note' => n['note'],
+            'author' => {
+              'id' => n['author']['id'],
+              'user_name' => n['author']['user_name']
+            }
+          }
+        end
+      end
+      res << entry
     end
     res
   end

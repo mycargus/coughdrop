@@ -849,17 +849,20 @@ class User < ActiveRecord::Base
   end
 
   def enabled_protected_sources(include_supervisees=false)
-    res = get_cached("protected_sources/#{include_supervisees}")
+    cache_key = "protected_sources/#{include_supervisees}"
+    res = get_cached(cache_key)
     return res if res
     self.settings ||= {}
     res = []
     res << 'lessonpix' if self && Uploader.lessonpix_credentials(self)
     res << 'pcs' if self && self.subscription_hash['extras_enabled']
     if include_supervisees
-      self.supervisees.each{|u| res += u.enabled_protected_sources }
+      self.supervisees.each do |u| 
+        res += u.enabled_protected_sources 
+      end
     end
     res = res.uniq
-    set_cached('protected_sources', res)
+    set_cached(cache_key, res)
     res
   end
   

@@ -524,20 +524,6 @@ describe Board, :type => :model do
     end
   end
 
-  # def buttons_and_images_for(user)
-  #   key = "buttons_and_images/#{user ? user.cache_key : 'nobody'}"
-  #   res = get_cached(key)
-  #   return res if res
-  #   res = {}
-  #   bis = self.button_images
-  #   protected_sources = (user && user.enabled_protected_sources) || []
-  #   ButtonImage.cached_copy_urls(bis, user, nil, protected_sources)
-    
-  #   res['images'] = bis.map{|i| JsonApi::Image.as_json(i, :allowed_sources => protected_sources) }
-  #   res['sounds'] = self.button_sounds.map{|s| JsonApi::Sound.as_json(s) }
-  #   set_cached(key, res)
-  #   res
-  # end
   describe "buttons_and_images" do
     it "should return a cached value if there is one" do
       b = Board.new
@@ -602,6 +588,57 @@ describe Board, :type => :model do
         'sounds' => [
           {'bs1' => true}
         ]
+      })
+    end
+
+    it "should only return allowed protected sources" do
+      u = User.create
+      User.purchase_extras({'user_id' => u.global_id})
+      u.reload
+      b = Board.create(user: u)
+      expect(b).to receive(:get_cached).with("buttons_and_images/#{u.cache_key}").and_return(nil)
+      bi1 = ButtonImage.create(user: u, board: b, settings: {'protected' => true, 'protected_source' => 'pcs'}, url: 'http://www.example.com')
+      bi2 = ButtonImage.create(user: u, board: b, settings: {'protected' => true, 'protected_source' => 'abs'}, url: 'http://www.example.com')
+      bs1 = ButtonSound.create(user: u, board: b)
+      expect(b).to receive(:button_images).and_return([bi1, bi2])
+      expect(b).to receive(:button_sounds).and_return([bs1])
+      expect(JsonApi::Image).to receive(:as_json).with(bi1, :allowed_sources => ['pcs']).and_return({'bi1' => true})
+      expect(JsonApi::Image).to receive(:as_json).with(bi2, :allowed_sources => ['pcs']).and_return({'bi2' => true})
+      expect(JsonApi::Sound).to receive(:as_json).with(bs1).and_return({'bs1' => true})
+      expect(b).to receive(:set_cached).with("buttons_and_images/#{u.cache_key}", {"images"=>[{"bi1"=>true}, {"bi2"=>true}], "sounds"=>[{"bs1"=>true}]})
+      expect(b.buttons_and_images_for(u)).to eq({
+        'images' => [
+          {'bi1' => true}, {'bi2' => true}
+        ],
+        'sounds' => [
+          {'bs1' => true}
+        ]
+      })
+    end
+
+    it "should allow protected sources used by supervisees" do
+      u = User.create
+      u2 = User.create
+      User.link_supervisor_to_user(u, u2)
+      User.purchase_extras({'user_id' => u2.global_id})
+      u.reload
+      u2.reload
+
+      b = Board.create(user: u)
+      expect(b).to receive(:get_cached).with("buttons_and_images/#{u.cache_key}").and_return(nil)
+      bi1 = ButtonImage.create(user: u, board: b, settings: {'protected' => true, 'protected_source' => 'pcs'}, url: 'http://www.example.com')
+      bi2 = ButtonImage.create(user: u, board: b, settings: {'protected' => true, 'protected_source' => 'abs'}, url: 'http://www.example.com')
+      bi3 = ButtonImage.create(user: u, board: b, settings: {'protected' => true, 'protected_source' => 'cheese'}, url: 'http://www.example.com')
+      expect(b).to receive(:button_images).and_return([bi1, bi2, bi3])
+      expect(JsonApi::Image).to receive(:as_json).with(bi1, :allowed_sources => ['pcs']).and_return({'bi1' => true})
+      expect(JsonApi::Image).to receive(:as_json).with(bi2, :allowed_sources => ['pcs']).and_return({'bi2' => true})
+      expect(JsonApi::Image).to receive(:as_json).with(bi3, :allowed_sources => ['pcs']).and_return({'bi3' => true})
+      expect(b).to receive(:set_cached).with("buttons_and_images/#{u.cache_key}", {"images"=>[{"bi1"=>true}, {"bi2"=>true}, {'bi3' => true}], "sounds"=>[]})
+      expect(b.buttons_and_images_for(u)).to eq({
+        'images' => [
+          {'bi1' => true}, {'bi2' => true}, {'bi3' => true}
+        ],
+        'sounds' => []
       })
     end
   end

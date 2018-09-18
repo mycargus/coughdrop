@@ -70,8 +70,6 @@ module JsonApi::Log
   end
   
   def self.extra_includes(log, json, args={})
-    json['log']['events'] = []
-    
     if log.data['geo'] && log.user && log.user.settings['preferences'] && log.user.settings['preferences']['geo_logging']
       json['log']['geo'] = {
         'latitude' => log.data['geo'][0],
@@ -97,55 +95,7 @@ module JsonApi::Log
 
     # TODO: this needs to be handled by the local client eventually
     log.assert_extra_data
-    (log.data['events'] || []).each do |event|
-      entry = {}
-      entry['id'] = event['id']
-      entry['timestamp'] = event['timestamp']
-      entry['highlighted'] = event['highlighted'] if event['highlighted']
-      if event['button']
-        entry['type'] = 'button'
-        entry['spoken'] = !!event['button']['spoken']
-        entry['summary'] = event['button']['label']
-        if entry['summary'] == ':complete' && event['button']['completion']
-          entry['summary'] += " (#{event['button']['completion']})"
-        end
-        entry['parts_of_speech'] = event['parts_of_speech']
-        if event['button']['percent_x'] && event['button']['percent_y'] && event['button']['board']
-          entry['touch_percent_x'] = event['button']['percent_x']
-          entry['touch_percent_y'] = event['button']['percent_y']
-          entry['board'] = event['button']['board']
-        end
-      elsif event['action']
-        entry['type'] = 'action'
-        entry['summary'] = "[#{event['action']['action']}]"
-        if event['action']['action'] == 'open_board'
-          entry['new_board'] = event['action']['new_id']
-        end
-      elsif event['utterance']
-        entry['type'] = 'utterance'
-        entry['summary'] = "[vocalize]"
-        entry['utterance_text'] = event['utterance']['text']
-      else
-        entry['type'] = 'other'
-        entry['summary'] = "unrecognized event"
-      end
-      if event['modeling']
-        entry['modeling'] = true
-      end
-      if event['notes']
-        entry['notes'] = event['notes'].map do |n|
-          {
-            'id' => n['id'],
-            'note' => n['note'],
-            'author' => {
-              'id' => n['author']['id'],
-              'user_name' => n['author']['user_name']
-            }
-          }
-        end
-      end
-      json['log']['events'] << entry
-    end
+    json['log']['events'] = LogSession.extra_data_public_transform(log.data['events'])
     
     if json['log']['type'] == 'assessment'
       json['log']['assessment'] = {}.merge(log.data['assessment'] || {})

@@ -1064,7 +1064,7 @@ module Stats
       :parts_of_speech => {},
       :modeled_parts_of_speech => {},
       :core_words => {},
-      :modeled_core_words => {}
+      :modeled_core_words => {},
       :parts_of_speech_combinations => {}
     }
     sequences = {}
@@ -1080,7 +1080,6 @@ module Stats
   end
   
   def self.word_pairs(sessions)
-    valid_words = WordData.standardized_words
     pairs = {}
     sessions.each do |session|
       if !session.data['stats']['word_pairs']
@@ -1124,12 +1123,12 @@ module Stats
         session.generate_stats
       end
       (session.data['stats']['time_blocks'] || []).each do |block, cnt|
-        timed_blocks[block] ||= 0
-        timed_blocks[block] += cnt
+        timed_blocks[block.to_i] ||= 0
+        timed_blocks[block.to_i] += cnt
       end
       (session.data['stats']['modeled_time_blocks'] || []).each do |block, cnt|
-        modeled_timed_blocks[block] ||= 0
-        modeled_timed_blocks[block] += cnt
+        modeled_timed_blocks[block.to_i] ||= 0
+        modeled_timed_blocks[block.to_i] += cnt
       end
     end
     {:timed_blocks => timed_blocks, :max_time_block => timed_blocks.map(&:last).max, :modeled_timed_blocks => modeled_timed_blocks, :max_modeled_timed_block => modeled_timed_blocks.map(&:last).max }

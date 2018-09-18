@@ -58,6 +58,21 @@ describe JsonApi::Image do
       expect(hash['fallback']).to eq(true)
     end
 
+    it 'should use the protected source if allowed for one of the supervisees' do
+      u = User.create
+      u2 = User.create
+      User.link_supervisor_to_user(u, u2)
+      User.purchase_extras({'user_id' => u2.global_id})
+      u2.reload
+      u.reload
+      i = ButtonImage.new(url: 'http://www.example.com/pic.png', settings: {'protected' => true, 'protected_source' => 'pcs'})
+      hash = JsonApi::Image.build_json(i, :permissions => u)
+      expect(hash['url']).to eq('http://www.example.com/pic.png')
+      expect(hash['protected']).to eq(true)
+      expect(hash['protected_source']).to eq('pcs')
+      expect(hash['fallback']).to eq(nil)
+    end
+
     it 'should return the actual image if allowed for the user' do
       u = User.create
       User.purchase_extras({'user_id' => u.global_id})

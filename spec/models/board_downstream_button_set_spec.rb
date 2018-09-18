@@ -166,7 +166,7 @@ describe BoardDownstreamButtonSet, :type => :model do
       })
     end
     
-    it "should not include disabled buttons" do
+    it "should include disabled buttons" do
       u = User.create
       b = Board.create(:user => u)
       b2 = Board.create(:user => u)
@@ -183,7 +183,7 @@ describe BoardDownstreamButtonSet, :type => :model do
       ]})
       bs = BoardDownstreamButtonSet.update_for(b.global_id)
       expect(bs).not_to eq(nil)
-      expect(bs.data['buttons'].length).to eq(2)
+      expect(bs.data['buttons'].length).to eq(4)
       expect(bs.data['buttons'][0]).to eq({
         'id' => 1,
         'label' => 'hat',
@@ -199,8 +199,11 @@ describe BoardDownstreamButtonSet, :type => :model do
         'hidden_link' => false,
         'force_vocalize' => true,
         'link_disabled' => false,
+        "linked_board_id" => b2.global_id,
+        "linked_board_key" => b2.key,
         'vocalization' => nil,
         'background_color' => nil,
+        "preferred_link" => true,
         'border_color' => nil,
         'locale' => 'en'
       })
@@ -219,8 +222,11 @@ describe BoardDownstreamButtonSet, :type => :model do
         'hidden_link' => false,
         'force_vocalize' => nil,
         'link_disabled' => true,
+        "linked_board_id" => b3.global_id,
+        "linked_board_key" => b3.key,
         'vocalization' => nil,
         'background_color' => nil,
+        "preferred_link" => true,
         'border_color' => nil,
         'locale' => 'en'
       })
@@ -489,6 +495,42 @@ describe BoardDownstreamButtonSet, :type => :model do
       expect(bs2.data['source_id']).to eq(bs.global_id)
       expect(bs2.buttons.length).to eq(2)
     end
+
+    it "should clear the existing source_id if self-referential" do
+      u = User.create
+      u2 = User.create
+      b = Board.create(user: u, public: true)
+      b2 = Board.create(user: u, public: true)
+      b.process({'buttons' => [
+        {'id' => 1, 'label' => 'hat', 'load_board' => {'id' => b2.global_id, 'key' => b2.key}},
+        {'id' => 2, 'label' => 'car'}
+      ]}, {:user => u})
+      b2.process({'buttons' => [
+        {'id' => 3, 'label' => 'har'},
+        {'id' => 4, 'label' => 'cap'}
+      ]}, {:user => u})
+      Worker.process_queues
+      Worker.process_queues
+      
+      bb = b.reload.copy_for(u2)
+      bb.save!
+      res = Board.copy_board_links_for(u2, {:starting_old_board => b.reload, :starting_new_board => bb.reload})
+      bb2 = Board.where(parent_board_id: b2.id).first
+      expect(bb2).to_not eq(nil)
+      
+      Worker.process_queues
+      Worker.process_queues
+
+      bs = bb.reload.board_downstream_button_set
+      expect(bs).to_not eq(nil)
+      expect(bs.data['buttons']).to_not eq(nil)
+      expect(bs.buttons.length).to eq(4)
+      bs2 = bb2.reload.board_downstream_button_set
+      expect(bs2).to_not eq(nil)
+      expect(bs2.data['buttons']).to eq(nil)
+      expect(bs2.data['source_id']).to eq(bs.global_id)
+      expect(bs2.buttons.length).to eq(2)
+    end
     
     it "should use existing upstream board when copying boards" do
       u = User.create
@@ -667,6 +709,40 @@ describe BoardDownstreamButtonSet, :type => :model do
       bs2.data['source_id'] = bs.global_id
       expect(bs2.buttons).to eq([{'id' => 2, 'board_id' => '1_2', 'depth' => 0}])
     end
+
+    it "should recurse through multiple levels if needed" do
+      bs = BoardDownstreamButtonSet.create(board_id: 1)
+      bs.data['buttons'] = [{'id' => 1, 'board_id' => '1_1'}, {'id' => 2, 'board_id' => '1_2'}, {'id' => 3, 'board_id' => '1_3'}]
+      bs.save
+      expect(bs.buttons).to eq([{"id"=>1, "board_id"=>"1_1"}, {"id"=>2, "board_id"=>"1_2"}, {"id"=>3, "board_id"=>"1_3"}])
+      bs2 = BoardDownstreamButtonSet.create(board_id: 2)
+      bs2 = BoardDownstreamButtonSet.find(bs2.id)
+      bs2.data['source_id'] = bs.global_id
+      bs2.save
+      expect(bs2.buttons).to eq([{'id' => 2, 'board_id' => '1_2', 'depth' => 0}])
+      bs3 = BoardDownstreamButtonSet.create(board_id: 3)
+      bs3 = BoardDownstreamButtonSet.find(bs3.id)
+      bs3.data['source_id'] = bs2.global_id
+      expect(bs3.buttons).to eq([{'id' => 3, 'board_id' => '1_3', 'depth' => 0}])
+      expect(bs3.data['source_id']).to eq(bs.global_id)
+    end
+
+    it "should update the source_id if mismatched" do
+      bs = BoardDownstreamButtonSet.create(board_id: 1)
+      bs.data['buttons'] = [{'id' => 1, 'board_id' => '1_1'}, {'id' => 2, 'board_id' => '1_2'}, {'id' => 3, 'board_id' => '1_3'}]
+      bs.save
+      expect(bs.buttons).to eq([{"id"=>1, "board_id"=>"1_1"}, {"id"=>2, "board_id"=>"1_2"}, {"id"=>3, "board_id"=>"1_3"}])
+      bs2 = BoardDownstreamButtonSet.create(board_id: 2)
+      bs2 = BoardDownstreamButtonSet.find(bs2.id)
+      bs2.data['source_id'] = bs.global_id
+      bs2.save
+      expect(bs2.buttons).to eq([{'id' => 2, 'board_id' => '1_2', 'depth' => 0}])
+      bs3 = BoardDownstreamButtonSet.create(board_id: 3)
+      bs3 = BoardDownstreamButtonSet.find(bs3.id)
+      bs3.data['source_id'] = bs2.global_id
+      expect(bs3.buttons).to eq([{'id' => 3, 'board_id' => '1_3', 'depth' => 0}])
+      expect(bs3.data['source_id']).to eq(bs.global_id)
+    end
   end
   
   describe "buttons_starting_from" do
@@ -725,4 +801,43 @@ describe BoardDownstreamButtonSet, :type => :model do
       expect(bs.buttons_starting_from(b3.global_id).map{|b| b['depth']}).to eq([0, 0])
     end
   end
+
+  describe "reconcile" do
+    it "should have specs" do
+      # write_this_test
+    end
+  end
 end
+
+# def self.reconcile
+#   wasted = 0
+#   destroyed = 0
+#   BoardDownstreamButtonSet.where('id > 7000').find_in_batches(batch_size: 10) do |batch|
+#     batch.each do |button_set|
+#       if button_set.data['buttons']
+#         size = button_set.data.to_json.length
+#         board = button_set.board
+#         puts "#{button_set.global_id} #{board ? board.key : 'NO BOARD'} #{size}"
+#         if !board
+#           puts "  no board!"
+#           button_set.destroy
+#           destroyed += size
+#         elsif (board.settings['immediately_upstream_board_ids'] || []).length > 0
+#           if size > 20000
+#             if button_set.data['source_id'] == button_set.global_id
+#               button_set.data['source_id'] = nil 
+#               button_set.save
+#               bs = BoardDownstreamButtonSet.update_for(board.global_id)                
+#             end
+#             # bs = BoardDownstreamButtonSet.update_for(board.global_id)
+#             # bs_size = bs.data.to_json.length
+#             # if bs_size < size
+#             #   puts "  -#{size - bs_size}"
+#             #   wasted += size - bs_size
+#             # end
+#           end
+#         end
+#       end
+#     end
+#   end
+# end
