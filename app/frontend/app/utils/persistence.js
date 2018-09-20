@@ -1387,7 +1387,7 @@ var persistence = EmberObject.extend({
       console.warn("queueing sync action", defer.descriptor, defer.id);
     }
     persistence.sync_actions.push(defer);
-    var threads = capabilities.mobile ? 2 : 4;
+    var threads = capabilities.mobile ? 1 : 4;
 
     persistence.syncing_action_watchers = persistence.syncing_action_watchers || 0;
     if(persistence.syncing_action_watchers < threads) {
