@@ -1127,12 +1127,22 @@ var buttonTracker = EmberObject.extend({
     if($dropdown.length > 0 && $open_identity_dropdown.length > 0) {
       $dropdown.show();      
     }
-    // If the identity dropdown is open and the user taps somewhere 
-    // else on the screen, close the identity dropdown
+    // If any dropdown is open and the user taps somewhere 
+    // else on the screen, close the open dropdown
     if($target_dropdown.length == 0 && $dropdown.length > 0) {
       if($target.closest('.dropdown.open ul').length == 0 && $open_identity_dropdown.length > 0) {
-        $target = $(".dropdown.open > a");
+        // I suppose it's possible that this tries to pass to a target 
+        // that doesn't exist, so check for that
+        var $new_target = $(".dropdown.open > a");
+        if($new_target.length > 0) { $target = $new_target; }
       }
+      // This is a shot in the dark, but something is interrupting
+      // interactions and it's possible it's because it's ignoring
+      // inputs because the dropdown is open. This won't close the 
+      // dropdown, just get rid of the nasty overlay.
+      runLater(function() {
+        $dropdown.remove();
+      }, 300);
     }
     if(buttonTracker.dwell_elem) {
       buttonTracker.dwell_elem.style.left = left;
