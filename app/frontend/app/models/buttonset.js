@@ -83,7 +83,7 @@ CoughDrop.Buttonset = DS.Model.extend({
       boards_to_check.sort(function(a, b) { return b.depth - a.depth; });
     }
     buttons = new_buttons;
-
+    return buttons;
   },
   find_sequence: function(str, from_board_id, user, include_home_and_sidebar) {
     if(str.length === 0) { return RSVP.resolve([]); }
