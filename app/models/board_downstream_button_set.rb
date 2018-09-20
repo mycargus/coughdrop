@@ -251,7 +251,13 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
         elsif button_set.data['source_id'] == button_set.global_id
           button_set.data['source_id'] = nil 
           button_set.save
-          bs = BoardDownstreamButtonSet.update_for(button_set.board.global_id)                
+          if button_set.board
+            bs = BoardDownstreamButtonSet.update_for(button_set.board.global_id)                
+          else
+            puts "  no board!"
+            button_set.destroy
+            destroyed += size
+          end
           puts "  mismatched source"
         end
       end
