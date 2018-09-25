@@ -218,9 +218,13 @@ module Subscription
     elsif args['unsubscribe']
       if (args['subscription_id'] && self.settings['subscription']['subscription_id'] == args['subscription_id']) || args['subscription_id'] == 'all'
         self.clear_existing_subscription(:allow_grace_period => true)
+        self.settings['subscription']['unsubscribe_reason'] = args['reason'] if args['reason']
         self.settings['pending'] = false
         self.assert_current_record!
         self.save
+        if self.settings['subscription']['unsubscribe_reason'] && !self.long_term_purchase?
+          SubscriptionMailer.schedule_delivery(:unsubscribe_reason, self.global_id)
+        end
       else
         res = false
       end

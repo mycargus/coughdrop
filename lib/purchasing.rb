@@ -45,7 +45,7 @@ module Purchasing
           data = {:purchase => true, :purchase_id => object['id'], :valid => !!valid}
         elsif event['type'] == 'charge.failed'
           valid = false
-          if object['customer']
+          if object['customer'] && object['customer'] != 'free'
             customer = Stripe::Customer.retrieve(object['customer'])
             valid = customer && customer['metadata'] && customer['metadata']['user_id']
 
@@ -393,7 +393,7 @@ module Purchasing
     add_token_summary(token)
     charge_type = false
     begin
-      customer = Stripe::Customer.retrieve(user.settings['subscription']['customer_id']) if user && user.settings['subscription'] && user.settings['subscription']['customer_id']
+      customer = Stripe::Customer.retrieve(user.settings['subscription']['customer_id']) if user && user.settings['subscription'] && user.settings['subscription']['customer_id'] && user.settings['subscription']['customer_id'] != 'free'
       # TODO: this is disabled for now, it's cleaner to just send everyone through the same purchase workflow
       # but it would be an easier sale if customers didn't have to do this
       if token == 'none' && customer && customer['subscriptions'].to_a.any?{|s| s['status'] == 'active' || s['status'] == 'trialing' }
@@ -796,6 +796,10 @@ module Purchasing
         if sub['id'] == except_subscription_id && except_subscription_id != 'all'
         else
           begin
+            # record the details of the cancellation, if there are any
+            sub['metadata'] ||= {}
+            sub['metadata']['cancel_reason'] = except_subscription_id
+            sub.save
             sub.delete
             user.log_subscription_event({:log => 'subscription canceled', id: sub['id'], reason: except_subscription_id}) if user
           rescue => e

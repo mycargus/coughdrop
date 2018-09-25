@@ -96,8 +96,12 @@ export default Controller.extend({
       var user = _this.get('model');
       if(frd) {
         this.set('subscription.canceling', true);
+        var reason = _this.get('cancel_reason');
         persistence.ajax('/api/v1/users/' + user.get('user_name') + '/subscription', {
-          type: 'DELETE'
+          type: 'DELETE',
+          data: {
+            reason: reason
+          }
         }).then(function(data) {
           progress_tracker.track(data.progress, function(event) {
             if(event.status == 'errored') {

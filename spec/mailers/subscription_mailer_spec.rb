@@ -470,4 +470,54 @@ describe SubscriptionMailer, :type => :mailer do
       expect(text).to match(/"#{u.user_name}"/)
     end
   end
+
+  describe "unsubscribe_reason" do
+    it "should generate the correct data" do
+      u = User.create
+      u.settings['subscription'] = {}
+      u.save
+      m = SubscriptionMailer.unsubscribe_reason(u.global_id, 'bacon is good')
+      expect(m.to).to eq([ENV['SYSTEM_ERROR_EMAIL']])
+      expect(m.subject).to eq('CoughDrop - User Unsubscribed')
+      html = m.body.to_s
+      expect(html).to match(/#{u.user_name}/)
+      expect(html).to match(/bacon is good/)
+    end
+
+    it "should generate the correct data" do
+      u = User.create
+      u.settings['subscription'] = {'unsubscribe_reason' => 'too many cool things'}
+      u.save
+      m = SubscriptionMailer.unsubscribe_reason(u.global_id)
+      expect(m.to).to eq([ENV['SYSTEM_ERROR_EMAIL']])
+      expect(m.subject).to eq('CoughDrop - User Unsubscribed')
+
+      html = m.body.to_s
+      expect(html).to match(/#{u.user_name}/)
+      expect(html).to match(/too many cool things/)
+    end
+
+    it "should get triggered on user unsubscribe with a reason" do
+      u = User.create
+      u.settings['subscription'] = {
+        'subscription_id' => 'asdf1234',
+        'unsubscribe_reason' => 'super awesome'
+      }
+      u.save
+      expect(u.long_term_purchase?).to eq(false)
+      expect(u.settings['subscription']['unsubscribe_reason']).to_not eq(nil)
+      expect(SubscriptionMailer).to receive(:schedule_delivery).with(:unsubscribe_reason, u.global_id)
+      u.update_subscription({'unsubscribe' => true, 'subscription_id' => 'asdf1234'})
+    end
+
+    it "should not get triggered on user unsubscribe without a reason" do
+      u = User.create
+      u.settings['subscription'] = {
+        'subscription_id' => 'asdf1234'
+      }
+      u.save
+      expect(SubscriptionMailer).to_not receive(:schedule_delivery).with(:unsubscribe_reason, u.global_id)
+      u.update_subscription({'unsubscribe' => true, 'subscription_id' => 'asdf1234'})
+    end
+  end
 end

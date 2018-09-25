@@ -1,0 +1,9 @@
+<%= @user.settings['name'] %> just canceled their monthly subscription to CoughDrop.<br/><br/>
+User name: <b><a href="<%= JsonApi::Json.current_host %>/<%= @user.user_name %>"><%= @user.user_name %></a></b><br/>
+Email: <b><%= @user.settings['email'] %></b><br/>
+Time as Customer: <b><%= @user.purchase_credit_duration / 1.month.to_i %> months</b></b>
+Reason for Canceling: <b><%= @reason %></b>
+<br/><br/>
+
+Thanks!<br/>
+-The CoughDrop Team
