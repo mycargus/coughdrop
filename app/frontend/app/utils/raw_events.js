@@ -233,6 +233,7 @@ var buttonTracker = EmberObject.extend({
     // instead manually interpreting touch and mouse events. that way we
     // can do magical things like "click" on starting/ending point
     if($(event.target).closest('.advanced_selection').length > 0) {
+      buttonTracker.triggerEvent = null;
       // doesn't need to be here, but since buttons are always using advanced_selection it's probably ok
       $(".touched").removeClass('touched');
       // this is to prevent ugly selected boxes that happen with dragging
@@ -263,12 +264,30 @@ var buttonTracker = EmberObject.extend({
       }
     } else {
       buttonTracker.triggerEvent = event;
+      var key = Math.random();
+      buttonTracker.triggerEvent.key = key;
+      // Eye gaze users can't just tap again to make stuck things
+      // go away, so this is a backup patch in case things get weird
+      // so that they don't lose the ability to select
+      runLater(function() {
+        if(buttonTracker.triggerEvent && buttonTracker.triggerEvent.key == key) {
+          buttonTracker.triggerEvent = null;
+        }
+      }, 5000);
     }
   },
   // used for handling dragging, scanning selection
   touch_continue: function(event) {
     if(buttonTracker.transitioning) {
       event.preventDefault();
+      var token = Math.random();
+      // Don't let it get stuck in some weird transitioning state forever
+      buttonTracker.transitioning = token;
+      runLater(function() {
+        if(buttonTracker.transitioning == token) {
+          buttonTracker.transitioning = false;
+        }
+      }, 2000);
       return;
     }
 
@@ -495,6 +514,7 @@ var buttonTracker = EmberObject.extend({
 
     // don't remember why this is important...
     buttonTracker.buttonDown = false;
+    buttonTracker.triggerEvent = null;
 
     var selectable_wrap = buttonTracker.find_selectable_under_event(event);
     // if dragging a button, behavior is very different than otherwise
@@ -887,13 +907,15 @@ var buttonTracker = EmberObject.extend({
   dwell_linger: function(event) {
     // debounce, waiting for clearance
     if(buttonTracker.dwell_wait) { console.log("linger waiting for dwell timeout"); return; }
-    // touch events get blocked because mousemove gets triggered and creates a dwell element directly under the finger
-    if(buttonTracker.triggerEvent && buttonTracker.triggerEvent.type == 'touchstart') { return; }
+    // touch events get blocked because mousemove gets triggered by 
+    // finger taps and would create a dwell element directly under 
+    // the finger, essentially eating all touches
+    if(buttonTracker.triggerEvent && buttonTracker.triggerEvent.type == 'touchstart') { console.log("linger ignored for touch event"); return; }
     var dwell_selection = buttonTracker.dwell_selection != 'button';
     // cursor-based trackers can throw the cursor up against the edges of the screen causing
     // inaccurate lingers for the buttons along the edges
     if(event.type == 'mousemove' && (event.clientX === 0 || event.clientY === 0 || event.clientX >= (window.innerWidth - 1) || event.clientY >= (window.innerHeight - 1))) {
-      console.log("linger waiting because on a screen edge");
+      console.log("linger waiting because on a screen edge", event.clientX, event.clientY);
       return;
     }
     if(buttonTracker.last_triggering_dwell_event && dwell_selection) {
@@ -1492,8 +1514,8 @@ var buttonTracker = EmberObject.extend({
       if(selectable_wrap) {
         var target = this.longPressEvent.originalTarget || (this.longPressEvent.originalEvent || this.longPressEvent).target
         var event = $.Event('touchend', target);
-        event.clientX = this.longPressEvent.clientX;
-        event.clientY = this.longPressEvent.clientY;
+        event.clientX = (this.longPressEvent || this.longPressEvent.originalEvent).clientX;
+        event.clientY = (this.longPressEvent || this.longPressEvent.originalEvent).clientY;
         buttonTracker.element_release(selectable_wrap, event);
         this.ignoreUp = true;
       }

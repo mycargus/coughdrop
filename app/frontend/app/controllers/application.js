@@ -376,6 +376,7 @@ export default Controller.extend({
     find_button: function() {
       var include_other_boards = app_state.get('speak_mode') && ((stashes.get('root_board_state') || {}).key) == app_state.get('currentUser.preferences.home_board.key');
       modal.open('find-button', {
+        inactivity_timeout: app_state.get('speak_mode'),
         board: this.get('board').get('model'),
         include_other_boards: include_other_boards
       });

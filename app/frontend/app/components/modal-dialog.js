@@ -62,7 +62,9 @@ export default Component.extend({
       if(!$(event.target).hasClass('modal')) {
         return;
       } else {
-        event.preventDefault();
+        try {
+          event.preventDefault();
+        } catch(e) { }
         return this.sendAction();
       }
     },

@@ -956,6 +956,7 @@ var editManager = EmberObject.extend({
           var affected_board_ids = result && result.affected_board_ids;
           var new_board_ids = result && result.new_board_ids;
           board.set('new_board_ids', new_board_ids);
+          board.load_button_set(true);
           if(decision && decision.match(/as_home$/)) {
             user.set('preferences.home_board', {
               id: board.get('id'),
