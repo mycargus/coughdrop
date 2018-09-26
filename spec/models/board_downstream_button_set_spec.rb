@@ -626,6 +626,111 @@ describe BoardDownstreamButtonSet, :type => :model do
       expect(bs3.data['source_id']).to eq(bs2.global_id)
       expect(bs3.buttons.length).to eq(2)
     end
+
+    it "should immediately update the source button set if specified" do
+      u = User.create
+      b1 = Board.create(user: u)
+      b2 = Board.create(user: u)
+      b1.process({'buttons' => [
+        {'id' => 1, 'label' => 'hat', 'load_board' => {'id' => b2.global_id, 'key' => b2.key}}
+      ]}, {'user' => u})
+      Worker.process_queues
+      Worker.process_queues
+      BoardDownstreamButtonSet.update_for(b1.global_id)
+      bs1 = b1.reload.board_downstream_button_set
+      expect(bs1.reload.data['buttons'].length).to eq(1)
+      expect(b1.settings['downstream_board_ids']).to eq([b2.global_id])
+      b2.reload
+      b2.process({'buttons' => [
+        {'id' => 2, 'label' => 'shoes'}
+      ]}, {'user' => u})
+      BoardDownstreamButtonSet.update_for(b2.global_id, true)
+      bs1.reload
+      expect(bs1.data['buttons'].length).to eq(2)
+    end
+
+    it "should schedule updates for source button set if not immediate" do
+      u = User.create
+      b1 = Board.create(user: u)
+      b2 = Board.create(user: u)
+      b1.process({'buttons' => [
+        {'id' => 1, 'label' => 'coat', 'load_board' => {'id' => b2.global_id, 'key' => b2.key}}
+      ]})
+      Worker.process_queues
+      Worker.process_queues
+      BoardDownstreamButtonSet.update_for(b2.global_id)
+      expect(Worker.scheduled?(BoardDownstreamButtonSet, :perform_action, {'method' => 'update_for', 'arguments' => [b1.global_id, false, [b2.global_id]]}))
+    end
+
+    it "should not re-call in a potential loop" do
+      u = User.create
+      b1 = Board.create(user: u)
+      b2 = Board.create(user: u)
+      b1.process({'buttons' => [
+        {'id' => 1, 'label' => 'hat', 'load_board' => {'id' => b2.global_id, 'key' => b2.key}}
+      ]}, {'user' => u})
+      Worker.process_queues
+      Worker.process_queues
+      BoardDownstreamButtonSet.update_for(b1.global_id)
+      bs1 = b1.reload.board_downstream_button_set
+      expect(bs1.reload.data['buttons'].length).to eq(1)
+      expect(b1.settings['downstream_board_ids']).to eq([b2.global_id])
+      b2.reload
+      b2.process({'buttons' => [
+        {'id' => 2, 'label' => 'shoes'}
+      ]}, {'user' => u})
+      expect(BoardDownstreamButtonSet).to_not receive(:update_for).with(b1.global_id, true, [b1.global_id, b2.global_id])
+      BoardDownstreamButtonSet.update_for(b2.global_id, true, [b1.global_id])
+    end
+    
+    it "should not get stuck in a loop when updating source button sets" do
+      u = User.create
+      b1 = Board.create(user: u)
+      b2 = Board.create(user: u)
+      bs1 = BoardDownstreamButtonSet.update_for(b1.global_id)
+      bs2 = BoardDownstreamButtonSet.update_for(b2.global_id)
+      bs1.data['source_id'] = bs2.global_id
+      bs1.save
+      bs2.data['source_id'] = bs1.global_id
+      bs2.save
+      BoardDownstreamButtonSet.update_for(b2.global_id)
+    end
+
+    it "should set all downstream boards to use this board as the source" do
+      u = User.create
+      b1 = Board.create(user: u)
+      b2 = Board.create(user: u)
+      b3 = Board.create(user: u)
+      b4 = Board.create(user: u)
+      b3.process({'buttons' => [
+        {'id' => 1, 'label' => 'land', 'load_board' => {'id' => b4.global_id, 'key' => b4.key}}
+      ]}, {'user' => u}) 
+      Worker.process_queues
+      Worker.process_queues
+      b2.process({'buttons' => [
+        {'id' => 2, 'label' => 'yours', 'load_board' => {'id' => b3.global_id, 'key' => b3.key}}
+      ]}, {'user' => u})
+      Worker.process_queues
+      Worker.process_queues
+      b1.process({'buttons' => [
+        {'id' => 3, 'label' => 'island', 'load_board' => {'id' => b2.global_id, 'key' => b2.key}}
+      ]}, {'user' => u})
+      Worker.process_queues
+      Worker.process_queues
+      bs1 = b1.reload.board_downstream_button_set.reload
+      bs2 = b2.reload.board_downstream_button_set.reload
+      bs3 = b3.reload.board_downstream_button_set.reload
+      bs4 = b4.reload.board_downstream_button_set.reload
+      expect(bs2.reload.data['source_id']).to eq(bs1.global_id)
+      expect(bs3.reload.data['source_id']).to eq(bs1.global_id)
+      expect(bs4.reload.data['source_id']).to eq(bs1.global_id)
+      
+      puts "update for real"
+      BoardDownstreamButtonSet.update_for(b1.global_id)
+      expect(bs2.reload.data['source_id']).to eq(bs1.global_id)
+      expect(bs3.reload.data['source_id']).to eq(bs1.global_id)
+      expect(bs4.reload.data['source_id']).to eq(bs1.global_id)
+    end
   end
   
   describe "for_user" do

@@ -88,9 +88,13 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
     self.data && (self.data['buttons'] || self.data['extra_url'])
   end
   
-  def self.update_for(board_id)
+  def self.update_for(board_id, immediate_update=false, traversed_ids=[])
+    traversed_ids ||= []
     board = Board.find_by_global_id(board_id)
+    return if board && traversed_ids.include?(board.global_id)
     if board
+      # Prevent loop from running forever
+      traversed_ids << board.global_id
       set = BoardDownstreamButtonSet.find_or_create_by(:board_id => board.id) rescue nil
       set ||= BoardDownstreamButtonSet.find_or_create_by(:board_id => board.id)
       set.data['source_id'] = nil if set.data['source_id'] == set.global_id
@@ -100,7 +104,9 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
         set.data['found_upstream_board'] = true
         bs = brd.board_downstream_button_set
         set.data['found_upstream_set'] = true if bs
+        source_board_id = nil
         linked_board_ids = bs && (bs.data['linked_board_ids'] || bs.buttons.map{|b| b['linked_board_id'] }.compact.uniq)
+        # If the parent board is the correct source, use that
         if bs && bs.has_buttons_defined? && linked_board_ids.include?(board.global_id)
           # legacy lists don't correctly filter linked board ids
           valid_button = bs.buttons.detect{|b| b['linked_board_id'] == board.global_id } # && !b['hidden'] && !b['link_disabled'] }
@@ -108,8 +114,9 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
             set.data['source_id'] = bs.global_id
             set.data['buttons'] = nil
             set.save
-            return set
+            source_board_id = bs.related_global_id(bs.board_id)
           end
+        # Otherwise if the parent board has a source_id, use that
         elsif bs && bs.data['source_id'] && linked_board_ids.include?(board.global_id)
           # legacy lists don't correctly filter linked board ids
           valid_button = bs.buttons.detect{|b| b['linked_board_id'] == board.global_id } # && !b['hidden'] && !b['link_disabled'] }
@@ -117,8 +124,20 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
             set.data['source_id'] = bs.data['source_id']
             set.data['buttons'] = nil
             set.save
-            return set
+            source = BoardDownstreamButtonSet.find_by_global_id(bs.data['source_id'])
+            source_board_id = source.related_global_id(source.board_id) if source
           end
+        end
+        if source_board_id
+          # If pointing to a source, go ahead and update that source
+          # as part of the update process for this button set
+          if immediate_update
+            puts "call it!"
+            BoardDownstreamButtonSet.update_for(source_board_id, true, traversed_ids)
+          else
+            BoardDownstreamButtonSet.schedule(:update_for, source_board_id, false, traversed_ids)
+          end
+          return set
         end
       end
       boards_hash = {}
@@ -199,9 +218,22 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
       set.data['source_id'] = nil
       set.save
       lost_board_ids = existing_board_ids - set.data['linked_board_ids']
+      # Any boards that we no longer reference are going to need their
+      # own button data instead of using this button set as their source
       lost_board_ids.each do |id|
-        BoardDownstreamButtonSet.schedule_once(:update_for, id)
+        BoardDownstreamButtonSet.schedule_once(:update_for, id, false, traversed_ids)
       end
+
+      # Retrieve all linked boards and set them to this source
+      Board.find_batches_by_global_id(set.data['linked_board_ids'] || [], :batch_size => 3) do |brd|
+        bs = brd.board_downstream_button_set
+        if bs && bs.global_id != set.global_id && bs.data['source_id'] != set.global_id
+          bs.data['source_id'] = set.global_id
+          bs.data['buttons'] = nil
+          bs.save
+        end
+      end
+
       if board.settings['board_downstream_button_set_id'] != set.global_id
         # TODO: race condition?
         board.update_setting('board_downstream_button_set_id', set.global_id)

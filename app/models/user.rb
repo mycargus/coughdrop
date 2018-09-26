@@ -1064,6 +1064,8 @@ class User < ActiveRecord::Base
     Board.replace_board_for(self, {:starting_old_board => starting_old_board, :starting_new_board => starting_new_board, :valid_ids => valid_ids, :update_inline => update_inline, :make_public => make_public, :authorized_user => User.whodunnit_user(PaperTrail.whodunnit)})
     ids = [starting_old_board_id]
     ids += (starting_old_board.reload.settings['downstream_board_ids'] || []) if starting_old_board
+    # This was happening too slowly/unreliably in a separate bg job
+    button_set = BoardDownstreamButtonSet.update_for(starting_new_board.global_id, true)
     {'affected_board_ids' => ids.uniq}
   ensure
     PaperTrail.whodunnit = prior
@@ -1104,6 +1106,8 @@ class User < ActiveRecord::Base
       starting_new_board.swap_images(swap_library, self, ids)
       res['swap_library'] = swap_library
     end
+    # This was happening too slowly/unreliably in a separate bg job
+    button_set = BoardDownstreamButtonSet.update_for(starting_new_board.global_id, true)
     res
   ensure
     PaperTrail.whodunnit = prior
