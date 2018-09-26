@@ -393,7 +393,10 @@ module Purchasing
     add_token_summary(token)
     charge_type = false
     begin
-      customer = Stripe::Customer.retrieve(user.settings['subscription']['customer_id']) if user && user.settings['subscription'] && user.settings['subscription']['customer_id'] && user.settings['subscription']['customer_id'] != 'free'
+      customer = nil
+      if user && user.settings['subscription'] && user.settings['subscription']['customer_id'] && user.settings['subscription']['customer_id'] != 'free'
+        customer = Stripe::Customer.retrieve(user.settings['subscription']['customer_id'])  rescue nil
+      end
       # TODO: this is disabled for now, it's cleaner to just send everyone through the same purchase workflow
       # but it would be an easier sale if customers didn't have to do this
       if token == 'none' && customer && customer['subscriptions'].to_a.any?{|s| s['status'] == 'active' || s['status'] == 'trialing' }
