@@ -51,7 +51,7 @@ export default modal.ModalController.extend({
         if(!boards || boards.length === 0) {
           boards = window.user_preferences.any_user.default_sidebar_boards;
         }
-        var level = parseInt(this.get('model.level'), 10);
+        var level = parseInt(_this.get('model.level'), 10);
         if(!level || level < 1 || level > 10) { level = null; }
         boards.unshift({
           name: board.name,
