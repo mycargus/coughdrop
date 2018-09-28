@@ -769,7 +769,7 @@ class Board < ActiveRecord::Base
     res
   end
 
-  def translate_set(translations, source_lang, dest_lang, board_ids, set_as_default=true, user_local_id=nil, visited_board_ids=[])
+  def translate_set(translations, source_lang, dest_lang, board_ids, set_as_default=true, user_local_id=nil, visited_board_ids=[],user_for_paper_trail=nil)
     user_local_id ||= self.user_id
     source_lang = 'en' if source_lang.blank?
     label_lang = dest_lang
@@ -811,7 +811,10 @@ class Board < ActiveRecord::Base
           @buttons_changed = 'translated'
         end
       end
+      whodunnit = PaperTrail.whodunnit
+      PaperTrail.whodunnit = user_for_paper_trail || 'user:unknown'
       self.save
+      PaperTrail.whodunning = whodunnit
     else
       return {done: true, translated: false, reason: 'board not in list'}
     end
@@ -830,6 +833,7 @@ class Board < ActiveRecord::Base
     return {done: true, swapped: false, reason: 'mismatched user'} if user_local_id != self.user_id
     return {done: true, swapped: false, reason: 'no library specified'} if !library || library.blank?
     return {done: true, swapped: false, reason: 'not authorized to access premium library'} if library == 'pcs' && (!author || !author.subscription_hash['extras_enabled'])
+    return {done: true, swapped: false, reason: 'author required'} unless author
 
     if (board_ids.blank? || board_ids.include?(self.global_id))
       updated_board_ids << self.global_id
@@ -847,7 +851,10 @@ class Board < ActiveRecord::Base
           end
         end
       end
+      whodunnit = PaperTrail.whodunnit
+      PaperTrail.whodunnit = "user:#{author.global_id}.board.swap_images"
       self.save if @buttons_changed
+      PaperTrail.whodunnit = whodunnit
     else
       return {done: true, swapped: false, reason: 'board not in list'}
     end

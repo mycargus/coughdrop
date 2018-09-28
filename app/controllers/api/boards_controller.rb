@@ -337,7 +337,7 @@ class Api::BoardsController < ApplicationController
     translations = translations.to_unsafe_h if translations.respond_to?(:to_unsafe_h)
     set_as_default = true
     set_as_default = false if params['set_as_default'] == false || params['set_as_default'] == 'false' || params['set_as_default'] == 0 || params['set_as_default'] == '0'
-    progress = Progress.schedule(board, :translate_set, translations, params['source_lang'], params['destination_lang'], ids, set_as_default)
+    progress = Progress.schedule(board, :translate_set, translations, params['source_lang'], params['destination_lang'], ids, set_as_default, user_for_paper_trail)
     render json: JsonApi::Progress.as_json(progress, :wrapper => true).to_json
   end
 
