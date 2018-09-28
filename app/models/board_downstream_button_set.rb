@@ -132,7 +132,6 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
           # If pointing to a source, go ahead and update that source
           # as part of the update process for this button set
           if immediate_update
-            puts "call it!"
             BoardDownstreamButtonSet.update_for(source_board_id, true, traversed_ids)
           else
             BoardDownstreamButtonSet.schedule(:update_for, source_board_id, false, traversed_ids)
@@ -227,7 +226,10 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
       # Retrieve all linked boards and set them to this source
       Board.find_batches_by_global_id(set.data['linked_board_ids'] || [], :batch_size => 3) do |brd|
         bs = brd.board_downstream_button_set
-        if bs && bs.global_id != set.global_id && bs.data['source_id'] != set.global_id
+        # TODO: it was too expensive updating everyone with the wrong source,
+        # so I changed it to only update everyone with no source, since 
+        # bs.buttons should update to the right source eventually
+        if bs && bs.global_id != set.global_id && !bs.data['source_id'] # bs.data['source_id'] != set.global_id
           bs.data['source_id'] = set.global_id
           bs.data['buttons'] = nil
           bs.save
