@@ -814,14 +814,14 @@ class Board < ActiveRecord::Base
       whodunnit = PaperTrail.whodunnit
       PaperTrail.whodunnit = user_for_paper_trail || 'user:unknown'
       self.save
-      PaperTrail.whodunning = whodunnit
+      PaperTrail.whodunnit = whodunnit
     else
       return {done: true, translated: false, reason: 'board not in list'}
     end
     visited_board_ids << self.global_id
     downstreams = self.settings['immediately_downstream_board_ids'] - visited_board_ids
     Board.find_all_by_path(downstreams).each do |brd|
-      brd.translate_set(translations, source_lang, dest_lang, board_ids, set_as_default, user_local_id, visited_board_ids)
+      brd.translate_set(translations, source_lang, dest_lang, board_ids, set_as_default, user_for_paper_trail, user_local_id, visited_board_ids)
       visited_board_ids << brd.global_id
     end
     {done: true, translations: translations, d: dest_lang, s: source_lang, board_ids: board_ids, updated: visited_board_ids}
