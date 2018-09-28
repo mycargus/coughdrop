@@ -48,9 +48,9 @@ class Board < ActiveRecord::Base
   add_permissions('view', ['read_boards']) {|user| self.author?(user) } # should be redundant due to board_caching
   add_permissions('view', 'edit', 'delete', 'share') {|user| self.author?(user) } # should be redundant due to board_caching
   add_permissions('view', ['read_boards']) {|user| self.user && self.user.allows?(user, 'supervise') }
-  # the user and any of their editing supervisors should have edit access
+  # the user and any of their editing supervisors/org admins should have edit access
   add_permissions('view', ['read_boards']) {|user| self.user && self.user.allows?(user, 'edit') }
-  add_permissions('view', 'edit', 'delete', 'share') {|user| self.user && self.user.allows?(user, 'edit') }
+  add_permissions('view', 'edit', 'delete', 'share') {|user| self.user && self.user.allows?(user, 'edit_boards') }
   # the user should have edit and sharing access if a parent board is edit-shared including downstream with them
   add_permissions('view', ['read_boards']) {|user| self.shared_with?(user, true) } # should be redundant due to board_caching
   add_permissions('view', 'edit', 'delete', 'share') {|user| self.shared_with?(user, true) } # should be redundant due to board_caching
@@ -769,7 +769,7 @@ class Board < ActiveRecord::Base
     res
   end
 
-  def translate_set(translations, source_lang, dest_lang, board_ids, set_as_default=true, user_local_id=nil, visited_board_ids=[],user_for_paper_trail=nil)
+  def translate_set(translations, source_lang, dest_lang, board_ids, set_as_default=true, user_for_paper_trail=nil, user_local_id=nil, visited_board_ids=[])
     user_local_id ||= self.user_id
     source_lang = 'en' if source_lang.blank?
     label_lang = dest_lang

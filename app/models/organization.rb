@@ -338,7 +338,7 @@ class Organization < ActiveRecord::Base
 #     end
 #   end
   
-  def self.manager_for?(manager, user)
+  def self.manager_for?(manager, user, include_admin_managers=true)
     return false unless manager && user
     manager_orgs = UserLink.links_for(manager).select{|l| l['type'] == 'org_manager' && l['user_id'] == manager.global_id && l['state']['full_manager'] }.map{|l| l['record_code'] }
     user_orgs = UserLink.links_for(user).select{|l| (l['type'] == 'org_user' || l['type'] == 'org_supervisor') && l['user_id'] == user.global_id && !l['state']['pending'] }.map{|l| l['record_code'] }
@@ -346,7 +346,7 @@ class Organization < ActiveRecord::Base
       # if user and manager are part of the same org
       return true
     elsif manager_orgs.length > 0
-      return true if admin_manager?(manager)
+      return true if include_admin_managers && admin_manager?(manager)
       if user_orgs.length > 0
         # check for any user orgs higher in the hierarchy
         more_user_record_codes = user_orgs.dup
@@ -361,7 +361,8 @@ class Organization < ActiveRecord::Base
         return true if (manager_orgs & more_user_record_codes).length > 0
       end
     end
-    return admin_manager?(manager)
+    return true if include_admin_managers && admin_manager?(manager)
+    return false
   end
   
   def touch_parent
