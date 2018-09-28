@@ -215,19 +215,30 @@ var editManager = EmberObject.extend({
   find_button: function(id) {
     if(!this.controller || !this.controller.get) { return []; }
     var ob = this.controller.get('ordered_buttons') || [];
+    var res = null;
     for(var idx = 0; idx < ob.length; idx++) {
       for(var jdx = 0; jdx < ob[idx].length; jdx++) {
-        if(id && ob[idx][jdx].id == id) {
-          return ob[idx][jdx];
-        } else if(id == 'empty' && ob[idx][jdx].empty) {
-          return ob[idx][jdx];
+        if(!res) {
+          if(id && ob[idx][jdx].id == id) {
+            res = ob[idx][jdx];
+          } else if(id == 'empty' && ob[idx][jdx].empty) {
+            res = ob[idx][jdx];
+          }
         }
       }
     }
-    var res = null;
     var board = this.controller.get('model');
+    var buttons = board.translated_buttons(app_state.get('label_locale'), app_state.get('vocalization_locale'));
+    if(res) {
+      var trans_button = buttons.find(function(b) { return b.id == id; });
+      if(trans_button) {
+        res.set('label', trans_button.label);
+        res.set('vocalization', trans_button.vocalization);
+      }
+      return res;
+    }
     if(board.get('fast_html')) {
-      board.get('buttons').forEach(function(b) {
+      buttons.forEach(function(b) {
         if(id && id == b.id) {
           res = editManager.Button.create(b, {board: board});
         }
