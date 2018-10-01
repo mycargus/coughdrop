@@ -39,7 +39,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
   end
   
   def buttons
-    self.touch if self.updated_at < 4.weeks.ago
+    self.touch if self.updated_at && self.updated_at < 4.weeks.ago
     return @buttons if @buttons
     brd = self
     visited_sources = []
