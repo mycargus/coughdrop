@@ -53,13 +53,13 @@ module ExtraData
   def extra_data_public_url
     return nil unless self.data && self.data['extra_data_nonce'] && self.data['extra_data_public']
     path = self.class.extra_data_remote_paths(self.data['extra_data_nonce'], self.global_id)[1]
-    "#{JsonApi::Json.current_host}#{path}"
+    "#{ENV['UPLOADS_S3_CDN']}/#{path}"
   end
 
   def extra_data_private_url
     return nil unless self.data && self.data['extra_data_nonce']
     path = self.class.extra_data_remote_paths(self.data['extra_data_nonce'], self.global_id)[0]
-    "#{JsonApi::Json.current_host}#{path}"
+    "#{ENV['UPLOADS_S3_CDN']}/#{path}"
   end
 
   def skip_extra_data_processing?
