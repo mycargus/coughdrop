@@ -687,6 +687,7 @@ class LogSession < ActiveRecord::Base
   end
   
   def schedule_summary
+    return true if @skip_extra_data_update
     if self.processed && (self.log_type == 'session' || self.goal)
       WeeklyStatsSummary.schedule_once(:update_for, self.global_id)
     end
@@ -697,6 +698,7 @@ class LogSession < ActiveRecord::Base
   end
   
   def update_board_connections(frd=false)
+    return true if @skip_extra_data_update
     if frd
       board_ids = []
       if self.data['events']

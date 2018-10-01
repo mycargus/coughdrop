@@ -37,7 +37,7 @@ describe Api::GiftsController, :type => :controller do
       expect(response.success?).to eq(true)
       json = JSON.parse(response.body)
       expect(response.code).to eq("200")
-      expect(json['gift']['id']).to eq("#{g.code}y#{g.code_verifier}")
+      expect(json['gift']['id']).to eq("#{g.code}::#{g.code_verifier}")
     end
     
     it "should be forgiving on capitalization and o's for 0's" do
@@ -49,7 +49,7 @@ describe Api::GiftsController, :type => :controller do
       expect(response.success?).to eq(true)
       json = JSON.parse(response.body)
       expect(response.code).to eq("200")
-      expect(json['gift']['id']).to eq("#{g.code}y#{g.code_verifier}")
+      expect(json['gift']['id']).to eq("#{g.code}::#{g.code_verifier}")
     end
   end
   
