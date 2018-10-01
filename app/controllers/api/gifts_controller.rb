@@ -20,7 +20,7 @@ class Api::GiftsController < ApplicationController
   def create
     return unless allowed?(@api_user, 'admin_support_actions')
     code = params['gift']['code']
-    if code && GiftPurchase.where(code: code)
+    if code && GiftPurchase.find_by(code: code)
       api_error 400, {error: 'code is taken'}
       return
     end
