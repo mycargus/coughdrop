@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180912210105) do
+ActiveRecord::Schema.define(version: 20180929000626) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -188,6 +188,15 @@ ActiveRecord::Schema.define(version: 20180912210105) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["created_at"], name: "index_job_stashes_on_created_at", using: :btree
+  end
+
+  create_table "log_mergers", force: :cascade do |t|
+    t.datetime "merge_at"
+    t.boolean  "started"
+    t.integer  "log_session_id"
+    t.datetime "created_at",     null: false
+    t.datetime "updated_at",     null: false
+    t.index ["log_session_id"], name: "index_log_mergers_on_log_session_id", using: :btree
   end
 
   create_table "log_session_boards", force: :cascade do |t|

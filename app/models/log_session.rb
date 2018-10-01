@@ -964,17 +964,29 @@ class LogSession < ActiveRecord::Base
       ref_ids[r['log_id']] = true;
     }
     LogSession.where(id: log_ids).each do |session|
-      session.schedule(:check_for_merger)
+      session.schedule_once(:check_for_merger)
     end
+    merged_ids = {}
+    LogMerger.where(['merge_at < ? AND started != ?', Time.now, true]).each do |merger|
+      merger.started = true
+      merger.save
+      next if merged_ids[merger.log_session_id]
+
+      merged_ids[merger.log_session_id] = true
+      log = merger.log_session
+      log.schedule_once(:check_for_merger, true)
+      log_ids << log.id
+    end
+    LogMerger.where(['merge_at < ? AND started = ?', 24.hours.ago, true]).delete_all
     log_ids.length
   end
-  
-  def check_for_merger
+
+  def check_for_merger(frd=false)
     log = self
     log.assert_extra_data
     cutoff = (log.user && log.user.log_session_duration) || User.default_log_session_duration
     matches = LogSession.where(log_type: 'session', user_id: log.user_id, author_id: log.author_id, device_id: log.device_id); matches.count
-    mergers = matches.where(['id != ?', log.id]).where(['ended_at >= ? AND ended_at <= ?', log.started_at - cutoff, log.ended_at + cutoff]).order('id')
+    mergers = matches.where(['id != ?', log.id]).where(['ended_at >= ? AND ended_at <= ?', log.started_at - cutoff, log.ended_at + cutoff]).order('id ASC')
     mergers.each do |merger|
       next if merger.id == log.id
       merger.assert_extra_data
@@ -988,6 +1000,7 @@ class LogSession < ActiveRecord::Base
         end
         # remove dups based on timestamp or (event data if timestamps aren't precise enough)
         kept_events = []
+        transferred_events = []
         merger_user_id = log.data['events'].map{|e| e['user_id'] }.first
         slices = ['type', 'percent_x', 'percent_y', 'timestamp', 'action', 'button', 'utterance']
         merger.data['events'].each do |e|
@@ -1005,27 +1018,40 @@ class LogSession < ActiveRecord::Base
               # replace any colliding event ids
               e['id'] = (ids.max || 0) + 1 if merger.data['events'].detect{|me| me['id'] == e['id'] }
               ids << e['id']
-              log.data['events'] << e
+              transferred_events << e
             else
               kept_events << e
             end
           end
         end
-        log.save!
-        if kept_events.length > 0
-          merger.data['events'] = kept_events
-          merger.save!
-        else
-          merger.destroy
+        if frd
+          if transferred_events.length > 0
+            log.data['events'] ||= []
+            log.data['events'] += transferred_events
+            log.save
+            # If anything actually changed, let's check one more time
+            log.schedule_once(:check_for_merger)
+          end
+          if kept_events.length > 0
+            merger.data['events'] = kept_events
+            merger.save!
+          else
+            merger.destroy
+          end
+        elsif transferred_events.length > 0 || kept_events.length != merger.data['events'].length
+          # If the merger is already scheduled, do nothing
+          # If the merger is in progress, schedule a new one
+          merger = LogMerger.find_or_create_by(log_session_id: log.id)
+          merger = LogMerger.create(log_session_id: log.id, merge_at: 60.minutes.from_now) if merger && merger.started
         end
-        log.schedule_once(:check_for_merger)
       else
-        merger.check_for_merger
+        # Swap the root and try again, always go for the lower-id record
+        merger.schedule_once(:check_for_merger)
         return
       end
     end
   end
-  
+
   def process_params(params, non_user_params)
     raise "user required" if !self.user_id && !non_user_params[:user]
     raise "author required" if !self.author_id && !non_user_params[:author]
