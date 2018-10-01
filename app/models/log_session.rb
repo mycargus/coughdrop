@@ -66,6 +66,9 @@ class LogSession < ActiveRecord::Base
     highlight_words = []
     (self.data['events'] || []).each_with_index do |event, idx|
       next_event = self.data['events'][idx + 1]
+      event.each do |key, val|
+        event.delete(key) if val == nil
+      end
       parts = event['button'] && (event['button']['vocalization'] || "").split(/&&/).map{|v| v.strip }.select{|p| p.match(/^(\+|:)/)}
       parts ||= []
       next_parts = event['button'] && next_event && next_event['button'] && (next_event['button']['vocalization'] || "").split(/&&/).map{|v| v.strip }.select{|v| v.match(/^(\+|:)/)}
