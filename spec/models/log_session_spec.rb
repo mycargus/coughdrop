@@ -64,6 +64,20 @@ describe LogSession, :type => :model do
       expect(s.data['event_summary']).to eq('Note by fred: I am happy')
     end
 
+    it "should clear nil-valued attributes" do
+      s = LogSession.new
+      s.data = {}
+      time1 = 10.minutes.ago
+      time2 = 8.minutes.ago
+      s.data['events'] = [
+        {'geo' => ['1', '2'], 'timestamp' => time1.to_i, 'type' => 'button', 'bacon' => nil, 'button' => {'label' => 'hat', 'board' => {'id' => '1_1'}}},
+        {'geo' => ['1', '2'], 'timestamp' => time2.to_i, 'type' => 'button', 'bacon' => 'some', 'button' => {'label' => 'cow', 'board' => {'id' => '1_1'}}}
+      ]
+      s.generate_defaults rescue nil
+      expect(s.data['events'][0].keys.include?('bacon')).to eq(false)
+      expect(s.data['events'][1].keys.include?('bacon')).to eq(true)
+    end
+
     it "should track hit locations" do
       s = LogSession.new
       s.data = {}
