@@ -43,7 +43,7 @@ class ButtonImage < ActiveRecord::Base
     self.settings ||= {}
     # Only public boards call back to opensymbols, to prevent private user information leakage
     if !self.settings['suggestion'] && (self.settings['label'] || self.settings['search_term'])
-      Worker.schedule_for(:slow, User, :perform_action, {
+      Worker.schedule_for(:slow, ButtonImage, :perform_action, {
         'id' => self.id,
         'method' => 'track_image_use',
         'arguments' => []
@@ -51,7 +51,7 @@ class ButtonImage < ActiveRecord::Base
     end
     if self.settings && self.settings['protected'] && !self.settings['fallback']
       if self.settings['button_label'] || self.settings['search_term']
-        Worker.schedule_for(:slow, User, :perform_action, {
+        Worker.schedule_for(:slow, ButtonImage, :perform_action, {
           'id' => self.id,
           'method' => 'generate_fallback',
           'arguments' => []

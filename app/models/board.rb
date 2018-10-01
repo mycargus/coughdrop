@@ -812,7 +812,7 @@ class Board < ActiveRecord::Base
         end
       end
       whodunnit = PaperTrail.whodunnit
-      PaperTrail.whodunnit = user_for_paper_trail || 'user:unknown'
+      PaperTrail.whodunnit = user_for_paper_trail.to_s || 'user:unknown'
       self.save
       PaperTrail.whodunnit = whodunnit
     else

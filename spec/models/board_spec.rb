@@ -52,6 +52,36 @@ describe Board, :type => :model do
       })
     end
 
+    it "should allow org admins to edit and delete" do
+      o = Organization.create(:settings => {'total_licenses' => 1})
+      u = User.create
+      m = User.create
+      
+      o.add_manager(m.user_name, true)
+      o.add_user(u.user_name, false)
+      m.reload
+      u.reload
+      b = Board.create(user: u)
+      
+      expect(b.allows?(m, 'view')).to eq(true)
+      expect(b.allows?(m, 'edit')).to eq(true)
+      expect(b.allows?(m, 'delete')).to eq(true)
+    end
+
+    it "should not allow global admins to edit and delete" do
+      o = Organization.create(:admin => true, :settings => {'total_licenses' => 1})
+      u = User.create
+      m = User.create
+      
+      o.add_manager(m.user_name, true)
+      m.reload
+      b = Board.create(user: u)
+      
+      expect(b.allows?(m, 'view')).to eq(true)
+      expect(b.allows?(m, 'edit')).to eq(false)
+      expect(b.allows?(m, 'delete')).to eq(false)
+    end
+
     it "should allow read-only supervisors to view but not edit or delete" do
       u = User.create
       u2 = User.create
@@ -894,7 +924,7 @@ describe Board, :type => :model do
       expect(Worker.scheduled_for?(:slow, User, :perform_action, {'id' => u2.id, 'method' => 'track_boards', 'arguments' => [true]})).to eq(false)
       Worker.process_queues
       expect(Worker.scheduled_for?(:slow, User, :perform_action, {'id' => u.id, 'method' => 'track_boards', 'arguments' => [true]})).to eq(false)
-      expect(Worker.scheduled_for?(:slowUser, :perform_action, {'id' => u2.id, 'method' => 'track_boards', 'arguments' => [true]})).to eq(false)
+      expect(Worker.scheduled_for?(:slow, User, :perform_action, {'id' => u2.id, 'method' => 'track_boards', 'arguments' => [true]})).to eq(false)
 
       expect(u.reload.settings['user_notifications'].length).to eq(1)
       expect(u2.reload.settings['user_notifications']).to eq(nil)
@@ -1899,7 +1929,7 @@ describe Board, :type => :model do
     it "should return done if user_id doesn't match" do
       u = User.create
       b = Board.create(:user => u)
-      res = b.translate_set({}, 'en', 'es', [b.global_id], true, 1234)
+      res = b.translate_set({}, 'en', 'es', [b.global_id], true, 'asdf', 1234)
       expect(res).to eq({done: true, translated: false, reason: 'mismatched user'})
     end
     
@@ -2126,6 +2156,23 @@ describe Board, :type => :model do
           }
         }
       })
+    end
+
+    it "should write a version for any boards that are translated" do
+      u = User.create
+      b = Board.create(:user => u)
+      b.settings['buttons'] = [
+        {'id' => 1, 'label' => 'hat'},
+        {'id' => 2, 'label' => 'cat'}
+      ]
+      b.save
+      Worker.process_queues
+      Worker.process_queues
+      versions = b.reload.versions.count
+
+      b.schedule(:translate_set, {'hat' => 'sat', 'cat' => 'rat'}, 'en', 'es', [b.global_id])
+      Worker.process_queues
+      expect(b.reload.versions.count).to eq(versions + 1)
     end
   end
   
@@ -2408,6 +2455,34 @@ describe Board, :type => :model do
       ])
       expect(b3.reload.settings['buttons']).to eq([
         {'id' => 3, 'label' => 'flats', 'part_of_speech' => 'noun', 'suggested_part_of_speech' => 'noun'}
+      ])
+    end
+
+    it "should add a version for any boards with images swapped" do
+      u = User.create
+      b = Board.create(:user => u)
+      b.settings['buttons'] = [
+        {'id' => 1, 'label' => 'hats', 'image_id' => 'whatever'},
+        {'id' => 2, 'label' => 'cats', 'image_id' => 'another'}
+      ]
+      b.save
+      expect(Uploader).to receive(:find_images).with('hats', 'bacon', u).and_return([])
+      expect(Uploader).to receive(:find_images).with('cats', 'bacon', u).and_return([{
+        'url' => 'http://www.example.com/pic.png',
+        'content_type' => 'image/png'
+      }])
+      Worker.process_queues
+      Worker.process_queues
+      versions = b.versions.count
+
+      b.schedule(:swap_images, 'bacon', u.global_id, [])
+      Worker.process_queues
+      expect(b.versions.count).to eq(versions + 1)
+      img = ButtonImage.last
+      expect(b.reload.button_images.to_a).to eq([img])
+      expect(b.settings['buttons']).to eq([
+        {'id' => 1, 'label' => 'hats', 'image_id' => 'whatever'},
+        {'id' => 2, 'label' => 'cats', 'image_id' => img.global_id}
       ])
     end
   end

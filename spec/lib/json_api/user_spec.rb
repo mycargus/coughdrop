@@ -33,7 +33,7 @@ describe JsonApi::User do
     it "should include permissions if requested" do
       u = User.create(settings: {'email' => 'bob@example.com'})
       hash = JsonApi::User.build_json(u, permissions: u)
-      expect(hash['permissions']).to eq({'user_id' => u.global_id, 'view_existence' => true, 'view_detailed' => true, 'view_word_map' => true, 'supervise' => true, 'manage_supervision' => true, 'edit' => true, 'delete' => true, 'view_deleted_boards' => true, 'set_goals' => true})
+      expect(hash['permissions']).to eq({'user_id' => u.global_id, 'view_existence' => true, 'view_detailed' => true, 'view_word_map' => true, 'supervise' => true, 'manage_supervision' => true, 'edit' => true, 'edit_boards' => true, 'delete' => true, 'view_deleted_boards' => true, 'set_goals' => true})
       
       hash = expect(JsonApi::User.build_json(u, permissions: nil)['permissions']).to eq({'user_id' => nil, 'view_existence' => true})
     end

@@ -78,7 +78,7 @@ class ClusterLocation < ActiveRecord::Base
     return if @already_generating_stats
     @already_generating_stats = true
     if !frd
-      schedule(:generate_stats, true)
+      schedule_once(:generate_stats, true)
       return true
     end
     Rails.logger.info("generating stats for #{self.global_id}")

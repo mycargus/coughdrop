@@ -152,7 +152,7 @@ describe ButtonImage, :type => :model do
         button_label: 'cheddar',
         protected_source: 'bacon'
       }, user: u, board: b, url: 'http://www.example.com/pic.png')
-      expect(Worker.scheduled?(ButtonImage, :perform_action, {id: i.id, method: 'generate_fallback', arguments: []})).to eq(true)
+      expect(Worker.scheduled_for?(:slow, ButtonImage, :perform_action, {id: i.id, method: 'generate_fallback', arguments: []})).to eq(true)
     end
 
     it 'should not schedule generate_fallback for non-protected images' do
@@ -163,7 +163,7 @@ describe ButtonImage, :type => :model do
         button_label: 'cheddar',
         protected_source: 'bacon'
       }, user: u, board: b, url: 'http://www.example.com/pic.png')
-      expect(Worker.scheduled?(ButtonImage, :perform_action, {id: i.id, method: 'generate_fallback', arguments: []})).to eq(false)
+      expect(Worker.scheduled_for?(:slow, ButtonImage, :perform_action, {id: i.id, method: 'generate_fallback', arguments: []})).to eq(false)
     end
   end
 

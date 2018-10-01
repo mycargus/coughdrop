@@ -955,7 +955,7 @@ class LogSession < ActiveRecord::Base
   def self.check_possible_mergers
     sql = ["SELECT a.id as log_id, b.id as ref_id from log_sessions as a, log_sessions as b WHERE a.id != b.id AND a.user_id = b.user_id AND a.author_id = b.author_id AND a.device_id = b.device_id AND a.started_at = b.started_at AND a.ended_at = b.ended_at AND a.started_at > ? AND a.created_at < ? LIMIT 100", 6.hours.ago, 15.minutes.ago]
     res = ActiveRecord::Base.connection.execute(ActiveRecord::Base.send(:sanitize_sql_array, sql))
-    log_ids = res.map{|r| r['log_id'] }
+    # log_ids = res.map{|r| r['log_id'] }
     log_ids = []
     ref_ids = {}
     res.each{|r| 

@@ -722,11 +722,13 @@ describe BoardDownstreamButtonSet, :type => :model do
       bs3 = b3.reload.board_downstream_button_set.reload
       bs4 = b4.reload.board_downstream_button_set.reload
       expect(bs2.reload.data['source_id']).to eq(bs1.global_id)
-      expect(bs3.reload.data['source_id']).to eq(bs1.global_id)
-      expect(bs4.reload.data['source_id']).to eq(bs1.global_id)
+      expect(bs3.reload.data['source_id']).to eq(bs2.global_id)
+      expect(bs4.reload.data['source_id']).to eq(bs3.global_id)
       
-      puts "update for real"
       BoardDownstreamButtonSet.update_for(b1.global_id)
+      bs2.reload.buttons
+      bs3.reload.buttons
+      bs4.reload.buttons
       expect(bs2.reload.data['source_id']).to eq(bs1.global_id)
       expect(bs3.reload.data['source_id']).to eq(bs1.global_id)
       expect(bs4.reload.data['source_id']).to eq(bs1.global_id)

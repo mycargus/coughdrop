@@ -2347,7 +2347,7 @@ describe LogSession, :type => :model do
       expect(s2.data['events'].length).to eq(2)
       expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
 
-      s1.check_for_merger
+      s1.check_for_merger(true)
 
       expect(LogSession.count).to eq(1)
       s1.reload
@@ -2377,7 +2377,7 @@ describe LogSession, :type => :model do
       expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
       expect(s2.data['events'].map{|e| e['timestamp']}).to eq([ts + 30, ts + 205])
 
-      s1.check_for_merger
+      s1.check_for_merger(true)
 
       expect(LogSession.count).to eq(1)
       s1.reload
@@ -2407,7 +2407,7 @@ describe LogSession, :type => :model do
       expect(s2.data['events'].length).to eq(2)
       expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
 
-      s1.check_for_merger
+      s1.check_for_merger(true)
 
       expect(LogSession.count).to eq(2)
       expect(s1.data['events'].length).to eq(2)
@@ -2437,7 +2437,7 @@ describe LogSession, :type => :model do
       expect(s2.data['events'].length).to eq(2)
       expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
 
-      s1.check_for_merger
+      s1.check_for_merger(true)
 
       expect(LogSession.count).to eq(2)
       expect(s1.data['events'].length).to eq(2)
@@ -2467,7 +2467,7 @@ describe LogSession, :type => :model do
       expect(s2.data['events'].length).to eq(2)
       expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
 
-      s1.check_for_merger
+      s1.check_for_merger(true)
 
       expect(LogSession.count).to eq(2)
       expect(s1.data['events'].length).to eq(2)
@@ -2497,7 +2497,7 @@ describe LogSession, :type => :model do
       expect(s2.data['events'].length).to eq(2)
       expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
 
-      s1.check_for_merger
+      s1.check_for_merger(true)
 
       expect(LogSession.count).to eq(2)
       expect(s1.data['events'].length).to eq(2)
@@ -2544,7 +2544,7 @@ describe LogSession, :type => :model do
       expect(s5.data['events'].length).to eq(2)
       expect(s5.data['events'].map{|e| e['id']}).to eq([1, 2])
 
-      s1.check_for_merger
+      s1.check_for_merger(true)
 
       expect(LogSession.count).to eq(1)
       s1.reload
@@ -2573,7 +2573,7 @@ describe LogSession, :type => :model do
       expect(s2.data['events'].length).to eq(2)
       expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
 
-      s1.check_for_merger
+      s1.check_for_merger(true)
 
       expect(LogSession.count).to eq(1)
       s1.reload
@@ -2601,7 +2601,13 @@ describe LogSession, :type => :model do
       expect(s2.data['events'].length).to eq(2)
       expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
 
-      s2.check_for_merger
+      s2.check_for_merger(true)
+      expect(LogMerger.count).to eq(0)
+      Worker.process_queues
+      expect(LogMerger.count).to eq(1)
+      LogMerger.all.update_all(merge_at: 6.hours.ago)
+      LogSession.check_possible_mergers
+      Worker.process_queues
 
       expect(LogSession.count).to eq(1)
       s1.reload
@@ -2629,7 +2635,7 @@ describe LogSession, :type => :model do
       expect(s2.data['events'].length).to eq(2)
       expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
 
-      s1.check_for_merger
+      s1.check_for_merger(true)
 
       expect(LogSession.count).to eq(2)
       s1.reload
@@ -2663,12 +2669,107 @@ describe LogSession, :type => :model do
 
       LogSession.check_possible_mergers
       Worker.process_queues
+      Worker.process_queues
+
+      expect(LogMerger.count).to eq(1)
+      LogMerger.all.update_all(merge_at: 6.hours.ago)
+      LogSession.check_possible_mergers
+      Worker.process_queues
 
       expect(LogSession.count).to eq(1)
       s1.reload
       expect(s1.data['events'].length).to eq(2)
       expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
     end
+    
+    it "should schedule a merger check if changes found and not frd" do
+      u = User.create
+      d = Device.create
+      time = Time.parse("2018-06-06T20:18:19Z")
+      ts = time.to_f
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 5}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts + 100},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 105}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+
+      expect(LogSession.count).to eq(2)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+
+      expect(LogMerger.count).to eq(0)
+      s1.check_for_merger
+      expect(LogMerger.count).to eq(1)
+      expect(LogMerger.first.log_session_id).to eq(s1.id)
+      expect(LogMerger.first.started).to eq(false)
+      expect(LogSession.count).to eq(2)
+    end
+
+    it "should not schedule a merger check if one is already scheduled" do
+      u = User.create
+      d = Device.create
+      time = Time.parse("2018-06-06T20:18:19Z")
+      ts = time.to_f
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 5}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts + 100},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 105}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+
+      expect(LogSession.count).to eq(2)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+
+      expect(LogMerger.count).to eq(0)
+      LogMerger.create(log_session_id: s1.id, started: false)
+      expect(LogMerger.count).to eq(1)
+      s1.check_for_merger
+      expect(LogMerger.count).to eq(1)
+      expect(LogMerger.first.log_session_id).to eq(s1.id)
+      expect(LogMerger.first.started).to eq(false)
+      expect(LogSession.count).to eq(2)
+    end
+
+    it "should schedule a new far-off merger check if one is already in progress" do
+      u = User.create
+      d = Device.create
+      time = Time.parse("2018-06-06T20:18:19Z")
+      ts = time.to_f
+      s1 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 5}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      s2 = LogSession.process_new({'events' => [
+        {'type' => 'button', 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}, 'spoken' => true}, 'geo' => ['13', '12'], 'timestamp' => ts + 100},
+        {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => ts + 105}
+      ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+
+      expect(LogSession.count).to eq(2)
+      expect(s1.data['events'].length).to eq(2)
+      expect(s1.data['events'].map{|e| e['id']}).to eq([1, 2])
+      expect(s2.data['events'].length).to eq(2)
+      expect(s2.data['events'].map{|e| e['id']}).to eq([1, 2])
+
+      expect(LogMerger.count).to eq(0)
+      LogMerger.create(log_session_id: s1.id, started: true)
+      expect(LogMerger.count).to eq(1)
+      s1.check_for_merger
+      expect(LogMerger.count).to eq(2)
+      expect(LogMerger.last.started).to eq(false)
+      expect(LogMerger.last.merge_at).to be > 45.minutes.from_now
+      expect(LogSession.count).to eq(2)
+    end
+
   end
 
   describe "process_modeling_event" do

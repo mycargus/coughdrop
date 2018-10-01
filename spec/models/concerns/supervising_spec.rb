@@ -37,6 +37,7 @@ describe Supervising, :type => :model do
         'view_word_map' => true,
         'supervise' => true,
         'set_goals' => true,
+        'edit_boards' => true,
         'edit' => true
       })
     end
