@@ -1181,6 +1181,32 @@ describe Purchasing do
       expect(res).to eq({success: true, charge: 'immediate_purchase'})
     end
 
+    it 'should update user on purchase' do
+      u = User.create
+      expect(Stripe::Charge).to receive(:create).with({
+        :amount => 2500,
+        :currency => 'usd',
+        :source => 'token',
+        :customer => nil,
+        :receipt_email => u.settings['email'],
+        :description => "CoughDrop premium symbols access",
+        :metadata => {
+          'user_id' => u.global_id,
+          'type' => 'extras'
+        }
+      }).and_return({'id' => '1234', 'customer' => '4567'})
+      res = Purchasing.purchase_extras({'id' => 'token'}, {'user_id' => u.global_id})
+      expect(res).to eq({success: true, charge: 'immediate_purchase'})
+      expect(User).to receive(:purchase_extras).with({
+        'user_id' => u.global_id,
+        'purchase_id' => '1234',
+        'customer_id' => '4567',
+        'source' => 'purchase.standalone',
+        'notify' => true
+      })
+      Worker.process_queues
+    end
+
     it 'should create a new charge by default' do
       u = User.create
       expect(Stripe::Charge).to receive(:create).with({

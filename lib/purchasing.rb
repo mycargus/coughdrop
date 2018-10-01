@@ -421,7 +421,7 @@ module Purchasing
           }
         })
         charge_type = 'immediate_purchase'
-        User.schedule(:purchase_extras, {
+        Worker.schedule_for(:priority, User, 'purchase_extras', {
           'user_id' => user.global_id,
           'purchase_id' => charge['id'],
           'customer_id' => charge['customer'],
