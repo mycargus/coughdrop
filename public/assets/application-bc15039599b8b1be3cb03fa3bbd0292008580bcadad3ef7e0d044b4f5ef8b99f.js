@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.10.01a";
+window.app_version = "2018.10.01b";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -8202,7 +8202,7 @@ else if("multi_code"==e){t.set("org_id",this.get("org_id")),t.set("total_codes",
 var a=parseFloat(this.get("duration"))||5
 t.set("seconds",365.25*a*24*60*60)}else if("discount"==e){var o=parseFloat(this.get("discount_pct"))
 if(o<=0||isNaN(o))return
-o>1&&(o/=100),t.set("discount",o),t.set("organization",this.get("org")),t.set("email",this.get("email")),t.set("expires",window.moment(this.get("expires"))._d),t.set("code",this.get("code")),t.set("limit",this.get("limit"))}else{a=parseFloat(this.get("duration"))||3
+o>1&&(o/=100),t.set("discount",o),t.set("organization",this.get("org")),t.set("email",this.get("email")),this.get("expires")&&this.get("expires").length>0&&t.set("expires",window.moment(this.get("expires"))._d),t.set("code",this.get("code")),t.set("limit",this.get("limit"))}else{a=parseFloat(this.get("duration"))||3
 t.set("seconds",365.25*a*24*60*60),t.set("gift_name",this.get("gift_name"))}var r=this
 t.save().then(function(){r.load_gifts()},function(e){e&&"code is taken"==e.error?n.default.error(s.default.t("code_taken","There was an error creating the custom purchase, that code has already been taken")):n.default.error(s.default.t("error_creating_gift","There was an error creating the custom purchase"))})}}})}),define("frontend/controllers/organization/index",["exports","frontend/utils/persistence","frontend/utils/modal","frontend/utils/misc","frontend/utils/i18n"],function(e,t,n,s,a){Object.defineProperty(e,"__esModule",{value:!0}),e.default=Ember.Controller.extend({refresh_lists:function(){this.set("orgs",{}),this.set("users",{}),this.set("evals",{}),this.set("logs",{}),this.set("managers",{}),this.set("supervisors",{}),this.set("selected_view",null),this.refresh_users(),this.refresh_evals(),this.refresh_managers(),this.refresh_supervisors(),this.refresh_orgs(),this.refresh_stats()
 this.get("model.id")
@@ -10763,9 +10763,9 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+6797ba4f"},exportApplicationGlobal:!1}}
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+602fdb6b"},exportApplicationGlobal:!1}}
 return Object.defineProperty(e,"__esModule",{value:!0}),e})
-runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+6797ba4f"})
+runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+602fdb6b"})
 ;
 
 
