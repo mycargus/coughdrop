@@ -7,7 +7,7 @@ module JsonApi::Gift
     
   def self.build_json(gift, args={})
     json = {}
-    json['id'] = "#{gift.code}y#{gift.code_verifier}"
+    json['id'] = "#{gift.code}::#{gift.code_verifier}"
     json['gift_type'] = gift.gift_type
     json['created'] = gift.created_at.iso8601
     json['code'] = gift.code

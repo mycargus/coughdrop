@@ -3,7 +3,7 @@ class Api::GiftsController < ApplicationController
   # TODO: implement throttling to prevent brute force gift lookup
 
   def show
-    id, verifier = params['id'].split(/y/)
+    id, verifier = params['id'].split(/::/)
     gift = GiftPurchase.find_by_code(id.gsub(/x/, '&'))
     return unless exists?(gift, params['id'])
     return unless allowed?(gift, 'view')
