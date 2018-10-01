@@ -136,7 +136,7 @@ class GiftPurchase < ActiveRecord::Base
       self.code = params['code'].to_s.downcase
     end
 
-    if params['expires']
+    if params['expires'] && !params['expires'].blank?
       self.settings['expires'] = Date.parse(params['expires'])
     end
     if params['org_id']
