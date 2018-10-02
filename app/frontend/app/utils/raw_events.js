@@ -38,6 +38,10 @@ import frame_listener from './frame_listener';
 var $board_canvas = null;
 
 $(document).on('mousedown touchstart', function(event) {
+  var now = (new Date()).getTime();
+  if(event.type == 'touchstart') {
+    buttonTracker.lastTouchStart = now;
+  }
   if(buttonTracker.dwell_elem) {
     console.log("linger cleared because touch event");
     buttonTracker.clear_dwell();
@@ -58,6 +62,9 @@ $(document).on('mousedown touchstart', function(event) {
     u.text = "";
     window.speechSynthesis.speak(u);
     buttonTracker.ios_initialized = true;
+  }
+  if(event.type == 'touchend') {
+    buttonTracker.lastTouchStart = null;
   }
   if((event.type == 'mouseup' || event.type == 'touchend' || event.type == 'touchcancel') && buttonTracker.dwell_elem) {
     console.log("linger cleared because touch release event");
@@ -299,10 +306,21 @@ var buttonTracker = EmberObject.extend({
         event.preventDefault();
       }
     }
+    if(buttonTracker.sidebarScrollStart == null) {
+      buttonTracker.sidebarScrollStart = (document.getElementById('sidebar') || {}).scrollTop || 0;
+    }
 
     event = buttonTracker.normalize_event(event);
-    // We disable ignoreUp on continued movement because... I don't know why. This needs a comment.
-    buttonTracker.ignoreUp = false;
+    // We disable ignoreUp on continued movement because some of our
+    // movement event triggers are touchstart and mousedown
+    if(event.type == 'touchstart' || event.type == 'mousedown') {
+      // don't reset it if we had a touchstart event in the
+      // last 500ms and now we're getting a mousedown event
+      if(event.type != 'touchstart' && buttonTracker.lastTouchStart && buttonTracker.lastTouchStart > (now - 2500)) {
+      } else {
+        buttonTracker.ignoreUp = false;
+      }
+    }
     if(event.screenX && event.clientX) {
       window.screenInnerOffsetY = event.screenY - event.clientY;
       window.screenInnerOffsetX = event.screenX - event.clientX;
@@ -311,6 +329,9 @@ var buttonTracker = EmberObject.extend({
     }
     if(event.type == 'touchstart' || event.type == 'mousedown' || event.type == 'touchmove') {
       buttonTracker.buttonDown = true;
+      if(app_state.get('sidebar_toggled')) {
+        buttonTracker.buttonDown = false;
+      }
     } else if(event.type == 'gazelinger' && buttonTracker.check('dwell_enabled')) {
       buttonTracker.dwell_linger(event);
     } else if(event.type == 'mousemove' && buttonTracker.check('dwell_enabled') && buttonTracker.check('dwell_type') == 'mouse_dwell') {
@@ -515,6 +536,15 @@ var buttonTracker = EmberObject.extend({
     // don't remember why this is important...
     buttonTracker.buttonDown = false;
     buttonTracker.triggerEvent = null;
+    if(buttonTracker.sidebarScrollStart != null) {
+      var scroll_start = buttonTracker.sidebarScrollStart;
+      var current_scroll = (document.getElementById('sidebar') || {}).scrollTop || 0;
+      buttonTracker.sidebarScrollStart = null;
+      if(Math.abs(current_scroll - scroll_start) > 10) {
+        if(event.cancelable) { event.preventDefault(); }
+        return;
+      }
+    }
 
     var selectable_wrap = buttonTracker.find_selectable_under_event(event);
     // if dragging a button, behavior is very different than otherwise
@@ -681,6 +711,10 @@ var buttonTracker = EmberObject.extend({
             buttonTracker.button_release(elem_wrap, event);
           } else if(elem_wrap.dom.classList.contains('integration_target')) {
             frame_listener.trigger_target(elem_wrap.dom);
+          } else if(elem_wrap.dom.id == 'sidebar_tease' || elem_wrap.dom.id == 'sidebar_close') {
+            stashes.persist('sidebarEnabled', !stashes.get('sidebarEnabled'));
+            buttonTracker.ignoreUp = true;
+            buttonTracker.buttonDown = false;
           } else {
             event.preventDefault();
             // click events are eaten by our listener above, unless you

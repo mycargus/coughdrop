@@ -777,9 +777,9 @@
       <span style="margin: 5px; text-align: right; white-space: nowrap;">
         {{#if app_state.currentUser}}
           <button class='btn btn-default' style="width: 50%;" {{action "stickSidebar"}}><span class="glyphicon glyphicon-pushpin"></span></button>
-          <button class='btn btn-default' style="width: calc(50% - 14px); padding-left: 0; padding-right: 0;" {{action "toggleSidebar"}}>&times;</button>
+          <button class='btn btn-default' id='sidebar_close' style="width: calc(50% - 14px); padding-left: 0; padding-right: 0;">&times;</button>
         {{else}}
-          <button class='btn btn-default' style="width: 90%;" {{action "toggleSidebar"}}>&times; {{t "Hide" key='hide'}}</button>
+          <button id='sidebar_close' class='btn btn-default' style="width: 90%;">&times; {{t "Hide" key='hide'}}</button>
         {{/if}}
       </span>
     {{/unless}}
@@ -815,7 +815,7 @@
   {{#if app_state.speak_mode}}
     {{#unless app_state.currentUser.preferences.disable_quick_sidebar}}
       {{#unless app_state.sidebar_relegated}}
-        <div id="sidebar_tease" class="advanced_selection noselect" {{action "toggleSidebar"}}>
+        <div id="sidebar_tease" class="advanced_selection noselect">
           {{#if app_state.fenced_sidebar_board}}
             <span class='glyphicon glyphicon-map-marker' style='font-size: 20px; vertical-align: middle;'></span>
           {{/if}}
