@@ -171,6 +171,12 @@ $(document).on('mousedown touchstart', function(event) {
   } else if(event.keyCode && event.keyCode == buttonTracker.check('next_keycode')) { // 1 key
     scanner.next();
     event.preventDefault();
+  } else if(event.keyCode && event.keyCode == buttonTracker.check('prev_keycode')) { // 2 key
+    scanner.prev();
+    event.preventDefault();
+  } else if(event.keyCode && event.keyCode == buttonTracker.check('cancel_keycode')) { // esc key
+    scanner.stop();
+    event.preventDefault();
   }
 }).on('gazedwell', function(event) {
   var element_wrap = buttonTracker.find_selectable_under_event(event);

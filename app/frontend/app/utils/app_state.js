@@ -720,6 +720,8 @@ var app_state = EmberObject.extend({
         buttonTracker.select_keycode = _this.get('currentUser.preferences.device.scanning_select_keycode');
         buttonTracker.skip_header = _this.get('currentUser.preferences.device.scanning_skip_header');
         buttonTracker.next_keycode = _this.get('currentUser.preferences.device.scanning_next_keycode');
+        buttonTracker.prev_keycode = _this.get('currentUser.preferences.device.scanning_prev_keycode');
+        buttonTracker.cancel_keycode = _this.get('currentUser.preferences.device.scanning_cancel_keycode');
         buttonTracker.left_screen_action = _this.get('currentUser.preferences.device.scanning_left_screen_action');
         buttonTracker.right_screen_action = _this.get('currentUser.preferences.device.scanning_right_screen_action');
         if(capabilities.system == 'iOS' && !capabilities.installed_app && !buttonTracker.left_screen_action && !buttonTracker.right_screen_action) {

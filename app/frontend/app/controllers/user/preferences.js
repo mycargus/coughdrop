@@ -233,6 +233,20 @@ export default Controller.extend({
       return "";
     }
   }.property('model.preferences.device.scanning_next_keycode'),
+  prev_keycode_string: function() {
+    if(this.get('model.preferences.device.scanning_prev_keycode')) {
+      return (i18n.key_string(this.get('model.preferences.device.scanning_prev_keycode')) || 'unknown') + ' key';
+    } else {
+      return "";
+    }
+  }.property('model.preferences.device.scanning_prev_keycode'),
+  cancel_keycode_string: function() {
+    if(this.get('model.preferences.device.scanning_cancel_keycode')) {
+      return (i18n.key_string(this.get('model.preferences.device.scanning_cancel_keycode')) || 'unknown') + ' key';
+    } else {
+      return "";
+    }
+  }.property('model.preferences.device.scanning_cancel_keycode'),
   fullscreen_capable: function() {
     return capabilities.fullscreen_capable();
   }.property(),
@@ -412,7 +426,7 @@ export default Controller.extend({
       this.set('model.preferences.device.voice.pitch', pitch);
       this.set('model.preferences.device.voice.volume', volume);
       var _this = this;
-      ['debounce', 'device.dwell_release_distance', 'device.scanning_next_keycode', 'device.scanning_region_columns', 'device.scanning_region_rows', 'device.scanning_select_keycode', 'device.scanning_interval'].forEach(function(key) {
+      ['debounce', 'device.dwell_release_distance', 'device.scanning_next_keycode', 'device.scanning_prev_keycode', 'device.scanning_region_columns', 'device.scanning_region_rows', 'device.scanning_select_keycode', 'device.scanning_interval'].forEach(function(key) {
         var val = _this.get('model.preferences.' + key);
         if(val && val.match && val.match(/\d/)) {
           var num = parseInt(val, 10);
