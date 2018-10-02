@@ -753,7 +753,7 @@ var app_state = EmberObject.extend({
 
       if(app_state.get('speak_mode') && _this.get('currentUser.preferences.device.dwell')) {
         buttonTracker.dwell_enabled = true;
-        buttonTracker.dwell_timeout = _this.get('currentUser.preferences.device.dwell_timeout');
+        buttonTracker.dwell_timeout = _this.get('currentUser.preferences.device.dwell_duration');
         buttonTracker.dwell_delay = _this.get('currentUser.preferences.device.dwell_delay');
         buttonTracker.dwell_type = _this.get('currentUser.preferences.device.dwell_type');
         buttonTracker.dwell_selection = _this.get('currentUser.preferences.device.dwell_selection') || 'dwell';

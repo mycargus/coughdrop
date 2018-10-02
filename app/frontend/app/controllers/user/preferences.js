@@ -364,6 +364,12 @@ export default Controller.extend({
         step = 100;
         default_value = 100;
         empty_on_default = true;
+      } else if(attribute == 'model.preferences.device.dwell_duration') {
+        min = 0;
+        max = 20000;
+        step = 100;
+        default_value = 1000;
+        empty_on_default = true;
       } else if(attribute == 'model.preferences.board_jump_delay') {
         min = 100;
         max = 5000;
