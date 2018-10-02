@@ -389,41 +389,45 @@ var buttonTracker = EmberObject.extend({
     }
 
     if(buttonTracker.buttonDown && buttonTracker.check('any_select') && buttonTracker.check('scanning_enabled')) {
-      if(event.type != 'mousedown' && event.type != 'touchstart') {
-        // ignore scanning events when checking for element release
-        event.preventDefault();
-        buttonTracker.ignoreUp = true;
-        return false;
-      }
-      var override_allowed = false;
-      if(event.type == 'mousedown') {
-        if($(event.target).closest("#identity_button,#exit_speak_mode").length > 0) {
-          override_allowed = true;
+      var skip_screen_touch = $(event.target).closest("#identity").length > 0;
+      skip_screen_touch = skip_screen_touch || (buttonTracker.check('skip_header') && $(event.target).closest('header').length > 0);
+      if(!skip_screen_touch) {
+        if(event.type != 'mousedown' && event.type != 'touchstart') {
+          // ignore scanning events when checking for element release
+          event.preventDefault();
+          buttonTracker.ignoreUp = true;
+          return false;
         }
-      }
-      if(!override_allowed) {
-        // allow selection events to pass through even when scanning if on identity
-        buttonTracker.ignoreUp = true;
-      }
-      var now = (new Date()).getTime();
-      if(event.type == 'mousedown' && buttonTracker.last_scanner_select && (now - buttonTracker.last_scanner_select) < 500) {
-        return false;
-      } else {
-        if(event.type == 'touchstart') {
-          buttonTracker.last_scanner_select = now;
-        }
-        var width = $(window).width();
-        if(event.clientX <= (width / 2)) {
-          if(buttonTracker.check('left_screen_action') == 'next') {
-            return scanner.next();
-          } else {
-            return scanner.pick();
+        var override_allowed = false;
+        if(event.type == 'mousedown') {
+          if($(event.target).closest("#identity_button,#exit_speak_mode").length > 0) {
+            override_allowed = true;
           }
+        }
+        if(!override_allowed) {
+          // allow selection events to pass through even when scanning if on identity
+          buttonTracker.ignoreUp = true;
+        }
+        var now = (new Date()).getTime();
+        if(event.type == 'mousedown' && buttonTracker.last_scanner_select && (now - buttonTracker.last_scanner_select) < 500) {
+          return false;
         } else {
-          if(buttonTracker.check('') == 'next') {
-            return scanner.next();
+          if(event.type == 'touchstart') {
+            buttonTracker.last_scanner_select = now;
+          }
+          var width = $(window).width();
+          if(event.clientX <= (width / 2)) {
+            if(buttonTracker.check('left_screen_action') == 'next') {
+              return scanner.next();
+            } else {
+              return scanner.pick();
+            }
           } else {
-            return scanner.pick();
+            if(buttonTracker.check('') == 'next') {
+              return scanner.next();
+            } else {
+              return scanner.pick();
+            }
           }
         }
       }
