@@ -15,7 +15,7 @@ Subscription: Recurring<br/>
 Plan: <%= @subscription['plan_id'] %>
 <% elsif @subscription['purchased'] %>
 Subscription: Purchase<br/>
-Plan: <%= @subscription['plan_id'] %>
+Plan: <%= @subscription['plan_id'] %><br/>
 <% if @user.settings['subscription'] && @user.settings['subscription']['purchase_amount'] %>
 Purchase Amount: $<%= @user.settings['subscription']['purchase_amount'] %><br/>
 <% end %>
