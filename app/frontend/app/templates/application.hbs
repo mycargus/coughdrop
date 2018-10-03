@@ -608,7 +608,10 @@
               {{/if}}
             {{/if}}
             <li role="presentation" class='big' id='exit_speak_mode'>
-              <a href="#" {{action "toggleSpeakMode"}}>{{t "Exit Speak Mode" key="exit_speak_mode"}}</a>
+              <a href="#" {{action "toggleSpeakMode"}}>
+                {{t "Exit Speak Mode" key="exit_speak_mode"}}
+                <div style='color: #888; font-size: 14px; margin: -5px 0;'>{{t "Settings, Menu, etc." key='settings_etc'}}</div>
+              </a>
             </li>
             {{#if app_state.embedded}}
               <li class="divider"></li>
