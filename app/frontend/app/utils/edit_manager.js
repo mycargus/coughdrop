@@ -231,7 +231,7 @@ var editManager = EmberObject.extend({
     var buttons = board.translated_buttons(app_state.get('label_locale'), app_state.get('vocalization_locale'));
     if(res) {
       var trans_button = buttons.find(function(b) { return b.id == id; });
-      if(trans_button) {
+      if(trans_button && !emberGet(res, 'user_modified')) {
         res.set('label', trans_button.label);
         res.set('vocalization', trans_button.vocalization);
       }
