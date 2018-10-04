@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.10.03";
+window.app_version = "2018.10.04";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -9204,7 +9204,7 @@ var a=e.get("preferences.home_board"),o=h.get("currentBoardState")||a
 if(n||a&&o&&a.id==o.id)l.home_in_speak_mode({user:e,reminded:!n,fallback_board_state:a||h.get("sessionUser.preferences.home_board")})
 else{h.get("speak_mode")||l.toggle_speak_mode()
 a=e.get("preferences.home_board"),o=h.get("currentBoardState")||a
-t.default.persist("temporary_root_board_state",o)}},function(){a.default.error(f.default.t("user_retrive_failed","Failed to retrieve user for Speak Mode"))})},function(){a.default.error(f.default.t("user_retrive_failed","Failed to retrieve user for Speak Mode"))})}},say_louder:function(){this.controller.sayLouder()},set_and_say_buttons:function(e){this.controller.set_and_say_buttons(e)},set_current_user:function(){if(this.did_set_current_user=!0,h.get("speak_mode")&&h.get("speakModeUser"))h.set("currentUser",h.get("speakModeUser"))
+t.default.persist("temporary_root_board_state",o)}},function(){a.default.error(f.default.t("user_retrive_failed","Failed to retrieve user details for Speak Mode"))})},function(){a.default.error(f.default.t("user_retrive_failed","Failed to retrieve user for Speak Mode"))})}},say_louder:function(){this.controller.sayLouder()},set_and_say_buttons:function(e){this.controller.set_and_say_buttons(e)},set_current_user:function(){if(this.did_set_current_user=!0,h.get("speak_mode")&&h.get("speakModeUser"))h.set("currentUser",h.get("speakModeUser"))
 else{var e=h.get("sessionUser")
 e&&e.get&&!e.get("preferences.progress.app_added")&&(navigator.standalone||d.default.installed_app&&d.default.mobile)&&(e.set("preferences.progress.app_added",!0),e.save().then(null,function(){})),h.set("currentUser",e)}h.get("currentUser")&&h.set("currentUser.load_all_connections",!0)}.observes("sessionUser","speak_mode","speakModeUser"),eye_gaze_state:function(){if(!this.get("currentUser.preferences.device.dwell")||"eyegaze"!=this.get("currentUser.preferences.device.dwell_type"))return null
 var e=Ember.get(d.default.eye_gaze,"statuses")||{},t=null,n=null,s=null
@@ -10771,9 +10771,9 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+df032831"},exportApplicationGlobal:!1}}
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+347df88b"},exportApplicationGlobal:!1}}
 return Object.defineProperty(e,"__esModule",{value:!0}),e})
-runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+df032831"})
+runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+347df88b"})
 ;
 
 
