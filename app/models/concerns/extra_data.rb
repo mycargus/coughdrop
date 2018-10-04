@@ -74,6 +74,12 @@ module ExtraData
   end
 
   def extra_data_too_big?
+    if self.is_a?(LogSession)
+      user = self.user
+      if user && user.settings['extra_data_test'] && self.data['events'] && self.data['events'].length > 10
+        return true
+      end
+    end
     # default would be to stringify and check length,
     # but can be overridden to check .data['buttons'].length, etc.
     false
