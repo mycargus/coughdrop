@@ -640,7 +640,7 @@ CoughDrop.Board = DS.Model.extend({
     if(this.get('button_set') && !force) {
       return RSVP.resolve(this.get('button_set'));
     }
-    if(!this.get('id')) { return; }
+    if(!this.get('id')) { return RSVP.reject({}); }
     var button_set = CoughDrop.store.peekRecord('buttonset', this.get('id'));
     if(button_set && !force) {
       this.set('button_set', button_set);
