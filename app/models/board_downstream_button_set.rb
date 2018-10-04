@@ -98,6 +98,11 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
   
   def self.update_for(board_id, immediate_update=false, traversed_ids=[])
     traversed_ids ||= []
+    key = "traversed/button_set/#{board_id}"
+    cached_traversed = (JSON.parse(RedisInit.default.get(key)) rescue nil) || []
+    RedisInit.default.del(key)
+    traversed_ids = (traversed_ids + cached_traversed).uniq
+
     board = Board.find_by_global_id(board_id)
     return if board && traversed_ids.include?(board.global_id)
     if board
@@ -106,6 +111,9 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
       set = BoardDownstreamButtonSet.find_or_create_by(:board_id => board.id) rescue nil
       set ||= BoardDownstreamButtonSet.find_or_create_by(:board_id => board.id)
       set.data['source_id'] = nil if set.data['source_id'] == set.global_id
+      # Don't re-update if you've updated more recently than when this
+      # job was scheduled
+      return if self.last_scheduled_stamp && set.updated_at.to_i > self.last_scheduled_stamp
       
       existing_board_ids = (set.data || {})['linked_board_ids'] || []
       Board.find_batches_by_global_id(board.settings['immediately_upstream_board_ids'] || [], :batch_size => 3) do |brd|
@@ -114,11 +122,13 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
         set.data['found_upstream_set'] = true if bs
         source_board_id = nil
         linked_board_ids = bs && (bs.data['linked_board_ids'] || bs.buttons.map{|b| b['linked_board_id'] }.compact.uniq)
+        do_update = false
         # If the parent board is the correct source, use that
         if bs && bs.has_buttons_defined? && linked_board_ids.include?(board.global_id)
           # legacy lists don't correctly filter linked board ids
           valid_button = bs.buttons.detect{|b| b['linked_board_id'] == board.global_id } # && !b['hidden'] && !b['link_disabled'] }
           if valid_button && bs != set
+            do_update = true if bs.updated_at < set.updated_at
             set.data['source_id'] = bs.global_id
             set.data['buttons'] = nil
             set.save
@@ -129,20 +139,25 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
           # legacy lists don't correctly filter linked board ids
           valid_button = bs.buttons.detect{|b| b['linked_board_id'] == board.global_id } # && !b['hidden'] && !b['link_disabled'] }
           if valid_button && bs.data['source_id'] != set.global_id
-            set.data['source_id'] = bs.data['source_id']
-            set.data['buttons'] = nil
-            set.save
             source = BoardDownstreamButtonSet.find_by_global_id(bs.data['source_id'])
-            source_board_id = source.related_global_id(source.board_id) if source
+            if source
+              do_update = true if source.updated_at < set.updated_at
+              source_board_id = source.related_global_id(source.board_id) if source
+              set.data['source_id'] = bs.data['source_id']
+              set.data['buttons'] = nil
+              set.save
+            end
           end
         end
         if source_board_id
           # If pointing to a source, go ahead and update that source
           # as part of the update process for this button set
-          if immediate_update
-            BoardDownstreamButtonSet.update_for(source_board_id, true, traversed_ids)
-          else
-            BoardDownstreamButtonSet.schedule(:update_for, source_board_id, false, traversed_ids)
+          if do_update
+            if immediate_update
+              BoardDownstreamButtonSet.update_for(source_board_id, true, traversed_ids)
+            else
+              BoardDownstreamButtonSet.schedule_update(source_board_id, traversed_ids)
+            end
           end
           return set
         end
@@ -228,7 +243,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
       # Any boards that we no longer reference are going to need their
       # own button data instead of using this button set as their source
       lost_board_ids.each do |id|
-        BoardDownstreamButtonSet.schedule_once(:update_for, id, false, traversed_ids)
+        BoardDownstreamButtonSet.schedule_update(id, traversed_ids)
       end
 
       # Retrieve all linked boards and set them to this source
@@ -250,6 +265,15 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
       end
       set
     end
+  end
+
+  def self.schedule_update(board_id, traversed_ids)
+    key = "traversed/button_set/#{board_id}"
+    traversed = JSON.parse(RedisInit.default.get(key)) rescue nil
+    traversed ||= []
+    traversed += traversed_ids
+    RedisInit.default.setex(key, 6.hours.from_now.to_i, traversed.uniq.to_json)
+    BoardDownstreamButtonSet.schedule_once(:update_for, id)
   end
   
   def self.spoken_button?(button, user)
