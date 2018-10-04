@@ -39,11 +39,11 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
   end
   
   def buttons
-    self.touch if self.updated_at && self.updated_at < 4.weeks.ago
+    self.touch if self.updated_at && self.updated_at && self.updated_at < 4.weeks.ago
     return @buttons if @buttons
     brd = self
     visited_sources = []
-    while brd.data['source_id'] && !visited_sources.include?(brd.global_id)
+    while brd && brd.data['source_id'] && !visited_sources.include?(brd.global_id)
       visited_sources << brd.global_id
       bs = BoardDownstreamButtonSet.find_by_global_id(brd.data['source_id'])
       if bs && !bs.data['source_id']
@@ -55,7 +55,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
         end
         return @buttons
       else
-        brd = bs
+        brd = bs if bs
       end
     end
     if self.data['buttons']
