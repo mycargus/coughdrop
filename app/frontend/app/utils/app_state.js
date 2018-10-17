@@ -1688,6 +1688,8 @@ var app_state = EmberObject.extend({
             app_state.controller.send('back', {button_triggered: true});
           } else if(mod == ':speak') {
             app_state.controller.send('vocalize', {button_triggered: true});
+          } else if(mod == ':hush') {
+            speecher.stop('all');
           } else if(mod == ':backspace') {
             app_state.controller.send('backspace', {button_triggered: true});
           }

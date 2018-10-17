@@ -435,7 +435,7 @@ export default modal.ModalController.extend({
     var parts = voc.split(/\s*&&\s*/);
     var list = [];
     var any_basic = false;
-    var specials = [':clear', ':home', ':back', ':backspace', ':beep', ':speak'];
+    var specials = [':clear', ':home', ':back', ':backspace', ':beep', ':speak', ':hush'];
     parts.forEach(function(part) {
       if(specials.indexOf(part) >= 0) {
         var special = "unknown";
@@ -451,6 +451,8 @@ export default modal.ModalController.extend({
           special = i18n.t('beep', "Beep");
         } else if(part == ':speak') {
           special = i18n.t('speak', "Speak the full utterance");
+        } else if(part == ':hush') {
+          special = i18n.t('stop_speaking', "Stop speaking");
         }
         list.push({modifier: part, special: special});
       } else if(part.match(/^\+/)) {
