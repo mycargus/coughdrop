@@ -228,7 +228,7 @@ modal.ModalController = Controller.extend({
         modal.auto_close = true;
         // after 15 seconds with no interaction, close this modal
         runLater(function() {
-          if(modal.auto_close) {
+          if(modal.auto_close && $(modal.component.element).find(".modal-content.auto_close").length) {
             modal.close(template);
             modal.auto_close = false;
           }

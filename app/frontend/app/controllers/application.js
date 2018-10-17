@@ -364,7 +364,7 @@ export default Controller.extend({
     },
     switch_communicators: function(opts) {
       var ready = RSVP.resolve({correct_pin: true});
-      if(app_state.get('currentUser.preferences.require_speak_mode_pin') && app_state.get('currentUser.preferences.speak_mode_pin')) {
+      if(app_state.get('speak_mode') && app_state.get('currentUser.preferences.require_speak_mode_pin') && app_state.get('currentUser.preferences.speak_mode_pin')) {
         ready = modal.open('speak-mode-pin', {actual_pin: app_state.get('currentUser.preferences.speak_mode_pin'), action: 'none'});
       }
       ready.then(function(res) {

@@ -1,7 +1,7 @@
 import Ember from 'ember';
 import Route from '@ember/routing/route';
 import EmberObject from '@ember/object';
-import {set as emberSet, get as emberGet} from '@ember/object';
+import {set as emberSet, setProperties as setProperties, get as emberGet} from '@ember/object';
 import { later as runLater, cancel as runCancel, next as runNext } from '@ember/runloop';
 import RSVP from 'rsvp';
 import $ from 'jquery';
@@ -727,7 +727,9 @@ var app_state = EmberObject.extend({
         if(capabilities.system == 'iOS' && !capabilities.installed_app && !buttonTracker.left_screen_action && !buttonTracker.right_screen_action) {
           modal.warning(i18n.t('keyboard_may_jump', "NOTE: if you don't have a bluetooth switch installed, the keyboard may keep popping up while trying to scan."));
         }
-        modal.close();
+        if(modal.is_open() && (!modal.highlight_settings || modal.highlight_settings.highlight_type != 'button_search')) {
+          modal.close();
+        }
         var interval = parseInt(_this.get('currentUser.preferences.device.scanning_interval'), 10);
         scanner.start({
           scan_mode: _this.get('currentUser.preferences.device.scanning_mode'),

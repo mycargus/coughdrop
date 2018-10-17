@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import EmberObject from '@ember/object';
 import { later as runLater, cancel as runCancel } from '@ember/runloop';
+import {set as emberSet, get as emberGet} from '@ember/object';
 import $ from 'jquery';
 import editManager from './edit_manager';
 import modal from './modal';

@@ -161,7 +161,12 @@ $(document).on('mousedown touchstart', function(event) {
       }
     }
   }
+  if($(event.target).closest(".modal-content.auto_close").length > 0) {
+    $(".modal-content.auto_close").removeClass('auto_close');
+    modal.auto_close = false;
+  }
   if(!buttonTracker.check('scanning_enabled')) { return; }
+  if(event.target.tagName == 'INPUT' && event.target.id != 'hidden_input') { return; }
   if(event.keyCode && event.keyCode == buttonTracker.check('select_keycode')) { // spacebar key
     scanner.pick();
     event.preventDefault();
