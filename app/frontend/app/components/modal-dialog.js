@@ -12,6 +12,7 @@ export default Component.extend({
       this.sendAction('opening');
     }
     this.set('auto_close', !!modal.auto_close);
+    modal.component = this;
 //     if(capabilities.mobile) {
       var height = $(window).height() - 50;
       $(this.get('element')).find(".modal-content").css('maxHeight', height).css('overflow', 'auto');

@@ -92,12 +92,13 @@ var modal = EmberObject.extend({
     settings.set('clear_overlay', options.clear_overlay);
     settings.set('prevent_close', options.prevent_close);
     settings.set('select_anywhere', options.select_anywhere);
+    settings.set('highlight_type', options.highlight_type);
     settings.set('defer', RSVP.defer());
     var promise = settings.get('defer').promise;
 
     if(modal.highlight_controller) {
       if(modal.highlight_promise) {
-        modal.highlight_promise.reject('closing due to new highlight');
+        modal.highlight_promise.reject({reason: 'closing due to new highlight', highlight_close: true});
       }
       modal.highlight_controller.set('model', settings);
     } else {
@@ -121,12 +122,12 @@ var modal = EmberObject.extend({
       if(success || success === undefined) {
         this.last_promise.resolve(success);
       } else {
-        this.last_promise.reject('force close');
+        this.last_promise.reject({reason: 'force close'});
       }
       this.last_promise = null;
     }
     if(this.highlight_promise) {
-      this.highlight_promise.reject('force close');
+      this.highlight_promise.reject({reason: 'force close'});
       this.highlight_promise = null;
     }
     if(this.resume_scanning) {

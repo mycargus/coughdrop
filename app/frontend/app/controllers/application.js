@@ -517,13 +517,13 @@ export default Controller.extend({
       if(buttons && buttons.length > 0) {
         var button = buttons[0];
         if(button.pre == 'home' || button.pre == 'sidebar') {
-          buttons.shift();
           this.set('button_highlights', buttons);
           var $button = $("#speak > button:first");
           if(button.pre == 'sidebar') {
             $button = $("#sidebar a[data-key='" + button.linked_board_key + "']");
           }
-          modal.highlight($button).then(function() {
+          modal.highlight($button, {highlight_type: 'button_search'}).then(function() {
+            buttons.shift();
             if(button.pre == 'home') {
               _this.send('home');
             } else {
@@ -532,18 +532,27 @@ export default Controller.extend({
                 home_lock: button.home_lock
               });
             }
+          }, function(err) {
           });
         } else if(button && button.board_id == this.get('board.model').get('id')) {
           var findButtonElem = function() {
             if(button.board_id == _this.get('board.model').get('id')) {
               var $button = $(".button[data-id='" + button.id + "']");
-              if($button[0]) {
-                buttons.shift();
+              if($button[0] && $button.width()) {
                 _this.set('button_highlights', buttons);
-                modal.highlight($button).then(function() {
+                modal.highlight($button, {highlight_type: 'button_search'}).then(function() {
+                  buttons.shift();
                   var found_button = editManager.find_button(button.id);
                   var board = _this.get('board.model');
                   _this.activateButton(found_button, {board: board});
+                  var next_button = buttons[0];
+                  // If there is more to the sequence, and the 
+                  // user selection isn't going to involve loading
+                  // a different board, then call highlight_button again
+                  if(next_button && (next_button.board_id == board.id || next_button.pre)) {
+                    _this.send('highlight_button');                    
+                  }
+                }, function(err) {
                 });
               } else {
                 // TODO: really? is this the best you can figure out?

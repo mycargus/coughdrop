@@ -39,7 +39,8 @@ var scanner = EmberObject.extend({
     options.auto_start = options.auto_start || false;
     options.all_elements = [];
 
-    if(modal.is_open() && !modal.is_open('highlight')) {
+    var highlight_type = emberGet(modal.highlight_settings || {}, 'highlight_type');
+    if((modal.is_open() && !modal.is_open('highlight')) || highlight_type == 'button_search') {
       return;
     } else if(options && options.scan_mode == 'axes') {
     } else {

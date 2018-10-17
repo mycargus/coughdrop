@@ -8,7 +8,7 @@ module FeatureFlags
               'video_recording', 'goals', 'modeling', 'geo_sidebar', 'edit_before_copying',
               'core_reports', 'lessonpix', 'translation', 'fast_render',
               'audio_recordings', 'app_connections', 'enable_all_buttons', 'badge_progress',
-              'premium_symbols']
+              'premium_symbols', 'find_multiple_buttons']
   DISABLED_CANARY_FEATURES = []
   FEATURE_DATES = {
     'word_suggestion_images' => 'Jan 21, 2017',

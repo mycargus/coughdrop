@@ -36,7 +36,14 @@ export default modal.ModalController.extend({
       if(board.get('button_set')) {
         var user = app_state.get('currentUser');
         var include_home = app_state.get('speak_mode');
-        board.get('button_set').find_buttons(this.get('searchString'), board.get('id'), user, include_home).then(function(results) {
+        var search = null;
+        if(app_state.get('feature_flags.find_multiple_buttons')) {
+          search = board.get('button_set').find_sequence(this.get('searchString'), board.get('id'), user, include_home);
+        } else {
+          search = board.get('button_set').find_buttons(this.get('searchString'), board.get('id'), user, include_home);
+        }
+        search.then(function(results) {
+          console.log("results!", results);
           if(persistence.get('online')) {
             _this.set('results', results);
             _this.set('loading', false);
@@ -44,13 +51,29 @@ export default modal.ModalController.extend({
             var new_results = [];
             var promises = [];
             results.forEach(function(b) {
-              if(b.image && (b.image.match(/^data/) || !b.image.match(/^http/))) {
+              var images = [b.image];
+              if(b.sequence) {
+                images = b.steps.map(function(s) { return s.button.image; });
+              }
+              var missing_image = images.find(function(i) { return !i || i.match(/^http/); });
+              if(!missing_image) {
                 new_results.push(b);
               } else {
-                promises.push(persistence.find_url(b.image, 'image').then(function(data_uri) {
-                  b.image = data_uri;
-                  new_results.push(b);
-                }));
+              // This is a repeat of what already happens in buttonset.js
+              // calling find_url in buttonset.js
+              //   if(b.sequence) {
+              //     b.steps.forEach(function(s) {
+              //       promises.push(persistence.find_url(s.button.image, 'image').then(function(data_uri) {
+              //         emberSet(b.button, 'image', data_uri);
+              //       }));
+              //       new_results.push(b);
+              //     })
+              //   } else {
+              //     promises.push(persistence.find_url(b.image, 'image').then(function(data_uri) {
+              //       b.image = data_uri;
+              //       new_results.push(b);
+              //     }));
+              //   }
               }
             });
             RSVP.all_wait(promises).then(null, function() { return RSVP.resolve(); }).then(function() {
@@ -85,7 +108,19 @@ export default modal.ModalController.extend({
         if(result.pre_action == 'home') {
           buttons.unshift('home');
         }
-        buttons.push(result);
+        if(result.sequence) {
+          result.steps.forEach(function(step) {
+            if(step.sequence.pre == 'home') {
+              buttons.push({pre: 'home'});
+            }
+            step.sequence.buttons.forEach(function(btn) {
+              buttons.push(btn);
+            });
+            buttons.push(step.button);
+          });
+        } else {
+          buttons.push(result);
+        }
         app_state.controller.set('button_highlights', buttons);
         app_state.controller.send('highlight_button');
       }

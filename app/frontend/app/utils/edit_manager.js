@@ -267,9 +267,11 @@ var editManager = EmberObject.extend({
     if(button) {
       if(options.image) {
         emberSet(button, 'local_image_url', null);
+        button.load_image();
       }
       if(options.sound) {
         emberSet(button, 'local_sound_url', null);
+        button.load_sound();
       }
       for(var key in options) {
         emberSet(button, key, options[key]);

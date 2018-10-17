@@ -12,29 +12,66 @@
         {{#if results}}
           {{#each results as |result|}}
             <div {{action 'pick_result' result}} class="result col-sm-12">
-              <div class="img_holder">
-                <img src={{result.image}} onerror="button_broken_image(this);" />
-              </div>
-              {{result.label}}
-              <div class="location">
-                {{#if result.on_this_board}}
-                  {{t "On this board" key='on_this_board'}}
-                {{else}}
-                  {{t "Get there through: " key='get_there_through'}}
-                  {{#if result.pre_action}}
-                    <span class="link_list">{{t "Home" key='home'}}</span>
-                  {{/if}}
-                  {{#each result.pre_buttons as |pre|}}
-                    <span class="link_list">
-                      {{#if pre.label}}
-                        {{pre.label}}
-                      {{else}}
-                        {{pre.vocalization}}
-                      {{/if}}
-                    </span>
+              {{#if result.sequence}}
+                <div class='img_holder'>
+                  {{#each result.steps as |step|}}
+                    <img src={{step.button.image}} onerror="button_broken_image(this);" />
                   {{/each}}
-                {{/if}}
-              </div>
+                </div>
+                {{result.text}}
+                <div class='location'>
+                  {{#if result.total_steps}}
+                    {{t "Get there through: " key='get_there_through'}}
+                    {{#each result.steps as |step|}}
+                      {{#if step.sequence.pre}}
+                        <span class='link_list'>{{t "Home" key='home'}}</span>
+                      {{/if}}
+                      {{#each step.sequence.buttons as |btn|}}
+                        <span class='link_list'>
+                          {{#if btn.label}}
+                            {{btn.label}}
+                          {{else}}
+                            {{btn.vocaliationl}}
+                          {{/if}}
+                        </span>
+                      {{/each}}
+                      <span class='link_list'><em>
+                        {{#if step.button.label}}
+                          {{step.button.label}}
+                        {{else}}
+                          {{step.button.vocaliationl}}
+                        {{/if}}
+                      </em></span>
+                    {{/each}}
+                  {{else}}
+                    {{t "On this board" key='on_this_board'}}
+                  {{/if}}
+                </div>
+              {{else}}
+                <div class="img_holder">
+                  <img src={{result.image}} onerror="button_broken_image(this);" />
+                </div>
+                {{result.label}}
+                <div class="location">
+                  {{#if result.on_this_board}}
+                    {{t "On this board" key='on_this_board'}}
+                  {{else}}
+                    {{t "Get there through: " key='get_there_through'}}
+                    {{#if result.pre_action}}
+                      <span class="link_list">{{t "Home" key='home'}}</span>
+                    {{/if}}
+                    {{#each result.pre_buttons as |pre|}}
+                      <span class="link_list">
+                        {{#if pre.label}}
+                          {{pre.label}}
+                        {{else}}
+                          {{pre.vocalization}}
+                        {{/if}}
+                      </span>
+                    {{/each}}
+                  {{/if}}
+                </div>
+              {{/if}}
             </div>
           {{/each}}
         {{else}}
