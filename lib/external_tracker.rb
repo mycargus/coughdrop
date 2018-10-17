@@ -10,12 +10,23 @@ module ExternalTracker
     return false unless user && user.external_email_allowed?
     return false unless ENV['HUBSPOT_KEY']
     return false unless user.settings && user.settings['email']
+
+    @location = nil
+    if ip && ENV['IPSTACK_KEY']
+      begin
+        res = Typhoeus.get(url)
+        json = JSON.parse(res.body)
+        @location = json && "#{json['city']}, #{json['region_name']}, #{json['country_code']}"
+      rescue => e
+      end
+    end
     
+
     d = user.devices[0]
     ip = d && d.settings['ip_address']
     location = nil
-    if ip
-      url = "http://freegeoip.net/json/#{ip}"
+    if ip && ENV['IPSTACK_KEY']
+      url = "http://api.ipstack.com/#{ip}?access_key=#{ENV['IPSTACK_KEY']}"
       begin
         res = Typhoeus.get(url)
         location = JSON.parse(res.body)
