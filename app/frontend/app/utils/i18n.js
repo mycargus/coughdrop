@@ -582,7 +582,9 @@ var i18n = EmberObject.extend({
     },
     tenses: {
       // http://www.englishpage.com/irregularverbs/irregularverbs.html
-      'am': ['is', 'was', 'been', 'being'],
+      'am': ['am', 'was', 'been', 'being'],
+      'are': ['are', 'were', 'been', 'being'],
+      'is': ['is', 'was', 'been', 'being'],
       'arise': ['arises', 'arose', 'arisen', 'arising'],
       'awake': ['awakes', 'awoke', 'awoken', 'awaking'],
       'backslide': ['backslides', 'backslid', 'backslidden', 'backsliding'],
