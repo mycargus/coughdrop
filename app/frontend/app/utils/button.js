@@ -234,7 +234,7 @@ var Button = EmberObject.extend({
         }
         if(mods.pre) {
           for(var key in mods.pre) {
-            if(!mods.override || !mods.override[key]) {
+            if(!mods.override || mods.override[key] === null || mods.override[key] === undefined) {
               this.set(key, mods.pre[key]);
             }
           }
@@ -242,7 +242,7 @@ var Button = EmberObject.extend({
         for(var idx = 1; idx <= level; idx++) {
           if(mods[idx]) {
             for(var key in mods[idx]) {
-              if(!mods.override || !mods.override[key]) {
+              if(!mods.override || mods.override[key] === null || mods.override[key] === undefined) {
                 this.set(key, mods[idx][key]);
               }
             }
@@ -746,7 +746,7 @@ Button.set_attribute = function(button, attribute, value) {
   var mods = $.extend({}, mods || {});
   for(var key in mods) {
     if(parseInt(key, 10) > 0 && mods[key] && mods[key][attribute] != undefined) {
-      mods.override = mods.override || {};
+      mods.override = $.extend({}, mods.override);
       mods.override[attribute] = value;
     }
   }

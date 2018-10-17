@@ -186,7 +186,7 @@ var utterance = EmberObject.extend({
     });
     var specialty = null;
     vocs.forEach(function(voc) {
-      if(voc == ":beep" || voc == ":home" || voc == ":back" || voc == ":clear" || voc == ":speak" || voc == ":backspace") {
+      if(voc == ":beep" || voc == ":home" || voc == ":back" || voc == ":clear" || voc == ":speak" || voc == ":backspace" || voc == ':hush') {
         if(voc == ':beep' || voc == ':speak') {
           button.has_sound = true;
         }

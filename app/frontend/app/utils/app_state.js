@@ -1522,11 +1522,14 @@ var app_state = EmberObject.extend({
     // update button attributes preemptively
     app_state.set('last_activation', now);
     if(button.link_disabled) {
-      button.apps = null;
-      button.url = null;
-      button.video = null;
-      button.load_board = null;
-      button.user_integration = null;
+      button = $.extend({}, button);
+      setProperties(button, {
+        apps: null,
+        url: null,
+        video: null,
+        load_board: null,
+        user_integration: null
+      })
     }
     if(button.apps) {
       obj.type = 'app';

@@ -136,7 +136,7 @@ $(document).on('mousedown touchstart', function(event) {
   } else if(event.keyCode == 8) { // backspace
     if(buttonTracker.check('keyboard_listen') && !modal.is_open()) {
       app_state.activate_button({vocalization: ':backspace'}, {
-        label: 'escape',
+        label: 'backspace',
         vocalization: ':backspace',
         prevent_return: true,
         button_id: null,
