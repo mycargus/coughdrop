@@ -455,7 +455,7 @@ More information about the file formats being used is available at https://www.o
   def self.process_log(data, type, user_id, author_id, device_id)
     sessions = nil
     if data.match(/^http/)
-      data = Typhoeus.get(data).body
+      data = Typhoeus.get(Uploader.sanitize_url(data)).body
     end
     user = User.find_by_path(user_id)
     raise "invalid user" unless user

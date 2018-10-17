@@ -20,6 +20,11 @@ module Uploader
       return nil
     end
   end
+
+  def self.sanitize_url(url)
+    uri = URI.parse(url)
+    "#{uri.scheme}://#{uri.host}#{uri.port && ":#{uri.port}"}#{uri.path}#{uri.query && "?#{uri.query}"}"
+  end
   
   def self.check_existing_upload(remote_path)
     return nil
@@ -123,7 +128,7 @@ module Uploader
   def self.remote_zip(url, &block)
     result = []
     Progress.update_current_progress(0.1, :downloading_file)
-    response = Typhoeus.get(url)
+    response = Typhoeus.get(Uploader.sanitize_url(url))
     Progress.update_current_progress(0.2, :processing_file)
     file = Tempfile.new('stash')
     file.binmode
