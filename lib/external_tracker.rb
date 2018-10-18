@@ -11,17 +11,6 @@ module ExternalTracker
     return false unless ENV['HUBSPOT_KEY']
     return false unless user.settings && user.settings['email']
 
-    @location = nil
-    if ip && ENV['IPSTACK_KEY']
-      begin
-        res = Typhoeus.get(url)
-        json = JSON.parse(res.body)
-        @location = json && "#{json['city']}, #{json['region_name']}, #{json['country_code']}"
-      rescue => e
-      end
-    end
-    
-
     d = user.devices[0]
     ip = d && d.settings['ip_address']
     location = nil

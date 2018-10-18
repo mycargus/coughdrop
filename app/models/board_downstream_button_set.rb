@@ -113,7 +113,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
       set.data['source_id'] = nil if set.data['source_id'] == set.global_id
       # Don't re-update if you've updated more recently than when this
       # job was scheduled
-      return if self.last_scheduled_stamp && set.updated_at.to_i > self.last_scheduled_stamp
+      return if self.last_scheduled_stamp && (set.updated_at.to_i - 5) > self.last_scheduled_stamp
       
       existing_board_ids = (set.data || {})['linked_board_ids'] || []
       Board.find_batches_by_global_id(board.settings['immediately_upstream_board_ids'] || [], :batch_size => 3) do |brd|
@@ -271,9 +271,9 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
     key = "traversed/button_set/#{board_id}"
     traversed = JSON.parse(RedisInit.default.get(key)) rescue nil
     traversed ||= []
-    traversed += traversed_ids
+    traversed += (traversed_ids - [board_id])
     RedisInit.default.setex(key, 6.hours.from_now.to_i, traversed.uniq.to_json)
-    BoardDownstreamButtonSet.schedule_once(:update_for, id)
+    BoardDownstreamButtonSet.schedule_once(:update_for, board_id)
   end
   
   def self.spoken_button?(button, user)

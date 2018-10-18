@@ -622,7 +622,7 @@ describe BoardDownstreamButtonSet, :type => :model do
       expect(bs2.buttons.length).to eq(4)
       bs3 = b3.reload.board_downstream_button_set
       expect(bs3).to_not eq(nil)
-      expect(bs3.data['buttons']).to eq(nil)
+      expect(bs3.reload.data['buttons']).to eq(nil)
       expect(bs3.data['source_id']).to eq(bs2.global_id)
       expect(bs3.buttons.length).to eq(2)
     end
