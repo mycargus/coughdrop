@@ -22,8 +22,12 @@ module Uploader
   end
 
   def self.sanitize_url(url)
-    uri = URI.parse(url)
-    "#{uri.scheme}://#{uri.host}#{uri.port && ":#{uri.port}"}#{uri.path}#{uri.query && "?#{uri.query}"}"
+    uri = URI.parse(url) rescue nil
+    return nil unless uri
+    return nil if !Rails.env.development? && (uri.host.match(/^127/) || uri.host.match(/localhost/) || uri.host.match(/^0/) || uri.host.to_s == uri.host.to_i.to_s)
+    port_suffix = ""
+    port_suffix = ":#{uri.port}" if (uri.scheme == 'http' && uri.port != 80)
+    "#{uri.scheme}://#{uri.host}#{port_suffix}#{uri.path}#{uri.query && "?#{uri.query}"}"
   end
   
   def self.check_existing_upload(remote_path)
