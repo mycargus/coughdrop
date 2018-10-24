@@ -745,7 +745,8 @@ Button.set_attribute = function(button, attribute, value) {
   if(!mods) { return; }
   var mods = $.extend({}, mods || {});
   for(var key in mods) {
-    if(parseInt(key, 10) > 0 && mods[key] && mods[key][attribute] != undefined) {
+    var preset_key = parseInt(key, 10) > 0 || key == 'pre'
+    if(preset_key && mods[key] && mods[key][attribute] != undefined) {
       mods.override = $.extend({}, mods.override);
       mods.override[attribute] = value;
     }

@@ -764,6 +764,18 @@ var editManager = EmberObject.extend({
                 mods.pre['link_disabled'] = true;
                 mods[currentButton.link_disabled_level.toString()] = {link_disabled: false};
               }
+              for(var ref_key in mods.pre) {
+                var found_change = false;
+                for(var level in mods) {
+                  if(level != 'pre' && mods[level][ref_key] != undefined && mods[level][ref_key] != mods.pre[ref_key]) {
+                    found_change = true;
+                  }
+                }
+                if(!found_change) {
+                  newButton[ref_key] = mods.pre[ref_key];
+                  delete mods.pre[ref_key];
+                }
+              }
               emberSet(currentButton, 'level_modifications', mods);
             } else if(currentButton.level_json) {
               emberSet(currentButton, 'level_modifications', JSON.parse(currentButton.level_json));
