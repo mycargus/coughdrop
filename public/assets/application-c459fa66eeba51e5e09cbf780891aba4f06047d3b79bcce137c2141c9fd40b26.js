@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.10.18";
+window.app_version = "2018.10.24";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -9400,8 +9400,7 @@ c.resource_from_url=function(e){var t=e&&e.match(p),n=e&&e.match(m),s=e&&e.match
 if(r&&r.match(/www\.dropbox\.com/)&&r.match(/\?dl=0$/)&&(r=r.replace(/\?dl=0$/,"?dl=1")),a)return{type:"video",video_type:"youtube",id:a}
 var l=o||r
 return l?{type:"book",book_type:"tarheel",id:l}:null},c.set_attribute=function(e,t,n){if(Ember.set(e,t,n),s=Ember.get(e,"level_modifications")){var s=Ember.$.extend({},s||{})
-for(var a in s)parseInt(a,10)>0&&s[a]&&void 0!=s[a][t]&&(s.override=Ember.$.extend({},s.override),s.override[t]=n)
-Ember.set(e,"level_modifications",s)}},c.extra_actions=function(e){if(e&&e.integration&&"webhook"==e.integration.action_type){var t=Math.random(),n=function n(s){e.get("action_status")&&e.get("action_status.state")!=t||(s&&(s.state=t),e.set("action_status",s),Ember.run.later(function(){var t=Ember.$(".board[data-id='"+i+"']").find(".button[data-id='"+e.get("id")+"']")
+for(var a in s){(parseInt(a,10)>0||"pre"==a)&&s[a]&&void 0!=s[a][t]&&(s.override=Ember.$.extend({},s.override),s.override[t]=n)}Ember.set(e,"level_modifications",s)}},c.extra_actions=function(e){if(e&&e.integration&&"webhook"==e.integration.action_type){var t=Math.random(),n=function n(s){e.get("action_status")&&e.get("action_status.state")!=t||(s&&(s.state=t),e.set("action_status",s),Ember.run.later(function(){var t=Ember.$(".board[data-id='"+i+"']").find(".button[data-id='"+e.get("id")+"']")
 t.length&&(t.find(".action_container").removeClass("pending").removeClass("errored").removeClass("succeeded"),s&&s.pending?t.find(".action_container").addClass("pending"):s&&s.errored?t.find(".action_container").addClass("errored"):s&&s.completed&&t.find(".action_container").addClass("succeeded"))},100),s&&(s.errored||s.completed)&&Ember.run.later(function(){n(null)},1e4))}
 if(e.integration.local_url){n(null),n({pending:!0})
 var o=e.integration.local_url||"https://www.yahoo.com"
@@ -9907,8 +9906,10 @@ m._ok&&(p.background_color=m.toRgbString())
 var f=window.tinycolor(d.border_color)
 if(f._ok&&(p.border_color=f.toRgbString()),p.hidden=!!d.hidden,p.link_disabled=!!d.link_disabled,p.add_to_vocalization=!!d.add_to_vocalization,d.level_style)if("none"==d.level_style)Ember.set(d,"level_modifications",null)
 else if("basic"==d.level_style&&(d.hidden_level||d.link_disabled_level)){var _=Ember.get(d,"level_modifications")||{}
-_.pre=_.pre||{},d.hidden_level&&(_.pre.hidden=!0,_[d.hidden_level.toString()]={hidden:!1}),d.link_disabled_level&&(_.pre.link_disabled=!0,_[d.link_disabled_level.toString()]={link_disabled:!1}),Ember.set(d,"level_modifications",_)}else d.level_json&&Ember.set(d,"level_modifications",JSON.parse(d.level_json))
-for(var g in p.level_modifications=d.level_modifications,p.home_lock=!!d.home_lock,p.hide_label=!!d.hide_label,p.blocking_speech=!!d.blocking_speech,d.get("translations.length")>0&&(p.translations=d.get("translations")),d.get("external_id")&&(p.external_id=d.get("external_id")),d.part_of_speech&&(p.part_of_speech=d.part_of_speech,p.suggested_part_of_speech=d.suggested_part_of_speech,p.painted_part_of_speech=d.painted_part_of_speech),"talk"==d.get("buttonAction")?(delete p.load_board,delete p.apps,delete p.url,delete p.integration):"link"==d.get("buttonAction")?(delete p.load_board,delete p.apps,delete p.integration,p.url=d.get("fixed_url"),d.get("video")?p.video=d.get("video"):d.get("book")&&(p.book=d.get("book"))):"app"==d.get("buttonAction")?(delete p.load_board,delete p.url,delete p.integration,p.apps=d.get("apps"),p.apps.web&&p.apps.web.launch_url&&(p.apps.web.launch_url=d.get("fixed_app_url"))):"integration"==d.get("buttonAction")?(delete p.load_board,delete p.apps,delete p.url,p.integration=d.get("integration")):(delete p.url,delete p.apps,delete p.integration,p.load_board=d.load_board),(p.id<0||!p.id)&&(p.id=++a),p.id=p.id||++a,p)void 0===p[g]&&delete p[g]
+for(var g in _.pre=_.pre||{},d.hidden_level&&(_.pre.hidden=!0,_[d.hidden_level.toString()]={hidden:!1}),d.link_disabled_level&&(_.pre.link_disabled=!0,_[d.link_disabled_level.toString()]={link_disabled:!1}),_.pre){var h=!1
+for(var b in _)"pre"!=b&&void 0!=_[b][g]&&_[b][g]!=_.pre[g]&&(h=!0)
+h||(p[g]=_.pre[g],delete _.pre[g])}Ember.set(d,"level_modifications",_)}else d.level_json&&Ember.set(d,"level_modifications",JSON.parse(d.level_json))
+for(var y in p.level_modifications=d.level_modifications,p.home_lock=!!d.home_lock,p.hide_label=!!d.hide_label,p.blocking_speech=!!d.blocking_speech,d.get("translations.length")>0&&(p.translations=d.get("translations")),d.get("external_id")&&(p.external_id=d.get("external_id")),d.part_of_speech&&(p.part_of_speech=d.part_of_speech,p.suggested_part_of_speech=d.suggested_part_of_speech,p.painted_part_of_speech=d.painted_part_of_speech),"talk"==d.get("buttonAction")?(delete p.load_board,delete p.apps,delete p.url,delete p.integration):"link"==d.get("buttonAction")?(delete p.load_board,delete p.apps,delete p.integration,p.url=d.get("fixed_url"),d.get("video")?p.video=d.get("video"):d.get("book")&&(p.book=d.get("book"))):"app"==d.get("buttonAction")?(delete p.load_board,delete p.url,delete p.integration,p.apps=d.get("apps"),p.apps.web&&p.apps.web.launch_url&&(p.apps.web.launch_url=d.get("fixed_app_url"))):"integration"==d.get("buttonAction")?(delete p.load_board,delete p.apps,delete p.url,p.integration=d.get("integration")):(delete p.url,delete p.apps,delete p.integration,p.load_board=d.load_board),(p.id<0||!p.id)&&(p.id=++a),p.id=p.id||++a,p)void 0===p[y]&&delete p[y]
 s.push(p),l.push(p.id)}else l.push(null)}n.push(l)}return{grid:{rows:n.length,columns:n[0].length,order:n},buttons:s}},lucky_symbols:function(e){var t=this
 e.forEach(function(e){var n=t.controller.get("model.id"),a=t.find_button(e)
 a&&a.label&&!a.image&&!a.local_image_url&&(a.set("pending_image",!0),a.set("pending",!0),a&&a.label&&!a.image&&a.check_for_parts_of_speech(),o.default.pictureGrabber.picture_search(s.default.get("last_image_library"),a.label,t.controller.get("model.user_name"),!0).then(function(s){a=t.find_button(e)
@@ -10794,9 +10795,9 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+28d93101"},exportApplicationGlobal:!1}}
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+27d08227"},exportApplicationGlobal:!1}}
 return Object.defineProperty(e,"__esModule",{value:!0}),e})
-runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+28d93101"})
+runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+27d08227"})
 ;
 
 
