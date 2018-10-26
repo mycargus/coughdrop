@@ -108,6 +108,17 @@
     </span>
   {{else}}
     <span id="nav_header" class={{app_state.nav_header_class}}>
+    {{#if app_state.currentUser}}
+      {{#unless app_state.speak_mode}}
+        {{#unless app_state.edit_mode}}
+          {{#unless app_state.embedded}}
+            <span style='float: right;' class='not_pretty_skinny'>
+              <a href="#" {{action 'support'}} style='line-height: 70px; vertical-align: middle; margin-right: 15px; font-size: 30px; color: #aaa;'><span class='glyphicon glyphicon-question-sign'></span></a>
+            </span>
+          {{/unless}}
+        {{/unless}}
+      {{/unless}}
+    {{/if}}
     <h1 class={{app_state.h1_class}}>
       <a href="#" {{action "index"}}>
         <img src="{{path 'images/logo-big.png'}}" alt="CoughDrop"/>
@@ -535,17 +546,6 @@
           {{/if}}
         </span>
       {{/if}}
-    {{/if}}
-    {{#if app_state.currentUser}}
-      {{#unless app_state.speak_mode}}
-        {{#unless app_state.edit_mode}}
-          {{#unless app_state.embedded}}
-            <span style='float: right;' class='not_pretty_skinny'>
-              <a href="#" {{action 'support'}} style='line-height: 70px; vertical-align: middle; margin-right: 15px; font-size: 30px; color: #aaa;'><span class='glyphicon glyphicon-question-sign'></span></a>
-            </span>
-          {{/unless}}
-        {{/unless}}
-      {{/unless}}
     {{/if}}
     </span>
   {{/if}}

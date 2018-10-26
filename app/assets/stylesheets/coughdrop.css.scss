@@ -700,9 +700,11 @@ footer .wide_links {
 .board.colored_icons:not(.edit) {
   .button .action_container.folder, .button .action_container.integration, .button .action_container.webhook {
     border-color: inherit;
-    border-top-width: 20px;
-    border-top-style: solid;
+    /* border-top-width: 20px; */
+    /* border-top-style: solid; */
     border-bottom-left-radius: 20px;
+    border-style: solid;
+    border-width: 10px !important;
     height: 0;
     width: 20px;
     z-index: auto;
@@ -741,7 +743,8 @@ footer .wide_links {
   
   &.text_small {
     .button .action_container.folder, .button .action_container.integration, .button .action_container.webhook {
-      border-top-width: 10px;
+      border-width: 6px !important;
+      /* border-top-width: 10px; */
       border-bottom-left-radius: 10px;
       width: 10px;
       &.home {
@@ -762,7 +765,8 @@ footer .wide_links {
   }
   &.text_medium {
     .button .action_container.folder, .button .action_container.integration, , .button .action_container.webhook {
-      border-top-width: 15px;
+      /* border-top-width: 15px; */
+      border-width: 8px !important;
       border-bottom-left-radius: 15px;
       width: 15px;
       &.home {
