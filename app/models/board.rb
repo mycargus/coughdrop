@@ -104,7 +104,7 @@ class Board < ActiveRecord::Base
     else
       bs = BoardDownstreamButtonSet.find_by(:board_id => self.id)
     end
-    bs.assert_extra_data
+    bs.assert_extra_data if bs
     bs
   end
   
