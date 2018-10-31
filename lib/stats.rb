@@ -5,17 +5,15 @@ module Stats
   def self.cached_daily_use(user_id, options)
     user = User.find_by_global_id(user_id)
     if !user || WeeklyStatsSummary.where(:user_id => user.id).count == 0
-      sanitize_find_options!(options, user) if user.eval_account?
+      Stats.sanitize_find_options!(options, user) if user.eval_account?
       return daily_use(user_id, options)
     end
-    sanitize_find_options!(options, user)
+    Stats.sanitize_find_options!(options, user)
     week_start = options[:start_at].utc.beginning_of_week(:sunday)
     week_end = options[:end_at].utc.end_of_week(:sunday)
     start_weekyear = WeeklyStatsSummary.date_to_weekyear(week_start)
     end_weekyear = WeeklyStatsSummary.date_to_weekyear(week_end)
     summaries = WeeklyStatsSummary.where(['user_id = ? AND weekyear >= ? AND weekyear <= ?', user.id, start_weekyear, end_weekyear])
-    summary_lookups = {}
-    summaries.each{|s| summary_lookups[s.weekyear] = s }
 
     days = {}
     all_stats = []
@@ -45,9 +43,9 @@ module Stats
             filtered_day_stats = [Stats.stats_counts([])]
           end
           all_stats += filtered_day_stats
-          days[date.to_s] = usage_stats(filtered_day_stats)
+          days[date.to_s] = Stats.usage_stats(filtered_day_stats)
         end
-        track_word_development(word_development, summary, options[:start_at], date_distance)
+        Stats.track_word_development(word_development, summary, options[:start_at], date_distance)
         weekyear_dates.delete(summary.weekyear)
       end
     end

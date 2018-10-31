@@ -98,8 +98,8 @@ class LogSession < ActiveRecord::Base
         spelling_sequence = []
       end
       if event['button'] && event['button']['percent_x'] && event['button']['percent_y'] && event['button']['board'] && event['button']['board']['id']
-        x = event['button']['percent_x'].round(2)
-        y = event['button']['percent_y'].round(2)
+        x = (event['button']['percent_x']* 2).round(1) / 2
+        y = (event['button']['percent_y'] * 2).round(1) / 2
         board_id = event['button']['board']['id']
         hit_locations[board_id] ||= {}
         hit_locations[board_id][x] ||= {}
