@@ -36,6 +36,8 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
     boards = Board.find_all_by_path(board_ids).uniq
     
     button_sets = boards.map{|b| b.board_downstream_button_set }.compact.uniq
+    button_sets.each{|bs| bs.assert_extra_data }
+    button_sets
   end
   
   def buttons
@@ -58,6 +60,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
         brd = bs if bs
       end
     end
+    self.assert_extra_data
     if self.data['buttons']
       @buttons = self.data['buttons']
     else
@@ -292,6 +295,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
     destroyed = 0
     BoardDownstreamButtonSet.where("id > #{start_id}").find_in_batches(batch_size: 10) do |batch|
       batch.each do |button_set|
+        button_set.assert_extra_data
         if button_set.data['buttons']
           size = button_set.data.to_json.length
           board = button_set.board

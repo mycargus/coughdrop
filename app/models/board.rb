@@ -98,11 +98,14 @@ class Board < ActiveRecord::Base
   end
   
   def board_downstream_button_set
+    bs = nil
     if self.settings && self.settings['board_downstream_button_set_id']
-      BoardDownstreamButtonSet.find_by_global_id(self.settings['board_downstream_button_set_id'])
+      bs = BoardDownstreamButtonSet.find_by_global_id(self.settings['board_downstream_button_set_id'])
     else
-      BoardDownstreamButtonSet.find_by(:board_id => self.id)
+      bs = BoardDownstreamButtonSet.find_by(:board_id => self.id)
     end
+    bs.assert_extra_data
+    bs
   end
   
   def non_author_starred?
