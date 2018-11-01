@@ -104,6 +104,8 @@
                 <strong>{{mod.special}}</strong> {{t "when selected" key='when_selected'}}<br/>
               {{else if mod.modifier}}
                 <strong>{{mod.modifier}}</strong> {{t "modifier via Text-To-Speech" key='modifying_via_tts'}}<br/>
+              {{else if mod.text}}
+                <strong>{{mod.text}}</strong> {{t "via Text-To-Speech" key='via_tts'}}<br/>
               {{/if}}
             {{/each}}
             {{#if modifiers.any_basic}}

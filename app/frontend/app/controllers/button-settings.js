@@ -430,7 +430,9 @@ export default modal.ModalController.extend({
   modifiers: function() {
     var voc = (this.get('model.vocalization') || "");
     if(!voc || !voc.match(/^(:|\+)/)) {
-      return null;
+      if(!voc.match(/\&\&/)) {
+        return null;
+      }
     }
     var parts = voc.split(/\s*&&\s*/);
     var list = [];
@@ -458,8 +460,10 @@ export default modal.ModalController.extend({
       } else if(part.match(/^\+/)) {
         list.push({basic: true, modifier: part});
         any_basic = true;
-      } else {
+      } else if(part.match(/^\:/)) {
         list.push({modifier: part});
+      } else {
+        list.push({text: part});
       }
     });
     if(any_basic) {

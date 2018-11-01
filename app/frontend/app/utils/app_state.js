@@ -1554,6 +1554,11 @@ var app_state = EmberObject.extend({
       if(specialty.specialty_with_modifiers) {
         button_to_speak = utterance.add_button(obj, button);
       }
+      if(specialty.default_speak) {
+        skip_speaking_by_default = false;
+        obj.vocalization = specialty.default_speak;
+        utterance.add_button(obj, button);
+      }
     } else if(skip_speaking_by_default && !button.add_to_vocalization) {
     } else {
       button_to_speak = utterance.add_button(obj, button);

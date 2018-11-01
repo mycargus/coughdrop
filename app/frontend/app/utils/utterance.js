@@ -193,6 +193,14 @@ var utterance = EmberObject.extend({
         specialty = button;
       } else if(voc.match(/^\+/) || voc.match(/^:/)) {
         button.specialty_with_modifiers = true;
+        specialty = button;
+      } else {
+        if(button.default_speak) {
+          button.default_speak = button.default_speak + " " + voc;
+        } else {
+          button.default_speak = voc;
+        }
+        specialty = button;
       }
     });
     return specialty;
@@ -238,7 +246,8 @@ var utterance = EmberObject.extend({
           if(button.blocking_speech) {
             collection_id = Math.round(Math.random() * 99999) + "-" + (new Date()).getTime();
           }
-          speecher.speak_text(button.vocalization || button.label, collection_id);
+          var text = button.vocalization || button.label;
+          speecher.speak_text(text, collection_id);
         }
       } else {
         this.silent_speak_button(button);
@@ -257,7 +266,8 @@ var utterance = EmberObject.extend({
       $(selector).attr('data-popover', true).popover({html: true});
     }
     runCancel(this._popoverHide);
-    var text = "\"" + $('<div/>').text(button.vocalization || button.label).html() + "\"";
+    var str = button.vocalization || button.label;
+    var text = "\"" + $('<div/>').text(str).html() + "\"";
     if(button.sound) {
       text = text + " <span class='glyphicon glyphicon-volume-up'></span>";
     }
