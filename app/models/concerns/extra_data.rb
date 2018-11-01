@@ -9,6 +9,9 @@ module ExtraData
       return true
     end
     raise "extra_data_attribute not defined" unless self.extra_data_attribute
+    if self.data['extra_data_nonce'] && !self.data[extra_data_attribute]
+      self.assert_extra_data
+    end
     # figure out a quick check to see if it's small enough to ignore
     if extra_data_too_big? || frd == 'force'
       # generate large nonce to protect
@@ -76,7 +79,7 @@ module ExtraData
   def extra_data_too_big?
     if self.is_a?(LogSession)
       user = self.user
-      if user && user.settings['extra_data_test'] && self.data['events'] && self.data['events'].length > 10
+      if user && user.settings['extra_data_test'] && self.data['events'] && self.data['events'].length > 5
         return true
       end
     end
