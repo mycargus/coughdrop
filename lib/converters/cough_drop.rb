@@ -45,9 +45,12 @@ module Converters::CoughDrop
         'hidden' => original_button['hidden'],
       }
       if original_button['vocalization']
-        if original_button['vocalization'].match(/^(\:|\+)/)
+        if original_button['vocalization'].match(/^(\:|\+)/) || original_button['vocalization'].match(/&&/)
           if original_button['vocalization'].match(/&&/)
             button['actions'] = original_button['vocalization'].split(/&&/).map{|v| v.strip }
+            vocs = button['actions'].select{|a| !a.match(/^(\+|:)/)}
+            button['actions'] -= vocs
+            button['vocalization'] = vocs.join(' ') if vocs.length > 0
             button['action'] = button['actions'][0]
           else
             button['action'] = original_button['vocalization']
@@ -200,6 +203,9 @@ module Converters::CoughDrop
       }
       if button['actions']
         new_button['vocalization'] = button['actions'].join(' && ')
+        if button['vocalization']
+          new_button['vocalization'] = button['vocalization'] + " && " + new_button['vocalization']
+        end
       elsif button['action']
         new_button['vocalization'] = button['action']
       elsif button['vocalization']

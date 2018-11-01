@@ -724,6 +724,51 @@ describe Converters::CoughDrop do
       expect(board.settings['buttons'][1]['vocalization']).to eq(nil)
     end
 
+    it "should process a single action" do
+      u = User.create
+      json = {
+        'buttons' => [
+          {'id' => '2', 'label' => 'asdf', 'action' => ':bacon'}
+        ],
+        'id' => 'asdfasdf'
+      }
+      board = Converters::CoughDrop.from_external(json, {'user' => u})
+      expect(board).to_not eq(nil)
+      expect(board.settings['buttons'].length).to eq(1)
+      expect(board.settings['buttons'][0]['label']).to eq('asdf')
+      expect(board.settings['buttons'][0]['vocalization']).to eq(':bacon')
+    end
+
+    it "should process multiple actions" do
+      u = User.create
+      json = {
+        'buttons' => [
+          {'id' => '2', 'label' => 'asdf', 'actions' => [':bacon', '+wee', ':home']}
+        ],
+        'id' => 'asdfasdf'
+      }
+      board = Converters::CoughDrop.from_external(json, {'user' => u})
+      expect(board).to_not eq(nil)
+      expect(board.settings['buttons'].length).to eq(1)
+      expect(board.settings['buttons'][0]['label']).to eq('asdf')
+      expect(board.settings['buttons'][0]['vocalization']).to eq(':bacon && +wee && :home')
+    end
+
+    it "should process actions and a vocalization" do
+      u = User.create
+      json = {
+        'buttons' => [
+          {'id' => '2', 'label' => 'asdf', 'actions' => [':bacon', '+wee', ':home'], 'vocalization' => 'I have a good day'}
+        ],
+        'id' => 'asdfasdf'
+      }
+      board = Converters::CoughDrop.from_external(json, {'user' => u})
+      expect(board).to_not eq(nil)
+      expect(board.settings['buttons'].length).to eq(1)
+      expect(board.settings['buttons'][0]['label']).to eq('asdf')
+      expect(board.settings['buttons'][0]['vocalization']).to eq('I have a good day && :bacon && +wee && :home')
+    end
+
     it "should support known boards"
   end
 
@@ -804,6 +849,56 @@ describe Converters::CoughDrop do
       expect(hash['buttons'][3]['ext_coughdrop_part_of_speech']).to eq('noun')
       expect(hash['buttons'][4]['id']).to eq(5)
       expect(hash['buttons'][4]['ext_coughdrop_add_to_vocalization']).to eq(true)
+    end
+
+    it 'should support vocalization as an action' do
+      u = User.create
+      b = Board.create(:user => u)
+      b.settings['buttons'] = [
+        {'id' => 1, 'hidden' => true, 'vocalization' => ':back'},
+      ]
+      b.save
+      hash = Converters::CoughDrop.to_external(b, nil)
+      expect(hash['id']).to eq(b.global_id)
+      expect(hash['buttons'].length).to eq(1)
+      expect(hash['buttons'][0]['id']).to eq(1)
+      expect(hash['buttons'][0]['hidden']).to eq(true)
+      expect(hash['buttons'][0]['vocalization']).to eq(nil)
+      expect(hash['buttons'][0]['action']).to eq(':back')
+    end
+
+    it 'should split vocalization into actions if multiple' do
+      u = User.create
+      b = Board.create(:user => u)
+      b.settings['buttons'] = [
+        {'id' => 1, 'hidden' => true, 'vocalization' => ':back && :clear && +a'},
+      ]
+      b.save
+      hash = Converters::CoughDrop.to_external(b, nil)
+      expect(hash['id']).to eq(b.global_id)
+      expect(hash['buttons'].length).to eq(1)
+      expect(hash['buttons'][0]['id']).to eq(1)
+      expect(hash['buttons'][0]['hidden']).to eq(true)
+      expect(hash['buttons'][0]['vocalization']).to eq(nil)
+      expect(hash['buttons'][0]['action']).to eq(':back')
+      expect(hash['buttons'][0]['actions']).to eq([':back', ':clear', '+a'])
+    end
+
+    it 'should support vocalization into actions and vocalization' do
+      u = User.create
+      b = Board.create(:user => u)
+      b.settings['buttons'] = [
+        {'id' => 1, 'hidden' => true, 'vocalization' => 'my && :back && :clear && +a && my'},
+      ]
+      b.save
+      hash = Converters::CoughDrop.to_external(b, nil)
+      expect(hash['id']).to eq(b.global_id)
+      expect(hash['buttons'].length).to eq(1)
+      expect(hash['buttons'][0]['id']).to eq(1)
+      expect(hash['buttons'][0]['hidden']).to eq(true)
+      expect(hash['buttons'][0]['action']).to eq(':back')
+      expect(hash['buttons'][0]['actions']).to eq([':back', ':clear', '+a'])
+      expect(hash['buttons'][0]['vocalization']).to eq('my my')
     end
   end
 end
