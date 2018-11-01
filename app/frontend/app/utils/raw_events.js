@@ -1431,8 +1431,8 @@ var buttonTracker = EmberObject.extend({
         }
         var width = $board.width() + left + sidebar_width;
         var height = $board.height() + top;
-        var pct_x = (x - left) / width;
-        var pct_y = (y - top) / height;
+        var pct_x = Math.round((x - left) / width * 1000) / 1000;
+        var pct_y = Math.round((y - top) / height * 1000) / 1000;
         return {percent_x: pct_x, percent_y: pct_y};
       }
     }
