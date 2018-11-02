@@ -104,9 +104,12 @@ module Purchasing
           if object['status'] == 'unpaid' || object['status'] == 'canceled'
             if previous && previous['status'] && previous['status'] != 'unpaid' && previous['status'] != 'canceled'
               if valid
+                reason = 'Monthly payment unpaid' if object['status'] == 'unpaid'
+                reason = 'Canceled by purchasing system' if object['status'] == 'canceled'
                 User.schedule(:subscription_event, {
                   'unsubscribe' => true,
                   'user_id' => customer['metadata'] && customer['metadata']['user_id'],
+                  'reason' => reason,
                   'customer_id' => object['customer'],
                   'subscription_id' => object['id'],
                   'cancel_others_on_update' => false,
@@ -135,6 +138,7 @@ module Purchasing
           if valid
             User.schedule(:subscription_event, {
               'unsubscribe' => true,
+              'reason' => 'Deleted by purchasing system',
               'user_id' => customer['metadata'] && customer['metadata']['user_id'],
               'customer_id' => object['customer'],
               'subscription_id' => object['id'],
