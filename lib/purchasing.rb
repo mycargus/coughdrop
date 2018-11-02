@@ -675,12 +675,17 @@ module Purchasing
           end
         end
         if check_cancels
+          # Will only get here if there are no active subscriptions in purchasing system
           subs = cancels[cus_id] || []
           sub = subs[0]
           if sub
             canceled = Time.at(sub['canceled_at'])
             created = Time.at(customer['created'])
+            # If canceled in the last 6 months, track it for reporting
             if canceled > 6.months.ago
+              if user_active
+                problems << "#{user.global_id} marked as canceled, but looks like still active"
+              end 
               output "\tcanceled #{canceled.iso8601}, subscribed #{created.iso8601}, active #{user_active}" if canceled > 3.months.ago
               cancel_months[(canceled.year * 100) + canceled.month] ||= []
               cancel_months[(canceled.year * 100) + canceled.month] << (canceled - created) / 1.month.to_i
