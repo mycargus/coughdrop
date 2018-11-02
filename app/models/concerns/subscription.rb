@@ -202,6 +202,7 @@ module Subscription
           self.settings['subscription']['started'] = nil if args['plan_id'] == 'monthly_free' || args['plan_id'] == 'slp_monthly_free'
           self.settings['subscription']['token_summary'] = args['token_summary']
           self.settings['subscription']['plan_id'] = args['plan_id']
+          self.settings['subscription']['unsubscribe_reason'] = nil
           self.settings['subscription']['purchase_amount'] = args['purchase_amount']
           self.settings['subscription']['eval_account'] = args['plan_id'] == 'eval_monthly_free'
           self.settings['subscription']['free_premium'] = args['plan_id'] == 'slp_monthly_free'
@@ -218,7 +219,7 @@ module Subscription
     elsif args['unsubscribe']
       if (args['subscription_id'] && self.settings['subscription']['subscription_id'] == args['subscription_id']) || args['subscription_id'] == 'all'
         self.clear_existing_subscription(:allow_grace_period => true)
-        self.settings['subscription']['unsubscribe_reason'] = args['reason'] if args['reason']
+        self.settings['subscription']['unsubscribe_reason'] ||= args['reason'] if args['reason']
         self.settings['pending'] = false
         self.assert_current_record!
         self.save
