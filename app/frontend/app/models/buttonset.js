@@ -86,6 +86,7 @@ CoughDrop.Buttonset = DS.Model.extend({
     return buttons;
   },
   button_steps: function(start_board_id, end_board_id, map, home_board_id) {
+    // TODO: factor in if auto-home is enabled
     var last_board_id = end_board_id;
     var updated = true;
     if(start_board_id == end_board_id) {
@@ -171,9 +172,11 @@ CoughDrop.Buttonset = DS.Model.extend({
         }
         button_set_buttons.forEach(function(button) {
           if(!buttons.find(function(b) { return b.id == button.id && b.board_id == button.board_id; })) {
-            buttons.push(button);
+            if(!button.linked_board_id || button.force_vocalize || button.link_disabled) {
+              buttons.push(button);
+            }
           }
-          if(button.linked_board_id) {
+          if(button.linked_board_id && !button.link_disabled) {
             board_map[button.linked_board_id] = board_map[button.linked_board_id] || []
             if(!board_map[button.linked_board_id].find(function(b) { return b.id == button.id && b.board_id == button.board_id; })) {
               board_map[button.linked_board_id].push(button);
@@ -262,7 +265,7 @@ CoughDrop.Buttonset = DS.Model.extend({
       });  
     });
 
-    var combos = [{sequence: true, text: "", next_part: 0, parts_covered: 0, steps: [], total_edit_distance: 0, total_steps: 0}];
+    var combos = [{sequence: true, text: "", next_part: 0, parts_covered: 0, steps: [], total_edit_distance: 0, extra_steps: 0}];
     var build_combos = sort_results.then(function() {
       // Check all permutations, score for shortest access distance
       // combined with shorted edit distance
@@ -292,7 +295,7 @@ CoughDrop.Buttonset = DS.Model.extend({
                 dup.next_part = part_idx + (starter.part_end - starter.part_start);
                 dup.parts_covered = dup.parts_covered + (starter.part_end - starter.part_start);
                 dup.total_edit_distance = dup.total_edit_distance + starter.total_edit_distance;
-                dup.total_steps = dup.total_steps + button_steps.steps;
+                dup.extra_steps = dup.extra_steps + 1 +button_steps.steps;
                 new_combos.push(dup);
               }
             });
@@ -328,12 +331,12 @@ CoughDrop.Buttonset = DS.Model.extend({
       var cutoff = Math.floor(parts.length / 2);
       combos = combos.filter(function(c) { return c.text; });
       combos = combos.sort(function(a, b) {
-        var a_score = a.total_edit_distance + (a.total_steps * 3);
+        var a_score = a.total_edit_distance + (a.extra_steps / (a.parts_covered || 1) * 3);
         if(a.total_edit_distance == 0) { a_score = a_score / 5; }
-        var b_score = b.total_edit_distance + (b.total_steps * 3);
+        var b_score = b.total_edit_distance + (b.extra_steps / (b.parts_covered || 1) * 3);
         if(b.total_edit_distance == 0) { b_score = b_score / 5; }
-        var a_scores = [a.total_edit_distance ? 1 : 0, a.parts_covered > cutoff ? (parts.length - a.parts_covered + a_score) : 1000, parts.length - a.parts_covered + a_score, a.steps.length];
-        var b_scores = [b.total_edit_distance ? 1 : 0, b.parts_covered > cutoff ? (parts.length - b.parts_covered + b_score) : 1000, parts.length - b.parts_covered + b_score, b.steps.length];
+        var a_scores = [a.total_edit_distance ? 1 : 0, a.parts_covered == parts.length ? 0 : 1, a.parts_covered > cutoff ? (parts.length - a.parts_covered + a_score) : 1000, parts.length - a.parts_covered + a_score, a.steps.length];
+        var b_scores = [b.total_edit_distance ? 1 : 0, b.parts_covered == parts.length ? 0 : 1, b.parts_covered > cutoff ? (parts.length - b.parts_covered + b_score) : 1000, parts.length - b.parts_covered + b_score, b.steps.length];
         for(var idx = 0; idx < a_scores.length; idx++) {
           if(a_scores[idx] != b_scores[idx]) {
             return a_scores[idx] - b_scores[idx];

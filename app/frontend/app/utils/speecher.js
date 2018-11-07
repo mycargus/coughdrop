@@ -399,7 +399,7 @@ var speecher = EmberObject.extend({
         }, function(err) {
           speak_utterance();
         });
-      } else if(capabilities.system == 'Windows' && opts.voiceURI.match(/tts:/) && window.TTS && window.TTS.speakText) {
+      } else if(capabilities.system == 'Windows' && opts.voiceURI && opts.voiceURI.match(/tts:/) && window.TTS && window.TTS.speakText) {
         window.TTS.speakText({
           text: utterance.text,
           rate: utterance.rate,
