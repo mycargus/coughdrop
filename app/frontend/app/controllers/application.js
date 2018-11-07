@@ -197,6 +197,7 @@ export default Controller.extend({
       if(option == 'starting') {
         board = stashes.get('root_board_state') || this.get('board').get('model');
       }
+      var _this = this;
       var board_user_name = emberGet(board, 'key').split(/\//)[1];
       var preferred_symbols = app_state.get('currentUser.preferences.preferred_symbols') || 'original';
       var needs_confirmation = app_state.get('currentUser.supervisees') || preferred_symbols != 'original' || board_user_name != app_state.get('currentUser.user_name');
