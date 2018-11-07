@@ -217,6 +217,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
             'background_color' => button['background_color'],
             'depth' => bv[:depth] || 0
           }
+          button_data.keys.each{|k| button_data.delete(k) if button_data[k] == nil }
           # check for any linked buttons
           if button['load_board'] && button['load_board']['id']
             linked_board = boards_hash[button['load_board']['id']]
@@ -225,6 +226,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
             if linked_board # && !button['hidden'] && !button['link_disabled']
               button_data['linked_board_id'] = linked_board.global_id
               button_data['linked_board_key'] = linked_board.key
+              button_data['home_lock'] = true if button['home_lock']
             end
             # mark the first link to each board as "preferred"
             # TODO: is this a good idea? is there a better strategy? It honestly

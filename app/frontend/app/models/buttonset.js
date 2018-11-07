@@ -85,14 +85,16 @@ CoughDrop.Buttonset = DS.Model.extend({
     buttons = new_buttons;
     return buttons;
   },
-  button_steps: function(start_board_id, end_board_id, map, home_board_id) {
-    // TODO: factor in if auto-home is enabled
+  button_steps: function(start_board_id, end_board_id, map, home_board_id, sticky_board_id) {
     var last_board_id = end_board_id;
     var updated = true;
+    if(sticky_board_id != home_board_id && sticky_board_id != start_board_id) {
+      // TODO: consider route only needing a single-home to go through sticky board
+    }
     if(start_board_id == end_board_id) {
       return {buttons: [], steps: 0, final_board_id: end_board_id};
     } else if(end_board_id == home_board_id) {
-      return {buttons: [], steps: 1, pre: 'home', final_board_id: end_board_id};
+      return {buttons: [], steps: 1, pre: 'true_home', final_board_id: end_board_id};
     }
     var sequences = [{final_board_id: end_board_id, buttons: []}];
     while(updated) {
@@ -111,10 +113,13 @@ CoughDrop.Buttonset = DS.Model.extend({
               new_seq.buttons = [].concat(new_seq.buttons);
               new_seq.buttons.unshift(btn);
               new_seq.steps = (new_seq.steps || 0) + 1;
+              if(btn.home_lock) {
+                new_seq.sticky_board_id = new_seq.sticky_board_id || btn.linked_board_id;
+              }
               if(btn.board_id == start_board_id) {
                 new_seq.done = true;
               } else if(btn.board_id == home_board_id && start_board_id != home_board_id) {
-                new_seq.pre = 'home';
+                new_seq.pre = 'true_home';
                 new_seq.steps++;
                 new_seq.done = true;
               }
@@ -128,13 +133,14 @@ CoughDrop.Buttonset = DS.Model.extend({
     return sequences.sort(function(a, b) { return b.steps - a.steps; })[0];
   },
   find_sequence: function(str, from_board_id, user, include_home_and_sidebar) {
+    // TODO: consider optional support for keyboard for missing words
     if(str.length === 0) { return RSVP.resolve([]); }
     var query = str.toLowerCase();
     var _this = this;
     from_board_id = from_board_id || app_state.get('currentBoardState.id');
     var button_sets = [_this];
     var lookups = [RSVP.resolve()];
-    var home_board_id = stashes.get('temporary_root_board_state.id') || stashes.get('root_board_state.id') || (user && user.get('preferences.home_board.id'));
+    var home_board_id = stashes.get('root_board_state.id') || (user && user.get('preferences.home_board.id'));
     //    var buttons = this.get('buttons') || [];
 
     if(include_home_and_sidebar) {
@@ -265,7 +271,16 @@ CoughDrop.Buttonset = DS.Model.extend({
       });  
     });
 
-    var combos = [{sequence: true, text: "", next_part: 0, parts_covered: 0, steps: [], total_edit_distance: 0, extra_steps: 0}];
+    var combos = [{
+      sequence: true, 
+      text: "", 
+      next_part: 0, 
+      parts_covered: 0, 
+      steps: [], 
+      total_edit_distance: 0, 
+      extra_steps: 0,
+      current_sticky_board_id: stashes.get('temporary_root_board_state.id') || home_board_id
+    }];
     var build_combos = sort_results.then(function() {
       // Check all permutations, score for shortest access distance
       // combined with shorted edit distance
@@ -287,7 +302,9 @@ CoughDrop.Buttonset = DS.Model.extend({
               var dup = $.extend({}, combo);
               dup.steps = [].concat(dup.steps);
               var pre_id = (dup.steps[dup.steps.length - 1] || {}).board_id || from_board_id;
-              var button_steps = _this.button_steps(pre_id, starter.button.board_id, board_map, home_board_id);
+              // remember to expect auto-home if enabled for user and a prior button exists
+              if(dup.steps.length > 0 && user && user.get('preferences.auto_home_return')) { pre_id = combo.current_sticky_board_id; }
+              var button_steps = _this.button_steps(pre_id, starter.button.board_id, board_map, home_board_id, combo.current_sticky_board_id);
               if(button_steps) {
                 dup.steps.push({sequence: button_steps, button: starter.button, board_id: button_steps.final_board_id});
                 if(dup.steps.length > 1) { dup.multiple_steps = true; }
@@ -295,7 +312,11 @@ CoughDrop.Buttonset = DS.Model.extend({
                 dup.next_part = part_idx + (starter.part_end - starter.part_start);
                 dup.parts_covered = dup.parts_covered + (starter.part_end - starter.part_start);
                 dup.total_edit_distance = dup.total_edit_distance + starter.total_edit_distance;
-                dup.extra_steps = dup.extra_steps + 1 +button_steps.steps;
+                dup.extra_steps = dup.extra_steps + (button_steps.steps || 0);
+                dup.total_steps = dup.steps.length + dup.extra_steps;
+                if(button_steps.sticky_board_id) {
+                  dup.current_sticky_board_id = button_steps.sticky_board_id;
+                }
                 new_combos.push(dup);
               }
             });

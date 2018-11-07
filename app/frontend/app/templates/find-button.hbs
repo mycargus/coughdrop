@@ -20,7 +20,7 @@
                 </div>
                 {{result.text}}
                 <div class='location'>
-                  {{#if result.total_steps}}
+                  {{#if result.extra_steps}}
                     {{t "Get there through: " key='get_there_through'}}
                     {{#each result.steps as |step|}}
                       {{#if step.sequence.pre}}

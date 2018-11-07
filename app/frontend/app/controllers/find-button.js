@@ -110,8 +110,8 @@ export default modal.ModalController.extend({
         }
         if(result.sequence) {
           result.steps.forEach(function(step) {
-            if(step.sequence.pre == 'home') {
-              buttons.push({pre: 'home'});
+            if(step.sequence.pre == 'true_home') {
+              buttons.push({pre: 'true_home'});
             }
             step.sequence.buttons.forEach(function(btn) {
               buttons.push(btn);

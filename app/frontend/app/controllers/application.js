@@ -517,17 +517,25 @@ export default Controller.extend({
       var _this = this;
       if(buttons && buttons.length > 0) {
         var button = buttons[0];
-        if(button.pre == 'home' || button.pre == 'sidebar') {
+        if(button.pre == 'home' || button.pre == 'true_home' || button.pre == 'home' || button.pre == 'sidebar') {
           this.set('button_highlights', buttons);
           var $button = $("#speak > button:first");
           if(button.pre == 'sidebar') {
             $button = $("#sidebar a[data-key='" + button.linked_board_key + "']");
           }
           modal.highlight($button, {highlight_type: 'button_search'}).then(function() {
-            buttons.shift();
-            if(button.pre == 'home') {
+            if(button.pre == 'true_home' || button.pre == 'home') {
+              var has_temporary_home = !!stashes.get('temporary_root_board_state');
+              var already_on_temporary_home = stashes.get('temporary_root_board_state.id') == app_state.get('currentBoardState.id');
+              if(!has_temporary_home || already_on_temporary_home) {
+                buttons.shift();
+              }
+              _this.send('home');
+            } else if(button.pre == 'temp_home') {
+              buttons.shift();
               _this.send('home');
             } else {
+              buttons.shift();
               _this.jumpToBoard({
                 key: button.linked_board_key,
                 home_lock: button.home_lock

@@ -962,4 +962,14 @@ describe('Buttonset', function() {
     });
 
   });
+
+  describe('find_sequence', function() {
+    it('should have specs', function() {
+      expect('test').toEqual('todo');
+    })
+
+    it('should factor in sticky boards when suggesting a sequence', function() {
+      expect('test').toEqual('todo');
+    });
+  });
 });
