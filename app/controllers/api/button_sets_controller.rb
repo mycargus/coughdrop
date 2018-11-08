@@ -21,7 +21,7 @@ class Api::ButtonSetsController < ApplicationController
     self.class.trace_execution_scoped(['button_set/button_set/lookup']) do
       button_set = board && board.board_downstream_button_set
     end
-    return unless exists?(button_set)
+    return unless exists?(button_set, params['id'])
     allowed = false
     Rails.logger.warn('permission check')
     self.class.trace_execution_scoped(['button_set/board/permission_check']) do

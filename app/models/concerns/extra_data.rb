@@ -111,7 +111,7 @@ module ExtraData
   end
 
   included do
-#    after_save :detach_extra_data
+    after_save :detach_extra_data
     after_destroy :clear_extra_data
   end
 
