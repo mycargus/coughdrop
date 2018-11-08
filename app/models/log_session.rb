@@ -273,9 +273,6 @@ class LogSession < ActiveRecord::Base
     self.data['stats']['utterances'] = 0.0
     self.data['stats']['utterance_words'] = 0.0
     self.data['stats']['utterance_buttons'] = 0.0
-    self.data['stats']['all_buttons'] = []
-    self.data['stats']['all_words'] = []
-    self.data['stats']['all_boards'] = []
     self.data['stats']['all_button_counts'] = {}
     self.data['stats']['all_word_counts'] = {}
     self.data['stats']['all_word_sequence'] = []
@@ -291,7 +288,7 @@ class LogSession < ActiveRecord::Base
     self.data['stats']['word_pairs'] = {}
     self.data['stats']['time_blocks'] = {}
     self.data['stats']['modeled_time_blocks'] = {}
-    self.data['stats']['all_volumes'] = []
+    self.data['stats']['volumes'] = {}
     self.data['stats']['all_ambient_light_levels'] = []
     self.data['stats']['all_screen_brightness_levels'] = []
     self.data['stats']['all_orientations'] = []
@@ -427,7 +424,11 @@ class LogSession < ActiveRecord::Base
           end
         end
         
-        self.data['stats']['all_volumes'] << (event['volume'] * 100).to_f if event['volume']
+        if event['volume']
+          vol = (event['volume'] * 100).to_i
+          self.data['stats']['volumes'][vol] ||= 0
+          self.data['stats']['volumes'][vol] += 1
+        end
         self.data['stats']['all_ambient_light_levels'] << event['ambient_light'].to_f if event['ambient_light']
         self.data['stats']['all_screen_brightness_levels'] << (event['screen_brightness'] * 100).to_f if event['screen_brightness']
         self.data['stats']['all_orientations'] << event['orientation'] if event['orientation']
@@ -486,6 +487,7 @@ class LogSession < ActiveRecord::Base
   def generate_sensor_stats
     session = self
     if !session.data['stats']['all_volumes'].blank?
+      # TODO: remove sometime in 2019
       session.data['stats']['volume'] = {
         'total' => session.data['stats']['all_volumes'].length,
         'average' => (session.data['stats']['all_volumes'].sum.to_f / session.data['stats']['all_volumes'].length.to_f),
@@ -502,6 +504,31 @@ class LogSession < ActiveRecord::Base
           '90-100' => session.data['stats']['all_volumes'].select{|v| v >= 90 }.length
         }
       }
+    elsif !session.data['stats']['volumes'].blank?
+      tally = 0; sum = 0
+      session.data['stats']['volume'] = {'total' => 0, 'average' => 0.0, 'histogram' => {
+        '0-10' => 0,
+        '10-20' => 0,
+        '20-30' => 0,
+        '30-40' => 0,
+        '40-50' => 0,
+        '50-60' => 0,
+        '60-70' => 0,
+        '70-80' => 0,
+        '80-90' => 0,
+        '90-100' => 0
+      }}
+      session.data['stats']['volumes'].each do |val, cnt|
+        val = [[0, val.to_i].max, 100].min
+        tally += cnt
+        sum += val
+        pre = ((val / 10.0).floor * 10).to_i
+        post = pre + 10
+        hist = "#{pre}-#{post}"
+        session.data['stats']['volume']['histogram'][hist] += cnt
+      end
+      session.data['stats']['volume']['total'] = tally
+      session.data['stats']['volume']['average'] = tally > 0 ? (sum.to_f / tally.to_f).round(2) : 0.0
     end
     if !session.data['stats']['all_ambient_light_levels'].blank?
       session.data['stats']['ambient_light'] = {
@@ -518,6 +545,7 @@ class LogSession < ActiveRecord::Base
           '15000-30000' => session.data['stats']['all_ambient_light_levels'].select{|v| v >= 15000 }.length
         }
       }
+      session.data['stats'].delete('all_ambient_light_levels')
     end
     if !session.data['stats']['all_screen_brightness_levels'].blank?
       session.data['stats']['screen_brightness'] = {
@@ -536,6 +564,7 @@ class LogSession < ActiveRecord::Base
           '90-100' => session.data['stats']['all_screen_brightness_levels'].select{|v| v >= 90 }.length
         }
       }
+      session.data['stats'].delete('all_screen_brightness_levels')
     end
     if !session.data['stats']['all_orientations'].blank?
       session.data['stats']['orientation'] = {
@@ -588,6 +617,7 @@ class LogSession < ActiveRecord::Base
           'portrait-secondary' => session.data['stats']['all_orientations'].select{|o| o['layout'] == 'portrair-secondary' }.length
         }
       }
+      session.data['stats'].delete('all_orientations')
     end
   end
 
