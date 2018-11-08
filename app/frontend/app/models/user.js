@@ -13,6 +13,7 @@ import Utils from '../utils/misc';
 import {set as emberSet, get as emberGet} from '@ember/object';
 import { later as runLater } from '@ember/runloop';
 import stashes from '../utils/_stashes';
+import ButtonSet from '../models/buttonset';
 
 CoughDrop.User = DS.Model.extend({
   didLoad: function() {
@@ -438,7 +439,7 @@ CoughDrop.User = DS.Model.extend({
     var promises = [];
     var list = [];
     ids.forEach(function(id, idx) {
-      promises.push(CoughDrop.store.findRecord('buttonset', id).then(function(bs) {
+      promises.push(CoughDrop.Buttonset.load_button_set(id).then(function(bs) {
         list[idx] = bs;
       }));
     });

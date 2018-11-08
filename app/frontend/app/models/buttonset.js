@@ -11,6 +11,7 @@ import persistence from '../utils/persistence';
 import app_state from '../utils/app_state';
 import stashes from '../utils/_stashes';
 import word_suggestions from '../utils/word_suggestions';
+import progress_tracker from '../utils/progress_tracker';
 import Utils from '../utils/misc';
 
 CoughDrop.Buttonset = DS.Model.extend({
@@ -151,7 +152,7 @@ CoughDrop.Buttonset = DS.Model.extend({
           button_set.set('home_lock_set', home_lock);
           button_sets.push(button_set);
         } else if(key) {
-          lookups.push(CoughDrop.store.findRecord('buttonset', key).then(function(button_set) {
+          lookups.push(CoughDrop.Buttonset.load_button_set(key).then(function(button_set) {
             button_set.set('home_lock_set', home_lock);
             button_sets.push(button_set);
           }, function() { return RSVP.resolve(); }));
@@ -498,7 +499,7 @@ CoughDrop.Buttonset = DS.Model.extend({
             button_set.set('home_lock_set', home_lock);
             button_sets.push(button_set);
           } else if(key) {
-            root_button_set_lookups.push(CoughDrop.store.findRecord('buttonset', key).then(function(button_set) {
+            root_button_set_lookups.push(CoughDrop.Buttonset.load_button_set(key).then(function(button_set) {
               button_set.set('home_lock_set', home_lock);
               button_sets.push(button_set);
             }, function() { return RSVP.resolve(); }));
@@ -593,5 +594,38 @@ CoughDrop.Buttonset = DS.Model.extend({
     });
   }
 });
+
+CoughDrop.Buttonset.load_button_set = function(id) {
+  var res = CoughDrop.store.findRecord('buttonset', id).then(function(button_set) {
+    return button_set;
+  }, function(err) {
+    // if not found error, it may need to be regenerated
+    if(err.error == 'Record not found' && err.id) {
+      return new RSVP.Promise(function(resolve, reject) {
+        persistence.ajax('/api/v1/buttonsets/' + id + '/generate', {
+          type: 'POST',
+          data: { }
+        }).then(function(data) {
+          progress_tracker.track(data.progress, function(event) {
+            if(event.status == 'errored') {
+              reject({error: 'error while generating button set'});
+            } else if(event.status == 'finished') {
+              CoughDrop.store.findRecord('buttonset', id).then(function(button_set) {
+                resolve(button_set);
+              }, function(err) {
+                reject({error: 'error while retrieving generated button set'});
+              });
+            }
+          });
+        }, function(err) {
+          reject({error: "button set missing and could not be generated"});
+        });
+      });
+    } else {
+      return RSVP.reject(err);
+    }
+  });
+  return res;
+};
 
 export default CoughDrop.Buttonset;

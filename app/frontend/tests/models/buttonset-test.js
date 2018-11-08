@@ -972,4 +972,15 @@ describe('Buttonset', function() {
       expect('test').toEqual('todo');
     });
   });
+
+  describe('load_button_set', function() {
+    it('should load an existing button set', function() {
+      expect('test').toEqual('todo');
+    });
+
+
+    it('should try to regenerate if an expected button set is missing', function() {
+      expect('test').toEqual('todo');
+    })
+  })
 });

@@ -67,4 +67,10 @@ describe Api::ButtonSetsController, :type => :controller do
       expect(json['meta']['offset']).to eq(0)
     end
   end
+
+  describe "generate" do
+    it 'should have specs' do
+      write_this_test
+    end
+  end
 end

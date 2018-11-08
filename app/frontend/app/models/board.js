@@ -11,8 +11,10 @@ import app_state from '../utils/app_state';
 import Button from '../utils/button';
 import editManager from '../utils/edit_manager';
 import boundClasses from '../utils/bound_classes';
+import ButtonSet from '../models/buttonset';
 import Utils from '../utils/misc';
 import { htmlSafe } from '@ember/string';
+import progress_tracker from '../utils/progress_tracker';
 
 CoughDrop.Board = DS.Model.extend({
   didLoad: function() {
@@ -662,7 +664,7 @@ CoughDrop.Board = DS.Model.extend({
         }
       }
       // first check if there's a satisfactory higher-level buttonset that can be used instead
-      var res = CoughDrop.store.findRecord('buttonset', this.get('id')).then(function(button_set) {
+      var res = CoughDrop.Buttonset.load_button_set(this.get('id')).then(function(button_set) {
         _this.set('button_set', button_set);
         if((_this.get('fresh') || force) && !button_set.get('fresh')) {
           return button_set.reload();
