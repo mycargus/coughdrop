@@ -41,7 +41,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
   end
   
   def buttons
-    self.touch if self.updated_at && self.updated_at < 2.weeks.ago
+    self.touch if self.updated_at && self.updated_at < 1.week.ago
     return @buttons if @buttons
     brd = self
     visited_sources = []
@@ -51,7 +51,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
       if bs && !bs.data['source_id']
         bs.assert_extra_data
         @buttons = bs.buttons_starting_from(self.related_global_id(self.board_id))
-        bs.touch if bs.updated_at && bs.updated_at < 2.weeks.ago
+        bs.touch if bs.updated_at && bs.updated_at < 1.week.ago
         if self.data['source_id'] != bs.global_id
           self.data['source_id'] = bs.global_id
           self.save
@@ -340,7 +340,6 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
 
   def self.clean_old_button_sets
     sets = BoardDownstreamButtonSet.where(['updated_at < ?', 3.months.ago]).limit(200)
-    # TODO: don't ever delete if it's anybody's home board
     sets.delete_all
   end
   
