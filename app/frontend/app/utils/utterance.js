@@ -193,6 +193,9 @@ var utterance = EmberObject.extend({
         specialty = button;
       } else if(voc.match(/^\+/) || voc.match(/^:/)) {
         button.specialty_with_modifiers = true;
+        if(voc.match(/^\+/) || voc == ':space' || voc == ':complete') {
+          button.default_speak = true;
+        }
         specialty = button;
       } else {
         if(button.default_speak) {
