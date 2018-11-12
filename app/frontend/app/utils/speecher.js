@@ -47,8 +47,10 @@ var speecher = EmberObject.extend({
         }
       }, function() { });
     } else if(capabilities.system == 'Windows' && window.TTS && window.TTS.getAvailableVoices) {
-      window.TTS.getAvailableVoices({success: function(voices) {
-        voices.forEach(function(voice) {
+      window.TTS.getAvailableVoices({success: function(list) {
+        list.forEach(function(voice) {
+          var voices = _this.get('voices');
+          var more_voices = [];
           more_voices.push({
             lang: voice.language,
             name: voice.name,
