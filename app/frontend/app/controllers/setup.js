@@ -274,7 +274,7 @@ export default Controller.extend({
     home: function(plus_video) {
       this.transitionToRoute('index');
       if(plus_video) {
-        modal.open('inline-video', {video: {type: 'youtube', id: "gsxfLVhUbus"}, hide_overlay: true});
+        modal.open('inline-video', {video: {type: 'youtube', id: "U1vBg36zVpg"}, hide_overlay: true});
         if(window.ga) {
           window.ga('send', 'event', 'Setup', 'video', 'Setup Video Launched');
         }
