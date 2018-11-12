@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.11.12";
+window.app_version = "2018.11.12a";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -9293,7 +9293,7 @@ window.persistence?window.persistence.get("last_sync_stamp_interval")!=n&&window
 var r=(new Date).getTime()
 h.get("modeling")?n.modeling=!0:t.default.last_selection&&t.default.last_selection.modeling&&t.default.last_selection.ts>r-500&&(n.modeling=!0),h.set("last_activation",r),e.link_disabled&&(e=Ember.$.extend({},e),Ember.setProperties(e,{apps:null,url:null,video:null,load_board:null,user_integration:null})),e.apps?n.type="app":e.url?e.video&&e.video.popup?n.type="video":n.type="url":e.load_board&&(n.type="link")
 var l=n,i=null,u=s.default.specialty_button(n),c=!!(e.load_board||u||l.special||e.url||e.apps||e.integration&&"render"==e.integration.action_type)
-if(u?((i=Ember.$.extend({},u)).special=!0,u.specialty_with_modifiers&&(l=s.default.add_button(n,e)),u.default_speak&&(c=!1,n.vocalization=u.default_speak,s.default.add_button(n,e))):c&&!e.add_to_vocalization||(l=s.default.add_button(n,e)),n.label){var m=function(){h.get("currentUser.preferences.click_buttons")&&(i&&i.has_sound||p.default.click())}
+if(u?((i=Ember.$.extend({},u)).special=!0,u.specialty_with_modifiers?(u.default_speak&&(c=!1,!0!==u.default_speak&&(n.vocalization=u.default_speak)),l=s.default.add_button(n,e)):u.default_speak&&(c=!1,n.vocalization=u.default_speak,s.default.add_button(n,e))):c&&!e.add_to_vocalization||(l=s.default.add_button(n,e)),n.label){var m=function(){h.get("currentUser.preferences.click_buttons")&&(i&&i.has_sound||p.default.click())}
 h.get("speak_mode")?(c||(n.for_speaking=!0),(h.get("currentUser.preferences.vocalize_buttons")||!h.get("currentUser")&&window.user_preferences.any_user.vocalize_buttons)&&(!c||h.get("currentUser.preferences.vocalize_linked_buttons")||e.add_to_vocalization)?l.in_progress&&h.get("currentUser.preferences.silence_spelling_buttons")?m():(n.spoken=!0,n.for_speaking=!0,s.default.speak_button(l)):m()):s.default.silent_speak_button(l)}l.modified&&!l.in_progress&&(n.completion=n.completion||l.label),n.depth=(t.default.get("boardHistory")||[]).length,t.default.log(n)
 var b=this
 if(e.load_board&&e.load_board.key)t.default.get("sticky_board")&&h.get("speak_mode")?a.default.warning(f.default.t("sticky_board_notice","Board lock is enabled, disable to leave this board."),!0):Ember.run.later(function(){b.jump_to_board({id:e.load_board.id,key:e.load_board.key,button_triggered:!0,home_lock:e.home_lock},n.board)},50)
@@ -10760,7 +10760,7 @@ s.modified=!0,s.button_id=s.button_id||n.button_id,s.sound=null,s.board=s.board|
 var a="https://s3.amazonaws.com/opensymbols/libraries/mulberry/pencil%20and%20paper%202.svg"
 return s.image=s.image||a,s.in_progress||s.image!=a||(s.image="https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg"),s},specialty_button:function(e){var t=[];(e.vocalization||"").split(/\s*&&\s*/).forEach(function(e){e&&e.length>0&&t.push(e)})
 var n=null
-return t.forEach(function(t){":beep"==t||":home"==t||":back"==t||":clear"==t||":speak"==t||":backspace"==t||":hush"==t?(":beep"!=t&&":speak"!=t||(e.has_sound=!0),n=e):t.match(/^\+/)||t.match(/^:/)?(e.specialty_with_modifiers=!0,n=e):(e.default_speak?e.default_speak=e.default_speak+" "+t:e.default_speak=t,n=e)}),n},add_button:function(e,t){this.get("clear_on_vocalize")&&this.get("list_vocalized")&&this.clear({auto_cleared:!0})
+return t.forEach(function(t){":beep"==t||":home"==t||":back"==t||":clear"==t||":speak"==t||":backspace"==t||":hush"==t?(":beep"!=t&&":speak"!=t||(e.has_sound=!0),n=e):t.match(/^\+/)||t.match(/^:/)?(e.specialty_with_modifiers=!0,(t.match(/^\+/)||":space"==t||":complete"==t)&&(e.default_speak=!0),n=e):(e.default_speak?e.default_speak=e.default_speak+" "+t:e.default_speak=t,n=e)}),n},add_button:function(e,t){this.get("clear_on_vocalize")&&this.get("list_vocalized")&&this.clear({auto_cleared:!0})
 var n=Ember.$.extend({},e)
 return t&&t.load_image&&(t.load_image().then(function(){Ember.set(n,"image",t.get("image.best_url")),Ember.set(n,"image_license",t.get("image.license"))}),t.load_sound().then(function(){Ember.set(n,"sound",t.get("sound.best_url")),Ember.set(n,"sound_license",t.get("sound.license"))})),this.get("rawButtonList").pushObject(n),this.set("list_vocalized",!1),r.get("last_spoken_button")},speak_button:function(e){if(e.sound){var t=null
 e.blocking_speech&&(t=Math.round(99999*Math.random())+"-"+(new Date).getTime()),s.default.speak_audio(e.sound,"text",t)}else if(s.default.ready)if(":beep"==e.vocalization)s.default.beep()
@@ -10807,9 +10807,9 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+dba1513d"},exportApplicationGlobal:!1}}
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+4a84834d"},exportApplicationGlobal:!1}}
 return Object.defineProperty(e,"__esModule",{value:!0}),e})
-runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+dba1513d"})
+runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+4a84834d"})
 ;
 
 
