@@ -1095,6 +1095,7 @@ var app_state = EmberObject.extend({
             modal.notice(str, true);
           }, 100);
         }
+        app_state.load_user_badge();
       }
       this.set('eye_gaze', capabilities.eye_gaze);
       this.set('embedded', !!(CoughDrop.embedded));
@@ -1115,7 +1116,6 @@ var app_state = EmberObject.extend({
           }
         }
       }
-      app_state.load_user_badge();
     } else if(!this.get('speak_mode') && this.get('last_speak_mode') !== undefined) {
       capabilities.wakelock('speak!', false);
       capabilities.fullscreen(false);
@@ -1449,12 +1449,16 @@ var app_state = EmberObject.extend({
       var _this = this;
       if(!_this.get('feature_flags.badge_progress') && !_this.get('sessionUser.feature_flags.badge_progress')) { return; }
       var user = this.get('referenced_user');
+      // clear current badge if it doesn't match the referenced user info
       if(!user || _this.get('user_badge.user_id') != user.get('id')) {
         _this.set('user_badge', null);
       }
-      // clear current badge if it doesn't match the referenced user info
-      // load recent badges
-      if(CoughDrop.store && user && !user.get('supporter_role') && user.get('full_premium')) {
+
+      // load recent badges, debounced by ten minutes
+      var last_check = (user && _this.get('last_user_badge_load_for_' + user.get('id'))) || 0;
+      var now = (new Date()).getTime();
+      if(CoughDrop.store && user && !user.get('supporter_role') && user.get('full_premium_or_trial_period') && last_check < (now - 600000)) {
+        _this.set('last_user_badge_load_for_' + user.get('id'), now);
         runLater(function() {
           _this.set('user_badge_hash', badge_hash);
           CoughDrop.store.query('badge', {user_id: user.get('id'), recent: 1}).then(function(badges) {
