@@ -98,8 +98,8 @@ class LogSession < ActiveRecord::Base
         spelling_sequence = []
       end
       if event['button'] && event['button']['percent_x'] && event['button']['percent_y'] && event['button']['board'] && event['button']['board']['id']
-        x = (event['button']['percent_x']* 2).round(1) / 2
-        y = (event['button']['percent_y'] * 2).round(1) / 2
+        x = (event['button']['percent_x']* 2).to_f.round(1) / 2
+        y = (event['button']['percent_y'] * 2).to_f.round(1) / 2
         board_id = event['button']['board']['id']
         hit_locations[board_id] ||= {}
         hit_locations[board_id][x] ||= {}
@@ -431,7 +431,12 @@ class LogSession < ActiveRecord::Base
         end
         self.data['stats']['all_ambient_light_levels'] << event['ambient_light'].to_f if event['ambient_light']
         self.data['stats']['all_screen_brightness_levels'] << (event['screen_brightness'] * 100).to_f if event['screen_brightness']
-        self.data['stats']['all_orientations'] << event['orientation'] if event['orientation']
+        if event['orientation']
+          event['orientation']['alpha'] = event['orientation']['alpha'].to_f.round(2) if event['orientation']['alpha']
+          event['orientation']['beta'] = event['orientation']['beta'].to_f.round(2) if event['orientation']['beta']
+          event['orientation']['gamma'] = event['orientation']['gamma'].to_f.round(2) if event['orientation']['gamma']
+          self.data['stats']['all_orientations'] << event['orientation'] 
+        end
       
         pos_key = event['modeling'] ? 'modeled_parts_of_speech' : 'parts_of_speech'
         core_key = event['modeling'] ? 'modeled_core_words' : 'core_words'
