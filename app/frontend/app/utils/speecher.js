@@ -54,7 +54,7 @@ var speecher = EmberObject.extend({
           more_voices.push({
             lang: voice.language,
             name: voice.name,
-            voiceURI: voice_id
+            voiceURI: voice.voice_id
           })
           voices = more_voices.concat(voices);
           voices = Utils.uniq(voices, function(v) { return v.voiceURI; });
