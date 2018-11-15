@@ -519,7 +519,7 @@ class LogSession < ActiveRecord::Base
         '90-100' => 0
       }}
       session.data['stats']['volumes'].each do |val, cnt|
-        val = [[0, val.to_i].max, 100].min
+        val = [[0, val.to_i].max, 99].min
         tally += cnt
         sum += val
         pre = ((val / 10.0).floor * 10).to_i
@@ -527,6 +527,7 @@ class LogSession < ActiveRecord::Base
         hist = "#{pre}-#{post}"
         session.data['stats']['volume']['histogram'][hist] += cnt
       end
+
       session.data['stats']['volume']['total'] = tally
       session.data['stats']['volume']['average'] = tally > 0 ? (sum.to_f / tally.to_f).round(2) : 0.0
     end
