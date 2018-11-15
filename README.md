@@ -136,7 +136,7 @@ should be able to log in and go to town.
 
 In order to support generating utterances for sharing,  downloading pdfs, and uploading
 images, you'll need to have
-ImageMagick (`convert`, `identify`, `montage`), rsvg-convert and Node (`node`) 
+ImageMagick (`convert`, `identify`, `montage`), ghostscript (`gs`), and Node (`node`) 
 installed in the execution path. There are also a number of server-side integrations you
 can install that require secure keys, they are listed in `.env.example` with explanations
 of where they are required. Note that if you're trying to run a production environment, 
@@ -154,6 +154,6 @@ rake transcode_errored_records (run daily)
 
 ### License
 
-Copyright (C) 2014-2017 CoughDrop, Inc.
+Copyright (C) 2014-2018 CoughDrop, Inc.
 
 Licensed under the AGPLv3 license.
