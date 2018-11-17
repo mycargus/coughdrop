@@ -356,7 +356,8 @@ var buttonTracker = EmberObject.extend({
     if(!buttonTracker.buttonDown && !app_state.get('edit_mode')) {
       var button_wrap = buttonTracker.find_selectable_under_event(event);
       if(button_wrap) {
-        button_wrap.addClass('hover');
+        // button_wrap.addClass('hover');
+        
         // TODO: this is not terribly performant, but I guess it doesn't matter
         // since it won't trigger much on mobile
         $("#board_canvas").css('cursor', 'pointer');
