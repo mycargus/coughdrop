@@ -176,8 +176,8 @@ export default Controller.extend({
           show_description = show_description + " - private";
         }
       }
-    } else if(this.get('model.has_fallbacks')) {
-      show_description = show_description + " - fallback resources used";
+    } else if(this.get('model.has_fallbacks') && !app_state.get('speak_mode')) {
+      show_description = (show_description || "") + " - fallback resources used";
     }
     if(show_description) {
       topHeight = topHeight + 30;
