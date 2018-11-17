@@ -666,7 +666,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
           res[:word_pairs][k] = {
             'a' => pair['a'],
             'b' => pair['b'],
-            'percent' => (pair['count'].to_f / max_word_pair.to_f * 10.0).round(1) / 10.0
+            'percent' => (pair['count'].to_f / max_word_pair.to_f * 100.0).round(1) / 100.0
           }
           res[:word_pairs][k]['percent'] = 0.0 if res[:word_pairs][k]['percent'].nan?
         end
