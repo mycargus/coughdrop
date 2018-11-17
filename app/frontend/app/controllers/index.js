@@ -486,6 +486,29 @@ export default Controller.extend({
       user.save().then(null, function() { });
       modal.success(i18n.t('revert_new_dashboard', "Welcome to the new, cleaner dashboard! If you're not a fan you can switch back on your Preferences page."));
     },
+    set_goal: function(user) {
+      var _this = this;
+      CoughDrop.store.findRecord('user', user.id).then(function(user_model) {
+        modal.open('new-goal', {user: user_model }).then(function(res) {
+          if(res && res.get('id') && res.get('set_badges')) {
+            _this.transitionToRoute('user.goal', user_model.get('user_name'), res.get('id'));
+          } else if(res) {
+            // update the matching currentUser.supervisees goal attribute 
+            // with the new value if not already set
+            (app_state.get('currentUser.supervisees') || []).forEach(function(sup) {
+              if(emberGet(sup, 'id') == user_model.get('id')) {
+                emberSet(sup, 'goal', {
+                  id: res.get('id'),
+                  summary: res.get('summary')
+                });
+              }
+            });
+          }
+        }, function() { });
+      }, function(err) {
+        modal.error(i18n.t('error_loading_user', "There was an unexpected error trying to load the user"));
+      });
+    },
     modeling_ideas: function(user_name) {
       var users = [];
       if(!user_name) {

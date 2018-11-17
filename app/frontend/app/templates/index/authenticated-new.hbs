@@ -315,6 +315,9 @@
                   {{supervisee.goal.summary}}
                 {{else}}
                   <span style='color: #ccc;'>{{t "no goal set" key='no_goal_set'}}</span>
+                  {{#if persistence.online}}
+                    - <a {{action 'set_goal' supervisee}} href="#">{{t "set a goal" key='set_a_goal'}}</a>
+                  {{/if}}
                 {{/if}}
               </div>
             </div>
