@@ -228,7 +228,9 @@ export default Controller.extend({
       }
     }
     app_state.controller.set('setup_page', this.get('page'));
-    this.set('advanced', false);
+    if(this.get('page') != 'board_category') {
+      this.set('advanced', false);
+    }
     $('html,body').scrollTop(0);
   }.observes('page'),
   actions: {
