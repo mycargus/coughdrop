@@ -702,7 +702,7 @@ var persistence = EmberObject.extend({
     return res;
   },
   url_cache: {},
-  store_url: function store_url(url, type, keep_big, force_reload) {
+  store_url: function store_url(url, type, keep_big, force_reload, sync_id) {
     persistence.urls_to_store = persistence.urls_to_store || [];
     var defer = RSVP.defer();
     var opts = {
@@ -710,6 +710,7 @@ var persistence = EmberObject.extend({
       type: type,
       keep_big: keep_big,
       force_reload: force_reload,
+      sync_id: sync_id,
       defer: defer
     };
     persistence.urls_to_store.push(opts);
@@ -718,13 +719,18 @@ var persistence = EmberObject.extend({
       persistence.storing_urls = function() {
         if(persistence.urls_to_store && persistence.urls_to_store.length > 0) {
           var opts = persistence.urls_to_store.shift();
-          persistence.store_url_now(opts.url, opts.type, opts.keep_big, opts.force_reload).then(function(res) {
-            opts.defer.resolve(res);
-            if(persistence.storing_urls) { persistence.storing_urls(); }
-          }, function(err) {
-            opts.defer.reject(err);
-            if(persistence.storing_urls) { persistence.storing_urls(); }
-          });
+          var part_of_canceled = opts.sync_id && (!persistence.get('sync_progress') || persistence.get('sync_progress.canceled'));
+          if(!part_of_canceled) {
+            persistence.store_url_now(opts.url, opts.type, opts.keep_big, opts.force_reload).then(function(res) {
+              opts.defer.resolve(res);
+              if(persistence.storing_urls) { persistence.storing_urls(); }
+            }, function(err) {
+              opts.defer.reject(err);
+              if(persistence.storing_urls) { persistence.storing_urls(); }
+            });
+          } else {
+            opts.defer.reject({error: 'sync canceled'});
+          }
         } else {
           persistence.storing_url_watchers--;
         }
@@ -1028,7 +1034,7 @@ var persistence = EmberObject.extend({
       var prime_caches = persistence.prime_caches(true).then(null, function() { return RSVP.resolve(); });
 
       var check_first = function(callback) {
-        if(persistence.get('sync_progress') && persistence.get('sync_progress.canceled')) {
+        if(!persistence.get('sync_progress') || persistence.get('sync_progress.canceled')) {
           return function() {
             return RSVP.reject({error: 'canceled'});
           };
@@ -1352,7 +1358,7 @@ var persistence = EmberObject.extend({
     });
   },
   board_lookup: function(id, safely_cached_boards, fresh_board_revisions) {
-    if(persistence.get('sync_progress') && persistence.get('sync_progress.canceled')) {
+    if(!persistence.get('sync_progress') || persistence.get('sync_progress.canceled')) {
       return RSVP.reject({error: 'canceled'});
     }
     var lookups = persistence.get('sync_progress.key_lookups');
@@ -1418,7 +1424,7 @@ var persistence = EmberObject.extend({
     });
   },
   queue_sync_action: function(action, method) {
-    if(persistence.get('sync_progress') && persistence.get('sync_progress.canceled')) {
+    if(!persistence.get('sync_progress') || persistence.get('sync_progress.canceled')) {
       return RSVP.reject({error: 'canceled'});
     }
     var defer = RSVP.defer();
@@ -1552,6 +1558,10 @@ var persistence = EmberObject.extend({
         var dead_thread = false;
         function nextBoard(defer) {
           if(dead_thread) { defer.reject({error: "someone else failed"}); return; }
+          if(!persistence.get('sync_progress') || persistence.get('sync_progress.canceled')) {
+            defer.reject({error: 'canceled'});
+            return;
+          }
           var p_for = persistence.get('sync_progress.progress_for');
           if(p_for) {
             p_for[user.get('id')] = {
@@ -1595,7 +1605,7 @@ var persistence = EmberObject.extend({
               if(board.get('icon_url_with_fallback').match(/^http/)) {
                   // store_url already has a queue, we don't need to fill the sync queue with these
                 visited_board_promises.push(//persistence.queue_sync_action('store_icon', function() {
-                  /*return*/ persistence.store_url(board.get('icon_url_with_fallback'), 'image', false, force).then(null, function() {
+                    /*return*/ persistence.store_url(board.get('icon_url_with_fallback'), 'image', false, force, true).then(null, function() {
                     console.log("icon url failed to sync, " + board.get('icon_url_with_fallback'));
                     return RSVP.resolve();
                   })
@@ -1605,7 +1615,7 @@ var persistence = EmberObject.extend({
 
               if(next.image) {
                 visited_board_promises.push(//persistence.queue_sync_action('store_sidebar_image', function() {
-                  /*return*/ persistence.store_url(next.image, 'image', false, force).then(null, function() {
+                  /*return*/ persistence.store_url(next.image, 'image', false, force, true).then(null, function() {
                     return RSVP.reject({error: "sidebar icon url failed to sync, " + next.image});
                   })
                /*})*/);
@@ -1624,7 +1634,7 @@ var persistence = EmberObject.extend({
                   }
 
                   visited_board_promises.push(//persistence.queue_sync_action('store_button_image', function() {
-                    /*return*/ persistence.store_url(personalized, 'image', keep_big, force).then(null, function() {
+                    /*return*/ persistence.store_url(personalized, 'image', keep_big, force, true).then(null, function() {
                       return RSVP.reject({error: "button image failed to sync, " + image.url});
                     })
                  /*})*/);
@@ -1636,7 +1646,7 @@ var persistence = EmberObject.extend({
                 importantIds.push("sound_" + sound.id);
                 if(sound.url && sound.url.match(/^http/)) {
                   visited_board_promises.push(//persistence.queue_sync_action('store_button_sound', function() {
-                     /*return*/ persistence.store_url(sound.url, 'sound', false, force).then(null, function() {
+                     /*return*/ persistence.store_url(sound.url, 'sound', false, force, true).then(null, function() {
                       return RSVP.reject({error: "button sound failed to sync, " + sound.url});
                      })
                   /*})*/);
