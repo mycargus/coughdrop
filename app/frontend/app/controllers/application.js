@@ -751,6 +751,9 @@ export default Controller.extend({
   show_back: function() {
     return (!this.get('app_state.empty_board_history') || this.get('app_state.currentUser.preferences.device.always_show_back'));
   }.property('app_state.empty_board_history', 'app_state.currentUser.preferences.device.always_show_back'),
+  on_home: function() {
+    return !!(app_state.get('currentBoardState.id') && app_state.get('currentBoardState.id') == stashes.get('root_board_state.id'));
+  }.property('stashes.root_board_state.id', 'app_state.currentBoardState.id'),
   button_list_class: function() {
     var res = "button_list ";
     if(stashes.get('ghost_utterance')) {

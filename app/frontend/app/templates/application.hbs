@@ -4,7 +4,7 @@
   <div id="inner_header">
   {{#if app_state.speak_mode}}
     <span id="speak">
-      <button class="btn btn-default access" id="home_button" {{action "home"}} style='position: relative;'>
+      <button class={{if on_home "btn btn-default access dim" "btn btn-default access"}} id="home_button" {{action "home"}} style='position: relative;'>
         <span class="sr-only">{{t "Home" key="home"}}</span>
         <span class="glyphicon glyphicon-home button_icon"></span>
         {{#if stashes.temporary_root_board_state}}
