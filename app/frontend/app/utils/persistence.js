@@ -116,13 +116,22 @@ var persistence = EmberObject.extend({
           list.forEach(function(item) {
             if(item.data && item.data.id && hash[item.data.id]) {
               hash[item.data.id] = false;
+              // Only push to the memory cache if it's not already in
+              // there, otherwise it might get overwritten if there
+              // is a pending persistence.
               if(CoughDrop.store) {
+                var existing = CoughDrop.store.peekRecord(store, item.data.raw.id);
+                persistence.validate_board(existing, item.data.raw);
                 var json_api = { data: {
                   id: item.data.raw.id,
                   type: store,
                   attributes: item.data.raw
                 }};
-                res[item.data.id] = CoughDrop.store.push(json_api);
+                if(existing) {
+                  res[item.data.id] = existing;
+                } else {
+                  res[item.data.id] = CoughDrop.store.push(json_api);
+                }
               }
             }
           });
@@ -261,13 +270,22 @@ var persistence = EmberObject.extend({
           var res = [];
           list.forEach(function(item) {
             if(item.data && item.data.id) {
+              // Only push to the memory cache if it's not already in
+              // there, otherwise it might get overwritten if there
+              // is a pending persistence.
               if(CoughDrop.store) {
-                var json_api = { data: {
-                  id: item.data.raw.id,
-                  type: 'board',
-                  attributes: item.data.raw
-                }};
-                res.push(CoughDrop.store.push(json_api));
+                var existing = CoughDrop.store.peekRecord('board', item.data.raw.id);
+                if(!existing) {
+                  var json_api = { data: {
+                    id: item.data.raw.id,
+                    type: 'board',
+                    attributes: item.data.raw
+                  }};
+                  res.push(CoughDrop.store.push(json_api));
+                } else {
+                  res.push(existing);
+                }
+                persistence.validate_board(existing, item.data.raw);
               }
             }
           });
@@ -282,6 +300,29 @@ var persistence = EmberObject.extend({
         reject({error: 'unsupported type: ' + store});
       }
     });
+  },
+  validate_board: function(board, raw_board) {
+    // If the revision hash doesn't match, that means that the model
+    // in memory doesn't match what's in the local db.
+    // If the model is newer, then there should be a pending storage
+    // event persisting it, otherwise something is busted.
+    if(board && raw_board) {
+      if(board.get('current_revision') != raw_board.current_revision) {
+        if(board.get('updated') > raw_board.updated) {
+          var eventuals = persistence.eventual_store || [];
+          var found_persist = false;
+          for(var idx = 0; idx < eventuals.length; idx++) {
+            if(eventuals[idx] && eventuals[idx][1] && eventuals[idx][1].id == raw_board.id) {
+              found_persist = true;
+            }
+          }
+          if(!found_persist) {
+            console.error('lost persistence task for', raw_board.id);
+            console.log(board.get('current_revision'), raw_board.current_revision);
+          }
+        }
+      }
+    }
   },
   find_changed: function() {
     if(!window.coughDropExtras || !window.coughDropExtras.ready) {
@@ -406,16 +447,18 @@ var persistence = EmberObject.extend({
     if(persistence.eventual_store_timer) {
       runCancel(persistence.eventual_store_timer);
     }
-    var args = (persistence.eventual_store || []).shift();
-    if(args) {
-      persistence.store.apply(persistence, args);
-    } else if(persistence.refresh_after_eventual_stores.waiting) {
-      persistence.refresh_after_eventual_stores.waiting = false;
-      if(CoughDrop.Board) {
-        CoughDrop.Board.refresh_data_urls();
+    try {
+      var args = (persistence.eventual_store || []).shift();
+      if(args) {
+        persistence.store.apply(persistence, args);
+      } else if(persistence.refresh_after_eventual_stores.waiting) {
+        persistence.refresh_after_eventual_stores.waiting = false;
+        if(CoughDrop.Board) {
+          CoughDrop.Board.refresh_data_urls();
+        }
       }
-    }
-    persistence.eventual_store_timer = runLater(persistence, persistence.next_eventual_store, 1000);
+    } catch(e) { }
+    persistence.eventual_store_timer = runLater(persistence, persistence.next_eventual_store, 200);
   },
   store: function(store, obj, key, eventually) {
     // TODO: more nuanced wipe of known_missing would be more efficient
