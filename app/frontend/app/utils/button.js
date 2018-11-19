@@ -324,6 +324,7 @@ var Button = EmberObject.extend({
       _this.set('local_image_url', image.get('best_url'));
       return image.checkForDataURL().then(function() {
         _this.set('local_image_url', image.get('best_url'));
+        return image;
       }, function() { return RSVP.resolve(image); });
     };
     if(!image) {
@@ -368,6 +369,7 @@ var Button = EmberObject.extend({
       _this.set('local_sound_url', sound.get('best_url'));
       return sound.checkForDataURL().then(function() {
         _this.set('local_sound_url', sound.get('best_url'));
+        return sound;
       }, function() { return RSVP.resolve(sound); });
     };
     if(!sound) {
