@@ -1138,7 +1138,16 @@ var persistence = EmberObject.extend({
         // (or force == true) pull it all down locally
         // (add to settings.importantIds list)
         // (also download through proxy any image data URIs needed for board set)
-        sync_promises.push(persistence.sync_boards(user, importantIds, synced_boards, force));
+        var get_local_revisions = persistence.find('settings', 'synced_full_set_revisions').then(function(res) {
+          if(persistence.get('sync_progress') && !persistence.get('sync_progress.full_set_revisions')) {
+            persistence.set('sync_progress.full_set_revisions', res);
+          }
+          return persistence.sync_boards(user, importantIds, synced_boards, force);
+        }, function() {
+          return persistence.sync_boards(user, importantIds, synced_boards, force);
+        });
+        sync_promises.push(get_local_revisions);
+          
 
         // Step 4: If user has any supervisees, sync them as well
         if(user && user.get('supervisees') && !ignore_supervisees) {
@@ -1482,12 +1491,9 @@ var persistence = EmberObject.extend({
     var full_set_revisions = {};
     var fresh_revisions = {};
     var board_errors = [];
-    var get_local_revisions = persistence.find('settings', 'synced_full_set_revisions').then(function(res) {
-      full_set_revisions = res;
-      return res;
-    }, function() {
-      return RSVP.resolve({});
-    });
+    if(persistence.get('sync_progress.full_set_revisions')) {
+      full_set_revisions = persistence.get('sync_progress.full_set_revisions');
+    }
 
     var get_remote_revisions = RSVP.resolve({});
     if(user) {
