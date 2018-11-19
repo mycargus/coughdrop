@@ -1083,7 +1083,7 @@ var app_state = EmberObject.extend({
         });
         capabilities.silent_mode().then(function(silent) {
           if(silent && capabilities.system == 'iOS') {
-            modal.warning(i18n.t('ios_muted', "The app is currently muted, so you will not hear speech. To unmute, check the mute switch, and also swipe up from the bottom of the screen to check for app-level muting"));
+            modal.warning(i18n.t('ios_muted', "The app is currently muted, so you will not hear speech. To unmute, check the mute switch, and also swipe up from the bottom of the screen to check for app-level muting"), true);
           }
         });
         var ref_user = this.get('referenced_speak_mode_user') || this.get('currentUser');
@@ -1096,6 +1096,22 @@ var app_state = EmberObject.extend({
           }, 100);
         }
         app_state.load_user_badge();
+        if(app_state.get('installed_app')) {
+          var get_local_revisions = persistence.find('settings', 'synced_full_set_revisions').then(function(res) {
+            if(app_state.get('currentBoardState.id') && !res[app_state.get('currentBoardState.id')]) {
+              if(!persistence.get('last_sync_at')) {
+                // if not ever synced, remind them to sync before trying to use Speak Mode
+                modal.warning(i18n.t('remember_to_sync', "Remember to sync before trying to use boards somewhere without a strong Internet connection!"), true);
+              } else if(app_state.get('current_board_in_extended_board_set')) {
+                // if synced and this is in home board set, remind them to sync
+                modal.warning(i18n.t('need_to_re_sync', "Remember to sync so you have access to all your boards offline!"), true);
+              } else {
+                // otherwise, remind them about unsynced boards
+                modal.warning(i18n.t('unsynced_boards_may_not_work', "This board isn't available from you home board or sidebar so it won't be synced, and may not work properly without a strong Internet connection"), true);
+              }
+            }
+          }, function() { });
+        }
       }
       this.set('eye_gaze', capabilities.eye_gaze);
       this.set('embedded', !!(CoughDrop.embedded));
