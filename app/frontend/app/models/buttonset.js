@@ -284,19 +284,19 @@ CoughDrop.Buttonset = DS.Model.extend({
     }];
     var build_combos = sort_results.then(function() {
       // Check all permutations, score for shortest access distance
-      // combined with shorted edit distance
+      // combined with shortest edit distance
       // for 1 part, include 30-50 matches
       // for 2 parts, include 20 matches per level
       // for 3 parts, include 10 matches per level
       // for 4 parts, include 5 matches per level
       // for 5 parts, include 3 matches per level
-
       var matches_per_level = Math.floor(Math.max(3, Math.min(1 / Math.log(parts.length / 1.4 - 0.17) * Math.log(100), 50)));
       console.log('matches', partial_matches);
       parts.forEach(function(part, part_idx) {
         var starters = partial_matches.filter(function(m) { return m.part_start == part_idx; });
         starters = starters.slice(0, matches_per_level);
         var new_combos = [];
+        var combo_scores = [];
         combos.forEach(function(combo) {
           if(combo.next_part == part_idx) {
             starters.forEach(function(starter) {
@@ -333,7 +333,23 @@ CoughDrop.Buttonset = DS.Model.extend({
           dup.next_part = part_idx + 1;
           new_combos.push(dup);
         });
-        combos = new_combos;
+        var cutoff = Math.floor(parts.length / 2);
+        var parts_current_count = part_idx + 1;
+        new_combos.forEach(function(combo) {
+          // calculate match scores
+          var primary_score = combo.total_edit_distance + (combo.extra_steps / (combo.parts_covered || 1) * 3);
+          if(combo.total_edit_distance == 0) { primary_score = primary_score / 5; }
+          combo.match_scores = [combo.total_edit_distance ? 1 : 0, combo.parts_covered == parts_current_count ? 0 : 1, combo.parts_covered > cutoff ? (parts_current_count - combo.parts_covered + primary_score) : 1000, parts_current_count - combo.parts_covered + primary_score, combo.steps.length];
+        });
+        // limit results as we go so we don't balloon memory usage
+        combos = new_combos.sort(function(a, b) {
+          for(var idx = 0; idx < a.match_scores.length; idx++) {
+            if(a.match_scores[idx] != b.match_scores[idx]) {
+              return a.match_scores[idx] - b.match_scores[idx];
+            }
+          }
+          return 0;
+        }).slice(0, 25 * (part_idx + 1));
       });
     });
     // when searching for "I want to sleep" sort as follows:
@@ -350,18 +366,11 @@ CoughDrop.Buttonset = DS.Model.extend({
     // then sort by number of words covered (bonus for > 50% coverage)
     // finally by number of button hits required
     var sort_combos = build_combos.then(function() {
-      var cutoff = Math.floor(parts.length / 2);
       combos = combos.filter(function(c) { return c.text; });
       combos = combos.sort(function(a, b) {
-        var a_score = a.total_edit_distance + (a.extra_steps / (a.parts_covered || 1) * 3);
-        if(a.total_edit_distance == 0) { a_score = a_score / 5; }
-        var b_score = b.total_edit_distance + (b.extra_steps / (b.parts_covered || 1) * 3);
-        if(b.total_edit_distance == 0) { b_score = b_score / 5; }
-        var a_scores = [a.total_edit_distance ? 1 : 0, a.parts_covered == parts.length ? 0 : 1, a.parts_covered > cutoff ? (parts.length - a.parts_covered + a_score) : 1000, parts.length - a.parts_covered + a_score, a.steps.length];
-        var b_scores = [b.total_edit_distance ? 1 : 0, b.parts_covered == parts.length ? 0 : 1, b.parts_covered > cutoff ? (parts.length - b.parts_covered + b_score) : 1000, parts.length - b.parts_covered + b_score, b.steps.length];
-        for(var idx = 0; idx < a_scores.length; idx++) {
-          if(a_scores[idx] != b_scores[idx]) {
-            return a_scores[idx] - b_scores[idx];
+        for(var idx = 0; idx < a.match_scores.length; idx++) {
+          if(a.match_scores[idx] != b.match_scores[idx]) {
+            return a.match_scores[idx] - b.match_scores[idx];
           }
         }
         return 0;
