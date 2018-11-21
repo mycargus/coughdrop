@@ -34,6 +34,8 @@ import frame_listener from './frame_listener';
 // - keyboard events can add to the vocalization box
 // - mouse cursor/joystick and control the dwell target
 // - touch events on modal targets needs to work in speak mode
+// - touch events for buttons inside modals need to work in speak mode
+// - find a button needs to work for touch and eye gaze
 
 var $board_canvas = null;
 
@@ -445,7 +447,9 @@ var buttonTracker = EmberObject.extend({
       }
     }
     if(buttonTracker.buttonDown && !$(event.target).hasClass('highlight')) {
-      modal.close_highlight();
+      if($(event.target).closest('#dwell_icon,#linger').length === 0) {
+        modal.close_highlight();
+      }
     }
     if(buttonTracker.buttonDown && editManager.paint_mode) {
       // touch drag events don't return the right 'this'.
@@ -548,7 +552,6 @@ var buttonTracker = EmberObject.extend({
   },
   touch_release: function(event) {
     event = buttonTracker.normalize_event(event);
-
     // don't remember why this is important...
     buttonTracker.buttonDown = false;
     buttonTracker.triggerEvent = null;
@@ -600,13 +603,18 @@ var buttonTracker = EmberObject.extend({
       // chance we need to trigger a 'click', so pass it along
       buttonTracker.buttonDown = true;
       buttonTracker.element_release(selectable_wrap, event);
-//     } else if(event.type == 'touchend' && event.target.tagName == 'A' || event.target.tagName == 'BUTTON') {
-//       event.preventDefault();
-//       event.stopPropagation();
-//       $(event.target).trigger('click');
-    // TODO: if not advanced_selection, touch events (but not mouse events) should be
-    // mapped to click events for faster activation. Maybe find a library for this..
     } else {
+      var $modal = $(event.target).closest(".modal-content");
+      if($modal.length > 0 && app_state.get('speak_mode') && event.type == 'touchend' && buttonTracker.dwell_enabled) {
+        event.preventDefault();
+        event.stopPropagation();
+        $(event.target).trigger('click');
+        if(event.target.tagName == 'INPUT') {
+          runLater(function() {
+            $(event.target).select().focus();
+          });
+        }
+      }
       buttonTracker.frame_event(event, 'select');
     }
     editManager.release_stroke();
@@ -1257,6 +1265,8 @@ var buttonTracker = EmberObject.extend({
         return buttonTracker.button_from_point(event.clientX, event.clientY);
       } else if(region.id == 'integration_overlay') {
         return buttonTracker.element_wrap($target.closest(".integration_target")[0]);
+      } else if(region.id == 'highlight_box') {
+        return buttonTracker.element_wrap(region);
       }
     }
     return null;
