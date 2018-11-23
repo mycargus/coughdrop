@@ -28,7 +28,7 @@ export default Controller.extend({
         _this.set('online_results', {loading: true, results: []});
         _this.set('personal_results', {loading: true, results: []});
         var locale = (window.navigator.language || 'en').split(/-/)[0];
-        CoughDrop.store.query('board', {q: str, locale: locale, sort: popularity}).then(function(res) {
+        CoughDrop.store.query('board', {q: str, locale: locale, sort: 'popularity'}).then(function(res) {
           _this.set('online_results', {results: res.map(function(i) { return i; })});
         }, function() {
           _this.set('online_results', {results: []});
