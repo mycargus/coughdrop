@@ -10,7 +10,7 @@ module Throttling
       raise "redis URI needed for throttling" unless uri
       redis = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
       redis = Redis::Namespace.new("throttling", :redis => redis)
-      Rack::Attack.cache.store = Rack::Attack::StoreProxy::RedisStoreProxy.new(redis)
+      Rack::Attack.cache.store = Rack::Attack::StoreProxy::RedisProxy.new(redis)
     
       protected_paths = ['oauth2/token', '^/token', 'api/v1/forgot_password', 'api/v1/gifts/code_check',
             'api/v1/boards/.+/imports', 'api/v1/boards/.+/download', 'api/v1/boards/.+/rename',

@@ -1096,10 +1096,10 @@ var app_state = EmberObject.extend({
           }, 100);
         }
         app_state.load_user_badge();
-        if(app_state.get('installed_app')) {
-          var get_local_revisions = persistence.find('settings', 'synced_full_set_revisions').then(function(res) {
+        if(app_state.get('installed_app') && window.persistence) {
+          var get_local_revisions = window.persistence.find('settings', 'synced_full_set_revisions').then(function(res) {
             if(app_state.get('currentBoardState.id') && !res[app_state.get('currentBoardState.id')]) {
-              if(!persistence.get('last_sync_at')) {
+              if(!window.persistence.get('last_sync_at')) {
                 // if not ever synced, remind them to sync before trying to use Speak Mode
                 modal.warning(i18n.t('remember_to_sync', "Remember to sync before trying to use boards somewhere without a strong Internet connection!"), true);
               } else if(app_state.get('current_board_in_extended_board_set')) {

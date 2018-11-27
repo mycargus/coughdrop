@@ -97,7 +97,8 @@ export default Component.extend({
                 }
               }
 
-              if(!button.hidden || true) {
+              var show_always = true;
+              if(!button.hidden || show_always) {
                 var x = button_width * jdx;
                 var y = button_height * idx;
                 var draw_button = function(button, x, y, fill) {

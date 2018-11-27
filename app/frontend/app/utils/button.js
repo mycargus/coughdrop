@@ -380,7 +380,7 @@ var Button = EmberObject.extend({
         })
         snd.set('id', _this.sound_id);
         snd.set('incomplete', true);
-        return check_image(snd);
+        return check_sound(snd);
       }
       if(_this.get('no_lookups')) {
         return RSVP.reject('no sound lookups');

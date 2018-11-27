@@ -1,4 +1,4 @@
-import { context, it, expect, stub, waitsFor, runs } from 'frontend/tests/helpers/jasmine';
+import { describe, context, it, expect, stub, waitsFor, runs } from 'frontend/tests/helpers/jasmine';
 import { queryLog } from 'frontend/tests/helpers/ember_helper';
 import RSVP from 'rsvp';
 import Button from '../../utils/button';
