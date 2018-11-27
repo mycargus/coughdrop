@@ -368,7 +368,7 @@ DEPENDENCIES
   obf
   paper_trail
   permissable-coughdrop
-  pg (= 0.19.0)
+  pg
   pg_search
   puma
   rack-attack
