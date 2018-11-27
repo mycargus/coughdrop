@@ -2,6 +2,18 @@
 
 ## Master
 
+### 2018-10-01
+- full modeling ideas support
+- fixes for TTS rate for mobile defaults
+- simplified navigation in button settings
+- multiple actions on a single button
+- PCS symbols support
+- highlighting support for log entries
+- board display/hide levels (feature flag)
+- new board selection helper (feature flag)
+- ask for reason when unsubscribing
+- global admins can't edit boards
+
 ### 2018-06-01
 - modeling ideas (feature flag)
 - improvements to scanning and alternative access

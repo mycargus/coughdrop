@@ -570,7 +570,7 @@ var voices = EmberObject.extend({
     },
     {
       voice_id: "acap:Lulu", size: 73,
-      locale: "zn", gender: "f", age: "adult",
+      locale: "zh", gender: "f", age: "adult",
       ref_id: "zh_cn_lulu_22k_ns",
       language_version: "1.33",
       voice_dir: "hqm-ref-MandarinChinese-Lulu-22khz"

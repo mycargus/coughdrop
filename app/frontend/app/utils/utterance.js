@@ -186,13 +186,24 @@ var utterance = EmberObject.extend({
     });
     var specialty = null;
     vocs.forEach(function(voc) {
-      if(voc == ":beep" || voc == ":home" || voc == ":back" || voc == ":clear" || voc == ":speak" || voc == ":backspace") {
+      if(voc == ":beep" || voc == ":home" || voc == ":back" || voc == ":clear" || voc == ":speak" || voc == ":backspace" || voc == ':hush') {
         if(voc == ':beep' || voc == ':speak') {
           button.has_sound = true;
         }
         specialty = button;
       } else if(voc.match(/^\+/) || voc.match(/^:/)) {
         button.specialty_with_modifiers = true;
+        if(voc.match(/^\+/) || voc == ':space' || voc == ':complete') {
+          button.default_speak = true;
+        }
+        specialty = button;
+      } else {
+        if(button.default_speak) {
+          button.default_speak = button.default_speak + " " + voc;
+        } else {
+          button.default_speak = voc;
+        }
+        specialty = button;
       }
     });
     return specialty;
@@ -205,13 +216,19 @@ var utterance = EmberObject.extend({
     // append button attributes as needed
     var b = $.extend({}, button);
     if(original_button && original_button.load_image) {
-      original_button.load_image().then(function() {
-        emberSet(b, 'image', original_button.get('image.best_url'));
-        emberSet(b, 'image_license', original_button.get('image.license'));
+      original_button.load_image().then(function(image) {
+        image = image || original_button.get('image');
+        if(image) {
+          emberSet(b, 'image', image.get('best_url'));
+          emberSet(b, 'image_license', image.get('license'));
+        }
       });
-      original_button.load_sound().then(function() {
-        emberSet(b, 'sound', original_button.get('sound.best_url'));
-        emberSet(b, 'sound_license', original_button.get('sound.license'));
+      original_button.load_sound().then(function(sound) {
+        sound = sound || original_button.get('sound');
+        if(sound) {
+          emberSet(b, 'sound', sound.get('best_url'));
+          emberSet(b, 'sound_license', sound.get('license'));
+        }
       });
     }
     // add button to the raw button list
@@ -238,7 +255,8 @@ var utterance = EmberObject.extend({
           if(button.blocking_speech) {
             collection_id = Math.round(Math.random() * 99999) + "-" + (new Date()).getTime();
           }
-          speecher.speak_text(button.vocalization || button.label, collection_id);
+          var text = button.vocalization || button.label;
+          speecher.speak_text(text, collection_id);
         }
       } else {
         this.silent_speak_button(button);
@@ -257,7 +275,8 @@ var utterance = EmberObject.extend({
       $(selector).attr('data-popover', true).popover({html: true});
     }
     runCancel(this._popoverHide);
-    var text = "\"" + $('<div/>').text(button.vocalization || button.label).html() + "\"";
+    var str = button.vocalization || button.label;
+    var text = "\"" + $('<div/>').text(str).html() + "\"";
     if(button.sound) {
       text = text + " <span class='glyphicon glyphicon-volume-up'></span>";
     }

@@ -46,6 +46,21 @@ var speecher = EmberObject.extend({
           _this.set('voices', voices);
         }
       }, function() { });
+    } else if(capabilities.system == 'Windows' && window.TTS && window.TTS.getAvailableVoices) {
+      window.TTS.getAvailableVoices({success: function(list) {
+        list.forEach(function(voice) {
+          var voices = _this.get('voices');
+          var more_voices = [];
+          more_voices.push({
+            lang: voice.language,
+            name: voice.name,
+            voiceURI: voice.voice_id
+          })
+          voices = more_voices.concat(voices);
+          voices = Utils.uniq(voices, function(v) { return v.voiceURI; });
+          _this.set('voices', voices);
+        })
+      }});
     }
     capabilities.tts.available_voices().then(function(voices) {
       var orig_voices = _this.get('voices');
@@ -386,6 +401,21 @@ var speecher = EmberObject.extend({
         }, function(err) {
           speak_utterance();
         });
+      } else if(capabilities.system == 'Windows' && opts.voiceURI && opts.voiceURI.match(/tts:/) && window.TTS && window.TTS.speakText) {
+        window.TTS.speakText({
+          text: utterance.text,
+          rate: utterance.rate,
+          volume: utterance.volume,
+          pitch: utterance.pitch,
+          voice_id: opts.voiceURI,
+          success: function() {
+            callback();
+          },
+          error: function() {
+            speak_utterance();
+          }
+        })
+      
       } else {
         var delay = (capabilities.installed_app && capabilities.system == 'Windows') ? 300 : 0;
         var _this = this;
@@ -714,6 +744,8 @@ var speecher = EmberObject.extend({
       speecher.scope.speechSynthesis.cancel();
       if(capabilities.system == 'iOS' && window.TTS && window.TTS.stop) {
         window.TTS.stop(function() { }, function() { });
+      } else if(capabilities.syste == 'Windows' && window.TTS && window.TTS.stopSpeakingText) {
+        window.TTS.stopSpeakingText({success: function() { }, error: function() { }});
       }
       capabilities.tts.stop_text();
       if(this.audio.text) {

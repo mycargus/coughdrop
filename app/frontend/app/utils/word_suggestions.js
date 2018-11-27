@@ -183,13 +183,16 @@ var word_suggestions = EmberObject.extend({
     return this.load().then(function() {
       var last_finished_word = options.last_finished_word;
       var word_in_progress = options.word_in_progress;
+      var max_results = options.max_results || _this.max_results;
       var result = [];
       if(_this.last_finished_word != last_finished_word || _this.word_in_progress != word_in_progress) {
         _this.last_finished_word = last_finished_word;
         _this.word_in_progress = word_in_progress;
+        // searches the next-words list, looking for best matches based
+        // on the current partial spelling if there is one
         var find_lookups = function(list) {
           if(!list) { return; }
-          for(var idx = 0; idx < list.length && result.length < _this.max_results; idx++) {
+          for(var idx = 0; idx < list.length && result.length < max_results; idx++) {
             var str = list[idx];
             if(typeof(str) != 'string') { str = str[0]; }
             if(!_this.filtered_words[str.toLowerCase()]) {
@@ -204,9 +207,12 @@ var word_suggestions = EmberObject.extend({
           }
           return result;
         };
+        // find the most common next-words
         find_lookups(_this.ngrams[last_finished_word]);
-        if(result.length < _this.max_results) { find_lookups(_this.ngrams['']); }
-        if(result.length < _this.max_results) {
+        // if not enough found, add in the most common starting words
+        if(result.length < max_results) { find_lookups(_this.ngrams['']); }
+        // if still not enough found, find the closest spelling
+        if(result.length < max_results) {
           var edits = [];
           _this.ngrams[''].forEach(function(str) {
             if(!_this.filtered_words[str[0].toLowerCase()]) {
@@ -222,12 +228,12 @@ var word_suggestions = EmberObject.extend({
             }
           });
           edits.forEach(function(e) {
-            if(result.length < _this.max_results) {
+            if(result.length < max_results) {
               result.push({word: e[0]});
             }
           });
         }
-        //if(result.length < _this.max_results) { find_lookups(Ember.keys(_this.ngrams)); }
+        //if(result.length < max_results) { find_lookups(Ember.keys(_this.ngrams)); }
         result = Utils.uniq(result, 'word');
         _this.last_result = result;
         _this.fallback_url().then(function(url) {
@@ -237,6 +243,7 @@ var word_suggestions = EmberObject.extend({
             }
           });
         });
+        // search for button images for any words in the specified vocab
         if(options.board_ids) {
           options.board_ids.forEach(function(board_id) {
             if(!board_id) { return; }

@@ -39,7 +39,7 @@ export default modal.ModalController.extend({
       if(window.ga) {
         window.ga('send', 'event', 'Intro', 'video', 'Intro Video Opened');
       }
-      modal.open('inline-video', {video: {type: 'youtube', id: 'gsxfLVhUbus'}, hide_overlay: true});
+      modal.open('inline-video', {video: {type: 'youtube', id: 'U1vBg36zVpg'}, hide_overlay: true});
     }
   }
 });

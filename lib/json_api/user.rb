@@ -126,6 +126,8 @@ module JsonApi::User
             'name' => ou.settings['name']
           }
         }
+      elsif user.supporter_role?
+        json['supervisees'] = []
       end
       if json['subscription'] && json['subscription']['free_premium']
         json['subscription']['limited_supervisor'] = true

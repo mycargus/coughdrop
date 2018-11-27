@@ -874,7 +874,25 @@
                 &nbsp;{{next_keycode_string}}
               </div>
             </div>
+            <div class="form-group">
+              <label for="scanning_prev_keycode" class="col-sm-3 control-label">{{t "Scanning \"Previous\" Key" key='scanning_prev_keycode'}}</label>
+              <div class="col-sm-5">
+                <label style="width: 50px;">
+                  {{key-code-text-field id='scanning_prev_keycode' class='form-control' value=model.preferences.device.scanning_prev_keycode placeholder='hit any key'}}
+                </label>
+                &nbsp;{{prev_keycode_string}}
+              </div>
+            </div>
           {{/unless}}
+          <div class="form-group">
+            <label for="scanning_cancel_keycode" class="col-sm-3 control-label">{{t "Scanning \"Cancel\" Key" key='scanning_cancel_keycode'}}</label>
+            <div class="col-sm-5">
+              <label style="width: 50px;">
+                {{key-code-text-field id='scanning_cancel_keycode' class='form-control' value=model.preferences.device.scanning_cancel_keycode placeholder='hit any key'}}
+              </label>
+              &nbsp;{{cancel_keycode_string}}
+            </div>
+          </div>
         {{/if}}
         {{#unless axes_scanning}}
           <div class="form-group">

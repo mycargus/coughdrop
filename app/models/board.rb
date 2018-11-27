@@ -48,9 +48,9 @@ class Board < ActiveRecord::Base
   add_permissions('view', ['read_boards']) {|user| self.author?(user) } # should be redundant due to board_caching
   add_permissions('view', 'edit', 'delete', 'share') {|user| self.author?(user) } # should be redundant due to board_caching
   add_permissions('view', ['read_boards']) {|user| self.user && self.user.allows?(user, 'supervise') }
-  # the user and any of their editing supervisors should have edit access
+  # the user and any of their editing supervisors/org admins should have edit access
   add_permissions('view', ['read_boards']) {|user| self.user && self.user.allows?(user, 'edit') }
-  add_permissions('view', 'edit', 'delete', 'share') {|user| self.user && self.user.allows?(user, 'edit') }
+  add_permissions('view', 'edit', 'delete', 'share') {|user| self.user && self.user.allows?(user, 'edit_boards') }
   # the user should have edit and sharing access if a parent board is edit-shared including downstream with them
   add_permissions('view', ['read_boards']) {|user| self.shared_with?(user, true) } # should be redundant due to board_caching
   add_permissions('view', 'edit', 'delete', 'share') {|user| self.shared_with?(user, true) } # should be redundant due to board_caching
@@ -98,11 +98,14 @@ class Board < ActiveRecord::Base
   end
   
   def board_downstream_button_set
+    bs = nil
     if self.settings && self.settings['board_downstream_button_set_id']
-      BoardDownstreamButtonSet.find_by_global_id(self.settings['board_downstream_button_set_id'])
+      bs = BoardDownstreamButtonSet.find_by_global_id(self.settings['board_downstream_button_set_id'])
     else
-      BoardDownstreamButtonSet.find_by(:board_id => self.id)
+      bs = BoardDownstreamButtonSet.find_by(:board_id => self.id)
     end
+    bs.assert_extra_data if bs
+    bs
   end
   
   def non_author_starred?
@@ -753,13 +756,14 @@ class Board < ActiveRecord::Base
     DeletedBoard.process(self)
   end
   
+  # TODO: this is wrongly-named, it should be images_and_sounds_for
   def buttons_and_images_for(user)
     key = "buttons_and_images/#{user ? user.cache_key : 'nobody'}"
     res = get_cached(key)
     return res if res
     res = {}
     bis = self.button_images
-    protected_sources = (user && user.enabled_protected_sources) || []
+    protected_sources = (user && user.enabled_protected_sources(true)) || []
     ButtonImage.cached_copy_urls(bis, user, nil, protected_sources)
     
     res['images'] = bis.map{|i| JsonApi::Image.as_json(i, :allowed_sources => protected_sources) }
@@ -768,7 +772,7 @@ class Board < ActiveRecord::Base
     res
   end
 
-  def translate_set(translations, source_lang, dest_lang, board_ids, set_as_default=true, user_local_id=nil, visited_board_ids=[])
+  def translate_set(translations, source_lang, dest_lang, board_ids, set_as_default=true, user_for_paper_trail=nil, user_local_id=nil, visited_board_ids=[])
     user_local_id ||= self.user_id
     source_lang = 'en' if source_lang.blank?
     label_lang = dest_lang
@@ -810,14 +814,17 @@ class Board < ActiveRecord::Base
           @buttons_changed = 'translated'
         end
       end
+      whodunnit = PaperTrail.whodunnit
+      PaperTrail.whodunnit = user_for_paper_trail.to_s || 'user:unknown'
       self.save
+      PaperTrail.whodunnit = whodunnit
     else
       return {done: true, translated: false, reason: 'board not in list'}
     end
     visited_board_ids << self.global_id
     downstreams = self.settings['immediately_downstream_board_ids'] - visited_board_ids
     Board.find_all_by_path(downstreams).each do |brd|
-      brd.translate_set(translations, source_lang, dest_lang, board_ids, set_as_default, user_local_id, visited_board_ids)
+      brd.translate_set(translations, source_lang, dest_lang, board_ids, set_as_default, user_for_paper_trail, user_local_id, visited_board_ids)
       visited_board_ids << brd.global_id
     end
     {done: true, translations: translations, d: dest_lang, s: source_lang, board_ids: board_ids, updated: visited_board_ids}
@@ -829,6 +836,7 @@ class Board < ActiveRecord::Base
     return {done: true, swapped: false, reason: 'mismatched user'} if user_local_id != self.user_id
     return {done: true, swapped: false, reason: 'no library specified'} if !library || library.blank?
     return {done: true, swapped: false, reason: 'not authorized to access premium library'} if library == 'pcs' && (!author || !author.subscription_hash['extras_enabled'])
+    return {done: true, swapped: false, reason: 'author required'} unless author
 
     if (board_ids.blank? || board_ids.include?(self.global_id))
       updated_board_ids << self.global_id
@@ -846,7 +854,10 @@ class Board < ActiveRecord::Base
           end
         end
       end
+      whodunnit = PaperTrail.whodunnit
+      PaperTrail.whodunnit = "user:#{author.global_id}.board.swap_images"
       self.save if @buttons_changed
+      PaperTrail.whodunnit = whodunnit
     else
       return {done: true, swapped: false, reason: 'board not in list'}
     end

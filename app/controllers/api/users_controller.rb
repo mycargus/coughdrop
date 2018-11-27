@@ -46,14 +46,15 @@ class Api::UsersController < ApplicationController
     if !params['q']
       return api_error 400, {error: 'q parameter required'}
     end
+    query = params['q'].downcase
     users = []
-    if params['q'].match(/@/)
-      users = User.find_by_email(params['q'])
+    if query.match(/@/)
+      users = User.find_by_email(query)
     else
-      users = User.where(:user_name => params['q'])
-      users = [User.find_by_global_id(params['q'])].compact if users.count == 0
+      users = User.where(:user_name => query)
+      users = [User.find_by_global_id(query)].compact if users.count == 0 && query.match(/^\d+_\d+$/)
       if users.count == 0
-        users = User.where(["user_name ILIKE ?", "%#{params['q']}%"]).order('user_name')
+        users = User.where(["user_name ILIKE ?", "%#{query}%"]).order('user_name')
       end
     end
     render json: JsonApi::User.paginate(params, users)
@@ -290,6 +291,9 @@ class Api::UsersController < ApplicationController
   def unsubscribe
     user = User.find_by_path(params['user_id'])
     return unless allowed?(user, 'edit')
+    user.settings['subscription'] ||= {}
+    user.settings['subscription']['unsubscribe_reason'] = params['reason'] if params['reason']
+    user.save
     progress = Progress.schedule(user, :process_subscription_token, 'token', 'unsubscribe')
     render json: JsonApi::Progress.as_json(progress, :wrapper => true)
   end

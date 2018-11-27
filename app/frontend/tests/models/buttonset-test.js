@@ -962,4 +962,25 @@ describe('Buttonset', function() {
     });
 
   });
+
+  describe('find_sequence', function() {
+    it('should have specs', function() {
+      expect('test').toEqual('todo');
+    })
+
+    it('should factor in sticky boards when suggesting a sequence', function() {
+      expect('test').toEqual('todo');
+    });
+  });
+
+  describe('load_button_set', function() {
+    it('should load an existing button set', function() {
+      expect('test').toEqual('todo');
+    });
+
+
+    it('should try to regenerate if an expected button set is missing', function() {
+      expect('test').toEqual('todo');
+    })
+  })
 });

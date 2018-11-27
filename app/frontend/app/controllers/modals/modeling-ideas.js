@@ -156,7 +156,7 @@ export default modal.ModalController.extend({
 
     if(res.length == empty_num) {
       var none_premium = true;
-      (this.get('model.users') || []).forEach(function(u) { if(emberGet(u, 'premium')) { none_premium = false; } });
+      (this.get('model.users') || []).forEach(function(u) { if(emberGet(u, 'premium') || emberGet(u, 'full_premium_or_trial_period')) { none_premium = false; } });
       if(none_premium) {
         res.push({none_premium: true});
       } else {

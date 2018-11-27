@@ -30,7 +30,7 @@ CoughDrop.Stats = EmberObject.extend({
       day_data.day = day;
       res.push(day_data);
     }
-    return res.sort(function(a, b) { a.day.localeCompare(b.day); });
+    return res.sort(function(a, b) { return a.day.localeCompare(b.day); });
   }.property('days'),
   check_known_filter: function() {
     var date_strings = this.date_strings();

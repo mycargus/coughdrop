@@ -20,6 +20,15 @@ module Uploader
       return nil
     end
   end
+
+  def self.sanitize_url(url)
+    uri = URI.parse(url) rescue nil
+    return nil unless uri
+    return nil if !Rails.env.development? && (uri.host.match(/^127/) || uri.host.match(/localhost/) || uri.host.match(/^0/) || uri.host.to_s == uri.host.to_i.to_s)
+    port_suffix = ""
+    port_suffix = ":#{uri.port}" if (uri.scheme == 'http' && uri.port != 80)
+    "#{uri.scheme}://#{uri.host}#{port_suffix}#{uri.path}#{uri.query && "?#{uri.query}"}"
+  end
   
   def self.check_existing_upload(remote_path)
     return nil
@@ -31,8 +40,9 @@ module Uploader
     remote_path = url.sub(/^https:\/\/#{ENV['UPLOADS_S3_BUCKET']}\.s3\.amazonaws\.com\//, '')
     remote_path = remote_path.sub(/^https:\/\/s3\.amazonaws\.com\/#{ENV['UPLOADS_S3_BUCKET']}\//, '')
     remote_path = remote_path.sub(/^#{ENV['UPLOADS_S3_CDN']}/, '')
+    remote_path = remote_path.sub(/^\//, '')
 
-    raise "scary delete, not a path I'm comfortable deleting..." unless remote_path.match(/\w+\/.+\/\w+-\w+(\.\w+)?$/)
+    raise "scary delete, not a path I'm comfortable deleting..." unless remote_path.match(/\w+\/.+\/\w+-\w+(\.\w+)?$/) || remote_path.match(/^extras\//)
     config = remote_upload_config
     service = S3::Service.new(:access_key_id => config[:access_key], :secret_access_key => config[:secret])
     bucket = service.buckets.find(config[:bucket_name])
@@ -122,7 +132,7 @@ module Uploader
   def self.remote_zip(url, &block)
     result = []
     Progress.update_current_progress(0.1, :downloading_file)
-    response = Typhoeus.get(url)
+    response = Typhoeus.get(Uploader.sanitize_url(url))
     Progress.update_current_progress(0.2, :processing_file)
     file = Tempfile.new('stash')
     file.binmode

@@ -4,6 +4,7 @@ class LogSession < ActiveRecord::Base
   include GlobalId
   include SecureSerialize
   include Notifier
+  include ExtraData
   belongs_to :user
   belongs_to :author, :class_name => User
   belongs_to :ip_cluster, :class_name => ClusterLocation
@@ -24,6 +25,7 @@ class LogSession < ActiveRecord::Base
 
   def generate_defaults
     self.data ||= {}
+    return true if skip_extra_data_processing?
     self.data['events'] ||= []
     # if two events share the same timestamp, put the buttons before the actions
     self.data['events'].sort_by!{|e| [e['timestamp'] || 0, (e['type'] == 'button' ? 0 : 1)] }
@@ -64,6 +66,9 @@ class LogSession < ActiveRecord::Base
     highlight_words = []
     (self.data['events'] || []).each_with_index do |event, idx|
       next_event = self.data['events'][idx + 1]
+      event.each do |key, val|
+        event.delete(key) if val == nil
+      end
       parts = event['button'] && (event['button']['vocalization'] || "").split(/&&/).map{|v| v.strip }.select{|p| p.match(/^(\+|:)/)}
       parts ||= []
       next_parts = event['button'] && next_event && next_event['button'] && (next_event['button']['vocalization'] || "").split(/&&/).map{|v| v.strip }.select{|v| v.match(/^(\+|:)/)}
@@ -93,8 +98,8 @@ class LogSession < ActiveRecord::Base
         spelling_sequence = []
       end
       if event['button'] && event['button']['percent_x'] && event['button']['percent_y'] && event['button']['board'] && event['button']['board']['id']
-        x = event['button']['percent_x'].round(2)
-        y = event['button']['percent_y'].round(2)
+        x = (event['button']['percent_x']* 2).to_f.round(1) / 2
+        y = (event['button']['percent_y'] * 2).to_f.round(1) / 2
         board_id = event['button']['board']['id']
         hit_locations[board_id] ||= {}
         hit_locations[board_id][x] ||= {}
@@ -263,13 +268,11 @@ class LogSession < ActiveRecord::Base
   
   def generate_stats
     self.data['stats'] ||= {}
+    return true if skip_extra_data_processing?
     self.data['stats']['session_seconds'] = 0
     self.data['stats']['utterances'] = 0.0
     self.data['stats']['utterance_words'] = 0.0
     self.data['stats']['utterance_buttons'] = 0.0
-    self.data['stats']['all_buttons'] = []
-    self.data['stats']['all_words'] = []
-    self.data['stats']['all_boards'] = []
     self.data['stats']['all_button_counts'] = {}
     self.data['stats']['all_word_counts'] = {}
     self.data['stats']['all_word_sequence'] = []
@@ -280,10 +283,16 @@ class LogSession < ActiveRecord::Base
     self.data['stats']['modeled_parts_of_speech'] = {}
     self.data['stats']['core_words'] = {}
     self.data['stats']['modeled_core_words'] = {}
-    self.data['stats']['all_volumes'] = []
+    self.data['stats']['parts_of_speech_combinations'] = {}
+    self.data['stats']['board_keys'] = {}
+    self.data['stats']['word_pairs'] = {}
+    self.data['stats']['time_blocks'] = {}
+    self.data['stats']['modeled_time_blocks'] = {}
+    self.data['stats']['volumes'] = {}
     self.data['stats']['all_ambient_light_levels'] = []
     self.data['stats']['all_screen_brightness_levels'] = []
     self.data['stats']['all_orientations'] = []
+    valid_words = WordData.standardized_words
     if self.device && self.user
       device_prefs = self.user.settings['preferences']['devices'][self.device.device_key]
       if device_prefs
@@ -311,6 +320,9 @@ class LogSession < ActiveRecord::Base
     
     if self.data['events'] && self.started_at && self.ended_at
       self.data['stats']['session_seconds'] = (self.ended_at - self.started_at).to_i
+
+
+      last_button_event = nil
       self.data['events'].each do |event|
         self.data['stats']['modeling_events'] ||= 0
         if event['modeling']
@@ -327,6 +339,19 @@ class LogSession < ActiveRecord::Base
         self.data['stats']['browser'] ||= event['browser']
         self.data['stats']['window_width'] ||= event['window_width'] if event['window_width'] && event['window_width'] > 0
         self.data['stats']['window_height'] ||= event['window_height'] if event['window_height'] && event['window_height'] > 0
+
+        if event['type'] == 'button' && event['button'] && event['button']['board']
+          key = event['button']['board']['key']
+          self.data['stats']['board_keys'][key] ||= 0
+          self.data['stats']['board_keys'][key] += 1
+        end
+        if event['timestamp']
+          timed_block = event['timestamp'].to_i / 15
+          key = event['modeling'] ? 'modeled_time_blocks' : 'time_blocks'
+          self.data['stats'][key][timed_block] ||= 0
+          self.data['stats'][key][timed_block] += 1
+        end
+
         if !event['modeling'] && event['type'] == 'utterance'
           self.data['stats']['utterances'] += 1
           self.data['stats']['utterance_words'] += event['utterance']['text'].split(/\s+/).length
@@ -368,12 +393,50 @@ class LogSession < ActiveRecord::Base
               end
             end
           end
+
+          pairs = {}
+          text = LogSession.event_text(event)
+          if text && text.length > 0 && (event['button']['spoken'] || event['button']['for_speaking'])
+            if last_button_event
+              last_text = LogSession.event_text(last_button_event)
+              if valid_words[text.downcase] && last_text && valid_words[last_text.downcase]
+                if (event['timestamp'] || 0) - (last_button_event['timestamp'] || 0) < 5.minutes.to_i
+                  if last_text.downcase.strip != text.downcase.strip
+                    hash = Digest::MD5.hexdigest(text.downcase.strip + "::" + last_text.downcase.strip)
+                    pairs[hash] ||= {
+                      'a' => last_text.downcase,
+                      'b' => text.downcase,
+                      'count' => 0
+                    }
+                    pairs[hash]['count'] += 1
+                  end
+                end
+              end
+            end
+            last_button_event = event
+          end
+          pairs.each do |pair, hash|
+            if self.data['stats']['word_pairs'][pair]
+              self.data['stats']['word_pairs'][pair]['count'] += hash['count']
+            else
+              self.data['stats']['word_pairs'][pair] = hash
+            end
+          end
         end
-      
-        self.data['stats']['all_volumes'] << (event['volume'] * 100).to_f if event['volume']
+        
+        if event['volume']
+          vol = (event['volume'] * 100).to_i
+          self.data['stats']['volumes'][vol] ||= 0
+          self.data['stats']['volumes'][vol] += 1
+        end
         self.data['stats']['all_ambient_light_levels'] << event['ambient_light'].to_f if event['ambient_light']
         self.data['stats']['all_screen_brightness_levels'] << (event['screen_brightness'] * 100).to_f if event['screen_brightness']
-        self.data['stats']['all_orientations'] << event['orientation'] if event['orientation']
+        if event['orientation']
+          event['orientation']['alpha'] = event['orientation']['alpha'].to_f.round(2) if event['orientation']['alpha']
+          event['orientation']['beta'] = event['orientation']['beta'].to_f.round(2) if event['orientation']['beta']
+          event['orientation']['gamma'] = event['orientation']['gamma'].to_f.round(2) if event['orientation']['gamma']
+          self.data['stats']['all_orientations'] << event['orientation'] 
+        end
       
         pos_key = event['modeling'] ? 'modeled_parts_of_speech' : 'parts_of_speech'
         core_key = event['modeling'] ? 'modeled_core_words' : 'core_words'
@@ -389,6 +452,9 @@ class LogSession < ActiveRecord::Base
           self.data['stats'][core_key][event['core_word'] ? 'core' : 'not_core'] += 1
         end
       end
+
+      self.generate_speech_combinations
+      self.generate_button_usage
       self.generate_sensor_stats
     end
     if self.data['assessment'] && self.started_at && self.ended_at
@@ -426,6 +492,7 @@ class LogSession < ActiveRecord::Base
   def generate_sensor_stats
     session = self
     if !session.data['stats']['all_volumes'].blank?
+      # TODO: remove sometime in 2019
       session.data['stats']['volume'] = {
         'total' => session.data['stats']['all_volumes'].length,
         'average' => (session.data['stats']['all_volumes'].sum.to_f / session.data['stats']['all_volumes'].length.to_f),
@@ -442,6 +509,32 @@ class LogSession < ActiveRecord::Base
           '90-100' => session.data['stats']['all_volumes'].select{|v| v >= 90 }.length
         }
       }
+    elsif !session.data['stats']['volumes'].blank?
+      tally = 0; sum = 0
+      session.data['stats']['volume'] = {'total' => 0, 'average' => 0.0, 'histogram' => {
+        '0-10' => 0,
+        '10-20' => 0,
+        '20-30' => 0,
+        '30-40' => 0,
+        '40-50' => 0,
+        '50-60' => 0,
+        '60-70' => 0,
+        '70-80' => 0,
+        '80-90' => 0,
+        '90-100' => 0
+      }}
+      session.data['stats']['volumes'].each do |val, cnt|
+        val = [[0, val.to_i].max, 99].min
+        tally += cnt
+        sum += val
+        pre = ((val / 10.0).floor * 10).to_i
+        post = pre + 10
+        hist = "#{pre}-#{post}"
+        session.data['stats']['volume']['histogram'][hist] += cnt
+      end
+
+      session.data['stats']['volume']['total'] = tally
+      session.data['stats']['volume']['average'] = tally > 0 ? (sum.to_f / tally.to_f).round(2) : 0.0
     end
     if !session.data['stats']['all_ambient_light_levels'].blank?
       session.data['stats']['ambient_light'] = {
@@ -458,6 +551,7 @@ class LogSession < ActiveRecord::Base
           '15000-30000' => session.data['stats']['all_ambient_light_levels'].select{|v| v >= 15000 }.length
         }
       }
+      session.data['stats'].delete('all_ambient_light_levels')
     end
     if !session.data['stats']['all_screen_brightness_levels'].blank?
       session.data['stats']['screen_brightness'] = {
@@ -476,6 +570,7 @@ class LogSession < ActiveRecord::Base
           '90-100' => session.data['stats']['all_screen_brightness_levels'].select{|v| v >= 90 }.length
         }
       }
+      session.data['stats'].delete('all_screen_brightness_levels')
     end
     if !session.data['stats']['all_orientations'].blank?
       session.data['stats']['orientation'] = {
@@ -528,6 +623,90 @@ class LogSession < ActiveRecord::Base
           'portrait-secondary' => session.data['stats']['all_orientations'].select{|o| o['layout'] == 'portrair-secondary' }.length
         }
       }
+      session.data['stats'].delete('all_orientations')
+    end
+  end
+
+  def generate_speech_combinations
+    prior_parts = []
+    sequences = {}
+    self.data['events'].each do |event|
+      if event['type'] == 'action' && event['action'] == 'clear'
+        prior_parts = []
+      elsif event['type'] == 'utterance'
+        prior_parts = []
+      elsif event['modified_by_next']
+      else
+        if event['parts_of_speech'] && event['parts_of_speech']['types']
+          current_part = event['parts_of_speech']
+          if prior_parts[-1] && prior_parts[-1]['types'] && prior_parts[-2] && prior_parts[-2]['types']
+            from_from = prior_parts[-2]['types'][0]
+            from = prior_parts[-1]['types'][0]
+            to = current_part['types'][0]
+            sequences[from_from + "," + from + "," + to] ||= 0
+            sequences[from_from + "," + from + "," + to] += 1
+            sequences[from_from + "," + from] -= 1 if sequences[from_from + "," + from]
+            sequences.delete(from_from + "," + from) if sequences[from_from + "," + from] == 0
+            sequences[from + "," + to] ||= 0
+            sequences[from + "," + to] += 1
+          elsif prior_parts[-1] && prior_parts[-1]['types']
+            from = prior_parts[-1]['types'][0]
+            to = current_part['types'][0]
+            sequences[from + "," + to] ||= 0
+            sequences[from + "," + to] += 1
+          end
+        end
+        prior_parts << event['parts_of_speech']
+      end
+    end
+    self.data['stats']['parts_of_speech_combinations'] = sequences
+  end
+
+  def generate_button_usage
+    current_chain = []
+    last_timestamp = nil
+    last_button_id = nil
+    self.data['stats']['buttons_used'] = {
+      'button_ids' => [], 'button_chains' => {}
+    }
+    self.data['events'].each do |event|
+      if event['type'] == 'button'
+        button = event['button']
+        if !event['modeling'] && button
+          button_text = LogSession.event_text(event)
+
+          if button_text && button_text.length > 0 && button['board'] && (event['button']['spoken'] || event['button']['for_speaking'])
+            button_key = "#{button['board']['id']}:#{button['button_id']}"
+            self.data['stats']['buttons_used']['button_ids'] << button_key
+            
+            # If less than 2 minutes since the last hit, let's add it to the button sequence,
+            # and we'll go ahead and stop counting if it's the same button multiple times
+            if (!last_button_id || last_button_id != button_key) && (!last_timestamp || (event['timestamp'] - last_timestamp) < (2 * 60))
+              current_chain << button_text
+              if current_chain.length >= 3
+                sequence = current_chain[-3, 3]
+                sequence_key = sequence.join(', ')
+                self.data['stats']['buttons_used']['button_chains'][sequence_key] = (self.data['stats']['buttons_used']['button_chains'][sequence_key] || 0) + 1
+                if current_chain.length >= 4
+                  sequence = current_chain[-4, 4]
+                  sequence_key = sequence.join(', ')
+                  self.data['stats']['buttons_used']['button_chains'][sequence_key] = (self.data['stats']['buttons_used']['button_chains'][sequence_key] || 0) + 1
+                end
+              end
+            end
+            last_timestamp = event['timestamp']
+            last_button_id = button_key
+          end
+        else
+          last_timestamp = nil
+          last_button_id = nil
+          current_chain = []
+        end
+      elsif event['type'] == 'utterance' || (event['type'] == 'action' && event['action']['action'] == 'clear')
+        last_timestamp = nil
+        last_button_id = nil
+        current_chain = []
+      end
     end
   end
   
@@ -544,6 +723,7 @@ class LogSession < ActiveRecord::Base
   end
   
   def schedule_summary
+    return true if @skip_extra_data_update
     if self.processed && (self.log_type == 'session' || self.goal)
       WeeklyStatsSummary.schedule_once(:update_for, self.global_id)
     end
@@ -554,6 +734,7 @@ class LogSession < ActiveRecord::Base
   end
   
   def update_board_connections(frd=false)
+    return true if @skip_extra_data_update
     if frd
       board_ids = []
       if self.data['events']
@@ -815,7 +996,7 @@ class LogSession < ActiveRecord::Base
   def self.check_possible_mergers
     sql = ["SELECT a.id as log_id, b.id as ref_id from log_sessions as a, log_sessions as b WHERE a.id != b.id AND a.user_id = b.user_id AND a.author_id = b.author_id AND a.device_id = b.device_id AND a.started_at = b.started_at AND a.ended_at = b.ended_at AND a.started_at > ? AND a.created_at < ? LIMIT 100", 6.hours.ago, 15.minutes.ago]
     res = ActiveRecord::Base.connection.execute(ActiveRecord::Base.send(:sanitize_sql_array, sql))
-    log_ids = res.map{|r| r['log_id'] }
+    # log_ids = res.map{|r| r['log_id'] }
     log_ids = []
     ref_ids = {}
     res.each{|r| 
@@ -824,18 +1005,32 @@ class LogSession < ActiveRecord::Base
       ref_ids[r['log_id']] = true;
     }
     LogSession.where(id: log_ids).each do |session|
-      session.schedule(:check_for_merger)
+      session.schedule_once(:check_for_merger)
     end
+    merged_ids = {}
+    LogMerger.where(['merge_at < ? AND started != ?', Time.now, true]).each do |merger|
+      merger.started = true
+      merger.save
+      next if merged_ids[merger.log_session_id]
+
+      merged_ids[merger.log_session_id] = true
+      log = merger.log_session
+      log.schedule_once(:check_for_merger, true)
+      log_ids << log.id
+    end
+    LogMerger.where(['merge_at < ? AND started = ?', 24.hours.ago, true]).delete_all
     log_ids.length
   end
-  
-  def check_for_merger
+
+  def check_for_merger(frd=false)
     log = self
+    log.assert_extra_data
     cutoff = (log.user && log.user.log_session_duration) || User.default_log_session_duration
     matches = LogSession.where(log_type: 'session', user_id: log.user_id, author_id: log.author_id, device_id: log.device_id); matches.count
-    mergers = matches.where(['id != ?', log.id]).where(['ended_at >= ? AND ended_at <= ?', log.started_at - cutoff, log.ended_at + cutoff]).order('id')
+    mergers = matches.where(['id != ?', log.id]).where(['ended_at >= ? AND ended_at <= ?', log.started_at - cutoff, log.ended_at + cutoff]).order('id ASC')
     mergers.each do |merger|
       next if merger.id == log.id
+      merger.assert_extra_data
       # always merge the newer log into the older log
       if log.id < merger.id
         ids = (log.data['events'] || []).map{|e| e['id'] }.compact
@@ -846,6 +1041,7 @@ class LogSession < ActiveRecord::Base
         end
         # remove dups based on timestamp or (event data if timestamps aren't precise enough)
         kept_events = []
+        transferred_events = []
         merger_user_id = log.data['events'].map{|e| e['user_id'] }.first
         slices = ['type', 'percent_x', 'percent_y', 'timestamp', 'action', 'button', 'utterance']
         merger.data['events'].each do |e|
@@ -863,27 +1059,40 @@ class LogSession < ActiveRecord::Base
               # replace any colliding event ids
               e['id'] = (ids.max || 0) + 1 if merger.data['events'].detect{|me| me['id'] == e['id'] }
               ids << e['id']
-              log.data['events'] << e
+              transferred_events << e
             else
               kept_events << e
             end
           end
         end
-        log.save!
-        if kept_events.length > 0
-          merger.data['events'] = kept_events
-          merger.save!
-        else
-          merger.destroy
+        if frd
+          if transferred_events.length > 0
+            log.data['events'] ||= []
+            log.data['events'] += transferred_events
+            log.save
+            # If anything actually changed, let's check one more time
+            log.schedule_once(:check_for_merger)
+          end
+          if kept_events.length > 0
+            merger.data['events'] = kept_events
+            merger.save!
+          else
+            merger.destroy
+          end
+        elsif transferred_events.length > 0 || kept_events.length != merger.data['events'].length
+          # If the merger is already scheduled, do nothing
+          # If the merger is in progress, schedule a new one
+          merger = LogMerger.find_or_create_by(log_session_id: log.id)
+          merger = LogMerger.create(log_session_id: log.id, merge_at: 60.minutes.from_now) if merger && merger.started
         end
-        log.schedule_once(:check_for_merger)
       else
-        merger.check_for_merger
+        # Swap the root and try again, always go for the lower-id record
+        merger.schedule_once(:check_for_merger)
         return
       end
     end
   end
-  
+
   def process_params(params, non_user_params)
     raise "user required" if !self.user_id && !non_user_params[:user]
     raise "author required" if !self.author_id && !non_user_params[:author]
@@ -904,6 +1113,7 @@ class LogSession < ActiveRecord::Base
       self.highlighted = params['highlighted'] if params['highlighted'] != nil
       if params['events']
         self.data_will_change!
+        self.assert_extra_data # TODO: cleaner way to do this?
         self.data['events'].each do |e|
           pe = params['events'].detect{|ev| ev['id'] == e['id'] && ev['timestamp'].to_f == e['timestamp'] }
           if !e['id']
@@ -948,6 +1158,7 @@ class LogSession < ActiveRecord::Base
       ids = (self.data['events'] || []).map{|e| e['id'] }.max || 0
       ip_address = non_user_params[:ip_address]
       if params['events']
+        self.assert_extra_data
         self.data['events'] ||= []
         ref_user_ids = params['events'].map{|e| e['referenced_user_id'] }.compact.uniq
         valid_ref_user_ids = {}
@@ -1127,6 +1338,60 @@ class LogSession < ActiveRecord::Base
           User.where(:id => user.id).update_all(:next_notification_at => user.next_notification_schedule)
         end
       end
+    end
+    res
+  end
+
+  def self.extra_data_public_transform(events)
+    res = []
+    (events || []).each do |event|
+      entry = {}
+      entry['id'] = event['id']
+      entry['timestamp'] = event['timestamp']
+      entry['highlighted'] = event['highlighted'] if event['highlighted']
+      if event['button']
+        entry['type'] = 'button'
+        entry['spoken'] = !!event['button']['spoken']
+        entry['summary'] = event['button']['label']
+        if entry['summary'] == ':complete' && event['button']['completion']
+          entry['summary'] += " (#{event['button']['completion']})"
+        end
+        entry['parts_of_speech'] = event['parts_of_speech']
+        if event['button']['percent_x'] && event['button']['percent_y'] && event['button']['board']
+          entry['touch_percent_x'] = event['button']['percent_x']
+          entry['touch_percent_y'] = event['button']['percent_y']
+          entry['board'] = event['button']['board']
+        end
+      elsif event['action']
+        entry['type'] = 'action'
+        entry['summary'] = "[#{event['action']['action']}]"
+        if event['action']['action'] == 'open_board'
+          entry['new_board'] = event['action']['new_id']
+        end
+      elsif event['utterance']
+        entry['type'] = 'utterance'
+        entry['summary'] = "[vocalize]"
+        entry['utterance_text'] = event['utterance']['text']
+      else
+        entry['type'] = 'other'
+        entry['summary'] = "unrecognized event"
+      end
+      if event['modeling']
+        entry['modeling'] = true
+      end
+      if event['notes']
+        entry['notes'] = event['notes'].map do |n|
+          {
+            'id' => n['id'],
+            'note' => n['note'],
+            'author' => {
+              'id' => n['author']['id'],
+              'user_name' => n['author']['user_name']
+            }
+          }
+        end
+      end
+      res << entry
     end
     res
   end

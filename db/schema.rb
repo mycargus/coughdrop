@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180814163541) do
+ActiveRecord::Schema.define(version: 20180929000626) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -41,6 +41,7 @@ ActiveRecord::Schema.define(version: 20180814163541) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.index ["board_id"], name: "index_board_button_images_on_board_id", using: :btree
+    t.index ["button_image_id"], name: "index_board_button_images_on_button_image_id", using: :btree
   end
 
   create_table "board_button_sounds", force: :cascade do |t|
@@ -128,7 +129,7 @@ ActiveRecord::Schema.define(version: 20180814163541) do
     t.datetime "updated_at"
     t.string   "cluster_type", limit: 255
     t.string   "cluster_hash", limit: 255
-    t.index ["cluster_type", "cluster_hash"], name: "index_cluster_locations_on_cluster_type_and_cluster_hash", unique: true, using: :btree
+    t.index ["cluster_type", "cluster_hash"], name: "index_cluster_locations_on_cluster_type_and_hash", unique: true, using: :btree
   end
 
   create_table "contact_messages", force: :cascade do |t|
@@ -187,6 +188,15 @@ ActiveRecord::Schema.define(version: 20180814163541) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["created_at"], name: "index_job_stashes_on_created_at", using: :btree
+  end
+
+  create_table "log_mergers", force: :cascade do |t|
+    t.datetime "merge_at"
+    t.boolean  "started"
+    t.integer  "log_session_id"
+    t.datetime "created_at",     null: false
+    t.datetime "updated_at",     null: false
+    t.index ["log_session_id"], name: "index_log_mergers_on_log_session_id", using: :btree
   end
 
   create_table "log_session_boards", force: :cascade do |t|

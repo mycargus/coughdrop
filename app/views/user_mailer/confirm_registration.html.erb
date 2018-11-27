@@ -9,7 +9,8 @@ To finish registering just
 <a href="<%= JsonApi::Json.current_host %>/<%= @user.user_name %>/confirm_registration/<%= @user.registration_code %>">open this link in your web browser of choice</a>.
 <% if @user.grace_period? %>CoughDrop comes with "cloud extras" features that include
 logging, reports, goals and badges, and your CoughDrop account will have access to these
-features through <b><%= @user.expires_at.to_s(:long_ordinal) %></b>.<% end %>
+features through <b><%= @user.expires_at.to_s(:long_ordinal) %></b>. Don't worry, we won't 
+automatically start billing you after that unless you decide to purchase :-).<% end %>
 <br/><br/>
 
 CoughDrop has a lot of great features, from eye tracking to switches to reports to badges, but 

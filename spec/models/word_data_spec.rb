@@ -231,6 +231,7 @@ RSpec.describe WordData, :type => :model do
       u.save
       Worker.process_queues
       Worker.process_queues
+      Worker.process_queues
       expect(WordData.reachable_core_list_for(u)).to eq(["i", "you", "like", "he", "think", "favorite", "pretend"])
     end
     
@@ -252,6 +253,7 @@ RSpec.describe WordData, :type => :model do
       })
       u.settings['preferences']['home_board'] = {'id' => b.global_id, 'key' => b.key}
       u.save
+      Worker.process_queues
       Worker.process_queues
       Worker.process_queues
       expect(WordData.reachable_core_list_for(u)).to eq(["i", "you", "like", "he", "think", "favorite", "pretend"])
@@ -277,6 +279,7 @@ RSpec.describe WordData, :type => :model do
       u.save
       Worker.process_queues
       Worker.process_queues
+      Worker.process_queues
       expect(WordData.reachable_core_list_for(u)).to eq(["i", "like", "no", "yes", "think", "favorite", "pretend"])
     end
     
@@ -298,6 +301,7 @@ RSpec.describe WordData, :type => :model do
       })
       u.settings['preferences']['home_board'] = {'id' => b.global_id, 'key' => b.key}
       u.save
+      Worker.process_queues
       Worker.process_queues
       Worker.process_queues
       expect(WordData.reachable_core_list_for(u)).to eq(["you", "like", "favorite"])
@@ -572,8 +576,8 @@ RSpec.describe WordData, :type => :model do
       res = WordData.activities_for(u.reload, true)
       expect(res.instance_variable_get('@fresh')).to eq(true)
       expect(res).to eq({
-        'generated' => Time.now.iso8601,
-        'checked' => Time.now.iso8601,
+        'generated' => res['generated'],
+        'checked' => res['checked'],
         'list' => [
           {"id"=>"1", "score"=>11, "user_ids"=>[u.global_id, u2.global_id]}, 
           {"id"=>"5", "score"=>10, "user_ids"=>[u2.global_id]}, 
@@ -588,6 +592,8 @@ RSpec.describe WordData, :type => :model do
           {"word"=>"most", "locale"=>"en", "user_ids"=>[u2.global_id]}
         ]
       })
+      expect(res['generated']).to be > (Time.now - 5).iso8601
+      expect(res['checked']).to be > (Time.now - 5).iso8601
     end
 
     it 'should not mark as fresh if one is more than 2 weeks old' do

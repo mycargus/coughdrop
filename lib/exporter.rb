@@ -184,7 +184,7 @@ More information about the file formats being used is available at https://www.o
       ':present-participle' => 'present-participle', 
       ':ing' => 'present-participle'
     }
-
+    log_session.assert_extra_data
     log_session.data['events'].each_with_index do |event, idx|
       next if event['skip']
       prev_event = log_session.data['events'][idx - 1] || event
@@ -455,7 +455,7 @@ More information about the file formats being used is available at https://www.o
   def self.process_log(data, type, user_id, author_id, device_id)
     sessions = nil
     if data.match(/^http/)
-      data = Typhoeus.get(data).body
+      data = Typhoeus.get(Uploader.sanitize_url(data)).body
     end
     user = User.find_by_path(user_id)
     raise "invalid user" unless user
@@ -496,6 +496,7 @@ More information about the file formats being used is available at https://www.o
     raise 'invalid format' unless hash['format'] && hash['format'].match(/^open-board-log/)
     (hash['sessions'] || []).each do |session|
       log_session = LogSession.new(user: user, author: author, device: device)
+      log_session.assert_extra_data
       if session['type'] == 'log'
         log_session.log_type = 'session'
         log_session.data = {'events' => [], 'imported' => true}

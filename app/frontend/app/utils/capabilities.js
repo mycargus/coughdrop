@@ -953,18 +953,23 @@ var capabilities;
             }
           }, 500);
         } else {
+          var fs_element = document.fullScreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
           if(window.AndroidFullScreen && window.AndroidFullScreen.isSupported()) {
             window.AndroidFullScreen.showSystemUI(function() { }, function() { });
           } else if(window.full_screen) {
             full_screened = window.full_screen(false);
-          } else if (document.exitFullscreen) {
-            document.exitFullscreen();
-          } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
-          } else if (document.mozCancelFullScreen) {
-            document.mozCancelFullScreen();
-          } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
+          } else if(fs_element) {
+            try {
+              if (document.exitFullscreen) {
+                document.exitFullscreen();
+              } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+              } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+              } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+              }
+            } catch(e) { }
           }
           setTimeout(function() {
             if(full_screened || document.fullScreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
@@ -1205,9 +1210,9 @@ var capabilities;
             }
           }
           capabilities.last_orientation = {
-            alpha: event.alpha,
-            beta: event.beta,
-            gamma: event.gamma,
+            alpha: Math.round(event.alpha * 100) / 100,
+            beta: Math.round(event.beta * 100) / 100,
+            gamma: Math.round(event.gamma * 100) / 100,
             layout: layout,
             timestamp: Math.round((new Date()).getTime() / 1000)
           };

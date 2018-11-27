@@ -182,6 +182,7 @@ Coughdrop::Application.routes.draw do
     
     get "buttonsets/:id" => "button_sets#show"
     get "buttonsets" => "button_sets#index"
+    post "buttonsets/:id/generate" => "button_sets#generate"
     get "boardversions" => "boards#history"
     get "userversions" => "users#history"
     

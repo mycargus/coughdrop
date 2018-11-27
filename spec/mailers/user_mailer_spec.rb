@@ -228,7 +228,7 @@ describe UserMailer, :type => :mailer do
       u = User.create
       d = Device.create(:user => u, :settings => {'ip_address' => '1.2.3.4'})
       ENV['NEW_REGISTRATION_EMAIL'] = 'asdf@example.com'
-      expect(Typhoeus).to receive(:get).with("http://freegeoip.net/json/1.2.3.4").and_return(OpenStruct.new(body: {city: 'Paris', region_name: 'Texas', country_code: 'US'}.to_json))
+      expect(Typhoeus).to receive(:get).with("http://api.ipstack.com/1.2.3.4?access_key=#{ENV['IPSTACK_KEY']}").and_return(OpenStruct.new(body: {city: 'Paris', region_name: 'Texas', country_code: 'US'}.to_json))
       m = UserMailer.new_user_registration(u.global_id)
       expect(m.subject).to eq('CoughDrop - New Communicator Registration')
       html = message_body(m, :html)

@@ -127,6 +127,7 @@ module Renaming
       end
       LogSessionBoard.where(:board_id => record.id).each do |lsb|
         session = lsb.log_session
+        session.assert_extra_data
         changed = false
         (session.data['events'] || []).each do |event|
           if event['button'] && event['button']['board'] && event['button']['board']['id'] == record.global_id && event['button']['board']['key'] != to_key

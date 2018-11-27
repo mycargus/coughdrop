@@ -41,7 +41,7 @@ class WordData < ActiveRecord::Base
   end
   
   def self.add_activities_for(user, hash)
-    return true if !user.full_premium?
+    return true if !user.premium?
     act = (user.settings['target_words'] || {})['activities'] || {}
     fresh = true
     hash['generated'] = [hash['generated'], act['generated'] || Time.at(0).iso8601].compact.min

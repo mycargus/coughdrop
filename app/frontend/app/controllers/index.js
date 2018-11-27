@@ -258,12 +258,12 @@ export default Controller.extend({
     if(model && for_users[model.get('id')]) {
       var b = _this.best_badge(for_users[model.get('id')], model.get('goal.id'));
       var eb = _this.earned_badge(for_users[model.get('id')]);
-      if(!app_state.get('currentUser.full_premium') || app_state.get('currentUser.supporter_role')) {
+      if(!app_state.get('sessionUser.full_premium') || app_state.get('sessionUser.supporter_role')) {
         b = null;
       }
       // If no badge for the current user use the supervisee if there's only one
-      if(!b && app_state.get('currentUser.supervisees').length == 1) {
-        var sup = app_state.get('currentUser.supervisees')[0];
+      if(!b && (app_state.get('sessionUser.supervisees') || []).length == 1) {
+        var sup = app_state.get('sessionUser.supervisees')[0];
         if(sup.premium) {
           b = _this.best_badge(for_users[emberGet(sup, 'id')], (sup.goal || {}).id)
         }
@@ -272,7 +272,7 @@ export default Controller.extend({
       emberSet(model, 'earned_badge', eb);
     }
     var sups = [];
-    (app_state.get('currentUser.supervisees') || []).forEach(function(sup) {
+    (app_state.get('sessionUser.supervisees') || []).forEach(function(sup) {
       if(for_users[emberGet(sup, 'id')] && emberGet(sup, 'premium')) {
         var b = _this.best_badge(for_users[emberGet(sup, 'id')], (sup.goal || {}).id);
         emberSet(sup, 'current_badge', b);
@@ -282,12 +282,12 @@ export default Controller.extend({
       sups.push(sup);
     });
     _this.set('supervisees_with_badges', sups);
-  }.observes('app_state.currentUser', 'app_state.currentUser.supervisees', 'current_user_badges'),
+  }.observes('app_state.sessionUser', 'app_state.sessionUser.supervisees', 'current_user_badges'),
   modeling_ideas_available: function() {
     if(app_state.get('feature_flags.badge_progress')) {
-      if(app_state.get('currentUser.supporter_role')) {
+      if(app_state.get('sessionUser.supporter_role')) {
         var any_premium_supervisees = false;
-        (app_state.get('currentUser.supervisees') || []).forEach(function(sup) {
+        (app_state.get('sessionUser.supervisees') || []).forEach(function(sup) {
           if(emberGet(sup, 'premium')) {
             any_premium_supervisees = true;
           }
@@ -295,12 +295,12 @@ export default Controller.extend({
         if(any_premium_supervisees) {
           return true;
         }
-      } else if(app_state.currentUser.full_premium) {
+      } else if(app_state.get('sessionUser.full_premium')) {
         return true;
       }
     }
     return false;
-  }.property('app_state.feature_flags.badge_progress', 'app_state.currentUser.supporter_role', 'app_state.currentUser.full_premium'),
+  }.property('app_state.feature_flags.badge_progress', 'app_state.sessionUser.supporter_role', 'app_state.sessionUser.full_premium'),
   many_supervisees: function() {
     return (app_state.get('currentUser.supervisees') || []).length > 5;
   }.property('app_state.currentUser.supervisees'),
@@ -485,6 +485,29 @@ export default Controller.extend({
       user.set('preferences.new_index', true);
       user.save().then(null, function() { });
       modal.success(i18n.t('revert_new_dashboard', "Welcome to the new, cleaner dashboard! If you're not a fan you can switch back on your Preferences page."));
+    },
+    set_goal: function(user) {
+      var _this = this;
+      CoughDrop.store.findRecord('user', user.id).then(function(user_model) {
+        modal.open('new-goal', {user: user_model }).then(function(res) {
+          if(res && res.get('id') && res.get('set_badges')) {
+            _this.transitionToRoute('user.goal', user_model.get('user_name'), res.get('id'));
+          } else if(res) {
+            // update the matching currentUser.supervisees goal attribute 
+            // with the new value if not already set
+            (app_state.get('currentUser.supervisees') || []).forEach(function(sup) {
+              if(emberGet(sup, 'id') == user_model.get('id')) {
+                emberSet(sup, 'goal', {
+                  id: res.get('id'),
+                  summary: res.get('summary')
+                });
+              }
+            });
+          }
+        }, function() { });
+      }, function(err) {
+        modal.error(i18n.t('error_loading_user', "There was an unexpected error trying to load the user"));
+      });
     },
     modeling_ideas: function(user_name) {
       var users = [];

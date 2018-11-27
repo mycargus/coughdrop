@@ -146,6 +146,7 @@ class Webhook < ActiveRecord::Base
         s = 10
         begin
           Timeout::timeout(s) do
+            url = Uploader.sanitize_url(url)
             res = Typhoeus.post(url, body: body)
           end
         rescue Timeout::Error => e

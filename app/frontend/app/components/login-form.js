@@ -44,11 +44,14 @@ export default Component.extend({
     var _this = this;
     _this.set('checking_for_secret', false);
     if(!_this.get('client_secret')) {
+      _this.set('requesting', true);
       session.check_token().then(function() {
+        _this.set('requesting', false);
         runLater(function() {
           _this.check_for_missing_token();
         }, 2000);
       }, function() {
+        _this.set('requesting', false);
         runLater(function() {
           _this.check_for_missing_token();
         }, 2000);

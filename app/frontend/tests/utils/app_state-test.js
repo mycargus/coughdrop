@@ -819,7 +819,7 @@ describe('app_state', function() {
 
       it('should set the board level to user home board preference if launching the user home board', function() {
         expect(app_state.get('speak_mode')).toEqual(false);
-        app_state.set('sessionUser', Ember.Object.create({preferences: {home_board: {id: '1_12345', key: 'aaaa/bbbb', level: 5}}}));
+        app_state.set('sessionUser', EmberObject.create({preferences: {home_board: {id: '1_12345', key: 'aaaa/bbbb', level: 5}}}));
         app_state.set('currentBoardState', {key: 'aaaa/bbbb', id: '1_12345'});
         stashes.persist('board_level', null);
         app_state.toggle_mode('speak', {override_state: {key: 'aaaa/bbbb', id: '1_12345', level: 1}});
@@ -829,7 +829,7 @@ describe('app_state', function() {
 
       it('should set the board level to user sidebar preference if launching the user sidebar board', function() {
         expect(app_state.get('speak_mode')).toEqual(false);
-        app_state.set('sessionUser', Ember.Object.create({preferences: {sidebar_boards: [{id: '1_12345', key: 'aaaa/bbbb', level: 5}]}}));
+        app_state.set('sessionUser', EmberObject.create({preferences: {sidebar_boards: [{id: '1_12345', key: 'aaaa/bbbb', level: 5}]}}));
         app_state.set('currentBoardState', {key: 'aaaa/bbbb', id: '1_12345'});
         stashes.persist('board_level', null);
         app_state.toggle_mode('speak', {override_state: {key: 'aaaa/bbbb', id: '1_12345', level: 1}});
@@ -839,7 +839,7 @@ describe('app_state', function() {
 
       it('should override the user home board preference if a user-set current level is set', function() {
         expect(app_state.get('speak_mode')).toEqual(false);
-        app_state.set('sessionUser', Ember.Object.create({preferences: {home_board: {id: '1_12345', key: 'aaaa/bbbb', level: 5}}}));
+        app_state.set('sessionUser', EmberObject.create({preferences: {home_board: {id: '1_12345', key: 'aaaa/bbbb', level: 5}}}));
         app_state.set('currentBoardState', {key: 'aaaa/bbbb', id: '1_12345'});
         stashes.persist('board_level', 3);
         app_state.toggle_mode('speak', {override_state: {key: 'aaaa/bbbb', id: '1_12345', level: 1}});
@@ -849,7 +849,7 @@ describe('app_state', function() {
 
       it('should set the board level based on the override state if no other level setting available', function() {
         expect(app_state.get('speak_mode')).toEqual(false);
-        app_state.set('sessionUser', Ember.Object.create({preferences: {home_board: {id: '1_12345', key: 'aaaa/bbbb'}}}));
+        app_state.set('sessionUser', EmberObject.create({preferences: {home_board: {id: '1_12345', key: 'aaaa/bbbb'}}}));
         app_state.set('currentBoardState', null);
         stashes.persist('board_level', null);
         app_state.toggle_mode('speak', {override_state: {key: 'aaaa/bbbb', id: '1_12345', level: 5}});
@@ -858,7 +858,7 @@ describe('app_state', function() {
 
       it('should ignore the stashed board_level if not launching from a board view (i.e. currentBoardState=null)', function() {
         expect(app_state.get('speak_mode')).toEqual(false);
-        app_state.set('sessionUser', Ember.Object.create({preferences: {home_board: {id: '1_12345', key: 'aaaa/bbbb', level: 5}}}));
+        app_state.set('sessionUser', EmberObject.create({preferences: {home_board: {id: '1_12345', key: 'aaaa/bbbb', level: 5}}}));
         app_state.set('currentBoardState', null);
         stashes.persist('board_level', 8);
         app_state.toggle_mode('speak', {override_state: {key: 'aaaa/bbbb', id: '1_12345'}});

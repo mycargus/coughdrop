@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import EmberObject from '@ember/object';
 import { later as runLater, cancel as runCancel } from '@ember/runloop';
+import {set as emberSet, get as emberGet} from '@ember/object';
 import $ from 'jquery';
 import editManager from './edit_manager';
 import modal from './modal';
@@ -23,6 +24,7 @@ var scanner = EmberObject.extend({
   },
   start: function(options) {
     scanner.current_element = null;
+    scanner.ref = Math.random();
     if(scanner.find_elem("header #speak").length === 0) {
       console.debug("scanning currently only works in speak mode...");
       scanner.stop();
@@ -38,7 +40,8 @@ var scanner = EmberObject.extend({
     options.auto_start = options.auto_start || false;
     options.all_elements = [];
 
-    if(modal.is_open() && !modal.is_open('highlight')) {
+    var highlight_type = emberGet(modal.highlight_settings || {}, 'highlight_type');
+    if((modal.is_open() && !modal.is_open('highlight')) || highlight_type == 'button_search') {
       return;
     } else if(options && options.scan_mode == 'axes') {
     } else {
@@ -283,6 +286,8 @@ var scanner = EmberObject.extend({
       }
     }
     this.scanning = true;
+    this.element_index = null;
+    this.element_index_advanced = !!options.auto_start;
     this.scan_elements(rows, options);
   },
   scan_content: function() {
@@ -318,13 +323,15 @@ var scanner = EmberObject.extend({
       return res;
     }
   },
-  reset: function() {
+  reset: function(partial) {
     runCancel(scanner.interval);
     scanner.interval = null;
     modal.close_highlight();
     scanner.scan_axes('clear');
-    scanner.start();
-    scanner.listen_for_input();
+    if(partial !== true) {
+      scanner.start();
+      scanner.listen_for_input();
+    }
   },
   stop: function()  {
     runCancel(scanner.interval);
@@ -430,12 +437,18 @@ var scanner = EmberObject.extend({
   pick_elem: function(dom) {
     var $closest = $(dom).closest('.button,.integration_target,.button_list');
     if($closest.length > 0) { dom = $closest; }
+    scanner.element_index = 0;
+    scanner.element_index_advanced = false;
+    scanner.last_spoken_elem = null;
+    var reset_now = true;
     if(dom.hasClass('button') && dom.attr('data-id')) {
       var id = dom.attr('data-id');
       var button = editManager.find_button(id);
       var app = app_state.controller;
       var board = app.get('board.model');
-      // TODO: not picking up the sound record on the first load
+      // if button links to something else, don't resume scanning 
+      // until board jumping has completed
+      reset_now = false;
       app.activateButton(button, {board: board});
     } else if(dom.hasClass('integration_target')) {
       frame_listener.trigger_target(dom[0]);
@@ -446,9 +459,15 @@ var scanner = EmberObject.extend({
       e.pass_through = true;
       scanner.find_elem(dom).trigger(e);
     }
+    scanner.reset(true);
+    var ref = scanner.ref;
+    var cutoff = reset_now ? 0 : Math.max(scanner.options.interval, 500);
+    scanner.reset_until = (new Date()).getTime() + cutoff;
     runLater(function() {
-      scanner.reset();
-    });
+      if(ref == scanner.ref) {
+        scanner.reset();
+      }
+    }, cutoff);
   },
   hide_input: function() {
     if(window.Keyboard && window.Keyboard.hide && app_state.get('speak_mode') && scanner.scanning) {
@@ -590,7 +609,7 @@ var scanner = EmberObject.extend({
       rect = scanner.axes.horizontal.getBoundingClientRect();
       var y = rect.top + (rect.height / 2);
       scanner.options.auto_start = true;
-      scanner.last_options.auto_start = true;
+      (scanner.last_options || {}).auto_start = true;
       scanner.scan_axes('clear');
       // simulate selection event at the current location
       var target = document.elementFromPoint(x, y);
@@ -605,28 +624,42 @@ var scanner = EmberObject.extend({
     }
     scanner.elements = elem.children.concat([parent]);
     scanner.element_index = 0;
+    scanner.element_index_advanced = !!parent.higher_level;
     runCancel(scanner.interval);
     scanner.interval = runLater(function() {
       scanner.next_element();
     });
   },
-  next: function() {
+  next: function(reverse) {
     var now = (new Date()).getTime();
     if(scanner.ignore_until && now < scanner.ignore_until) { return; }
+    if(scanner.reset_until && now < scanner.reset_until) { 
+      scanner.reset_until = null;
+      scanner.reset();
+      return; 
+    }
+    if(!scanner.element_index_advanced) { scanner.element_index = -1; }
     runCancel(scanner.interval);
     scanner.interval = null;
+    scanner.element_index_advanced = true;
+    scanner.last_spoken_elem = null;
     if(scanner.options && scanner.options.scan_mode == 'axes') {
       // ignore
     } else {
-      scanner.element_index = scanner.element_index + 1;
+      scanner.element_index = scanner.element_index + (reverse ? -1 : 1);
       if(scanner.element_index >= scanner.elements.length) {
         scanner.element_index = 0;
+      } else if(scanner.element_index < 0) {
+        scanner.element_index = scanner.elements.length - 1;
       }
       scanner.next_element();
       if(scanner.options && scanner.options.debounce) {
         scanner.ignore_until = now + scanner.options.debounce;
       }
     }
+  },
+  prev: function() {
+    scanner.next(true);
   },
   next_element: function(retry) {
     var elem = this.elements[this.element_index];
@@ -652,7 +685,7 @@ var scanner = EmberObject.extend({
     options.select_anywhere = true;
     // Only prevent auto-start at the first iteration, after that
     // go ahead and resume whenever it stops
-    options.auto_start = true;
+    // options.auto_start = true;
     if(scanner.options && scanner.options.focus_overlay) {
       options.overlay = true;
       options.clear_overlay = false;
@@ -660,7 +693,8 @@ var scanner = EmberObject.extend({
 
     // Don't repeat
     if(!retry) {
-      if(this.options && this.options.audio) {
+      if(this.options && this.options.audio && this.last_spoken_elem != elem.dom[0]) {
+        this.last_spoken_elem = elem.dom[0];
         if(elem && elem.sound) {
           speecher.speak_audio(elem.sound, 'text', false, {alternate_voice: true, interrupt: false});
         } else if(elem && elem.label) {

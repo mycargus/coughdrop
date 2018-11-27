@@ -215,19 +215,30 @@ var editManager = EmberObject.extend({
   find_button: function(id) {
     if(!this.controller || !this.controller.get) { return []; }
     var ob = this.controller.get('ordered_buttons') || [];
+    var res = null;
     for(var idx = 0; idx < ob.length; idx++) {
       for(var jdx = 0; jdx < ob[idx].length; jdx++) {
-        if(id && ob[idx][jdx].id == id) {
-          return ob[idx][jdx];
-        } else if(id == 'empty' && ob[idx][jdx].empty) {
-          return ob[idx][jdx];
+        if(!res) {
+          if(id && ob[idx][jdx].id == id) {
+            res = ob[idx][jdx];
+          } else if(id == 'empty' && ob[idx][jdx].empty) {
+            res = ob[idx][jdx];
+          }
         }
       }
     }
-    var res = null;
     var board = this.controller.get('model');
+    var buttons = board.translated_buttons(app_state.get('label_locale'), app_state.get('vocalization_locale'));
+    if(res) {
+      var trans_button = buttons.find(function(b) { return b.id == id; });
+      if(trans_button && !emberGet(res, 'user_modified')) {
+        res.set('label', trans_button.label);
+        res.set('vocalization', trans_button.vocalization);
+      }
+      return res;
+    }
     if(board.get('fast_html')) {
-      board.get('buttons').forEach(function(b) {
+      buttons.forEach(function(b) {
         if(id && id == b.id) {
           res = editManager.Button.create(b, {board: board});
         }
@@ -256,9 +267,11 @@ var editManager = EmberObject.extend({
     if(button) {
       if(options.image) {
         emberSet(button, 'local_image_url', null);
+        button.load_image();
       }
       if(options.sound) {
         emberSet(button, 'local_sound_url', null);
+        button.load_sound();
       }
       for(var key in options) {
         emberSet(button, key, options[key]);
@@ -471,7 +484,7 @@ var editManager = EmberObject.extend({
   },
   apply_preview_level: function(level) {
     if(this.controller) {
-      this.controller.get('ordered_buttons').forEach(function(row) {
+      (this.controller.get('ordered_buttons') || []).forEach(function(row) {
         row.forEach(function(button) {
           button.apply_level(level);
         });
@@ -751,6 +764,18 @@ var editManager = EmberObject.extend({
                 mods.pre['link_disabled'] = true;
                 mods[currentButton.link_disabled_level.toString()] = {link_disabled: false};
               }
+              for(var ref_key in mods.pre) {
+                var found_change = false;
+                for(var level in mods) {
+                  if(level != 'pre' && mods[level][ref_key] != undefined && mods[level][ref_key] != mods.pre[ref_key]) {
+                    found_change = true;
+                  }
+                }
+                if(!found_change) {
+                  newButton[ref_key] = mods.pre[ref_key];
+                  delete mods.pre[ref_key];
+                }
+              }
               emberSet(currentButton, 'level_modifications', mods);
             } else if(currentButton.level_json) {
               emberSet(currentButton, 'level_modifications', JSON.parse(currentButton.level_json));
@@ -868,7 +893,6 @@ var editManager = EmberObject.extend({
               external_id: image.id,
               license: license
             };
-
             var save = contentGrabbers.pictureGrabber.save_image_preview(preview);
 
             save.then(function(image) {
@@ -957,6 +981,7 @@ var editManager = EmberObject.extend({
           var affected_board_ids = result && result.affected_board_ids;
           var new_board_ids = result && result.new_board_ids;
           board.set('new_board_ids', new_board_ids);
+          board.load_button_set(true);
           if(decision && decision.match(/as_home$/)) {
             user.set('preferences.home_board', {
               id: board.get('id'),

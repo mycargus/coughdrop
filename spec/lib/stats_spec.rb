@@ -84,6 +84,7 @@ describe Stats do
         :modeled_buttons_by_frequency => [],
         :modeled_time_offset_blocks => {},
         :modeled_words_by_frequency => [],
+        :modeling_user_names => {},
         :time_offset_blocks => {},
         :goals => []
       })
@@ -823,6 +824,7 @@ describe Stats do
       
       res = Stats.time_block_use_for_sessions([s1, s2, s3, s4])
       expect(res[:timed_blocks]).not_to eq(nil)
+      puts res[:timed_blocks].to_json
       expect(res[:timed_blocks][1445037743 / 15]).to eq(2)
       expect(res[:timed_blocks][1445044954 / 15]).to eq(1)
       expect(res[:timed_blocks][1444994571 / 15]).to eq(1)

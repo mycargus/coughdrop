@@ -192,7 +192,7 @@ export default modal.ModalController.extend({
         }
       }).then(function(res) {
         progress_tracker.track(res.progress, function(event) {
-          if(event.status == 'errored') {
+          if(event.status == 'errored' || (event.status == 'finished' && event.result && event.result.translated === false)) {
             _this.set('saving_translations', null);
             _this.set('error_saving_translations', true);
           } else if(event.status == 'finished') {

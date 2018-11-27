@@ -197,6 +197,7 @@ export default Controller.extend({
       if(option == 'starting') {
         board = stashes.get('root_board_state') || this.get('board').get('model');
       }
+      var _this = this;
       var board_user_name = emberGet(board, 'key').split(/\//)[1];
       var preferred_symbols = app_state.get('currentUser.preferences.preferred_symbols') || 'original';
       var needs_confirmation = app_state.get('currentUser.supervisees') || preferred_symbols != 'original' || board_user_name != app_state.get('currentUser.user_name');
@@ -364,7 +365,7 @@ export default Controller.extend({
     },
     switch_communicators: function(opts) {
       var ready = RSVP.resolve({correct_pin: true});
-      if(app_state.get('currentUser.preferences.require_speak_mode_pin') && app_state.get('currentUser.preferences.speak_mode_pin')) {
+      if(app_state.get('speak_mode') && app_state.get('currentUser.preferences.require_speak_mode_pin') && app_state.get('currentUser.preferences.speak_mode_pin')) {
         ready = modal.open('speak-mode-pin', {actual_pin: app_state.get('currentUser.preferences.speak_mode_pin'), action: 'none'});
       }
       ready.then(function(res) {
@@ -376,6 +377,7 @@ export default Controller.extend({
     find_button: function() {
       var include_other_boards = app_state.get('speak_mode') && ((stashes.get('root_board_state') || {}).key) == app_state.get('currentUser.preferences.home_board.key');
       modal.open('find-button', {
+        inactivity_timeout: app_state.get('speak_mode'),
         board: this.get('board').get('model'),
         include_other_boards: include_other_boards
       });
@@ -515,34 +517,51 @@ export default Controller.extend({
       var _this = this;
       if(buttons && buttons.length > 0) {
         var button = buttons[0];
-        if(button.pre == 'home' || button.pre == 'sidebar') {
-          buttons.shift();
+        if(button.pre == 'home' || button.pre == 'true_home' || button.pre == 'home' || button.pre == 'sidebar') {
           this.set('button_highlights', buttons);
           var $button = $("#speak > button:first");
           if(button.pre == 'sidebar') {
             $button = $("#sidebar a[data-key='" + button.linked_board_key + "']");
           }
-          modal.highlight($button).then(function() {
-            if(button.pre == 'home') {
+          modal.highlight($button, {highlight_type: 'button_search'}).then(function() {
+            if(button.pre == 'true_home' || button.pre == 'home') {
+              var has_temporary_home = !!stashes.get('temporary_root_board_state');
+              var already_on_temporary_home = stashes.get('temporary_root_board_state.id') == app_state.get('currentBoardState.id');
+              if(!has_temporary_home || already_on_temporary_home) {
+                buttons.shift();
+              }
+              _this.send('home');
+            } else if(button.pre == 'temp_home') {
+              buttons.shift();
               _this.send('home');
             } else {
+              buttons.shift();
               _this.jumpToBoard({
                 key: button.linked_board_key,
                 home_lock: button.home_lock
               });
             }
+          }, function(err) {
           });
         } else if(button && button.board_id == this.get('board.model').get('id')) {
           var findButtonElem = function() {
             if(button.board_id == _this.get('board.model').get('id')) {
               var $button = $(".button[data-id='" + button.id + "']");
-              if($button[0]) {
-                buttons.shift();
+              if($button[0] && $button.width()) {
                 _this.set('button_highlights', buttons);
-                modal.highlight($button).then(function() {
+                modal.highlight($button, {highlight_type: 'button_search'}).then(function() {
+                  buttons.shift();
                   var found_button = editManager.find_button(button.id);
                   var board = _this.get('board.model');
                   _this.activateButton(found_button, {board: board});
+                  var next_button = buttons[0];
+                  // If there is more to the sequence, and the 
+                  // user selection isn't going to involve loading
+                  // a different board, then call highlight_button again
+                  if(next_button && (next_button.board_id == board.id || next_button.pre)) {
+                    _this.send('highlight_button');                    
+                  }
+                }, function(err) {
                 });
               } else {
                 // TODO: really? is this the best you can figure out?
@@ -732,6 +751,9 @@ export default Controller.extend({
   show_back: function() {
     return (!this.get('app_state.empty_board_history') || this.get('app_state.currentUser.preferences.device.always_show_back'));
   }.property('app_state.empty_board_history', 'app_state.currentUser.preferences.device.always_show_back'),
+  on_home: function() {
+    return !!(app_state.get('currentBoardState.id') && app_state.get('currentBoardState.id') == stashes.get('root_board_state.id'));
+  }.property('stashes.root_board_state.id', 'app_state.currentBoardState.id'),
   button_list_class: function() {
     var res = "button_list ";
     if(stashes.get('ghost_utterance')) {

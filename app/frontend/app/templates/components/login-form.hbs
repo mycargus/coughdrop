@@ -31,6 +31,9 @@
         <div class="form-group">
           <button type="submit" class='btn btn-primary btn-lg' disabled={{noSubmit}}>
             {{#if noSecret}}
+              {{#if requesting}}
+                <span class="glyphicon glyphicon-refresh spinning"></span>
+              {{/if}}
               {{#if checking_for_secret}}
                 {{t "Initializing..." key='initializing'}}
               {{else}}

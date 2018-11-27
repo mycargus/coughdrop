@@ -34,10 +34,16 @@ import frame_listener from './frame_listener';
 // - keyboard events can add to the vocalization box
 // - mouse cursor/joystick and control the dwell target
 // - touch events on modal targets needs to work in speak mode
+// - touch events for buttons inside modals need to work in speak mode
+// - find a button needs to work for touch and eye gaze
 
 var $board_canvas = null;
 
 $(document).on('mousedown touchstart', function(event) {
+  var now = (new Date()).getTime();
+  if(event.type == 'touchstart') {
+    buttonTracker.lastTouchStart = now;
+  }
   if(buttonTracker.dwell_elem) {
     console.log("linger cleared because touch event");
     buttonTracker.clear_dwell();
@@ -58,6 +64,9 @@ $(document).on('mousedown touchstart', function(event) {
     u.text = "";
     window.speechSynthesis.speak(u);
     buttonTracker.ios_initialized = true;
+  }
+  if(event.type == 'touchend') {
+    buttonTracker.lastTouchStart = null;
   }
   if((event.type == 'mouseup' || event.type == 'touchend' || event.type == 'touchcancel') && buttonTracker.dwell_elem) {
     console.log("linger cleared because touch release event");
@@ -129,7 +138,7 @@ $(document).on('mousedown touchstart', function(event) {
   } else if(event.keyCode == 8) { // backspace
     if(buttonTracker.check('keyboard_listen') && !modal.is_open()) {
       app_state.activate_button({vocalization: ':backspace'}, {
-        label: 'escape',
+        label: 'backspace',
         vocalization: ':backspace',
         prevent_return: true,
         button_id: null,
@@ -154,7 +163,12 @@ $(document).on('mousedown touchstart', function(event) {
       }
     }
   }
+  if($(event.target).closest(".modal-content.auto_close").length > 0) {
+    $(".modal-content.auto_close").removeClass('auto_close');
+    modal.auto_close = false;
+  }
   if(!buttonTracker.check('scanning_enabled')) { return; }
+  if(event.target.tagName == 'INPUT' && event.target.id != 'hidden_input') { return; }
   if(event.keyCode && event.keyCode == buttonTracker.check('select_keycode')) { // spacebar key
     scanner.pick();
     event.preventDefault();
@@ -163,6 +177,12 @@ $(document).on('mousedown touchstart', function(event) {
     event.preventDefault();
   } else if(event.keyCode && event.keyCode == buttonTracker.check('next_keycode')) { // 1 key
     scanner.next();
+    event.preventDefault();
+  } else if(event.keyCode && event.keyCode == buttonTracker.check('prev_keycode')) { // 2 key
+    scanner.prev();
+    event.preventDefault();
+  } else if(event.keyCode && event.keyCode == buttonTracker.check('cancel_keycode')) { // esc key
+    scanner.stop();
     event.preventDefault();
   }
 }).on('gazedwell', function(event) {
@@ -233,6 +253,7 @@ var buttonTracker = EmberObject.extend({
     // instead manually interpreting touch and mouse events. that way we
     // can do magical things like "click" on starting/ending point
     if($(event.target).closest('.advanced_selection').length > 0) {
+      buttonTracker.triggerEvent = null;
       // doesn't need to be here, but since buttons are always using advanced_selection it's probably ok
       $(".touched").removeClass('touched');
       // this is to prevent ugly selected boxes that happen with dragging
@@ -263,12 +284,30 @@ var buttonTracker = EmberObject.extend({
       }
     } else {
       buttonTracker.triggerEvent = event;
+      var key = Math.random();
+      buttonTracker.triggerEvent.key = key;
+      // Eye gaze users can't just tap again to make stuck things
+      // go away, so this is a backup patch in case things get weird
+      // so that they don't lose the ability to select
+      runLater(function() {
+        if(buttonTracker.triggerEvent && buttonTracker.triggerEvent.key == key) {
+          buttonTracker.triggerEvent = null;
+        }
+      }, 5000);
     }
   },
   // used for handling dragging, scanning selection
   touch_continue: function(event) {
     if(buttonTracker.transitioning) {
       event.preventDefault();
+      var token = Math.random();
+      // Don't let it get stuck in some weird transitioning state forever
+      buttonTracker.transitioning = token;
+      runLater(function() {
+        if(buttonTracker.transitioning == token) {
+          buttonTracker.transitioning = false;
+        }
+      }, 2000);
       return;
     }
 
@@ -280,10 +319,21 @@ var buttonTracker = EmberObject.extend({
         event.preventDefault();
       }
     }
+    if(buttonTracker.sidebarScrollStart == null) {
+      buttonTracker.sidebarScrollStart = (document.getElementById('sidebar') || {}).scrollTop || 0;
+    }
 
     event = buttonTracker.normalize_event(event);
-    // We disable ignoreUp on continued movement because... I don't know why. This needs a comment.
-    buttonTracker.ignoreUp = false;
+    // We disable ignoreUp on continued movement because some of our
+    // movement event triggers are touchstart and mousedown
+    if(event.type == 'touchstart' || event.type == 'mousedown') {
+      // don't reset it if we had a touchstart event in the
+      // last 500ms and now we're getting a mousedown event
+      if(event.type != 'touchstart' && buttonTracker.lastTouchStart && buttonTracker.lastTouchStart > (now - 2500)) {
+      } else {
+        buttonTracker.ignoreUp = false;
+      }
+    }
     if(event.screenX && event.clientX) {
       window.screenInnerOffsetY = event.screenY - event.clientY;
       window.screenInnerOffsetX = event.screenX - event.clientX;
@@ -292,6 +342,9 @@ var buttonTracker = EmberObject.extend({
     }
     if(event.type == 'touchstart' || event.type == 'mousedown' || event.type == 'touchmove') {
       buttonTracker.buttonDown = true;
+      if(app_state.get('sidebar_toggled')) {
+        buttonTracker.buttonDown = false;
+      }
     } else if(event.type == 'gazelinger' && buttonTracker.check('dwell_enabled')) {
       buttonTracker.dwell_linger(event);
     } else if(event.type == 'mousemove' && buttonTracker.check('dwell_enabled') && buttonTracker.check('dwell_type') == 'mouse_dwell') {
@@ -305,7 +358,8 @@ var buttonTracker = EmberObject.extend({
     if(!buttonTracker.buttonDown && !app_state.get('edit_mode')) {
       var button_wrap = buttonTracker.find_selectable_under_event(event);
       if(button_wrap) {
-        button_wrap.addClass('hover');
+        // button_wrap.addClass('hover');
+        
         // TODO: this is not terribly performant, but I guess it doesn't matter
         // since it won't trigger much on mobile
         $("#board_canvas").css('cursor', 'pointer');
@@ -349,47 +403,53 @@ var buttonTracker = EmberObject.extend({
     }
 
     if(buttonTracker.buttonDown && buttonTracker.check('any_select') && buttonTracker.check('scanning_enabled')) {
-      if(event.type != 'mousedown' && event.type != 'touchstart') {
-        // ignore scanning events when checking for element release
-        event.preventDefault();
-        buttonTracker.ignoreUp = true;
-        return false;
-      }
-      var override_allowed = false;
-      if(event.type == 'mousedown') {
-        if($(event.target).closest("#identity_button,#exit_speak_mode").length > 0) {
-          override_allowed = true;
+      var skip_screen_touch = $(event.target).closest("#identity").length > 0;
+      skip_screen_touch = skip_screen_touch || (buttonTracker.check('skip_header') && $(event.target).closest('header').length > 0);
+      if(!skip_screen_touch) {
+        if(event.type != 'mousedown' && event.type != 'touchstart') {
+          // ignore scanning events when checking for element release
+          event.preventDefault();
+          buttonTracker.ignoreUp = true;
+          return false;
         }
-      }
-      if(!override_allowed) {
-        // allow selection events to pass through even when scanning if on identity
-        buttonTracker.ignoreUp = true;
-      }
-      var now = (new Date()).getTime();
-      if(event.type == 'mousedown' && buttonTracker.last_scanner_select && (now - buttonTracker.last_scanner_select) < 500) {
-        return false;
-      } else {
-        if(event.type == 'touchstart') {
-          buttonTracker.last_scanner_select = now;
-        }
-        var width = $(window).width();
-        if(event.clientX <= (width / 2)) {
-          if(buttonTracker.check('left_screen_action') == 'next') {
-            return scanner.next();
-          } else {
-            return scanner.pick();
+        var override_allowed = false;
+        if(event.type == 'mousedown') {
+          if($(event.target).closest("#identity_button,#exit_speak_mode").length > 0) {
+            override_allowed = true;
           }
+        }
+        if(!override_allowed) {
+          // allow selection events to pass through even when scanning if on identity
+          buttonTracker.ignoreUp = true;
+        }
+        var now = (new Date()).getTime();
+        if(event.type == 'mousedown' && buttonTracker.last_scanner_select && (now - buttonTracker.last_scanner_select) < 500) {
+          return false;
         } else {
-          if(buttonTracker.check('') == 'next') {
-            return scanner.next();
+          if(event.type == 'touchstart') {
+            buttonTracker.last_scanner_select = now;
+          }
+          var width = $(window).width();
+          if(event.clientX <= (width / 2)) {
+            if(buttonTracker.check('left_screen_action') == 'next') {
+              return scanner.next();
+            } else {
+              return scanner.pick();
+            }
           } else {
-            return scanner.pick();
+            if(buttonTracker.check('') == 'next') {
+              return scanner.next();
+            } else {
+              return scanner.pick();
+            }
           }
         }
       }
     }
     if(buttonTracker.buttonDown && !$(event.target).hasClass('highlight')) {
-      modal.close_highlight();
+      if($(event.target).closest('#dwell_icon,#linger').length === 0) {
+        modal.close_highlight();
+      }
     }
     if(buttonTracker.buttonDown && editManager.paint_mode) {
       // touch drag events don't return the right 'this'.
@@ -492,9 +552,18 @@ var buttonTracker = EmberObject.extend({
   },
   touch_release: function(event) {
     event = buttonTracker.normalize_event(event);
-
     // don't remember why this is important...
     buttonTracker.buttonDown = false;
+    buttonTracker.triggerEvent = null;
+    if(buttonTracker.sidebarScrollStart != null) {
+      var scroll_start = buttonTracker.sidebarScrollStart;
+      var current_scroll = (document.getElementById('sidebar') || {}).scrollTop || 0;
+      buttonTracker.sidebarScrollStart = null;
+      if(Math.abs(current_scroll - scroll_start) > 10) {
+        if(event.cancelable) { event.preventDefault(); }
+        return;
+      }
+    }
 
     var selectable_wrap = buttonTracker.find_selectable_under_event(event);
     // if dragging a button, behavior is very different than otherwise
@@ -534,13 +603,18 @@ var buttonTracker = EmberObject.extend({
       // chance we need to trigger a 'click', so pass it along
       buttonTracker.buttonDown = true;
       buttonTracker.element_release(selectable_wrap, event);
-//     } else if(event.type == 'touchend' && event.target.tagName == 'A' || event.target.tagName == 'BUTTON') {
-//       event.preventDefault();
-//       event.stopPropagation();
-//       $(event.target).trigger('click');
-    // TODO: if not advanced_selection, touch events (but not mouse events) should be
-    // mapped to click events for faster activation. Maybe find a library for this..
     } else {
+      var $modal = $(event.target).closest(".modal-content");
+      if($modal.length > 0 && app_state.get('speak_mode') && event.type == 'touchend' && buttonTracker.dwell_enabled) {
+        event.preventDefault();
+        event.stopPropagation();
+        $(event.target).trigger('click');
+        if(event.target.tagName == 'INPUT') {
+          runLater(function() {
+            $(event.target).select().focus();
+          });
+        }
+      }
       buttonTracker.frame_event(event, 'select');
     }
     editManager.release_stroke();
@@ -661,6 +735,10 @@ var buttonTracker = EmberObject.extend({
             buttonTracker.button_release(elem_wrap, event);
           } else if(elem_wrap.dom.classList.contains('integration_target')) {
             frame_listener.trigger_target(elem_wrap.dom);
+          } else if(elem_wrap.dom.id == 'sidebar_tease' || elem_wrap.dom.id == 'sidebar_close') {
+            stashes.persist('sidebarEnabled', !stashes.get('sidebarEnabled'));
+            buttonTracker.ignoreUp = true;
+            buttonTracker.buttonDown = false;
           } else {
             event.preventDefault();
             // click events are eaten by our listener above, unless you
@@ -887,13 +965,15 @@ var buttonTracker = EmberObject.extend({
   dwell_linger: function(event) {
     // debounce, waiting for clearance
     if(buttonTracker.dwell_wait) { console.log("linger waiting for dwell timeout"); return; }
-    // touch events get blocked because mousemove gets triggered and creates a dwell element directly under the finger
-    if(buttonTracker.triggerEvent && buttonTracker.triggerEvent.type == 'touchstart') { return; }
+    // touch events get blocked because mousemove gets triggered by 
+    // finger taps and would create a dwell element directly under 
+    // the finger, essentially eating all touches
+    if(buttonTracker.triggerEvent && buttonTracker.triggerEvent.type == 'touchstart') { console.log("linger ignored for touch event"); return; }
     var dwell_selection = buttonTracker.dwell_selection != 'button';
     // cursor-based trackers can throw the cursor up against the edges of the screen causing
     // inaccurate lingers for the buttons along the edges
     if(event.type == 'mousemove' && (event.clientX === 0 || event.clientY === 0 || event.clientX >= (window.innerWidth - 1) || event.clientY >= (window.innerHeight - 1))) {
-      console.log("linger waiting because on a screen edge");
+      console.log("linger waiting because on a screen edge", event.clientX, event.clientY);
       return;
     }
     if(buttonTracker.last_triggering_dwell_event && dwell_selection) {
@@ -1127,12 +1207,22 @@ var buttonTracker = EmberObject.extend({
     if($dropdown.length > 0 && $open_identity_dropdown.length > 0) {
       $dropdown.show();      
     }
-    // If the identity dropdown is open and the user taps somewhere 
-    // else on the screen, close the identity dropdown
+    // If any dropdown is open and the user taps somewhere 
+    // else on the screen, close the open dropdown
     if($target_dropdown.length == 0 && $dropdown.length > 0) {
       if($target.closest('.dropdown.open ul').length == 0 && $open_identity_dropdown.length > 0) {
-        $target = $(".dropdown.open > a");
+        // I suppose it's possible that this tries to pass to a target 
+        // that doesn't exist, so check for that
+        var $new_target = $(".dropdown.open > a");
+        if($new_target.length > 0) { $target = $new_target; }
       }
+      // This is a shot in the dark, but something is interrupting
+      // interactions and it's possible it's because it's ignoring
+      // inputs because the dropdown is open. This won't close the 
+      // dropdown, just get rid of the nasty overlay.
+      runLater(function() {
+        $dropdown.remove();
+      }, 300);
     }
     if(buttonTracker.dwell_elem) {
       buttonTracker.dwell_elem.style.left = left;
@@ -1175,6 +1265,8 @@ var buttonTracker = EmberObject.extend({
         return buttonTracker.button_from_point(event.clientX, event.clientY);
       } else if(region.id == 'integration_overlay') {
         return buttonTracker.element_wrap($target.closest(".integration_target")[0]);
+      } else if(region.id == 'highlight_box') {
+        return buttonTracker.element_wrap(region);
       }
     }
     return null;
@@ -1350,8 +1442,8 @@ var buttonTracker = EmberObject.extend({
         }
         var width = $board.width() + left + sidebar_width;
         var height = $board.height() + top;
-        var pct_x = (x - left) / width;
-        var pct_y = (y - top) / height;
+        var pct_x = Math.round((x - left) / width * 1000) / 1000;
+        var pct_y = Math.round((y - top) / height * 1000) / 1000;
         return {percent_x: pct_x, percent_y: pct_y};
       }
     }
@@ -1482,8 +1574,8 @@ var buttonTracker = EmberObject.extend({
       if(selectable_wrap) {
         var target = this.longPressEvent.originalTarget || (this.longPressEvent.originalEvent || this.longPressEvent).target
         var event = $.Event('touchend', target);
-        event.clientX = this.longPressEvent.clientX;
-        event.clientY = this.longPressEvent.clientY;
+        event.clientX = (this.longPressEvent || this.longPressEvent.originalEvent).clientX;
+        event.clientY = (this.longPressEvent || this.longPressEvent.originalEvent).clientY;
         buttonTracker.element_release(selectable_wrap, event);
         this.ignoreUp = true;
       }

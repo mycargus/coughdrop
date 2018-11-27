@@ -154,10 +154,10 @@ describe Permissions, :type => :model do
       u = User.create
       g = UserGoal.create(:user => u)
       u2 = User.create
-      expect(u.permissions_for(u)).to eq({'user_id' => u.global_id, 'view_existence' => true, 'view_detailed' => true, 'view_word_map' => true, 'view_deleted_boards' => true, 'supervise' => true, 'edit' => true, 'manage_supervision' => true, 'delete' => true, 'set_goals' => true})
-      expect(u.permissions_for(u, ['*'])).to eq({'user_id' => u.global_id, 'view_existence' => true, 'view_detailed' => true, 'view_word_map' => true, 'view_deleted_boards' => true, 'supervise' => false, 'edit' => false, 'manage_supervision' => false, 'delete' => false, 'set_goals' => false})
-      expect(u.permissions_for(u, ['*', 'read_profile'])).to eq({'user_id' => u.global_id, 'view_existence' => true, 'view_word_map' => true, 'view_detailed' => true, 'view_deleted_boards' => true, 'supervise' => false, 'edit' => false, 'manage_supervision' => false, 'delete' => false, 'set_goals' => false})
-      expect(u.permissions_for(u, ['*', 'read_profile', 'full'])).to eq({'user_id' => u.global_id, 'view_existence' => true, 'view_word_map' => true, 'view_detailed' => true, 'view_deleted_boards' => true, 'supervise' => true, 'edit' => true, 'manage_supervision' => true, 'delete' => true, 'set_goals' => true})
+      expect(u.permissions_for(u)).to eq({'user_id' => u.global_id, 'view_existence' => true, 'view_detailed' => true, 'view_word_map' => true, 'view_deleted_boards' => true, 'supervise' => true, 'edit' => true, 'edit_boards' => true, 'manage_supervision' => true, 'delete' => true, 'set_goals' => true})
+      expect(u.permissions_for(u, ['*'])).to eq({'user_id' => u.global_id, 'view_existence' => true, 'view_detailed' => true, 'view_word_map' => true, 'view_deleted_boards' => true, 'supervise' => false, 'edit' => false, 'edit_boards' => false, 'manage_supervision' => false, 'delete' => false, 'set_goals' => false})
+      expect(u.permissions_for(u, ['*', 'read_profile'])).to eq({'user_id' => u.global_id, 'view_existence' => true, 'view_word_map' => true, 'view_detailed' => true, 'view_deleted_boards' => true, 'supervise' => false, 'edit' => false, 'edit_boards' => false, 'manage_supervision' => false, 'delete' => false, 'set_goals' => false})
+      expect(u.permissions_for(u, ['*', 'read_profile', 'full'])).to eq({'user_id' => u.global_id, 'view_existence' => true, 'view_word_map' => true, 'view_detailed' => true, 'view_deleted_boards' => true, 'supervise' => true, 'edit' => true, 'edit_boards' => true, 'manage_supervision' => true, 'delete' => true, 'set_goals' => true})
       
       expect(g.permissions_for(u)).to eq({'user_id' => u.global_id, 'view' => true, 'edit' => true, 'comment' => true})
       expect(g.permissions_for(u2)).to eq({'user_id' => u2.global_id})

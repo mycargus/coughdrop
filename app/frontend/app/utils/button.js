@@ -234,7 +234,7 @@ var Button = EmberObject.extend({
         }
         if(mods.pre) {
           for(var key in mods.pre) {
-            if(!mods.override || !mods.override[key]) {
+            if(!mods.override || mods.override[key] === null || mods.override[key] === undefined) {
               this.set(key, mods.pre[key]);
             }
           }
@@ -242,7 +242,7 @@ var Button = EmberObject.extend({
         for(var idx = 1; idx <= level; idx++) {
           if(mods[idx]) {
             for(var key in mods[idx]) {
-              if(!mods.override || !mods.override[key]) {
+              if(!mods.override || mods.override[key] === null || mods.override[key] === undefined) {
                 this.set(key, mods[idx][key]);
               }
             }
@@ -320,28 +320,38 @@ var Button = EmberObject.extend({
     var image = CoughDrop.store.peekRecord('image', _this.image_id);
     if(image && (!image.get('isLoaded') || !image.get('best_url'))) { image = null; }
     _this.set('image', image);
+    var check_image = function(image) {
+      _this.set('local_image_url', image.get('best_url'));
+      return image.checkForDataURL().then(function() {
+        _this.set('local_image_url', image.get('best_url'));
+        return image;
+      }, function() { return RSVP.resolve(image); });
+    };
     if(!image) {
+      var image_urls = this.get('board.image_urls');
+      if(image_urls && image_urls[_this.image_id]) {
+        var img = CoughDrop.store.createRecord('image', {
+          url: image_urls[_this.image_id]
+        })
+        img.set('id', _this.image_id);
+        img.set('incomplete', true);
+        return check_image(img);
+      }
       if(_this.get('no_lookups')) {
         return RSVP.reject('no image lookups');
       } else {
+        // TODO: if in Speak Mode, this shouldn't hold up the rendering
+        // process, so if it has to make a remote call then consider
+        // killing it or coming back to it somehow. Same applies for Sound records.
         return CoughDrop.store.findRecord('image', _this.image_id).then(function(image) {
           // There was a runLater of 100ms here, I have no idea why but
           // it seemed like a bad idea so I removed it.
           _this.set('image', image);
-          return image.checkForDataURL().then(function() {
-            _this.set('local_image_url', image.get('best_url'));
-            return RSVP.resolve(image);
-          }, function() {
-            _this.set('local_image_url', image.get('best_url'));
-            return RSVP.resolve(image);
-          });
+          return check_image(image);
         });
       }
     } else {
-      _this.set('local_image_url', image.get('best_url'));
-      return image.checkForDataURL().then(function() {
-        _this.set('local_image_url', image.get('best_url'));
-      }, function() { return RSVP.resolve(image); });
+      return check_image(image);
     }
   },
   update_local_image_url: function() {
@@ -355,26 +365,33 @@ var Button = EmberObject.extend({
     var sound = CoughDrop.store.peekRecord('sound', _this.sound_id);
     if(sound && (!sound.get('isLoaded') || !sound.get('best_url'))) { sound = null; }
     _this.set('sound', sound);
+    var check_sound = function(sound) {
+      _this.set('local_sound_url', sound.get('best_url'));
+      return sound.checkForDataURL().then(function() {
+        _this.set('local_sound_url', sound.get('best_url'));
+        return sound;
+      }, function() { return RSVP.resolve(sound); });
+    };
     if(!sound) {
+      var sound_urls = _this.get('sound_urls');
+      if(sound_urls && sound_urls[_this.sound_id]) {
+        var snd = CoughDrop.store.createRecord('sound', {
+          url: sound_urls[_this.sound_id]
+        })
+        snd.set('id', _this.sound_id);
+        snd.set('incomplete', true);
+        return check_image(snd);
+      }
       if(_this.get('no_lookups')) {
         return RSVP.reject('no sound lookups');
       } else {
         return CoughDrop.store.findRecord('sound', _this.sound_id).then(function(sound) {
           _this.set('sound', sound);
-          return sound.checkForDataURL().then(function() {
-            _this.set('local_sound_url', sound.get('best_url'));
-            return RSVP.resolve(sound);
-          }, function() {
-            _this.set('local_sound_url', sound.get('best_url'));
-            return RSVP.resolve(sound);
-          });
+          return check_sound(sound);
         });
       }
     } else {
-      _this.set('local_sound_url', sound.get('best_url'));
-      return sound.checkForDataURL().then(function() {
-        _this.set('local_sound_url', sound.get('best_url'));
-      }, function() { return RSVP.resolve(sound); });
+      return check_sound(sound);
     }
   },
   update_local_sound_url: function() {
@@ -742,8 +759,9 @@ Button.set_attribute = function(button, attribute, value) {
   if(!mods) { return; }
   var mods = $.extend({}, mods || {});
   for(var key in mods) {
-    if(parseInt(key, 10) > 0 && mods[key] && mods[key][attribute] != undefined) {
-      mods.override = mods.override || {};
+    var preset_key = parseInt(key, 10) > 0 || key == 'pre'
+    if(preset_key && mods[key] && mods[key][attribute] != undefined) {
+      mods.override = $.extend({}, mods.override);
       mods.override[attribute] = value;
     }
   }

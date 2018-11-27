@@ -1,7 +1,7 @@
 import Ember from 'ember';
 import Route from '@ember/routing/route';
 import EmberObject from '@ember/object';
-import {set as emberSet, get as emberGet} from '@ember/object';
+import {set as emberSet, setProperties as setProperties, get as emberGet} from '@ember/object';
 import { later as runLater, cancel as runCancel, next as runNext } from '@ember/runloop';
 import RSVP from 'rsvp';
 import $ from 'jquery';
@@ -718,13 +718,18 @@ var app_state = EmberObject.extend({
         buttonTracker.scanning_enabled = true;
         buttonTracker.any_select = _this.get('currentUser.preferences.device.scanning_select_on_any_event');
         buttonTracker.select_keycode = _this.get('currentUser.preferences.device.scanning_select_keycode');
+        buttonTracker.skip_header = _this.get('currentUser.preferences.device.scanning_skip_header');
         buttonTracker.next_keycode = _this.get('currentUser.preferences.device.scanning_next_keycode');
+        buttonTracker.prev_keycode = _this.get('currentUser.preferences.device.scanning_prev_keycode');
+        buttonTracker.cancel_keycode = _this.get('currentUser.preferences.device.scanning_cancel_keycode');
         buttonTracker.left_screen_action = _this.get('currentUser.preferences.device.scanning_left_screen_action');
         buttonTracker.right_screen_action = _this.get('currentUser.preferences.device.scanning_right_screen_action');
         if(capabilities.system == 'iOS' && !capabilities.installed_app && !buttonTracker.left_screen_action && !buttonTracker.right_screen_action) {
           modal.warning(i18n.t('keyboard_may_jump', "NOTE: if you don't have a bluetooth switch installed, the keyboard may keep popping up while trying to scan."));
         }
-        modal.close();
+        if(modal.is_open() && (!modal.highlight_settings || modal.highlight_settings.highlight_type != 'button_search')) {
+          modal.close();
+        }
         var interval = parseInt(_this.get('currentUser.preferences.device.scanning_interval'), 10);
         scanner.start({
           scan_mode: _this.get('currentUser.preferences.device.scanning_mode'),
@@ -753,7 +758,7 @@ var app_state = EmberObject.extend({
 
       if(app_state.get('speak_mode') && _this.get('currentUser.preferences.device.dwell')) {
         buttonTracker.dwell_enabled = true;
-        buttonTracker.dwell_timeout = _this.get('currentUser.preferences.device.dwell_timeout');
+        buttonTracker.dwell_timeout = _this.get('currentUser.preferences.device.dwell_duration');
         buttonTracker.dwell_delay = _this.get('currentUser.preferences.device.dwell_delay');
         buttonTracker.dwell_type = _this.get('currentUser.preferences.device.dwell_type');
         buttonTracker.dwell_selection = _this.get('currentUser.preferences.device.dwell_selection') || 'dwell';
@@ -842,7 +847,7 @@ var app_state = EmberObject.extend({
             stashes.persist('temporary_root_board_state', current);
           }
         }, function() {
-          modal.error(i18n.t('user_retrive_failed', "Failed to retrieve user for Speak Mode"));
+          modal.error(i18n.t('user_retrive_failed', "Failed to retrieve user details for Speak Mode"));
         });
       }, function() {
         modal.error(i18n.t('user_retrive_failed', "Failed to retrieve user for Speak Mode"));
@@ -1078,7 +1083,7 @@ var app_state = EmberObject.extend({
         });
         capabilities.silent_mode().then(function(silent) {
           if(silent && capabilities.system == 'iOS') {
-            modal.warning(i18n.t('ios_muted', "The app is currently muted, so you will not hear speech. To unmute, check the mute switch, and also swipe up from the bottom of the screen to check for app-level muting"));
+            modal.warning(i18n.t('ios_muted', "The app is currently muted, so you will not hear speech. To unmute, check the mute switch, and also swipe up from the bottom of the screen to check for app-level muting"), true);
           }
         });
         var ref_user = this.get('referenced_speak_mode_user') || this.get('currentUser');
@@ -1089,6 +1094,23 @@ var app_state = EmberObject.extend({
             str = str + i18n.t('current_goal', "Current Goal: %{summary}", {summary: ref_user.get('goal.summary')});
             modal.notice(str, true);
           }, 100);
+        }
+        app_state.load_user_badge();
+        if(app_state.get('installed_app')) {
+          var get_local_revisions = persistence.find('settings', 'synced_full_set_revisions').then(function(res) {
+            if(app_state.get('currentBoardState.id') && !res[app_state.get('currentBoardState.id')]) {
+              if(!persistence.get('last_sync_at')) {
+                // if not ever synced, remind them to sync before trying to use Speak Mode
+                modal.warning(i18n.t('remember_to_sync', "Remember to sync before trying to use boards somewhere without a strong Internet connection!"), true);
+              } else if(app_state.get('current_board_in_extended_board_set')) {
+                // if synced and this is in home board set, remind them to sync
+                modal.warning(i18n.t('need_to_re_sync', "Remember to sync so you have access to all your boards offline!"), true);
+              } else {
+                // otherwise, remind them about unsynced boards
+                modal.warning(i18n.t('unsynced_boards_may_not_work', "This board isn't available from you home board or sidebar so it won't be synced, and may not work properly without a strong Internet connection"), true);
+              }
+            }
+          }, function() { });
         }
       }
       this.set('eye_gaze', capabilities.eye_gaze);
@@ -1110,7 +1132,6 @@ var app_state = EmberObject.extend({
           }
         }
       }
-      app_state.load_user_badge();
     } else if(!this.get('speak_mode') && this.get('last_speak_mode') !== undefined) {
       capabilities.wakelock('speak!', false);
       capabilities.fullscreen(false);
@@ -1444,12 +1465,16 @@ var app_state = EmberObject.extend({
       var _this = this;
       if(!_this.get('feature_flags.badge_progress') && !_this.get('sessionUser.feature_flags.badge_progress')) { return; }
       var user = this.get('referenced_user');
+      // clear current badge if it doesn't match the referenced user info
       if(!user || _this.get('user_badge.user_id') != user.get('id')) {
         _this.set('user_badge', null);
       }
-      // clear current badge if it doesn't match the referenced user info
-      // load recent badges
-      if(CoughDrop.store && user && !user.get('supporter_role') && user.get('full_premium')) {
+
+      // load recent badges, debounced by ten minutes
+      var last_check = (user && _this.get('last_user_badge_load_for_' + user.get('id'))) || 0;
+      var now = (new Date()).getTime();
+      if(CoughDrop.store && user && !user.get('supporter_role') && user.get('full_premium_or_trial_period') && last_check < (now - 600000)) {
+        _this.set('last_user_badge_load_for_' + user.get('id'), now);
         runLater(function() {
           _this.set('user_badge_hash', badge_hash);
           CoughDrop.store.query('badge', {user_id: user.get('id'), recent: 1}).then(function(badges) {
@@ -1517,11 +1542,14 @@ var app_state = EmberObject.extend({
     // update button attributes preemptively
     app_state.set('last_activation', now);
     if(button.link_disabled) {
-      button.apps = null;
-      button.url = null;
-      button.video = null;
-      button.load_board = null;
-      button.user_integration = null;
+      button = $.extend({}, button);
+      setProperties(button, {
+        apps: null,
+        url: null,
+        video: null,
+        load_board: null,
+        user_integration: null
+      })
     }
     if(button.apps) {
       obj.type = 'app';
@@ -1544,7 +1572,17 @@ var app_state = EmberObject.extend({
       specialty_button = $.extend({}, specialty);
       specialty_button.special = true;
       if(specialty.specialty_with_modifiers) {
+        if(specialty.default_speak) { 
+          skip_speaking_by_default = false; 
+          if(specialty.default_speak !== true) {
+            obj.vocalization = specialty.default_speak;
+          }
+        }
         button_to_speak = utterance.add_button(obj, button);
+      } else if(specialty.default_speak) {
+        skip_speaking_by_default = false;
+        obj.vocalization = specialty.default_speak;
+        utterance.add_button(obj, button);
       }
     } else if(skip_speaking_by_default && !button.add_to_vocalization) {
     } else {
@@ -1683,6 +1721,8 @@ var app_state = EmberObject.extend({
             app_state.controller.send('back', {button_triggered: true});
           } else if(mod == ':speak') {
             app_state.controller.send('vocalize', {button_triggered: true});
+          } else if(mod == ':hush') {
+            speecher.stop('all');
           } else if(mod == ':backspace') {
             app_state.controller.send('backspace', {button_triggered: true});
           }

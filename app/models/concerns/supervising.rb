@@ -86,9 +86,9 @@ module Supervising
     end
   end
   
-  def edit_permission_for?(supervisee)
+  def edit_permission_for?(supervisee, include_admin_managers=true)
     sup = supervisee.supervisor_links.any?{|l| l['record_code'] == Webhook.get_record_code(self) && l['user_id'] == supervisee.global_id && l['state']['edit_permission'] } 
-    sup || Organization.manager_for?(self, supervisee)
+    sup || Organization.manager_for?(self, supervisee, include_admin_managers)
   end
 
   def org_units_for_supervising(supervisee)

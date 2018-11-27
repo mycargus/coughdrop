@@ -307,7 +307,7 @@ CoughDrop.Badge = DS.Model.extend({
 
 CoughDrop.Badge.best_next_badge = function(badges, goal_id) {
   var res = null;
-  badges = badges.filter(function(b) { return !b.get('earned') && b.get('progress') > 0; });
+  badges = (badges || []).filter(function(b) { return !b.get('earned') && b.get('progress') > 0; });
   res = badges.find(function(b) { return b.get('goal_id') == goal_id; });
   if(!res) {
     badges = badges.sort(function(a, b) {

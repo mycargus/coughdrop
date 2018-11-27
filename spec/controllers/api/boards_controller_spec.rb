@@ -1048,7 +1048,7 @@ describe Api::BoardsController, :type => :controller do
         expect(new_b2.parent_board_id).to eq(b2.id)
         
         vs = Board.user_versions(new_b.global_id)
-        expect(vs.length).to eq(2)
+        expect(vs.length).to eq(3)
         vs2 = Board.user_versions(new_b2.global_id)
         expect(vs2.length).to eq(1)
         

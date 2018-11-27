@@ -878,4 +878,30 @@ context('Button', function() {
       expect(b.get('video')).toEqual(null);
     });
   });
+
+  describe('set_attribute', function() {
+    it('should set the attribute', function() {
+      var b = Button.create();
+      Button.set_attribute(b, 'a', 1);
+      expect(b.get('a')).toEqual(1);
+    });
+
+    it('should set an override level modification for any attribute set on a level', function() {
+      var b = Button.create();
+      b.set('level_modifications', {'2': {'a': 2}});
+      Button.set_attribute(b, 'a', 3);
+      expect(b.get('a')).toEqual(3)
+      expect(b.get('level_modifications.2.a')).toEqual(2);
+      expect(b.get('level_modifications.override.a')).toEqual(3);
+    });
+
+    it('should set an override level modification for any attribute set on pre', function() {
+      var b = Button.create();
+      b.set('level_modifications', {pre: {'a': 1}});
+      Button.set_attribute(b, 'a', 3);
+      expect(b.get('a')).toEqual(3)
+      expect(b.get('level_modifications.pre.a')).toEqual(1);
+      expect(b.get('level_modifications.override.a')).toEqual(3);
+    });
+  })
 });

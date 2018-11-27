@@ -45,7 +45,7 @@ module Purchasing
           data = {:purchase => true, :purchase_id => object['id'], :valid => !!valid}
         elsif event['type'] == 'charge.failed'
           valid = false
-          if object['customer']
+          if object['customer'] && object['customer'] != 'free'
             customer = Stripe::Customer.retrieve(object['customer'])
             valid = customer && customer['metadata'] && customer['metadata']['user_id']
 
@@ -104,9 +104,12 @@ module Purchasing
           if object['status'] == 'unpaid' || object['status'] == 'canceled'
             if previous && previous['status'] && previous['status'] != 'unpaid' && previous['status'] != 'canceled'
               if valid
+                reason = 'Monthly payment unpaid' if object['status'] == 'unpaid'
+                reason = 'Canceled by purchasing system' if object['status'] == 'canceled'
                 User.schedule(:subscription_event, {
                   'unsubscribe' => true,
                   'user_id' => customer['metadata'] && customer['metadata']['user_id'],
+                  'reason' => reason,
                   'customer_id' => object['customer'],
                   'subscription_id' => object['id'],
                   'cancel_others_on_update' => false,
@@ -135,6 +138,7 @@ module Purchasing
           if valid
             User.schedule(:subscription_event, {
               'unsubscribe' => true,
+              'reason' => 'Deleted by purchasing system',
               'user_id' => customer['metadata'] && customer['metadata']['user_id'],
               'customer_id' => object['customer'],
               'subscription_id' => object['id'],
@@ -393,7 +397,10 @@ module Purchasing
     add_token_summary(token)
     charge_type = false
     begin
-      customer = Stripe::Customer.retrieve(user.settings['subscription']['customer_id']) if user && user.settings['subscription'] && user.settings['subscription']['customer_id']
+      customer = nil
+      if user && user.settings['subscription'] && user.settings['subscription']['customer_id'] && user.settings['subscription']['customer_id'] != 'free'
+        customer = Stripe::Customer.retrieve(user.settings['subscription']['customer_id'])  rescue nil
+      end
       # TODO: this is disabled for now, it's cleaner to just send everyone through the same purchase workflow
       # but it would be an easier sale if customers didn't have to do this
       if token == 'none' && customer && customer['subscriptions'].to_a.any?{|s| s['status'] == 'active' || s['status'] == 'trialing' }
@@ -418,7 +425,7 @@ module Purchasing
           }
         })
         charge_type = 'immediate_purchase'
-        User.schedule(:purchase_extras, {
+        Worker.schedule_for(:priority, User, 'purchase_extras', {
           'user_id' => user.global_id,
           'purchase_id' => charge['id'],
           'customer_id' => charge['customer'],
@@ -668,12 +675,17 @@ module Purchasing
           end
         end
         if check_cancels
+          # Will only get here if there are no active subscriptions in purchasing system
           subs = cancels[cus_id] || []
           sub = subs[0]
           if sub
             canceled = Time.at(sub['canceled_at'])
             created = Time.at(customer['created'])
+            # If canceled in the last 6 months, track it for reporting
             if canceled > 6.months.ago
+              if user_active
+                problems << "#{user.global_id} marked as canceled, but looks like still active"
+              end 
               output "\tcanceled #{canceled.iso8601}, subscribed #{created.iso8601}, active #{user_active}" if canceled > 3.months.ago
               cancel_months[(canceled.year * 100) + canceled.month] ||= []
               cancel_months[(canceled.year * 100) + canceled.month] << (canceled - created) / 1.month.to_i
@@ -796,6 +808,10 @@ module Purchasing
         if sub['id'] == except_subscription_id && except_subscription_id != 'all'
         else
           begin
+            # record the details of the cancellation, if there are any
+            sub['metadata'] ||= {}
+            sub['metadata']['cancel_reason'] = except_subscription_id
+            sub.save
             sub.delete
             user.log_subscription_event({:log => 'subscription canceled', id: sub['id'], reason: except_subscription_id}) if user
           rescue => e

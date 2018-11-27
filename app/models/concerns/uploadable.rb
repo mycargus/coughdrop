@@ -141,9 +141,9 @@ module Uploadable
       file.write(Base64.strict_decode64(data))
     else
       self.settings['source_url'] = url
-      res = Typhoeus.get(URI.escape(url))
+      res = Typhoeus.get(Uploader.sanitize_url(URI.escape(url)))
       if res.headers['Location']
-        res = Typhoeus.get(URI.escape(res.headers['Location']))
+        res = Typhoeus.get(Uploader.sanitize_url(URI.escape(res.headers['Location'])))
       end
       # TODO: regex depending on self.file_type
       re = /^audio/

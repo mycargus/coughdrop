@@ -40,10 +40,22 @@ class ButtonImage < ActiveRecord::Base
   end
   
   def track_image_use_later
-    schedule(:track_image_use)
+    self.settings ||= {}
+    # Only public boards call back to opensymbols, to prevent private user information leakage
+    if !self.settings['suggestion'] && (self.settings['label'] || self.settings['search_term'])
+      Worker.schedule_for(:slow, ButtonImage, :perform_action, {
+        'id' => self.id,
+        'method' => 'track_image_use',
+        'arguments' => []
+      })
+    end
     if self.settings && self.settings['protected'] && !self.settings['fallback']
       if self.settings['button_label'] || self.settings['search_term']
-        schedule(:generate_fallback)
+        Worker.schedule_for(:slow, ButtonImage, :perform_action, {
+          'id' => self.id,
+          'method' => 'generate_fallback',
+          'arguments' => []
+        })
       end
     end
     true
@@ -52,8 +64,14 @@ class ButtonImage < ActiveRecord::Base
   def generate_fallback(force=false)
     if self.settings['protected'] && (!self.settings['fallback'] || force)
       term = self.settings['button_label'] || self.settings['search_term']
+      if !term
+        # fallback for legacy button images
+        bbi = BoardButtonImage.where(button_image_id: self.id).order('id').first
+        board = bbi && bbi.board
+        button = board.settings['buttons'].detect{|b| b['image_id'] == self.global_id}
+        term = button && button['label']
+      end
       if term
-        schedule(:generate_fallback)
         image = (Uploader.find_images(term, 'opensymbols', self.user) || [])[0]
         if image
           self.settings['fallback'] = image

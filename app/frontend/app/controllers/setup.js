@@ -228,7 +228,9 @@ export default Controller.extend({
       }
     }
     app_state.controller.set('setup_page', this.get('page'));
-    this.set('advanced', false);
+    if(this.get('page') != 'board_category') {
+      this.set('advanced', false);
+    }
     $('html,body').scrollTop(0);
   }.observes('page'),
   actions: {
@@ -274,7 +276,7 @@ export default Controller.extend({
     home: function(plus_video) {
       this.transitionToRoute('index');
       if(plus_video) {
-        modal.open('inline-video', {video: {type: 'youtube', id: "gsxfLVhUbus"}, hide_overlay: true});
+        modal.open('inline-video', {video: {type: 'youtube', id: "U1vBg36zVpg"}, hide_overlay: true});
         if(window.ga) {
           window.ga('send', 'event', 'Setup', 'video', 'Setup Video Launched');
         }

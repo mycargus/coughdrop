@@ -909,8 +909,11 @@ describe Purchasing do
       b = {'id' => '6789'}
       c = {'id' => '4567'}
       all = [a, b, c]
+      expect(a).to receive(:save)
       expect(a).to receive(:delete)
+      expect(b).to receive(:save)
       expect(b).to receive(:delete)
+      expect(c).to receive(:save)
       expect(c).to receive(:delete)
       expect(Stripe::Customer).to receive(:retrieve).with('2345').and_return(OpenStruct.new({
         subscriptions: OpenStruct.new({all: all})
@@ -988,7 +991,9 @@ describe Purchasing do
       b = {'id' => '6789'}
       c = {'id' => '4567', 'status' => 'active'}
       all = [a, b, c]
+      expect(a).to receive(:save)
       expect(a).to receive(:delete)
+      expect(b).to receive(:save)
       expect(b).to receive(:delete)
       expect(c).not_to receive(:delete)
       expect(Stripe::Customer).to receive(:retrieve).with('2345').and_return(OpenStruct.new({
@@ -1004,8 +1009,11 @@ describe Purchasing do
       a = {'id' => '3456'}
       b = {'id' => '6789'}
       c = {'id' => '4567', 'status' => 'active'}
+      expect(a).to receive(:save)
       expect(a).to receive(:delete)
+      expect(b).to receive(:save)
       expect(b).to receive(:delete)
+      expect(c).to receive(:save)
       expect(c).to receive(:delete)
       expect(Stripe::Customer).to receive(:retrieve).with('2345').and_return(OpenStruct.new({
         subscriptions: OpenStruct.new({all: [a]})
@@ -1026,7 +1034,9 @@ describe Purchasing do
       a = {'id' => '3456'}
       b = {'id' => '6789'}
       c = {'id' => '4567', 'status' => 'active'}
+      expect(a).to receive(:save)
       expect(a).to receive(:delete)
+      expect(b).to receive(:save)
       expect(b).to receive(:delete)
       expect(c).not_to receive(:delete)
       expect(Stripe::Customer).to receive(:retrieve).with('2345').and_return(OpenStruct.new({
@@ -1049,7 +1059,9 @@ describe Purchasing do
       b = {'id' => '6789'}
       c = {'id' => '4567', 'status' => 'active'}
       all = [a, b, c]
+      expect(a).to receive(:save)
       expect(a).to receive(:delete)
+      expect(b).to receive(:save)
       expect(b).to receive(:delete)
       expect(c).not_to receive(:delete)
       expect(Stripe::Customer).to receive(:retrieve).with('2345').and_return(OpenStruct.new({
@@ -1099,6 +1111,7 @@ describe Purchasing do
       b = {'id' => '4567'}
       all = [a, b]
       subscr = OpenStruct.new
+      expect(b).to receive(:save)
       expect(b).to receive(:delete).and_raise('yipe')
       expect(Stripe::Customer).to receive(:retrieve).with('3456').and_return(OpenStruct.new({
         subscriptions: OpenStruct.new({all: all})
@@ -1166,6 +1179,32 @@ describe Purchasing do
       }).and_return({'id' => '1234', 'customer' => '4567'})
       res = Purchasing.purchase_extras({'id' => 'token'}, {'user_id' => u.global_id})
       expect(res).to eq({success: true, charge: 'immediate_purchase'})
+    end
+
+    it 'should update user on purchase' do
+      u = User.create
+      expect(Stripe::Charge).to receive(:create).with({
+        :amount => 2500,
+        :currency => 'usd',
+        :source => 'token',
+        :customer => nil,
+        :receipt_email => u.settings['email'],
+        :description => "CoughDrop premium symbols access",
+        :metadata => {
+          'user_id' => u.global_id,
+          'type' => 'extras'
+        }
+      }).and_return({'id' => '1234', 'customer' => '4567'})
+      res = Purchasing.purchase_extras({'id' => 'token'}, {'user_id' => u.global_id})
+      expect(res).to eq({success: true, charge: 'immediate_purchase'})
+      expect(User).to receive(:purchase_extras).with({
+        'user_id' => u.global_id,
+        'purchase_id' => '1234',
+        'customer_id' => '4567',
+        'source' => 'purchase.standalone',
+        'notify' => true
+      })
+      Worker.process_queues
     end
 
     it 'should create a new charge by default' do

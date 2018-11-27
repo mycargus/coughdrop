@@ -40,6 +40,12 @@ class SubscriptionMailer < ActionMailer::Base
       mail(to: ENV['NEW_REGISTRATION_EMAIL'], subject: subj)
     end
   end
+
+  def unsubscribe_reason(user_id, reason=nil)
+    @user = User.find_by_global_id(user_id)
+    @reason = @user.settings['subscription']['unsubscribe_reason'] || reason
+    mail(to: ENV['SYSTEM_ERROR_EMAIL'], subject: "CoughDrop - User Unsubscribed")
+  end
   
   def subscription_resume_failed(user_id)
     @user = User.find_by_global_id(user_id)

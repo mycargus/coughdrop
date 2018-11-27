@@ -35,9 +35,10 @@ class User < ActiveRecord::Base
   # - a supervisor is added or removed
   add_permissions('view_existence', ['*']) { true } # anyone can get basic information
   add_permissions('view_existence', 'view_detailed', 'view_deleted_boards', 'view_word_map', ['*']) {|user| user.id == self.id }
-  add_permissions('view_existence', 'view_detailed', 'supervise', 'edit', 'manage_supervision', 'delete', 'view_deleted_boards') {|user| user.id == self.id }
+  add_permissions('view_existence', 'view_detailed', 'supervise', 'edit', 'edit_boards', 'manage_supervision', 'delete', 'view_deleted_boards') {|user| user.id == self.id }
   add_permissions('view_existence', 'view_detailed', ['*']) { self.settings && self.settings['public'] == true }
-  add_permissions('edit', 'manage_supervision', 'view_deleted_boards') {|user| user.edit_permission_for?(self) }
+  add_permissions('edit', 'manage_supervision', 'view_deleted_boards') {|user| user.edit_permission_for?(self, true) }
+  add_permissions('edit', 'edit_boards', 'manage_supervision', 'view_deleted_boards') {|user| user.edit_permission_for?(self, false) }
   add_permissions('view_existence', 'view_detailed', 'supervise', 'view_deleted_boards') {|user| user.supervisor_for?(self) }
   add_permissions('manage_supervision', 'support_actions') {|user| Organization.manager_for?(user, self) }
   add_permissions('admin_support_actions', 'support_actions', 'view_deleted_boards') {|user| Organization.admin_manager?(user) }
@@ -479,7 +480,8 @@ class User < ActiveRecord::Base
       'require_speak_mode_pin', 'speak_mode_pin', 'activation_minimum',
       'activation_location', 'activation_cutoff', 'activation_on_start', 
       'confirm_external_links', 'external_links', 'long_press_edit', 'scanning', 'scanning_interval',
-      'scanning_mode', 'scanning_select_keycode', 'scanning_next_keycode',
+      'scanning_mode', 'scanning_select_keycode', 'scanning_next_keycode', 
+      'scanning_prev_keycode', 'scanning_cancel_keycode',
       'scanning_select_on_any_event', 'vocalize_linked_buttons', 'sidebar_boards',
       'silence_spelling_buttons', 'stretch_buttons', 'registration_type',
       'board_background', 'vocalization_height', 'role', 'auto_open_speak_mode',
@@ -848,14 +850,21 @@ class User < ActiveRecord::Base
     true
   end
 
-  def enabled_protected_sources
-    res = get_cached('protected_sources')
+  def enabled_protected_sources(include_supervisees=false)
+    cache_key = "protected_sources/#{include_supervisees}"
+    res = get_cached(cache_key)
     return res if res
     self.settings ||= {}
     res = []
     res << 'lessonpix' if self && Uploader.lessonpix_credentials(self)
     res << 'pcs' if self && self.subscription_hash['extras_enabled']
-    set_cached('protected_sources', res)
+    if include_supervisees
+      self.supervisees.each do |u| 
+        res += u.enabled_protected_sources 
+      end
+    end
+    res = res.uniq
+    set_cached(cache_key, res)
     res
   end
   
@@ -1057,6 +1066,8 @@ class User < ActiveRecord::Base
     Board.replace_board_for(self, {:starting_old_board => starting_old_board, :starting_new_board => starting_new_board, :valid_ids => valid_ids, :update_inline => update_inline, :make_public => make_public, :authorized_user => User.whodunnit_user(PaperTrail.whodunnit)})
     ids = [starting_old_board_id]
     ids += (starting_old_board.reload.settings['downstream_board_ids'] || []) if starting_old_board
+    # This was happening too slowly/unreliably in a separate bg job
+    button_set = BoardDownstreamButtonSet.update_for(starting_new_board.global_id, true)
     {'affected_board_ids' => ids.uniq}
   ensure
     PaperTrail.whodunnit = prior
@@ -1097,6 +1108,8 @@ class User < ActiveRecord::Base
       starting_new_board.swap_images(swap_library, self, ids)
       res['swap_library'] = swap_library
     end
+    # This was happening too slowly/unreliably in a separate bg job
+    button_set = BoardDownstreamButtonSet.update_for(starting_new_board.global_id, true)
     res
   ensure
     PaperTrail.whodunnit = prior

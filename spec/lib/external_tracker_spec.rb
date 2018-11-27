@@ -79,7 +79,7 @@ describe ExternalTracker do
         'city' => 'Sandy',
         'region_name' => 'Utah'
       }
-     expect(Typhoeus).to receive(:get).with('http://freegeoip.net/json/1.2.3.4').and_return(OpenStruct.new(body: geo.to_json))
+     expect(Typhoeus).to receive(:get).with("http://api.ipstack.com/1.2.3.4?access_key=#{ENV['IPSTACK_KEY']}").and_return(OpenStruct.new(body: geo.to_json))
       expect(Typhoeus).to receive(:post).with("https://api.hubapi.com/contacts/v1/contact/?hapikey=hubby", {
         body: {properties: [
           {property: 'email', value: 'testing@example.com' },
@@ -108,7 +108,7 @@ describe ExternalTracker do
         'city' => 'Sandy',
         'region_name' => 'Utah'
       }
-     expect(Typhoeus).to receive(:get).with('http://freegeoip.net/json/1.2.3.4').and_return(OpenStruct.new(body: geo.to_json))
+     expect(Typhoeus).to receive(:get).with("http://api.ipstack.com/1.2.3.4?access_key=#{ENV['IPSTACK_KEY']}").and_return(OpenStruct.new(body: geo.to_json))
       expect(Typhoeus).to receive(:post).with("https://api.hubapi.com/contacts/v1/contact/?hapikey=hubby", {
         body: {properties: [
           {property: 'email', value: 'testing@example.com' },

@@ -282,7 +282,9 @@ CoughDrop.keyed_colors = [
   {fill: "#faa", color: i18n.t('red', "Red"), hint: i18n.t('negations', "negations"), types: ['negation', 'expletive', 'interjection']},
   {fill: "#fac", color: i18n.t('pink', "Pink"), hint: i18n.t('social_words', "social words"), types: ['preposition']},
   {fill: "#ca8", color: i18n.t('brown', "Brown"), hint: i18n.t('adverbs', "adverbs"), types: ['adverb']},
-  {fill: "#ccc", color: i18n.t('gray', "Gray"), hint: i18n.t('determiners', "determiners"), types: ['article', 'determiner']}
+  {fill: "#ccc", color: i18n.t('gray', "Gray"), hint: i18n.t('determiners', "determiners"), types: ['article', 'determiner']},
+  {fill: 'rgb(115, 204, 255)', color: i18n.t('bluish', "Bluish"), hint: i18n.t('other', "other"), types: []},
+  {fill: "#000", color: i18n.t('black', "Black"), hint: i18n.t('contrast', "contrast"), types: []}
 ];
 
 CoughDrop.licenseOptions.license_url = function(id) {

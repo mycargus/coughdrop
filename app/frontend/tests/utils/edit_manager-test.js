@@ -1908,6 +1908,42 @@ describe('editManager', function() {
         translations: [{245: {}}]
       });
     });
+
+    it('should handle level modifications', function() {
+      expect('test').toEqual('todo');
+      // for(var ref_key in mods.pre) {
+      //   var found_change = false;
+      //   for(var level in mods) {
+      //     if(level != 'pre' && mods[level][ref_key] != undefined && mods[level][ref_key] != mods.pre[ref_key]) {
+      //       found_change = true;
+      //     }
+      //   }
+      //   if(!found_change) {
+      //     newButton[ref_key] = mods.pre[ref_key];
+      //     delete mods.pre[ref_key];
+      //   }
+      // }
+    });
+
+    it('should clear level modifications for none level_style', function() {
+      expect('test').toEqual('todo');
+    });
+
+    it('should parse JSON for advanced level_style', function() {
+      expect('test').toEqual('todo');
+    });
+    
+    it('should clear and apply level modifications attributes that are only set on pre', function() {
+      expect('test').toEqual('todo');
+    });
+
+    it('should clear and apply level modifications attributes that are only set on override', function() {
+      expect('test').toEqual('todo');
+    });
+
+    it('should clear and apply level modifications that match for every level they are set on', function() {
+      expect('test').toEqual('todo');
+    });
   });
 
   describe("process_for_displaying", function() {

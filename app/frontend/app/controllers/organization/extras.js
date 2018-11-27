@@ -85,7 +85,9 @@ export default Controller.extend({
         gift.set('discount', amount);
         gift.set('organization', this.get('org'));
         gift.set('email', this.get('email'));
-        gift.set('expires', window.moment(this.get('expires'))._d);
+        if(this.get('expires') && this.get('expires').length > 0) {
+          gift.set('expires', window.moment(this.get('expires'))._d);
+        }
         gift.set('code', this.get('code'));
         gift.set('limit', this.get('limit'));
       } else {

@@ -162,7 +162,7 @@
                 <span class='sr-only'>{{t "modeled event" key='modeled_event'}}</span>
               {{/if}}
               <span class={{if event.button_type '' 'text-muted'}}>
-                <span class={{if event.spoken '' 'text-muted'}}>
+                <span class={{if event.spoken 'spoken_log_event' 'text-muted'}}>
                   {{event.processed_summary}}
                 </span>
               </span>

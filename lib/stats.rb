@@ -5,17 +5,15 @@ module Stats
   def self.cached_daily_use(user_id, options)
     user = User.find_by_global_id(user_id)
     if !user || WeeklyStatsSummary.where(:user_id => user.id).count == 0
-      sanitize_find_options!(options, user) if user.eval_account?
+      Stats.sanitize_find_options!(options, user) if user.eval_account?
       return daily_use(user_id, options)
     end
-    sanitize_find_options!(options, user)
+    Stats.sanitize_find_options!(options, user)
     week_start = options[:start_at].utc.beginning_of_week(:sunday)
     week_end = options[:end_at].utc.end_of_week(:sunday)
     start_weekyear = WeeklyStatsSummary.date_to_weekyear(week_start)
     end_weekyear = WeeklyStatsSummary.date_to_weekyear(week_end)
     summaries = WeeklyStatsSummary.where(['user_id = ? AND weekyear >= ? AND weekyear <= ?', user.id, start_weekyear, end_weekyear])
-    summary_lookups = {}
-    summaries.each{|s| summary_lookups[s.weekyear] = s }
 
     days = {}
     all_stats = []
@@ -45,9 +43,9 @@ module Stats
             filtered_day_stats = [Stats.stats_counts([])]
           end
           all_stats += filtered_day_stats
-          days[date.to_s] = usage_stats(filtered_day_stats)
+          days[date.to_s] = Stats.usage_stats(filtered_day_stats)
         end
-        track_word_development(word_development, summary, options[:start_at], date_distance)
+        Stats.track_word_development(word_development, summary, options[:start_at], date_distance)
         weekyear_dates.delete(summary.weekyear)
       end
     end
@@ -835,47 +833,14 @@ module Stats
       'button_chains' => {}
     }
     sessions.each do |session|
-      current_chain = []
-      last_timestamp = nil
-      last_button_id = nil
-      session.data['events'].each do |event|
-        if event['type'] == 'button'
-          button = event['button']
-          if !event['modeling'] && button
-            button_text = LogSession.event_text(event)
-
-            if button_text && button_text.length > 0 && (event['button']['spoken'] || event['button']['for_speaking'])
-              button_key = "#{button['board']['id']}:#{button['button_id']}"
-              res['button_ids'] << button_key
-              
-              # If less than 2 minutes since the last hit, let's add it to the button sequence,
-              # and we'll go ahead and stop counting if it's the same button multiple times
-              if (!last_button_id || last_button_id != button_key) && (!last_timestamp || (event['timestamp'] - last_timestamp) < (2 * 60))
-                current_chain << button_text
-                if current_chain.length >= 3
-                  sequence = current_chain[-3, 3]
-                  sequence_key = sequence.join(', ')
-                  res['button_chains'][sequence_key] = (res['button_chains'][sequence_key] || 0) + 1
-                  if current_chain.length >= 4
-                    sequence = current_chain[-4, 4]
-                    sequence_key = sequence.join(', ')
-                    res['button_chains'][sequence_key] = (res['button_chains'][sequence_key] || 0) + 1
-                  end
-                end
-              end
-              last_timestamp = event['timestamp']
-              last_button_id = button_key
-            end
-          else
-            last_timestamp = nil
-            last_button_id = nil
-            current_chain = []
-          end
-        elsif event['type'] == 'utterance' || (event['type'] == 'action' && event['action']['action'] == 'clear')
-          last_timestamp = nil
-          last_button_id = nil
-          current_chain = []
-        end
+      if !session.data['stats']['buttons_used']
+        session.assert_extra_data
+        session.generate_stats
+      end
+      buttons_used = session.data['stats']['buttons_used'] || {}
+      res['button_ids'] += buttons_used['button_ids'] || []
+      (buttons_used['button_chains'] || {}).each do |seq, cnt|
+        res['button_chains'][seq] = (res['button_chains'][seq] || 0) + cnt
       end
     end
     res
@@ -1097,83 +1062,33 @@ module Stats
       :parts_of_speech => {},
       :modeled_parts_of_speech => {},
       :core_words => {},
-      :modeled_core_words => {}
+      :modeled_core_words => {},
+      :parts_of_speech_combinations => {}
     }
-    parts = {}
-    modeled_parts = {}
-    core_words = {}
-    modeled_core_words = {}
     sequences = {}
     sessions.each do |session|
-      ['parts_of_speech', 'core_words', 'modeled_parts_of_speech', 'modeled_core_words'].each do |key|
+      ['parts_of_speech', 'core_words', 'modeled_parts_of_speech', 'modeled_core_words', 'parts_of_speech_combinations'].each do |key|
         (session.data['stats'][key] || {}).each do |part, cnt|
           res[key.to_sym][part] ||= 0
           res[key.to_sym][part] += cnt
         end
       end
-      
-      prior_parts = []
-      session.data['events'].each do |event|
-        if event['type'] == 'action' && event['action'] == 'clear'
-          prior_parts = []
-        elsif event['type'] == 'utterance'
-          prior_parts = []
-        elsif event['modified_by_next']
-        else
-          if event['parts_of_speech'] && event['parts_of_speech']['types']
-            current_part = event['parts_of_speech']
-            if prior_parts[-1] && prior_parts[-1]['types'] && prior_parts[-2] && prior_parts[-2]['types']
-              from_from = prior_parts[-2]['types'][0]
-              from = prior_parts[-1]['types'][0]
-              to = current_part['types'][0]
-              sequences[from_from + "," + from + "," + to] ||= 0
-              sequences[from_from + "," + from + "," + to] += 1
-              sequences[from_from + "," + from] -= 1 if sequences[from_from + "," + from]
-              sequences.delete(from_from + "," + from) if sequences[from_from + "," + from] == 0
-              sequences[from + "," + to] ||= 0
-              sequences[from + "," + to] += 1
-            elsif prior_parts[-1] && prior_parts[-1]['types']
-              from = prior_parts[-1]['types'][0]
-              to = current_part['types'][0]
-              sequences[from + "," + to] ||= 0
-              sequences[from + "," + to] += 1
-            end
-          end
-          prior_parts << event['parts_of_speech']
-        end
-      end
     end
-    res[:parts_of_speech_combinations] = sequences
     res
   end
   
   def self.word_pairs(sessions)
-    valid_words = WordData.standardized_words
     pairs = {}
     sessions.each do |session|
-      last_button_event = nil
-      session.data['events'].each do |event|
-        if event['type'] == 'button'
-          text = LogSession.event_text(event)
-          if text && text.length > 0 && (event['button']['spoken'] || event['button']['for_speaking'])
-            if last_button_event
-              last_text = LogSession.event_text(last_button_event)
-              if valid_words[text.downcase] && last_text && valid_words[last_text.downcase]
-                if (event['timestamp'] || 0) - (last_button_event['timestamp'] || 0) < 5.minutes.to_i
-                  if last_text.downcase.strip != text.downcase.strip
-                    hash = Digest::MD5.hexdigest(text + "::" + last_text)
-                    pairs[hash] ||= {
-                      'a' => last_text.downcase,
-                      'b' => text.downcase,
-                      'count' => 0
-                    }
-                    pairs[hash]['count'] += 1
-                  end
-                end
-              end
-            end
-            last_button_event = event
-          end
+      if !session.data['stats']['word_pairs']
+        session.assert_extra_data
+        session.generate_stats
+      end
+      (session.data['stats']['word_pairs'] || []).each do |key, hash|
+        if pairs[key]
+          pairs[key]['count'] += hash['count']
+        else
+          pairs[key] = hash
         end
       end
     end
@@ -1201,16 +1116,17 @@ module Stats
     timed_blocks = {}
     modeled_timed_blocks = {}
     sessions.each do |session|
-      (session.data['events'] || []).each do |event|
-        next unless event['timestamp']
-        timed_block = event['timestamp'].to_i / 15
-        if event['modeling']
-          modeled_timed_blocks[timed_block] ||= 0
-          modeled_timed_blocks[timed_block] += 1
-        else
-          timed_blocks[timed_block] ||= 0
-          timed_blocks[timed_block] += 1
-        end
+      if !session.data['stats']['time_blocks']
+        session.assert_extra_data
+        session.generate_stats
+      end
+      (session.data['stats']['time_blocks'] || []).each do |block, cnt|
+        timed_blocks[block.to_i] ||= 0
+        timed_blocks[block.to_i] += cnt
+      end
+      (session.data['stats']['modeled_time_blocks'] || []).each do |block, cnt|
+        modeled_timed_blocks[block.to_i] ||= 0
+        modeled_timed_blocks[block.to_i] += cnt
       end
     end
     {:timed_blocks => timed_blocks, :max_time_block => timed_blocks.map(&:last).max, :modeled_timed_blocks => modeled_timed_blocks, :max_modeled_timed_block => modeled_timed_blocks.map(&:last).max }
@@ -1315,6 +1231,7 @@ module Stats
   def self.lam_entries(session)
     lines = []
     date = nil
+    session.assert_extra_data
     (session.data['events'] || []).each do |event|
       # TODO: timezones
       time = Time.at(event['timestamp'])
@@ -1347,11 +1264,12 @@ module Stats
     sessions.find_in_batches(:batch_size => 10) do |batch|
       idx += 1
       batch.each do |log|
-        (log.data['events'] || []).each do |event|
-          if event['type'] == 'button' && event['button'] && event['button']['board']
-            key = event['button']['board']['key']
-            keys[key] = (keys[key] || 0) + 1
-          end
+        if !log.data['stats']['board_keys']
+          log.assert_extra_data
+          log.generate_stats
+        end
+        (log.data['stats']['board_keys']).each do |key, cnt|
+          keys[key] = (keys[key] || 0) + cnt
         end
       end
     end

@@ -94,7 +94,7 @@ var session = EmberObject.extend({
     }).then(function(data) {
       if(data.authenticated === false) {
         session.set('invalid_token', true);
-        if(allow_invalidate) {
+        if(allow_invalidate && store_data.access_token) {
           session.force_logout(i18n.t('session_token_invalid', "This session is no longer valid, please log back in"));
         }
       } else {
@@ -159,7 +159,13 @@ var session = EmberObject.extend({
     } else if(!store_data.access_token) {
       // This should not run until stashes.db_connect has completed, so stashes has its
       // best chance to be populated.
-      session.force_logout(i18n.t('session_lost', "Session data has been lost, please log back in"));
+      var any_proof_of_existing_login = Object.keys(store_data).length > 0;
+      any_proof_of_existing_login = any_proof_of_existing_login || stashes.get_db_id() || (window.kvstash && window.kvstash.values && window.kvstash.user_name); 
+      if(any_proof_of_existing_login) {
+        session.force_logout(i18n.t('session_lost', "Session data has been lost, please log back in"));
+      } else {
+        session.invalidate();
+      }
     }
     if(force_check_for_token || (persistence.tokens[key] == null && !Ember.testing && persistence.get('online'))) {
       if(store_data.access_token || force_check_for_token) { // || !persistence.get('browserToken')) {
@@ -204,7 +210,7 @@ var session = EmberObject.extend({
     }
   },
   force_logout: function(message) {
-    var full_invalidate = !!(app_state.get('currentUser') || stashes.get_object('auth_settings', true) || session.auth_settings_fallback());
+    var full_invalidate = true;//!!(app_state.get('currentUser') || stashes.get_object('auth_settings', true) || session.auth_settings_fallback());
     if(full_invalidate) {
       if(!modal.route) {
         session.alert(message);
