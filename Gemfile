@@ -15,7 +15,7 @@ group :development, :test do
 end
 
 gem 'rails', '5.0'
-gem 'pg'
+gem 'pg', '>=1.1.3'
 gem 'sass-rails'
 gem 'uglifier', '>= 1.3.0'
 
