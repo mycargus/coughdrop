@@ -77,9 +77,10 @@ module ExtraData
   end
 
   def extra_data_too_big?
+    return false unless ENV['REMOTE_EXTRA_DATA']
     if self.is_a?(LogSession)
       user = self.user
-      if user && user.settings['extra_data_test'] && self.data['events'] && self.data['events'].length > 5
+      if self.data['events'] && self.data['events'].length > 5
         return true
       end
     end
