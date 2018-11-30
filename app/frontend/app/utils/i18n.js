@@ -5,8 +5,14 @@ import { htmlSafe } from '@ember/string';
 import { assign as emberAssign } from '@ember/polyfills';
 Ember.templateHelpers = Ember.templateHelpers || {};
 Ember.templateHelpers.date = function(date, precision) {
+  var now = new Date();
   if(arguments.length == 1) {
-    date = new Date();
+    date = now;
+  }
+  if(typeof date == 'number') {
+    if(date * 1000 < now.getTime()) {
+      date = date * 1000;
+    }
   }
   var moment = window.moment(date);
   if(precision == 'day') {

@@ -119,6 +119,10 @@ describe("i18n", function() {
       expect(str).toEqual("5 minutes ago");
     });
 
+    it("should handle date helper with js and ruby timestamps", function() {
+      expect('test').toEqual('todo');
+    });
+
     it("should handle t (translation)", function() {
       var str = Ember.templateHelpers.t("happiness", {});
       expect(str.string).toEqual("happiness");
@@ -163,6 +167,7 @@ describe("i18n", function() {
       str = Ember.templateHelpers.duration(3923);
       expect(str).toEqual("1:05:23");
     });
+
   });
 
   describe("t", function() {
