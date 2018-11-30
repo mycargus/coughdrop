@@ -49,7 +49,16 @@ export default Controller.extend({
         modal.error(i18n.t('error_adding_user', "There was an unexpected error while trying to add the user"));
       });
     },
-    delete_unit_user: function(unit, user_type, user_id) {
+    delete_unit_user: function(unit, user_type, user_id, decision) {
+      if(!decision) {
+        var _this = this;
+        modal.open('modals/confirm-org-action', {action: 'remove_unit_user', unit_user_name: user_id}).then(function(res) {
+          if(res.confirmed) {
+            _this.send('delete_unit_user', unit, user_type, user_id, true);
+          }
+        });
+        return;
+      }
       var unit = this.get('model');
       var action = 'remove_' + user_type + '-' + user_id;
       unit.set('management_action', action);

@@ -244,11 +244,19 @@ export default Controller.extend({
         }
       });
     },
-    management_action: function(action, user_name) {
+    management_action: function(action, user_name, decision) {
       var model = this.get('model');
       var _this = this;
       _this.set('missing_user_name', null);
       var cleanup = function() { };
+      if(action && action.match(/remove/) && !decision) {
+        modal.open('modals/confirm-org-action', {action: action, user_name: user_name}).then(function(res) {
+          if(res && res.confirmed) {
+            _this.send('management_action', action, user_name, true);
+          }
+        });
+        return;
+      }
       if(!user_name) {
         if(action == 'add_manager' || action == 'add_assistant') {
           user_name = this.get('manager_user_name');
@@ -316,8 +324,16 @@ export default Controller.extend({
         });
       }
     },
-    remove_org: function(org) {
+    remove_org: function(org, decision) {
       var _this = this;
+      if(!decision) {
+        modal.open('modals/confirm-org-action', {action: 'remove_org', org_name: org.get('name')}).then(function(res) {
+          if(res && res.confirmed) {
+            _this.send('remove_org', org, true);
+          }
+        });
+        return;
+      }
       if(this.get('model.admin') && this.get('model.permissions.manage')) {
         org.deleteRecord();
         org.save().then(function() {
