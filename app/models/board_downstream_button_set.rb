@@ -68,7 +68,7 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
       # If brd.data['source_id'] is defined, that means we got
       # to a dead end, so we should probably schedule .update_for
       if brd.data['source_id'] && self.data['dead_end_source_id'] != brd.data['source_id']
-        self.schedule_once(:update_for, self.related_global_id(self.board_id))
+        self.class.schedule_once(:update_for, self.related_global_id(self.board_id))
         self.data['dead_end_source_id'] = brd.data['source_id']
         self.save
       end
