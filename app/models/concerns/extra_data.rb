@@ -108,7 +108,7 @@ module ExtraData
 
   def clear_extra_data
     if self.data && self.data['extra_data_nonce']
-      self.class.schedule(:clear_extra_data, self.data['extra_data_nonce'], self.global_id, self.data['extra_data_version'])
+      self.class.schedule(:clear_extra_data, self.data['extra_data_nonce'], self.global_id, self.data['extra_data_version'] || 0)
     end
     true
   end

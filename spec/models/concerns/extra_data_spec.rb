@@ -205,7 +205,7 @@ describe ExtraData, :type => :model do
       d = Device.create(user: u)
       s = LogSession.create(data: {'extra_data_nonce' => 'whatever'}, user: u, author: u, device: d)
       s.clear_extra_data
-      expect(Worker.scheduled?(LogSession, :perform_action, {'method' => 'clear_extra_data', 'arguments' => ['whatever', s.global_id]})).to eq(true)
+      expect(Worker.scheduled?(LogSession, :perform_action, {'method' => 'clear_extra_data', 'arguments' => ['whatever', s.global_id, 0]})).to eq(true)
     end
 
     it 'should not schedule clearing if no nonce is set' do
@@ -217,10 +217,10 @@ describe ExtraData, :type => :model do
     end
 
     it 'should clear public and private URLs' do
-      expect(LogSession).to receive(:extra_data_remote_paths).with('nonce', 'global_id').and_return(['a', 'b'])
+      expect(LogSession).to receive(:extra_data_remote_paths).with('nonce', 'global_id', 1).and_return(['a', 'b'])
       expect(Uploader).to receive(:remote_remove).with('a')
       expect(Uploader).to receive(:remote_remove).with('b')
-      LogSession.clear_extra_data('nonce', 'global_id')
+      LogSession.clear_extra_data('nonce', 'global_id', 1)
     end
   end
 
@@ -228,6 +228,12 @@ describe ExtraData, :type => :model do
     it 'should return the correct paths' do
       private_key = GoSecure.hmac('nonce', 'extra_data_private_key', 1)
       expect(LogSession.extra_data_remote_paths('nonce', 'global_id')).to eq(
+        [
+          "extras/LogSession/global_id/nonce/data-#{private_key}.json",
+          "extras/LogSession/global_id/nonce/data-global_id.json"
+        ]
+      )
+      expect(LogSession.extra_data_remote_paths('nonce', 'global_id', 0)).to eq(
         [
           "/extras/LogSession/global_id/nonce/data-#{private_key}.json",
           "/extras/LogSession/global_id/nonce/data-global_id.json"
