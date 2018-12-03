@@ -9,7 +9,7 @@ module ExtraData
       return true
     end
     raise "extra_data_attribute not defined" unless self.extra_data_attribute
-    if self.data['extra_data_nonce'] && !self.data[extra_data_attribute]
+    if self.data['extra_data_nonce'] && !self.data[self.extra_data_attribute]
       self.assert_extra_data
     end
     # figure out a quick check to see if it's small enough to ignore
@@ -20,7 +20,8 @@ module ExtraData
       # for logs, pull out self.data['events']
       extra_data = self.data[extra_data_attribute]
 
-      private_path, public_path = self.class.extra_data_remote_paths(self.data['extra_data_nonce'], self.global_id)
+      extra_data_version = 1
+      private_path, public_path = self.class.extra_data_remote_paths(self.data['extra_data_nonce'], self.global_id, extra_data_version)
       public_extra_data = extra_data && self.class.extra_data_public_transform(extra_data)
       if public_extra_data
         self.data['extra_data_public'] = true
@@ -35,6 +36,7 @@ module ExtraData
       file.close
       Uploader.remote_upload(private_path, file.path, 'text/json')
       # persist the nonce and the url, remove the big-data attribute
+      self.data['extra_data_version'] = extra_data_version
       self.data.delete(extra_data_attribute)
       @skip_extra_data_update = true
       self.save
@@ -55,14 +57,14 @@ module ExtraData
 
   def extra_data_public_url
     return nil unless self.data && self.data['extra_data_nonce'] && self.data['extra_data_public']
-    path = self.class.extra_data_remote_paths(self.data['extra_data_nonce'], self.global_id)[1]
+    path = self.class.extra_data_remote_paths(self.data['extra_data_nonce'], self.global_id, self.data['extra_data_version'] || 0)[1]
     "#{ENV['UPLOADS_S3_CDN']}/#{path}"
   end
 
   def extra_data_private_url
     return nil unless self.data && self.data['extra_data_nonce']
-    path = self.class.extra_data_remote_paths(self.data['extra_data_nonce'], self.global_id)[0]
-    "#{ENV['UPLOADS_S3_CDN']}/#{path}"
+    path = self.class.extra_data_remote_paths(self.data['extra_data_nonce'], self.global_id, self.data['extra_data_version'] || 0)[0]
+    "https://s3.amazonaws.com/#{ENV['UPLOADS_S3_BUCKET']}/#{path}"
   end
 
   def skip_extra_data_processing?
@@ -70,7 +72,7 @@ module ExtraData
     # but doesn't have the data locally
     if @skip_extra_data_update
       return true
-    elsif self.data && self.data['extra_data_nonce']
+    elsif self.data && !self.data[extra_data_attribute] && self.data['extra_data_nonce']
       return true
     end
     false
@@ -106,7 +108,7 @@ module ExtraData
 
   def clear_extra_data
     if self.data && self.data['extra_data_nonce']
-      self.class.schedule(:clear_extra_data, self.data['extra_data_nonce'], self.global_id)
+      self.class.schedule(:clear_extra_data, self.data['extra_data_nonce'], self.global_id, self.data['extra_data_version'])
     end
     true
   end
@@ -127,16 +129,17 @@ module ExtraData
       nil
     end
   
-    def extra_data_remote_paths(nonce, global_id)
+    def extra_data_remote_paths(nonce, global_id, version=1)
       private_key = GoSecure.hmac(nonce, 'extra_data_private_key', 1)
-      dir = "/extras/#{self.to_s}/#{global_id}/#{nonce}/"
+      dir = "extras/#{self.to_s}/#{global_id}/#{nonce}/"
+      dir = "/" + dir if version==0
       public_path = dir + "data-#{global_id}.json"
       private_path = dir + "data-#{private_key}.json"
       [private_path, public_path]
     end
 
-    def clear_extra_data(nonce, global_id)
-      private_path, public_path = extra_data_remote_paths(nonce, global_id)
+    def clear_extra_data(nonce, global_id, version)
+      private_path, public_path = extra_data_remote_paths(nonce, global_id, version)
       Uploader.remote_remove(private_path)
       Uploader.remote_remove(public_path)
       # remove them both
