@@ -329,14 +329,17 @@ class ClusterLocation < ActiveRecord::Base
     end
     res['geo'] = self.median_geo(geos)
     ips = events.map{|e| e['ip_address'] }.compact
+    ips = ips.map{|ip| ip.split(/,/) }.flatten.map(&:strip)
     max_ip, list = ips.group_by{|ip| ip}.max_by{|a, b| b.length }
     readable_ip = nil
     if max_ip
       # canonicalize ip address
-      ip = IPAddr.new(max_ip)
-      readable_ip = ip.to_s
-      ip = ip.ipv4_mapped if ip.ipv4?
-      max_ip = ip.to_string
+      ip = IPAddr.new(max_ip) rescue nil
+      if ip
+        readable_ip = ip.to_s
+        ip = ip.ipv4_mapped if ip.ipv4?
+        max_ip = ip.to_string
+      end
     end
     res['readable_ip_address'] = readable_ip
     res['ip_address'] = max_ip
