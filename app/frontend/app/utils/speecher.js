@@ -739,8 +739,7 @@ var speecher = EmberObject.extend({
     if(type == 'text' || type == 'all') {
       this.speaking = false;
       this.speaking_from_collection = false;
-      // this.speaks = [];
-      if((speecher.last_text || "").match(/put/)) { debugger; }
+      if(type === 'all') { this.speaks = []; }
       speecher.scope.speechSynthesis.cancel();
       if(capabilities.system == 'iOS' && window.TTS && window.TTS.stop) {
         window.TTS.stop(function() { }, function() { });
