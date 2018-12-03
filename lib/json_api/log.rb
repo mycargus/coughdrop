@@ -10,6 +10,9 @@ module JsonApi::Log
     
     json['id'] = log.global_id
     json['id'] ||= 'fake-' + Time.now.to_f.to_s + "-" + rand(9999).to_s
+    if log.data['stash_id'] && !log.global_id
+      json['stash_id'] = log.data['stash_id']
+    end
     json['pending'] = true if !log.global_id
     json['type'] = log.log_type
     json['started_at'] = log.started_at.iso8601 if log.started_at
