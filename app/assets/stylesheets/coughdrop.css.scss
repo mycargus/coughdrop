@@ -4166,5 +4166,8 @@ body:-ms-fullscreen {
     #nav_updates .label {
       display: none;
     }
+    #new_right {
+      width: calc(66.666667% + 10px);
+    }
   }
 }
