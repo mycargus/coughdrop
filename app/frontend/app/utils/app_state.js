@@ -1629,6 +1629,11 @@ var app_state = EmberObject.extend({
     if(button_to_speak.modified && !button_to_speak.in_progress) {
       obj.completion = obj.completion || button_to_speak.label;
     }
+    // TODO: If the user just navigated to a home-locked board
+    // then it'll be logged with a depth of 0 even though it
+    // took them any number of steps to get there. On average
+    // it will probably be fine, but some buttons won't get 
+    // enough weight.
     obj.depth = (stashes.get('boardHistory') || []).length;
     stashes.log(obj);
     var _this = this;

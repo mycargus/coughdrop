@@ -373,6 +373,7 @@ module Stats
       stats[:all_button_counts].each do |ref, button|
         if all_button_counts[ref]
           all_button_counts[ref]['count'] += button['count']
+          all_button_counts[ref]['depth'] = [button['depth'], all_button_counts[ref]['depth']].compact.min
         else
           all_button_counts[ref] = button.merge({})
         end
@@ -523,7 +524,7 @@ module Stats
     res[:words_per_minute] += total_session_seconds > 0 ? (total_words / total_session_seconds * 60) : 0.0
     res[:buttons_per_minute] += total_session_seconds > 0 ? (total_buttons / total_session_seconds * 60) : 0.0
     res[:utterances_per_minute] +=  total_session_seconds > 0 ? (total_utterances / total_session_seconds * 60) : 0.0
-    res[:buttons_by_frequency] = all_button_counts.to_a.sort_by{|ref, button| [button['count'], button['text'] || 'zzz'] }.reverse.map(&:last)[0, 50]
+    res[:buttons_by_frequency] = all_button_counts.to_a.sort_by{|ref, button| [button['count'], button['text'] || 'zzz'] }.reverse.map(&:last)[0, 100]
     res[:words_by_frequency] = all_word_counts.to_a.sort_by{|word, cnt| [cnt, word.downcase] }.reverse.map{|word, cnt| {'text' => word.downcase, 'count' => cnt} }[0, 100]
     res[:modeled_buttons_by_frequency] = modeled_button_counts.to_a.sort_by{|ref, button| [button['count'], button['text']] }.reverse.map(&:last)[0, 50]
     res[:modeled_words_by_frequency] = modeled_word_counts.to_a.sort_by{|word, cnt| [cnt, word.downcase] }.reverse.map{|word, cnt| {'text' => word.downcase, 'count' => cnt} }[0, 100]

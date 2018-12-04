@@ -53,7 +53,7 @@ describe WeeklyStatsSummary, :type => :model do
     expect(data['days']["2015-05-07"]['group_counts'][0]['geo_cluster_id']).to eq(nil)
     expect(data['days']["2015-05-07"]['group_counts'][0]['ip_cluster_id']).to eq(ip_cluster.global_id)
     expect(data['modeled_word_counts']).to eq({'ok' => 2, 'go' => 1})
-    expect(data['modeled_button_counts']).to eq({'1::1_1' => {'button_id' => 1, 'board_id' => '1_1', 'text' => 'ok go ok', 'count' => 2}})
+    expect(data['modeled_button_counts']).to eq({'1::1_1' => {'button_id' => 1, 'board_id' => '1_1', 'text' => 'ok go ok', 'count' => 2, 'depth' => nil}})
   end
   
   describe "track_for_trends" do
@@ -137,27 +137,29 @@ describe WeeklyStatsSummary, :type => :model do
       expect(sum.data['totals']['total_core_words']).to eq(0)
     end
     
-    it 'should include word counts' do
+    it 'should include word counts and depth counts' do
       u = User.create
       d = Device.create
       s1 = LogSession.process_new({'events' => [
-        {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => 1431029747 - 1},
-        {'type' => 'button', 'modeling' => true, 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => 1431029747 - 1},
-        {'type' => 'button', 'modeling' => true, 'button' => {'spoken' => true, 'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => 1431029747 - 1},
+        {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'ok go ok', 'depth' => 0, 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => 1431029747 - 1},
+        {'type' => 'button', 'modeling' => true, 'button' => {'label' => 'ok go ok', 'depth' => 0, 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => 1431029747 - 1},
+        {'type' => 'button', 'modeling' => true, 'button' => {'spoken' => true, 'label' => 'ok go ok', 'depth' => 1, 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => 1431029747 - 1},
         {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => 1431029747}
       ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
       s2 = LogSession.process_new({'events' => [
         {'type' => 'utterance', 'utterance' => {'text' => 'never again', 'buttons' => []}, 'geo' => ['13.0001', '12.0001'], 'timestamp' => 1430856977}
       ]}, {:user => u, :author => u, :device => d, :ip_address => '1.2.3.4'})
+      expect(s1.data['stats']['all_button_counts']['1::1_1']['depth']).to eq(0)
     
       u2 = User.create
       d2 = Device.create
       s3 = LogSession.process_new({'events' => [
-        {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => 1431029747 - 1},
-        {'type' => 'button', 'modeling' => true, 'button' => {'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => 1431029747 - 1},
-        {'type' => 'button', 'modeling' => true, 'button' => {'spoken' => true, 'label' => 'ok go ok', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => 1431029747 - 1},
+        {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'ok go ok', 'depth' => 5, 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => 1431029747 - 1},
+        {'type' => 'button', 'modeling' => true, 'button' => {'label' => 'ok go ok', 'depth' => 2, 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => 1431029747 - 1},
+        {'type' => 'button', 'modeling' => true, 'button' => {'spoken' => true, 'label' => 'ok go ok', 'depth' => 2, 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => 1431029747 - 1},
         {'type' => 'utterance', 'utterance' => {'text' => 'ok go ok', 'buttons' => []}, 'geo' => ['13', '12'], 'timestamp' => 1431029747}
       ]}, {:user => u2, :author => u2, :device => d2, :ip_address => '1.2.3.4'})
+      expect(s3.data['stats']['all_button_counts']['1::1_1']['depth']).to eq(5)
       s4 = LogSession.process_new({'events' => [
         {'type' => 'utterance', 'utterance' => {'text' => 'never again', 'buttons' => []}, 'geo' => ['13.0001', '12.0001'], 'timestamp' => 1430856977}
       ]}, {:user => u2, :author => u2, :device => d2, :ip_address => '1.2.3.4'})
@@ -174,6 +176,10 @@ describe WeeklyStatsSummary, :type => :model do
       expect(sum.data['word_counts']).to eq({
         'ok' => 4,
         'go' => 2
+      })
+      expect(sum.data['depth_counts']).to eq({
+        '0' => 1,
+        '5' => 1
       })
     end
     

@@ -213,6 +213,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     total.data['totals']['total_core_words'] = 0
     total.data['totals']['modeled_session_events'] = {}
     total.data['word_counts'] = {}
+    total.data['depth_counts'] = {}
     total.data['user_ids'] = []
     total.data['home_board_user_ids'] = []
     board_usages = {}
@@ -263,6 +264,13 @@ class WeeklyStatsSummary < ActiveRecord::Base
         total.data['totals']['total_modeled_buttons'] += (summary.data['stats']['modeled_button_counts'] || {}).map{|k, h| h['count'] }.sum
         total.data['totals']['total_words'] += (summary.data['stats']['all_word_counts'] || {}).map(&:last).sum + (summary.data['stats']['modeled_word_counts'] || {}).map(&:last).sum
         total.data['totals']['total_buttons'] += (summary.data['stats']['all_button_counts'] || {}).map{|k, h| h['count'] }.sum + (summary.data['stats']['modeled_button_counts'] || {}).map{|k, h| h['count'] }.sum
+        (summary.data['stats']['all_button_counts'] || {}).each do |button_id, button|
+          if button['depth']
+            total.data['depth_counts'][button['depth']] ||= 0
+            total.data['depth_counts'][button['depth']] += button['count']
+          end
+        end
+        
         total.data['totals']['total_core_words'] += (summary.data['stats']['core_words'] || {})['core'] || 0
         total.data['totals']['total_users'] += 1
         (summary.data['stats']['all_word_counts'] || {}).each do |word, cnt|
@@ -447,6 +455,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     stash[:modeled_sessions] = 0
     stash[:total_words] = 0
     stash[:word_counts] = {}
+    stash[:depth_counts] = {}
     stash[:board_usages] = {}
     stash[:board_locales] = {}
     stash[:home_board_user_ids] = []
@@ -483,6 +492,13 @@ class WeeklyStatsSummary < ActiveRecord::Base
         if summary.data['word_counts']
           summary.data['word_counts'].each do |word, cnt|
             stash[:word_counts][word] = (stash[:word_counts][word] || 0) + cnt
+          end
+        end
+
+        if summary.data['depth_counts']
+          summary.data['depth_counts'].each do |depth, cnt|
+            stash[:depth_counts][depth] ||= 0
+            stash[:depth_counts][depth] += cnt
           end
         end
       
@@ -605,6 +621,15 @@ class WeeklyStatsSummary < ActiveRecord::Base
       end
     end
     
+    if stash[:depth_counts]
+      max_depth_count = stash[:depth_counts].map(&:last).max || 0.0
+      res[:max_depth_count] = max_depth_count if include_admin
+      stash[:depth_counts].each do |depth, cnt|
+        res[:depth_counts] ||= {}
+        res[:depth_counts][depth] = ((cnt.to_f / max_depth_count.to_f * 50.0).round(1) / 10.0).round(2)
+      end
+    end
+
     if stash[:word_counts]
       max_word_count = stash[:word_counts].map(&:last).max || 0.0
       res[:max_word_count] = max_word_count if include_admin

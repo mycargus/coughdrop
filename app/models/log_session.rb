@@ -361,6 +361,7 @@ class LogSession < ActiveRecord::Base
             button = {
               'button_id' => event['button']['button_id'],
               'board_id' => event['button']['board']['id'],
+              'depth' => event['button']['depth'],
               'text' => LogSession.event_text(event),
               'count' => 0
             }
@@ -369,6 +370,7 @@ class LogSession < ActiveRecord::Base
               if !event['modeling']
                 self.data['stats']['all_button_counts'][ref] ||= button
                 self.data['stats']['all_button_counts'][ref]['count'] += 1
+                self.data['stats']['all_button_counts'][ref]['depth'] = [self.data['stats']['all_button_counts'][ref]['depth'], button['depth']].compact.min
                 if button['text'] && button['text'].length > 0 && (event['button']['spoken'] || event['button']['for_speaking'])
                   button['text'].split(/\s+/).each do |word|
                     self.data['stats']['all_word_counts'][word.downcase] ||= 0
