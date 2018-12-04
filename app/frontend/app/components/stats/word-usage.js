@@ -26,6 +26,7 @@ export default Component.extend({
     var stats = this.get('usage_stats');
     var ref_stats = this.get('ref_stats');
     var elem = this.get('element').getElementsByClassName('daily_stats')[0];
+    var _this = this;
 
     CoughDrop.Visualizations.wait('word-graph', function() {
       if(elem && stats && stats.get('days')) {
@@ -70,8 +71,10 @@ export default Component.extend({
         var chart = new window.google.visualization.LineChart(elem);
         window.google.visualization.events.addListener(chart, 'select', function() {
           var selection = chart.getSelection()[0];
-          var row = raw_data[selection.row + 1];
-          console.log("selected date!");
+          if(raw_data && selection && raw_data[selection.row + 1]) {
+              var row = raw_data[selection.row + 1];
+              _this.sendAction('show_logs', {start: row[0], end: row[0]});
+            }
         });
         chart.draw(data, options);
       }

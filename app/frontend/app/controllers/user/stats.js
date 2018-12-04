@@ -308,6 +308,10 @@ export default Controller.extend({
     word_data: function(word) {
       modal.open('word-data', {word: word, usage_stats: this.get('usage_stats'), user: this.get('model')});
     },
+    show_logs: function(opts) {
+      opts = opts || {};
+      this.transitionToRoute('user.logs', this.get('model.user_name'), {queryParams: {start: opts.start, end: opts.end, device_id: opts.device_id, location_id: opts.location_id, highlighted: null, type: 'session'}});
+    },
     modify_core: function() {
       var _this = this;
       modal.open('modify-core-words', {user: this.get('model')}).then(function() {

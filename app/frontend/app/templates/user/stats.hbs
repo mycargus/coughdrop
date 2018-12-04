@@ -43,9 +43,9 @@
         {{/if}}
       </div>
       <div class="row">
-        {{stats/word-usage usage_stats=usage_stats ref_stats=usage_stats2 side_by_side=usage_stats2}}
+        {{stats/word-usage usage_stats=usage_stats ref_stats=usage_stats2 side_by_side=usage_stats2 show_logs='show_logs'}}
         {{#if usage_stats2}}
-          {{stats/word-usage usage_stats=usage_stats2 ref_stats=usage_stats side_by_side=true right_side=true}}
+          {{stats/word-usage usage_stats=usage_stats2 ref_stats=usage_stats side_by_side=true right_side=true show_logs='show_logs'}}
         {{/if}}
         {{stats/common-words usage_stats=usage_stats ref_stats=usage_stats2 side_by_side=usage_stats2 word_cloud='word_cloud_left' word_data='word_data'}}
         {{#if usage_stats2}}
