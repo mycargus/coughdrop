@@ -174,6 +174,7 @@ export default Controller.extend({
         if(stashes.get('sticky_board') && app_state.get('speak_mode')) {
           modal.warning(i18n.t('sticky_board_notice', "Board lock is enabled, disable to leave this board."), true);
         } else {
+          app_state.track_depth('home');
           this.rootBoard({index_as_fallback: true, button_triggered: opts.button_triggered});
           if(app_state.get('currentUser.preferences.click_buttons') && app_state.get('speak_mode')) {
             speecher.click();
@@ -311,6 +312,7 @@ export default Controller.extend({
       if(stashes.get('sticky_board') && app_state.get('speak_mode')) {
         modal.warning(i18n.t('sticky_board_notice', "Board lock is enabled, disable to leave this board."), true);
       } else {
+        app_state.track_depth('back');
         this.backOneBoard(opts);
         if(app_state.get('currentUser.preferences.click_buttons') && app_state.get('speak_mode')) {
           speecher.click();

@@ -265,9 +265,10 @@ class WeeklyStatsSummary < ActiveRecord::Base
         total.data['totals']['total_words'] += (summary.data['stats']['all_word_counts'] || {}).map(&:last).sum + (summary.data['stats']['modeled_word_counts'] || {}).map(&:last).sum
         total.data['totals']['total_buttons'] += (summary.data['stats']['all_button_counts'] || {}).map{|k, h| h['count'] }.sum + (summary.data['stats']['modeled_button_counts'] || {}).map{|k, h| h['count'] }.sum
         (summary.data['stats']['all_button_counts'] || {}).each do |button_id, button|
-          if button['depth']
-            total.data['depth_counts'][button['depth']] ||= 0
-            total.data['depth_counts'][button['depth']] += button['count']
+          if button['depth_sum']
+            avg_depth = (button['depth_sum'].to_f / button['count'].to_f).round.to_i
+            total.data['depth_counts'][avg_depth] ||= 0
+            total.data['depth_counts'][avg_depth] += button['count']
           end
         end
         

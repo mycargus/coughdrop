@@ -373,7 +373,7 @@ module Stats
       stats[:all_button_counts].each do |ref, button|
         if all_button_counts[ref]
           all_button_counts[ref]['count'] += button['count']
-          all_button_counts[ref]['depth'] = [button['depth'], all_button_counts[ref]['depth']].compact.min
+          all_button_counts[ref]['depth_sum'] += button['depth_sum']
         else
           all_button_counts[ref] = button.merge({})
         end

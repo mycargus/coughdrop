@@ -347,6 +347,24 @@ var app_state = EmberObject.extend({
     }
     this.check_for_board_readiness.timer = runLater(this, this.check_for_board_readiness, delay, 100);
   },
+  track_depth: function(type) {
+    var actions = this.get('depth_actions') || {depth: 0};
+    if(type == 'home') {
+      // TODO: make sure not to count double-hits without any change in page
+      if(actions.last_action != 'home') {
+        actions.depth = 0;
+      }
+      actions.depth++;
+    } else if(type == 'back') {
+      actions.depth = Math.max(0, actions.depth - 1);
+    } else if(type == 'clear') {
+      actions.depth = 0;
+    } else {
+      actions.depth++;
+    }
+    actions.last_action = type;
+    this.set('depth_actions', actions);
+  },
   jump_to_board: function(new_state, old_state) {
     buttonTracker.transitioning = true;
     if(new_state && old_state && new_state.id && (new_state.id == old_state.id || new_state.key == old_state.key)) {
@@ -1634,7 +1652,9 @@ var app_state = EmberObject.extend({
     // took them any number of steps to get there. On average
     // it will probably be fine, but some buttons won't get 
     // enough weight.
-    obj.depth = (stashes.get('boardHistory') || []).length;
+    // TODO: If the user doesn't have auto-home set, then this
+    // depth value is meaningless.
+    obj.depth = app_state.get('depth_actions.depth') || 0; // || (stashes.get('boardHistory') || []).length;
     stashes.log(obj);
     var _this = this;
 
@@ -1674,6 +1694,7 @@ var app_state = EmberObject.extend({
 //       });
 //     }
         runLater(function() {
+          app_state.track_depth('link');
           _this.jump_to_board({
             id: button.load_board.id,
             key: button.load_board.key,
@@ -1683,6 +1704,7 @@ var app_state = EmberObject.extend({
         }, 50);
       }
     } else if(button.url) {
+      app_state.track_depth('clear');
       if(stashes.get('sticky_board') && app_state.get('speak_mode')) {
         modal.warning(i18n.t('sticky_board_notice', "Board lock is enabled, disable to leave this board."), true);
       } else if(app_state.get('currentUser.preferences.external_links') == 'prevent') {
@@ -1691,6 +1713,7 @@ var app_state = EmberObject.extend({
         app_state.launch_url(button, null, obj.board);
       }
     } else if(button.apps) {
+      app_state.track_depth('clear');
       if(stashes.get('sticky_board') && app_state.get('speak_mode')) {
         modal.warning(i18n.t('sticky_board_notice', "Board lock is enabled, disable to leave this board."), true);
       } else if(app_state.get('currentUser.preferences.external_links') == 'prevent') {
@@ -1713,6 +1736,7 @@ var app_state = EmberObject.extend({
         }
       }
     } else if(specialty_button) {
+      app_state.track_depth('clear');
       var vocs = [];
       (button.vocalization || '').split(/\s*&&\s*/).forEach(function(mod) {
         if(mod && mod.length > 0) {
@@ -1734,8 +1758,10 @@ var app_state = EmberObject.extend({
         }
       });
     } else if(button.integration && button.integration.action_type == 'webhook') {
+      app_state.track_depth('clear');
       Button.extra_actions(button);
     } else if(button.integration && button.integration.action_type == 'render') {
+      app_state.track_depth('clear');
       runLater(function() {
       _this.jump_to_board({
         id: "i" + button.integration.user_integration_id,
@@ -1744,8 +1770,10 @@ var app_state = EmberObject.extend({
       }, obj.board);
       }, 100);
     } else if(obj.prevent_return) {
+      app_state.track_depth('clear');
       // integrations and configured buttons can explicitly prevent navigating away when activated
     } else if(app_state.get('speak_mode') && ((!app_state.get('currentUser') && window.user_preferences.any_user.auto_home_return) || app_state.get('currentUser.preferences.auto_home_return'))) {
+      app_state.track_depth('clear');
       if(stashes.get('sticky_board') && app_state.get('speak_mode')) {
         var state = stashes.get('temporary_root_board_state') || stashes.get('root_board_state');
         var current = app_state.get('currentBoardState');
