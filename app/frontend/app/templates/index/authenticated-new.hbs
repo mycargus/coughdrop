@@ -296,9 +296,9 @@
     {{#if index_nav.supervisees}}
       <div class='col-xs-12'>
         <h4>{{t "People I Supervise" key='people_i_supervise'}}</h4>
-      </div>
+      </div><div style='clear: left;'></div>
       {{#each supervisees_with_badges as |supervisee|}}
-        <div class='col-lg-6 col-md-12' style='padding: 0 5px; clear: left;'>
+        <div class='col-lg-6 col-md-12' style='padding: 0 5px;'>
           <div style='border: 5px solid #ccc; border-radius: 10px; margin-bottom: 10px; padding: 10px 15px;'>
             <div style='float: left;'>
               {{#link-to 'user' supervisee.user_name}}
