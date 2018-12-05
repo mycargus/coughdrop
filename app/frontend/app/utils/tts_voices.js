@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import EmberObject from '@ember/object';
+import capabilities from './capabilities';
 
 var voices = EmberObject.extend({
   find_voice: function(voice_id) {
@@ -17,6 +18,9 @@ var voices = EmberObject.extend({
       if(voice.voice_id.match(/^acap/)) {
         voice.name = voice.name || voice.voice_id.split(/:/)[1];
         voice.voice_url = voice.voice_url || "https://s3.amazonaws.com/coughdrop/voices/" + voice.voice_dir + ".zip";
+        if(capabilities.installed_app && capabilities.system == 'iOS' && voice.voice_dir_v2018) {
+          voice.voice_url = "https://s3.amazonaws.com/coughdrop/voices/" + voice.voice_dir_v2018 + ".zip";
+        }
         voice.voice_sample = voice.voice_sample || "https://s3.amazonaws.com/coughdrop/voices/" + voice.name.toLowerCase() + "-sample.mp3";
         voice.language_dir = voice.voice_dir.split(/-/)[2];
         voice.windows_available = !!(voice.language_dir && voice.language_dir !== "");
@@ -38,47 +42,38 @@ var voices = EmberObject.extend({
     {
       name: "Ella", voice_id: "acap:Ella", size: 51,
       locale: "en-US", gender: "f", age: "child", hq: true,
-      voice_url: "https://s3.amazonaws.com/coughdrop/voices/hqm-ref-USEnglish-Ella-22khz.zip",
       voice_dir: "hqm-ref-USEnglish-Ella-22khz",
       ref_id: "enu_ella_22k_ns",
-      language_version: "1.288",
-      voice_sample: "https://s3.amazonaws.com/coughdrop/voices/ella-sample.mp3"
+      language_version: "1.288"
     },
     {
-      name: "Josh", voice_id: "acap:Josh", size: 32,
+      name: "Josh", voice_id: "acap:Josh", size: 63,
       locale: "en-US", gender: "m", age: "child", hq: true,
-      voice_url: "https://s3.amazonaws.com/coughdrop/voices/hqm-ref-USEnglish-Josh-22khz.zip",
       voice_dir: "hqm-ref-USEnglish-Josh-22khz",
+      voice_dir_v2018: "v2018/hq-ref-USEnglish-Josh-22khz",
       ref_id: "enu_josh_22k_ns",
-      language_version: "1.288",
-      voice_sample: "https://s3.amazonaws.com/coughdrop/voices/josh-sample.mp3"
+      language_version: "1.288"
     },
     {
       name: "Scott", voice_id: "acap:Scott", size: 47,
       locale: "en-US", gender: "m", age: "teen", hq: true,
-      voice_url: "https://s3.amazonaws.com/coughdrop/voices/hqm-ref-USEnglish-Scott-22khz.zip",
       voice_dir: "hqm-ref-USEnglish-Scott-22khz",
       ref_id: "enu_scott_22k_ns",
-      language_version: "1.288",
-      voice_sample: "https://s3.amazonaws.com/coughdrop/voices/scott-sample.mp3"
+      language_version: "1.288"
     },
     {
       name: "Emilio", voice_id: "acap:Emilio", size: 25,
       locale: "en-US", gender: "m", age: "child", hq: true,
-      voice_url: "https://s3.amazonaws.com/coughdrop/voices/hqm-ref-USEnglish-Emilio-English-22khz.zip",
       voice_dir: "hqm-ref-USEnglish-Emilio-English-22khz",
       ref_id: "enu_emilioenglish_22k_ns",
-      language_version: "1.288",
-      voice_sample: "https://s3.amazonaws.com/coughdrop/voices/emilio-sample.mp3"
+      language_version: "1.288"
     },
     {
       name: "Valeria", voice_id: "acap:Valeria", size: 26,
       locale: "en-US", gender: "f", age: "child", hq: true,
-      voice_url: "https://s3.amazonaws.com/coughdrop/voices/hqm-ref-USEnglish-Valeria-English-22khz.zip",
       voice_dir: "hqm-ref-USEnglish-Valeria-English-22khz",
       ref_id: "enu_valeriaenglish_22k_ns",
-      language_version: "1.288",
-      voice_sample: "https://s3.amazonaws.com/coughdrop/voices/valeria-sample.mp3"
+      language_version: "1.288"
     },
     {
       voice_id: "acap:Karen", size: 26,
