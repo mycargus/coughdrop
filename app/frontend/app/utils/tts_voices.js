@@ -24,13 +24,16 @@ var voices = EmberObject.extend({
           voice.voice_url = "https://s3.amazonaws.com/coughdrop/voices/v2018/" + voice.voice_dir_v2018 + ".zip";
         }
         voice.voice_sample = voice.voice_sample || "https://s3.amazonaws.com/coughdrop/voices/" + voice.name.toLowerCase() + "-sample.mp3";
-        voice.language_dir = voice.voice_dir.split(/-/)[2];
+        var voice_dir = voice.voice_dir_v2018 || voice.voice_dir;
+        voice.language_dir = voice_dir.split(/-/)[2];
         voice.windows_available = !!(voice.language_dir && voice.language_dir !== "");
         voice.windows_language_url = "https://s3.amazonaws.com/coughdrop/voices/" + voice.language_dir + ".zip";
         if(voice.language_version && voice.language_version !== "") {
           voice.windows_language_url = "https://s3.amazonaws.com/coughdrop/voices/" + voice.language_dir + "-" + voice.language_version + ".zip";
         }
-        voice.windows_voice_url = voice.voice_url.replace(/\.zip/, '.win.zip');
+        if(voice.voice_url && capabilities.installed_app && capabilities.system == 'Windows') {
+          voice.windows_voice_url = voice.voice_url.replace(/\.zip/, '.win.zip');
+        }
         voice.hq = true;
       }
     });
