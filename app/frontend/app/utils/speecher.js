@@ -333,8 +333,8 @@ var speecher = EmberObject.extend({
         var prompts = tts_voices.get('prompts') || {};
         var locale = (voice && voice.lang) || window.navigator.language.toLowerCase();
         var lang = voice.lang.split(/-/)[0];
-        if(prompts[locale]) {
-          utterance.text = prompts[locale];
+        if(prompts[lang]) {
+          utterance.text = prompts[lang];
         }
       }
       utterance.rate = utterance.rate * speecher.rate_multiplier((voice && voice.voiceURI) || opts.voiceURI);
