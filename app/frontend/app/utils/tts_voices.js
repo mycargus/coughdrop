@@ -118,7 +118,7 @@ var voices = EmberObject.extend({
       language_version: "1.288"
     },
     {
-      name: "Emilio", voice_id: "acap:Emilio", size: 55,
+      name: "Emilio-English", voice_id: "acap:Emilio-English", size: 55,
       locale: "en-US", gender: "m", age: "child", hq: true,
       voice_dir: "hqm-ref-USEnglish-Emilio-English-22khz",
       voice_dir_v2018: "hq-ref-USEnglish-Emilio-English-22khz",
@@ -126,7 +126,7 @@ var voices = EmberObject.extend({
       language_version: "1.288"
     },
     {
-      name: "Valeria", voice_id: "acap:Valeria", size: 52,
+      name: "Valeria-English", voice_id: "acap:Valeria-English", size: 52,
       locale: "en-US", gender: "f", age: "child", hq: true,
       voice_dir: "hqm-ref-USEnglish-Valeria-English-22khz",
       voice_dir_v2018: "hq-ref-USEnglish-Valeria-English-22khz",
