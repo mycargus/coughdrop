@@ -13,8 +13,8 @@ var voices = EmberObject.extend({
     if(res) {
       if(capabilities.installed_app && capabilities.system == 'Windows' && (!res.language_dir || res.language_dir == "")) {
         res = null;
-      } else if(capabilities.installed_app && (capabilities.system == 'iOS' || capabilities.system == 'Android') && voice.voice_dir_v2018) {
-        res.voice_dir = voice.voice_dir_v2018 || voice.voice_dir;
+      } else if(capabilities.installed_app && (capabilities.system == 'iOS' || capabilities.system == 'Android') && res.voice_dir_v2018) {
+        res.voice_dir = res.voice_dir_v2018 || res.voice_dir;
       }
     }
     return res;
