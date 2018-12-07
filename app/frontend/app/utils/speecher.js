@@ -335,6 +335,7 @@ var speecher = EmberObject.extend({
         var lang = voice.lang.split(/-/)[0];
         if(prompts[lang]) {
           utterance.text = prompts[lang];
+          text = utterance.text;
         }
       }
       utterance.rate = utterance.rate * speecher.rate_multiplier((voice && voice.voiceURI) || opts.voiceURI);
