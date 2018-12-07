@@ -42,7 +42,7 @@ var voices = EmberObject.extend({
   all: function() {
     return this.get('computed_voices').filter(function(v) { return v.voice_url; });
   },
-  renderText: function(voice_id) {
+  render_prompt: function(voice_id) {
     var voice = this.get('voices').find(function(v) { return v.name == voice_id || ('acap:' + voice_id) == v.voice_id; });
     if(voice) {
       var lang = voice.locale.split(/-/)[0];

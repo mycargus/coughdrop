@@ -785,6 +785,9 @@ var speecher = EmberObject.extend({
         this.audio.background = null;
       }
     }
+  },
+  prompt: function(voice_id) {
+    return tts.render_prompt(voice_id);
   }
 }).create({scope: (window.polyspeech || window)});
 speecher.check_readiness();
