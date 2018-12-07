@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.12.07d";
+window.app_version = "2018.12.07e";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -10792,7 +10792,7 @@ if(e.get("subscription_amount").match(/free/)){if(!e.get("extras"))return Ember.
 t=2500}var n=Ember.RSVP.defer()
 return r.handler.defer&&console.error("purchase_resetting_defer"),r.handler.open({name:e.get("name")||e.get("user.name")||"CoughDrop",description:e.get("description"),amount:t,panelLabel:e.get("purchase_description"),email:e.get("email")||e.get("user.email"),zipCode:!0}),r.handler.defer=n,n.promise}}),e.default=r}),define("frontend/utils/tts_voices",["exports","frontend/utils/capabilities"],function(e,t){Object.defineProperty(e,"__esModule",{value:!0})
 var n=Ember.Object.extend({find_voice:function(e){var n=null
-return this.get("voices").forEach(function(t){n||t.voice_id!=e&&!e.match(t.ref_id)||(n=t)}),n&&(!t.default.installed_app||"Windows"!=t.default.system||n.language_dir&&""!=n.language_dir?t.default.installed_app&&("iOS"==t.default.system||"Android"==t.default.system)&&voice.voice_dir_v2018&&(n.voice_dir=voice.voice_dir_v2018||voice.voice_dir):n=null),n},computed_voices:function(){var e=this.get("voices")
+return this.get("voices").forEach(function(t){n||t.voice_id!=e&&!e.match(t.ref_id)||(n=t)}),n&&(!t.default.installed_app||"Windows"!=t.default.system||n.language_dir&&""!=n.language_dir?t.default.installed_app&&("iOS"==t.default.system||"Android"==t.default.system)&&n.voice_dir_v2018&&(n.voice_dir=n.voice_dir_v2018||n.voice_dir):n=null),n},computed_voices:function(){var e=this.get("voices")
 return e.forEach(function(e){if(e.voice_id.match(/^acap/)){e.name=e.name||e.voice_id.split(/:/)[1],e.voice_dir&&(e.voice_url="https://s3.amazonaws.com/coughdrop/voices/"+e.voice_dir+".zip")
 var n=e.voice_dir_v2018||e.voice_dir
 t.default.installed_app&&("iOS"==t.default.system||"Android"==t.default.system)&&e.voice_dir_v2018&&(e.voice_url="https://s3.amazonaws.com/coughdrop/voices/v2018/"+e.voice_dir_v2018+".zip"),e.voice_sample=e.voice_sample||"https://s3.amazonaws.com/coughdrop/voices/"+e.name.toLowerCase()+"-sample.mp3",e.language_dir=n.split(/-/)[2],e.windows_available=!(!e.language_dir||""===e.language_dir),e.windows_language_url="https://s3.amazonaws.com/coughdrop/voices/"+e.language_dir+".zip",e.language_version&&""!==e.language_version&&(e.windows_language_url="https://s3.amazonaws.com/coughdrop/voices/"+e.language_dir+"-"+e.language_version+".zip"),e.voice_url&&t.default.installed_app&&"Windows"==t.default.system&&(e.windows_voice_url=e.voice_url.replace(/\.zip/,".win.zip")),e.hq=!0}}),e}.property("voices"),all:function(){return this.get("computed_voices").filter(function(e){return e.voice_url})},render_prompt:function(e){var n=this.get("voices").find(function(t){return t.name==e||"acap:"+e==t.voice_id})
@@ -10864,8 +10864,8 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+8c5e04fc"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+8c5e04fc"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+339417b3"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+339417b3"})
 ;
 
 
