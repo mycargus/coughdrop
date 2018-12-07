@@ -41,29 +41,56 @@ var voices = EmberObject.extend({
   }.property('voices'),
   all: function() {
     return this.get('computed_voices').filter(function(v) { return v.voice_url; });
+  },
+  renderText: function(voice_id) {
+    var voice = this.get('voices').find(function(v) { return v.name == voice_id || ('acap:' + voice_id) == v.voice_id; });
+    if(voice) {
+      var lang = voice.locale.split(/-/)[0];
+      var prompt = this.get('prompts')[lang]
+      if(prompt) {
+        capabilities.tts.tts_exec('renderText', {
+          text: 'Do you like my voice?', 
+          voice_id: 'acap:Josh', 
+          pitch: 1.0, 
+          rate: 1.0, 
+          volume: 1.0
+        }, function(p, res) { 
+          console.log("done! stored at", res); 
+        }, function(err) { console.error(err) });
+      } else {
+        console.error("no prompt found for", lang);
+      }
+    } else {
+      console.error('voice not found');
+    }
   }
 }).create({
   prompts: {
-    "en": "Do you like my voice?",
-    "fr": "Aimez-vous ma voix?",
-    "es": "Te gusta mi voz?",
-    "de": "Magst du meine Stimme?",
-    "ar": "هل اعجبك صوتي؟",
-    "nl": "Vind je mijn stem leuk?",
-    "pt": "Você gosta da minha voz?",
-    "ca": "T'agrada la meva veu?",
-    "cs": "Líbí se ti můj hlas?",
-    "da": "Kan du lide min stemme?",
-    "sv": "Gillar du min röst?",
-    "nn": "Liker du stemmen min?",
-    "el": "Σας αρέσει η φωνή μου;",
-    "it": "ti piace la mia voce?",
-    "ja": "私の声が好きですか？",
-    "ko": "내 목소리가 마음에 드십니까?",
-    "zh": "你喜欢我的声音吗？",
-    "pl": "Czy podoba ci się mój głos?",
-    "ru": "Тебе нравится мой голос?",
-    "tr": "Sesimi sever misin?"
+    "en": "Do you like my voice? This is how I sound.",
+    "fr": "Aimez-vous ma voix? C'est comme ça que je sonne.",
+    "es": "Te gusta mi voz? Así es como sueno.",
+    "de": "Magst du meine Stimme? So klinge ich.",
+    "ar": "هل اعجبك صوتي؟ هكذا اصوت",
+    "nl": "Vind je mijn stem leuk? Dit is hoe ik geluid.",
+    "pt": "Você gosta da minha voz? É assim que eu soo.",
+    "ca": "T'agrada la meva veu? Així és com sono.",
+    "cs": "Líbí se ti můj hlas? Takhle to zní.",
+    "da": "Kan du lide min stemme? Sådan lyder jeg.",
+    "sv": "Gillar du min röst? Så här låter jag.",
+    "nn": "Liker du stemmen min? Slik lyder jeg.",
+    "el": "Σας αρέσει η φωνή μου; Έτσι ακούγεται.",
+    "it": "ti piace la mia voce? Questo è il modo in cui suono.",
+    "ja": "私の声が好きですか？これが私の響きです。",
+    "ko": "내 목소리가 마음에 드십니까? 이것이 내가 말하는 방식입니다.",
+    "zh": "你喜欢我的声音吗？这就是我的声音。",
+    "pl": "Czy podoba ci się mój głos? Tak brzmi.",
+    "ru": "Тебе нравится мой голос? Вот как я звучу.",
+    "tr": "Sesimi sever misin? Ben böyle duyuyorum.",
+    "hy": "Ձեզ դուր է գալիս իմ ձայնը: Այսպես է հնչում:",
+    "he": "אתה אוהב את הקול שלי? כך אני נשמעת.",
+    "id": "Apa kau menyukai suaraku? Ini adalah bagaimana saya terdengar.",
+    "mn": "Та миний хоолойд дуртай юу? Энэ бол миний сонсогдож байна.",
+    "th": "คุณชอบเสียงของฉันหรือไม่? นี่คือเสียงของฉัน"
   },
   voices: [
     {

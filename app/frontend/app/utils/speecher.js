@@ -328,6 +328,15 @@ var speecher = EmberObject.extend({
         voice = voice || voices.find(function(v) { return language && v.lang && v.lang.toLowerCase().split(/[-_]/)[0] == language; });
         voice = voice || voices.find(function(v) { return v['default']; });
       }
+      // Try to render default prompts in the locale's language
+      if(opts.default_prompt) {
+        var prompts = tts_voices.get('prompts') || {};
+        var locale = (voice && voice.lang) || window.navigator.language.toLowerCase();
+        var lang = voice.lang.split(/-/)[0];
+        if(prompts[locale]) {
+          utterance.text = prompts[locale];
+        }
+      }
       utterance.rate = utterance.rate * speecher.rate_multiplier((voice && voice.voiceURI) || opts.voiceURI);
 
       var speak_utterance = function() {

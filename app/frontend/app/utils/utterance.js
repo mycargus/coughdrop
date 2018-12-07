@@ -369,7 +369,8 @@ var utterance = EmberObject.extend({
       volume: volume,
       pitch: pitch,
       rate: rate,
-      voiceURI: voiceURI
+      voiceURI: voiceURI,
+      default_prompt: true
     });
   }
 }).create({scope: (window.polyspeech || window)});
