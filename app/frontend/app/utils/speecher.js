@@ -787,7 +787,7 @@ var speecher = EmberObject.extend({
     }
   },
   prompt: function(voice_id) {
-    return tts.render_prompt(voice_id);
+    return tts_voices.render_prompt(voice_id);
   }
 }).create({scope: (window.polyspeech || window)});
 speecher.check_readiness();
