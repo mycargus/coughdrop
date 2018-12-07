@@ -5,7 +5,7 @@ import capabilities from './capabilities';
 var voices = EmberObject.extend({
   find_voice: function(voice_id) {
     var res = null;
-    this.get('voices').forEach(function(voice) {
+    this.all().forEach(function(voice) {
       if(!res && (voice.voice_id == voice_id || voice_id.match(voice.ref_id))) {
         res = voice;
       }
@@ -14,7 +14,7 @@ var voices = EmberObject.extend({
       if(capabilities.installed_app && capabilities.system == 'Windows' && (!res.language_dir || res.language_dir == "")) {
         res = null;
       } else if(capabilities.installed_app && (capabilities.system == 'iOS' || capabilities.system == 'Android') && res.voice_dir_v2018) {
-        res.voice_dir = res.voice_dir_v2018 || res.voice_dir;
+        res.stored_voice_dir = res.voice_dir_v2018 || res.voice_dir;
       }
     }
     return res;

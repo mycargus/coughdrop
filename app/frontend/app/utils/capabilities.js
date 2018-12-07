@@ -227,7 +227,7 @@ var capabilities;
             return capabilities.tts.tts_exec('deleteVoice',
             {
               voice_id: voice.voice_id,
-              voice_dir: voice.voice_dir,
+              voice_dir: voice.stored_voice_dir || voice.voice_dir,
               language_dir: voice.language_dir
             },
             function(promise, res) {
