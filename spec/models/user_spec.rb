@@ -868,6 +868,20 @@ describe User, :type => :model do
       expect(res).to eq(true)
       expect(AuditEvent.count).to eq(0)
     end
+
+    it "should always allow global admins to add voices, and its hould not generate AuditEvents for them" do
+      o = Organization.create(:admin => true, :settings => {'total_licenses' => 1})
+      u = User.create
+      
+      o.add_manager(u.user_name, true)
+      u.reload
+
+      expect(AuditEvent.count).to eq(0)
+      res = u.add_premium_voice('abcd', 'Windows')
+      expect(res).to eq(true)
+      expect(AuditEvent.count).to eq(0)
+      expect(u.settings['premium_voices']).to eq({'allowed' => 2, 'claimed' => ['abcd']})
+    end
   end
   
 

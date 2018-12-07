@@ -147,18 +147,23 @@ class User < ActiveRecord::Base
   
   def add_premium_voice(voice_id, system_name)
     # Limit the number of premium_voices users can download
-    # TODO: don't let users set their voice to a premium voice that they have downloaded for a different user
     voices = {}.merge(self.settings['premium_voices'] || {})
     voices['claimed'] ||= self.default_premium_voices['claimed']
     voices['allowed'] ||= self.default_premium_voices['allowed']
+
+    is_admin = Organization.admin_manager?(self)
     new_voice = !voices['claimed'].include?(voice_id)
     voices['claimed'] = voices['claimed'] | [voice_id]
+    if is_admin
+      voices['allowed'] = voices['claimed'].length + 1
+    end
     if voices['claimed'].length > voices['allowed']
       return false
     else
       self.settings['premium_voices'] = voices
       self.save
-      if new_voice
+      if new_voice && !is_admin
+        # Log voice claims for payment, unless an admin user
         data = {
           :user_id => self.global_id,
           :user_name => self.user_name,
