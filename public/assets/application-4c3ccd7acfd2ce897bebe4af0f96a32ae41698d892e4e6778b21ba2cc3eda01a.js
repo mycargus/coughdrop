@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.12.07a";
+window.app_version = "2018.12.07b";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -10683,16 +10683,15 @@ var m=null
 if("force_default"!=o.voiceURI){var f=i.get("voices")
 m=(m=(m=f.find(function(e){return e.voiceURI==o.voiceURI}))||f.find(function(e){return e.name+" "+e.lang==o.voiceURI}))||f.find(function(e){return e.lang==o.voiceURI})
 var _=(h=window.navigator.language.toLowerCase())&&h.split(/-/)[0]
-m=(m=(m=m||f.find(function(e){return h&&e.lang&&(e.lang.toLowerCase()==h||e.lang.toLowerCase().replace(/-/,"_")==h)}))||f.find(function(e){return _&&e.lang&&e.lang.toLowerCase().split(/[-_]/)[0]==_}))||f.find(function(e){return e.default})}if(o.default_prompt){var g=s.default.get("prompts")||{},h=m&&m.lang||window.navigator.language.toLowerCase()
-m.lang.split(/-/)[0]
-g[h]&&(p.text=g[h])}p.rate=p.rate*i.rate_multiplier(m&&m.voiceURI||o.voiceURI)
-var b=function(){if(i.last_utterance=p,"force_default"!=o.voiceURI){try{p.voice=m}catch(e){}m&&(p.lang=m.lang)}var t=function(){p.handled=!0,r()}
+m=(m=(m=m||f.find(function(e){return h&&e.lang&&(e.lang.toLowerCase()==h||e.lang.toLowerCase().replace(/-/,"_")==h)}))||f.find(function(e){return _&&e.lang&&e.lang.toLowerCase().split(/[-_]/)[0]==_}))||f.find(function(e){return e.default})}if(o.default_prompt){var g=s.default.get("prompts")||{},h=m&&m.lang||window.navigator.language.toLowerCase(),b=m.lang.split(/-/)[0]
+g[b]&&(p.text=g[b])}p.rate=p.rate*i.rate_multiplier(m&&m.voiceURI||o.voiceURI)
+var y=function(){if(i.last_utterance=p,"force_default"!=o.voiceURI){try{p.voice=m}catch(e){}m&&(p.lang=m.lang)}var t=function(){p.handled=!0,r()}
 p.addEventListener?(p.addEventListener("end",function(){console.log("ended"),t()}),p.addEventListener("error",function(){console.log("errored"),t()}),p.addEventListener("pause",function(){console.log("paused"),t()})):(p.onend=t,p.onerror=t,p.onpause=t),i.scope.speechSynthesis.speak(p),Ember.run.later(function(){p.handled||t()},1e3*Math.ceil(e.length/15)*4/(p.rate||1))}
-if(m&&m.voiceURI&&m.voiceURI.match(/^extra:/)){var y=m.voiceURI.replace(/^extra:/,"")
-Ember.run.later(function(){t.default.tts.speak_text(e,{voice_id:y,pitch:p.pitch,volume:p.volume,rate:p.rate}).then(function(){r()},function(e){console.log("system speak error"),console.log(e),b()})})}else if("iOS"!=t.default.system||!window.TTS||o.voiceURI&&"force_default"!=o.voiceURI&&"default"!=o.voiceURI&&!o.voiceURI.match(/tts:/))if("Windows"==t.default.system&&o.voiceURI&&o.voiceURI.match(/tts:/)&&window.TTS&&window.TTS.speakText)window.TTS.speakText({text:p.text,rate:p.rate,volume:p.volume,pitch:p.pitch,voice_id:o.voiceURI,success:function(){r()},error:function(){b()}})
-else{var v=t.default.installed_app&&"Windows"==t.default.system?300:0
+if(m&&m.voiceURI&&m.voiceURI.match(/^extra:/)){var v=m.voiceURI.replace(/^extra:/,"")
+Ember.run.later(function(){t.default.tts.speak_text(e,{voice_id:v,pitch:p.pitch,volume:p.volume,rate:p.rate}).then(function(){r()},function(e){console.log("system speak error"),console.log(e),y()})})}else if("iOS"!=t.default.system||!window.TTS||o.voiceURI&&"force_default"!=o.voiceURI&&"default"!=o.voiceURI&&!o.voiceURI.match(/tts:/))if("Windows"==t.default.system&&o.voiceURI&&o.voiceURI.match(/tts:/)&&window.TTS&&window.TTS.speakText)window.TTS.speakText({text:p.text,rate:p.rate,volume:p.volume,pitch:p.pitch,voice_id:o.voiceURI,success:function(){r()},error:function(){y()}})
+else{var k=t.default.installed_app&&"Windows"==t.default.system?300:0
 l=this
-Ember.run.later(function(){b.call(l)},v)}else console.log("using native iOS tts"),window.TTS.speak({text:p.text,rate:1.3*(p.rate||1),locale:m&&m.lang}).then(function(){r()},function(e){b()})}else alert(e)},next_speak:function(){if(this.speaks&&this.speaks.length){var e=this.speaks.shift()
+Ember.run.later(function(){y.call(l)},k)}else console.log("using native iOS tts"),window.TTS.speak({text:p.text,rate:1.3*(p.rate||1),locale:m&&m.lang}).then(function(){r()},function(e){y()})}else alert(e)},next_speak:function(){if(this.speaks&&this.speaks.length){var e=this.speaks.shift()
 if(e.sound)this.speak_audio(e.sound,"text",this.speaking_from_collection)
 else if(e.text){var t=this.volume
 e.volume&&(this.volume=e.volume),this.speak_text(e.text,this.speaking_from_collection),this.volume=t}}},speak_end_handler:function(e){e==i.last_speak_id&&(i.speaks&&0!==i.speaks.length||(i.speaking_from_collection=!1,i.speaking=!1),i.next_speak())},speak_background_audio:function(e){this.speak_audio(e,"background")},load_beep:function(){var e=this.load_sound("beep_url"),t=this.load_sound("chimes_url"),n=this.load_sound("click_url")
@@ -10865,8 +10864,8 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+9502958e"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+9502958e"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+6ff371fa"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+6ff371fa"})
 ;
 
 
