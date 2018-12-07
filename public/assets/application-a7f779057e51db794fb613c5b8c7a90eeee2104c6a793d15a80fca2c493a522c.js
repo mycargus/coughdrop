@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.12.06c";
+window.app_version = "2018.12.06d";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -10726,7 +10726,7 @@ t=Ember.$("<audio>",{preload:"auto",src:s,rel:e}).appendTo(Ember.$(".board"))}re
 var n=this.audio.text
 setTimeout(function(){n.lastListener=null},50),this.audio.text=null}if(("background"==e||"all"==e)&&this.audio.background){this.audio.background.pause(),this.audio.background.media&&this.audio.background.media.pause(),this.audio.background.removeEventListener("ended",this.audio.background.lastListener),this.audio.background.removeEventListener("pause",this.audio.background.lastListener)
 n=this.audio.background
-setTimeout(function(){n.lastListener=null},50),this.audio.background=null}},prompt:function(e){return tts.render_prompt(e)}}).create({scope:window.polyspeech||window})
+setTimeout(function(){n.lastListener=null},50),this.audio.background=null}},prompt:function(e){return s.default.render_prompt(e)}}).create({scope:window.polyspeech||window})
 i.check_readiness(),window.speecher=i,e.default=i}),define("frontend/utils/stats",["exports","frontend/app","frontend/utils/i18n"],function(e,t,n){Object.defineProperty(e,"__esModule",{value:!0}),t.default.Stats=Ember.Object.extend({no_data:function(){return void 0===this.get("total_sessions")||0===this.get("total_sessions")}.property("total_sessions"),has_data:function(){return!this.get("no_data")}.property("no_data"),date_strings:function(){var e=window.moment()
 return{today:e.format("YYYY-MM-DD"),two_months_ago:e.add(-2,"month").format("YYYY-MM-DD"),four_months_ago:e.add(-2,"month").format("YYYY-MM-DD"),six_months_ago:e.add(-2,"month").format("YYYY-MM-DD")}},days_sorted:function(){var e=[]
 for(var t in this.get("days")||{}){var n=this.get("days")[t]
@@ -10865,8 +10865,8 @@ for(n=0;n<=t.length;n++)a[n]=[n]
 for(s=0;s<=e.length;s++)a[0][s]=s
 for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
 return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+5d801195"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+5d801195"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+d45475cc"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+d45475cc"})
 ;
 
 
