@@ -49,8 +49,8 @@ var voices = EmberObject.extend({
       var prompt = this.get('prompts')[lang]
       if(prompt) {
         capabilities.tts.tts_exec('renderText', {
-          text: 'Do you like my voice?', 
-          voice_id: 'acap:Josh', 
+          text: prompt, 
+          voice_id: 'acap:' + voice_id, 
           pitch: 1.0, 
           rate: 1.0, 
           volume: 1.0
