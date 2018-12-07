@@ -251,7 +251,7 @@ var voices = EmberObject.extend({
       voice_dir: "hqm-ref-USEnglish-Will-22khz"
     },
     {
-      voice_id: "acap:Will-Bad-Guy", size: 33,
+      voice_id: "acap:Willbadguy", name: "Will Bad Guy", size: 33,
       locale: "en-US", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-Willbadguy-22khz",
       ref_id: "enu_willbadguy_22k_ns",
@@ -259,7 +259,7 @@ var voices = EmberObject.extend({
       voice_dir: "hqm-ref-USEnglish-Willbadguy-22khz"
     },
     {
-      voice_id: "acap:Will-Happy", size: 27,
+      voice_id: "acap:WillHappy", name: "Will Happy", size: 27,
       locale: "en-US", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-WillHappy-22khz",
       ref_id: "enu_willhappy_22k_ns",
@@ -267,7 +267,7 @@ var voices = EmberObject.extend({
       voice_dir: "hqm-ref-USEnglish-WillHappy-22khz"
     },
     {
-      voice_id: "acap:Will-Little-Creature", size: 35,
+      voice_id: "acap:Willlittlecreature", name: "Will Little Creature", size: 35,
       locale: "en-US", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-Willlittlecreature-22khz",
       ref_id: "enu_willlittlecreature_22k_ns",
@@ -355,7 +355,7 @@ var voices = EmberObject.extend({
       voice_dir: "hqm-ref-British-Peter-22khz"
     },
     {
-      voice_id: "acap:Queen-Elizabeth", size: 44,
+      voice_id: "acap:Queenelizabeth", name: "Queen Elizabeth", size: 44,
       locale: "en-UK", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-British-Queenelizabeth-22khz",
       ref_id: "eng_queenelizabeth_22k_ns",
