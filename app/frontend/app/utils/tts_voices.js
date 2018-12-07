@@ -10,6 +10,13 @@ var voices = EmberObject.extend({
         res = voice;
       }
     });
+    if(res) {
+      if(capabilities.installed_app && capabilities.system == 'Windows' && (!res.language_dir || res.language_dir == "")) {
+        res = null;
+      } else if(capabilities.installed_app && (capabilities.system == 'iOS' || capabilities.system == 'Android') && voice.voice_dir_v2018) {
+        res.voice_dir = voice.voice_dir_v2018 || voice.voice_dir;
+      }
+    }
     return res;
   },
   computed_voices: function() {
@@ -20,12 +27,12 @@ var voices = EmberObject.extend({
         if(voice.voice_dir) {
           voice.voice_url = "https://s3.amazonaws.com/coughdrop/voices/" + voice.voice_dir + ".zip";
         }
+        var simple_voice_dir = voice.voice_dir_v2018 || voice.voice_dir;
         if(capabilities.installed_app && (capabilities.system == 'iOS' || capabilities.system == 'Android') && voice.voice_dir_v2018) {
           voice.voice_url = "https://s3.amazonaws.com/coughdrop/voices/v2018/" + voice.voice_dir_v2018 + ".zip";
         }
         voice.voice_sample = voice.voice_sample || "https://s3.amazonaws.com/coughdrop/voices/" + voice.name.toLowerCase() + "-sample.mp3";
-        var voice_dir = voice.voice_dir_v2018 || voice.voice_dir;
-        voice.language_dir = voice_dir.split(/-/)[2];
+        voice.language_dir = simple_voice_dir.split(/-/)[2];
         voice.windows_available = !!(voice.language_dir && voice.language_dir !== "");
         voice.windows_language_url = "https://s3.amazonaws.com/coughdrop/voices/" + voice.language_dir + ".zip";
         if(voice.language_version && voice.language_version !== "") {
