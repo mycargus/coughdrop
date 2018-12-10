@@ -429,7 +429,7 @@ var voices = EmberObject.extend({
     {
       voice_id: "acap:Leila", size: 62,
       locale: "ar-EG", gender: "f", age: "adult",
-      voice_dir_v2018: "hqm-ref-Arabic-leila-22khz",
+      voice_dir_v2018: "hqm-ref-Arabic-Leila-22khz",
       ref_id: "ar_sa_leila_22k_ns",
       language_version: "",
       voice_dir: "hqm-ref-Arabic-leila-22khz"
@@ -437,7 +437,7 @@ var voices = EmberObject.extend({
     {
       voice_id: "acap:Mehdi", size: 58,
       locale: "ar-EG", gender: "m", age: "adult",
-      voice_dir_v2018: "hqm-ref-Arabic-mehdi-22khz",
+      voice_dir_v2018: "hqm-ref-Arabic-Mehdi-22khz",
       ref_id: "ar_sa_mehdi_22k_ns",
       language_version: "",
       voice_dir: "hqm-ref-Arabic-mehdi-22khz"
@@ -445,7 +445,7 @@ var voices = EmberObject.extend({
     {
       voice_id: "acap:Nizar", size: 64,
       locale: "ar-EG", gender: "m", age: "adult",
-      voice_dir_v2018: "hqm-ref-Arabic-nizar-22khz",
+      voice_dir_v2018: "hqm-ref-Arabic-Nizar-22khz",
       ref_id: "ar_sa_nizar_22k_ns",
       language_version: "",
       voice_dir: "hqm-ref-Arabic-nizar-22khz"
@@ -453,7 +453,7 @@ var voices = EmberObject.extend({
     {
       voice_id: "acap:Salma", size: 76,
       locale: "ar-EG", gender: "f", age: "adult",
-      voice_dir_v2018: "hqm-ref-Arabic-salma-22khz",
+      voice_dir_v2018: "hqm-ref-Arabic-Salma-22khz",
       ref_id: "ar_sa_salma_22k_ns",
       language_version: "",
       voice_dir: "hqm-ref-Arabic-salma-22khz"
