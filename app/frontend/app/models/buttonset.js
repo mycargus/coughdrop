@@ -623,6 +623,20 @@ CoughDrop.Buttonset = DS.Model.extend({
 });
 
 CoughDrop.Buttonset.load_button_set = function(id) {
+  var button_sets = CoughDrop.store.peekAll('buttonset');
+  var found = CoughDrop.store.peekRecord('buttonset', id) || button_sets.find(function(bs) { return bs.get('key') == id; });
+  if(!found) {
+    button_sets.forEach(function(bs) {
+      // TODO: check board keys in addition to board ids
+      if(bs.get('board_ids').indexOf(id) != -1) {
+        if(bs.get('fresh') || !found) {
+          found = bs;
+        }
+      }
+    });
+  }
+  if(found) { return RSVP.resolve(found); }
+  
   var res = CoughDrop.store.findRecord('buttonset', id).then(function(button_set) {
     return button_set;
   }, function(err) {
