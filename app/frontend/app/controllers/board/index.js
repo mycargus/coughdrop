@@ -69,21 +69,23 @@ export default Controller.extend({
     var last_finished_word = ((last_button && (last_button.vocalization || last_button.label)) || "").toLowerCase();
     var word_in_progress = ((current_button && (current_button.vocalization || current_button.label)) || "").toLowerCase();
     _this.set('suggestions.pending', true);
-    word_suggestions.lookup({
-      last_finished_word: last_finished_word,
-      word_in_progress: word_in_progress,
-      board_ids: [app_state.get('currentUser.preferences.home_board.id'), stashes.get('temporary_root_board_state.id')]
-    }).then(function(result) {
-      // this delay prevents a weird use case on android
-      // where it hits the next button before listeners are
-      // attached and triggers a HashChangeEvent which causes
-      // navigation back to the index page
-      runLater(function() {
-        _this.set('suggestions.pending', null);
-      }, 200);
-      _this.set('suggestions.list', result);
-    }, function() {
-      _this.set('suggestions.list', []);
+    runLater(function() {
+      word_suggestions.lookup({
+        last_finished_word: last_finished_word,
+        word_in_progress: word_in_progress,
+        board_ids: [app_state.get('currentUser.preferences.home_board.id'), stashes.get('temporary_root_board_state.id')]
+      }).then(function(result) {
+        // this delay prevents a weird use case on android
+        // where it hits the next button before listeners are
+        // attached and triggers a HashChangeEvent which causes
+        // navigation back to the index page
+        runLater(function() {
+          _this.set('suggestions.pending', null);
+        }, 200);
+        _this.set('suggestions.list', result);
+      }, function() {
+        _this.set('suggestions.list', []);
+      });
     });
   }.observes('app_state.button_list', 'app_state.button_list.[]', 'app_state.currentUser'),
   saveButtonChanges: function(decision) {
