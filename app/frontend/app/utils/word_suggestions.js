@@ -250,17 +250,17 @@ var word_suggestions = EmberObject.extend({
             CoughDrop.store.findRecord('board', board_id).then(function(board) {
               board.load_button_set().then(function(button_set) {
                 result.forEach(function(word) {
-                  button_set.find_buttons(word.word, board.get('id'), app_state.get('currentUser'), true).then(function(buttons) {
-                    var button = buttons[0];
-                    if(!emberGet(word, 'original_image') && button && button.label == word.word && button.image) {
-                      emberSet(word, 'original_image', button.original_image);
-                      emberSet(word, 'safe_image', emberGet(word, 'image'));
-                      emberSet(word, 'image', button.image);
-                      if(button.image.match(/^data/) || !button.image.match(/^http/)) {
-                        emberSet(word, 'safe_image', button.image);
-                      }
-                    }
-                  });
+                  // button_set.find_buttons(word.word, board.get('id'), app_state.get('currentUser'), true).then(function(buttons) {
+                  //   var button = buttons[0];
+                  //   if(!emberGet(word, 'original_image') && button && button.label == word.word && button.image) {
+                  //     emberSet(word, 'original_image', button.original_image);
+                  //     emberSet(word, 'safe_image', emberGet(word, 'image'));
+                  //     emberSet(word, 'image', button.image);
+                  //     if(button.image.match(/^data/) || !button.image.match(/^http/)) {
+                  //       emberSet(word, 'safe_image', button.image);
+                  //     }
+                  //   }
+                  // });
                 });
               }, function() { });
             }, function() { });

@@ -780,25 +780,27 @@ export default Controller.extend({
       editManager.paint_button(id);
     },
     complete_word: function(word) {
-      var text = word.word;
-      var button = editManager.fake_button();
-      button.set('label', text);
-      button.set('vocalization', ":complete");
-      var list = app_state.get('button_list') || [];
-      if(!emberGet(list[0] || {}, 'in_progress')) {
-        button.set('label', ":predict");
-      }
-      button.set('completion', text);
-      if(word.original_image) {
-        button.set('image', CoughDrop.store.createRecord('image'));
-        button.set('image.url', word.original_image);
-      }
-      button.set('empty', false);
+      try {
+        var text = word.word;
+        var button = editManager.fake_button();
+        button.set('label', text);
+        button.set('vocalization', ":complete");
+        var list = app_state.get('button_list') || [];
+        if(!emberGet(list[0] || {}, 'in_progress')) {
+          button.set('label', ":predict");
+        }
+        button.set('completion', text);
+        if(word.original_image) {
+          button.set('image', CoughDrop.store.createRecord('image'));
+          button.set('image.url', word.original_image);
+        }
+        button.set('empty', false);
 
-      var controller = this;
-      var board = this.get('model');
-      var app = app_state.controller;
-      app.activateButton(button, {board: board});
+        var controller = this;
+        var board = this.get('model');
+        var app = app_state.controller;
+        app.activateButton(button, {board: board});
+      } catch(e) { debugger }
     },
     symbolSelect: function(id) {
       var board = this;
