@@ -1006,6 +1006,10 @@ footer .wide_links {
 #word_suggestions {
   text-align: center;
   white-space: nowrap;
+  height: 55px;
+  &.with_images {
+    height: 105px;
+  }
 }
 #word_suggestions .suggestion {
   display: inline-block;

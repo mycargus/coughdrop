@@ -44,9 +44,10 @@
   </div>
   {{#if show_word_suggestions}}
     <div id="word_suggestions" class={{suggestion_class}}>
-      {{#if suggestions.ready}}
+      {{#if suggestions.pending}}
+      {{else if suggestions.ready}}
         {{#each suggestions.list as |suggestion|}}
-          <a class="suggestion" {{action "complete_word" suggestion}}>
+          <a href="#" class="suggestion" {{action "complete_word" suggestion}}>
             {{#if show_word_suggestion_images}}
               <span class='image_holder'>
                 {{#if suggestion.image}}
