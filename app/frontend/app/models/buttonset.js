@@ -14,6 +14,8 @@ import word_suggestions from '../utils/word_suggestions';
 import progress_tracker from '../utils/progress_tracker';
 import Utils from '../utils/misc';
 
+var button_set_cache = {};
+
 CoughDrop.Buttonset = DS.Model.extend({
   key: DS.attr('string'),
   buttons_json: DS.attr('raw'),
@@ -415,23 +417,26 @@ CoughDrop.Buttonset = DS.Model.extend({
   },
   find_buttons: function(str, from_board_id, user, include_home_and_sidebar) {
     var last = (new Date()).getTime();
+    var start = last;
+    var matching_buttons = [];
+    var profile = function(str) {
+      var now = (new Date()).getTime();
+      console.log(from_board_id + ": " + str, now - last, matching_buttons.length);
+      last = now;
+    };
+    profile('start');
+
     if(str.length === 0) { return RSVP.resolve([]); }
     var buttons = this.get('buttons') || [];
     var images = CoughDrop.store.peekAll('image');
 
-    var matching_buttons = [];
-    var profile = function(str) {
-      var now = (new Date()).getTime();
-      console.log(str, now - last, matching_buttons.length);
-      last = now;
-    };
 
     var re = new RegExp("\\b" + str, 'i');
     var all_buttons_enabled = stashes.get('all_buttons_enabled');
 
     if(from_board_id && from_board_id != this.get('id')) {
       // re-depthify all the buttons based on the starting board
-      buttons = this.redepth(from_board_id);
+      // buttons = this.redepth(from_board_id);
     }
     profile("redepth");
 
@@ -443,8 +448,8 @@ CoughDrop.Buttonset = DS.Model.extend({
         match_level = match_level || (button.label && word_suggestions.edit_distance(str, button.label) < Math.max(str.length, button.label.length) * 0.5 && 1);
         if(match_level) {
           button = $.extend({}, button, {match_level: match_level});
-          emberSet(button, 'on_this_board', (emberGet(button, 'depth') === 0));
-          emberSet(button, 'on_same_board', emberGet(button, 'on_this_board'));
+          button.on_this_board = (emberGet(button, 'depth') === 0);
+          button.on_same_board = emberGet(button, 'on_this_board');
           var path = [];
           var depth = button.depth || 0;
           var ref_button = button;
@@ -483,7 +488,7 @@ CoughDrop.Buttonset = DS.Model.extend({
             }
           }
           if(depth >= 0) {
-            emberSet(button, 'pre_buttons', path);
+            button.pre_buttons = path;
             matching_buttons.push(button);
           }
         }
@@ -504,16 +509,18 @@ CoughDrop.Buttonset = DS.Model.extend({
         var button_sets = [];
 
         var lookup = function(key, home_lock) {
-          var button_set = key && CoughDrop.store.peekRecord('buttonset', key);
+          var button_set = key && (button_set_cache[key] || CoughDrop.store.peekRecord('buttonset', key));
           if(button_set) {
             button_set.set('home_lock_set', home_lock);
             button_sets.push(button_set);
+            button_set_cache[key] = button_set;
           } else if(key) {
+            console.log("extra load!");
             root_button_set_lookups.push(CoughDrop.Buttonset.load_button_set(key).then(function(button_set) {
               button_set.set('home_lock_set', home_lock);
               button_sets.push(button_set);
+              button_set_cache[key] = button_set;
             }, function() { return RSVP.resolve(); }));
-          } else {
           }
         };
         if(home_board_id) {
@@ -522,10 +529,13 @@ CoughDrop.Buttonset = DS.Model.extend({
         (app_state.get('sidebar_boards') || []).forEach(function(brd) {
           lookup(brd.id, brd.home_lock);
         });
+        console.log("waiting on", root_button_set_lookups.length);
         RSVP.all_wait(root_button_set_lookups).then(function() {
           profile("found home/sidebar button sets");
           button_sets = Utils.uniq(button_sets, function(b) { return b.get('id'); });
+          profile("left with button sets: " + button_sets.length);
           button_sets.forEach(function(button_set, idx) {
+            profile("searching through " + button_set.get('id'));
             var is_home = (idx === 0);
             if(button_set) {
               var promise = button_set.find_buttons(str).then(function(buttons) {
@@ -548,11 +558,10 @@ CoughDrop.Buttonset = DS.Model.extend({
               other_find_buttons.push(promise);
             }
           });
-          lookup_resolve();
+          lookup_resolve();  
         }, function() {
           lookup_reject();
         });
-
       });
     }
 
@@ -593,42 +602,49 @@ CoughDrop.Buttonset = DS.Model.extend({
       profile("sorted");
       var image_lookup_promises = [];
       matching_buttons.forEach(function(button) {
-        if(button.image && CoughDropImage.personalize_url) {
-          button.image = CoughDropImage.personalize_url(button.image, app_state.get('currentUser.user_token'));
-        }
-        var image = images.findBy('id', button.image_id);
-        if(image) {
-          button.image = image.get('best_url');
-        }
-        emberSet(button, 'image', emberGet(button, 'image') || Ember.templateHelpers.path('blank.png'));
-
-        emberSet(button, 'current_depth', (button.pre_buttons || []).length);
-        if(button.image && button.image.match(/^http/)) {
-          emberSet(button, 'original_image', button.image);
-          var promise = persistence.find_url(button.image, 'image').then(function(data_uri) {
-            emberSet(button, 'image', data_uri);
-          }, function() { });
-          //image_lookup_promises.push(promise);
-          promise.then(null, function() { });
-        }
+        image_lookup_promises.push(CoughDrop.Buttonset.fix_image(button, images));
       });
       return RSVP.all_wait(image_lookup_promises);
     });
 
+    profile("method analyzed");
+
     return image_lookups.then(function() {
       profile("images looked up");
+      console.log(from_board_id + ": done in", (new Date()).getTime() - start);
       return matching_buttons;
     });
   }
 });
 
+CoughDrop.Buttonset.fix_image = function(button, images) {
+  if(button.image && CoughDropImage.personalize_url) {
+    button.image = CoughDropImage.personalize_url(button.image, app_state.get('currentUser.user_token'));
+  }
+  var image = images.findBy('id', button.image_id);
+  if(image) {
+    button.image = image.get('best_url');
+  }
+  emberSet(button, 'image', emberGet(button, 'image') || Ember.templateHelpers.path('blank.png'));
+
+  emberSet(button, 'current_depth', (button.pre_buttons || []).length);
+  if(button.image && button.image.match(/^http/)) {
+    emberSet(button, 'original_image', button.image);
+    var promise = persistence.find_url(button.image, 'image').then(function(data_uri) {
+      emberSet(button, 'image', data_uri);
+    }, function() { });
+    promise.then(null, function() { });
+    return promise;
+  }
+  return RSVP.resolve();
+};
 CoughDrop.Buttonset.load_button_set = function(id) {
   var button_sets = CoughDrop.store.peekAll('buttonset');
   var found = CoughDrop.store.peekRecord('buttonset', id) || button_sets.find(function(bs) { return bs.get('key') == id; });
   if(!found) {
     button_sets.forEach(function(bs) {
       // TODO: check board keys in addition to board ids
-      if(bs.get('board_ids').indexOf(id) != -1) {
+      if(bs.get('board_ids').indexOf(id) != -1 || bs.get('key') == id) {
         if(bs.get('fresh') || !found) {
           found = bs;
         }

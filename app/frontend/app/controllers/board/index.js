@@ -68,7 +68,9 @@ export default Controller.extend({
     }
     var last_finished_word = ((last_button && (last_button.vocalization || last_button.label)) || "").toLowerCase();
     var word_in_progress = ((current_button && (current_button.vocalization || current_button.label)) || "").toLowerCase();
-    _this.set('suggestions.pending', true);
+    if(capabilities.system == 'Android') {
+      _this.set('suggestions.pending', true);
+    }
     runLater(function() {
       word_suggestions.lookup({
         last_finished_word: last_finished_word,
