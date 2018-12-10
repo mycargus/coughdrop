@@ -63,6 +63,7 @@ CoughDrop.Buttonset = DS.Model.extend({
     return count;
   },
   redepth: function(from_board_id) {
+    return this.get('buttons');
     var buttons = this.get('buttons') || [];
     var new_buttons = [];
     var boards_to_check = [{id: from_board_id, depth: 0}];
@@ -435,14 +436,6 @@ CoughDrop.Buttonset = DS.Model.extend({
         match_level = match_level || (button.label && word_suggestions.edit_distance(str, button.label) < Math.max(str.length, button.label.length) * 0.5 && 1);
         if(match_level) {
           button = $.extend({}, button, {match_level: match_level});
-          if(button.image && CoughDropImage.personalize_url) {
-            button.image = CoughDropImage.personalize_url(button.image, app_state.get('currentUser.user_token'));
-          }
-          var image = images.findBy('id', button.image_id);
-          if(image) {
-            button.image = image.get('best_url');
-          }
-          emberSet(button, 'image', emberGet(button, 'image') || Ember.templateHelpers.path('blank.png'));
           emberSet(button, 'on_this_board', (emberGet(button, 'depth') === 0));
           emberSet(button, 'on_same_board', emberGet(button, 'on_this_board'));
           var path = [];
@@ -558,23 +551,7 @@ CoughDrop.Buttonset = DS.Model.extend({
       return RSVP.all_wait(other_find_buttons);
     });
 
-    var image_lookups = other_buttons.then(function() {
-      var image_lookup_promises = [];
-      matching_buttons.forEach(function(button) {
-        emberSet(button, 'current_depth', (button.pre_buttons || []).length);
-        if(button.image && button.image.match(/^http/)) {
-          emberSet(button, 'original_image', button.image);
-          var promise = persistence.find_url(button.image, 'image').then(function(data_uri) {
-            emberSet(button, 'image', data_uri);
-          }, function() { });
-          image_lookup_promises.push(promise);
-          promise.then(null, function() { });
-        }
-      });
-      return RSVP.all_wait(image_lookup_promises);
-    });
-
-    return image_lookups.then(function() {
+    var sort_results = other_buttons.then(function() {
       matching_buttons = matching_buttons.sort(function(a, b) {
         var a_depth = a.current_depth ? 1 : 0;
         var b_depth = b.current_depth ? 1 : 0;
@@ -599,6 +576,34 @@ CoughDrop.Buttonset = DS.Model.extend({
         }
       });
       matching_buttons = Utils.uniq(matching_buttons, function(b) { return (b.id || b.label) + "::" + b.board_id; });
+      matching_buttons = matching_buttons.slice(0, 50);
+    });
+    var image_lookups = sort_results.then(function() {
+      var image_lookup_promises = [];
+      matching_buttons.forEach(function(button) {
+        if(button.image && CoughDropImage.personalize_url) {
+          button.image = CoughDropImage.personalize_url(button.image, app_state.get('currentUser.user_token'));
+        }
+        var image = images.findBy('id', button.image_id);
+        if(image) {
+          button.image = image.get('best_url');
+        }
+        emberSet(button, 'image', emberGet(button, 'image') || Ember.templateHelpers.path('blank.png'));
+
+        emberSet(button, 'current_depth', (button.pre_buttons || []).length);
+        if(button.image && button.image.match(/^http/)) {
+          emberSet(button, 'original_image', button.image);
+          var promise = persistence.find_url(button.image, 'image').then(function(data_uri) {
+            emberSet(button, 'image', data_uri);
+          }, function() { });
+          image_lookup_promises.push(promise);
+          promise.then(null, function() { });
+        }
+      });
+      return RSVP.all_wait(image_lookup_promises);
+    });
+
+    return image_lookups.then(function() {
       return matching_buttons;
     });
   }

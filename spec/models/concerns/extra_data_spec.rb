@@ -16,6 +16,10 @@ describe ExtraData, :type => :model do
       expect(Uploader).to_not receive(:remote_upload)
       s.detach_extra_data(true)
     end
+    
+    it 'should force if frd="force" even if not enough data"' do
+      write_this_test
+    end
 
     it 'should upload if no extra_data_nonce defined and data too big' do
       u = User.create
