@@ -1136,11 +1136,11 @@ var app_state = EmberObject.extend({
       this.set('full_screen_capable', capabilities.fullscreen_capable());
       if(this.get('currentBoardState') && this.get('currentUser.needs_speak_mode_intro')) {
         var intro = this.get('currentUser.preferences.progress.speak_mode_intro_done');
-        if(!intro) {
+        if(!intro && !app_state.get('speak-mode-intro')) {
           if(modal.route && !modal.is_open('speak-mode-intro')) {
             modal.open('speak-mode-intro');
           }
-        } else if(intro && !this.get('currentUser.preferences.progress.modeling_intro_done') && this.get('currentUser.preferences.logging')) {
+        } else if(intro && !this.get('currentUser.preferences.progress.modeling_intro_done') && this.get('currentUser.preferences.logging') && !app_state.get('modeling-intro')) {
           var now = (new Date()).getTime();
           if(intro === true && this.get('currentUser.joined')) { intro = this.get('currentUser.joined').getTime(); }
           if(now - intro > (4 * 24 * 60 * 60 * 1000)) {
