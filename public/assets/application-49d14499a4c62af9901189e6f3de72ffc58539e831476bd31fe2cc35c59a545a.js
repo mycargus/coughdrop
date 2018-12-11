@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.12.11g";
+window.app_version = "2018.12.11h";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -10855,21 +10855,21 @@ return this.load().then(function(){var n=e.last_finished_word,a=e.word_in_progre
 if(t.last_finished_word!=n||t.word_in_progress!=a){t.last_finished_word=n,t.word_in_progress=a
 var i=function(e){if(e){for(var n=0;n<e.length&&l.length<r;n++){var s=e[n]
 "string"!=typeof s&&(s=s[0]),t.filtered_words[s.toLowerCase()]||(a?s.substring(0,a.length)==a&&l.push({word:e[n][0]}):"<"!=s[0]&&l.push({word:e[n][0]}))}return l}}
-if(i(t.ngrams[n]),l.length<r&&i(t.ngrams[""]),l.length<r){var d=[]
-t.ngrams[""].forEach(function(e){if(!t.filtered_words[e[0].toLowerCase()]){var n=t.edit_distance(a,e[0])
-d.push([e[0],n,e[1]])}}),(d=d.sort(function(e,t){return e[1]==t[1]?t[2]-e[2]:e[1]-t[1]})).forEach(function(e){l.length<r&&l.push({word:e[0]})})}if(l=s.default.uniq(l,"word"),t.last_result=l,t.fallback_url().then(function(e){l.forEach(function(t){Ember.get(t,"image")||Ember.set(t,"image",e)})}),e.board_ids){var u={},c=o.default.store.peekAll("image")
-l.forEach(function(e){u[e.word.toLowerCase()]=e,e.depth=999}),e.board_ids.forEach(function(e){e&&o.default.store.findRecord("board",e).then(function(t){t.load_button_set().then(function(t){t.redepth(e).forEach(function(e){var t=u[e.label]||u[e.vocalization]
-t&&e.depth<t.depth&&(t.depth=e.depth,o.default.Buttonset.fix_image(e,c).then(function(){!Ember.get(t,"original_image")&&e.image&&(Ember.set(t,"original_image",e.original_image),Ember.set(t,"safe_image",Ember.get(t,"image")),Ember.set(t,"image",e.image),!e.image.match(/^data/)&&e.image.match(/^http/)||Ember.set(t,"safe_image",e.image))}))})},function(){})},function(){})})}return Ember.RSVP.resolve(l)}return Ember.RSVP.resolve(t.last_result)})},fallback_url:function(){if(this.fallback_url_result)return Ember.RSVP.resolve(this.fallback_url_result)
+if(i(t.ngrams[n]),l.length<r&&i(t.ngrams[""]),l.length<r){var d=[],u=a.length/2,c=2*a.length
+t.ngrams[""].forEach(function(e){if(e[0]&&e[0].length>u&&e[0].length<c&&!t.filtered_words[e[0].toLowerCase()]){var n=t.edit_distance(a,e[0])
+d.push([e[0],n,e[1]])}}),(d=d.sort(function(e,t){return e[1]==t[1]?t[2]-e[2]:e[1]-t[1]}).slice(0,r)).forEach(function(e){l.length<r&&l.push({word:e[0]})})}if(l=s.default.uniq(l,"word"),t.last_result=l,t.fallback_url().then(function(e){l.forEach(function(t){Ember.get(t,"image")||Ember.set(t,"image",e)})}),e.board_ids){var p={},m=o.default.store.peekAll("image")
+l.forEach(function(e){p[e.word.toLowerCase()]=e,e.depth=999}),e.board_ids.forEach(function(e){e&&o.default.store.findRecord("board",e).then(function(t){t.load_button_set().then(function(t){t.redepth(e).forEach(function(e){var t=p[e.label]||p[e.vocalization]
+t&&e.depth<t.depth&&(t.depth=e.depth,o.default.Buttonset.fix_image(e,m).then(function(){!Ember.get(t,"original_image")&&e.image&&(Ember.set(t,"original_image",e.original_image),Ember.set(t,"safe_image",Ember.get(t,"image")),Ember.set(t,"image",e.image),!e.image.match(/^data/)&&e.image.match(/^http/)||Ember.set(t,"safe_image",e.image))}))})},function(){})},function(){})})}return Ember.RSVP.resolve(l)}return Ember.RSVP.resolve(t.last_result)})},fallback_url:function(){if(this.fallback_url_result)return Ember.RSVP.resolve(this.fallback_url_result)
 var e=this
-return t.default.find_url("https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg").then(function(t){return e.fallback_url_result=t,t},function(){return Ember.RSVP.resolve("https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg")})},edit_distance:function(e,t){if(0===e.length)return t.length
-if(0===t.length)return e.length
-var n,s,a=[]
-for(n=0;n<=t.length;n++)a[n]=[n]
-for(s=0;s<=e.length;s++)a[0][s]=s
-for(n=1;n<=t.length;n++)for(s=1;s<=e.length;s++)t.charAt(n-1)==e.charAt(s-1)?a[n][s]=a[n-1][s-1]:a[n][s]=Math.min(a[n-1][s-1]+1,Math.min(a[n][s-1]+1,a[n-1][s]+1))
-return a[t.length][e.length]}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+7d8af545"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+7d8af545"})
+return t.default.find_url("https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg").then(function(t){return e.fallback_url_result=t,t},function(){return Ember.RSVP.resolve("https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg")})},edit_distance:function(e,t){var n,s,a,o=e.length,r=t.length
+if(0===o)return r
+if(0===r)return o
+var l,i,d,u=[],c=[]
+for(i=0;i<r;++i)u[i]=i,c[i]=t.charCodeAt(i)
+for(u[r]=r,i=0;i<o;++i){for(s=i+1,d=0;d<r;++d)n=s,l=e.charCodeAt(i)===c[d],(s=u[d]+(l?0:1))>(a=n+1)&&(s=a),s>(a=u[d+1]+1)&&(s=a),u[d]=n
+u[d]=s}return s}}).create({pieces:10,max_results:5})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+f618d342"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+f618d342"})
 ;
 
 
