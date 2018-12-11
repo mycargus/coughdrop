@@ -427,74 +427,74 @@ CoughDrop.Buttonset = DS.Model.extend({
     profile('start');
 
     if(str.length === 0) { return RSVP.resolve([]); }
-    var buttons = this.get('buttons') || [];
     var images = CoughDrop.store.peekAll('image');
 
-
-    var re = new RegExp("\\b" + str, 'i');
-    var all_buttons_enabled = stashes.get('all_buttons_enabled');
-
-    if(from_board_id && from_board_id != this.get('id')) {
-      // re-depthify all the buttons based on the starting board
-      // buttons = this.redepth(from_board_id);
-    }
-    profile("redepth");
-
-    buttons.forEach(function(button, idx) {
-      // TODO: optionally show buttons on link-disabled boards
-      if(!button.hidden || all_buttons_enabled) {
-        var match_level = (button.label && button.label.match(re) && 3);
-        match_level = match_level || (button.vocalization && button.vocalization.match(re) && 2);
-        match_level = match_level || (button.label && word_suggestions.edit_distance(str, button.label) < Math.max(str.length, button.label.length) * 0.5 && 1);
-        if(match_level) {
-          button = $.extend({}, button, {match_level: match_level});
-          button.on_this_board = (emberGet(button, 'depth') === 0);
-          button.on_same_board = emberGet(button, 'on_this_board');
-          var path = [];
-          var depth = button.depth || 0;
-          var ref_button = button;
-          var allow_unpreferred = false;
-          var button_to_get_here = null;
-          var check_for_match = function(parent_button) {
-            if(!button_to_get_here && !parent_button.link_disabled && (!parent_button.hidden || all_buttons_enabled)) {
-              if(parent_button.linked_board_id == ref_button.board_id && (allow_unpreferred || parent_button.preferred_link)) {
-                button_to_get_here = parent_button;
+    var traverse_buttons = new RSVP.Promise(function(traverse_resolve, traverse_reject) {
+      var re = new RegExp("\\b" + str, 'i');
+      var all_buttons_enabled = stashes.get('all_buttons_enabled');
+      var buttons = this.get('buttons') || [];
+      if(from_board_id && from_board_id != this.get('id')) {
+        // re-depthify all the buttons based on the starting board
+        buttons = this.redepth(from_board_id);
+      }
+      profile("redepth");
+  
+      buttons.forEach(function(button, idx) {
+        // TODO: optionally show buttons on link-disabled boards
+        if(!button.hidden || all_buttons_enabled) {
+          var match_level = (button.label && button.label.match(re) && 3);
+          match_level = match_level || (button.vocalization && button.vocalization.match(re) && 2);
+          match_level = match_level || (button.label && word_suggestions.edit_distance(str, button.label) < Math.max(str.length, button.label.length) * 0.5 && 1);
+          if(match_level) {
+            button = $.extend({}, button, {match_level: match_level});
+            button.on_this_board = (emberGet(button, 'depth') === 0);
+            button.on_same_board = emberGet(button, 'on_this_board');
+            var path = [];
+            var depth = button.depth || 0;
+            var ref_button = button;
+            var allow_unpreferred = false;
+            var button_to_get_here = null;
+            var check_for_match = function(parent_button) {
+              if(!button_to_get_here && !parent_button.link_disabled && (!parent_button.hidden || all_buttons_enabled)) {
+                if(parent_button.linked_board_id == ref_button.board_id && (allow_unpreferred || parent_button.preferred_link)) {
+                  button_to_get_here = parent_button;
+                }
               }
-            }
-          };
-          var find_same_button = function(b) { return b.board_id == button_to_get_here.board_id && b.id == button_to_get_here.id; };
-          while(depth > 0) {
-            button_to_get_here = null;
-            allow_unpreferred = false;
-            buttons.forEach(check_for_match);
-            allow_unpreferred = true;
-            buttons.forEach(check_for_match);
-            if(!button_to_get_here) {
-              // something bad happened
-              depth = -1;
-            } else {
-              ref_button = button_to_get_here;
-              depth = ref_button.depth;
-              // check for loops, fail immediately
-              if(path.find(find_same_button)) {
+            };
+            var find_same_button = function(b) { return b.board_id == button_to_get_here.board_id && b.id == button_to_get_here.id; };
+            while(depth > 0) {
+              button_to_get_here = null;
+              allow_unpreferred = false;
+              buttons.forEach(check_for_match);
+              allow_unpreferred = true;
+              buttons.forEach(check_for_match);
+              if(!button_to_get_here) {
+                // something bad happened
                 depth = -1;
               } else {
-                path.unshift(button_to_get_here);
+                ref_button = button_to_get_here;
+                depth = ref_button.depth;
+                // check for loops, fail immediately
+                if(path.find(find_same_button)) {
+                  depth = -1;
+                } else {
+                  path.unshift(button_to_get_here);
+                }
+              }
+              // hard limit on number of steps
+              if(path.length > 15) {
+                depth = -1;
               }
             }
-            // hard limit on number of steps
-            if(path.length > 15) {
-              depth = -1;
+            if(depth >= 0) {
+              button.pre_buttons = path;
+              matching_buttons.push(button);
             }
           }
-          if(depth >= 0) {
-            button.pre_buttons = path;
-            matching_buttons.push(button);
-          }
         }
-      }
+      });
+      profile("searched");
     });
-    profile("searched");
 
     var other_lookups = RSVP.resolve();
 
@@ -565,7 +565,12 @@ CoughDrop.Buttonset = DS.Model.extend({
       });
     }
 
-    var other_buttons = other_lookups.then(function() {
+    var lookups_ready = traverse_buttons.then(function() {
+      profile('search resolved');
+      return other_lookups;
+    })
+
+    var other_buttons = lookups_ready.then(function() {
       profile("home/sidebar search");
       return RSVP.all_wait(other_find_buttons);
     });
