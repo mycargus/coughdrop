@@ -416,28 +416,20 @@ CoughDrop.Buttonset = DS.Model.extend({
     return image_lookups;
   },
   find_buttons: function(str, from_board_id, user, include_home_and_sidebar) {
-    var last = (new Date()).getTime();
-    var start = last;
     var matching_buttons = [];
-    var profile = function(str) {
-      var now = (new Date()).getTime();
-      console.log(from_board_id + ": " + str, now - last, matching_buttons.length);
-      last = now;
-    };
-    profile('start');
 
     if(str.length === 0) { return RSVP.resolve([]); }
     var images = CoughDrop.store.peekAll('image');
+    var _this = this;
 
     var traverse_buttons = new RSVP.Promise(function(traverse_resolve, traverse_reject) {
       var re = new RegExp("\\b" + str, 'i');
       var all_buttons_enabled = stashes.get('all_buttons_enabled');
-      var buttons = this.get('buttons') || [];
-      if(from_board_id && from_board_id != this.get('id')) {
+      var buttons = _this.get('buttons') || [];
+      if(from_board_id && from_board_id != _this.get('id')) {
         // re-depthify all the buttons based on the starting board
-        buttons = this.redepth(from_board_id);
+        buttons = _this.redepth(from_board_id);
       }
-      profile("redepth");
   
       buttons.forEach(function(button, idx) {
         // TODO: optionally show buttons on link-disabled boards
@@ -493,7 +485,7 @@ CoughDrop.Buttonset = DS.Model.extend({
           }
         }
       });
-      profile("searched");
+      traverse_resolve();
     });
 
     var other_lookups = RSVP.resolve();
@@ -531,11 +523,8 @@ CoughDrop.Buttonset = DS.Model.extend({
         });
         console.log("waiting on", root_button_set_lookups.length);
         RSVP.all_wait(root_button_set_lookups).then(function() {
-          profile("found home/sidebar button sets");
           button_sets = Utils.uniq(button_sets, function(b) { return b.get('id'); });
-          profile("left with button sets: " + button_sets.length);
           button_sets.forEach(function(button_set, idx) {
-            profile("searching through " + button_set.get('id'));
             var is_home = (idx === 0);
             if(button_set) {
               var promise = button_set.find_buttons(str).then(function(buttons) {
@@ -566,17 +555,14 @@ CoughDrop.Buttonset = DS.Model.extend({
     }
 
     var lookups_ready = traverse_buttons.then(function() {
-      profile('search resolved');
       return other_lookups;
     })
 
     var other_buttons = lookups_ready.then(function() {
-      profile("home/sidebar search");
       return RSVP.all_wait(other_find_buttons);
     });
 
     var sort_results = other_buttons.then(function() {
-      profile("other find buttons");
       matching_buttons = matching_buttons.sort(function(a, b) {
         var a_depth = a.current_depth ? 1 : 0;
         var b_depth = b.current_depth ? 1 : 0;
@@ -604,7 +590,6 @@ CoughDrop.Buttonset = DS.Model.extend({
       matching_buttons = matching_buttons.slice(0, 50);
     });
     var image_lookups = sort_results.then(function() {
-      profile("sorted");
       var image_lookup_promises = [];
       matching_buttons.forEach(function(button) {
         image_lookup_promises.push(CoughDrop.Buttonset.fix_image(button, images));
@@ -612,11 +597,8 @@ CoughDrop.Buttonset = DS.Model.extend({
       return RSVP.all_wait(image_lookup_promises);
     });
 
-    profile("method analyzed");
 
     return image_lookups.then(function() {
-      profile("images looked up");
-      console.log(from_board_id + ": done in", (new Date()).getTime() - start);
       return matching_buttons;
     });
   }
