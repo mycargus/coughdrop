@@ -214,10 +214,14 @@ var word_suggestions = EmberObject.extend({
         // if still not enough found, find the closest spelling
         if(result.length < max_results) {
           var edits = [];
+          var min = word_in_progress.length / 2;
+          var max = word_in_progress.length * 2;
           _this.ngrams[''].forEach(function(str) {
-            if(!_this.filtered_words[str[0].toLowerCase()]) {
-              var dist = _this.edit_distance(word_in_progress, str[0]);
-              edits.push([str[0], dist, str[1]]);
+            if(str[0] && (str[0].length > min && str[0].length < max)) {
+              if(!_this.filtered_words[str[0].toLowerCase()]) {
+                var dist = _this.edit_distance(word_in_progress, str[0]);
+                edits.push([str[0], dist, str[1]]);
+              }
             }
           });
           edits = edits.sort(function(a, b) {
@@ -226,7 +230,7 @@ var word_suggestions = EmberObject.extend({
             } else {
               return a[1] - b[1];
             }
-          });
+          }).slice(0, max_results);
           edits.forEach(function(e) {
             if(result.length < max_results) {
               result.push({word: e[0]});
@@ -291,38 +295,53 @@ var word_suggestions = EmberObject.extend({
     }
   },
   edit_distance: function(a, b) {
+    var alen = a.length;
+    var blen = b.length;
     // Compute the edit distance between the two given strings
-    if(a.length === 0) { return b.length; }
-    if(b.length === 0) { return a.length; }
+    if(alen === 0) { return blen; }
+    if(blen === 0) { return alen; }
 
-    var matrix = [];
+    var cur_col, next_col, i, j, tmp;
+    var prev_row = [];
+    var bchar = [];
 
-    // increment along the first column of each row
-    var i;
-    for(i = 0; i <= b.length; i++){
-      matrix[i] = [i];
+    for (i=0; i<blen; ++i) {
+      prev_row[i] = i;
+      bchar[i] = b.charCodeAt(i);
     }
+    prev_row[blen] = blen;
+    var str_cmp;
+    // calculate current row distance from previous row without collator
+    for (i = 0; i < alen; ++i) {
+      next_col = i + 1;
 
-    // increment each column in the first row
-    var j;
-    for(j = 0; j <= a.length; j++){
-      matrix[0][j] = j;
-    }
+      for (j = 0; j < blen; ++j) {
+        cur_col = next_col;
 
-    // Fill in the rest of the matrix
-    for(i = 1; i <= b.length; i++){
-      for(j = 1; j <= a.length; j++){
-        if(b.charAt(i-1) == a.charAt(j-1)){
-          matrix[i][j] = matrix[i-1][j-1];
-        } else {
-          matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, // substitution
-                                  Math.min(matrix[i][j-1] + 1, // insertion
-                                           matrix[i-1][j] + 1)); // deletion
+        // substution
+        str_cmp = a.charCodeAt(i) === bchar[j];
+
+        next_col = prev_row[j] + (str_cmp ? 0 : 1);
+
+        // insertion
+        tmp = cur_col + 1;
+        if (next_col > tmp) {
+          next_col = tmp;
         }
-      }
-    }
+        // deletion
+        tmp = prev_row[j + 1] + 1;
+        if (next_col > tmp) {
+          next_col = tmp;
+        }
 
-    return matrix[b.length][a.length];
+        // copy current col value into previous (in preparation for next iteration)
+        prev_row[j] = cur_col;
+      }
+
+      // copy last col value into previous (in preparation for next iteration)
+      prev_row[j] = next_col;
+    }
+    return next_col;
   }
 }).create({pieces: 10, max_results: 5});
 
