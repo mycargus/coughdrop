@@ -158,10 +158,9 @@ CoughDrop.Buttonset = DS.Model.extend({
             button_set.set('home_lock_set', home_lock);
             button_sets.push(button_set);
           }, function() { return RSVP.resolve(); }));
-        } else {
         }
       };
-      // probably skip the sidebar for now, highlighting the scrollabe sidebar
+      // probably skip the sidebar for now, highlighting the scrollable sidebar
       // is kind of a can of worms
       add_buttons(home_board_id, false);
     }
@@ -631,7 +630,7 @@ CoughDrop.Buttonset.load_button_set = function(id) {
   if(!found) {
     button_sets.forEach(function(bs) {
       // TODO: check board keys in addition to board ids
-      if(bs.get('board_ids').indexOf(id) != -1 || bs.get('key') == id) {
+      if((bs.get('board_ids') || []).indexOf(id) != -1 || bs.get('key') == id) {
         if(bs.get('fresh') || !found) {
           found = bs;
         }
