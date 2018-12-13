@@ -643,7 +643,7 @@ CoughDrop.Buttonset.load_button_set = function(id) {
     return button_set;
   }, function(err) {
     // if not found error, it may need to be regenerated
-    if(err.error == 'Record not found' && err.id) {
+    if(err.error == 'Record not found' && err.id && err.id.match(/^\d/)) {
       return new RSVP.Promise(function(resolve, reject) {
         persistence.ajax('/api/v1/buttonsets/' + id + '/generate', {
           type: 'POST',

@@ -14,9 +14,12 @@ import i18n from './utils/i18n';
 import persistence from './utils/persistence';
 import coughDropExtras from './utils/extras';
 
+window.onerror = function(msg, url, line, col, obj) {
+  CoughDrop.track_error(msg + " (" + url + "-" + line + ":" + col + ")", false);
+};
 Ember.onerror = function(err) {
   if(err.stack) {
-    console.error(err.stack);
+    CoughDrop.track_error(err.message, err.stack);
   } else {
     if(err.fakeXHR && (err.fakeXHR.status == 400 || err.fakeXHR.status == 404 || err.fakeXHR.status === 0)) {
       // should already be logged via "ember ajax error"
@@ -25,7 +28,7 @@ Ember.onerror = function(err) {
     } else if(err._result && err._result.fakeXHR && (err._result.fakeXHR.status == 400 || err._result.fakeXHR.status == 404 || err._result.fakeXHR.status === 0)) {
       // should already be logged via "ember ajax error"
     } else {
-      console.error(JSON.stringify(err));
+      CoughDrop.track_error(JSON.stringify(err), false);
     }
   }
   if(Ember.testing) {
@@ -81,6 +84,20 @@ CoughDrop.grabRecord = persistence.DSExtend.grabRecord;
 CoughDrop.embedded = !!location.href.match(/embed=1/);
 CoughDrop.ad_referrer = (location.href.match(/\?ref=([^#]+)/) || [])[1];
 CoughDrop.referrer = document.referrer;
+
+CoughDrop.track_error = function(msg, stack) {
+  if(window._trackJs) {
+    window._trackJs.track(msg);
+  } else {
+    console.error(msg, stack || error.stack);
+  }
+  var error = new Error();
+  CoughDrop.errors = CoughDrop.errors || [];
+  CoughDrop.errors.push({
+    message: msg,
+    stack: stack === false ? null : (stack || error.stack)
+  });
+}
 
 if(capabilities.wait_for_deviceready) {
   document.addEventListener('deviceready', function() {

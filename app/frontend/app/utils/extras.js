@@ -114,9 +114,7 @@ import capabilities from './capabilities';
       }
     },
     track_error: function(message) {
-      if(window._trackJs) {
-        window._trackJs.track(message);
-      }
+      CoughDrop.track_error(message);
     }
   }).create();
   var device_id = stashes.get_raw('coughDropDeviceId');

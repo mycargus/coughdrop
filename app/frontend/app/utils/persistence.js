@@ -1741,7 +1741,7 @@ var persistence = EmberObject.extend({
                       }, function(error) {
                         if(safely_cached) {
                           console.log(error);
-                          console.error("should have been safely cached, but board content wasn't in db:" + board.id);
+                          console.log("should have been safely cached, but board content wasn't in db:" + board.id);
                         }
                         checked_linked_boards[board.id] = true;
                         return RSVP.resolve();
@@ -1749,7 +1749,7 @@ var persistence = EmberObject.extend({
                     }, function(error) {
                       if(safely_cached) {
                         console.log(error);
-                        console.error("should have been safely cached, but board wasn't in db:" + board.id);
+                        console.log("should have been safely cached, but board wasn't in db:" + board.id);
                       }
                       checked_linked_boards[board.id] = true;
                       return RSVP.resolve();
