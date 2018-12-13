@@ -565,7 +565,7 @@ var voices = EmberObject.extend({
     {
       voice_id: "acap:Samuel", size: 77,
       locale: "sv-FI", gender: "m", age: "adult",
-      voice_dir_v2018: "hqm-ref-FinlandSwedish-samuel-22khz",
+      voice_dir_v2018: "hqm-ref-FinlandSwedish-Samuel-22khz",
       ref_id: "sv_fi_samuel_22k_ns",
       language_version: "1.77",
       voice_dir: "hqm-ref-FinlandSwedish-samuel-22khz"
