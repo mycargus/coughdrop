@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2018.12.13";
+window.app_version = "2018.12.13a";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -7225,9 +7225,8 @@ define("frontend/adapters/application",["exports","ember-data","frontend/utils/p
 var s=t.default.RESTAdapter.extend({namespace:"api/v1"},n.default.DSExtend)
 e.default=s}),define("frontend/app",["exports","ember-data","ember-resolver","ember-load-initializers","frontend/config/environment","frontend/utils/capabilities","frontend/utils/i18n","frontend/utils/persistence","frontend/utils/extras"],function(e,t,n,s,a,o,r,l,i){Object.defineProperty(e,"__esModule",{value:!0}),window.onerror=function(e,t,n,s,a){u.track_error(e+" ("+t+"-"+n+":"+s+")",!1)},Ember.onerror=function(e){if(e.stack?u.track_error(e.message,e.stack):(!e.fakeXHR||400!=e.fakeXHR.status&&404!=e.fakeXHR.status&&0!==e.fakeXHR.status)&&(400==e.status||404==e.status||0===e.status||e._result&&e._result.fakeXHR&&(400==e._result.fakeXHR.status||404==e._result.fakeXHR.status||0===e._result.fakeXHR.status)||u.track_error(JSON.stringify(e),!1)),Ember.testing)throw e}
 var d={buttonselect:"buttonSelect",buttonpaint:"buttonPaint",actionselect:"actionSelect",symbolselect:"symbolSelect",rearrange:"rearrange",tripleclick:"tripleClick",clear:"clear",stash:"stash",select:"select"},u=Ember.Application.extend({modulePrefix:a.default.modulePrefix,podModulePrefix:a.default.podModulePrefix,Resolver:n.default,customEvents:d,ready:function(){if(o.default.installed_app||navigator&&navigator.splashscreen&&navigator.splashscreen.hide){Ember.run.later(function e(){Ember.$("footer").length>0?navigator&&navigator.splashscreen&&navigator.splashscreen.hide?(window.splash_hidden=!0,Ember.run.later(navigator.splashscreen.hide,500)):console.log("splash screen expected but not found"):Ember.run.later(e,200)},200)}}})
-u.grabRecord=l.default.DSExtend.grabRecord,u.embedded=!!location.href.match(/embed=1/),u.ad_referrer=(location.href.match(/\?ref=([^#]+)/)||[])[1],u.referrer=document.referrer,u.track_error=function(e,t){window._trackJs?window._trackJs.track(e):console.error(e,t||n.stack)
-var n=new Error
-u.errors=u.errors||[],u.errors.push({message:e,stack:!1===t?null:t||n.stack})},o.default.wait_for_deviceready?document.addEventListener("deviceready",function(){var e,t=function e(){e.completed||(e.completed=!0,window.kvstash&&console.debug("COUGHDROP: found native key value store"),i.default.advance("device"))}
+u.grabRecord=l.default.DSExtend.grabRecord,u.embedded=!!location.href.match(/embed=1/),u.ad_referrer=(location.href.match(/\?ref=([^#]+)/)||[])[1],u.referrer=document.referrer,u.track_error=function(e,t){var n=new Error
+window._trackJs?window._trackJs.track(e):console.error(e,t||n.stack),u.errors=u.errors||[],u.errors.push({message:e,stack:!1===t?null:t||n.stack})},o.default.wait_for_deviceready?document.addEventListener("deviceready",function(){var e,t=function e(){e.completed||(e.completed=!0,window.kvstash&&console.debug("COUGHDROP: found native key value store"),i.default.advance("device"))}
 "iOS"==o.default.system&&o.default.installed_app?(e="iCloudKV",window.cordova.exec(function(n){window.kvstash={values:n,store:function(t,n){window.cordova.exec(function(){},function(){},e,"save",[t.toString(),n.toString()])},remove:function(t){window.cordova.exec(function(){},function(){},e,"remove",[t.toString()])}},t()},t,e,"sync",[]),Ember.run.later(t,500)):"Android"==o.default.system&&o.default.installed_app?(e="SharedPreferences",window.cordova.exec(function(){var n=function(n){window.kvstash={values:{user_name:n},store:function(t,n){window.cordova.exec(function(){},function(){},e,"putString",[t.toString(),n.toString()])},remove:function(t){window.cordova.exec(function(){},function(){},e,"remove",[t.toString()])}},t()}
 window.cordova.exec(function(e){n(e)},function(e){n(null)},e,"getString",["user_name"])},t,e,"getSharedPreferences",["coughdrop_prefs","MODE_PRIVATE"]),Ember.run.later(t,500)):t()}):i.default.advance("device"),(0,s.default)(u,a.default.modulePrefix),t.default.Model.reopen({reload:function(e){return l.default.force_reload=!1===e?null:this._internalModel.modelName+"_"+this.get("id"),this._super()},retrieved:t.default.attr("number"),fresh:function(){var e=this.get("retrieved")
 return(new Date).getTime()-e<3e5}.property("retrieved","app_state.refresh_stamp"),really_fresh:function(){var e=this.get("retrieved")
@@ -10873,8 +10872,8 @@ var d,u=[],c=[]
 for(a=0;a<i;++a)u[a]=a,c[a]=t.charCodeAt(a)
 for(u[i]=i,a=0;a<l;++a){for(s=a+1,o=0;o<i;++o)n=s,d=e.charCodeAt(a)===c[o],(s=u[o]+(d?0:1))>(r=n+1)&&(s=r),s>(r=u[o+1]+1)&&(s=r),u[o]=n
 u[o]=s}return s}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+94660675"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+94660675"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+5da321cd"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+5da321cd"})
 ;
 
 
