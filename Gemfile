@@ -14,7 +14,7 @@ group :development, :test do
   gem 'rails-controller-testing'
 end
 
-gem 'rails', '5.0'
+gem 'rails', '5.0.2'
 gem 'pg'#, '0.19.0' #, '>=1.1.3'
 gem 'sass-rails'
 gem 'uglifier', '>= 1.3.0'
@@ -48,7 +48,7 @@ gem 'boy_band'
 # TODO: pinned to master because wasn't working with rails 5
 gem 'ar-octopus', require: 'octopus', git: 'https://github.com/whitmer/octopus'
 # TODO: getting errors on load for rails 5, so pinned to beta, this isn't actually a core dependency
-gem 'sinatra', '~> 2.0.0.beta2'
+gem 'sinatra'
 gem 'sanitize'
 
 group :doc do
@@ -70,4 +70,4 @@ end
 # Use Capistrano for deployment
 # gem 'capistrano', group: :development
 
-ruby "2.3.3"
+ruby "2.5.3"
