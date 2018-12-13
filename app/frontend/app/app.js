@@ -86,12 +86,12 @@ CoughDrop.ad_referrer = (location.href.match(/\?ref=([^#]+)/) || [])[1];
 CoughDrop.referrer = document.referrer;
 
 CoughDrop.track_error = function(msg, stack) {
+  var error = new Error();
   if(window._trackJs) {
     window._trackJs.track(msg);
   } else {
     console.error(msg, stack || error.stack);
   }
-  var error = new Error();
   CoughDrop.errors = CoughDrop.errors || [];
   CoughDrop.errors.push({
     message: msg,
