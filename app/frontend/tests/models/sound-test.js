@@ -34,7 +34,7 @@ describe('Sound', function() {
     it('should return the correct value', function() {
       var sound = CoughDrop.store.createRecord('sound', {});
       expect(sound.get('extension')).toEqual('unknown type');
-      sound.set('content_type', 'audio/mp3');
+      sound.set('content_type', 'audio/mpeg');
       expect(sound.get('extension')).toEqual('mp3');
       sound.set('content_type', 'audio/ogg');
       expect(sound.get('extension')).toEqual('oga');

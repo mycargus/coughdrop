@@ -451,9 +451,6 @@ describe LogSession, :type => :model do
       expect(s.data['stats']['utterances']).to eql(0.0)
       expect(s.data['stats']['utterance_words']).to eql(0.0)
       expect(s.data['stats']['utterance_buttons']).to eql(0.0)
-      expect(s.data['stats']['all_buttons']).to eql([])
-      expect(s.data['stats']['all_words']).to eql([])
-      expect(s.data['stats']['all_boards']).to eql([])
       expect(s.data['stats']['parts_of_speech']).to eql({})
     end
     
