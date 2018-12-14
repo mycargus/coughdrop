@@ -6,7 +6,7 @@ unless ENV['SKIP_VALIDATIONS']
     else
       Octopus.config[Rails.env].keys.count rescue 0
     end
-  
+
     puts "=> #{count} #{'database'.pluralize(count)} enabled as read-only #{'slave'.pluralize(count)}"
   end
 end

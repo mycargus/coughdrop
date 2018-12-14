@@ -988,7 +988,7 @@ describe Api::BoardsController, :type => :controller do
     with_versioning do
       it "should return a list of versions" do
         token_user
-        PaperTrail.whodunnit = "user:#{@user.global_id}"
+        PaperTrail.request.whodunnit = "user:#{@user.global_id}"
         b = Board.create(:user => @user, :settings => {'buttons' => []})
         get :history, params: {:board_id => b.key}
         expect(response).to be_success
@@ -1001,7 +1001,7 @@ describe Api::BoardsController, :type => :controller do
     
       it "should return a list of versions for a deleted board" do
         token_user
-        PaperTrail.whodunnit = "user:#{@user.global_id}"
+        PaperTrail.request.whodunnit = "user:#{@user.global_id}"
         b = Board.create(:user => @user, :settings => {'buttons' => []})
         key = b.key
 
@@ -1026,7 +1026,7 @@ describe Api::BoardsController, :type => :controller do
       
       it "should include board copy as a version" do
         token_user
-        PaperTrail.whodunnit = "user:#{@user.global_id}"
+        PaperTrail.request.whodunnit = "user:#{@user.global_id}"
         u = User.create
         b = Board.create(:user => u, :public => true)
         b2 = Board.create(:user => u, :public => true)

@@ -19,7 +19,7 @@ unless ENV['SKIP_VALIDATIONS']
     raise "need ENV['USER_KEY'] for console logging"
   end
   if ENV['USER_KEY']
-    PaperTrail.whodunnit = "admin:#{ENV['USER_KEY']}"
+    PaperTrail.request.whodunnit = "admin:#{ENV['USER_KEY']}"
   end
   
   if ['r', 'runner'].include?(command)

@@ -6,11 +6,11 @@ class LogSession < ActiveRecord::Base
   include Notifier
   include ExtraData
   belongs_to :user
-  belongs_to :author, :class_name => User
-  belongs_to :ip_cluster, :class_name => ClusterLocation
-  belongs_to :geo_cluster, :class_name => ClusterLocation
+  belongs_to :author, :class_name => 'User'
+  belongs_to :ip_cluster, :class_name => 'ClusterLocation'
+  belongs_to :geo_cluster, :class_name => 'ClusterLocation'
   belongs_to :device
-  belongs_to :goal, :class_name => UserGoal
+  belongs_to :goal, :class_name => 'UserGoal'
   before_save :generate_defaults
   before_save :generate_stats
   after_save :split_out_later_sessions

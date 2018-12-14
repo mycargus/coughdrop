@@ -33,7 +33,7 @@ class ApplicationController < ActionController::Base
     @time = Time.now
     Time.zone = nil
     token = params['access_token']
-    PaperTrail.whodunnit = nil
+    PaperTrail.request.whodunnit = nil
     if !token && request.headers['Authorization']
       match = request.headers['Authorization'].match(/^Bearer ([\w\-_\~]+)$/)
       token = match[1] if match
@@ -61,7 +61,7 @@ class ApplicationController < ActionController::Base
       end
       # TODO: timezone user setting
       Time.zone = "Mountain Time (US & Canada)"
-      PaperTrail.whodunnit = user_for_paper_trail
+      PaperTrail.request.whodunnit = user_for_paper_trail
 
       as_user = params['as_user_id'] || request.headers['X-As-User-Id']
       if @api_user && as_user
@@ -70,7 +70,7 @@ class ApplicationController < ActionController::Base
         if admin && admin.manager?(@api_user) && @linked_user
           @true_user = @api_user
           @api_user = @linked_user
-          PaperTrail.whodunnit = "user:#{@true_user.global_id}:as:#{@api_user.global_id}"
+          PaperTrail.request.whodunnit = "user:#{@true_user.global_id}:as:#{@api_user.global_id}"
         else
           api_error 400, {error: "Invalid masquerade attempt", token: token, user_id: as_user}
         end

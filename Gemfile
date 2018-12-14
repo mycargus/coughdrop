@@ -4,7 +4,6 @@ source 'https://rubygems.org'
 
 group :development, :test do
   gem 'dotenv'
-  gem 'jasminerice', :git => 'https://github.com/bradphelan/jasminerice.git'
   gem 'guard'
   gem 'guard-jasmine'
   gem 'guard-rspec'
@@ -14,8 +13,8 @@ group :development, :test do
   gem 'rails-controller-testing'
 end
 
-gem 'rails', '5.0.2'
-gem 'pg'#, '0.19.0' #, '>=1.1.3'
+gem 'rails', '5.0.0'
+gem 'pg', '0.19.0' #, '>=1.1.3'
 gem 'sass-rails'
 gem 'uglifier', '>= 1.3.0'
 
@@ -45,8 +44,7 @@ gem 'go_secure'
 gem 'permissable-coughdrop'
 gem 'boy_band'
 
-# TODO: pinned to master because wasn't working with rails 5
-gem 'ar-octopus', require: 'octopus', git: 'https://github.com/whitmer/octopus'
+gem 'ar-octopus', require: 'octopus' #, git: 'https://github.com/whitmer/octopus'
 # TODO: getting errors on load for rails 5, so pinned to beta, this isn't actually a core dependency
 gem 'sinatra'
 gem 'sanitize'

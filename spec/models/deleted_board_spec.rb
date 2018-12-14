@@ -102,7 +102,7 @@ describe DeletedBoard, :type => :model do
   describe "restore!" do
     it 'should restore the deleted board' do
       u = User.create
-      PaperTrail.whodunnit = "admin:somebody@example.com"
+      PaperTrail.request.whodunnit = "admin:somebody@example.com"
       b = Board.create(user: u)
       b = Board.find(b.id)
       b.process({

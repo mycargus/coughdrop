@@ -9,7 +9,7 @@ describe JsonApi::UserVersion do
 
   it "should have return correct attributes" do
     a = User.create
-    PaperTrail.whodunnit = "user:#{a.global_id}"
+    PaperTrail.request.whodunnit = "user:#{a.global_id}"
     u = User.create
     v = PaperTrail::Version.last
     json = JsonApi::UserVersion.build_json(v)
@@ -25,7 +25,7 @@ describe JsonApi::UserVersion do
 
   it "should have return admin modifier" do
     a = User.create
-    PaperTrail.whodunnit = 'admin:bob'
+    PaperTrail.request.whodunnit = 'admin:bob'
     u = User.create
     v = PaperTrail::Version.last
     json = JsonApi::UserVersion.build_json(v)
@@ -40,7 +40,7 @@ describe JsonApi::UserVersion do
 
   it "should have fallback modifier" do
     a = User.create
-    PaperTrail.whodunnit = 'something'
+    PaperTrail.request.whodunnit = 'something'
     u = User.create
     v = PaperTrail::Version.last
     json = JsonApi::UserVersion.build_json(v)

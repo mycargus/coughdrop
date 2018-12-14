@@ -1902,7 +1902,7 @@ describe User, :type => :model do
   
   describe "versions" do
     it "should track versions correctly" do
-      PaperTrail.whodunnit = 'user:bob'
+      PaperTrail.request.whodunnit = 'user:bob'
       u = User.create!
       u.reload
       u.settings['email'] = 'email@example.com'

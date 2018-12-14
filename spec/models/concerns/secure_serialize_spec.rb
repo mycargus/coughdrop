@@ -284,7 +284,7 @@ describe SecureSerialize, :type => :model do
   
   describe "rollback_to" do
     it 'should search for a previous version and roll back if found' do
-      PaperTrail.whodunnit = 'bob'
+      PaperTrail.request.whodunnit = 'bob'
       u = User.create
       u.settings['bacon'] = true
       u.save!
@@ -318,12 +318,12 @@ describe SecureSerialize, :type => :model do
 
   describe "user_versions" do
     it 'should return only non-job version' do
-      PaperTrail.whodunnit = 'job:asdf'
+      PaperTrail.request.whodunnit = 'job:asdf'
       u = User.create
       u.settings['a'] = 1
       u.save!
       expect(PaperTrail::Version.count).to eq(0)
-      PaperTrail.whodunnit = 'bob'
+      PaperTrail.request.whodunnit = 'bob'
       u.settings['b'] = 2
       u.save!
       u.settings['c'] = 3
@@ -336,7 +336,7 @@ describe SecureSerialize, :type => :model do
 
   describe "load_version" do
     it 'should load the version' do
-      PaperTrail.whodunnit = 'bob'
+      PaperTrail.request.whodunnit = 'bob'
       u = User.create
       u.settings['a'] = 1
       u.save!

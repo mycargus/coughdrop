@@ -155,7 +155,7 @@ describe Worker do
   
   describe "whodunnit" do
     it "should mark whodunnit correctly" do
-      PaperTrail.whodunnit = 'user:bob'
+      PaperTrail.request.whodunnit = 'user:bob'
       u = User.create
       expect(u.versions.last.whodunnit).to eq('user:bob')
       expect(u.reload.versions.count).to eq(1)

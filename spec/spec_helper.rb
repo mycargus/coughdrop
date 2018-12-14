@@ -50,7 +50,7 @@ RSpec.configure do |config|
   config.before(:each) do
     Time.zone = nil
     Worker.flush_queues
-    PaperTrail.whodunnit = nil
+    PaperTrail.request.whodunnit = nil
     RedisInit.cache_token = "#{rand(999)}.#{Time.now.to_f}"
     Permissable.set_redis(RedisInit.permissions, RedisInit.cache_token)
   end
@@ -107,14 +107,14 @@ end
 
 def with_versioning
   was_enabled = PaperTrail.enabled?
-  was_enabled_for_controller = PaperTrail.enabled_for_controller?
+  was_enabled_for_controller = true #PaperTrail.enabled_for_controller?
   PaperTrail.enabled = true
-  PaperTrail.enabled_for_controller = true
+  # PaperTrail.enabled_for_controller = true
   begin
     yield
   ensure
     PaperTrail.enabled = was_enabled
-    PaperTrail.enabled_for_controller = was_enabled_for_controller
+    #PaperTrail.enabled_for_controller = was_enabled_for_controller
   end
 end
 

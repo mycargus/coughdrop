@@ -21,7 +21,7 @@ class User < ActiveRecord::Base
   after_save :notify_of_changes
 
   has_paper_trail :only => [:settings, :user_name],
-                  :if => Proc.new{|u| PaperTrail.whodunnit && !PaperTrail.whodunnit.match(/^job/) }
+                  :if => Proc.new{|u| PaperTrail.request.whodunnit && !PaperTrail.request.whodunnit.match(/^job/) }
               
   secure_serialize :settings
   attr_accessor :permission_scopes_device
@@ -552,7 +552,7 @@ class User < ActiveRecord::Base
         if params['preferences'][key] != self.settings['preferences'][key]
           self.settings['confirmation_log'] ||= []
           self.settings['confirmation_log'] << {
-            'updater' => (non_user_params['updater'] ? non_user_params['updater'].global_id : PaperTrail.whodunnit),
+            'updater' => (non_user_params['updater'] ? non_user_params['updater'].global_id : PaperTrail.request.whodunnit),
             'setting' => key,
             'timestamp' => Time.now.utc.iso8601
           }
@@ -1059,8 +1059,8 @@ class User < ActiveRecord::Base
     make_public = opts[:make_public] || false
     whodunnit = opts[:user_for_paper_trail] || nil
 
-    prior = PaperTrail.whodunnit
-    PaperTrail.whodunnit = whodunnit if whodunnit
+    prior = PaperTrail.request.whodunnit
+    PaperTrail.request.whodunnit = whodunnit if whodunnit
     starting_old_board = Board.find_by_path(starting_old_board_id)
     starting_new_board = Board.find_by_path(starting_new_board_id)
     valid_ids = nil
@@ -1068,14 +1068,14 @@ class User < ActiveRecord::Base
       valid_ids = ids_to_copy.split(/,/)
       valid_ids = nil if valid_ids.length == 0
     end
-    Board.replace_board_for(self, {:starting_old_board => starting_old_board, :starting_new_board => starting_new_board, :valid_ids => valid_ids, :update_inline => update_inline, :make_public => make_public, :authorized_user => User.whodunnit_user(PaperTrail.whodunnit)})
+    Board.replace_board_for(self, {:starting_old_board => starting_old_board, :starting_new_board => starting_new_board, :valid_ids => valid_ids, :update_inline => update_inline, :make_public => make_public, :authorized_user => User.whodunnit_user(PaperTrail.request.whodunnit)})
     ids = [starting_old_board_id]
     ids += (starting_old_board.reload.settings['downstream_board_ids'] || []) if starting_old_board
     # This was happening too slowly/unreliably in a separate bg job
     button_set = BoardDownstreamButtonSet.update_for(starting_new_board.global_id, true)
     {'affected_board_ids' => ids.uniq}
   ensure
-    PaperTrail.whodunnit = prior
+    PaperTrail.request.whodunnit = prior
   end
   
   def copy_board_links(opts)
@@ -1087,8 +1087,8 @@ class User < ActiveRecord::Base
     whodunnit = opts[:user_for_paper_trail] || nil
     swap_library = opts[:swap_library]
 
-    prior = PaperTrail.whodunnit
-    PaperTrail.whodunnit = whodunnit if whodunnit
+    prior = PaperTrail.request.whodunnit
+    PaperTrail.request.whodunnit = whodunnit if whodunnit
     starting_old_board = Board.find_by_path(starting_old_board_id)
     starting_new_board = Board.find_by_path(starting_new_board_id)
     valid_ids = nil
@@ -1096,7 +1096,7 @@ class User < ActiveRecord::Base
       valid_ids = ids_to_copy.split(/,/)
       valid_ids = nil if valid_ids.length == 0
     end
-    change_hash = Board.copy_board_links_for(self, {:starting_old_board => starting_old_board, :starting_new_board => starting_new_board, :valid_ids => valid_ids, :make_public => make_public, :authorized_user => User.whodunnit_user(PaperTrail.whodunnit)}) || {}
+    change_hash = Board.copy_board_links_for(self, {:starting_old_board => starting_old_board, :starting_new_board => starting_new_board, :valid_ids => valid_ids, :make_public => make_public, :authorized_user => User.whodunnit_user(PaperTrail.request.whodunnit)}) || {}
     updated_ids = [starting_new_board_id]
     ids = [starting_old_board_id]
     ids += (starting_old_board.reload.settings['downstream_board_ids'] || []) if starting_old_board
@@ -1117,7 +1117,7 @@ class User < ActiveRecord::Base
     button_set = BoardDownstreamButtonSet.update_for(starting_new_board.global_id, true)
     res
   ensure
-    PaperTrail.whodunnit = prior
+    PaperTrail.request.whodunnit = prior
   end
 
   def self.whodunnit_user(whodunnit)

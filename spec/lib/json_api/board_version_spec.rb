@@ -10,15 +10,15 @@ describe JsonApi::BoardVersion do
   describe "build_json" do
     it "should return appropriate attributes" do
       u = User.create
-      PaperTrail.whodunnit = "user:#{u.global_id}"
+      PaperTrail.request.whodunnit = "user:#{u.global_id}"
       b = Board.process_new({'name' => 'fred'}, {'user' => u})
       expect(b.settings['edit_description']).to eq(nil)
       b.process({'name' => 'jed'}, {'user' => u})
       expect(b.settings['edit_description']['notes']).to eq(['renamed the board'])
-      PaperTrail.whodunnit = "admin:somebody@example.com"
+      PaperTrail.request.whodunnit = "admin:somebody@example.com"
       b.process({'buttons' => [{'id' => 1, 'label' => 'something'}]})
       expect(b.settings['edit_description']['notes']).to eq(['modified buttons'])
-      PaperTrail.whodunnit = "user:#{u.global_id}"
+      PaperTrail.request.whodunnit = "user:#{u.global_id}"
       b.process({'name' => 'jed'}, {'user' => u})
       expect(b.settings['edit_description']).to eq(nil)
       b.destroy
@@ -45,15 +45,15 @@ describe JsonApi::BoardVersion do
     
     it "should return appropriate version descriptions" do
       u = User.create
-      PaperTrail.whodunnit = "user:#{u.global_id}"
+      PaperTrail.request.whodunnit = "user:#{u.global_id}"
       b = Board.process_new({'name' => 'fred'}, {'user' => u})
       expect(b.settings['edit_description']).to eq(nil)
       b.process({'name' => 'jed'}, {'user' => u})
       expect(b.settings['edit_description']['notes']).to eq(['renamed the board'])
-      PaperTrail.whodunnit = "admin:somebody@example.com"
+      PaperTrail.request.whodunnit = "admin:somebody@example.com"
       b.process({'buttons' => [{'id' => 1, 'label' => 'something'}]})
       expect(b.settings['edit_description']['notes']).to eq(['modified buttons'])
-      PaperTrail.whodunnit = "user:#{u.global_id}"
+      PaperTrail.request.whodunnit = "user:#{u.global_id}"
       b.process({'name' => 'jed'}, {'user' => u})
       expect(b.settings['edit_description']).to eq(nil)
       b.destroy
@@ -75,15 +75,15 @@ describe JsonApi::BoardVersion do
     
     it "should return modifier if available" do
       u = User.create
-      PaperTrail.whodunnit = "user:#{u.global_id}"
+      PaperTrail.request.whodunnit = "user:#{u.global_id}"
       b = Board.process_new({'name' => 'fred'}, {'user' => u})
       expect(b.settings['edit_description']).to eq(nil)
       b.process({'name' => 'jed'}, {'user' => u})
       expect(b.settings['edit_description']['notes']).to eq(['renamed the board'])
-      PaperTrail.whodunnit = "admin:somebody@example.com"
+      PaperTrail.request.whodunnit = "admin:somebody@example.com"
       b.process({'buttons' => [{'id' => 1, 'label' => 'something'}]})
       expect(b.settings['edit_description']['notes']).to eq(['modified buttons'])
-      PaperTrail.whodunnit = "user:#{u.global_id}"
+      PaperTrail.request.whodunnit = "user:#{u.global_id}"
       b.process({'name' => 'jed'}, {'user' => u})
       expect(b.settings['edit_description']).to eq(nil)
       b.destroy
@@ -110,15 +110,15 @@ describe JsonApi::BoardVersion do
     
     it "should return a fallback modifier if none specified" do
       u = User.create
-      PaperTrail.whodunnit = "user:asdf"
+      PaperTrail.request.whodunnit = "user:asdf"
       b = Board.process_new({'name' => 'fred'}, {'user' => u})
       expect(b.settings['edit_description']).to eq(nil)
       b.process({'name' => 'jed'}, {'user' => u})
       expect(b.settings['edit_description']['notes']).to eq(['renamed the board'])
-      PaperTrail.whodunnit = "admin:somebody@example.com"
+      PaperTrail.request.whodunnit = "admin:somebody@example.com"
       b.process({'name' => 'ned', 'buttons' => [{'id' => 1, 'label' => 'something'}]})
       expect(b.settings['edit_description']['notes']).to eq(['renamed the board', 'modified buttons'])
-      PaperTrail.whodunnit = "user:#{u.global_id}"
+      PaperTrail.request.whodunnit = "user:#{u.global_id}"
       b.process({}, {'user' => u})
       expect(b.settings['edit_description']).to eq(nil)
       b.destroy
@@ -150,17 +150,17 @@ describe JsonApi::BoardVersion do
     
     it "should include immediately upstream board ids if admin specified" do
       u = User.create
-      PaperTrail.whodunnit = "user:#{u.global_id}"
+      PaperTrail.request.whodunnit = "user:#{u.global_id}"
       b = Board.create(:user => u)
       b2 = Board.create(:user => u)
       b2.process({'buttons' => [
         {'id' => 1, 'load_board' => {'id' => b.global_id, 'key' => b.key}}
       ]}, {'user' => u})
-      PaperTrail.whodunnit = nil
+      PaperTrail.request.whodunnit = nil
       Worker.process_queues
       expect(b.reload.settings['immediately_upstream_board_ids']).to eq([b2.global_id])
       
-      PaperTrail.whodunnit = "user:#{u.global_id}"
+      PaperTrail.request.whodunnit = "user:#{u.global_id}"
       b.process({'name' => 'jed'}, {'user' => u})
       b.destroy
       
@@ -185,12 +185,12 @@ describe JsonApi::BoardVersion do
     
     it "should include grid" do
       u = User.create
-      PaperTrail.whodunnit = "user:#{u.global_id}"
+      PaperTrail.request.whodunnit = "user:#{u.global_id}"
       b = Board.process_new({'name' => 'fred', 'buttons' => [{'id' => 1, 'label' => 'bacon'}], 'grid' => {'rows' => 1, 'columns' => 1, 'order' => [[1]]}}, {'user' => u})
       b.process({'name' => 'jed', 'buttons' => [{'id' => 2, 'label' => 'choice'}], 'grid' => {'rows' => 2, 'columns' => 2, 'order' => [[nil, 2], [nil, nil]]}}, {'user' => u})
-      PaperTrail.whodunnit = "admin:somebody@example.com"
+      PaperTrail.request.whodunnit = "admin:somebody@example.com"
       b.process({'buttons' => [{'id' => 1, 'label' => 'something'}], 'grid' => {'rows' => 1, 'columns' => 2, 'order' => [[nil, 1]]}})
-      PaperTrail.whodunnit = "user:#{u.global_id}"
+      PaperTrail.request.whodunnit = "user:#{u.global_id}"
       b.process({'name' => 'jed', 'buttons' => [{'id' => 2, 'label' => 'face'}], 'grid' => {'rows' => 1, 'columns' => 3, 'order' => [[nil, 3, nil]]}}, {'user' => u})
       b.destroy
       
@@ -221,12 +221,12 @@ describe JsonApi::BoardVersion do
     
     it "should include button labels" do
       u = User.create
-      PaperTrail.whodunnit = "user:#{u.global_id}"
+      PaperTrail.request.whodunnit = "user:#{u.global_id}"
       b = Board.process_new({'name' => 'fred', 'buttons' => [{'id' => 1, 'label' => 'bacon'}], 'grid' => {'rows' => 1, 'columns' => 1, 'order' => [[1]]}}, {'user' => u})
       b.process({'name' => 'jed', 'buttons' => [{'id' => 2, 'label' => 'choice'}], 'grid' => {'rows' => 2, 'columns' => 2, 'order' => [[nil, 2], [nil, nil]]}}, {'user' => u})
-      PaperTrail.whodunnit = "admin:somebody@example.com"
+      PaperTrail.request.whodunnit = "admin:somebody@example.com"
       b.process({'buttons' => [{'id' => 1, 'label' => 'something'}], 'grid' => {'rows' => 1, 'columns' => 2, 'order' => [[nil, 1]]}})
-      PaperTrail.whodunnit = "user:#{u.global_id}"
+      PaperTrail.request.whodunnit = "user:#{u.global_id}"
       b.process({'name' => 'jed', 'buttons' => [{'id' => 2, 'label' => 'face'}], 'grid' => {'rows' => 1, 'columns' => 3, 'order' => [[nil, 3, nil]]}}, {'user' => u})
       b.destroy
       

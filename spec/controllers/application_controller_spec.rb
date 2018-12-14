@@ -26,7 +26,7 @@ describe ApplicationController, :type => :controller do
       u = User.create
       d = Device.create(:user => u)
       get :index, params: {:access_token => d.token, :check_token => true}
-      expect(PaperTrail.whodunnit).to eq("user:#{u.global_id}.anonymous.index")
+      expect(PaperTrail.request.whodunnit).to eq("user:#{u.global_id}.anonymous.index")
     end
     
     it "should check for the token as a query parameter" do

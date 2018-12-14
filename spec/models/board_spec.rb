@@ -211,7 +211,7 @@ describe Board, :type => :model do
     end
     
     it "should override whodunnit when star! is called" do
-      PaperTrail.whodunnit = "nunya"
+      PaperTrail.request.whodunnit = "nunya"
       u = User.create
       b = Board.create(user: u)
       u2 = User.create

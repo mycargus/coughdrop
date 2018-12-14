@@ -28,7 +28,7 @@ class Board < ActiveRecord::Base
   after_destroy :flush_related_records
   
   has_paper_trail :only => [:current_revision, :settings, :name, :key, :public, :parent_board_id, :user_id],
-                  :if => Proc.new{|b| PaperTrail.whodunnit && !PaperTrail.whodunnit.match(/^job/) }
+                  :if => Proc.new{|b| PaperTrail.request.whodunnit && !PaperTrail.request.whodunnit.match(/^job/) }
   secure_serialize :settings
 
   # cache should be invalidated if:
@@ -78,11 +78,11 @@ class Board < ActiveRecord::Base
   end
   
   def star!(user, star)
-    pre_whodunnit = PaperTrail.whodunnit
-    PaperTrail.whodunnit = "job:star_user"
+    pre_whodunnit = PaperTrail.request.whodunnit
+    PaperTrail.request.whodunnit = "job:star_user"
     self.star(user, star)
     res = self.save
-    PaperTrail.whodunnit = pre_whodunnit
+    PaperTrail.request.whodunnit = pre_whodunnit
     res
   end
   
@@ -814,10 +814,10 @@ class Board < ActiveRecord::Base
           @buttons_changed = 'translated'
         end
       end
-      whodunnit = PaperTrail.whodunnit
-      PaperTrail.whodunnit = user_for_paper_trail.to_s || 'user:unknown'
+      whodunnit = PaperTrail.request.whodunnit
+      PaperTrail.request.whodunnit = user_for_paper_trail.to_s || 'user:unknown'
       self.save
-      PaperTrail.whodunnit = whodunnit
+      PaperTrail.request.whodunnit = whodunnit
     else
       return {done: true, translated: false, reason: 'board not in list'}
     end
@@ -854,10 +854,10 @@ class Board < ActiveRecord::Base
           end
         end
       end
-      whodunnit = PaperTrail.whodunnit
-      PaperTrail.whodunnit = "user:#{author.global_id}.board.swap_images"
+      whodunnit = PaperTrail.request.whodunnit
+      PaperTrail.request.whodunnit = "user:#{author.global_id}.board.swap_images"
       self.save if @buttons_changed
-      PaperTrail.whodunnit = whodunnit
+      PaperTrail.request.whodunnit = whodunnit
     else
       return {done: true, swapped: false, reason: 'board not in list'}
     end

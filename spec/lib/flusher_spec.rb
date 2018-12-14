@@ -19,7 +19,7 @@ describe Flusher do
   
   describe "flush_versions" do
     it "should delete all versions", :versioning => true do
-      PaperTrail.whodunnit = 'user:sue'
+      PaperTrail.request.whodunnit = 'user:sue'
       u = User.create
       u.user_name = 'different_name'
       u.save
@@ -56,7 +56,7 @@ describe Flusher do
     end
     
     it "should remove all log sessions and log session versions", :versioning => true do
-      PaperTrail.whodunnit = 'user:jane'
+      PaperTrail.request.whodunnit = 'user:jane'
       u = User.create
       d = Device.create(:user => u)
       s = LogSession.new(:device => d, :user => u, :author => u)
@@ -83,7 +83,7 @@ describe Flusher do
     end
     
     it "should remove weekly stats summaries" do
-      PaperTrail.whodunnit = 'user:jane'
+      PaperTrail.request.whodunnit = 'user:jane'
       u = User.create
       d = Device.create(:user => u)
       s = LogSession.new(:device => d, :user => u, :author => u)
@@ -122,7 +122,7 @@ describe Flusher do
     end
     
     it "should remove the board's image and sound records", :versioning => true do
-      PaperTrail.whodunnit = 'user:todd'
+      PaperTrail.request.whodunnit = 'user:todd'
       u = User.create
       b = Board.create(:user => u)
       i = ButtonImage.create
