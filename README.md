@@ -108,6 +108,8 @@ npm install
 bower install
 ember serve
 ```
+
+
 To download all the app dependencies at once. It'll ask you about modifying files, 
 if you're not sure what to do enter "n" if it asks about replacing a file. Otherwise
 you can check the diffs and see what you'd like to keep/change.
