@@ -88,7 +88,6 @@ rails db:create
 rails db:migrate
 rails db:seed
 ```
-
 You can skip the last command if you want, it'll populate with some bootstrap data including
 a login, `example` and `password` to get you started.
 
