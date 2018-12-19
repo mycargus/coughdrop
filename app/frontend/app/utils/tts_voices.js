@@ -800,7 +800,7 @@ var voices = EmberObject.extend({
     {
       voice_id: "acap:Ania", size: 99,
       locale: "pl-PL", gender: "f", age: "adult",
-      voice_dir_v2018: "hqm-ref-Polish-ania-22khz",
+      voice_dir_v2018: "hqm-ref-Polish-Ania-22khz",
       ref_id: "pop_ania_22k_ns",
       language_version: "1.96",
       voice_dir: "hqm-ref-Polish-ania-22khz"
