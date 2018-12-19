@@ -17,7 +17,7 @@ module Converters::Utils
   
   def self.board_to_remote(board, user, opts)
     file_type = opts['file_type']
-    include = opts['include']
+    includes = opts['include']
     headerless = opts['headerless'] || false
     text_on_top = opts['text_on_top'] || false
     transparent_background = opts['transparent_background'] || false
@@ -63,7 +63,7 @@ module Converters::Utils
     
     Progress.as_percent(0.3, 0.8) do
       if file_type == 'obz'
-        if include == 'all'
+        if includes == 'all'
           Converters::CoughDrop.to_obz(board, path, {'user' => user})
         else
           # TODO: these cases are the same, why do we have both??
@@ -74,7 +74,7 @@ module Converters::Utils
       elsif file_type == 'pdf'
         Converters::CoughDrop.to_pdf(board, path, {
           'user' => user, 
-          'packet' => (include == 'all'), 
+          'packet' => (includes == 'all'), 
           'headerless' => !!headerless, 
           'text_on_top' => !!text_on_top, 
           'transparent_background' => !!transparent_background,
