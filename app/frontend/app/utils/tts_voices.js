@@ -703,7 +703,7 @@ var voices = EmberObject.extend({
     },
     {
       voice_id: "acap:Chiara", size: 91,
-      locale: "it_IT", gender: "f", age: "adult",
+      locale: "it-IT", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Italian-Chiara-22khz",
       ref_id: "iti_chiara_22k_ns",
       language_version: "1.155",
@@ -711,13 +711,13 @@ var voices = EmberObject.extend({
     },
     {
       voice_id: "acap:Fabiana", size: 92,
-      locale: "it_IT", gender: "f", age: "adult",
+      locale: "it-IT", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Italian-Fabiana-22khz",
       ref_id: "iti_fabiana_22k_ns"
     },
     {
       voice_id: "acap:Vittorio", size: 140,
-      locale: "it_IT", gender: "m", age: "adult",
+      locale: "it-IT", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-Italian-Vittorio-22khz",
       ref_id: "iti_vittorio_22k_ns"
     },
@@ -743,7 +743,7 @@ var voices = EmberObject.extend({
     },
     {
       voice_id: "acap:Vittorio", size: 134,
-      locale: "it_IT", gender: "m", age: "adult",
+      locale: "it-IT", gender: "m", age: "adult",
       voice_dir_v2018: null,
       ref_id: "iti_vittorio_22k_ns",
       language_version: "1.155",
