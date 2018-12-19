@@ -39,13 +39,15 @@
         {{t "current home board:" key='current_home_board'}}<br/>
         <strong>{{t "copying %{brd}..." key='copying_board' brd=app_state.currentUser.home_board_pending}}</strong>
       </a>
-    {{else if app_state.currentUser.preferences.home_board.key}}
+    {{else if home_board_or_supporter}}
       {{#if app_state.currentUser.supporter_role}}
-        {{#link-to 'board' app_state.currentUser.preferences.home_board.key class="list-group-item half_size collapsible"}}
-          <span class="glyphicon glyphicon-home"></span>
-          {{t "home:" key='home_board'}}
-          <strong>{{app_state.currentUser.preferences.home_board.key}}</strong>
-        {{/link-to}}
+        {{#if app_state.currentUser.preferences.home_board.key}}
+          {{#link-to 'board' app_state.currentUser.preferences.home_board.key class="list-group-item half_size collapsible"}}
+            <span class="glyphicon glyphicon-home"></span>
+            {{t "home:" key='home_board'}}
+            <strong>{{app_state.currentUser.preferences.home_board.key}}</strong>
+          {{/link-to}}
+        {{/if}}
         {{#if sync_able}}
           <a href="#" class={{small_needs_sync_class}} {{action "sync"}}>
             <span>

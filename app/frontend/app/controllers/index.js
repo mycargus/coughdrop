@@ -20,6 +20,9 @@ export default Controller.extend({
   sync_able: function() {
     return this.get('extras.ready');
   }.property('extras.ready'),
+  home_board_or_supporter: function() {
+      return this.get('app_state.currentUser.preferences.home_board.key') || this.get('app_state.currentUser.supporter_role');
+  }.property('app_state.currentUser.preferences.home_board.key', 'app_state.currentUser.supporter_role'),
   needs_sync: function() {
     var now = (new Date()).getTime() / 1000;
     return (now - persistence.get('last_sync_at')) > (7 * 24 * 60 * 60);

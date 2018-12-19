@@ -64,7 +64,11 @@
       <p>{{t "None found" key='none_found'}}</p>
     {{/if}}
     {{#if model.permissions.manage_supervision}}
-      <button type='button' class='btn btn-default' {{action "add_supervisor"}}>{{t "Add Supervisor" key='add_supervisor'}}</button>
+      <button type='button' class='btn btn-default' {{action "add_supervisor"}}>{{t "Add Someone as My Supervisor" key='add_supervisor'}}</button>
+      <button type='button' class='btn btn-default' {{action "add_supervisee"}} style='opacity: 0.7;'>{{t "Add Me as a Supervisor" key='add_supervisee'}}</button>
+      {{#if add_supervisee_hit}}
+        <p class='text-info'><em>{{t "For security reasons, communicators must add you as a supervisor from their account. On the communicator's device or account, enter your user name to add yourself as a supervisor." key='supervisor_adding_explainer'}}</em></p>
+      {{/if}}
     {{/if}}
     <h3>{{t "People I Supervise" key='my_supervisees'}}</h3>
     {{#if model.supervisees}}
