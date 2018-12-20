@@ -10,7 +10,8 @@ module Exporter
       file = Tempfile.new(['log', ext])
       file.write(JSON.pretty_generate(hash))
       file.close
-      Uploader.remote_upload("downloads/logs/user/#{CGI.escape(Time.now.iso8601[0, 16])}/#{user.anonymized_identifier}/#{fn}", file.path, 'application/obl')
+      ts = Time.now.iso8601[0, 16].sub(/:/, '-')
+      Uploader.remote_upload("downloads/logs/user/#{ts}/#{user.anonymized_identifier}/#{fn}", file.path, 'application/obl')
     end
   end
   
