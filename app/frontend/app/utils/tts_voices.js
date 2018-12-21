@@ -1,7 +1,6 @@
 import Ember from 'ember';
 import EmberObject from '@ember/object';
 import capabilities from './capabilities';
-import persistence from './persistence';
 import i18n from './i18n';
 import RSVP, { resolve, reject } from 'rsvp';
 
@@ -59,9 +58,10 @@ var voices = EmberObject.extend({
       data.language_url = voice.get('windows_language_url');
       data.language_dir = voice.get('windows_language_dir');
     }
+    if(!window.persistence) { return RSVP.reject('persistence not defined'); }
     return new RSVP.Promise(function(resolve, reject) {
       // claim the voice and get in return a signed download URL
-      persistence.ajax('/api/v1/users/' + user.get('id') + '/claim_voice', {type: 'POST', data: data}).then(function(data) {
+      window.persistence.ajax('/api/v1/users/' + user.get('id') + '/claim_voice', {type: 'POST', data: data}).then(function(data) {
         // refresh the user to get the updated list of premium voices claimed by the user
         user.reload().then(function() {
           // tell the native code to download the voice
@@ -976,6 +976,6 @@ var voices = EmberObject.extend({
     },
   ]
 });
-capabilities.acapela_versions = voices.get('versions');
+window.acapela_versions = voices.get('versions');
 
 export default voices;

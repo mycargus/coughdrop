@@ -172,7 +172,7 @@ var capabilities;
             args.error = function(str) {
               promise.reject({error: str});
             };
-            args.acapela_version = parseFloat(capabilities.acapela_versions['Windows']);
+            args.acapela_version = parseFloat(window.acapela_versions['Windows']);
             window.extra_tts[method](args);
           } else {
             promise.reject({erorr: 'platform-level tts not available'});
