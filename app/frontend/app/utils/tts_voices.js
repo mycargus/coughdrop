@@ -1,6 +1,9 @@
 import Ember from 'ember';
 import EmberObject from '@ember/object';
 import capabilities from './capabilities';
+import persistence from './persistence';
+import i18n from './i18n';
+import RSVP, { resolve, reject } from 'rsvp';
 
 var voices = EmberObject.extend({
   find_voice: function(voice_id) {
@@ -46,6 +49,49 @@ var voices = EmberObject.extend({
     });
     return res;
   }.property('voices'),
+  download_voice: function(voice, user) {
+    voice.set('downloading', true);
+    voice.set('download_progress', 0);
+    capabilities.wakelock('download_voice', true);
+    var data = {voice_id: voice.voice_id, voice_url: voice.get('voice_url'), system: capabilities.system };
+    if(capabilities.system == 'Windows') {
+      data.voice_url = voice.get('windows_voice_url');
+      data.language_url = voice.get('windows_language_url');
+      data.language_dir = voice.get('windows_language_dir');
+    }
+    return new RSVP.Promise(function(resolve, reject) {
+      // claim the voice and get in return a signed download URL
+      persistence.ajax('/api/v1/users/' + user.get('id') + '/claim_voice', {type: 'POST', data: data}).then(function(data) {
+        // refresh the user to get the updated list of premium voices claimed by the user
+        user.reload().then(function() {
+          // tell the native code to download the voice
+          capabilities.tts.download_voice(voice.get('voice_id'), data.download_url, function(status) {
+            voice.set('download_progress', Math.round((status.percent || 0.0) * 100));
+          }).then(function() {
+            voice.set('downloading', false);
+            capabilities.wakelock('download_voice', false);
+            resolve();
+          }, function(e) {
+            console.error("error downloading voice", e);
+            capabilities.wakelock('download_voice', false);
+            reject(i18n.t('error_downloading_voice', "There was an unexpected problem while trying to download the voice"));
+          });
+        }, function() {
+          capabilities.wakelock('download_voice', false);
+          reject(i18n.t('error_downloading_voice', "There was an unexpected problem while updating the user's voice settings"));
+        });
+      }, function(err) {
+        capabilities.wakelock('download_voice', false);
+        if(err && err.result && err.result.error == 'no more voices available') {
+          reject('voice_error', i18n.t('no_more_voices', "This user has already claimed the maximum number of premium voices and can't claim any more."));
+        } else if(!persistence.get('online')) {
+          reject('voice_error', i18n.t('online_requiest', "You must be online in order to download premium voices."));
+        } else {
+          reject('voice_error', i18n.t('error_finding_voice', "There was an unexpected problem while trying to start downloading the voice."));
+        }
+      });
+    });
+  },
   all: function() {
     return this.get('computed_voices').filter(function(v) { return v.voice_url; });
   },
@@ -72,6 +118,9 @@ var voices = EmberObject.extend({
     }
   }
 }).create({
+  versions: {
+    'Windows': '10.000',
+  },
   prompts: {
     "en": "Do you like my voice? This is how I sound.",
     "fr": "Aimez-vous ma voix? C'est comme ça que je sonne.",
@@ -927,5 +976,6 @@ var voices = EmberObject.extend({
     },
   ]
 });
+capabilities.acapela_versions = voices.get('versions');
 
 export default voices;

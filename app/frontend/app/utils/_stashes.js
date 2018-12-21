@@ -68,6 +68,7 @@ var stashes = EmberObject.extend({
       'current_mode': 'default',
       'usage_log': [],
       'daily_use': [],
+      'downloaded_voices': [],
       'boardHistory': [],
       'browse_history': [],
       'history_enabled': true,

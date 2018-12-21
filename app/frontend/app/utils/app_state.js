@@ -68,6 +68,7 @@ var app_state = EmberObject.extend({
     capabilities.ssid.listen(function(ssid) {
       _this.set('current_ssid', ssid);
     });
+//    speecher.check_for_upgrades();
     this.refresh_user();
   },
   reset: function() {

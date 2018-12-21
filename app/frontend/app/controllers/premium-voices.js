@@ -65,47 +65,12 @@ export default modal.ModalController.extend({
     },
     download_voice: function(voice) {
       var _this = this;
-      voice.set('downloading', true);
-      voice.set('download_progress', 0);
-      capabilities.wakelock('download_voice', true);
-      var data = {voice_id: voice.voice_id, voice_url: voice.get('voice_url'), system: capabilities.system };
-      if(capabilities.system == 'Windows') {
-        data.voice_url = voice.get('windows_voice_url');
-        data.language_url = voice.get('windows_language_url');
-        data.language_dir = voice.get('windows_language_dir');
-      }
-
-      // claim the voice and get in return a signed download URL
-      persistence.ajax('/api/v1/users/' + this.get('model.user.id') + '/claim_voice', {type: 'POST', data: data}).then(function(data) {
-        // refresh the user to get the updated list of premium voices claimed by the user
-        _this.get('model.user').reload().then(function() {
-          // tell the native code to download the voice
-          capabilities.tts.download_voice(voice.get('voice_id'), data.download_url, function(status) {
-            voice.set('download_progress', Math.round((status.percent || 0.0) * 100));
-          }).then(function() {
-            voice.set('downloading', false);
-            capabilities.wakelock('download_voice', false);
-            _this.refresh_voices();
-          }, function(e) {
-            console.error("error downloading voice", e);
-            _this.refresh_voices();
-            capabilities.wakelock('download_voice', false);
-            _this.set('voice_error', i18n.t('error_downloading_voice', "There was an unexpected problem while trying to download the voice"));
-          });
-        }, function() {
-          capabilities.wakelock('download_voice', false);
-          _this.set('voice_error', i18n.t('error_downloading_voice', "There was an unexpected problem while updating the user's voice settings"));
-        });
+      _this.set('voice_error', null);
+      tts_voices.download_voice(voice, _this.get('model.user')).then(function(res) {
+        _this.refresh_voices();
       }, function(err) {
         _this.refresh_voices();
-        capabilities.wakelock('download_voice', false);
-        if(err && err.result && err.result.error == 'no more voices available') {
-          _this.set('voice_error', i18n.t('no_more_voices', "This user has already claimed the maximum number of premium voices and can't claim any more."));
-        } else if(!persistence.get('online')) {
-          _this.set('voice_error', i18n.t('online_requiest', "You must be online in order to download premium voices."));
-        } else {
-          _this.set('voice_error', i18n.t('error_finding_voice', "There was an unexpected problem while trying to start downloading the voice."));
-        }
+        _this.set('voice_error', i18n.t('error_downloading_voice', "There was an unexpected problem while trying to download the voice"));
       });
     },
     delete_voice: function(voice) {

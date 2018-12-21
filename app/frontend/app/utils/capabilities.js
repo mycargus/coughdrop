@@ -172,6 +172,7 @@ var capabilities;
             args.error = function(str) {
               promise.reject({error: str});
             };
+            args.acapela_version = parseFloat(capabilities.acapela_versions['Windows']);
             window.extra_tts[method](args);
           } else {
             promise.reject({erorr: 'platform-level tts not available'});
@@ -212,6 +213,9 @@ var capabilities;
             },
             function(promise, res) {
               if(res.done) {
+                var downloaded = stashes.get('downloaded_voices') || [];
+                downloaded.push(voice_id + "::v" + (tts_voices.get('versions.' + capabilities.system) || 'x'));
+                stashes.persist('downloaded_voices', downloaded);
                 promise.resolve(res);
               } else {
                 if(progress) {
@@ -231,6 +235,9 @@ var capabilities;
               language_dir: voice.language_dir
             },
             function(promise, res) {
+              var downloaded = stashes.get('downloaded_voices') || [];
+              downloaded = downloaded.filter(function(id) { return !id.match(voice_id); });
+              stashes.persist('downloaded_voices', downloaded);
               promise.resolve(res);
             });
           } else {

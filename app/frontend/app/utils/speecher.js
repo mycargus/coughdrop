@@ -94,6 +94,20 @@ var speecher = EmberObject.extend({
     }
     return list;
   },
+  check_for_upgrades: function() {
+    var latest_version = tts_voices.get('versions.' + capabilities.system);
+    if(capabilities.system == 'Windows' && !this.get('checked_for_voice_upgrades')) {
+      this.set('checked_for_voice_upgrades', true);
+      if(window.file_storage) {
+        window.file_storage.voice_content(function(data) {
+          var version = parseFloat(data.version.replace(/_/, '.'));
+          if(version < latest_version) {
+            window.file_storage.upgrade_voices(latest_version, tts_voices.find_voice);
+          }
+        })
+      }
+    }
+  },
   voiceList: function() {
     var res = [];
     var current_locale = (window.navigator.language || "").replace(/-/g, '_').toLowerCase();
