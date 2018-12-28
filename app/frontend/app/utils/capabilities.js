@@ -209,7 +209,8 @@ var capabilities;
               voice_id: voice_id,
               voice_url: voice_url,
               language_dir: voice.language_dir,
-              language_url: voice.windows_language_url
+              language_url: voice.windows_language_url,
+              binary_url: voice.windows_binary_url
             },
             function(promise, res) {
               if(res.done) {

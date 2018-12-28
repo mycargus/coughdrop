@@ -7,8 +7,9 @@ import RSVP, { resolve, reject } from 'rsvp';
 var voices = EmberObject.extend({
   find_voice: function(voice_id) {
     var res = null;
+    if(!voice_id) { return null; }
     this.all().forEach(function(voice) {
-      if(!res && (voice.voice_id == voice_id || voice_id.match(voice.ref_id))) {
+      if(!res && (voice.voice_id.toLowerCase() == voice_id.toLowerCase() || voice_id.match(voice.ref_id))) {
         res = voice;
       }
     });
@@ -37,11 +38,17 @@ var voices = EmberObject.extend({
         voice.language_dir = simple_voice_dir.split(/-/)[2];
         voice.windows_available = !!(voice.language_dir && voice.language_dir !== "");
         voice.windows_language_url = "https://s3.amazonaws.com/coughdrop/voices/" + voice.language_dir + ".zip";
+        voice.windows_binary_url = "https://s3.amazonaws.com/coughdrop/voices/aca-bin.zip";
         if(voice.language_version && voice.language_version !== "") {
           voice.windows_language_url = "https://s3.amazonaws.com/coughdrop/voices/" + voice.language_dir + "-" + voice.language_version + ".zip";
         }
         if(voice.voice_url && capabilities.installed_app && capabilities.system == 'Windows') {
           voice.windows_voice_url = voice.voice_url.replace(/\.zip/, '.win.zip');
+        }
+        if(voice.language_version2018) {
+          voice.windows_voice_url = "https://s3.amazonaws.com/coughdrop/voices/v2018/" + voice.name + "22k_HQ.zip";
+          voice.windows_language_url = "https://s3.amazonaws.com/coughdrop/voices/v2018/" + voice.language_dir + "-" + voice.language_version2018 + ".zip";
+          voice.windows_binary_url = "https://s3.amazonaws.com/coughdrop/voices/v2018/aca-bin.zip";
         }
         voice.hq = true;
       }
@@ -155,6 +162,7 @@ var voices = EmberObject.extend({
       voice_dir: "hqm-ref-USEnglish-Ella-22khz",
       voice_dir_v2018: "hq-ref-USEnglish-Ella-22khz",
       ref_id: "enu_ella_22k_ns",
+      language_version2018: "1.344",
       language_version: "1.288"
     },
     {
@@ -163,14 +171,16 @@ var voices = EmberObject.extend({
       voice_dir: "hqm-ref-USEnglish-Josh-22khz",
       voice_dir_v2018: "hq-ref-USEnglish-Josh-22khz",
       ref_id: "enu_josh_22k_ns",
+      language_version2018: "1.344",
       language_version: "1.288"
-    },
+   },
     {
       name: "Scott", voice_id: "acap:Scott", size: 86,
       locale: "en-US", gender: "m", age: "teen", hq: true,
       voice_dir: "hqm-ref-USEnglish-Scott-22khz",
       voice_dir_v2018: "hq-ref-USEnglish-Scott-22khz",
       ref_id: "enu_scott_22k_ns",
+      language_version2018: "1.344",
       language_version: "1.288"
     },
     {
@@ -179,6 +189,7 @@ var voices = EmberObject.extend({
       voice_dir: "hqm-ref-USEnglish-Emilio-English-22khz",
       voice_dir_v2018: "hq-ref-USEnglish-Emilio-English-22khz",
       ref_id: "enu_emilioenglish_22k_ns",
+      language_version2018: "1.344",
       language_version: "1.288"
     },
     {
@@ -187,6 +198,7 @@ var voices = EmberObject.extend({
       voice_dir: "hqm-ref-USEnglish-Valeria-English-22khz",
       voice_dir_v2018: "hq-ref-USEnglish-Valeria-English-22khz",
       ref_id: "enu_valeriaenglish_22k_ns",
+      language_version2018: "1.344",
       language_version: "1.288"
     },
     {
@@ -194,6 +206,7 @@ var voices = EmberObject.extend({
       locale: "es-US", gender: "m", age: "child", hq: true,
       voice_dir_v2018: "hq-ref-USSpanish-Emilio-22khz",
       ref_id: "emilio_22k_ns",
+      language_version2018: "1.160",
       language_version: "1.288"
     },
     {
@@ -201,6 +214,7 @@ var voices = EmberObject.extend({
       locale: "es-US", gender: "f", age: "child", hq: true,
       voice_dir_v2018: "hq-ref-USSpanish-Valeria-22khz",
       ref_id: "valeria_22k_ns",
+      language_version2018: "1.160",
       language_version: "1.288"
     },
     {
@@ -208,6 +222,7 @@ var voices = EmberObject.extend({
       locale: "en-US", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-Karen-22khz",
       ref_id: "enu_karen_22k_ns",
+      language_version2018: "1.344",
       language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Karen-22khz"
     },
@@ -216,6 +231,7 @@ var voices = EmberObject.extend({
       locale: "en-US", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-Kenny-22khz",
       ref_id: "enu_kenny_22k_ns",
+      language_version2018: "1.344",
       language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Kenny-22khz"
     },
@@ -224,6 +240,7 @@ var voices = EmberObject.extend({
       locale: "en-US", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-Laura-22khz",
       ref_id: "enu_laura_22k_ns",
+      language_version2018: "1.344",
       language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Laura-22khz"
     },
@@ -232,6 +249,7 @@ var voices = EmberObject.extend({
       locale: "en-US", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-Micah-22khz",
       ref_id: "enu_micah_22k_ns",
+      language_version2018: "1.344",
       language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Micah-22khz"
     },
@@ -240,6 +258,7 @@ var voices = EmberObject.extend({
       locale: "en-US", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-Nelly-22khz",
       ref_id: "enu_nelly_22k_ns",
+      language_version2018: "1.344",
       language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Nelly-22khz"
     },
@@ -248,6 +267,7 @@ var voices = EmberObject.extend({
       locale: "en-US", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-Rod-22khz",
       ref_id: "enu_rod_22k_ns",
+      language_version2018: "1.344",
       language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Rod-22khz"
     },
@@ -256,6 +276,7 @@ var voices = EmberObject.extend({
       locale: "en-US", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-Ryan-22khz",
       ref_id: "enu_ryan_22k_ns",
+      language_version2018: "1.344",
       language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Ryan-22khz"
     },
@@ -264,6 +285,7 @@ var voices = EmberObject.extend({
       locale: "en-US", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-Saul-22khz",
       ref_id: "enu_saul_22k_ns",
+      language_version2018: "1.344",
       language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Saul-22khz"
     },
@@ -272,6 +294,7 @@ var voices = EmberObject.extend({
       locale: "en-US", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-Sharon-22khz",
       ref_id: "enu_sharon_22k_ns",
+      language_version2018: "1.344",
       language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Sharon-22khz"
     },
@@ -280,6 +303,7 @@ var voices = EmberObject.extend({
       locale: "en-US", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-Sharona-22khz",
       ref_id: "enu_sharona_22k_ns",
+      language_version2018: "1.344",
       language_version: "",
       voice_dir: "hqm-ref-USEnglish-Sharona-22khz"
     },
@@ -288,6 +312,7 @@ var voices = EmberObject.extend({
       locale: "en-US", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-Tracy-22khz",
       ref_id: "enu_tracy_22k_ns",
+      language_version2018: "1.344",
       language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Tracy-22khz"
     },
@@ -296,6 +321,7 @@ var voices = EmberObject.extend({
       locale: "en-US", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-Will-22khz",
       ref_id: "enu_will_22k_ns",
+      language_version2018: "1.344",
       language_version: "1.288",
       voice_dir: "hqm-ref-USEnglish-Will-22khz"
     },
@@ -304,6 +330,7 @@ var voices = EmberObject.extend({
       locale: "en-US", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-Willbadguy-22khz",
       ref_id: "enu_willbadguy_22k_ns",
+      language_version2018: "",
       language_version: "",
       voice_dir: "hqm-ref-USEnglish-Willbadguy-22khz"
     },
@@ -312,6 +339,7 @@ var voices = EmberObject.extend({
       locale: "en-US", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-WillHappy-22khz",
       ref_id: "enu_willhappy_22k_ns",
+      language_version2018: "",
       language_version: "",
       voice_dir: "hqm-ref-USEnglish-WillHappy-22khz"
     },
@@ -320,6 +348,7 @@ var voices = EmberObject.extend({
       locale: "en-US", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-USEnglish-Willlittlecreature-22khz",
       ref_id: "enu_willlittlecreature_22k_ns",
+      language_version2018: "",
       language_version: "",
       voice_dir: "hqm-ref-USEnglish-Willlittlecreature-22khz"
     },
@@ -329,6 +358,7 @@ var voices = EmberObject.extend({
       voice_dir: "hqm-ref-AustralianEnglish-Liam-22khz",
       voice_dir_v2018: "hq-ref-AustralianEnglish-Liam-22khz",
       ref_id: "en_au_liam_22k_ns",
+      language_version2018: "1.91",
       language_version: "1.59"
     },
     {
@@ -337,6 +367,7 @@ var voices = EmberObject.extend({
       voice_dir: "hqm-ref-AustralianEnglish-Olivia-22khz",
       voice_dir_v2018: "hq-ref-AustralianEnglish-Olivia-22khz",
       ref_id: "en_au_olivia_22k_ns",
+      language_version2018: "1.91",
       language_version: "1.59"
     },
     {
@@ -344,6 +375,7 @@ var voices = EmberObject.extend({
       locale: "en-AU", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-AustralianEnglish-Lisa-22khz",
       ref_id: "en_au_lisa_22k_ns",
+      language_version2018: "1.91",
       language_version: "1.59",
       voice_dir: "hqm-ref-AustralianEnglish-Lisa-22khz"
     },
@@ -352,6 +384,7 @@ var voices = EmberObject.extend({
       locale: "en-AU", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-AustralianEnglish-Tyler-22khz",
       ref_id: "en_au_tyler_22k_ns",
+      language_version2018: "1.91",
       language_version: "1.59",
       voice_dir: "hqm-ref-AustralianEnglish-Tyler-22khz"
     },
@@ -361,6 +394,7 @@ var voices = EmberObject.extend({
       voice_dir: "hqm-ref-British-Harry-22khz",
       voice_dir_v2018: "hq-ref-British-Harry-22khz",
       ref_id: "eng_harry_22k_ns",
+      language_version2018: "1.234",
       language_version: "1.187"
     },
     {
@@ -369,6 +403,7 @@ var voices = EmberObject.extend({
       voice_dir: "hqm-ref-British-Rosie-22khz",
       voice_dir_v2018: "hq-ref-British-Rosie-22khz",
       ref_id: "eng_rosie_22k_ns",
+      language_version2018: "1.234",
       language_version: "1.187"
     },
     {
@@ -376,6 +411,7 @@ var voices = EmberObject.extend({
       locale: "en-UK", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-British-Graham-22khz",
       ref_id: "eng_graham_22k_ns",
+      language_version2018: "1.234",
       language_version: "1.187",
       voice_dir: "hqm-ref-British-Graham-22khz"
     },
@@ -384,6 +420,7 @@ var voices = EmberObject.extend({
       locale: "en-UK", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-British-Lucy-22khz",
       ref_id: "eng_lucy_22k_ns",
+      language_version2018: "1.234",
       language_version: "1.187",
       voice_dir: "hqm-ref-British-Lucy-22khz"
     },
@@ -392,6 +429,7 @@ var voices = EmberObject.extend({
       locale: "en-UK", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-British-Nizareng-22khz",
       ref_id: "eng_nizareng_22k_ns",
+      language_version2018: "1.234",
       language_version: "1.187",
       voice_dir: "hqm-ref-British-Nizareng-22khz"
     },
@@ -400,6 +438,7 @@ var voices = EmberObject.extend({
       locale: "en-UK", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-British-Peter-22khz",
       ref_id: "eng_peter_22k_ns",
+      language_version2018: "1.234",
       language_version: "1.187",
       voice_dir: "hqm-ref-British-Peter-22khz"
     },
@@ -408,6 +447,7 @@ var voices = EmberObject.extend({
       locale: "en-UK", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-British-Queenelizabeth-22khz",
       ref_id: "eng_queenelizabeth_22k_ns",
+      language_version2018: "1.234",
       language_version: "1.187",
       voice_dir: "hqm-ref-British-Queenelizabeth-22khz"
     },
@@ -416,6 +456,7 @@ var voices = EmberObject.extend({
       locale: "en-UK", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-British-Rachel-22khz",
       ref_id: "eng_rachel_22k_ns",
+      language_version2018: "1.234",
       language_version: "1.187",
       voice_dir: "hqm-ref-British-Rachel-22khz"
     },
@@ -425,6 +466,7 @@ var voices = EmberObject.extend({
       voice_dir_v2018: "hq-ref-German-Jonas-22khz",
       ref_id: "ged_jonas_22k_ns",
       voice_dir: "hqm-ref-German-Jonas-22khz",
+      language_version2018: "1.221",
       language_version: "1.182"
     },
     {
@@ -433,6 +475,7 @@ var voices = EmberObject.extend({
       voice_dir_v2018: "hq-ref-German-Lea-22khz",
       ref_id: "ged_lea_22k_ns",
       voice_dir: "hqm-ref-German-Lea-22khz",
+      language_version2018: "1.221",
       language_version: "1.182"
     },
     {
@@ -440,6 +483,7 @@ var voices = EmberObject.extend({
       locale: "de-DE", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-German-Andreas-22khz",
       ref_id: "ged_andreas_22k_ns",
+      language_version2018: "1.221",
       language_version: "1.182",
       voice_dir: "hqm-ref-German-Andreas-22khz"
     },
@@ -448,6 +492,7 @@ var voices = EmberObject.extend({
       locale: "de-DE", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-German-Claudia-22khz",
       ref_id: "ged_claudia_22k_ns",
+      language_version2018: "1.221",
       language_version: "1.182",
       voice_dir: "hqm-ref-German-Claudia-22khz"
     },
@@ -456,6 +501,7 @@ var voices = EmberObject.extend({
       locale: "de-DE", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-German-Julia-22khz",
       ref_id: "ged_julia_22k_ns",
+      language_version2018: "1.221",
       language_version: "1.182",
       voice_dir: "hqm-ref-German-Julia-22khz"
     },
@@ -464,6 +510,7 @@ var voices = EmberObject.extend({
       locale: "de-DE", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-German-Klaus-22khz",
       ref_id: "ged_klaus_22k_ns",
+      language_version2018: "1.221",
       language_version: "1.182",
       voice_dir: "hqm-ref-German-Klaus-22khz"
     },
@@ -472,6 +519,7 @@ var voices = EmberObject.extend({
       locale: "de-DE", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-German-Sarah-22khz",
       ref_id: "ged_sarah_22k_ns",
+      language_version2018: "1.221",
       language_version: "1.182",
       voice_dir: "hqm-ref-German-Sarah-22khz"
     },
@@ -480,6 +528,7 @@ var voices = EmberObject.extend({
       locale: "ar-EG", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Arabic-Leila-22khz",
       ref_id: "ar_sa_leila_22k_ns",
+      language_version2018: "1.137",
       language_version: "",
       voice_dir: "hqm-ref-Arabic-leila-22khz"
     },
@@ -488,6 +537,7 @@ var voices = EmberObject.extend({
       locale: "ar-EG", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-Arabic-Mehdi-22khz",
       ref_id: "ar_sa_mehdi_22k_ns",
+      language_version2018: "1.137",
       language_version: "",
       voice_dir: "hqm-ref-Arabic-mehdi-22khz"
     },
@@ -496,6 +546,7 @@ var voices = EmberObject.extend({
       locale: "ar-EG", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-Arabic-Nizar-22khz",
       ref_id: "ar_sa_nizar_22k_ns",
+      language_version2018: "1.137",
       language_version: "",
       voice_dir: "hqm-ref-Arabic-nizar-22khz"
     },
@@ -504,6 +555,7 @@ var voices = EmberObject.extend({
       locale: "ar-EG", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Arabic-Salma-22khz",
       ref_id: "ar_sa_salma_22k_ns",
+      language_version2018: "1.137",
       language_version: "",
       voice_dir: "hqm-ref-Arabic-salma-22khz"
     },
@@ -512,6 +564,7 @@ var voices = EmberObject.extend({
       locale: "nl-BE", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-BelgianDutch-Jeroen-22khz",
       ref_id: "dub_jeroen_22k_ns",
+      language_version2018: "1.184",
       language_version: "1.145",
       voice_dir: "hqm-ref-BelgianDutch-Jeroen-22khz"
     },
@@ -520,6 +573,7 @@ var voices = EmberObject.extend({
       locale: "nl-BE", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-BelgianDutch-Sofie-22khz",
       ref_id: "dub_sofie_22k_ns",
+      language_version2018: "1.184",
       language_version: "1.145",
       voice_dir: "hqm-ref-BelgianDutch-Sofie-22khz"
     },
@@ -528,6 +582,7 @@ var voices = EmberObject.extend({
       locale: "nl-BE", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-BelgianDutch-Zoe-22khz",
       ref_id: "dub_zoe_22k_ns",
+      language_version2018: "1.184",
       language_version: "1.145",
       voice_dir: "hqm-ref-BelgianDutch-Zoe-22khz"
     },
@@ -536,6 +591,7 @@ var voices = EmberObject.extend({
       locale: "pt-BR", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Brazilian-Marcia-22khz",
       ref_id: "pob_marcia_22k_ns",
+      language_version2018: "1.142",
       language_version: "1.112",
       voice_dir: "hqm-ref-Brazilian-Marcia-22khz"
     },
@@ -544,6 +600,7 @@ var voices = EmberObject.extend({
       locale: "fr-CA", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-CanadianFrench-Louise-22khz",
       ref_id: "frc_louise_22k_ns",
+      language_version2018: "1.131",
       language_version: "1.99",
       voice_dir: "hqm-ref-CanadianFrench-Louise-22khz"
     },
@@ -552,6 +609,7 @@ var voices = EmberObject.extend({
       locale: "ca-ES", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Catalan-Laia-22khz",
       ref_id: "ca_es_laia_22k_ns",
+      language_version2018: "1.125",
       language_version: "1.88",
       voice_dir: "hqm-ref-Catalan-Laia-22khz"
     },
@@ -560,14 +618,28 @@ var voices = EmberObject.extend({
       locale: "cs-CZ", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Czech-Eliska-22khz",
       ref_id: "czc_eliska_22k_ns",
+      language_version2018: "1.157",
       language_version: "1.123",
       voice_dir: "hqm-ref-Czech-Eliska-22khz"
+    },
+    {
+      voice_id: "acap:Hanna", size: 101,
+      locale: "fo-FO", gender: "f", age: "adult",
+      ref_id: "hanna_22k_ns",
+      language_version2018: "1.72"
+    },
+    {
+      voice_id: "acap:Hanus", size: 101,
+      locale: "fo-FO", gender: "m", age: "adult",
+      ref_id: "hanus_22k_ns",
+      language_version2018: "1.72"
     },
     {
       voice_id: "acap:Mette", size: 96,
       locale: "da-DK", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Danish-Mette-22khz",
       ref_id: "dad_mette_22k_ns",
+      language_version2018: "1.170",
       language_version: "1.137",
       voice_dir: "hqm-ref-Danish-Mette-22khz"
     },
@@ -576,6 +648,7 @@ var voices = EmberObject.extend({
       locale: "da-DK", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-Danish-Rasmus-22khz",
       ref_id: "dad_rasmus_22k_ns",
+      language_version2018: "1.170",
       language_version: "1.137",
       voice_dir: "hqm-ref-Danish-Rasmus-22khz"
     },
@@ -584,6 +657,7 @@ var voices = EmberObject.extend({
       locale: "nl-NL", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-Dutch-Daan-22khz",
       ref_id: "dun_daan_22k_ns",
+      language_version2018: "1.218",
       language_version: "1.160",
       voice_dir: "hqm-ref-Dutch-Daan-22khz"
     },
@@ -592,6 +666,7 @@ var voices = EmberObject.extend({
       locale: "nl-NL", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Dutch-Femke-22khz",
       ref_id: "dun_femke_22k_ns",
+      language_version2018: "1.218",
       language_version: "1.160",
       voice_dir: "hqm-ref-Dutch-Femke-22khz"
     },
@@ -600,6 +675,7 @@ var voices = EmberObject.extend({
       locale: "nl-NL", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Dutch-Jasmijn-22khz",
       ref_id: "dun_jasmijn_22k_ns",
+      language_version2018: "1.218",
       language_version: "1.160",
       voice_dir: "hqm-ref-Dutch-Jasmijn-22khz"
     },
@@ -608,6 +684,7 @@ var voices = EmberObject.extend({
       locale: "nl-NL", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-Dutch-Max-22khz",
       ref_id: "dun_max_22k_ns",
+      language_version2018: "1.218",
       language_version: "1.160",
       voice_dir: "hqm-ref-Dutch-Max-22khz"
     },
@@ -616,6 +693,7 @@ var voices = EmberObject.extend({
       locale: "sv-FI", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-FinlandSwedish-Samuel-22khz",
       ref_id: "sv_fi_samuel_22k_ns",
+      language_version2018: "1.106",
       language_version: "1.77",
       voice_dir: "hqm-ref-FinlandSwedish-samuel-22khz"
     },
@@ -624,6 +702,7 @@ var voices = EmberObject.extend({
       locale: "sv-FI", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Finnish-Sanna-22khz",
       ref_id: "fif_sanna_22k_ns",
+      language_version2018: "1.132",
       language_version: "1.95",
       voice_dir: "hqm-ref-Finnish-Sanna-22khz"
     },
@@ -631,12 +710,14 @@ var voices = EmberObject.extend({
       voice_id: "acap:Elise", size: 54,
       locale: "fr-FR", gender: "f", age: "child",
       voice_dir_v2018: "hq-ref-French-Elise-22khz",
+      language_version2018: "1.373",
       ref_id: "elise_22k_ns"
     },
     {
       voice_id: "acap:Valentin", size: 45,
       locale: "fr-FR", gender: "m", age: "child",
       voice_dir_v2018: "hq-ref-French-Valentin-22khz",
+      language_version2018: "1.373",
       ref_id: "valentin_22k_ns"
     },
     {
@@ -644,6 +725,7 @@ var voices = EmberObject.extend({
       locale: "fr-FR", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-French-Alice-22khz",
       ref_id: "frf_alice_22k_ns",
+      language_version2018: "1.373",
       language_version: "1.299",
       voice_dir: "hqm-ref-French-Alice-22khz"
     },
@@ -652,6 +734,7 @@ var voices = EmberObject.extend({
       locale: "fr-FR", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-French-Anais-22khz",
       ref_id: "frf_anais_22k_ns",
+      language_version2018: "1.373",
       language_version: "1.299"
     },
     {
@@ -659,6 +742,7 @@ var voices = EmberObject.extend({
       locale: "fr-FR", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-French-Antoine-22khz",
       ref_id: "frf_antoine_22k_ns",
+      language_version2018: "1.373",
       language_version: "1.299",
       voice_dir: "hqm-ref-French-Antoine-22khz"
     },
@@ -667,6 +751,7 @@ var voices = EmberObject.extend({
       locale: "fr-FR", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-French-Bruno-22khz",
       ref_id: "frf_bruno_22k_ns",
+      language_version2018: "1.373",
       language_version: "1.299",
       voice_dir: "hqm-ref-French-Bruno-22khz"
     },
@@ -675,6 +760,7 @@ var voices = EmberObject.extend({
       locale: "fr-FR", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-French-Claire-22khz",
       ref_id: "frf_claire_22k_ns",
+      language_version2018: "1.373",
       language_version: "1.299",
       voice_dir: "hqm-ref-French-Claire-22khz"
     },
@@ -683,6 +769,7 @@ var voices = EmberObject.extend({
       locale: "fr-FR", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-French-Julie-22khz",
       ref_id: "frf_julie_22k_ns",
+      language_version2018: "1.373",
       language_version: "1.299",
       voice_dir: "hqm-ref-French-Julie-22khz"
     },
@@ -691,6 +778,7 @@ var voices = EmberObject.extend({
       locale: "fr-FR", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-French-Manon-22khz",
       ref_id: "frf_manon_22k_ns",
+      language_version2018: "1.373",
       language_version: "1.299",
       voice_dir: "hqm-ref-French-Manon-22khz"
     },
@@ -699,6 +787,7 @@ var voices = EmberObject.extend({
       locale: "fr-FR", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-French-Margaux-22khz",
       ref_id: "frf_margaux_22k_ns",
+      language_version2018: "1.373",
       language_version: "1.299",
       voice_dir: "hqm-ref-French-Margaux-22khz"
     },
@@ -706,24 +795,28 @@ var voices = EmberObject.extend({
       voice_id: "acap:Elias", size: 76,
       locale: "nn-NO", gender: "m", age: "child",
       voice_dir_v2018: "hq-ref-Norwegian-Elias-22khz",
+      language_version2018: "1.162",
       ref_id: "elias_22k_ns"
     },
     {
       voice_id: "acap:Emilie", size: 80,
       locale: "nn-NO", gender: "f", age: "child",
       voice_dir_v2018: "hq-ref-Norwegian-Emilie-22khz",
+      language_version2018: "1.162",
       ref_id: "emilie_22k_ns"
     },
     {
       voice_id: "acap:Filip", size: 92,
       locale: "sv-SE", gender: "m", age: "child",
       voice_dir_v2018: "hq-ref-Swedish-Filip-22khz",
+      language_version2018: "1.177",
       ref_id: "filip_22k_ns",
     },
     {
       voice_id: "acap:Freja", size: 84,
       locale: "sv-SE", gender: "f", age: "child",
       voice_dir_v2018: "hq-ref-Swedish-Freja-22khz",
+      language_version2018: "1.177",
       ref_id: "freja_22k_ns",
     },
     {
@@ -731,6 +824,7 @@ var voices = EmberObject.extend({
       locale: "sv-SE", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-GothenburgSwedish-Kal-22khz",
       ref_id: "gb_se_kal_22k_ns",
+      language_version2018: "1.83",
       language_version: "1.51",
       voice_dir: "hqm-ref-GothenburgSwedish-Kal-22khz"
     },
@@ -739,6 +833,7 @@ var voices = EmberObject.extend({
       locale: "el-GR", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-Greek-Dimitris-22khz",
       ref_id: "grg_dimitris_22k_ns",
+      language_version2018: "1.113",
       language_version: "1.84",
       voice_dir: "hqm-ref-Greek-Dimitris-22khz"
     },
@@ -747,6 +842,7 @@ var voices = EmberObject.extend({
       locale: "en-IN", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-IndianEnglish-Deepa-22khz",
       ref_id: "en_in_deepa_22k_ns",
+      language_version2018: "1.101",
       language_version: "1.69",
       voice_dir: "hqm-ref-IndianEnglish-Deepa-22khz"
     },
@@ -755,46 +851,39 @@ var voices = EmberObject.extend({
       locale: "it-IT", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Italian-Chiara-22khz",
       ref_id: "iti_chiara_22k_ns",
+      language_version2018: "1.193",
       language_version: "1.155",
       voice_dir: "hqm-ref-Italian-Chiara-22khz"
-    },
-    {
-      voice_id: "acap:Fabiana", size: 92,
-      locale: "it-IT", gender: "f", age: "adult",
-      voice_dir_v2018: "hqm-ref-Italian-Fabiana-22khz",
-      ref_id: "iti_fabiana_22k_ns"
-    },
-    {
-      voice_id: "acap:Vittorio", size: 140,
-      locale: "it-IT", gender: "m", age: "adult",
-      voice_dir_v2018: "hqm-ref-Italian-Vittorio-22khz",
-      ref_id: "iti_vittorio_22k_ns"
     },
     {
       voice_id: "acap:Alessio", size: 55,
       locale: "it-IT", gender: "m", age: "child",
       voice_dir_v2018: "hq-ref-Italian-Alessio-22khz",
+      language_version2018: "1.193",
       ref_id: "alessio_22k_ns"
     },
     {
       voice_id: "acap:Aurora", size: 57,
-      locale: "it-IT", gender: "m", age: "child",
+      locale: "it-IT", gender: "f", age: "child",
       voice_dir_v2018: "hq-ref-Italian-Aurora-22khz",
+      language_version2018: "1.193",
       ref_id: "aurora_22k_ns"
     },
     {
-      voice_id: "acap:Fabiana", size: 87,
+      voice_id: "acap:Fabiana", size: 92,
       locale: "it-IT", gender: "f", age: "adult",
-      voice_dir_v2018: null,
+      voice_dir_v2018: "hqm-ref-Italian-Fabiana-22khz",
       ref_id: "iti_fabiana_22k_ns",
+      language_version2018: "1.193",
       language_version: "1.155",
       voice_dir: "hqm-ref-Italian-Fabiana-22khz"
     },
     {
       voice_id: "acap:Vittorio", size: 134,
       locale: "it-IT", gender: "m", age: "adult",
-      voice_dir_v2018: null,
+      voice_dir_v2018: "hqm-ref-Italian-Vittorio-22khz",
       ref_id: "iti_vittorio_22k_ns",
+      language_version2018: "1.193",
       language_version: "1.155",
       voice_dir: "hqm-ref-Italian-Vittorio-22khz"
     },
@@ -803,6 +892,7 @@ var voices = EmberObject.extend({
       locale: "ja-JP", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Japanese-Sakura-22khz",
       ref_id: "ja_jp_sakura_22k_ns",
+      language_version2018: "1.65",
       language_version: "1.43",
       voice_dir: "hqm-ref-Japanese-Sakura-22khz"
     },
@@ -811,6 +901,7 @@ var voices = EmberObject.extend({
       locale: "ko-KR", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Korean-minji-22khz",
       ref_id: "ko_kr_minji_22k_ns",
+      language_version2018: "1.52",
       language_version: "1.30",
       voice_dir: "hqm-ref-Korean-minji-22khz"
     },
@@ -819,6 +910,7 @@ var voices = EmberObject.extend({
       locale: "zh", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-MandarinChinese-Lulu-22khz",
       ref_id: "zh_cn_lulu_22k_ns",
+      language_version2018: "1.54",
       language_version: "1.33",
       voice_dir: "hqm-ref-MandarinChinese-Lulu-22khz"
     },
@@ -827,6 +919,7 @@ var voices = EmberObject.extend({
       locale: "nn-NO", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-Norwegian-Bente-22khz",
       ref_id: "non_bente_22k_ns",
+      language_version2018: "1.162",
       language_version: "1.119",
       voice_dir: "hqm-ref-Norwegian-Bente-22khz"
     },
@@ -835,6 +928,7 @@ var voices = EmberObject.extend({
       locale: "nn-NO", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Norwegian-Kari-22khz",
       ref_id: "non_kari_22k_ns",
+      language_version2018: "1.162",
       language_version: "1.119",
       voice_dir: "hqm-ref-Norwegian-Kari-22khz"
     },
@@ -843,6 +937,7 @@ var voices = EmberObject.extend({
       locale: "nn-NO", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-Norwegian-Olav-22khz",
       ref_id: "non_olav_22k_ns",
+      language_version2018: "1.162",
       language_version: "1.119",
       voice_dir: "hqm-ref-Norwegian-Olav-22khz"
     },
@@ -851,6 +946,7 @@ var voices = EmberObject.extend({
       locale: "pl-PL", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Polish-Ania-22khz",
       ref_id: "pop_ania_22k_ns",
+      language_version2018: "1.133",
       language_version: "1.96",
       voice_dir: "hqm-ref-Polish-ania-22khz"
     },
@@ -859,6 +955,7 @@ var voices = EmberObject.extend({
       locale: "pl-PL", gender: "f", age: "adult",
       voice_dir_v2018: null,
       ref_id: "pop_monika_22k_ns",
+      language_version2018: "1.133",
       language_version: "1.96",
       voice_dir: "hqm-ref-Polish-monika-22khz"
     },
@@ -867,6 +964,7 @@ var voices = EmberObject.extend({
       locale: "pt-PT", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Portuguese-Celia-22khz",
       ref_id: "poe_celia_22k_ns",
+      language_version2018: "1.127",
       language_version: "1.95",
       voice_dir: "hqm-ref-Portuguese-Celia-22khz"
     },
@@ -875,6 +973,7 @@ var voices = EmberObject.extend({
       locale: "ru-RU", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Russian-Alyona-22khz",
       ref_id: "rur_alyona_22k_ns",
+      language_version2018: "1.155",
       language_version: "1.121",
       voice_dir: "hqm-ref-Russian-Alyona-22khz"
     },
@@ -883,6 +982,7 @@ var voices = EmberObject.extend({
       locale: "sv", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Scanian-Mia-22khz",
       ref_id: "sc_se_mia_22k_ns",
+      language_version2018: "1.84",
       language_version: "1.54",
       voice_dir: "hqm-ref-Scanian-Mia-22khz"
     },
@@ -891,6 +991,7 @@ var voices = EmberObject.extend({
       locale: "en-GD", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-ScottishEnglish-rhona-22khz",
       ref_id: "en_sct_rhona_22k_ns",
+      language_version2018: "1.57",
       language_version: "1.23",
       voice_dir: "hqm-ref-ScottishEnglish-rhona-22khz"
     },
@@ -899,6 +1000,7 @@ var voices = EmberObject.extend({
       locale: "es-ES", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-Spanish-Antonio-22khz",
       ref_id: "sps_antonio_22k_ns",
+      language_version2018: "1.214",
       language_version: "1.178",
       voice_dir: "hqm-ref-Spanish-Antonio-22khz"
     },
@@ -907,6 +1009,7 @@ var voices = EmberObject.extend({
       locale: "es-ES", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Spanish-Ines-22khz",
       ref_id: "sps_ines_22k_ns",
+      language_version2018: "1.214",
       language_version: "1.178",
       voice_dir: "hqm-ref-Spanish-Ines-22khz"
     },
@@ -915,6 +1018,7 @@ var voices = EmberObject.extend({
       locale: "es-ES", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Spanish-Maria-22khz",
       ref_id: "sps_maria_22k_ns",
+      language_version2018: "1.214",
       language_version: "1.178",
       voice_dir: "hqm-ref-Spanish-Maria-22khz"
     },
@@ -923,6 +1027,7 @@ var voices = EmberObject.extend({
       locale: "sv-SE", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Swedish-Elin-22khz",
       ref_id: "sws_elin_22k_ns",
+      language_version2018: "1.177",
       language_version: "1.127",
       voice_dir: "hqm-ref-Swedish-Elin-22khz"
     },
@@ -931,6 +1036,7 @@ var voices = EmberObject.extend({
       locale: "sv-SE", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-Swedish-Emil-22khz",
       ref_id: "sws_emil_22k_ns",
+      language_version2018: "1.177",
       language_version: "1.127",
       voice_dir: "hqm-ref-Swedish-Emil-22khz"
     },
@@ -939,6 +1045,7 @@ var voices = EmberObject.extend({
       locale: "sv-SE", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Swedish-Emma-22khz",
       ref_id: "sws_emma_22k_ns",
+      language_version2018: "1.177",
       language_version: "1.127",
       voice_dir: "hqm-ref-Swedish-Emma-22khz"
     },
@@ -947,6 +1054,7 @@ var voices = EmberObject.extend({
       locale: "sv-SE", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-Swedish-Erik-22khz",
       ref_id: "sws_erik_22k_ns",
+      language_version2018: "1.177",
       language_version: "1.127",
       voice_dir: "hqm-ref-Swedish-Erik-22khz"
     },
@@ -955,6 +1063,7 @@ var voices = EmberObject.extend({
       locale: "tr-TR", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Turkish-Ipek-22khz",
       ref_id: "tut_ipek_22k_ns",
+      language_version2018: "1.144",
       language_version: "1.111",
       voice_dir: "hqm-ref-Turkish-Ipek-22khz"
     },
@@ -963,6 +1072,7 @@ var voices = EmberObject.extend({
       locale: "es-US", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-USSpanish-Rodrigo-22khz",
       ref_id: "spu_rodrigo_22k_ns",
+      language_version2018: "1.160",
       language_version: "1.288",
       voice_dir: "hqm-ref-USSpanish-Rodrigo-22khz"
     },
@@ -971,6 +1081,7 @@ var voices = EmberObject.extend({
       locale: "es-US", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-USSpanish-Rosa-22khz",
       ref_id: "spu_rosa_22k_ns",
+      language_version2018: "1.160",
       language_version: "1.288",
       voice_dir: "hqm-ref-USSpanish-Rosa-22khz"
     },
