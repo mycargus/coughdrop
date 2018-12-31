@@ -969,7 +969,7 @@ var voices = EmberObject.extend({
       voice_dir: "hqm-ref-Portuguese-Celia-22khz"
     },
     {
-      voice_id: "acap:Aloyna", size: 77,
+      voice_id: "acap:Alyona", size: 77,
       locale: "ru-RU", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Russian-Alyona-22khz",
       ref_id: "rur_alyona_22k_ns",
