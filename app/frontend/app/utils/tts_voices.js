@@ -35,7 +35,7 @@ var voices = EmberObject.extend({
           voice.voice_url = "https://s3.amazonaws.com/coughdrop/voices/v2018/" + voice.voice_dir_v2018 + ".zip";
         }
         voice.voice_sample = voice.voice_sample || "https://s3.amazonaws.com/coughdrop/voices/" + voice.name.toLowerCase() + "-sample.mp3";
-        voice.language_dir = simple_voice_dir.split(/-/)[2];
+        voice.language_dir = (simple_voice_dir || "").split(/-/)[2];
         voice.windows_available = !!(voice.language_dir && voice.language_dir !== "");
         voice.windows_language_url = "https://s3.amazonaws.com/coughdrop/voices/" + voice.language_dir + ".zip";
         voice.windows_binary_url = "https://s3.amazonaws.com/coughdrop/voices/aca-bin.zip";
