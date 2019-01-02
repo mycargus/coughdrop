@@ -64,6 +64,7 @@ var voices = EmberObject.extend({
       data.voice_url = voice.get('windows_voice_url');
       data.language_url = voice.get('windows_language_url');
       data.language_dir = voice.get('windows_language_dir');
+      data.binary_url = voice.get('windows_binary_url');
     }
     if(!window.persistence) { return RSVP.reject('persistence not defined'); }
     return new RSVP.Promise(function(resolve, reject) {
