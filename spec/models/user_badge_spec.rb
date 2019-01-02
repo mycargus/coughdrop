@@ -1250,7 +1250,6 @@ describe UserBadge, type: :model do
       expect(b.data.except('earn_recorded')).to eq({
         'started' => started.utc.iso8601,
         'ended' => ended.utc.iso8601,
-        'earn_recorded' => Time.now.utc.iso8601,
         'global_goal' => nil,
         'global_goal_priority' => nil,
         'badge_level' => nil,

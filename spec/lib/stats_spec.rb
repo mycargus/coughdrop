@@ -672,11 +672,11 @@ describe Stats do
       stamp = Time.at(now - 10).strftime("%H:%M:%S")
       date = Time.at(now - 10).strftime("%y-%m-%d")
       expect(lines[-4]).to eql("#{stamp} CTL *[YY-MM-DD=#{date}]*")
-      expect(lines[-3]).to eql("#{stamp} SMP \"I\"")
+      expect(lines[-3]).to eql("#{stamp} SMP \"I \"")
       stamp = Time.at(now - 8).strftime("%H:%M:%S")
-      expect(lines[-2]).to eql("#{stamp} SMP \"like\"")
+      expect(lines[-2]).to eql("#{stamp} SMP \"like \"")
       stamp = Time.at(now).strftime("%H:%M:%S")
-      expect(lines[-1]).to eql("#{stamp} SMP \"ok go\"")
+      expect(lines[-1]).to eql("#{stamp} SMP \"ok go \"")
     end 
     
     it "should generate with multiple sessions" do
@@ -700,13 +700,13 @@ describe Stats do
       expect(str).to match(/CAUTION/)
       lines = str.split(/\n/)
       expect(lines[-8]).to eql("15:11:02 CTL *[YY-MM-DD=14-11-11]*")
-      expect(lines[-7]).to eql("15:11:02 SMP \"I\"")
-      expect(lines[-6]).to eql("15:11:04 SMP \"like\"")
-      expect(lines[-5]).to eql("15:11:12 SMP \"ok go\"")
+      expect(lines[-7]).to eql("15:11:02 SMP \"I \"")
+      expect(lines[-6]).to eql("15:11:04 SMP \"like \"")
+      expect(lines[-5]).to eql("15:11:12 SMP \"ok go \"")
       expect(lines[-4]).to eql("15:11:22 CTL *[YY-MM-DD=14-11-11]*")
-      expect(lines[-3]).to eql("15:11:22 SMP \"do\"")
-      expect(lines[-2]).to eql("15:11:32 SMP \"you\"")
-      expect(lines[-1]).to eql("15:11:34 SMP \"too\"")
+      expect(lines[-3]).to eql("15:11:22 SMP \"do \"")
+      expect(lines[-2]).to eql("15:11:32 SMP \"you \"")
+      expect(lines[-1]).to eql("15:11:34 SMP \"too \"")
     end
     
     it "should update the date correctly" do
@@ -723,10 +723,10 @@ describe Stats do
       expect(str).to match(/CAUTION/)
       lines = str.split(/\n/)
       expect(lines[-5]).to eql("23:59:51 CTL *[YY-MM-DD=14-11-10]*")
-      expect(lines[-4]).to eql("23:59:51 SMP \"I\"")
-      expect(lines[-3]).to eql("23:59:53 SMP \"like\"")
+      expect(lines[-4]).to eql("23:59:51 SMP \"I \"")
+      expect(lines[-3]).to eql("23:59:53 SMP \"like \"")
       expect(lines[-2]).to eql("00:00:01 CTL *[YY-MM-DD=14-11-11]*")
-      expect(lines[-1]).to eql("00:00:01 SMP \"ok go\"")
+      expect(lines[-1]).to eql("00:00:01 SMP \"ok go \"")
     end
     
     it "should include spelling events correctly" do
@@ -764,7 +764,7 @@ describe Stats do
       expect(lines[-4]).to eql("15:11:02 CTL *[YY-MM-DD=14-11-11]*")
       expect(lines[-3]).to eql("15:11:02 SPE \"d\"")
       expect(lines[-2]).to eql("15:11:04 SPE \"o\"")
-      expect(lines[-1]).to eql("15:11:12 WPR \"dog\"")
+      expect(lines[-1]).to eql("15:11:12 WPR \"dog \"")
     end
     
     it "should ignore extra events" do
@@ -782,7 +782,7 @@ describe Stats do
       expect(str).to match(/CAUTION/)
       lines = str.split(/\n/)
       expect(lines[-2]).to eql("15:11:02 CTL *[YY-MM-DD=14-11-11]*")
-      expect(lines[-1]).to eql("15:11:02 SMP \"cat\"")
+      expect(lines[-1]).to eql("15:11:02 SMP \"cat \"")
     end
   end
   
