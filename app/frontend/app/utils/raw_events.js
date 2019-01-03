@@ -1187,6 +1187,14 @@ var buttonTracker = EmberObject.extend({
   find_selectable_under_event: function(event, loose, allow_dwell) {
     event = buttonTracker.normalize_event(event);
     if(event.clientX === undefined || event.clientY === undefined) { return null; }
+    if(event.clientX === 0 && event.clientY === 0) {
+      // edge case where simulated click events don't send correct coords
+      var bounds = event.target.getBoundingClientRect();
+      if(bounds.x > 0 && bounds.y > 0 && bounds.height > 0 && bounds.width > 0) {
+        event.clientX = bounds.x + (bounds.width / 2);
+        event.clientY = bounds.y + (bounds.height / 2);
+      }
+    }
     var left = 0;
     var icon_left = 0;
     if(buttonTracker.dwell_elem) {
