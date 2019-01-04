@@ -13,6 +13,7 @@ import editManager from '../utils/edit_manager';
 export default modal.ModalController.extend({
   opening: function() {
     var _this = this;
+    _this.set('results', null);
     _this.set('searchString', '');
     if(_this.get('model.board')) {
       _this.get('model.board').load_button_set().then(function(bs) {
@@ -30,7 +31,9 @@ export default modal.ModalController.extend({
     var board = modal.settings_for['find-button'].board;
     if(this.get('searchString')) {
       var _this = this;
-      _this.set('loading', true);
+      if(!_this.get('results')) {
+        _this.set('loading', true);
+      }
       _this.set('error', null);
       // TODO: only show other boards if in speak mode!
       var include_other_boards = this.get('model.include_other_boards');
@@ -41,7 +44,7 @@ export default modal.ModalController.extend({
         var now = (new Date()).getTime();
         var search_id = Math.random() + "-" + now;
         _this.set('search_id', search_id);
-        var interval = capabilities.system == 'iOS' ? 500 : null;
+        var interval = capabilities.system == 'iOS' ? 100 : null;
         // on iOS the search process is really slow, somehow
         // the promises take 300ms-ish to resolve, so we try to
         // debounce them a little and see if that helps
