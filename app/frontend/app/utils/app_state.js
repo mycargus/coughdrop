@@ -604,11 +604,12 @@ var app_state = EmberObject.extend({
 
       var user = app_state.get('referenced_speak_mode_user') || app_state.get('currentUser');
       if(user && current_mode != 'speak') {
+        var speak_mode_user = app_state.get('speakModeUser') || app_state.get('currentUser');
         var level = {};
         var state = board_state || opts.override_state;
-        // If already on a board, and board level is set to something,
-        // if the current board matches the user's home or sidebar, then
-        // ask if they want to update their level preference
+        // If already on a board, and board level is manually set,
+        // check if it's the user's home or sidebar board, and override
+        // the user's preferred level
         if(user.get('preferences.home_board.id') == state.id) {
           level.preferred = user.get('preferences.home_board.level');
           level.source = 'home';
@@ -622,15 +623,31 @@ var app_state = EmberObject.extend({
         }
         if(level.preferred) {
           // If the user has a preference for the currently-launching board,
-          // then we take that into account. If already on a board, do the
-          // asking thing. If not launching from a board, just use the
+          // then we take that into account. If already on a board and not in
+          // modelling mode, assume this is the user's new preference and
+          // update automatically. If not launching from a board, just use the
           // user's preference.
           if(board_state && stashes.get('board_level') && stashes.get('board_level') != level.preferred) {
             level.current = stashes.get('board_level');
-            console.error('Need to confirm level setting', level);
             stashes.persist('board_level', level.current);
             if(opts.override_state) {
               opts.override_state = $.extend({}, opts.override_state, {level: level.current});
+            }
+            if(user == speak_mode_user) {
+              // If in Speak (not modelling) mode, assume the
+              // change was intentional and set it to the user's
+              // new preference.
+              if(level.source == 'home') {
+                user.set('preferences.home_board.level', level.current);
+                user.save();
+              } else {
+                (user.get('preferences.sidebar_boards') || []).forEach(function(board) {
+                  if(board && board.id == state.id) {
+                    emberSet(board, 'level', level.current);
+                  }
+                });
+                user.save();
+              }
             }
             board_level = level.current;
           } else {
@@ -664,7 +681,7 @@ var app_state = EmberObject.extend({
 
       if(board_level) {
         stashes.persist('board_level', board_level);
-        console.log("toggling", stashes.get('board_level'));
+        console.log("toggling to level", stashes.get('board_level'));
       }
       stashes.persist('root_board_state', board_state);
     }
