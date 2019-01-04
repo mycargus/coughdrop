@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2019.01.04c";
+window.app_version = "2019.01.04d";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -7993,8 +7993,7 @@ e.set("status",{saving:!0}),t.save().then(function(){a.default.close({updated:!0
 this.set("unit",e),this.set("error",!1),this.set("saving",!1)},actions:{close:function(){s.default.close(!1)},save:function(){var e=this,t=e.get("model.unit")
 e.set("error",!1),e.set("saving",!0),t.save().then(function(){s.default.close({updated:!0}),e.set("saving",!1)},function(){e.set("error",!0),e.set("saving",!1)})}}})}),define("frontend/controllers/enable-logging",["exports","frontend/utils/modal","frontend/utils/persistence","frontend/utils/app_state","frontend/utils/i18n"],function(e,t,n,s,a){Object.defineProperty(e,"__esModule",{value:!0}),e.default=t.default.ModalController.extend({opening:function(){this.set("research",!1),this.set("model.user.preferences.allow_log_reports",!1)},closing:function(){this.get("research")?this.set("model.user.preferences.allow_log_reports",!0):this.set("model.user.preferences.allow_log_reports",!1),this.get("model.save")&&this.get("model.user").save()},actions:{}})})
 define("frontend/controllers/error",["exports"],function(e){Object.defineProperty(e,"__esModule",{value:!0}),e.default=Ember.Controller.extend({})}),define("frontend/controllers/find-button",["exports","frontend/utils/modal","frontend/utils/persistence","frontend/utils/capabilities","frontend/utils/i18n","frontend/utils/app_state","frontend/utils/edit_manager"],function(e,t,n,s,a,o,r){Object.defineProperty(e,"__esModule",{value:!0}),e.default=t.default.ModalController.extend({opening:function(){var e=this
-e.set("results",null),e.set("searchString",""),e.get("model.board")&&e.get("model.board").load_button_set().then(function(t){e.set("button_set",t)},function(){e.set("button_set",null)}),Ember.run.later(function(){Ember.$("#button_search_string").focus()},100)},search:function(){this.set("results",null)
-var e=t.default.settings_for["find-button"].board
+e.set("results",null),e.set("searchString",""),e.get("model.board")&&e.get("model.board").load_button_set().then(function(t){e.set("button_set",t)},function(){e.set("button_set",null)}),Ember.run.later(function(){Ember.$("#button_search_string").focus()},100)},search:function(){var e=t.default.settings_for["find-button"].board
 if(this.get("searchString")){var r=this
 r.get("results")||r.set("loading",!0),r.set("error",null)
 this.get("model.include_other_boards")
@@ -8004,7 +8003,7 @@ var c="iOS"==s.default.system?100:null
 Ember.run.later(function(){r.get("search_id")==u&&(o.default.get("feature_flags.find_multiple_buttons")?e.get("button_set").find_sequence(r.get("searchString"),e.get("id"),l,i):e.get("button_set").find_buttons(r.get("searchString"),e.get("id"),l,i)).then(function(e){if(console.log("results!",e,(new Date).getTime()-d),n.default.get("online"))r.set("results",e),r.set("loading",!1)
 else{var t=[]
 e.forEach(function(e){var n=[e.image]
-e.sequence&&(n=e.steps.map(function(e){return e.button.image})),n.find(function(e){return!e||e.match(/^http/)})||t.push(e)}),Ember.RSVP.all_wait([]).then(null,function(){return Ember.RSVP.resolve()}).then(function(){r.set("results",t),r.set("loading",!1)})}r.set("results",e),r.set("loading",!1)},function(e){r.set("loading",!1),r.set("error",e.error)})},c)}else r.set("loading",!1),r.set("error",a.default.t("button_set_not_found","Button set not downloaded, please try syncing or going online and reopening this board"))}}.observes("searchString","button_set"),actions:{pick_result:function(e){if(e.board_id==r.default.controller.get("model.id")){var n=Ember.$(".button[data-id='"+e.id+"']")
+e.sequence&&(n=e.steps.map(function(e){return e.button.image})),n.find(function(e){return!e||e.match(/^http/)})||t.push(e)}),Ember.RSVP.all_wait([]).then(null,function(){return Ember.RSVP.resolve()}).then(function(){r.set("results",t),r.set("loading",!1)})}r.set("results",e),r.set("loading",!1)},function(e){r.set("loading",!1),r.set("error",e.error)})},c)}else r.set("loading",!1),r.set("error",a.default.t("button_set_not_found","Button set not downloaded, please try syncing or going online and reopening this board"))}else this.set("results",null)}.observes("searchString","button_set"),actions:{pick_result:function(e){if(e.board_id==r.default.controller.get("model.id")){var n=Ember.$(".button[data-id='"+e.id+"']")
 t.default.highlight(n).then(function(){var t=r.default.find_button(e.id),n=r.default.controller.get("model")
 o.default.controller.activateButton(t,{board:n})},function(){})}else{var s=e.pre_buttons||[]
 "home"==e.pre_action&&s.unshift("home"),e.sequence?e.steps.forEach(function(e){"true_home"==e.sequence.pre&&s.push({pre:"true_home"}),e.sequence.buttons.forEach(function(e){s.push(e)}),s.push(e.button)}):s.push(e),o.default.controller.set("button_highlights",s),o.default.controller.send("highlight_button")}}}})}),define("frontend/controllers/flash-message",["exports","frontend/utils/modal","frontend/utils/app_state","frontend/utils/capabilities"],function(e,t,n,s){Object.defineProperty(e,"__esModule",{value:!0}),e.default=Ember.Controller.extend({display_class:function(){var e="alert alert-dismissable "
@@ -10879,8 +10878,8 @@ var d,u=[],c=[]
 for(a=0;a<i;++a)u[a]=a,c[a]=t.charCodeAt(a)
 for(u[i]=i,a=0;a<l;++a){for(s=a+1,o=0;o<i;++o)n=s,d=e.charCodeAt(a)===c[o],(s=u[o]+(d?0:1))>(r=n+1)&&(s=r),s>(r=u[o+1]+1)&&(s=r),u[o]=n
 u[o]=s}return s}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+d58d06d7"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+d58d06d7"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+2a46df1c"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+2a46df1c"})
 ;
 
 
