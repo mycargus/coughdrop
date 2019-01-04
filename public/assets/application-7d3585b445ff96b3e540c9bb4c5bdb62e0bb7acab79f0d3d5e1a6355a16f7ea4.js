@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2019.01.03";
+window.app_version = "2019.01.04";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -9236,11 +9236,11 @@ var o=t.default.get("current_mode"),r=null
 if(n&&n.force&&(o=null),"speak"==e){var i=h.get("currentBoardState"),c=i&&i.default_level
 i||t.default.persist("board_level",null)
 var p=h.get("referenced_speak_mode_user")||h.get("currentUser")
-if(p&&"speak"!=o){var m={},f=i||n.override_state
-p.get("preferences.home_board.id")==f.id?(m.preferred=p.get("preferences.home_board.level"),m.source="home"):(p.get("preferences.sidebar_boards")||[]).forEach(function(e){e&&e.id==f.id&&(m.preferred=e.level,m.source="sidebar")}),m.preferred&&(i&&t.default.get("board_level")&&t.default.get("board_level")!=m.preferred?(m.current=t.default.get("board_level"),console.error("Need to confirm level setting",m),t.default.persist("board_level",m.current),n.override_state&&(n.override_state=Ember.$.extend({},n.override_state,{level:m.current})),c=m.current):(t.default.persist("board_level",m.preferred),n.override_state&&(n.override_state=Ember.$.extend({},n.override_state,{level:m.preferred})),c=m.preferred))}n&&n.override_state&&(n.temporary_home&&i&&i.id!=n.override_state.id?r=i:c=n.temporary_home||t.default.get("board_level")?null:n.override_state.level||c,i=n.override_state),c&&(t.default.persist("board_level",c),console.log("toggling",t.default.get("board_level"))),t.default.persist("root_board_state",i)}if(o==e)"edit"==e&&t.default.get("last_mode")?t.default.persist("current_mode",t.default.get("last_mode")):t.default.persist("current_mode","default"),"speak"==e&&h.get("currentBoardState")&&h.set("currentBoardState.reload_token",Math.random()),t.default.persist("last_mode",null),t.default.persist("copy_on_save",null)
+if(p&&"speak"!=o){var m=h.get("speakModeUser")||h.get("currentUser"),f={},_=i||n.override_state
+p.get("preferences.home_board.id")==_.id?(f.preferred=p.get("preferences.home_board.level"),f.source="home"):(p.get("preferences.sidebar_boards")||[]).forEach(function(e){e&&e.id==_.id&&(f.preferred=e.level,f.source="sidebar")}),f.preferred&&(i&&t.default.get("board_level")&&t.default.get("board_level")!=f.preferred?(f.current=t.default.get("board_level"),t.default.persist("board_level",f.current),n.override_state&&(n.override_state=Ember.$.extend({},n.override_state,{level:f.current})),p==m&&("home"==f.source?(p.set("preferences.home_board.level",f.current),p.save()):((p.get("preferences.sidebar_boards")||[]).forEach(function(e){e&&e.id==_.id&&Ember.set(e,"level",f.current)}),p.save())),c=f.current):(t.default.persist("board_level",f.preferred),n.override_state&&(n.override_state=Ember.$.extend({},n.override_state,{level:f.preferred})),c=f.preferred))}n&&n.override_state&&(n.temporary_home&&i&&i.id!=n.override_state.id?r=i:c=n.temporary_home||t.default.get("board_level")?null:n.override_state.level||c,i=n.override_state),c&&(t.default.persist("board_level",c),console.log("toggling to level",t.default.get("board_level"))),t.default.persist("root_board_state",i)}if(o==e)"edit"==e&&t.default.get("last_mode")?t.default.persist("current_mode",t.default.get("last_mode")):t.default.persist("current_mode","default"),"speak"==e&&h.get("currentBoardState")&&h.set("currentBoardState.reload_token",Math.random()),t.default.persist("last_mode",null),t.default.persist("copy_on_save",null)
 else{if("edit"==e)t.default.persist("last_mode",t.default.get("current_mode")),n.copy_on_save&&t.default.persist("copy_on_save",h.get("currentBoardState.id"))
-else if("speak"==e){var _=h.get("speakModeUser.id")&&h.get("speakModeUser.id")!=h.get("sessionUser.id")
-if(h.get("currentBoardState")&&delete h.get("currentBoardState").reload_token,h.get("currentUser")&&!n.reminded&&h.get("currentUser.expired")&&!_)return a.default.open("premium-required",{user_name:h.get("currentUser.user_name"),limited_supervisor:h.get("currentUser.subscription.limited_supervisor"),remind_to_upgrade:!0,action:"app_speak_mode"}).then(function(){n.reminded=!0,h.toggle_mode(e,n)})
+else if("speak"==e){var g=h.get("speakModeUser.id")&&h.get("speakModeUser.id")!=h.get("sessionUser.id")
+if(h.get("currentBoardState")&&delete h.get("currentBoardState").reload_token,h.get("currentUser")&&!n.reminded&&h.get("currentUser.expired")&&!g)return a.default.open("premium-required",{user_name:h.get("currentUser.user_name"),limited_supervisor:h.get("currentUser.subscription.limited_supervisor"),remind_to_upgrade:!0,action:"app_speak_mode"}).then(function(){n.reminded=!0,h.toggle_mode(e,n)})
 h.get("currentUser.preferences.device.scanning")&&d.default.mobile&&d.default.installed_app&&u.default.listen_for_input()}t.default.persist("current_mode",e)}t.default.persist("temporary_root_board_state",r),t.default.persist("sticky_board",!1),Ember.$("#stash_hover").removeClass("on_button").data("button_id",null),l.default.clear_paint_mode(),l.default.clear_preview_levels()},home_in_speak_mode:function(e){var n=(e=e||{}).user||h.get("currentUser")
 t.default.persist("board_level",null)
 var s=e.force_board_state||n&&n.get("preferences.home_board")||e.fallback_board_state||t.default.get("root_board_state")||{key:"example/yesno"}
@@ -10876,8 +10876,8 @@ var d,u=[],c=[]
 for(a=0;a<i;++a)u[a]=a,c[a]=t.charCodeAt(a)
 for(u[i]=i,a=0;a<l;++a){for(s=a+1,o=0;o<i;++o)n=s,d=e.charCodeAt(a)===c[o],(s=u[o]+(d?0:1))>(r=n+1)&&(s=r),s>(r=u[o+1]+1)&&(s=r),u[o]=n
 u[o]=s}return s}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+bbcdc12c"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+bbcdc12c"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+da3551f0"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+da3551f0"})
 ;
 
 
