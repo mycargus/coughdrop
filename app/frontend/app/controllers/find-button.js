@@ -48,9 +48,9 @@ export default modal.ModalController.extend({
         runLater(function() {
           if(_this.get('search_id') != search_id) { return; }
           if(app_state.get('feature_flags.find_multiple_buttons')) {
-            search = board.get('button_set').find_sequence(this.get('searchString'), board.get('id'), user, include_home);
+            search = board.get('button_set').find_sequence(_this.get('searchString'), board.get('id'), user, include_home);
           } else {
-            search = board.get('button_set').find_buttons(this.get('searchString'), board.get('id'), user, include_home);
+            search = board.get('button_set').find_buttons(_this.get('searchString'), board.get('id'), user, include_home);
           }
           search.then(function(results) {
             console.log("results!", results, (new Date()).getTime() - now);
