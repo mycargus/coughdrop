@@ -4,6 +4,7 @@ import RSVP from 'rsvp';
 import $ from 'jquery';
 import modal from '../utils/modal';
 import persistence from '../utils/persistence';
+import capabilities from '../utils/capabilities';
 import i18n from '../utils/i18n';
 import app_state from '../utils/app_state';
 import editManager from '../utils/edit_manager';
@@ -37,56 +38,50 @@ export default modal.ModalController.extend({
         var user = app_state.get('currentUser');
         var include_home = app_state.get('speak_mode');
         var search = null;
-        if(app_state.get('feature_flags.find_multiple_buttons')) {
-          search = board.get('button_set').find_sequence(this.get('searchString'), board.get('id'), user, include_home);
-        } else {
-          search = board.get('button_set').find_buttons(this.get('searchString'), board.get('id'), user, include_home);
-        }
-        search.then(function(results) {
-          console.log("results!", results);
-          if(persistence.get('online')) {
+        var now = (new Date()).getTime();
+        var search_id = Math.random() + "-" + now;
+        _this.set('search_id', search_id);
+        var interval = capabilities.system == 'iOS' ? 500 : null;
+        // on iOS the search process is really slow, somehow
+        // the promises take 300ms-ish to resolve, so we try to
+        // debounce them a little and see if that helps
+        runLater(function() {
+          if(_this.get('search_id') != search_id) { return; }
+          if(app_state.get('feature_flags.find_multiple_buttons')) {
+            search = board.get('button_set').find_sequence(this.get('searchString'), board.get('id'), user, include_home);
+          } else {
+            search = board.get('button_set').find_buttons(this.get('searchString'), board.get('id'), user, include_home);
+          }
+          search.then(function(results) {
+            console.log("results!", results, (new Date()).getTime() - now);
+            if(persistence.get('online')) {
+              _this.set('results', results);
+              _this.set('loading', false);
+            } else {
+              var new_results = [];
+              var promises = [];
+              results.forEach(function(b) {
+                var images = [b.image];
+                if(b.sequence) {
+                  images = b.steps.map(function(s) { return s.button.image; });
+                }
+                var missing_image = images.find(function(i) { return !i || i.match(/^http/); });
+                if(!missing_image) {
+                  new_results.push(b);
+                } else { }
+              });
+              RSVP.all_wait(promises).then(null, function() { return RSVP.resolve(); }).then(function() {
+                _this.set('results', new_results);
+                _this.set('loading', false);
+              });
+            }
             _this.set('results', results);
             _this.set('loading', false);
-          } else {
-            var new_results = [];
-            var promises = [];
-            results.forEach(function(b) {
-              var images = [b.image];
-              if(b.sequence) {
-                images = b.steps.map(function(s) { return s.button.image; });
-              }
-              var missing_image = images.find(function(i) { return !i || i.match(/^http/); });
-              if(!missing_image) {
-                new_results.push(b);
-              } else {
-              // This is a repeat of what already happens in buttonset.js
-              // calling find_url in buttonset.js
-              //   if(b.sequence) {
-              //     b.steps.forEach(function(s) {
-              //       promises.push(persistence.find_url(s.button.image, 'image').then(function(data_uri) {
-              //         emberSet(b.button, 'image', data_uri);
-              //       }));
-              //       new_results.push(b);
-              //     })
-              //   } else {
-              //     promises.push(persistence.find_url(b.image, 'image').then(function(data_uri) {
-              //       b.image = data_uri;
-              //       new_results.push(b);
-              //     }));
-              //   }
-              }
-            });
-            RSVP.all_wait(promises).then(null, function() { return RSVP.resolve(); }).then(function() {
-              _this.set('results', new_results);
-              _this.set('loading', false);
-            });
-          }
-          _this.set('results', results);
-          _this.set('loading', false);
-        }, function(err) {
-          _this.set('loading', false);
-          _this.set('error', err.error);
-        });
+          }, function(err) {
+            _this.set('loading', false);
+            _this.set('error', err.error);
+          });
+        }, interval);
       } else {
         _this.set('loading', false);
         _this.set('error', i18n.t('button_set_not_found', "Button set not downloaded, please try syncing or going online and reopening this board"));
