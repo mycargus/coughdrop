@@ -27,7 +27,6 @@ export default modal.ModalController.extend({
     }, 100);
   },
   search: function() {
-    this.set('results', null);
     var board = modal.settings_for['find-button'].board;
     if(this.get('searchString')) {
       var _this = this;
@@ -89,6 +88,8 @@ export default modal.ModalController.extend({
         _this.set('loading', false);
         _this.set('error', i18n.t('button_set_not_found', "Button set not downloaded, please try syncing or going online and reopening this board"));
       }
+    } else {
+      this.set('results', null);
     }
   }.observes('searchString', 'button_set'),
   actions: {
