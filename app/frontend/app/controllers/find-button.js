@@ -43,7 +43,7 @@ export default modal.ModalController.extend({
         var now = (new Date()).getTime();
         var search_id = Math.random() + "-" + now;
         _this.set('search_id', search_id);
-        var interval = capabilities.system == 'iOS' ? 100 : null;
+        var interval = capabilities.system == 'iOS' ? 200 : null;
         // on iOS the search process is really slow, somehow
         // the promises take 300ms-ish to resolve, so we try to
         // debounce them a little and see if that helps
