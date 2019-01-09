@@ -480,7 +480,7 @@ var voices = EmberObject.extend({
       language_version: "1.182"
     },
     {
-      voice_id: "acap:Andreas", size: 114,
+      voice_id: "acap:Andreas", size: 114, windows_size: 210,
       locale: "de-DE", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-German-Andreas-22khz",
       ref_id: "ged_andreas_22k_ns",
@@ -722,7 +722,7 @@ var voices = EmberObject.extend({
       ref_id: "valentin_22k_ns"
     },
     {
-      voice_id: "acap:Alice", size: 52,
+      voice_id: "acap:Alice", size: 52, windows_size: 90,
       locale: "fr-FR", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-French-Alice-22khz",
       ref_id: "frf_alice_22k_ns",
@@ -731,7 +731,7 @@ var voices = EmberObject.extend({
       voice_dir: "hqm-ref-French-Alice-22khz"
     },
     {
-      voice_id: "acap:Anais", size: 123,
+      voice_id: "acap:Anais", size: 123, windows_size: 202,
       locale: "fr-FR", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-French-Anais-22khz",
       ref_id: "frf_anais_22k_ns",
@@ -739,7 +739,7 @@ var voices = EmberObject.extend({
       language_version: "1.299"
     },
     {
-      voice_id: "acap:Antoine", size: 39,
+      voice_id: "acap:Antoine", size: 39, windows_size: 69,
       locale: "fr-FR", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-French-Antoine-22khz",
       ref_id: "frf_antoine_22k_ns",
@@ -943,7 +943,7 @@ var voices = EmberObject.extend({
       voice_dir: "hqm-ref-Norwegian-Olav-22khz"
     },
     {
-      voice_id: "acap:Ania", size: 99,
+      voice_id: "acap:Ania", size: 99, windows_size: 173,
       locale: "pl-PL", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Polish-Ania-22khz",
       ref_id: "pop_ania_22k_ns",
@@ -970,7 +970,7 @@ var voices = EmberObject.extend({
       voice_dir: "hqm-ref-Portuguese-Celia-22khz"
     },
     {
-      voice_id: "acap:Alyona", size: 77,
+      voice_id: "acap:Alyona", size: 77, windows_size: 139,
       locale: "ru-RU", gender: "f", age: "adult",
       voice_dir_v2018: "hqm-ref-Russian-Alyona-22khz",
       ref_id: "rur_alyona_22k_ns",
@@ -997,7 +997,7 @@ var voices = EmberObject.extend({
       voice_dir: "hqm-ref-ScottishEnglish-rhona-22khz"
     },
     {
-      voice_id: "acap:Antonio", size: 78,
+      voice_id: "acap:Antonio", size: 78, windows_size: 145,
       locale: "es-ES", gender: "m", age: "adult",
       voice_dir_v2018: "hqm-ref-Spanish-Antonio-22khz",
       ref_id: "sps_antonio_22k_ns",

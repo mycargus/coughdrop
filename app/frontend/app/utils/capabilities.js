@@ -210,7 +210,8 @@ var capabilities;
               voice_url: voice_url,
               language_dir: voice.language_dir,
               language_url: voice.windows_language_url,
-              binary_url: voice.windows_binary_url
+              binary_url: voice.windows_binary_url,
+              voice_size: (capabilities.system == 'Windows' ? (voice.windows_size || (voice.size * 2)) : voice.size)
             },
             function(promise, res) {
               if(res.done) {
@@ -869,7 +870,7 @@ var capabilities;
         }
       },
       update_brightness: function() {
-        if(window.cordova && window.cordova.exec) {
+        if(window.cordova && window.cordova.exec && capabilities.system !== 'iOS') {
           window.cordova.exec(function(res) {
             var lux = parseFloat(res);
             if(lux && lux >= 0) {
