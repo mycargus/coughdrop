@@ -741,13 +741,13 @@ CoughDrop.Board = DS.Model.extend({
       res = res + "<div style='" + opts.button_style + "' class='" + opts.button_class + "' data-id='" + button.id + "' tabindex='0'>";
       res = res + "<div class='" + opts.action_class + "'>";
       res = res + "<span class='action'>";
-      res = res + "<img src='" + opts.action_image + "' alt='" + opts.action_alt + "' />";
+      res = res + "<img src='" + opts.action_image + "' draggable='false' alt='" + opts.action_alt + "' />";
       res = res + "</span>";
       res = res + "</div>";
 
       res = res + "<span style='" + opts.image_holder_style + "'>";
       if(!app_state.get('currentUser.hide_symbols') && local_image_url && local_image_url != 'none') {
-        res = res + "<img src=\"" + Button.clean_url(local_image_url) + "\" onerror='button_broken_image(this);' style='" + opts.image_style + "' class='symbol' />";
+        res = res + "<img src=\"" + Button.clean_url(local_image_url) + "\" onerror='button_broken_image(this);' draggable='false' style='" + opts.image_style + "' class='symbol' />";
       }
       res = res + "</span>";
       if(button.sound_id && local_sound_url && local_sound_url != 'none') {

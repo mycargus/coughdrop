@@ -6,9 +6,9 @@
       </div>
     {{/if}}
     {{#if button.image}}
-      <img src={{button.image}} onerror="button_broken_image(this);"/>
+      <img src={{button.image}} onerror="button_broken_image(this);"  draggable="false"/>
     {{else}}
-      <img src="https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg"/>
+      <img src="https://s3.amazonaws.com/opensymbols/libraries/mulberry/paper.svg" draggable="false"/>
     {{/if}}
     {{#if button.sound}}
       <audio style="display: none;" preload="auto" src={{button.sound}}></audio>

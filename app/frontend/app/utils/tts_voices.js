@@ -92,7 +92,7 @@ var voices = EmberObject.extend({
         capabilities.wakelock('download_voice', false);
         if(err && err.result && err.result.error == 'no more voices available') {
           reject('voice_error', i18n.t('no_more_voices', "This user has already claimed the maximum number of premium voices and can't claim any more."));
-        } else if(!persistence.get('online')) {
+        } else if(!window.persistence || !window.persistence.get('online')) {
           reject('voice_error', i18n.t('online_requiest', "You must be online in order to download premium voices."));
         } else {
           reject('voice_error', i18n.t('error_finding_voice', "There was an unexpected problem while trying to start downloading the voice."));

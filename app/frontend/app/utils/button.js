@@ -252,17 +252,17 @@ var Button = EmberObject.extend({
     }
     res = res + "<div style='" + this.get('computed_style') + "' class='" + this.get('computed_class') + "' data-id='" + this.get('id') + "' tabindex='0'>";
     if(this.get('pending')) {
-      res = res + "<div class='pending'><img src='" + Ember.templateHelpers.path('images/spinner.gif') + "' /></div>";
+      res = res + "<div class='pending'><img src='" + Ember.templateHelpers.path('images/spinner.gif') + "' draggable='false' /></div>";
     }
     res = res + "<div class='" + this.get('action_class') + "'>";
     res = res + "<span class='action'>";
-    res = res + "<img src='" + this.get('action_image') + "' alt='" + this.get('action_alt') + "' />";
+    res = res + "<img src='" + this.get('action_image') + "' alt='" + this.get('action_alt') + "' draggable='false' />";
     res = res + "</span>";
     res = res + "</div>";
 
     res = res + "<span style='" + this.get('image_holder_style') + "'>";
     if(!app_state.get('currentUser.hide_symbols') && this.get('local_image_url')) {
-      res = res + "<img src=\"" + clean_url(this.get('local_image_url')) + "\" onerror='button_broken_image(this);' style='" + this.get('image_style') + "' class='symbol' />";
+      res = res + "<img src=\"" + clean_url(this.get('local_image_url')) + "\" onerror='button_broken_image(this);' draggable='false' style='" + this.get('image_style') + "' class='symbol' />";
     }
     res = res + "</span>";
     if(this.get('sound')) {

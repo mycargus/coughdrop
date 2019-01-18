@@ -39,6 +39,18 @@ import frame_listener from './frame_listener';
 
 var $board_canvas = null;
 
+var eat_events = function(event) {
+  // on mobile, long presses result in unexpected selection issues.
+  // This is an attempt to remedy, for Speak Mode at the very least.
+ if(app_state.get('speak_mode') && capabilities.mobile) {
+    event.preventDefault();
+ }
+};
+window.addEventListener('touchforcechange', function() {
+  alert('uo');
+});
+document.addEventListener('touchstart', eat_events, {passive: false});
+document.addEventListener('mousedown', eat_events, {passive: false});
 $(document).on('mousedown touchstart', function(event) {
   var now = (new Date()).getTime();
   if(event.type == 'touchstart') {
