@@ -100,8 +100,12 @@ export default Controller.extend({
     return this.get('symbols.lessonpix') && !this.get('lessonpix_enabled');
   }.property('symbols.lessonpix', 'lessonpix_enabled'),
   no_scroll: function() {
-    return !this.get('advanced') && this.get('page') == 'board_category';
-  }.property('advanced', 'page'),
+    if(app_state.get('feature_flags.board_levels')) {
+      return !this.get('advanced') && this.get('page') == 'board_category'; 
+    } else {
+      return false;
+    }
+  }.property('advanced', 'page', 'app_state.feature_flags.board_levels'),
   notification: function() {
     var res = {};
     var user = app_state.get('currentUser') || this.get('fake_user');
