@@ -410,11 +410,13 @@ class LogSession < ActiveRecord::Base
               last_text = LogSession.event_text(last_button_event)
               if valid_words[text.downcase] && last_text && valid_words[last_text.downcase]
                 if (event['timestamp'] || 0) - (last_button_event['timestamp'] || 0) < 5.minutes.to_i
-                  if last_text.downcase.strip != text.downcase.strip
-                    hash = Digest::MD5.hexdigest(text.downcase.strip + "::" + last_text.downcase.strip)
+                  a = last_text.downcase.strip
+                  b = text.downcase.strip
+                  if a != b
+                    hash = Digest::MD5.hexdigest(b + "::" + a)
                     pairs[hash] ||= {
-                      'a' => last_text.downcase,
-                      'b' => text.downcase,
+                      'a' => a,
+                      'b' => b,
                       'count' => 0
                     }
                     pairs[hash]['count'] += 1

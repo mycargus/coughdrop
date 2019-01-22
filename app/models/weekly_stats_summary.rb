@@ -530,12 +530,15 @@ class WeeklyStatsSummary < ActiveRecord::Base
         if summary.data['word_pairs']
           stash[:word_pairs] ||= {}
           summary.data['word_pairs'].each do |k, pair|
-            stash[:word_pairs][k] ||= {
+            # TODO: this re-hashing should be unnecessary after March 2019,
+            # it was added to prevent duplication of pairs in the trends view
+            hash = Digest::MD5.hexdigest("#{pair['b'].downcase.strip}::#{pair['a'].downcase.strip}")
+            stash[:word_pairs][hash] ||= {
               'a' => pair['a'],
               'b' => pair['b'],
               'count' => 0
             }
-            stash[:word_pairs][k]['count'] += pair['count']
+            stash[:word_pairs][hash]['count'] += pair['count']
           end
         end
       
