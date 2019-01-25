@@ -596,6 +596,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
 
     res[:core_percent] = 100.0 * (stash[:core_words].to_f / stash[:total_words].to_f * 10.0).round(1) / 10.0
     res[:core_percent] = 0.0 if res[:core_percent].nan?
+    res[:core_percent] = res[:core_percent].round(2)
     res[:words_per_minute] = (stash[:total_words].to_f / stash[:total_session_seconds].to_f * 60.0).round(1)
     res[:words_per_minute] = 0.0 if res[:words_per_minute].nan?
     res[:research_communicators] = 1200
@@ -630,7 +631,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
       res[:max_depth_count] = max_depth_count if include_admin
       stash[:depth_counts].each do |depth, cnt|
         res[:depth_counts] ||= {}
-        res[:depth_counts][depth] = ((cnt.to_f / max_depth_count.to_f * 50.0).round(1) / 10.0).round(2)
+        res[:depth_counts][depth] = ((cnt.to_f / max_depth_count.to_f * 50.0).round(1) / 50.0).round(2)
       end
     end
 

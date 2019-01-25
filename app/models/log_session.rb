@@ -310,7 +310,7 @@ class LogSession < ActiveRecord::Base
             self.data['stats']['access_method'] = 'dwell'
           end
         end
-        self.data['stats']['voice_uri'] = (device_prefs['voice_uris'] || [])[0] || 'default'
+        self.data['stats']['voice_uri'] = ((device_prefs['voice'] || {})['voice_uris'] || [])[0] || 'default'
         self.data['stats']['text_position'] = device_prefs['text_position'] || 'top'
         self.data['stats']['auto_home_return'] = self.user.settings['preferences']['auto_home_return']
         self.data['stats']['auto_home_return'] = true if self.data['stats']['auto_home_return'] == nil
