@@ -120,8 +120,7 @@ export default modal.ModalController.extend({
         } else {
           buttons.push(result);
         }
-        app_state.controller.set('button_highlights', buttons);
-        app_state.controller.send('highlight_button');
+        app_state.controller.highlight_button(buttons);
       }
     }
   }

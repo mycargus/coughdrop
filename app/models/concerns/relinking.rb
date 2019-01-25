@@ -35,6 +35,7 @@ module Relinking
     board.settings['buttons'] = self.settings['buttons']
     board.settings['downstream_board_ids'] = self.settings['downstream_board_ids']
     board.settings['license'] = self.settings['license']
+    board.settings['intro'] = self.settings['intro']
     board.settings['grid'] = self.settings['grid']
     board.settings['never_edited'] = true
     board.public = true if make_public

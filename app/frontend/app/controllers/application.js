@@ -86,6 +86,71 @@ export default Controller.extend({
       });
     }
   }.observes('board.current_level', 'board.model.button_set'),
+  show_board_intro: function() {
+    // true if has_board_intro AND board intro hasn't been viewed yet
+    if(this.get('has_board_intro') && app_state.get('feature_flags.find_multiple_buttons')) {
+      var found = false;
+      var board_id = this.get('board.model.id');
+      var intros = app_state.get('currentUser.progress.board_intros') || [];
+      if(intros.find(function(i) { return i == board_id; })) {
+        found = true;
+      }
+      return !found;
+    }
+    return false;
+  }.property('has_board_intro', 'app_state.feature_flags.find_multiple_buttons', 'app_state.currentUser.progress.board_intros', 'board.model.id'),
+  has_board_intro: function() {
+    // TODO: also show if checking out the board in the 
+    // setup process (except that's really only under 
+    // advanced now), or if enabled on the embed
+    return app_state.get('currentUser.preferences.home_board.id') == this.get('board.model.id') && this.get('board.model.intro') && !this.get('board.model.intro.unapproved');
+  }.property('app_state.currentUser.preferences.home_board.id', 'board.model.intro', 'board.model.intro.unapproved'),
+  highlight_button: function(buttons, options) {
+    if(buttons && buttons != 'resume') {
+      this.set('button_highlights', buttons);
+    }
+    // TODO: make sure the board level is temporary set to 10
+    var defer = this.get('highlight_button_defer') || RSVP.defer();
+    var will_render = false;
+    if(defer.revert_board_level == undefined && buttons != 'resume') {
+      defer.revert_board_level = stashes.get('board_level') || 'none';
+      var was = stashes.get('board_level');
+      var level_changed = stashes.get('board_level') && stashes.get('board_level') != 10;
+      if(level_changed) {
+        this.send('set_level', 10);
+        will_render = true;
+        console.log("changed to", 10, was);
+      }
+    }
+    this.set('highlight_button_defer', defer);
+    var _this = this;
+    defer.promise.then(null, function() { 
+      _this.set('button_highlights', null);
+      return RSVP.resolve(); 
+    }).then(function() {
+      if(_this.get('highlight_button_defer') == defer) {
+        _this.set('highlight_button_defer', null);
+        if(defer.revert_board_level) {
+          var new_level = 10;
+          if(defer.revert_board_level == 'none') {
+            new_level = 10;
+          } else {
+            new_level = defer.revert_board_level;
+          }
+          var level_changed = stashes.get('board_level') != new_level;
+          var was = stashes.get('board_level');
+          if(level_changed) {
+            _this.send('set_level', new_level);
+            console.log("changed reverted to", new_level, was);
+          }
+        }
+      }
+    });
+    if(!will_render) {
+      _this.send('highlight_button', options || {});
+    }
+    return defer.promise;
+  },
   actions: {
     invalidateSession: function() {
       session.invalidate(true);
@@ -168,7 +233,7 @@ export default Controller.extend({
           modal.notice(i18n.t('already_temporary_home', "This board was set as the home board temporarily. To cancel hit the icon in the top right corner and select 'Release Home Lock'."), true);
         } else {
           modal.notice(i18n.t('already_home', "You are already on the home board. To exit Speak Mode hit the icon in the top right corner."), true);
-          this.send('highlight_button');
+          this.highlight_button('resume');
         }
       } else {
         if(stashes.get('sticky_board') && app_state.get('speak_mode')) {
@@ -318,6 +383,9 @@ export default Controller.extend({
           speecher.click();
         }
       }
+    },
+    board_intro: function() {
+      modal.open('modals/board-intro', {board: this.get('board.model'), step: 0});
     },
     vocalize: function(opts) {
       this.vocalize(null, opts);
@@ -515,6 +583,8 @@ export default Controller.extend({
     highlight_button: function() {
       // TODO: this and activateButton belong somewhere more testable
       var buttons = this.get('button_highlights');
+      var defer = this.get('highlight_button_defer') || RSVP.defer();
+      this.set('highlight_button_defer', defer);
 
       var _this = this;
       if(buttons && buttons.length > 0) {
@@ -544,6 +614,7 @@ export default Controller.extend({
               });
             }
           }, function(err) {
+            defer.reject();
           });
         } else if(button && button.board_id == this.get('board.model').get('id')) {
           var findButtonElem = function() {
@@ -561,9 +632,12 @@ export default Controller.extend({
                   // user selection isn't going to involve loading
                   // a different board, then call highlight_button again
                   if(next_button && (next_button.board_id == board.id || next_button.pre)) {
-                    _this.send('highlight_button');                    
+                    _this.highlight_button('resume'); 
+                  } else {
+                    defer.resolve();
                   }
                 }, function(err) {
+                  defer.reject();
                 });
               } else {
                 // TODO: really? is this the best you can figure out?
@@ -573,6 +647,8 @@ export default Controller.extend({
           };
           findButtonElem();
         }
+      } else {
+        defer.resolve();
       }
     },
     about_modal: function() {

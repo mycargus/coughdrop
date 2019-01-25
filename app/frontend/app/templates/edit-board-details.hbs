@@ -1,4 +1,10 @@
 {{#modal-dialog action="close" opening='opening' closing='closing'}}
+  <div class="modal-header">
+    <button type="button" class="close" {{action 'close'}}>&times;</button>
+    <h3>
+      {{t "Edit Board Details" key='edit_board_details'}}
+    </h3>
+  </div>
   <div class="modal-body">
     <form class="form-horizontal" {{action "saveProfile" on="submit"}}>
       <div class="form-group">
@@ -99,6 +105,32 @@
           {{/if}}
         </div>
       </div>
+      {{#if model.home_board}}
+        {{#if app_state.feature_flags.find_multiple_buttons}}
+          <div class="form-group">
+            <label for="board_intro" class="col-sm-3 control-label">{{t "Board Intro" key='board_intro'}}</label>
+            {{#unless model.intro.sections}}
+              <div class="col-sm-9" style='margin-bottom: 10px;'>
+                <em class='form-control-static'>{{t "You can build a short lesson that people will walk through when they choose this board set, including explanations and practice phrases for them to find using the board set." key='board_intro_explainer'}}</em>
+              </div>
+            {{/unless}}
+            {{#each model.intro.sections as |section index|}}
+              <div class={{if index 'col-sm-7 col-sm-offset-3' 'col-sm-7'}}>
+                {{textarea value=section.description class="form-control" placeholder="Explanation, notes, etc."}}
+                <div style='margin-top: 3px; margin-bottom: 15px;'>
+                  {{input type='text' value=section.prompt class='form-control' placeholder="optional button sequence to find"}}
+                </div>
+              </div>
+              <div class='col-sm-2'>
+                <button class='btn btn-default' {{action 'delete_board_intro_section' section}}><span class='glyphicon glyphicon-remove'></span></button>
+              </div>
+            {{/each}}
+            <div class='col-sm-9 col-sm-offset-3'>
+              <button class='btn btn-default' {{action 'add_board_intro_section'}}>{{t "Add Intro Section" key='add_intro_section'}}</button>
+            </div>
+          </div>
+        {{/if}}
+      {{/if}}
     </form>
   </div>
   <div class="modal-footer">

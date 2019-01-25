@@ -3,6 +3,7 @@ import CoughDrop from '../app';
 import $ from 'jquery';
 import app_state from '../utils/app_state';
 import modal from '../utils/modal';
+import { set as emberSet } from '@ember/object';
 
 export default modal.ModalController.extend({
   opening: function() {
@@ -21,6 +22,9 @@ export default modal.ModalController.extend({
       this.set('model.categories', cats);
     } else {
       this.set('model.categories', []);
+    }
+    if(this.get('model.intro')) {
+      this.set('model.intro.unapproved', false);
     }
   },
   board_categories: function() {
@@ -52,6 +56,20 @@ export default modal.ModalController.extend({
     },
     pickImageUrl: function(url) {
       this.set('model.image_url', url);
+    },
+    add_board_intro_section: function() {
+      var intro = this.get('model.intro') || {};
+      emberSet(intro, 'unapproved', false);
+      var sections = intro.sections || [];
+      sections.pushObject({});
+      emberSet(intro, 'sections', sections);
+      this.set('model.intro', intro);
+    },
+    delete_board_intro_section: function(section) {
+      if(!this.get('model.intro.sections')) { return; }
+      var sections = this.get('model.intro.sections');
+      sections = sections.filter(function(s) { return s != section; });
+      this.set('model.intro.sections', sections);
     }
   }
 });

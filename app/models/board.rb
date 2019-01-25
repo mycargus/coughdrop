@@ -551,6 +551,14 @@ class Board < ActiveRecord::Base
     @edit_notes << "changed the image" if params['image_url'] && params['image_url'] != self.settings['image_url']
     self.settings['image_url'] = params['image_url'] if params['image_url']
     self.settings['locale'] = params['locale'] if params['locale']
+    if params['intro']
+      self.settings['intro'] = params['intro'] 
+      # When a board is copied and buttons change, the intro
+      # should be marked unapproved until the user has manually
+      # reviewed it.
+      self.settings['intro']['unapproved'] = true if self.settings['never_edited'] && self.settings['intro'] && self.parent_board_id && params['intro']['unapproved'] != false
+      self.settings['intro'].delete('unapproved') unless self.settings['intro']['unapproved']
+    end
     self.settings['home_board'] = params['home_board'] if params['home_board']
     self.settings['categories'] = params['categories'] if params['categories']
     self.settings['never_edited'] = false

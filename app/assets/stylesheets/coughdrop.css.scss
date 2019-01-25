@@ -533,6 +533,7 @@ footer .wide_links {
   display: inline-block; 
   overflow-x: auto;
   overflow-y: scroll;
+  position: relative;
   &.text_only {
     .history_button img {
       visibility: hidden;

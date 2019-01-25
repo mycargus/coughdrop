@@ -1276,7 +1276,7 @@ var buttonTracker = EmberObject.extend({
       } else if(region.id == 'speak_menu') {
         return buttonTracker.element_wrap($target.closest("a")[0]);
       } else if(region.tagName == 'HEADER') {
-        var $elem = $target.closest(".btn:not(.pass_through),#button_list")
+        var $elem = $target.closest(".btn:not(.pass_through),#button_list,.extra-btn")
         if($elem.hasClass('pass_to_btn_list') && allow_dwell === false) {
           $elem = $("#button_list");
         }

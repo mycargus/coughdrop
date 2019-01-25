@@ -591,7 +591,7 @@ var editManager = EmberObject.extend({
     var resume_scanning = function() {
       runLater(function() {
         if(app_state.controller) {
-          app_state.controller.send('highlight_button');
+          app_state.controller.highlight_button('resume');
         }
       });
       if(app_state.controller) {

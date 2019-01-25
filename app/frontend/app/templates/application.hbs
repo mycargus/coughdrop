@@ -44,7 +44,12 @@
                   {{/if}}
                 </div>
               {{/if}}
-              {{#if app_state.eye_gaze_state}}
+              {{#if show_board_intro}}
+                <div {{action 'board_intro'}} class='extra-btn' style='position: absolute; top: 3px; bottom: 3px; border: 1px solid #ccc;  background: #eee; margin-top: 0; margin-bottom: 0; border-radius: 5px; padding: 5px 10px; max-height: 75px; cursor: pointer;'>
+                  <img src="https://app.mycoughdrop.com/images/learn.png" style='height: 100%; max-height: 50px;'/>
+                  {{t "Intro" key='board_intro'}}
+                </div>
+              {{else if app_state.eye_gaze_state}}
                 <div class="eye_status" title={{app_state.eye_gaze_state.status}}>
                   {{#if app_state.eye_gaze_state.active}}
                     <span class="glyphicon glyphicon-eye-open"></span>
@@ -724,6 +729,11 @@
                     {{#unless app_state.current_board_is_speak_mode_home}}
                       <li><a href="#" {{action "toggle_home_lock"}}>{{t "Set As Temporary Home" key='temporary_home'}}</a></li>
                     {{/unless}}
+                  {{/if}}
+                  {{#if app_state.feature_flags.find_multiple_buttons}}
+                    {{#if has_board_intro}}
+                      <li><a href="#" {{action "board_intro"}}>{{t "Board Intro" key='board_intro'}}</a></li>
+                    {{/if}}
                   {{/if}}
                   {{#if app_state.currentUser.preferences.logging}}
                     {{#if app_state.logging_paused}}

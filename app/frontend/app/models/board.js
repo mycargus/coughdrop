@@ -41,6 +41,7 @@ CoughDrop.Board = DS.Model.extend({
   image_urls: DS.attr('raw'),
   sound_urls: DS.attr('raw'),
   translations: DS.attr('raw'),
+  intro: DS.attr('raw'),
   categories: DS.attr('raw'),
   home_board: DS.attr('boolean'),
   has_fallbacks: DS.attr('boolean'),
