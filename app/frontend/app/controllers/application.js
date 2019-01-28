@@ -91,14 +91,14 @@ export default Controller.extend({
     if(this.get('has_board_intro') && app_state.get('feature_flags.find_multiple_buttons')) {
       var found = false;
       var board_id = this.get('board.model.id');
-      var intros = app_state.get('currentUser.progress.board_intros') || [];
+      var intros = app_state.get('currentUser.preferences.progress.board_intros') || [];
       if(intros.find(function(i) { return i == board_id; })) {
         found = true;
       }
       return !found;
     }
     return false;
-  }.property('has_board_intro', 'app_state.feature_flags.find_multiple_buttons', 'app_state.currentUser.progress.board_intros', 'board.model.id'),
+  }.property('has_board_intro', 'app_state.feature_flags.find_multiple_buttons', 'app_state.currentUser.preferences.progress.board_intros', 'board.model.id'),
   has_board_intro: function() {
     // TODO: also show if checking out the board in the 
     // setup process (except that's really only under 

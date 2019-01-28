@@ -8,6 +8,13 @@ export default modal.ModalController.extend({
     // which step are we on?
     var step = this.get('model.step') || 0;
     this.set('current_step', (this.get('model.board.intro.sections') || [])[step]);
+    var user = app_state.get('currentUser');
+    var intros = app_state.get('currentUser.preferences.progress.board_intros') || [];
+    intros.push(this.get('model.board.id'));
+    if(user) {
+      user.set('preferences.progress.board_intros', intros);
+      user.save();
+    }
   },
   next_step: function() {
     var step = (this.get('model.step') || 0);
@@ -62,6 +69,7 @@ export default modal.ModalController.extend({
             // re-open the modal at the next step
             modal.open('modals/board-intro', {board: _this.get('model.board'), step: (_this.get('model.step') + 1)});
           }, function() {
+            // should only happen if the user cancels out of the help
             debugger
           });
         };
