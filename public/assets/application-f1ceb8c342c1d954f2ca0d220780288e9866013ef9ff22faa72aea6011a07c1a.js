@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2019.01.25";
+window.app_version = "2019.01.28";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -7631,7 +7631,7 @@ o=!0}var d=this
 return o=(o=o||(s.default.get("currentUser.supervisees")||[]).length>0)||(s.default.get("currentUser.stats.board_set_ids")||[]).indexOf(a.get("id"))>=0,o=!0,!e&&o?r.default.open("copy-board",{board:a,for_editing:t,selected_user_name:n}).then(function(e){return d.copy_board(e,t)}):((e=e||{}).user=e.user||s.default.get("currentUser"),e.action=e.action||"nothing",a.set("copy_name",e.board_name),r.default.open("copying-board",{board:a,action:e.action,user:e.user,shares:e.shares,make_public:e.make_public,translate_locale:e.translate_locale}))},board_levels:function(){return t.default.board_levels.slice(1,11)}.property(),level_description:function(){var e=this.get("board.current_level"),t=(this.get("board_levels").find(function(t){return t.id.toString()==e.toString()})||{}).name
 return t&&(t=Ember.String.htmlSafe(t.replace(/-/,"<br/>"))),null}.property("board_levels","board.current_level"),update_level_buttons:function(){var e=this
 this.get("board.model")&&this.get("board.model").load_button_set().then(function(t){e.set("level_buttons",t.buttons_for_level(e.get("board.model.id"),e.get("board.current_level")))})}.observes("board.current_level","board.model.button_set"),show_board_intro:function(){if(this.get("has_board_intro")&&s.default.get("feature_flags.find_multiple_buttons")){var e=!1,t=this.get("board.model.id")
-return(s.default.get("currentUser.progress.board_intros")||[]).find(function(e){return e==t})&&(e=!0),!e}return!1}.property("has_board_intro","app_state.feature_flags.find_multiple_buttons","app_state.currentUser.progress.board_intros","board.model.id"),has_board_intro:function(){return s.default.get("currentUser.preferences.home_board.id")==this.get("board.model.id")&&this.get("board.model.intro")&&!this.get("board.model.intro.unapproved")}.property("app_state.currentUser.preferences.home_board.id","board.model.intro","board.model.intro.unapproved"),highlight_button:function(e,t){e&&"resume"!=e&&this.set("button_highlights",e)
+return(s.default.get("currentUser.preferences.progress.board_intros")||[]).find(function(e){return e==t})&&(e=!0),!e}return!1}.property("has_board_intro","app_state.feature_flags.find_multiple_buttons","app_state.currentUser.preferences.progress.board_intros","board.model.id"),has_board_intro:function(){return s.default.get("currentUser.preferences.home_board.id")==this.get("board.model.id")&&this.get("board.model.intro")&&!this.get("board.model.intro.unapproved")}.property("app_state.currentUser.preferences.home_board.id","board.model.intro","board.model.intro.unapproved"),highlight_button:function(e,t){e&&"resume"!=e&&this.set("button_highlights",e)
 var n=this.get("highlight_button_defer")||Ember.RSVP.defer(),s=!1
 if(null==n.revert_board_level&&"resume"!=e){n.revert_board_level=a.default.get("board_level")||"none"
 var o=a.default.get("board_level")
@@ -8129,7 +8129,9 @@ e&&(e.get("paused")?e.play():e.pause())}}})}),define("frontend/controllers/integ
 t.default.open("confirm-delete-integration",{integration:this.get("model.integration")}).then(function(t){t.deleted&&e.get("model.user").check_integrations(!0)})}}})}),define("frontend/controllers/intro",["exports","frontend/utils/modal","frontend/utils/app_state"],function(e,t,n){Object.defineProperty(e,"__esModule",{value:!0}),e.default=t.default.ModalController.extend({opening:function(){var e=n.default.get("currentUser")
 n.default.set("show_intro",!1),e&&(e.set("preferences.progress.intro_watched",!0),e.save().then(null,function(){})),this.set("page",1),this.set("total_pages",14),window.ga&&window.ga("send","event","Intro","start","Intro Modal Opened")},set_pages:function(){var e=this.get("page")
 this.set("pages",{}),this.set("pages.page_"+e,!0),this.set("pages.last_page",e==this.get("total_pages")),this.set("pages.first_page",1==e)}.observes("page"),actions:{next:function(){var e=this.get("page")||1;++e>this.get("total_pages")&&(e=this.get("total_pages")),this.set("page",e)},previous:function(){var e=this.get("page")||1;--e<1&&(e=1),this.set("page",e)},video:function(){window.ga&&window.ga("send","event","Intro","video","Intro Video Opened"),t.default.open("inline-video",{video:{type:"youtube",id:"U1vBg36zVpg"},hide_overlay:!0})}}})}),define("frontend/controllers/jobs",["exports"],function(e){Object.defineProperty(e,"__esModule",{value:!0}),e.default=Ember.Controller.extend({})}),define("frontend/controllers/login",["exports","frontend/utils/capabilities","frontend/utils/i18n","frontend/utils/_stashes"],function(e,t,n,s){Object.defineProperty(e,"__esModule",{value:!0}),e.default=Ember.Controller.extend({title:"Login"})}),define("frontend/controllers/modals/board-intro",["exports","frontend/utils/modal","frontend/utils/app_state","frontend/utils/utterance"],function(e,t,n,s){Object.defineProperty(e,"__esModule",{value:!0}),e.default=t.default.ModalController.extend({opening:function(){var e=this.get("model.step")||0
-this.set("current_step",(this.get("model.board.intro.sections")||[])[e])},next_step:function(){var e=this.get("model.step")||0
+this.set("current_step",(this.get("model.board.intro.sections")||[])[e])
+var t=n.default.get("currentUser"),s=n.default.get("currentUser.preferences.progress.board_intros")||[]
+s.push(this.get("model.board.id")),t&&(t.set("preferences.progress.board_intros",s),t.save())},next_step:function(){var e=this.get("model.step")||0
 return!!(this.get("model.board.intro.sections")||[])[e]}.property("model.step"),actions:{close:function(){t.default.close()},next:function(){var e=(this.get("model.step")||0)+1,t=this.get("model.board.intro.sections")[e]
 this.set("current_step",t),t&&this.set("model.step",e)},start:function(){var e=this.get("model.board"),a=this
 if(this.get("current_step.prompt"))if(e.get("button_set")){var o=n.default.get("currentUser"),r=null,l=(r=e.get("button_set").find_sequence(a.get("current_step.prompt"),e.get("id"),o,!1),function(e){var o=e.pre_buttons||[]
@@ -10905,8 +10907,8 @@ var d,u=[],c=[]
 for(a=0;a<i;++a)u[a]=a,c[a]=t.charCodeAt(a)
 for(u[i]=i,a=0;a<l;++a){for(s=a+1,o=0;o<i;++o)n=s,d=e.charCodeAt(a)===c[o],(s=u[o]+(d?0:1))>(r=n+1)&&(s=r),s>(r=u[o+1]+1)&&(s=r),u[o]=n
 u[o]=s}return s}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+74473b9e"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+74473b9e"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+810e1ab0"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+810e1ab0"})
 ;
 
 
