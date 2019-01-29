@@ -102,6 +102,14 @@
               }
             }
           });
+          var try_play = function() {
+            if(player && player.playVideo) {
+              player.playVideo();
+            } else {
+              setTimeout(try_play, 200);
+            }
+          };
+          try_play();
           Player.notify();
         }
         setTimeout(Player.poll, 500);
