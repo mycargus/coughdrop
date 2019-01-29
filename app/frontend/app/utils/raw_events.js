@@ -42,7 +42,7 @@ var $board_canvas = null;
 var eat_events = function(event) {
   // on mobile, long presses result in unexpected selection issues.
   // This is an attempt to remedy, for Speak Mode at the very least.
- if(app_state.get('speak_mode') && capabilities.mobile) {
+ if(app_state.get('speak_mode') && capabilities.mobile && !modal.is_open()) {
     event.preventDefault();
  }
 };
