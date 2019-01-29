@@ -74,6 +74,7 @@
             videoId: '<%= params['id'] %>',
             events: {
               'onStateChange': function(event) {
+                window.last_player = player;
                 if(event.data == window.YT.PlayerState.ENDED) {
                   Player.set_state('ended');
                 } else if(event.data == window.YT.PlayerState.PAUSED) {
