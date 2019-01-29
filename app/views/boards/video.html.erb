@@ -68,7 +68,7 @@
           var start = <%= params['start'].to_i > 0 ? params['start'].to_i : 'null' %>;
           var end = <%= params['end'].to_i > 0 ? params['end'].to_i : 'null' %>;
           player = new YT.Player('player', {
-            playerVars: { 'autoplay': autoplay, 'controls': controls, 'showinfo': 0, 'origin': 'http://localhost:3000', 'rel': 0, 'start': start, 'end': end},
+            playerVars: { 'autoplay': autoplay, mute: 1, 'controls': controls, 'showinfo': 0, 'origin': (location.protocol + "//" + location.host), 'rel': 0, 'start': start, 'end': end},
             height: window.innerHeight,
             width: window.innerWidth,
             videoId: '<%= params['id'] %>',
@@ -85,7 +85,8 @@
                 } else if(event.data == window.YT.PlayerState.UNSTARTED) {
                   setTimeout(function() {
                     player.playVideo();
-                  }, 5000);
+                  }, 500);
+                  player.playVideo();
                 }
               },
               'onError': function(event) {
