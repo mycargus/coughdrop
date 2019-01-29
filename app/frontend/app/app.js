@@ -463,9 +463,18 @@ CoughDrop.Videos = {
     CoughDrop.Videos.waiting[dom.id] = [];
   },
   player_status: function(event) {
-    if(event.source && event.source.frameElement && event.source.frameElement.id) {
-      CoughDrop.Videos.player_ready(event.source.frameElement, event.source);
-      var player = CoughDrop.Videos.players[event.source.frameElement.id];
+    var frame = event.source.frameElement;
+    if(!frame) {
+      var frames = document.getElementsByTagName('IFRAME');
+      for(var idx = 0; idx < frames.length; idx++) {
+        if(!frame && frames[idx].contentWindow == event.source) {
+          frame = frames[idx];
+        }
+      }
+    }
+    if(frame.id) {
+      CoughDrop.Videos.player_ready(frame, event.source);
+      var player = CoughDrop.Videos.players[frame.id];
       if(player) {
         if(event.data && event.data.time !== undefined) {
           player.set('time', event.data.time);
@@ -485,9 +494,19 @@ CoughDrop.Videos = {
 };
 window.addEventListener('message', function(event) {
   if(event.data && event.data.video_status) {
-    if(event.source && event.source.frameElement && event.source.frameElement.id) {
-      var dom_id = event.source.frameElement.id;
-      var elem = event.source.frameElement;
+    var frame = event.source.frameElement;
+    if(!frame) {
+      var frames = document.getElementsByTagName('IFRAME');
+      for(var idx = 0; idx < frames.length; idx++) {
+        if(!frame && frames[idx].contentWindow == event.source) {
+          frame = frames[idx];
+        }
+      }
+    }
+    if(frame && frame.id) {
+      var dom_id = frame.id;
+      var elem = frame;
+      event.source.frameElement = frame;
       CoughDrop.Videos.player_status(event);
     }
   }
