@@ -64,7 +64,7 @@ export default modal.ModalController.extend({
             buttons.push(result);
           }
 
-          app_state.controller.highlight_button(buttons).then(function() {
+          app_state.controller.highlight_button(buttons, board.get('button_set')).then(function() {
             utterance.clear();
             // re-open the modal at the next step
             modal.open('modals/board-intro', {board: _this.get('model.board'), step: (_this.get('model.step') + 1)});

@@ -105,9 +105,10 @@ export default Controller.extend({
     // advanced now), or if enabled on the embed
     return app_state.get('currentUser.preferences.home_board.id') == this.get('board.model.id') && this.get('board.model.intro') && !this.get('board.model.intro.unapproved');
   }.property('app_state.currentUser.preferences.home_board.id', 'board.model.intro', 'board.model.intro.unapproved'),
-  highlight_button: function(buttons, options) {
+  highlight_button: function(buttons, button_set, options) {
     if(buttons && buttons != 'resume') {
       this.set('button_highlights', buttons);
+      this.set('button_highlights_button_set', button_set);
     }
     // TODO: make sure the board level is temporary set to 10
     var defer = this.get('highlight_button_defer') || RSVP.defer();
@@ -119,12 +120,12 @@ export default Controller.extend({
       if(level_changed) {
         this.send('set_level', 10);
         will_render = true;
-        console.log("changed to", 10, was);
       }
     }
     this.set('highlight_button_defer', defer);
     var _this = this;
-    defer.promise.then(null, function() { 
+    defer.promise.then(null, function(err) { 
+      console.error("highlight sequence failed", err);
       _this.set('button_highlights', null);
       return RSVP.resolve(); 
     }).then(function() {
@@ -141,13 +142,14 @@ export default Controller.extend({
           var was = stashes.get('board_level');
           if(level_changed) {
             _this.send('set_level', new_level);
-            console.log("changed reverted to", new_level, was);
           }
         }
       }
     });
     if(!will_render) {
-      _this.send('highlight_button', options || {});
+//      runLater(function() {
+        _this.send('highlight_button', options || {});
+//      }, 2000);
     }
     return defer.promise;
   },
@@ -614,7 +616,15 @@ export default Controller.extend({
               });
             }
           }, function(err) {
-            defer.reject();
+            if(err && (err.reason == 'force close' || err.highlight_close)) {
+              runLater(function() {
+                if(!modal.is_open('highlight')) {
+                  _this.highlight_button('resume');
+                }
+              }, 1000);
+            } else {
+              defer.reject(err || {canceled: true});
+            }
           });
         } else if(button && button.board_id == this.get('board.model').get('id')) {
           var findButtonElem = function() {
@@ -637,7 +647,15 @@ export default Controller.extend({
                     defer.resolve();
                   }
                 }, function(err) {
-                  defer.reject();
+                  if(err && (err.reason == 'force close' || err.highlight_close)) {
+                    runLater(function() {
+                      if(!modal.is_open('highlight')) {
+                        _this.highlight_button('resume');
+                      }
+                    }, 1000);
+                  } else {
+                    defer.reject(err || {canceled: true});
+                  }
                 });
               } else {
                 // TODO: really? is this the best you can figure out?
@@ -646,6 +664,40 @@ export default Controller.extend({
             }
           };
           findButtonElem();
+        } else {
+          // looks like we're on the wrong board...
+          // pull hint buttons from the list until we find the next
+          // actual_button, 
+          button = buttons.shift();
+          while(button && !button.actual_button) {
+            button = buttons.shift();
+          }
+          if(button && _this.get('button_highlights_button_set')) {
+            // try to find the sequence to get from here to there
+            var bs = _this.get('button_highlights_button_set');
+            var current = _this.get('board.model.id');
+            var home = stashes.get('root_board_state.id');
+            var tmp_home = stashes.get('temporary_root_board_state.id');
+            var map = bs.board_map([bs]).map;
+            var sequence = bs.button_steps(current, button.board_id, map, home, tmp_home);
+            var new_buttons = [];
+            if(sequence.pre == 'true_home') {
+              new_buttons.push({pre: 'true_home'});
+            }
+            sequence.buttons.forEach(function(btn) {
+              new_buttons.push(btn);
+            });
+            new_buttons.push(button);
+            while(new_buttons.length > 0) {
+              buttons.unshift(new_buttons.pop());
+            }
+            runLater(function() {
+              _this.highlight_button('resume');
+            });
+          } else {
+            // nothing to do, give up
+            defer.reject({error: 'no buttons left to guide to'});
+          }
         }
       } else {
         defer.resolve();

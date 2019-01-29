@@ -135,6 +135,31 @@ CoughDrop.Buttonset = DS.Model.extend({
     }
     return sequences.sort(function(a, b) { return b.steps - a.steps; })[0];
   },
+  board_map: function(button_sets) {
+    var _this = this;
+    var board_map = {};
+    var buttons = [];
+    button_sets.forEach(function(bs, idx) {
+      var button_set_buttons = bs.get('buttons');
+      if(bs == _this) {
+        button_set_buttons = _this.redepth(bs.get('id'));
+      }
+      button_set_buttons.forEach(function(button) {
+        if(!buttons.find(function(b) { return b.id == button.id && b.board_id == button.board_id; })) {
+          if(!button.linked_board_id || button.force_vocalize || button.link_disabled) {
+            buttons.push(button);
+          }
+        }
+        if(button.linked_board_id && !button.link_disabled) {
+          board_map[button.linked_board_id] = board_map[button.linked_board_id] || []
+          if(!board_map[button.linked_board_id].find(function(b) { return b.id == button.id && b.board_id == button.board_id; })) {
+            board_map[button.linked_board_id].push(button);
+          }
+        }
+      })
+    });
+    return {buttons: buttons, map: board_map};
+  },
   find_sequence: function(str, from_board_id, user, include_home_and_sidebar) {
     // TODO: consider optional support for keyboard for missing words
     if(str.length === 0) { return RSVP.resolve([]); }
@@ -170,33 +195,17 @@ CoughDrop.Buttonset = DS.Model.extend({
     var parts = query.split(/\s+/);
     var cnt = 0;
     var buttons = [];
-    var board_map = {};
+    var board_map = null;
 
     var build_map = RSVP.all_wait(lookups).then(function() {
-      button_sets.forEach(function(bs, idx) {
-        var button_set_buttons = bs.get('buttons');
-        if(idx == 0) {
-          button_set_buttons = _this.redepth(bs.get('id'));
-        }
-        button_set_buttons.forEach(function(button) {
-          if(!buttons.find(function(b) { return b.id == button.id && b.board_id == button.board_id; })) {
-            if(!button.linked_board_id || button.force_vocalize || button.link_disabled) {
-              buttons.push(button);
-            }
-          }
-          if(button.linked_board_id && !button.link_disabled) {
-            board_map[button.linked_board_id] = board_map[button.linked_board_id] || []
-            if(!board_map[button.linked_board_id].find(function(b) { return b.id == button.id && b.board_id == button.board_id; })) {
-              board_map[button.linked_board_id].push(button);
-            }
-          }
-        })
-      });
-    })
+      var res = _this.board_map(button_sets);
+      buttons = res.buttons;
+      board_map = res.map;
+    });
 
     // check each button individually
     var button_sweep = build_map.then(function() {
-      console.log("all buttons", buttons);
+      console.log("all buttons", buttons, board_map);
       buttons.forEach(function(button, idx) {
         var lookups = [button.label, button.vocalization];
         var found_some = false;
@@ -308,7 +317,9 @@ CoughDrop.Buttonset = DS.Model.extend({
               if(dup.steps.length > 0 && user && user.get('preferences.auto_home_return')) { pre_id = combo.current_sticky_board_id; }
               var button_steps = _this.button_steps(pre_id, starter.button.board_id, board_map, home_board_id, combo.current_sticky_board_id);
               if(button_steps) {
-                dup.steps.push({sequence: button_steps, button: starter.button, board_id: button_steps.final_board_id});
+                var btn = $.extend({}, starter.button);
+                btn.actual_button = true;
+                dup.steps.push({sequence: button_steps, button: btn, board_id: button_steps.final_board_id});
                 if(dup.steps.length > 1) { dup.multiple_steps = true; }
                 dup.text = dup.text + (dup.text == "" ? "" : " ") + starter.text;
                 dup.next_part = part_idx + (starter.part_end - starter.part_start);
