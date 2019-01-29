@@ -82,6 +82,10 @@
                   Player.set_state('paused');
                 } else if(event.data == window.YT.PlayerState.PLAYING) {
                   Player.set_state('playing');
+                } else if(event.data == window.YT.PlayerState.UNSTARTED) {
+                  setTimeout(function() {
+                    player.playVideo();
+                  }, 500);
                 }
               },
               'onError': function(event) {
