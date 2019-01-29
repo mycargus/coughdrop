@@ -83,6 +83,7 @@
                 } else if(event.data == window.YT.PlayerState.PLAYING) {
                   Player.set_state('playing');
                 } else if(event.data == window.YT.PlayerState.UNSTARTED) {
+                  Player.set_state('paused');
                   setTimeout(function() {
                     player.playVideo();
                   }, 500);
