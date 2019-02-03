@@ -76,7 +76,7 @@ export default Controller.extend({
         gift.set('organization', this.get('org'));
         gift.set('email', this.get('email'));
         gift.set('memo', this.get('memo'));
-        var years = parseFloat(this.get('duration')) || 5;
+        var years = parseFloat(this.get('years')) || 5;
         gift.set('seconds', years * 365.25 * 24 * 60 * 60);
       } else if(type == 'discount') {
         var amount = parseFloat(this.get('discount_pct'));
