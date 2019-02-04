@@ -457,6 +457,7 @@ var stashes = EmberObject.extend({
         }
         stashes.persist('logging_paused_at', null);
       } else {
+        stashes.persist('last_event', {timestamp: (new Date()).getTime()});
         return null;
       }
     }

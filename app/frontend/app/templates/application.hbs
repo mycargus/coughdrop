@@ -564,7 +564,9 @@
             {{#if app_state.modeling_for_user}}
               <img src={{app_state.referenced_speak_mode_user.avatar_url_with_fallback}} class='modeling_user' onerror='button_broken_image(this);' />
             {{/if}}
-            {{#if session.invalid_token}}
+            {{#if stashes.logging_paused_at }}
+              <span class="label label-info unread" style='padding: 3px;'><span class='glyphicon glyphicon-pause'></span></span>
+            {{else if session.invalid_token}}
               <span class="label label-danger unread">{{t "!" key='exclaim'}}</span>
             {{else if persistence.syncing}}
               <span class='spinning unread'>
@@ -737,7 +739,10 @@
                   {{/if}}
                   {{#if app_state.currentUser.preferences.logging}}
                     {{#if app_state.logging_paused}}
-                      <li><a href="#" {{action "toggle_pause_logging"}}>{{t "Resume Logging" key='resume_logging'}}</a></li>
+                      <li><a href="#" {{action "toggle_pause_logging"}}>
+                        <span class="label label-info" style='padding: 3px;'><span class='glyphicon glyphicon-play'></span></span>
+                        {{t "Resume Logging" key='resume_logging'}}
+                      </a></li>
                     {{else}}
                       <li><a href="#" {{action "toggle_pause_logging"}}>{{t "Pause Logging" key='pause_logging'}}</a></li>
                     {{/if}}
