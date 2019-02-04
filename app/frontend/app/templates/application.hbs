@@ -564,10 +564,10 @@
             {{#if app_state.modeling_for_user}}
               <img src={{app_state.referenced_speak_mode_user.avatar_url_with_fallback}} class='modeling_user' onerror='button_broken_image(this);' />
             {{/if}}
-            {{#if stashes.logging_paused_at }}
-              <span class="label label-info unread" style='padding: 3px;'><span class='glyphicon glyphicon-pause'></span></span>
-            {{else if session.invalid_token}}
+            {{#if session.invalid_token}}
               <span class="label label-danger unread">{{t "!" key='exclaim'}}</span>
+            {{else if stashes.logging_paused_at }}
+              <span class="label label-primary unread" style='padding: 3px;'><span class='glyphicon glyphicon-pause'></span></span>
             {{else if persistence.syncing}}
               <span class='spinning unread'>
                 <span class="glyphicon glyphicon-refresh" style='z-index: 2;'></span>
@@ -740,7 +740,7 @@
                   {{#if app_state.currentUser.preferences.logging}}
                     {{#if app_state.logging_paused}}
                       <li><a href="#" {{action "toggle_pause_logging"}}>
-                        <span class="label label-info" style='padding: 3px;'><span class='glyphicon glyphicon-play'></span></span>
+                        <span class="label label-primary" style='padding: 3px;'><span class='glyphicon glyphicon-play'></span></span>
                         {{t "Resume Logging" key='resume_logging'}}
                       </a></li>
                     {{else}}
