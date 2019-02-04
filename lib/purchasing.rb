@@ -487,7 +487,7 @@ module Purchasing
         :amount => (amount * 100),
         :currency => 'usd',
         :source => token['id'],
-        :receipt_email => opts['email'],
+        :receipt_email => (opts['email'] || '').strip!,
         :description => description,
         :metadata => {
           'giver_id' => user && user.global_id,
