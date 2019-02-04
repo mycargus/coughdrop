@@ -106,9 +106,20 @@ export default Controller.extend({
     return app_state.get('currentUser.preferences.home_board.id') == this.get('board.model.id') && this.get('board.model.intro') && !this.get('board.model.intro.unapproved');
   }.property('app_state.currentUser.preferences.home_board.id', 'board.model.intro', 'board.model.intro.unapproved'),
   highlight_button: function(buttons, button_set, options) {
+    options = options || {};
     if(buttons && buttons != 'resume') {
       this.set('button_highlights', buttons);
       this.set('button_highlights_button_set', button_set);
+      this.set('last_highlight_selection', null);
+      this.set('last_highlight_explore_action', (new Date()).getTime());
+      this.set('last_highlight_options', options);
+      utterance.set('hint_button', null);
+      modal.close();
+      if(options.wait_to_prompt) {
+        modal.notice(i18n.t('find_sentence_box_hint', "Try to find each word as it appears in the sentence box above"), true);
+      }
+    } else if(buttons == 'resume') {
+      options = this.get('last_highlight_options') || options;
     }
     // TODO: make sure the board level is temporary set to 10
     var defer = this.get('highlight_button_defer') || RSVP.defer();
@@ -124,32 +135,76 @@ export default Controller.extend({
     }
     this.set('highlight_button_defer', defer);
     var _this = this;
-    defer.promise.then(null, function(err) { 
-      console.error("highlight sequence failed", err);
-      _this.set('button_highlights', null);
-      return RSVP.resolve(); 
-    }).then(function() {
-      if(_this.get('highlight_button_defer') == defer) {
-        _this.set('highlight_button_defer', null);
-        if(defer.revert_board_level) {
-          var new_level = 10;
-          if(defer.revert_board_level == 'none') {
-            new_level = 10;
-          } else {
-            new_level = defer.revert_board_level;
-          }
-          var level_changed = stashes.get('board_level') != new_level;
-          var was = stashes.get('board_level');
-          if(level_changed) {
-            _this.send('set_level', new_level);
-          }
+    if(!defer.promise.registered) {
+      defer.promise.registered = true;
+      defer.wait_a_bit = function(timeout) {
+        if(!defer.promise.already_waiting_a_bit) {
+          defer.promise.already_waiting_a_bit = true;
+          runLater(function() {
+            defer.promise.already_waiting_a_bit = false;
+            _this.highlight_button('resume');
+          }, timeout)
         }
       }
-    });
+      defer.promise.then(null, function(err) { 
+        console.error("highlight sequence failed", err);
+        _this.set('button_highlights', null);
+        return RSVP.resolve(); 
+      }).then(function() {
+        if(_this.get('highlight_button_defer') == defer) {
+          _this.set('highlight_button_defer', null);
+          _this.set('last_highlight_selection', null);
+          _this.set('last_highlight_explore_action', null);
+          _this.set('last_highlight_options', null);
+          utterance.set('hint_button', null);
+          if(defer.revert_board_level) {
+            var new_level = 10;
+            if(defer.revert_board_level == 'none') {
+              new_level = 10;
+            } else {
+              new_level = defer.revert_board_level;
+            }
+            var level_changed = stashes.get('board_level') != new_level;
+            var was = stashes.get('board_level');
+            if(level_changed) {
+              _this.send('set_level', new_level);
+            }
+          }
+        }
+      });
+    }
+    if(options.wait_to_prompt) {
+      options.delay_prompt = true;
+      var now = (new Date()).getTime();
+      var last_action = _this.get('last_highlight_selection') || _this.get('last_highlight_explore_action') || now;
+      var waiting_duration = (new Date()).getTime() - last_action;
+      var factor = defer.already_waited ? 0.3 : (defer.not_first_action ? 1.0 : 1.5);
+      options.picture_hint = true;
+      if(waiting_duration > 1000) {
+        // afteer 1 second change the sentence box hint to the right picture
+      }
+      if(waiting_duration > (5000 * factor)) {
+        // afte 5 seconds do a subtle highlight
+        options.subtle_highlight = true;
+        options.delay_prompt = false;
+        defer.wait_a_bit(1000);
+        defer.did_wait = true;
+      }
+      if(waiting_duration > (10000 * factor)) {
+        // after 10 seconds do a strong highlight
+        options.subtle_highlight = false;
+      }
+      var buttons = _this.get('button_highlights') || [];
+      var next_actual_button = buttons.find(function(b) { return b.actual_button; });
+      if(next_actual_button) {
+        utterance.set('hint_button', utterance.get('hint_button') || {});
+        utterance.set('hint_button.label', next_actual_button.label);
+      } else {
+        utterance.set('hint_button', null);
+      }
+    }
     if(!will_render) {
-//      runLater(function() {
-        _this.send('highlight_button', options || {});
-//      }, 2000);
+      _this.send('highlight_button', options);
     }
     return defer.promise;
   },
@@ -224,6 +279,7 @@ export default Controller.extend({
       opts = opts || {};
       var state = stashes.get('temporary_root_board_state') || stashes.get('root_board_state');
       var current = app_state.get('currentBoardState');
+      this.set('last_highlight_explore_action', (new Date()).getTime());
       // if you're on a temporary home board and you hit home, it should take you to the real home
       if(state && current && state.key == current.key && stashes.get('temporary_root_board_state')) {
         stashes.persist('temporary_root_board_state', null);
@@ -385,6 +441,7 @@ export default Controller.extend({
           speecher.click();
         }
       }
+      this.set('last_highlight_explore_action', (new Date()).getTime());
     },
     board_intro: function() {
       modal.open('modals/board-intro', {board: this.get('board.model'), step: 0});
@@ -582,13 +639,21 @@ export default Controller.extend({
     list_copies: function() {
       modal.open('board-copies', {board: this.get('board.model')});
     },
-    highlight_button: function() {
+    highlight_button: function(options) {
+      options = options || {};
       // TODO: this and activateButton belong somewhere more testable
       var buttons = this.get('button_highlights');
       var defer = this.get('highlight_button_defer') || RSVP.defer();
       this.set('highlight_button_defer', defer);
 
       var _this = this;
+      var picture_prompt = function($button) {
+        if(utterance.get('hint_button')) {
+          utterance.set('hint_button.label', $button.find(".button-label").text());
+          utterance.set('hint_button.image_url', $button.find(".symbol").attr('src'));
+        }
+      };
+
       if(buttons && buttons.length > 0) {
         var button = buttons[0];
         if(button.pre == 'home' || button.pre == 'true_home' || button.pre == 'home' || button.pre == 'sidebar') {
@@ -597,7 +662,15 @@ export default Controller.extend({
           if(button.pre == 'sidebar') {
             $button = $("#sidebar a[data-key='" + button.linked_board_key + "']");
           }
-          modal.highlight($button, {highlight_type: 'button_search'}).then(function() {
+          if(options.delay_prompt) {
+            defer.wait_a_bit(500);
+            return;
+          }
+          modal.highlight($button, {clear_overlay: options.subtle_highlight, highlight_type: 'button_search'}).then(function() {
+            _this.set('last_highlight_selection', (new Date()).getTime());
+            if(defer.did_wait) { defer.already_waited = true; }
+            defer.not_first_action = true;
+
             if(button.pre == 'true_home' || button.pre == 'home') {
               var has_temporary_home = !!stashes.get('temporary_root_board_state');
               var already_on_temporary_home = stashes.get('temporary_root_board_state.id') == app_state.get('currentBoardState.id');
@@ -631,12 +704,22 @@ export default Controller.extend({
             if(button.board_id == _this.get('board.model').get('id')) {
               var $button = $(".button[data-id='" + button.id + "']");
               if($button[0] && $button.width()) {
+                if(options.picture_hint) {
+                  picture_prompt($button);
+                }
+                if(options.delay_prompt) {
+                  defer.wait_a_bit(500);
+                  return;
+                }
                 _this.set('button_highlights', buttons);
-                modal.highlight($button, {highlight_type: 'button_search'}).then(function() {
+                modal.highlight($button, {clear_overlay: options.subtle_highlight, highlight_type: 'button_search'}).then(function() {
+                  if(defer.did_wait) { defer.already_waited = true; }
+                  defer.not_first_action = true;
+                  _this.set('last_highlight_selection', (new Date()).getTime());
                   buttons.shift();
                   var found_button = editManager.find_button(button.id);
                   var board = _this.get('board.model');
-                  _this.activateButton(found_button, {board: board});
+                  _this.activateButton(found_button, {board: board, skip_highlight_check: true});
                   var next_button = buttons[0];
                   // If there is more to the sequence, and the 
                   // user selection isn't going to involve loading
@@ -780,6 +863,7 @@ export default Controller.extend({
     return (order.indexOf(current) || 0) + 1;
   }.property('setup_order', 'setup_page'),
   activateButton: function(button, options) {
+    var _this = this;
     button.findContentLocally().then(function() {
       options = options || {};
       var image = options.image || button.get('image');
@@ -812,7 +896,25 @@ export default Controller.extend({
         obj.percent_x = location.percent_x;
         obj.percent_y = location.percent_y;
       }
-
+      _this.set('last_highlight_explore_action', (new Date()).getTime());
+      // TODO: if this is the next actual_button in the highlight
+      // queue then shift off everything up to and including that button
+      var highlight_buttons = _this.get('button_highlights') || [];
+      var next_actual_button = highlight_buttons.find(function(b) { return b.actual_button; })
+      utterance.set('hint_button', null);
+      if(!options.skip_highlight_check && next_actual_button && (next_actual_button.vocalization || next_actual_button.label) == (button.vocalization || button.label)) {
+        var btn = null;
+        while(btn != next_actual_button) {
+          btn = highlight_buttons.shift();
+        }
+        _this.set('highlight_buttons', highlight_buttons);
+        var defer = _this.get('highlight_button_defer');
+        if(defer) {
+          defer.already_waited = false;
+          defer.did_wait = false;
+          defer.not_first_action = true;
+        }
+      }
       app_state.activate_button(button, obj);
     }, function() { });
   },

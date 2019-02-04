@@ -12,6 +12,7 @@ export default modal.ModalController.extend({
     controller.set('model', {});
     var settings = modal.settings_for['share-utterance'];
     controller.set('utterance', settings.utterance);
+    var buttons = settings.utterance.filter(function(b) { return !b.ghost; });
     var u = CoughDrop.store.createRecord('utterance', {button_list: settings.utterance, sentence: utterance.sentence(settings.utterance)});
     u.save().then(function(u) {
       controller.set('utterance_record', u);

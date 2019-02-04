@@ -1,5 +1,5 @@
 {{#each button_list as |button|}}
-  <div class="history_button">
+  <div class={{if button.ghost "history_button ghosted" "history_button"}}>
     {{#if button.modeling}}
       <div class='modeling'>
         <span class='glyphicon glyphicon-hand-up'></span>

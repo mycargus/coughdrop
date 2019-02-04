@@ -205,7 +205,7 @@ CoughDrop.Buttonset = DS.Model.extend({
 
     // check each button individually
     var button_sweep = build_map.then(function() {
-      console.log("all buttons", buttons, board_map);
+//      console.log("all buttons", buttons, board_map);
       buttons.forEach(function(button, idx) {
         var lookups = [button.label, button.vocalization];
         var found_some = false;

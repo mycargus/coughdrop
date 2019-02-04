@@ -77,11 +77,13 @@ var utterance = EmberObject.extend({
       var visualButton = EmberObject.create(button);
       visualButtonList.push(visualButton);
       if(button.image && button.image.match(/^http/)) {
+        visualButton.set('original_image', button.image);
         persistence.find_url(button.image, 'image').then(function(data_uri) {
           visualButton.set('image', data_uri);
         }, function() { });
       }
       if(button.sound && button.sound.match(/^http/)) {
+        visualButton.set('origianl_sound', button.sound);
         persistence.find_url(button.sound, 'image').then(function(data_uri) {
           visualButton.set('sound', data_uri);
         }, function() { });
@@ -97,11 +99,24 @@ var utterance = EmberObject.extend({
         label: str
       };
     }
+    if(utterance.get('hint_button')) {
+      var hint = EmberObject.create({label: utterance.get('hint_button.label'), image: utterance.get('hint_button.image_url'), ghost: true});
+      visualButtonList.push(hint);
+    }
 
     app_state.set('button_list', visualButtonList);
     utterance.set('last_spoken_button', last_spoken_button);
     stashes.persist('working_vocalization', buttonList);
-  }.observes('rawButtonList', 'rawButtonList.[]', 'rawButtonList.length', 'rawButtonList.@each.image'),
+  }.observes('rawButtonList', 'rawButtonList.[]', 'rawButtonList.length', 'rawButtonList.@each.image', 'hint_button', 'hint_button.label', 'hint_button.image_url'),
+  update_hint: function() {
+    if(this.get('hint_button.label')) {
+      console.error("hint button!", this.get('hint_button.label'));
+      // temporarily show hint overlay
+    } else {
+      console.error("hint button cleared");
+      // clear hint overlay
+    }
+  }.observes('hint_button.label'),
   modifiers: [':plural', ':singular', ':comparative', ':er', ':superlative', ':verb-negation',
     ':est', ':possessive', ':\'s', ':past', ':ed', ':present-participle', ':ing', ':space', ':complete', ':predict'],
   modify_button: function(original, addition) {
@@ -194,7 +209,9 @@ var utterance = EmberObject.extend({
         var any_special = true;
       } else if(voc.match(/^\+/) || voc.match(/^:/)) {
         button.specialty_with_modifiers = true;
-        if(voc.match(/^\+/) || voc == ':space' || voc == ':complete') {
+        if(voc.match(/^\+/) || voc == ':space' || voc == ':complete' || voc == ':predict') {
+          button.default_speak = true;
+        } else if([':plural', ':singular', ':comparative', ':er', ':superlative', ':verb-negation', ':est', ':possessive', ':\'s', ':past', ':ed', ':present-participle', ':ing'].indexOf(voc) !== -1) {
           button.default_speak = true;
         }
         specialty = button;
