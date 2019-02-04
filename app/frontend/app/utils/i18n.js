@@ -288,9 +288,14 @@ var i18n = EmberObject.extend({
     var vowel_cons = this.vowels.indexOf(check[check.length - 2]) >= 0 && this.vowels.indexOf(check[check.length - 1]) == -1;
     if(check[check.length - 1] == 'x') {
       vowel_cons = false;
+    } else if(check.length > 3 && this.vowels.indexOf(check[check.length - 3]) >= 0) {
+      vowel_cons = false;
     }
     var syllables = this.syllables(str);
     var ending_stress = true; // TODO: this will be a hard one, methinks
+    if(check.match(/^[eiouy]/)) {
+      ending_stress = false;
+    }
     var sub = this.substitutions.tenses[str];
     if(options.simple_past) {
       modifier = 'ed';
@@ -574,7 +579,10 @@ var i18n = EmberObject.extend({
     verb_to_be_negations: {
       'am': "am not",
       'will': "won't",
-      'shall': "shan't"
+      'shall': "shan't",
+      'be': "not be",
+      'been': "not been",
+      'being': "not being"
     },
     possessives: {
       'i': ['my', 'mine'],

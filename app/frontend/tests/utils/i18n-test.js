@@ -221,10 +221,6 @@ describe("i18n", function() {
       expect(i18n.verb_negation('be')).toEqual("not be");
       expect(i18n.verb_negation('been')).toEqual("not been");
       expect(i18n.verb_negation('being')).toEqual("not being");
-
-      expect(i18n.tense('look', {simple_past: true})).toEqual("not look");
-      expect(i18n.tense('open', {simple_past: true})).toEqual("not open");
-      expect(i18n.tense('need', {simple_past: true})).toEqual("not need");
     });
   });
 
@@ -326,9 +322,9 @@ describe("i18n", function() {
       expect(i18n.tense('try', {present_participle: true})).toEqual("trying");
       expect(i18n.tense('lie', {present_participle: true})).toEqual("lying");
 
-      expect(i18n.tense('look', {simple_past: true})).toEqual("looking");
-      expect(i18n.tense('open', {simple_past: true})).toEqual("opening");
-      expect(i18n.tense('need', {simple_past: true})).toEqual("needing");
+      expect(i18n.tense('look', {present_participle: true})).toEqual("looking");
+      expect(i18n.tense('open', {present_participle: true})).toEqual("opening");
+      expect(i18n.tense('need', {present_participle: true})).toEqual("needing");
     });
 
     it("should properly tensify a simple-past", function() {
@@ -533,9 +529,9 @@ describe("i18n", function() {
       expect(i18n.tense('try', {simple_present: true})).toEqual("tries");
       expect(i18n.tense('lie', {simple_present: true})).toEqual("lies");
 
-      expect(i18n.tense('look', {simple_past: true})).toEqual("looks");
-      expect(i18n.tense('open', {simple_past: true})).toEqual("opens");
-      expect(i18n.tense('need', {simple_past: true})).toEqual("needs");
+      expect(i18n.tense('look', {simple_present: true})).toEqual("looks");
+      expect(i18n.tense('open', {simple_present: true})).toEqual("opens");
+      expect(i18n.tense('need', {simple_present: true})).toEqual("needs");
     });
 
     it("should properly tensify a past-participle", function() {
@@ -550,7 +546,7 @@ describe("i18n", function() {
       expect(i18n.tense('play', {past_participle: true})).toEqual("played");
       expect(i18n.tense('stay', {past_participle: true})).toEqual("stayed");
       expect(i18n.tense('pray', {past_participle: true})).toEqual("prayed");
-      expect(i18n.tense('bucket', {past_participle: true})).toEqual("bucketed");
+      expect(i18n.tense('bucket', {past_participle: true})).toEqual("bucketted");
       expect(i18n.tense('cat', {past_participle: true})).toEqual("catted");
       expect(i18n.tense('I', {past_participle: true})).toEqual("Ied");
 
@@ -632,9 +628,9 @@ describe("i18n", function() {
       expect(i18n.tense('try', {past_participle: true})).toEqual("tried");
       expect(i18n.tense('lie', {past_participle: true})).toEqual("lied");
 
-      expect(i18n.tense('look', {simple_past: true})).toEqual("looked");
-      expect(i18n.tense('open', {simple_past: true})).toEqual("opened");
-      expect(i18n.tense('need', {simple_past: true})).toEqual("needed");
+      expect(i18n.tense('look', {past_participle: true})).toEqual("looked");
+      expect(i18n.tense('open', {past_participle: true})).toEqual("opened");
+      expect(i18n.tense('need', {past_participle: true})).toEqual("needed");
     });
   });
 
