@@ -80,6 +80,8 @@ Coughdrop::Application.routes.draw do
       cache "/images/square.svg"
       cache "/images/modeling_ideas.svg"
       cache "/images/bar_chart.svg"
+      cache "/images/eye.svg"
+      cache "/images/cursor.png"
       cache "/images/extras.svg"
       cache "/images/blank.gif"
       cache "/images/cc.png"

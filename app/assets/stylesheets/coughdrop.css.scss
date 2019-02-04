@@ -608,7 +608,7 @@ footer .wide_links {
   vertical-align: middle;
   border: 1px solid #aaa;
   border-radius: 3px;
-  background-image: url(https://s3.amazonaws.com/opensymbols/libraries/noun-project/Eye-c002f4a036.svg);
+  background-image: url(../images/eye.svg);
   background-repeat: no-repeat;
   background-size: 40px 40px;
   background-position: 5px 5px;
@@ -630,6 +630,9 @@ footer .wide_links {
   overflow: hidden; 
   margin: 2px 10px;
   position: relative;
+  &.ghosted {
+    animation: throb 1.5s ease-in-out infinite;
+  }
 }
 .button_list.rtl .history_button {
   float: right;
@@ -2866,6 +2869,29 @@ video.button_image {
   opacity: 0.5;
   width: 10px;
   height: 10px;
+  &.big {
+    opacity: 1.0;
+    background: radial-gradient(rgba(255, 255, 0, 0.2), rgba(255, 255, 0, 0.8));
+    border: 2px solid rgb(17, 112, 255);
+    margin-left: -15px;
+    margin-top: -15px;
+    border-radius: 30px;
+    width: 30px;
+    height: 30px;
+    &:after {
+      margin-left: 15px;
+      margin-top: 15px;
+      content: "";
+      display: block;
+      width: 24px;
+      height: 36px;
+      background: url(../images/cursor.png);
+      background-size: 24px 36px;
+      border: 0;
+      border-radius: 0;
+      opacity: 1.0;
+    }
+  }
 }
 
 .label_count.too_many {

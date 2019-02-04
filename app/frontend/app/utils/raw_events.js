@@ -1043,10 +1043,16 @@ var buttonTracker = EmberObject.extend({
       var icon = document.createElement('div');
       icon.id = 'dwell_icon';
       icon.className = 'dwell_icon';
+      if(buttonTracker.check('dwell_type') == 'arrow_dwell') {
+        icon.classList.add('big');
+      }
+  
       document.body.appendChild(icon);
       buttonTracker.dwell_icon_elem = icon;
     }
-    if(buttonTracker.check('dwell_cursor') || !dwell_selection) {
+    var arrow_cursor = buttonTracker.check('dwell_type') == 'arrow_dwell';
+
+    if(buttonTracker.check('dwell_cursor') || arrow_cursor || !dwell_selection) {
       buttonTracker.dwell_icon_elem.style.left = (event.clientX - 5) + "px";
       buttonTracker.dwell_icon_elem.style.top = (event.clientY - 5) + "px";
     }
