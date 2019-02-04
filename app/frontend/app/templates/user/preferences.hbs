@@ -447,7 +447,7 @@
     </div>
   {{/unless}}
 
-  <h2 style="margin: 50px 0 20px 0;">{{t "Sidebar Layout" key='sidebar_layout'}}</h2>
+  <h2 style="margin: 50px 0 20px 0;">{{t "Sidebar and Shortcuts" key='sidebar_and_shortcuts'}}</h2>
   <div class="form-group">
     <label for="quick_sidebar" class="col-sm-3 control-label">{{t "Quick Actions" key='quick_actions'}}</label>
     <div class="col-sm-5">
@@ -538,6 +538,8 @@
       </div>
     {{/unless}}
   {{/if}}
+  <!-- keyboard shortcuts for actions/phrases, NFC tag reading/writing, abbreviations/message expansions -->
+  <!-- at the same time, an option to have a text box instead of a sentence box, still with dropdown? -->
   <h2 style="margin: 50px 0 20px 0;">{{t "Device Preferences" key='device_preferences'}} ({{model.preferences.device.name}})</h2>
   <div class="form-group">
     <label for="vocalization_height" class="col-sm-3 control-label">{{t "Vocalization Box Size" key='vocalization_height'}}</label>
