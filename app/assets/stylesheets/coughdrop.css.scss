@@ -4072,6 +4072,13 @@ body:-ms-fullscreen {
     }
   }
 }
+@media (max-height: 650px) {
+  #new_right {
+    .main.short_list {
+      margin-top: 10px;
+    }
+  }
+}
 @media (min-width: 992px) {
   #new_right {
     width: calc(75% + 10px);
