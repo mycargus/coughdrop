@@ -156,7 +156,7 @@ var capabilities;
       output: {
         set_target_exec: function(target) {
           var promise = capabilities.mini_promise();
-          if(window.cordova && window.cordova.exec && capabilities.installed_app && capabilities.system == 'Android') {
+          if(window.cordova && window.cordova.exec && capabilities.installed_app && (capabilities.system == 'Android' || capabilities.system == 'iOS')) {
             window.cordova.exec(function(res) {
               var delay = (res && res.delay) || 0;
               setTimeout(function() {
@@ -194,7 +194,7 @@ var capabilities;
         },
         get_targets: function() {
           var promise = capabilities.mini_promise();
-          if(window.cordova && window.cordova.exec && capabilities.installed_app && capabilities.system == 'Android') {
+          if(window.cordova && window.cordova.exec && capabilities.installed_app && (capabilities.system == 'Android' || capabilities.system == 'iOS')) {
             window.cordova.exec(function(res) {
               promise.resolve(res);
             }, function(err) {
