@@ -158,7 +158,10 @@ var capabilities;
           var promise = capabilities.mini_promise();
           if(window.cordova && window.cordova.exec && capabilities.installed_app && capabilities.system == 'Android') {
             window.cordova.exec(function(res) {
-              promise.resolve(res);
+              var delay = (res && res.delay) || 0;
+              setTimeout(function() {
+                promise.resolve(res);
+              }, delay);
             }, function(err) {
               promise.reject({error: 'cordova exec failed'});
             }, 'CoughDropMisc', 'setAudioMode', [target]);
