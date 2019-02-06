@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2019.02.06a";
+window.app_version = "2019.02.06b";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -9532,7 +9532,8 @@ var n=t.default.get_object("auth_settings",!0)||{}
 a.api_host&&e("COUGHDROP: extension connected, pointing requests to "+a.api_host),a.db_key=t.default.get_db_key()
 var s=!0
 return o&&(s=a.setup_database()),a.credentials=a.auth_credentials,a.access_token=n.access_token,window.Keyboard&&window.Keyboard.shrinkView&&window.Keyboard.shrinkView(!1),s}},eye_gaze:{listen:function(){},stop_listening:function(){},calibrate:function(){},calibratable:function(e){e(!1)}},encrypt:function(e){return a.encryption_enabled?(alert("encryption not supported"),window.CryptoJS.AES.encrypt(JSON.stringify(e),a.db_key).toString()):JSON.stringify(e)},decrypt:function(e){return a.encryption_enabled?(alert("encryption not supported"),JSON.parse(window.CryptoJS.AES.decrypt(e,a.db_key).toString(window.CryptoJS.enc.Utf8))):JSON.parse(e)},output:{set_target_exec:function(e){var t=a.mini_promise()
-return window.cordova&&window.cordova.exec&&a.installed_app&&"Android"==a.system?window.cordova.exec(function(e){t.resolve(e)},function(e){t.reject({error:"cordova exec failed"})},"CoughDropMisc","setAudioMode",[e]):t.reject({error:"no target handling defined"}),t},set_target:function(e){if("headset_or_earpiece"==e){var t=a.mini_promise()
+return window.cordova&&window.cordova.exec&&a.installed_app&&"Android"==a.system?window.cordova.exec(function(e){var n=e&&e.delay||0
+setTimeout(function(){t.resolve(e)},n)},function(e){t.reject({error:"cordova exec failed"})},"CoughDropMisc","setAudioMode",[e]):t.reject({error:"no target handling defined"}),t},set_target:function(e){if("headset_or_earpiece"==e){var t=a.mini_promise()
 return a.output.get_targets().then(function(e){var n="earpiece"
 e.find(function(e){return"bluetooth"==e||"headset"==e})&&(n="headset"),a.output.set_target_exec(n).then(function(e){t.resolve(e)},function(e){t.reject(e)})},function(e){t.reject({error:"failed to retrieve targets"})}),t}return a.output.set_target_exec(e)},get_targets:function(){var e=a.mini_promise()
 return window.cordova&&window.cordova.exec&&a.installed_app&&"Android"==a.system?window.cordova.exec(function(t){e.resolve(t)},function(t){e.resolve([])},"CoughDropMisc","getAudioDevices",[]):e.resolve([]),e}},tts:{tts_exec:function(e,t,n){var s=a.mini_promise()
@@ -10951,8 +10952,8 @@ var d,u=[],c=[]
 for(a=0;a<i;++a)u[a]=a,c[a]=t.charCodeAt(a)
 for(u[i]=i,a=0;a<l;++a){for(s=a+1,o=0;o<i;++o)n=s,d=e.charCodeAt(a)===c[o],(s=u[o]+(d?0:1))>(r=n+1)&&(s=r),s>(r=u[o+1]+1)&&(s=r),u[o]=n
 u[o]=s}return s}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+0661a049"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+0661a049"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+318d3d38"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+318d3d38"})
 ;
 
 
