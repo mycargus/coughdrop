@@ -71,6 +71,7 @@ export default Controller.extend({
   audioOutputList: [
     {name: i18n.t('default_audio', "Play on Default Audio"), id: "default"},
     {name: i18n.t('headset', "Play on Headset if Connected"), id: "headset"},
+    {name: i18n.t('speaker', "Play on Speaker even with Headset Connected"), id: "speaker"},
     {name: i18n.t('headset_or_earpiece', "Play on Headset or Earpiece"), id: "headset_or_earpiece"},
     {name: i18n.t('earpiece', "Play on Earpiece"), id: "earpiece"},
   ],
