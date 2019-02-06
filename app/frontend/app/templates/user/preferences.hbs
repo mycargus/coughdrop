@@ -769,66 +769,15 @@
               <div class="col-sm-5">
                 <div class="checkbox">
                   <label>
-                    {{input type="checkbox" checked=model.preferences.device.alternate_voice.enabled id="scanning_voice"}}
-                    {{t "Use a Different Voice for Audio Prompts" key='scanning_voice'}}
+                    {{input type="checkbox" checked=model.preferences.device.alternate_voice.for_scanning id="scanning_voice"}}
+                    {{t "Use My Secondary Voice for Audio Prompts" key='scanning_voice'}}
                   </label>
+                  {{#if model.preferences.device.alternate_voice.for_scanning}}
+                    <div style='margin-left: 20px;'><em>{{t "secondary voice options are available farther down" key='secondary_options_below'}}</em></div>
+                  {{/if}}
                 </div>
               </div>
             </div>
-            {{#if model.preferences.device.alternate_voice.enabled}}
-              {{#if user_voice_list}}
-                <div class="form-group">
-                  <div class="col-sm-3 col-xs-7 col-sm-offset-3">
-                    {{bound-select select_class="form-control" select_id="alternate_voice_uri" content=user_voice_list selection=model.preferences.device.alternate_voice.voice_uri action=(action (mut model.preferences.device.alternate_voice.voice_uri)) }}
-                  </div>
-                </div>
-              {{/if}}
-              <div class="form-group">
-                <label for="alternate_voice_rate" class="col-sm-3 col-xs-12 control-label">{{t "Scanning Voice Rate" key='alternate_voice_rate'}}</label>
-                <div class="col-sm-3 col-xs-7">
-                  <div class="input-group">
-                    <span class="input-group-btn">
-                      <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.alternate_voice.rate"}}>-</button>
-                    </span>
-                    {{input value=model.preferences.device.alternate_voice.rate class="form-control" id="alternate_voice_rate" placeholder="1.0"}}
-                    <span class="input-group-btn">
-                      <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.alternate_voice.rate"}}>+</button>
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="alternate_voice_pitch" class="col-sm-3 col-xs-12 control-label">{{t "Scanning Voice Pitch" key='voice_pitch'}}</label>
-                <div class="col-sm-3 col-xs-7">
-                  <div class="input-group">
-                    <span class="input-group-btn">
-                      <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.alternate_voice.pitch"}}>-</button>
-                    </span>
-                    {{input value=model.preferences.device.alternate_voice.pitch class="form-control" id="alternate_voice_pitch" placeholder="1.0"}}
-                    <span class="input-group-btn">
-                      <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.alternate_voice.pitch"}}>+</button>
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="alternate_voice_volume" class="col-sm-3 col-xs-12 control-label">{{t "Scanning Voice Volume" key='alternate_voice_volume'}}</label>
-                <div class="col-sm-3 col-xs-7">
-                  <div class="input-group">
-                    <span class="input-group-btn">
-                      <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.alternate_voice.volume"}}>-</button>
-                    </span>
-                    {{input value=model.preferences.device.alternate_voice.volume class="form-control" id="alternate_voice_volume" placeholder="1.0"}}
-                    <span class="input-group-btn">
-                      <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.alternate_voice.volume"}}>+</button>
-                    </span>
-                  </div>
-                </div>
-                <div class="col-sm-2 col-xs-5">
-                  <button class='btn btn-default' {{action "test_voice" 'alternate'}}>{{t "Test Voice" key='test_voice'}}</button>
-                </div>
-              </div>
-            {{/if}}
           {{/if}}
         {{/if}}
         <div class="form-group">
@@ -1098,81 +1047,225 @@
       </fieldset>
     {{/if}}
   {{/if}}
-  {{#if user_voice_list}}
+  {{#unless advanced}}
+    {{#if user_voice_list}}
+      <div class="form-group">
+        <label for="voice_pitch" class="col-sm-3 col-xs-12 control-label">{{t "Voice" key='voiceURI'}}</label>
+        <div class="col-sm-3 col-xs-7">
+          {{bound-select select_class="form-control" select_id="voiceURI" content=user_voice_list selection=model.preferences.device.voice.voice_uri action=(action (mut model.preferences.device.voice.voice_uri)) }}
+        </div>
+        <div class="col-sm-2 col-xs-5">
+          <button class='btn btn-default' {{action "premium_voices"}}>{{t "Premium Voices" key='premium_voices'}}</button>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top: -15px;">
+        <div class="col-sm-6 col-sm-offset-3">
+          {{#if ios_app}}
+            <p class='text-info'>{{t "NOTE: There is a bug in Apple's speech engine which can cause some system voices not to work. If this is happening for you, try using a Premium Voice or selecting \"System Default Voice\" to get around the problem." key='apple_tts_bug'}}</p>
+          {{/if}}
+        </div>
+      </div>
+    {{/if}}
     <div class="form-group">
-      <label for="voice_pitch" class="col-sm-3 col-xs-12 control-label">{{t "Voice" key='voiceURI'}}</label>
+      <label for="voice_rate" class="col-sm-3 col-xs-12 control-label">{{t "Voice Rate" key='voice_rate'}}</label>
       <div class="col-sm-3 col-xs-7">
-        {{bound-select select_class="form-control" select_id="voiceURI" content=user_voice_list selection=model.preferences.device.voice.voice_uri action=(action (mut model.preferences.device.voice.voice_uri)) }}
+        <div class="input-group">
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.voice.rate"}}>-</button>
+          </span>
+          {{input value=model.preferences.device.voice.rate class="form-control" id="voice_rate" placeholder="1.0"}}
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.voice.rate"}}>+</button>
+          </span>
+        </div>
       </div>
-      <div class="col-sm-2 col-xs-5">
-        <button class='btn btn-default' {{action "premium_voices"}}>{{t "Premium Voices" key='premium_voices'}}</button>
-      </div>
-    </div>
-    <div class="form-group" style="margin-top: -15px;">
-      <div class="col-sm-6 col-sm-offset-3">
-        {{#if ios_app}}
-          <p class='text-info'>{{t "NOTE: There is a bug in Apple's speech engine which can cause some system voices not to work. If this is happening for you, try using a Premium Voice or selecting \"System Default Voice\" to get around the problem." key='apple_tts_bug'}}</p>
-        {{/if}}
-      </div>
-    </div>
-  {{/if}}
-  <div class="form-group">
-    <label for="voice_rate" class="col-sm-3 col-xs-12 control-label">{{t "Voice Rate" key='voice_rate'}}</label>
-    <div class="col-sm-3 col-xs-7">
-      <div class="input-group">
-        <span class="input-group-btn">
-          <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.voice.rate"}}>-</button>
-        </span>
-        {{input value=model.preferences.device.voice.rate class="form-control" id="voice_rate" placeholder="1.0"}}
-        <span class="input-group-btn">
-          <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.voice.rate"}}>+</button>
-        </span>
-      </div>
-    </div>
-    {{#unless advanced}}
       <div class="col-sm-2 col-xs-5">
         <button class='btn btn-default' {{action "test_voice"}}>{{t "Test Voice" key='test_voice'}}</button>
       </div>
-    {{/unless}}
-  </div>
-  {{#if advanced}}
-  <div class="form-group">
-    <label for="voice_pitch" class="col-sm-3 col-xs-12 control-label">{{t "Voice Pitch" key='voice_pitch'}}</label>
-    <div class="col-sm-3 col-xs-7">
-      <div class="input-group">
-        <span class="input-group-btn">
-          <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.voice.pitch"}}>-</button>
-        </span>
-        {{input value=model.preferences.device.voice.pitch class="form-control" id="voice_pitch" placeholder="1.0"}}
-        <span class="input-group-btn">
-          <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.voice.pitch"}}>+</button>
-        </span>
+    </div>
+  {{else}}
+    <fieldset style='border: 1px solid #ddd; padding-top: 5px; border-radius: 10px; margin-bottom: 5px;'>
+      <div class='form-group'>
+        <div class='col-sm-5 col-sm-offset-3'>
+          <h4>{{t "Voice Settings" key='voice_settings'}}</h4>
+        </div>
       </div>
-    </div>
-  </div>
-  <div class="form-group" style="margin-top: -15px;">
-    <div class="col-sm-6 col-sm-offset-3">
-      (some voices don't support changing pitch/volume/etc.)
-    </div>
-  </div>
-  <div class="form-group">
-    <label for="voice_volume" class="col-sm-3 col-xs-12 control-label">{{t "Voice Volume" key='voice_volume'}}</label>
-    <div class="col-sm-3 col-xs-7">
-      <div class="input-group">
-        <span class="input-group-btn">
-          <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.voice.volume"}}>-</button>
-        </span>
-        {{input value=model.preferences.device.voice.volume class="form-control" id="voice_volume" placeholder="1.0"}}
-        <span class="input-group-btn">
-          <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.voice.volume"}}>+</button>
-        </span>
+      {{#if user_voice_list}}
+        <div class="form-group">
+          <label for="voice_pitch" class="col-sm-3 col-xs-12 control-label">{{t "Voice" key='voiceURI'}}</label>
+          <div class="col-sm-3 col-xs-7">
+            {{bound-select select_class="form-control" select_id="voiceURI" content=user_voice_list selection=model.preferences.device.voice.voice_uri action=(action (mut model.preferences.device.voice.voice_uri)) }}
+          </div>
+          <div class="col-sm-2 col-xs-5">
+            <button class='btn btn-default' {{action "premium_voices"}}>{{t "Premium Voices" key='premium_voices'}}</button>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top: -15px;">
+          <div class="col-sm-6 col-sm-offset-3">
+            {{#if ios_app}}
+              <p class='text-info'>{{t "NOTE: There is a bug in Apple's speech engine which can cause some system voices not to work. If this is happening for you, try using a Premium Voice or selecting \"System Default Voice\" to get around the problem." key='apple_tts_bug'}}</p>
+            {{/if}}
+          </div>
+        </div>
+      {{/if}}
+      <div class="form-group">
+        <label for="voice_rate" class="col-sm-3 col-xs-12 control-label">{{t "Voice Rate" key='voice_rate'}}</label>
+        <div class="col-sm-3 col-xs-7">
+          <div class="input-group">
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.voice.rate"}}>-</button>
+            </span>
+            {{input value=model.preferences.device.voice.rate class="form-control" id="voice_rate" placeholder="1.0"}}
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.voice.rate"}}>+</button>
+            </span>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="col-sm-2 col-xs-5">
-      <button class='btn btn-default' {{action "test_voice"}}>{{t "Test Voice" key='test_voice'}}</button>
-    </div>
-  </div>
-  {{/if}}
+      <div class="form-group">
+        <label for="voice_pitch" class="col-sm-3 col-xs-12 control-label">{{t "Voice Pitch" key='voice_pitch'}}</label>
+        <div class="col-sm-3 col-xs-7">
+          <div class="input-group">
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.voice.pitch"}}>-</button>
+            </span>
+            {{input value=model.preferences.device.voice.pitch class="form-control" id="voice_pitch" placeholder="1.0"}}
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.voice.pitch"}}>+</button>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top: -15px;">
+        <div class="col-sm-6 col-sm-offset-3">
+          (some voices don't support changing pitch/volume/etc.)
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="voice_volume" class="col-sm-3 col-xs-12 control-label">{{t "Voice Volume" key='voice_volume'}}</label>
+        <div class="col-sm-3 col-xs-7">
+          <div class="input-group">
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.voice.volume"}}>-</button>
+            </span>
+            {{input value=model.preferences.device.voice.volume class="form-control" id="voice_volume" placeholder="1.0"}}
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.voice.volume"}}>+</button>
+            </span>
+          </div>
+        </div>
+        <div class="col-sm-2 col-xs-5">
+          <button class='btn btn-default' {{action "test_voice"}}>{{t "Test Voice" key='test_voice'}}</button>
+        </div>
+      </div>
+      {{#if audio_target_available}}
+        <div class="form-group">
+          <label for="voice_output" class="col-sm-3 control-label">{{t "Voice Output" key='voice_output'}}</label>
+          <div class="col-sm-5">
+            {{bound-select select_class="form-control" select_id="voice_output" content=audioOutputList selection=model.preferences.device.voice.target action=(action (mut model.preferences.device.voice.target)) }}
+          </div>
+        </div>
+      {{/if}}
+
+      <div class="form-group">
+        <label for="alternate_voice" class="col-sm-3 control-label">{{t "Secondary Voice" key='secondary_voice'}}</label>
+        <div class="col-sm-5">
+          <div class="checkbox">
+            <label>
+              {{input type="checkbox" checked=model.preferences.device.alternate_voice.enabled id="alternate_voice"}}
+              {{t "Use My Secondary Voice for Some Prompts" key='use_different_prompting_voice'}}
+            </label>
+          </div>
+        </div>
+      </div>
+      {{#if model.preferences.device.alternate_voice.enabled}}
+        {{#if user_voice_list}}
+          <div class="form-group">
+            <div class="col-sm-3 col-xs-7 col-sm-offset-3">
+              {{bound-select select_class="form-control" select_id="alternate_voice_uri" content=user_voice_list selection=model.preferences.device.alternate_voice.voice_uri action=(action (mut model.preferences.device.alternate_voice.voice_uri)) }}
+            </div>
+          </div>
+        {{/if}}
+        <div class="form-group">
+          <label for="alternate_voice_purposes" class="col-sm-3 col-xs-12 control-label">{{t "Secondary Voice Purpose" key='alternate_voice_purpose'}}</label>
+          <div class="col-sm-5 col-xs-7">
+            <div class="checkbox">
+              <label>
+                {{input type="checkbox" checked=model.preferences.device.alternate_voice.for_scanning disabled=not_scanning id="for_scanning"}}
+                {{t "Use for Scanning Prompts" key='use_for_scanning'}}
+              </label>
+            </div>
+            <div class="checkbox">
+              <label>
+                {{input type="checkbox" checked=model.preferences.device.alternate_voice.for_fishing disabled=not_fishing id="for_fishing"}}
+                {{t "Use for Auditory Fishing" key='use_for_fishing'}}
+              </label>
+            </div>
+            <div class="checkbox">
+              <label>
+                {{input type="checkbox" checked=model.preferences.device.alternate_voice.for_buttons id="for_buttons"}}
+                {{t "Use for Button Presses" key='use_for_buttons'}}
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="alternate_voice_rate" class="col-sm-3 col-xs-12 control-label">{{t "Secondary Voice Rate" key='alternate_voice_rate'}}</label>
+          <div class="col-sm-3 col-xs-7">
+            <div class="input-group">
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.alternate_voice.rate"}}>-</button>
+              </span>
+              {{input value=model.preferences.device.alternate_voice.rate class="form-control" id="alternate_voice_rate" placeholder="1.0"}}
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.alternate_voice.rate"}}>+</button>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="alternate_voice_pitch" class="col-sm-3 col-xs-12 control-label">{{t "Secondary Voice Pitch" key='voice_pitch'}}</label>
+          <div class="col-sm-3 col-xs-7">
+            <div class="input-group">
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.alternate_voice.pitch"}}>-</button>
+              </span>
+              {{input value=model.preferences.device.alternate_voice.pitch class="form-control" id="alternate_voice_pitch" placeholder="1.0"}}
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.alternate_voice.pitch"}}>+</button>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="alternate_voice_volume" class="col-sm-3 col-xs-12 control-label">{{t "Secondary Voice Volume" key='alternate_voice_volume'}}</label>
+          <div class="col-sm-3 col-xs-7">
+            <div class="input-group">
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default" {{action "plus_minus" "minus" "model.preferences.device.alternate_voice.volume"}}>-</button>
+              </span>
+              {{input value=model.preferences.device.alternate_voice.volume class="form-control" id="alternate_voice_volume" placeholder="1.0"}}
+              <span class="input-group-btn">
+                <button type="button" class="btn btn-default" {{action "plus_minus" "plus" "model.preferences.device.alternate_voice.volume"}}>+</button>
+              </span>
+            </div>
+          </div>
+          <div class="col-sm-2 col-xs-5">
+            <button class='btn btn-default' {{action "test_voice" 'alternate'}}>{{t "Test Voice" key='test_voice'}}</button>
+          </div>
+        </div>
+      {{#if audio_target_available}}
+          <div class="form-group">
+            <label for="alternate_voice_output" class="col-sm-3 control-label">{{t "Secondary Voice Output" key='alternate_voice_output'}}</label>
+            <div class="col-sm-5">
+              {{bound-select select_class="form-control" select_id="alternate_voice_output" content=audioOutputList selection=model.preferences.device.alternate_voice.target action=(action (mut model.preferences.device.alternate_voice.target)) }}
+            </div>
+          </div>
+        {{/if}}
+      {{/if}}
+    </fieldset>
+  {{/unless}}
+  
   {{#if model.preferences.device.allows_home_override}}
     <div class="form-group">
       <label for="hard_sidebar" class="col-sm-3 control-label">{{t "Device Home" key='device_home'}}</label>

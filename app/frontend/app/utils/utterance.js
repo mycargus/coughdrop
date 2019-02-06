@@ -374,7 +374,7 @@ var utterance = EmberObject.extend({
   set_ghost_utterance: function() {
     stashes.persist('ghost_utterance', !!(this.get('list_vocalized') && this.get('clear_on_vocalize')));
   }.observes('list_vocalized', 'clear_on_vocalize'),
-  test_voice: function(voiceURI, rate, pitch, volume) {
+  test_voice: function(voiceURI, rate, pitch, volume, target) {
     rate = parseFloat(rate);
     if(isNaN(rate)) { rate = 1.0; }
     pitch = parseFloat(pitch);
@@ -387,7 +387,8 @@ var utterance = EmberObject.extend({
       pitch: pitch,
       rate: rate,
       voiceURI: voiceURI,
-      default_prompt: true
+      default_prompt: true,
+      target: target
     });
   }
 }).create({scope: (window.polyspeech || window)});

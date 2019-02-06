@@ -116,7 +116,8 @@ var frame_listener = EmberObject.extend({
     var vocalized = false;
     if(app_state.get('speak_mode')) {
       vocalized = true;
-      speecher.speak_text((data.text || ""), false, {alternate_voice: data.voice == 'secondary', interrupt: true});
+      var alt_voice = speecher.alternate_voice && speecher.alternate_voice.enabled && speecher.alternate_voice.for_integrations != false;
+      speecher.speak_text((data.text || ""), false, {alternate_voice: (alt_voice && data.voice == 'secondary'), interrupt: true});
     } else {
       utterance.silent_speak_button({
         label: (data.text || '')

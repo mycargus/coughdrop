@@ -695,11 +695,12 @@ var scanner = EmberObject.extend({
     if(!retry) {
       if(this.options && this.options.audio && this.last_spoken_elem != elem.dom[0]) {
         this.last_spoken_elem = elem.dom[0];
+        var alt_voice = !!(speecher.alternate_voice && speecher.alternate_voice.enabled && speecher.alternate_voice.for_scanning !== false);
         if(elem && elem.sound) {
-          speecher.speak_audio(elem.sound, 'text', false, {alternate_voice: true, interrupt: false});
+          speecher.speak_audio(elem.sound, 'text', false, {alternate_voice: alt_voice, interrupt: false});
         } else if(elem && elem.label) {
           var clean_label = (elem.label || "").replace(/^[\+\:]/, '');
-          speecher.speak_text(clean_label, false, {alternate_voice: true, interrupt: false});
+          speecher.speak_text(clean_label, false, {alternate_voice: alt_voice, interrupt: false});
         }
       }
     }

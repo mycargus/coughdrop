@@ -68,6 +68,12 @@ export default Controller.extend({
     {name: i18n.t('architects_daughter_caps', "Architect's Daughter, All Uppercase"), id: "architects_daughter_caps"},
     {name: i18n.t('architects_daughter_small', "Architect's Daughter, All Lowercase"), id: "architects_daughter_small"},
   ],
+  audioOutputList: [
+    {name: i18n.t('default_audio', "Play on Default Audio"), id: "default"},
+    {name: i18n.t('headset', "Play on Headset if Connected"), id: "headset"},
+    {name: i18n.t('headset_or_earpiece', "Play on Headset or Earpiece"), id: "headset_or_earpiece"},
+    {name: i18n.t('earpiece', "Play on Earpiece"), id: "earpiece"},
+  ],
   text_sample_class: function() {
     var res = "text_sample ";
     var style = Button.style(this.get('model.preferences.device.button_style'));
@@ -342,6 +348,25 @@ export default Controller.extend({
   buttons_stretched: function() {
     return this.get('model.preferences.stretch_buttons') && this.get('model.preferences.stretch_buttons') != 'none';
   }.property('model.preferences.stretch_buttons'),
+  enable_alternate_voice: function() {
+    var alt = this.get('model.preferences.device.alternate_voice') || {};
+    if(alt.enabled && alt.for_scanning === undefined && alt.for_fishing === undefined && alt.for_buttons === undefined) {
+      alt.for_scanning = true;
+    }
+    if(alt.for_scanning || alt.for_fishing || alt.for_buttons) {
+      alt.enabled = true;
+    }
+    this.set('model.preferences.device.alternate_voice', alt);
+  }.observes('model.preferences.device.alternate_voice.enabled', 'model.preferences.device.alternate_voice.for_scanning', 'model.preferences.device.alternate_voice.for_fishing', 'model.preferences.device.alternate_voice.for_buttons'),
+  not_scanning: function() {
+    return !this.get('model.preferences.device.scanning');
+  }.property('model.preferences.device.scanning'),
+  not_fishing: function() {
+    return !this.get('model.preferences.device.fishing');
+  }.property('model.preferences.device.fishing'),
+  audio_target_available: function() {
+    return true;
+  }.property(),
   needs: 'application',
   actions: {
     plus_minus: function(direction, attribute) {
@@ -501,9 +526,9 @@ export default Controller.extend({
     },
     test_voice: function(which) {
       if(which == 'alternate') {
-        utterance.test_voice(this.get('model.preferences.device.alternate_voice.voice_uri'), this.get('model.preferences.device.alternate_voice.rate'), this.get('model.preferences.device.alternate_voice.pitch'), this.get('model.preferences.device.alternate_voice.volume'));
+        utterance.test_voice(this.get('model.preferences.device.alternate_voice.voice_uri'), this.get('model.preferences.device.alternate_voice.rate'), this.get('model.preferences.device.alternate_voice.pitch'), this.get('model.preferences.device.alternate_voice.volume'), this.get('model.preferences.device.alternate_voice.target'));
       } else {
-        utterance.test_voice(this.get('model.preferences.device.voice.voice_uri'), this.get('model.preferences.device.voice.rate'), this.get('model.preferences.device.voice.pitch'), this.get('model.preferences.device.voice.volume'));
+        utterance.test_voice(this.get('model.preferences.device.voice.voice_uri'), this.get('model.preferences.device.voice.rate'), this.get('model.preferences.device.voice.pitch'), this.get('model.preferences.device.voice.volume'), this.get('model.preferences.device.voice.target'));
       }
     },
     delete_logs: function() {

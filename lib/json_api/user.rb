@@ -89,6 +89,14 @@ module JsonApi::User
       end
       json['preferences']['device']['voice'] ||= {}
       json['preferences']['device']['alternate_voice'] ||= {}
+      if json['preferences']['device']['alternate_voice']['enabled']
+        if json['preferences']['device']['alternate_voice']['for_scanning'] == nil
+          json['preferences']['device']['alternate_voice']['for_scanning'] = true
+        end
+        ['for_scanning', 'for_fishing', 'for_buttons'].each do |key|
+          json['preferences']['device']['alternate_voice'][key] ||= false
+        end
+      end
 
       json['prior_home_boards'] = (user.settings['all_home_boards'] || []).reverse
       if user.settings['preferences']['home_board']

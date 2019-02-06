@@ -282,9 +282,18 @@ var speecher = EmberObject.extend({
     };
     var delay = 0;
     if(capabilities.system == 'Windows' && interrupted) { console.log("waiting for last speak to wrap up..."); delay = 300; }
-    runLater(function() {
-      next_piece();
-    }, delay);
+    var runVoice = function() {
+      runLater(function() {
+        next_piece();
+      }, delay);
+    };
+    var target = opts.target || "default";
+    if(_this.alternate_voice && _this.alternate_voice.target && opts.alternate_voice) {
+      target = _this.alternate_voice.target;
+    } else if(_this.voice && _this.voice.target && !opts.alternate_voice) {
+      target = _this.voice.target;
+    }
+    capabilities.output.set_target(target).then(runVoice, runVoice);
   },
   speak_raw_text: function(text, collection_id, opts, callback) {
     var _this = this;
@@ -701,6 +710,7 @@ var speecher = EmberObject.extend({
   },
   speak_audio: function(url, type, collection_id, opts) {
     opts = opts || {};
+    var _this = this;
     if(this.speaking_from_collection && !collection_id) {
       // lets the user start building their next sentence without interrupting the current one
       return;
@@ -720,16 +730,32 @@ var speecher = EmberObject.extend({
 
     var $audio = this.find_or_create_element(url);
     if($audio.length) {
-      var audio = $audio[0];
-      if(type == 'text') {
-        var speak_id = this.speak_id++;
-        this.last_speak_id = speak_id;
-        this.speaking = true;
-        this.speaking_from_collection = collection_id;
-        audio.speak_id = speak_id;
+      if(opts.alternate_voice) {
+        // set to the secondary audio target, if defined
+      } else {
+        // re-set to primary audio target
       }
-      var playing_audio = this.play_audio(audio);
-      this.audio[type] = playing_audio;
+      var playAudio = function() {
+        var audio = $audio[0];
+        if(type == 'text') {
+          var speak_id = this.speak_id++;
+          this.last_speak_id = speak_id;
+          this.speaking = true;
+          this.speaking_from_collection = collection_id;
+          audio.speak_id = speak_id;
+        }
+        var playing_audio = this.play_audio(audio);
+        this.audio[type] = playing_audio;
+      }
+
+      var target = "default";
+      if(_this.alternate_voice && _this.alternate_voice.target && opts.alternate_voice) {
+        target = _this.alternate_voice.target;
+      } else if(_this.voice && _this.voice.target && !opts.alternate_voice) {
+        target = _this.voice.target;
+      }
+      capabilities.output.set_target(target).then(playAudio, playAudio);
+  
     } else {
       console.log("couldn't find sound to play");
     }

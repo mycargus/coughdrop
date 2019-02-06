@@ -153,6 +153,56 @@ var capabilities;
           return JSON.parse(obj);
         }
       },
+      output: {
+        set_target_exec: function(target) {
+          var promise = capabilities.mini_promise();
+          if(window.cordova && window.cordova.exec && capabilities.installed_app && capabilities.system == 'Android') {
+            window.cordova.exec(function(res) {
+              promise.resolve(res);
+            }, function(err) {
+              promise.reject({error: 'cordova exec failed'});
+            }, 'CoughDropMisc', 'setAudioMode', [target]);
+          } else {
+            promise.reject({error: 'no target handling defined'});
+          }
+          return promise;
+        },
+        set_target: function(target) {
+          if(target == 'headset_or_earpiece') {
+            var promise = capabilities.mini_promise();
+            capabilities.output.get_targets().then(function(list) {
+              var has_external = list.find(function(i) { return i == 'bluetooth' || i == 'headset'});
+              var new_target = 'earpiece';
+              if(has_external) {
+                new_target = 'headset';
+              }
+              capabilities.output.set_target_exec(new_target).then(function(res) {
+                promise.resolve(res);
+              }, function(err) {
+                promise.reject(err);
+              });
+            }, function(err) {
+              promise.reject({error: 'failed to retrieve targets'});
+            });
+            return promise;
+          } else {
+            return capabilities.output.set_target_exec(target);
+          }
+        },
+        get_targets: function() {
+          var promise = capabilities.mini_promise();
+          if(window.cordova && window.cordova.exec && capabilities.installed_app && capabilities.system == 'Android') {
+            window.cordova.exec(function(res) {
+              promise.resolve(res);
+            }, function(err) {
+              promise.resolve([]);
+            }, 'CoughDropMisc', 'getAudioDevices', []);
+          } else {
+            promise.resolve([]);
+          }
+          return promise;
+        }
+      },
       tts: {
         tts_exec: function(method, args, callback) {
           var promise = capabilities.mini_promise();
