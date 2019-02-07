@@ -216,14 +216,14 @@ var capabilities;
               if(event.type == 'ndef' && event.tag) {
                 if(event.tag.ndefMessage) {
                   var tag = {type: 'ndef', id: event.tag.id};
-                  for(var idx = 0; idx < event.tag.ndefMessage; idx++) {
+                  for(var idx = 0; idx < event.tag.ndefMessage.length; idx++) {
                     var type = String.fromCharCode.apply(null, event.tag.ndefMessage[idx].type);
                     var payload = String.fromCharCode.apply(null, event.tag.ndefMessage[idx].payload);
-                    if(type == 'T') {
-                      tag.text_locale = payload.slice(0, 2);
-                      tag.text = payload.slice(2);
-                    } else if(type == 'U') {
-                      tag.uri = tag.uri || payload;
+                    if(type == 'T' && !tag.text) {
+                      tag.text_locale = payload.slice(0, 3);
+                      tag.text = payload.slice(3);
+                    } else if(type == 'U' && !tag.uri) {
+                      tag.uri = payload;
                     }
                   }
                   console.log("NFC tag", tag, event.tag);
@@ -236,7 +236,7 @@ var capabilities;
             };
             window.nfc.addNdefListener(listener, function() { 
               capabilities.nfc.listeners = capabilities.nfc.listeners || [];
-              capabiliteis.nfc.listeners.push(listener);
+              capabilities.nfc.listeners.push(listener);
             }, function() {
               promise.reject({error: 'nfc listen failed'});
             })
@@ -248,8 +248,8 @@ var capabilities;
         },
         stop_listening: function() {
           capabilities.nfc.listeners.forEach(function(l) {
-            window.nfc.removeNdefListener(listener);
-            window.nfc.removeTagDiscoveredListener(listener);
+            window.nfc.removeNdefListener(l);
+            window.nfc.removeTagDiscoveredListener(l);
           });
           capabilities.nfc.listeners = [];
         }
