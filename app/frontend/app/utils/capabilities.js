@@ -210,22 +210,28 @@ var capabilities;
         listen: function(callback) {
           // can't return promise because .write must be called
           // from within the callback scope to work correctly
-          var promise = capabilities.mini_promsie();
+          var promise = capabilities.mini_promise();
           if(window.nfc && window.nfc.addNdefListener && window.ndef) {
             var listener = function(event) {
               if(event.type == 'ndef' && event.tag) {
                 if(event.tag.ndefMessage) {
-                  console.log("NFC tag", event.tag);
+                  var tag = {type: 'ndef', id: event.tag.id};
                   for(var idx = 0; idx < event.tag.ndefMessage; idx++) {
-                    var type = window.ndef.decodeMessage(event.tag.ndefMessage[idx].type);
-                    var payload = window.ndef.decodeMessage(event.tag.ndefMessage[idx].payload);
-                    var tnf = event.tag.ndefMessage[idx].tnf;
+                    var type = String.fromCharCode.apply(null, event.tag.ndefMessage[idx].type);
+                    var payload = String.fromCharCode.apply(null, event.tag.ndefMessage[idx].payload);
+                    if(type == 'T') {
+                      tag.text_locale = payload.slice(0, 2);
+                      tag.text = payload.slice(2);
+                    } else if(type == 'U') {
+                      tag.uri = tag.uri || payload;
+                    }
                   }
-                  callback(event.tag.ndefMessage);
+                  console.log("NFC tag", tag, event.tag);
+                  callback(tag);
                 }
               } else {
                 console.log("Non-NFC tag", event.type, event.tag);
-                callback(event.tag);
+                callback({type: event.type, id: event.tag.id});
               }
             };
             window.nfc.addNdefListener(listener, function() { 
