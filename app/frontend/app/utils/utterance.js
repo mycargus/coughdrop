@@ -110,10 +110,10 @@ var utterance = EmberObject.extend({
   }.observes('rawButtonList', 'rawButtonList.[]', 'rawButtonList.length', 'rawButtonList.@each.image', 'hint_button', 'hint_button.label', 'hint_button.image_url'),
   update_hint: function() {
     if(this.get('hint_button.label')) {
-      console.error("hint button!", this.get('hint_button.label'));
+//      console.error("hint button!", this.get('hint_button.label'));
       // temporarily show hint overlay
     } else {
-      console.error("hint button cleared");
+//      console.error("hint button cleared");
       // clear hint overlay
     }
   }.observes('hint_button.label'),

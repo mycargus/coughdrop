@@ -158,9 +158,9 @@ var capabilities;
           var promise = capabilities.mini_promise();
           if(window.nfc && window.nfc.enabled) {
             window.nfc.enabled(function() { 
-              var res = {nfc: true, background: false};
+              var res = {nfc: true, background: true};
               if(capabilities.system == 'iOS') {
-                res.background = true;
+                res.background = false;
               }
               promise.resolve(res); 
             }, function() { promise.reject(); });
@@ -241,16 +241,26 @@ var capabilities;
               promise.reject({error: 'nfc listen failed'});
             })
             window.nfc.addTagDiscoveredListener(listener);
+            if(capabilities.system == 'Android') {
+              window.nfc.readerMode(nfc.FLAG_READER_NFC_A | nfc.FLAG_READER_NFC_B | FLAG_READER_NFC_F | FLAG_READER_NFC_V | FLAG_READER_NFC_BARCODE | nfc.FLAG_READER_NO_PLATFORM_SOUNDS, function(tag) {
+                (capabilities.nfc.listeners || []).forEach(function(l) {
+                  l({type: 'ndef', tag: tag});
+                });
+              }, function() { promise.reject({error: 'NFC reader mode failed'})});
+            }
           } else {
             promise.reject({error: 'no NFC support found'});
           }
           return promise;
         },
         stop_listening: function() {
-          capabilities.nfc.listeners.forEach(function(l) {
+          (capabilities.nfc.listeners || []).forEach(function(l) {
             window.nfc.removeNdefListener(l);
             window.nfc.removeTagDiscoveredListener(l);
           });
+          if(capabilities.system == 'Android') {
+            window.nfc.disableReaderMode();
+          }
           capabilities.nfc.listeners = [];
         }
       },

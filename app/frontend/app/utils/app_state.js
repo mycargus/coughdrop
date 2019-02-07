@@ -68,6 +68,15 @@ var app_state = EmberObject.extend({
     capabilities.ssid.listen(function(ssid) {
       _this.set('current_ssid', ssid);
     });
+    capabilities.nfc.available().then(function(res) {
+      if(res && res.background) {
+        capabilities.nfc.listen(function(tag) {
+          app_state.handle_tag(tag);
+        }).then(null, function() {
+          // TODO: error message stating NFC listening failed?
+        })
+      }
+    });
 //    speecher.check_for_upgrades();
     this.refresh_user();
   },
@@ -1148,15 +1157,6 @@ var app_state = EmberObject.extend({
             }
           }, function() { });
         }
-        capabilities.nfc.available().then(function(res) {
-          if(res && res.background) {
-            capabilities.nfc.listen(function(tag) {
-              app_state.handle_tag(tag);
-            }).then(null, function() {
-              // TODO: error message stating NFC listening failed?
-            })
-          }
-        });
       }
       this.set('eye_gaze', capabilities.eye_gaze);
       this.set('embedded', !!(CoughDrop.embedded));
@@ -1180,7 +1180,6 @@ var app_state = EmberObject.extend({
     } else if(!this.get('speak_mode') && this.get('last_speak_mode') !== undefined) {
       capabilities.wakelock('speak!', false);
       capabilities.fullscreen(false);
-      capabilities.nfc.stop_listening();
       if(this.get('last_speak_mode') !== false) {
         stashes.persist('temporary_root_board_state', null);
         stashes.persist('sticky_board', false);
@@ -1234,6 +1233,7 @@ var app_state = EmberObject.extend({
     }
   }.observes('speak_mode', 'referenced_user.id', 'speak_mode_activities_at', 'short_refresh_stamp'),
   handle_tag: function(tag) {
+    if(!app_state.get('speak_mode')) { return; }
     var text_fallback = function(text) {
       var obj = {
         label: text,
