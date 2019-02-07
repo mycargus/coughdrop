@@ -655,7 +655,7 @@
       </div>
     </div>
     {{#if model.preferences.device.scanning}}
-      <fieldset style='border: 1px solid #ddd; padding-top: 5px; border-radius: 10px; margin-bottom: 5px;'>
+      <fieldset style='border: 1px solid #ddd; padding: 5px 10px; border-radius: 10px; margin-bottom: 5px;'>
         <div class='form-group'>
           <div class='col-sm-5 col-sm-offset-3'>
             <h4>{{t "Scanning Settings" key='scanning_settings'}}</h4>
@@ -876,7 +876,7 @@
       </div>
     </div>
     {{#if model.preferences.device.dwell}}
-      <fieldset style='border: 1px solid #ddd; padding-top: 5px; border-radius: 10px; margin-bottom: 5px;'>
+      <fieldset style='border: 1px solid #ddd; padding: 5px 10px; border-radius: 10px; margin-bottom: 5px;'>
         <div class='form-group'>
           <div class='col-sm-5 col-sm-offset-3'>
             <h4>{{t "Dwell Tracking Settings" key='dwell_settings'}}</h4>
@@ -1084,7 +1084,7 @@
       </div>
     </div>
   {{else}}
-    <fieldset style='border: 1px solid #ddd; padding-top: 5px; border-radius: 10px; margin-bottom: 5px;'>
+    <fieldset style='border: 1px solid #ddd; padding: 5px 10px; border-radius: 10px; margin-bottom: 5px;'>
       <div class='form-group'>
         <div class='col-sm-5 col-sm-offset-3'>
           <h4>{{t "Voice Settings" key='voice_settings'}}</h4>
@@ -1163,6 +1163,9 @@
           <label for="voice_output" class="col-sm-3 control-label">{{t "Voice Output" key='voice_output'}}</label>
           <div class="col-sm-5">
             {{bound-select select_class="form-control" select_id="voice_output" content=audioOutputList selection=model.preferences.device.voice.target action=(action (mut model.preferences.device.voice.target)) }}
+            {{#if audio_switching_delays.primary}}
+              <em>{{t "There may be a short delay on this device if switching between different outputs" key='possible_output_delay'}}</em>
+            {{/if}}
           </div>
         </div>
       {{/if}}
@@ -1259,6 +1262,9 @@
             <label for="alternate_voice_output" class="col-sm-3 control-label">{{t "Secondary Voice Output" key='alternate_voice_output'}}</label>
             <div class="col-sm-5">
               {{bound-select select_class="form-control" select_id="alternate_voice_output" content=audioOutputList selection=model.preferences.device.alternate_voice.target action=(action (mut model.preferences.device.alternate_voice.target)) }}
+              {{#if audio_switching_delays.alternate}}
+                <em>{{t "There may be a short delay on this device if switching between different outputs" key='possible_output_delay'}}</em>
+              {{/if}}
             </div>
           </div>
         {{/if}}

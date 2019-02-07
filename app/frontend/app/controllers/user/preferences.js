@@ -365,8 +365,21 @@ export default Controller.extend({
   not_fishing: function() {
     return !this.get('model.preferences.device.fishing');
   }.property('model.preferences.device.fishing'),
+  audio_switching_delays: function() {
+    if(this.get('audio_target_available') && capabilities.system == 'Android') {
+      var res = {};
+      if(['speaker', 'earpiece', 'headset_or_earpiece'].indexOf(this.get('model.preferences.device.voice.target')) != -1) {
+        res.primary = true;
+      }
+      if(['speaker', 'earpiece', 'headset_or_earpiece'].indexOf(this.get('model.preferences.device.alternate_voice.target')) != -1) {
+        res.alternate = true;
+      }
+    } else {
+      return {};
+    }
+  }.property('model.preferences.device.voice.target', 'model.preference.device.alternate_voice.target'),
   audio_target_available: function() {
-    return true;
+    return capabilities.installed_app && (capabilities.system == 'iOS' || capabilities.system == 'Android');
   }.property(),
   needs: 'application',
   actions: {
