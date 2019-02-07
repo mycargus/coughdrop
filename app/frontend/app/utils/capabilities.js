@@ -153,6 +153,101 @@ var capabilities;
           return JSON.parse(obj);
         }
       },
+      nfc: {
+        available: function() {
+          var promise = capabilities.mini_promise();
+          if(window.nfc && window.nfc.enabled) {
+            window.nfc.enabled(function() { 
+              var res = {nfc: true, background: false};
+              if(capabilities.system == 'iOS') {
+                res.background = true;
+              }
+              promise.resolve(res); 
+            }, function() { promise.reject(); });
+          } else {
+            promise.reject();
+          }
+          return promise;
+        },
+        prompt: function() {
+          var promise = capabilities.mini_promise();
+          if(window.nfc && window.nfc.beginSession && capabilities.system == 'iOS') {
+            window.nfc.beginSession(function() { promise.resolve(); }, function() { promise.reject({error: 'session failed'}); });
+          } else if(window.nfc && window.nfc.enabled) {
+            return capabilities.nfc.available();
+          } else {
+            promise.reject({error: 'no NFC support found'});
+          }
+          return promise;
+        },
+        end_prompt: function() {
+          var promise = capabilities.mini_promise();
+          if(window.nfc && window.nfc.invalidateSession && capabilities.system == 'iOS') {
+            window.nfc.invalidateSession(function() { promise.resolve(); }, function() { promise.reject({error: 'session failed'}); });
+          } else if(window.nfc && window.nfc.enabled) {
+            return capabilities.nfc.available();
+          } else {
+            promise.reject({error: 'no NFC support found'});
+          }
+          return promise;
+        },
+        write: function(tag) {
+          var promise = capabilities.mini_promise();
+          if(window.nfc && window.nfc.write && window.ndef) {
+            var message = [];
+            if(tag.text) { message.push(window.ndef.textRecord(tag.text)); }
+            if(tag.uri) { message.push(window.ndef.uriRecord(tag.uri)); }
+            window.nfc.write(message, function() {
+              promise.resolve(tag);
+            }, function() {
+              promise.reject();
+            })
+          } else {
+            promise.reject({error: 'no NFC support found'});
+          }
+          return promise;
+        },
+        listen: function(callback) {
+          // can't return promise because .write must be called
+          // from within the callback scope to work correctly
+          var promise = capabilities.mini_promsie();
+          if(window.nfc && window.nfc.addNdefListener && window.ndef) {
+            var listener = function(event) {
+              if(event.type == 'ndef' && event.tag) {
+                if(event.tag.ndefMessage) {
+                  console.log("NFC tag", event.tag);
+                  for(var idx = 0; idx < event.tag.ndefMessage; idx++) {
+                    var type = window.ndef.decodeMessage(event.tag.ndefMessage[idx].type);
+                    var payload = window.ndef.decodeMessage(event.tag.ndefMessage[idx].payload);
+                    var tnf = event.tag.ndefMessage[idx].tnf;
+                  }
+                  callback(event.tag.ndefMessage);
+                }
+              } else {
+                console.log("Non-NFC tag", event.type, event.tag);
+                callback(event.tag);
+              }
+            };
+            window.nfc.addNdefListener(listener, function() { 
+              capabilities.nfc.listeners = capabilities.nfc.listeners || [];
+              capabiliteis.nfc.listeners.push(listener);
+            }, function() {
+              promise.reject({error: 'nfc listen failed'});
+            })
+            window.nfc.addTagDiscoveredListener(listener);
+          } else {
+            promise.reject({error: 'no NFC support found'});
+          }
+          return promise;
+        },
+        stop_listening: function() {
+          capabilities.nfc.listeners.forEach(function(l) {
+            window.nfc.removeNdefListener(listener);
+            window.nfc.removeTagDiscoveredListener(listener);
+          });
+          capabilities.nfc.listeners = [];
+        }
+      },
       output: {
         set_target_exec: function(target) {
           var promise = capabilities.mini_promise();
