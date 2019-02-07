@@ -215,7 +215,7 @@ var capabilities;
             var listener = function(event) {
               if(event.type == 'ndef' && event.tag) {
                 if(event.tag.ndefMessage) {
-                  var tag = {type: 'ndef', id: event.tag.id};
+                  var tag = {type: 'ndef', id: event.tag.id, size: event.tag.maxSize};
                   for(var idx = 0; idx < event.tag.ndefMessage.length; idx++) {
                     var type = String.fromCharCode.apply(null, event.tag.ndefMessage[idx].type);
                     var payload = String.fromCharCode.apply(null, event.tag.ndefMessage[idx].payload);

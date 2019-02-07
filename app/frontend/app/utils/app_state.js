@@ -1148,6 +1148,15 @@ var app_state = EmberObject.extend({
             }
           }, function() { });
         }
+        capabilities.nfc.available().then(function(res) {
+          if(res && res.background) {
+            capabilities.nfc.listen(function(tag) {
+              app_state.handle_tag(tag);
+            }).then(null, function() {
+              // TODO: error message stating NFC listening failed?
+            })
+          }
+        });
       }
       this.set('eye_gaze', capabilities.eye_gaze);
       this.set('embedded', !!(CoughDrop.embedded));
@@ -1171,6 +1180,7 @@ var app_state = EmberObject.extend({
     } else if(!this.get('speak_mode') && this.get('last_speak_mode') !== undefined) {
       capabilities.wakelock('speak!', false);
       capabilities.fullscreen(false);
+      capabilities.nfc.stop_listening();
       if(this.get('last_speak_mode') !== false) {
         stashes.persist('temporary_root_board_state', null);
         stashes.persist('sticky_board', false);
@@ -1223,6 +1233,31 @@ var app_state = EmberObject.extend({
       _this.set('speak_mode_modeling_ideas', false);      
     }
   }.observes('speak_mode', 'referenced_user.id', 'speak_mode_activities_at', 'short_refresh_stamp'),
+  handle_tag: function(tag) {
+    var text_fallback = function(text) {
+      var obj = {
+        label: text,
+        vocalization: text,
+        prevent_return: true,
+        button_id: null,
+        board: {id: app_state.get('currentBoardState.id'), key: app_state.get('currentBoardState.key')},
+        type: 'speak'
+      };
+  
+      app_state.activate_button({}, obj);
+    };
+    if(tag.uri) {
+      // 1. local check for tag details
+      // 2. remote call for tag details
+      // 3. local check for tag details from home button set
+      // 4. speak any text defined
+      text_fallback(tag.text);
+    } else if(tag && tag.text && tag.text.match(/^\"/) && tag.text.match(/\"$/)) {
+      // speak the tag's text
+      text_fallback(tag.text.slice(1, tag.text.length - 2));
+    }
+
+  },
   speak_mode: function() {
     return !!(stashes.get('current_mode') == 'speak' && this.get('currentBoardState'));
   }.property('stashes.current_mode', 'currentBoardState'),
