@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2019.02.07";
+window.app_version = "2019.02.07a";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -9543,10 +9543,9 @@ else{if(window.nfc&&window.nfc.enabled)return a.nfc.available()
 e.reject({error:"no NFC support found"})}return e},write:function(e){var t=a.mini_promise()
 if(window.nfc&&window.nfc.write&&window.ndef){var n=[]
 e.text&&n.push(window.ndef.textRecord(e.text)),e.uri&&n.push(window.ndef.uriRecord(e.uri)),window.nfc.write(n,function(){t.resolve(e)},function(){t.reject()})}else t.reject({error:"no NFC support found"})
-return t},listen:function(e){var t=a.mini_promsie()
-if(window.nfc&&window.nfc.addNdefListener&&window.ndef){var n=function(t){if("ndef"==t.type&&t.tag){if(t.tag.ndefMessage){console.log("NFC tag",t.tag)
-for(var n=0;n<t.tag.ndefMessage;n++)window.ndef.decodeMessage(t.tag.ndefMessage[n].type),window.ndef.decodeMessage(t.tag.ndefMessage[n].payload),t.tag.ndefMessage[n].tnf
-e(t.tag.ndefMessage)}}else console.log("Non-NFC tag",t.type,t.tag),e(t.tag)}
+return t},listen:function(e){var t=a.mini_promise()
+if(window.nfc&&window.nfc.addNdefListener&&window.ndef){var n=function(t){if("ndef"==t.type&&t.tag){if(t.tag.ndefMessage){for(var n={type:"ndef",id:t.tag.id},s=0;s<t.tag.ndefMessage;s++){var a=String.fromCharCode.apply(null,t.tag.ndefMessage[s].type),o=String.fromCharCode.apply(null,t.tag.ndefMessage[s].payload)
+"T"==a?(n.text_locale=o.slice(0,2),n.text=o.slice(2)):"U"==a&&(n.uri=n.uri||o)}console.log("NFC tag",n,t.tag),e(n)}}else console.log("Non-NFC tag",t.type,t.tag),e({type:t.type,id:t.tag.id})}
 window.nfc.addNdefListener(n,function(){a.nfc.listeners=a.nfc.listeners||[],capabiliteis.nfc.listeners.push(n)},function(){t.reject({error:"nfc listen failed"})}),window.nfc.addTagDiscoveredListener(n)}else t.reject({error:"no NFC support found"})
 return t},stop_listening:function(){a.nfc.listeners.forEach(function(e){window.nfc.removeNdefListener(listener),window.nfc.removeTagDiscoveredListener(listener)}),a.nfc.listeners=[]}},output:{set_target_exec:function(e){var t=a.mini_promise()
 return window.cordova&&window.cordova.exec&&a.installed_app&&("Android"==a.system||"iOS"==a.system)?window.cordova.exec(function(e){var n=e&&e.delay||0
@@ -10969,8 +10968,8 @@ var d,u=[],c=[]
 for(a=0;a<i;++a)u[a]=a,c[a]=t.charCodeAt(a)
 for(u[i]=i,a=0;a<l;++a){for(s=a+1,o=0;o<i;++o)n=s,d=e.charCodeAt(a)===c[o],(s=u[o]+(d?0:1))>(r=n+1)&&(s=r),s>(r=u[o+1]+1)&&(s=r),u[o]=n
 u[o]=s}return s}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+3c5200c9"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+3c5200c9"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+1f3b8df4"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+1f3b8df4"})
 ;
 
 
