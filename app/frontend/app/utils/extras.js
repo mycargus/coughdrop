@@ -170,6 +170,10 @@ import capabilities from './capabilities';
       } else {
         options.timeout = 20000;
       }
+      if(options.type == 'POST' && options.url && options.url.match(/s3\.amazonaws/)) {
+        // don't timeout for remote uploads
+        options.timeout = null;
+      }
     }
 //     ['async', 'cache', 'contentType', 'context', 'crossDomain', 'data', 'dataType', 'error', 'global', 'headers', 'ifModified', 'isLocal', 'mimeType', 'processData', 'success', 'timeout', 'type', 'url'].forEach(function(key) {
 //       if(options[key]) {
@@ -214,7 +218,6 @@ import capabilities from './capabilities';
       var error = options.error;
       options.success = null;
       options.error = null;
-      options.timeout = options.timeout || 20000;
       var res = $.realAjax(options).then(function(data, message, xhr) {
         if(typeof(data) == 'string') {
           data = {text: data};
