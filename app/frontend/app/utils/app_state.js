@@ -70,7 +70,7 @@ var app_state = EmberObject.extend({
     });
     capabilities.nfc.available().then(function(res) {
       if(res && res.background) {
-        capabilities.nfc.listen(function(tag) {
+        capabilities.nfc.listen('global', function(tag) {
           app_state.handle_tag(tag);
         }).then(null, function() {
           // TODO: error message stating NFC listening failed?

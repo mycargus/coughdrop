@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180929000626) do
+ActiveRecord::Schema.define(version: 20190208235645) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -129,7 +129,7 @@ ActiveRecord::Schema.define(version: 20180929000626) do
     t.datetime "updated_at"
     t.string   "cluster_type", limit: 255
     t.string   "cluster_hash", limit: 255
-    t.index ["cluster_type", "cluster_hash"], name: "index_cluster_locations_on_cluster_type_and_hash", unique: true, using: :btree
+    t.index ["cluster_type", "cluster_hash"], name: "index_cluster_locations_on_cluster_type_and_cluster_hash", unique: true, using: :btree
   end
 
   create_table "contact_messages", force: :cascade do |t|
@@ -242,6 +242,17 @@ ActiveRecord::Schema.define(version: 20180929000626) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id", "started_at"], name: "index_log_snapshots_on_user_id_and_started_at", using: :btree
+  end
+
+  create_table "nfc_tags", force: :cascade do |t|
+    t.string   "tag_id"
+    t.string   "user_id"
+    t.string   "nonce"
+    t.boolean  "public"
+    t.text     "data"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tag_id", "public", "user_id"], name: "index_nfc_tags_on_tag_id_and_public_and_user_id", using: :btree
   end
 
   create_table "old_keys", force: :cascade do |t|

@@ -478,7 +478,7 @@ var buttonTracker = EmberObject.extend({
         buttonTracker.longPressEvent = event;
         runCancel(buttonTracker.track_long_press.later);
         runCancel(buttonTracker.track_short_press.later);
-        if(buttonTracker.check('long_press_delay')) {
+        if(buttonTracker.check('long_press_delay') || app_state.get('default_mode')) {
           buttonTracker.track_long_press.later = runLater(buttonTracker, buttonTracker.track_long_press, buttonTracker.long_press_delay);
         }
         if(buttonTracker.check('short_press_delay')) {
@@ -1590,7 +1590,7 @@ var buttonTracker = EmberObject.extend({
       var button_wrap = this.find_button_under_event(this.longPressEvent);
       if(button_wrap) {
         this.ignoreUp = true;
-        editManager.start_edit_mode();
+        editManager.long_press_mode(button_wrap.id);
       }
     }
   },

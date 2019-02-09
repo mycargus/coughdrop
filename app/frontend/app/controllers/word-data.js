@@ -112,6 +112,12 @@ export default modal.ModalController.extend({
       } else {
         _this.set('sentence_state', {error: true});
       }
+    },
+    program_nfc: function() {
+      var button = this.get('model.button');
+      if(button) {
+        modal.open('modals/program-nfc', {button: button});
+      }
     }
   }
 });

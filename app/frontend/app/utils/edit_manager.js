@@ -53,13 +53,22 @@ var editManager = EmberObject.extend({
     }
 
   }.observes('app_state.edit_mode'),
-  start_edit_mode: function() {
+  long_press_mode: function(button_id) {
     var app = app_state.controller;
     if(!app_state.get('edit_mode')) {
-      if(app_state.get('speak_mode') && app_state.get('currentUser.preferences.require_speak_mode_pin') && app_state.get('currentUser.preferences.speak_mode_pin')) {
-        modal.open('speak-mode-pin', {actual_pin: app_state.get('currentUser.preferences.speak_mode_pin'), action: 'edit'});
-      } else if(app_state.get('currentUser.preferences.long_press_edit')) {
-        app.toggleMode('edit');
+      if(app_state.get('speak_mode') && app_state.get('currentUser.preferences.long_press_edit')) {
+        if(app_state.get('speak_mode') && app_state.get('currentUser.preferences.require_speak_mode_pin') && app_state.get('currentUser.preferences.speak_mode_pin')) {
+          modal.open('speak-mode-pin', {actual_pin: app_state.get('currentUser.preferences.speak_mode_pin'), action: 'edit'});
+        } else if(app_state.get('currentUser.preferences.long_press_edit')) {
+          app.toggleMode('edit');
+        }
+      } else if(app_state.get('speak_mode')) {
+        // TODO: long-press for inflections
+      } else if(app_state.get('default_mode')) {
+        var button = editManager.find_button(button_id);
+        if(button && (button.label || button.vocalization)) {
+          modal.open('word-data', {word: (button.label || button.vocalization), button: button, usage_stats: null, user: app_state.get('currentUser')});
+        }
       }
     }
   },

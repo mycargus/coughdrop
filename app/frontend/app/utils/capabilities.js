@@ -162,6 +162,9 @@ var capabilities;
               if(capabilities.system == 'iOS') {
                 res.background = false;
               }
+              if(capabilities.system == 'Android') {
+                res.can_write = true;
+              }
               promise.resolve(res); 
             }, function() { promise.reject(); });
           } else {
@@ -207,7 +210,7 @@ var capabilities;
           }
           return promise;
         },
-        listen: function(callback) {
+        listen: function(ref, callback) {
           // can't return promise because .write must be called
           // from within the callback scope to work correctly
           var promise = capabilities.mini_promise();
@@ -216,6 +219,9 @@ var capabilities;
               if(event.type == 'ndef' && event.tag) {
                 if(event.tag.ndefMessage) {
                   var tag = {type: 'ndef', id: event.tag.id, size: event.tag.maxSize};
+                  if(event.tag.isWritable) {
+                    tag.writable = true;
+                  }
                   for(var idx = 0; idx < event.tag.ndefMessage.length; idx++) {
                     var type = String.fromCharCode.apply(null, event.tag.ndefMessage[idx].type);
                     var payload = String.fromCharCode.apply(null, event.tag.ndefMessage[idx].payload);
@@ -234,18 +240,24 @@ var capabilities;
                 callback({type: event.type, id: event.tag.id});
               }
             };
-            window.nfc.addNdefListener(listener, function() { 
-              capabilities.nfc.listeners = capabilities.nfc.listeners || [];
-              capabilities.nfc.listeners.push(listener);
-            }, function() {
+            ref = ref || "whatever";
+            capabilities.nfc.listeners = capabilities.nfc.listeners || {};
+            capabilities.nfc.listeners[ref] = capabilities.nfc.listeners[ref] || [];
+            capabilities.nfc.listeners[ref].push(listener);
+            window.nfc.addNdefListener(listener, function() { }, function() {
               promise.reject({error: 'nfc listen failed'});
-            })
+            });
             window.nfc.addTagDiscoveredListener(listener);
             if(capabilities.system == 'Android') {
-              window.nfc.readerMode(nfc.FLAG_READER_NFC_A | nfc.FLAG_READER_NFC_B | FLAG_READER_NFC_F | FLAG_READER_NFC_V | FLAG_READER_NFC_BARCODE | nfc.FLAG_READER_NO_PLATFORM_SOUNDS, function(tag) {
-                (capabilities.nfc.listeners || []).forEach(function(l) {
-                  l({type: 'ndef', tag: tag});
-                });
+              window.nfc.readerMode(nfc.FLAG_READER_NFC_A | nfc.FLAG_READER_NFC_B | nfc.FLAG_READER_NO_PLATFORM_SOUNDS, function(tag) {
+                if(navigator && navigator.vibrate) {
+                  navigator.vibrate(200);
+                }
+                for(var key in capabilities.nfc.listeners) {
+                  (capabilities.nfc.listeners[key] || []).forEach(function(l) {
+                    l({type: 'ndef', tag: tag});
+                  });
+                }
               }, function() { promise.reject({error: 'NFC reader mode failed'})});
             }
           } else {
@@ -253,15 +265,24 @@ var capabilities;
           }
           return promise;
         },
-        stop_listening: function() {
-          (capabilities.nfc.listeners || []).forEach(function(l) {
+        stop_listening: function(ref) {
+          ref = ref || "whatever";
+          capabilities.nfc.listeners = capabilities.nfc.listeners || {};
+          capabilities.nfc.listeners[ref] = capabilities.nfc.listeners[ref] || [];
+          (capabilities.nfc.listeners[ref] || []).forEach(function(l) {
             window.nfc.removeNdefListener(l);
             window.nfc.removeTagDiscoveredListener(l);
           });
-          if(capabilities.system == 'Android') {
+          capabilities.nfc.listeners[ref] = [];
+          var all_empty = true;
+          for(var key in capabilities.nfc.listeners) {
+            if(capabilities.nfc.listeners[key] && capabilities.nfc.listeners[key].length > 0) {
+              all_empty = false;
+            }
+          }
+          if(capabilities.system == 'Android' && all_empty) {
             window.nfc.disableReaderMode();
           }
-          capabilities.nfc.listeners = [];
         }
       },
       output: {

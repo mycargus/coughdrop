@@ -111,7 +111,7 @@ class Utterance < ActiveRecord::Base
     self.user = non_user_params[:user] if non_user_params[:user]
     self.data ||= {}
     self.data['button_list'] = params['button_list'] if params['button_list'] # TODO: process this for real
-    self.data['button_list'].each do |button|
+    (self.data['button_list'] || []).each do |button|
       # Don't use local URLs for saving the utterance to show to others
       if button['original_image'] && !button['image'].match(/^http/)
         button['image'] = button['original_image']

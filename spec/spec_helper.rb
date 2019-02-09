@@ -87,6 +87,11 @@ def assert_unauthorized
   assert_error("Not authorized", 400)
 end
 
+def assert_success_json
+  expect(response).to be_success
+  json = JSON.parse(response.body)
+end
+
 def assert_timestamp(ts, ts2)
   expect(ts).to be > ts2 - 3
   expect(ts).to be < ts2 + 3

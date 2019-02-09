@@ -578,6 +578,9 @@ export default Controller.extend({
       list = list.filter(function(p) { return (p != "add:" + str) && (p != "remove:" + str); });
       list.push("remove:" + str);
       this.set('model.preferences.requested_phrase_changes', list);
+    },
+    edit_sidebar: function() {
+      this.set('editing_sidebar', true);
     }
   }
 });

@@ -479,47 +479,29 @@
       <div class="form-group">
         <label class="col-sm-3 control-label">{{t "Links and Buttons" key='links_and_buttons'}}</label>
         <div class="col-sm-5">
-          <p class="form-control-static">
-            <strong>Active</strong>
-          </p>
-          <ul class="list-group">
-            {{#each active_sidebar_options as |option|}}
-              <li class="list-group-item" style="height: 60px;">
-                <img src={{option.image}} style="float: left; height: 40px; max-width: 40px;"  {{action "sidebar_button_settings" option}}/>
-                <span style="float: right; margin-top: 5px;">
-                  <button class='btn btn-default btn-sm' title={{t "move up" key='move_up'}} {{action 'move_sidebar_button' option 'up'}} style={{if option.top 'visibility: hidden;' ''}}><span class='glyphicon glyphicon-arrow-up'></span></button>
-                  <button class='btn btn-default btn-sm' title={{t "move down" key='move_down'}} {{action 'move_sidebar_button' option 'down'}}style={{if option.bottom 'visibility:hidden;' ''}}><span class='glyphicon glyphicon-arrow-down'></span></button>
-                  <button class='btn btn-default btn-sm' title={{t "remove" key='remove'}} {{action 'move_sidebar_button' option 'delete'}}><span class='glyphicon glyphicon-trash'></span></button>
-                </span>
-                <span style="cursor: pointer; margin-top: 10px; display: inline-block; margin-left: 5px;" {{action "sidebar_button_settings" option}}>
-                  {{#if option.alert}}
-                    <span class="glyphicon glyphicon-bullhorn"></span>
-                  {{else if option.home_lock}}
-                    <span class="glyphicon glyphicon-home"></span>
-                  {{/if}}
-                  {{#if option.highlight_type}}
-                    <span class="glyphicon glyphicon-map-marker"></span>
-                  {{/if}}
-                  {{option.name}}
-                </span>
-                <span style="clear: both;"></span>
-              </li>
-            {{/each}}
-          </ul>
-          {{#if disabled_sidebar_options_or_prior_sidebar_boards}}
+          {{#unless editing_sidebar}}
+            <button class='btn btn-default' {{action 'edit_sidebar'}}>{{t "Edit Sidebar Links and Buttons" key='edit_sidebar_links_and_buttons'}}</button><br/>
+          {{else}}
             <p class="form-control-static">
-              <strong>Disabled</strong>
+              <strong>Active</strong>
             </p>
             <ul class="list-group">
-              {{#each disabled_sidebar_options as |option|}}
+              {{#each active_sidebar_options as |option|}}
                 <li class="list-group-item" style="height: 60px;">
-                  <img src={{option.image}} style="float: left; height: 40px; max-width: 40px;"/>
+                  <img src={{option.image}} style="float: left; height: 40px; max-width: 40px;"  {{action "sidebar_button_settings" option}}/>
                   <span style="float: right; margin-top: 5px;">
-                    <button class='btn btn-default btn-sm' title={{t "restore" key='restore'}} {{action 'move_sidebar_button' option 'restore'}} style={{if option.top 'visibility: hidden;' ''}}><span class='glyphicon glyphicon-arrow-up'></span></button>
+                    <button class='btn btn-default btn-sm' title={{t "move up" key='move_up'}} {{action 'move_sidebar_button' option 'up'}} style={{if option.top 'visibility: hidden;' ''}}><span class='glyphicon glyphicon-arrow-up'></span></button>
+                    <button class='btn btn-default btn-sm' title={{t "move down" key='move_down'}} {{action 'move_sidebar_button' option 'down'}}style={{if option.bottom 'visibility:hidden;' ''}}><span class='glyphicon glyphicon-arrow-down'></span></button>
+                    <button class='btn btn-default btn-sm' title={{t "remove" key='remove'}} {{action 'move_sidebar_button' option 'delete'}}><span class='glyphicon glyphicon-trash'></span></button>
                   </span>
-                  <span style="margin-top: 10px; display: inline-block; margin-left: 5px;">
+                  <span style="cursor: pointer; margin-top: 10px; display: inline-block; margin-left: 5px;" {{action "sidebar_button_settings" option}}>
                     {{#if option.alert}}
                       <span class="glyphicon glyphicon-bullhorn"></span>
+                    {{else if option.home_lock}}
+                      <span class="glyphicon glyphicon-home"></span>
+                    {{/if}}
+                    {{#if option.highlight_type}}
+                      <span class="glyphicon glyphicon-map-marker"></span>
                     {{/if}}
                     {{option.name}}
                   </span>
@@ -527,17 +509,47 @@
                 </li>
               {{/each}}
             </ul>
-            {{#if model.preferences.prior_sidebar_boards}}
-              {{#unless include_prior_sidebar_buttons}}
-                <a href="#" {{action 'include_prior_sidebar_buttons'}}>{{t "show prior sidebar links and buttons" key='show_prior_buttons'}}</a>
-              {{/unless}}
+            {{#if disabled_sidebar_options_or_prior_sidebar_boards}}
+              <p class="form-control-static">
+                <strong>Disabled</strong>
+              </p>
+              <ul class="list-group">
+                {{#each disabled_sidebar_options as |option|}}
+                  <li class="list-group-item" style="height: 60px;">
+                    <img src={{option.image}} style="float: left; height: 40px; max-width: 40px;"/>
+                    <span style="float: right; margin-top: 5px;">
+                      <button class='btn btn-default btn-sm' title={{t "restore" key='restore'}} {{action 'move_sidebar_button' option 'restore'}} style={{if option.top 'visibility: hidden;' ''}}><span class='glyphicon glyphicon-arrow-up'></span></button>
+                    </span>
+                    <span style="margin-top: 10px; display: inline-block; margin-left: 5px;">
+                      {{#if option.alert}}
+                        <span class="glyphicon glyphicon-bullhorn"></span>
+                      {{/if}}
+                      {{option.name}}
+                    </span>
+                    <span style="clear: both;"></span>
+                  </li>
+                {{/each}}
+              </ul>
+              {{#if model.preferences.prior_sidebar_boards}}
+                {{#unless include_prior_sidebar_buttons}}
+                  <a href="#" {{action 'include_prior_sidebar_buttons'}}>{{t "show prior sidebar links and buttons" key='show_prior_buttons'}}</a>
+                {{/unless}}
+              {{/if}}
             {{/if}}
-          {{/if}}
+          {{/unless}}
           <em>{{t "You can add any boards you find by finding them and selecting <span style='white-space: nowrap'>More -> Add to Sidebar</span>" key='add_to_sidebar_hint'}}</em>
         </div>
       </div>
     {{/unless}}
   {{/if}}
+  <div class="form-group">
+    <label for="enable_tags" class="col-sm-3 control-label">{{t "NFC Tags" key='nfc_tags'}}</label>
+    <div class="col-sm-5">
+      NFC Tags [program if writeable] [save a tag for offline]
+      {{bound-select select_class="form-control" select_id="vocalization_height" content=vocalizationHeightList selection=model.preferences.device.vocalization_height action=(action (mut model.preferences.device.vocalization_height)) }}
+    </div>
+  </div>
+
   <!-- keyboard shortcuts for actions/phrases, NFC tag reading/writing, abbreviations/message expansions -->
   <!-- at the same time, an option to have a text box instead of a sentence box, still with dropdown? -->
   <h2 style="margin: 50px 0 20px 0;">{{t "Device Preferences" key='device_preferences'}} ({{model.preferences.device.name}})</h2>

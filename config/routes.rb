@@ -144,6 +144,8 @@ Coughdrop::Application.routes.draw do
       post 'translate' => 'boards#translate'
       post 'swap_images' => 'boards#swap_images'
     end
+
+    resources :tags
     
     
     resources :users do

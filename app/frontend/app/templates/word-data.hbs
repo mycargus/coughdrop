@@ -82,6 +82,10 @@
           {{/if}}
         </dd>
       {{/if}}
+      <dt>Extras</dt>
+      <dd>
+        <button class='btn btn-default' {{action 'program_nfc'}}>{{t "Program NFC Tag" key='program_nfc_tag'}}</button>
+      </dd>
     </dl>
     {{#if part_of_speech}}
       {{#if app_state.currentUser.permissions.admin_support_actions}}
