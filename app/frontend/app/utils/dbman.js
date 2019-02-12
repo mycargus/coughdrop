@@ -67,7 +67,7 @@ var dbman = {
       other_index = 'tag_id';
     }
     if(other_index) {
-      return capabilities.dbman.find_all(store, index, key, function(list) {
+      return capabilities.dbman.find_all(store, other_index, key, function(list) {
         var oldest = null;
         list.forEach(function(item) {
           if(item.data && (!oldest || oldest.persisted < item.data.persisted)) {
@@ -673,7 +673,7 @@ var dbman = {
         keys.forEach(function(key) {
           var store = stores[key];
           tx.executeSql('CREATE TABLE IF NOT EXISTS ' + store.key + ' (id INTEGER PRIMARY KEY ASC, ref_id TEXT, data TEXT)', []);
-          tx.executeSql('CREATE INDEX ' + (store.key + '_id') + ' ON ' + store.key + ' (ref_id)', []);
+          tx.executeSql('CREATE INDEX IF NOT EXISTS ' + (store.key + '_id') + ' ON ' + store.key + ' (ref_id)', []);
         });
         tx.executeSql('DELETE FROM version');
         tx.executeSql('INSERT INTO version (version) VALUES (?)', [new_version]);

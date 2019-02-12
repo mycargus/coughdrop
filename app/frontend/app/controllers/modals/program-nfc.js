@@ -24,8 +24,10 @@ export default modal.ModalController.extend({
         _this.set('public', false);
       }
       if(button) {
-        tag.set('button', button);
-        _this.set('label', button.vocalization || button.label);
+        var btn = button.raw();
+        btn.image_url = button.get('image_url');
+        tag.set('button', btn);
+        _this.set('label', btn.vocalization || btn.label);
       } else {
         _this.set('label', _this.get('model.label') || "");
       }
@@ -93,7 +95,7 @@ export default modal.ModalController.extend({
             if(tag.size) {
               // Program in the label as well if there's room
               if(opts.uri.length + (_this.get('label') || '').length < tag.size * 0.85) {
-                tag.text = _this.get('label');
+                opts.text = _this.get('label');
               }
             }
             capabilities.nfc.write(opts).then(function() {
@@ -108,11 +110,8 @@ export default modal.ModalController.extend({
         runLater(function() {
           if(handled) { return; }
           handled = true;
-          capabilities.nfc.stop_listening('programming').then(function() {
-            _this.set('status', {read_timeout: true});
-          }, function() {
-            _this.set('status', {read_timeout: true});
-          });
+          capabilities.nfc.stop_listening('programming');
+          _this.set('status', {read_timeout: true});
         }, 10000);
       });
     }

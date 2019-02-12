@@ -42,7 +42,7 @@ var $board_canvas = null;
 var eat_events = function(event) {
   // on mobile, long presses result in unexpected selection issues.
   // This is an attempt to remedy, for Speak Mode at the very least.
- if(app_state.get('speak_mode') && capabilities.mobile && !modal.is_open()) {
+ if(!app_state.get('edit_mode') && capabilities.mobile && !modal.is_open()&& !buttonTracker.ignored_region(event)) {
     event.preventDefault();
  }
 };
@@ -475,6 +475,7 @@ var buttonTracker = EmberObject.extend({
     } else if(buttonTracker.buttonDown) {
       var elem_wrap = buttonTracker.track_drag(event);
       if(event.type == 'touchstart' || event.type == 'mousedown') {
+        event.long_press_target = event.target;
         buttonTracker.longPressEvent = event;
         runCancel(buttonTracker.track_long_press.later);
         runCancel(buttonTracker.track_short_press.later);
@@ -484,7 +485,7 @@ var buttonTracker = EmberObject.extend({
         if(buttonTracker.check('short_press_delay')) {
           buttonTracker.track_short_press.later = runLater(buttonTracker, buttonTracker.track_short_press, buttonTracker.short_press_delay);
         }
-      } else {
+      } else if(event.type == 'touchend' || event.type == 'mouseup' || !buttonTracker.longPressEvent || event.target != buttonTracker.longPressEvent.long_press_target) {
         buttonTracker.longPressEvent = null;
       }
       $('.drag_button.btn-danger').removeClass('btn-danger');
@@ -1578,6 +1579,8 @@ var buttonTracker = EmberObject.extend({
     var target = event && event.target;
     var result = !!(target && (
                       target.tagName == 'INPUT' ||
+                      target.tagName == 'SELECT' ||
+                      target.tagName == 'LABEL' ||
 //                      target.className == 'dropdown-backdrop' ||
                       target.className == 'modal' ||
                       target.className == 'modal-dialog'

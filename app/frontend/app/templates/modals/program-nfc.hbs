@@ -49,7 +49,7 @@
     {{else if status.error_saving}}
       <p class='text-dange'>{{t "Error Saving Tag" key='error_saving_tag'}}</p>
     {{else if status.error_writing}}
-      <p class='text-info'>{{t "Loading Tag Settings..." key='loading_tag_settings'}}</p>
+      <p class='text-info'>{{t "Error Writing to Tag" key='error_writing_to_tag'}}</p>
     {{else if status.read_timeout}}
       <p class='text-danger'>{{t "There was an error while trying to write data to the tag" key='error_writing_to_tag'}}</p>
     {{else if status.programming}}

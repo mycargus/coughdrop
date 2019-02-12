@@ -593,7 +593,7 @@ export default Controller.extend({
     },
     clear_nfc_tags: function() {
       this.set('model.preferences.tag_ids', []);
-    }
+    },
     edit_sidebar: function() {
       this.set('editing_sidebar', true);
     },
