@@ -10,6 +10,7 @@ import modal from '../../utils/modal';
 import speecher from '../../utils/speecher';
 import persistence from '../../utils/persistence';
 import Button from '../../utils/button';
+import {set as emberSet} from '@ember/object';
 
 export default Controller.extend({
   speecher: speecher,
@@ -352,10 +353,10 @@ export default Controller.extend({
   enable_alternate_voice: function() {
     var alt = this.get('model.preferences.device.alternate_voice') || {};
     if(alt.enabled && alt.for_scanning === undefined && alt.for_fishing === undefined && alt.for_buttons === undefined) {
-      alt.for_scanning = true;
+      emberSet(alt, 'for_scanning', true);
     }
     if(alt.for_scanning || alt.for_fishing || alt.for_buttons) {
-      alt.enabled = true;
+      emberSet(alt, 'enabled', true);
     }
     this.set('model.preferences.device.alternate_voice', alt);
   }.observes('model.preferences.device.alternate_voice.enabled', 'model.preferences.device.alternate_voice.for_scanning', 'model.preferences.device.alternate_voice.for_fishing', 'model.preferences.device.alternate_voice.for_buttons'),
@@ -381,6 +382,14 @@ export default Controller.extend({
   audio_target_available: function() {
     return capabilities.installed_app && (capabilities.system == 'iOS' || capabilities.system == 'Android');
   }.property(),
+  update_can_record_tags: function() {
+    var _this = this;
+    capabilities.nfc.available().then(function(res) {
+      _this.set('can_record_tags', res);
+    }, function() {
+      _this.set('can_record_tags', false);
+    });
+  }.observes('model.id'),
   needs: 'application',
   actions: {
     plus_minus: function(direction, attribute) {
@@ -524,7 +533,7 @@ export default Controller.extend({
         var post = active.slice(button.idx + 1);
         var prior = [].concat(this.get('model.preferences.prior_sidebar_boards') || []);
         prior.push(button);
-        prior = prior.uniq(function(o) { return o.alert ? 'alert' : o.key; });
+        prior = prior.uniq(function(o) { return o.special ? (o.alert + "_" + o.action + "_" + o.arg) : o.key; });
         this.set('model.preferences.prior_sidebar_boards', prior);
         this.set('model.preferences.sidebar_boards', pre.concat(post));
       } else if(direction == 'restore') {

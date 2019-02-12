@@ -1,6 +1,7 @@
 import modal from '../../utils/modal';
 import { later as runLater } from '@ember/runloop';
 import capabilities from '../../utils/capabilities';
+import CoughDrop from '../../app';
 
 export default modal.ModalController.extend({
   opening: function() {
@@ -13,6 +14,9 @@ export default modal.ModalController.extend({
     var tag = this.store.createRecord('tag');
     var _this = this;
     _this.set('status', {loading: true});
+    _this.set('label', null);
+    _this.set('button', null);
+    _this.set('update_tag_id', null);
     capabilities.nfc.available().then(function(res) {
       if(res.can_write) {
         _this.set('can_write', true);
@@ -24,6 +28,9 @@ export default modal.ModalController.extend({
         _this.set('label', button.vocalization || button.label);
       } else {
         _this.set('label', _this.get('model.label') || "");
+      }
+      if(_this.get('model.listen')) {
+        _this.send('program');
       }
       tag.save().then(function() {
         _this.set('status', null);
@@ -38,33 +45,58 @@ export default modal.ModalController.extend({
   not_programmable: function() {
     return !!(this.get('status.loading') || this.get('status.error') || this.get('status.no_nfc') || this.get('status.saving') || this.get('status.programming'));
   }.property('status.loading', 'status.error', 'status.no_nfc', 'status.saving', 'status.programming'),
+  save_tag: function(tag_id) {
+    var _this = this;
+    var tag_object = _this.get('tag');
+    tag_object.set('tag_id', tag_id);
+    tag_object.set('public', !!_this.get('public'));
+    _this.set('status', {saving: true});
+    tag_object.save().then(function() {
+      _this.set('status', {saved: true});
+    }, function() {
+      _this.set('status', {error_saving: true});
+    });
+  },
   actions: {
+    save: function() {
+      var _this = this;
+      if(_this.get('label')) {
+        _this.save_tag(_this.get('update_tag_id'));
+      }
+    },
     program: function() {
       var _this = this;
       _this.set('status', {programming: true});
       var tag_object = _this.get('tag');
-      capabilities.prompt().then(function() {
+      capabilities.nfc.prompt().then(function() {
         var handled = false;
         capabilities.nfc.listen('programming', function(tag) {
           if(handled) { return; }
           handled = true;
-          var finish_tag = function() {
-            tag_object.set('tag_id', JSON.stringify(tag.id));
-            tag_object.set('public', !!_this.get('public'));
-            tag_object.set('label', _this.get('label'));
-            _this.set('status', {saving: true});
-            tag_object.save().then(function() {
-              _this.set('status', {saved: true});
+          if(!_this.get('label') && _this.get('model.listen')) {
+            CoughDrop.store.findRecord('tag', tag.id).then(function(tag_object) {
+              // save tag to user and close
             }, function() {
-              _this.set('status', {error_saving: true});
-            })
+              _this.set('update_tag_id', JSON.stringify(tag.id));
+              // prompt for label and save
+            });
+            // ajax lookup
+          }
+          var finish_tag = function() {
+            _this.save_tag(JSON.stringify(tag.id));
             capabilities.nfc.end_prompt();
           };
           if(tag.writeable && _this.get('write_tag')) {
-            capabilities.nfc.write({
-              text: _this.get('label'),
+            var opts = {
               uri: "cough://tag/" + tag_object.get('id')
-            }).then(function() {
+            };
+            if(tag.size) {
+              // Program in the label as well if there's room
+              if(opts.uri.length + (_this.get('label') || '').length < tag.size * 0.85) {
+                tag.text = _this.get('label');
+              }
+            }
+            capabilities.nfc.write(opts).then(function() {
               finish_tag();
             }, function() {
               _this.set('status', {error_writing: true});

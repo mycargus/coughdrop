@@ -1235,6 +1235,7 @@ var app_state = EmberObject.extend({
   handle_tag: function(tag) {
     if(!app_state.get('speak_mode')) { return; }
     var text_fallback = function(text) {
+      if(!text) { return; }
       var obj = {
         label: text,
         vocalization: text,
@@ -1247,16 +1248,28 @@ var app_state = EmberObject.extend({
       app_state.activate_button({}, obj);
     };
     if(tag.uri) {
-      // 1. local check for tag details
-      // 2. remote call for tag details
-      // 3. local check for tag details from home button set
-      // 4. speak any text defined
-      text_fallback(tag.text);
+      var tag_id = tag.uri.match(/^cough:\/\/tag\/([^\/]+)$/)[1];
+      tag_id = tag_id || tag.id;
+      if(tag_id) {
+        // check local or remote for matching tag
+        CoughDrop.store.findRecord('tag', tag_id).then(function(tag_object) {
+          if(tag_object.get('button')) {
+            var button = Button.create(tag_object.get('button'));
+            app_state.controller.activateButton(button, {board: editManager.controller.get('model')});
+          } else {
+            text_fallback(tag_object.get('label'));
+          }
+        }, function(err) { 
+          // if no tag round, fall back to text
+          text_fallback(tag.text); 
+        });
+      } else {
+        text_fallback(tag.text);
+      }
     } else if(tag && tag.text && tag.text.match(/^\"/) && tag.text.match(/\"$/)) {
       // speak the tag's text
       text_fallback(tag.text.slice(1, tag.text.length - 2));
     }
-
   },
   speak_mode: function() {
     return !!(stashes.get('current_mode') == 'speak' && this.get('currentBoardState'));

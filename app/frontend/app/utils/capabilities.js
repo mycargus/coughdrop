@@ -249,7 +249,7 @@ var capabilities;
             });
             window.nfc.addTagDiscoveredListener(listener);
             if(capabilities.system == 'Android') {
-              window.nfc.readerMode(nfc.FLAG_READER_NFC_A | nfc.FLAG_READER_NFC_B | nfc.FLAG_READER_NO_PLATFORM_SOUNDS, function(tag) {
+              window.nfc.readerMode(window.nfc.FLAG_READER_NFC_A | window.nfc.FLAG_READER_NFC_B | window.nfc.FLAG_READER_NO_PLATFORM_SOUNDS, function(tag) {
                 if(navigator && navigator.vibrate) {
                   navigator.vibrate(200);
                 }
@@ -1456,7 +1456,7 @@ var capabilities;
 
     var promise = capabilities.mini_promise();
 
-    var setup = capabilities.dbman.setup_database(key, 2);
+    var setup = capabilities.dbman.setup_database(key, 3);
     setup.then(function(db) {
       // Don't proceed with app initialization until db_connect completes, ensuring
       // stashes is populated with whatever data is available.

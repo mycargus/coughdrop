@@ -1160,6 +1160,9 @@ var persistence = EmberObject.extend({
         // Step 6: Push stored logs
         sync_promises.push(persistence.sync_logs(user));
 
+        // Step 7: Sync user tags
+        sync_promises.push(persistence.sync_tags(user));
+
         // reject on any errors
         RSVP.all_wait(sync_promises).then(function() {
           // Step 4: If online
@@ -1275,6 +1278,34 @@ var persistence = EmberObject.extend({
     });
     this.set('sync_promise', sync_promise);
     return sync_promise;
+  },
+  sync_tags: function(user) {
+    return RSVP.new(function(resolve, reject) {
+      var tag_ids = user.get('preferences.tag_ids') || [];
+      var next_tag = function() {
+        var tag_id = tag_ids.pop();
+        if(tag_id) {
+          persistence.findRecord('tag', tag_id).then(function(tag) {
+            if(tag.get('button.image_url')) {
+              persistence.store_url(tag.get('button.image_url'), 'image', false, false).then(function() {
+                runLater(next_tag, 500);
+              }, function() {
+                runLater(next_tag, 500);
+                // TODO: handle tag storage errors as warnings, not failures
+              });
+            } else {
+              runLater(next_tag, 500);
+            }
+          }, function(err) {
+            runLater(next_tag, 500);
+            // TODO: handle tag storage errors as warnings, not failures
+          });
+        } else {
+          resolve();
+        }
+      };
+      runLater(next_tag, 500);
+    });
   },
   sync_logs: function(user) {
     return persistence.find('settings', 'bigLogs').then(function(res) {

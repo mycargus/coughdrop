@@ -3,7 +3,9 @@ import capabilities from './capabilities';
 var stores = {
   board: {key: 'board', key_path: 'id', indexes: ['key', 'tmp_key', 'changed']},
   image: {key: 'image', key_path: 'id', indexes: ['changed']},
+  video: {key: 'video', key_path: 'id'},
   buttonset: {key: 'buttonset', key_path: 'id', indexes: []},
+  tag: {key: 'tag', key_path: 'id', indexes: ['tag_id']},
   sound: {key: 'sound', key_path: 'id', indexes: ['changed']},
   user: {key: 'user', key_path: 'id', indexes: ['key', 'changed']},
   settings: {key: 'settings', key_path: 'storageId', indexes: ['changed']},
@@ -56,23 +58,15 @@ var dbman = {
     success = success || capabilities.dbman.success;
     error = error || capabilities.dbman.error;
 
+    var other_index = null;
     if(store == 'board' && key && key.match(/\//)) {
-      var index = key.match(/^tmp_/) ? 'tmp_key' : 'key';
-      return capabilities.dbman.find_all(store, index, key, function(list) {
-        var oldest = null;
-        list.forEach(function(item) {
-          if(item.data && (!oldest || oldest.persisted < item.data.persisted)) {
-            oldest = item.data;
-          }
-        });
-        if(oldest) {
-          success(oldest);
-        } else {
-          error({error: "no record found for " + store + ":" + key});
-        }
-      }, error);
+      other_index = key.match(/^tmp_/) ? 'tmp_key' : 'key';
     } else if(store == 'user' && key && !key.match(/^\d+_\d+$/)) {
-      var index = 'key';
+      other_index = 'key';
+    } else if(store == 'tag' && key && !key.match(/^\d+_\d+_/)) {
+      other_index = 'tag_id';
+    }
+    if(other_index) {
       return capabilities.dbman.find_all(store, index, key, function(list) {
         var oldest = null;
         list.forEach(function(item) {
@@ -87,6 +81,7 @@ var dbman = {
         }
       }, error);
     }
+
     return capabilities.dbman.find_one(store, key, success, error);
   },
   uniqify_key: function(key, store, index) {

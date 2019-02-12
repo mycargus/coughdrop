@@ -8,12 +8,17 @@
     <span class='glyphicon glyphicon-tag' style='font-size: 50px; padding-right: 10px; float: left;'></span>
     <p>
       {{t "Using NFC tags, you can connect CoughDrop buttons and phrases to real-world items by attaching an NFC tag to them!" key='nfc_explainer'}}
-      {{#if model.button}}
+      {{#if model.listen}}
+        {{t "You can save already-programmed tags to your account so that they will be saved so they can work even when this device is offline." key='program_offline_support'}}
+      {{else if model.button}}
         {{t "To connect this button to a tag, hit \"Program\" and then bring the tag up against the device's sensor." key='program_button_explainer'}}
       {{else}}
         {{t "To program this phrase onto a tag, hit \"Program\" and then bring the tag up against the device's sensor." key='program_label_explainer'}}
       {{/if}}
     </p>
+    {{#if update_tag_id}}
+      <p class='text-info'>{{t "There is no available settings for this tag. You can program the tag by entering a message below, or by finding an existing button and programming it using the \"Word Data\" popup" key='tag_not_programmed'}}</p>
+    {{/if}}
 
     <div style='max-width: 300px; margin: 20px auto;'>
       {{#if model.button}}
@@ -53,10 +58,12 @@
 
 
     {{#if can_write}}
-      <label>
-        {{input type='checkbox' checked=write_tag}}
-        {{t "Write data to the NFC tag if possible" key='write_data_to_nfc_tag'}}
-      </label>
+      {{#unless update_tag_id}}
+        <label>
+          {{input type='checkbox' checked=write_tag}}
+          {{t "Write data to the NFC tag if possible" key='write_data_to_nfc_tag'}}
+        </label>
+      {{/unless}}
     {{/if}}
     <label>
       {{input type='checkbox' checked=public}}
@@ -64,13 +71,17 @@
     </label>
   </div>
   <div class="modal-footer">
-    <button class='btn btn-primary' disabled={{not_programmable}}>
-      {{#if status.programming}}
-        {{t "Waiting for Tag..." key='waiting_for_tag'}}
-      {{else}}
-        {{t "Program Tag" key='program_tag'}}
-      {{/if}}
-    </button>
+    {{#if update_tag_id}}
+      <button class='btn btn-primary' {{action 'save'}}>{{t "Update Tag" key='update_tag'}}</button>
+    {{else}}
+      <button class='btn btn-primary' disabled={{not_programmable}} {{action 'program'}}>
+        {{#if status.programming}}
+          {{t "Waiting for Tag..." key='waiting_for_tag'}}
+        {{else}}
+          {{t "Program Tag" key='program_tag'}}
+        {{/if}}
+      </button>
+    {{/if}}
     <button class='btn btn-default' {{action 'close'}}>{{t "Close" key='close'}}</button>
   </div>
 {{/modal-dialog}}

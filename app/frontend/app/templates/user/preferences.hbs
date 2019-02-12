@@ -536,21 +536,49 @@
                 {{/unless}}
               {{/if}}
             {{/if}}
+            <div>
+              <span style='display: inline-block; width: calc(100% - 65px);'>
+                {{input type='text' class='form-control' value=new_sidebar_board placeholder="add board key/action"}}
+              </span>
+              <span style='display: inline-block; width: 60px;'>
+                <button class='btn btn-default' {{action 'add_sidebar_board' new_sidebar_board}}>{{t "Add" key='add'}}</button>
+              </span>
+              {{#if add_sidebar_board_error}}
+                <p class='text-danger'>{{add_sidebar_board_error}}</p>
+              {{/if}}
+            </div>
           {{/unless}}
           <em>{{t "You can add any boards you find by finding them and selecting <span style='white-space: nowrap'>More -> Add to Sidebar</span>" key='add_to_sidebar_hint'}}</em>
         </div>
       </div>
     {{/unless}}
   {{/if}}
-  <div class="form-group">
-    <label for="enable_tags" class="col-sm-3 control-label">{{t "NFC Tags" key='nfc_tags'}}</label>
-    <div class="col-sm-5">
-      NFC Tags [program if writeable] [save a tag for offline]
-      {{bound-select select_class="form-control" select_id="vocalization_height" content=vocalizationHeightList selection=model.preferences.device.vocalization_height action=(action (mut model.preferences.device.vocalization_height)) }}
+  {{#if advanced}}
+    <div class="form-group">
+      <label for="enable_tags" class="col-sm-3 control-label">{{t "NFC Tags" key='nfc_tags'}}</label>
+      <div class="col-sm-5">
+        <p class='form-control-static'>
+          {{#if model.preferences.tag_ids}}
+            {{t "tag" count=model.preferences.tag_ids.length key='n_tags'}} {{t "saved" key='saved'}}
+          {{else}}
+            {{t "No tags saved" key='no_tags_saved'}}
+          {{/if}}
+        </p>
+        {{#if can_record_tags}}
+          <button class='btn btn-default' {{action 'program_tag'}}>{{t "Save New Tag" key='save_new_tag'}}</button>
+        {{/if}}
+        <button class='btn btn-default' {{action 'clear_nfc_tags'}}>{{t "Clear Saved Tags" key='clear_tags'}}</button>
+      </div>
     </div>
-  </div>
+  {{else}}
+    <div class="form-group">
+      <div class="col-sm-5 col-sm-offset-3">
+        <a href="#" {{action 'toggle_advanced'}}>{{t "more options" key='more_options'}}</a>
+      </div>
+    </div>
+  {{/if}}
 
-  <!-- keyboard shortcuts for actions/phrases, NFC tag reading/writing, abbreviations/message expansions -->
+  <!-- keyboard shortcuts for actions/phrases, abbreviations/message expansions -->
   <!-- at the same time, an option to have a text box instead of a sentence box, still with dropdown? -->
   <h2 style="margin: 50px 0 20px 0;">{{t "Device Preferences" key='device_preferences'}} ({{model.preferences.device.name}})</h2>
   <div class="form-group">
