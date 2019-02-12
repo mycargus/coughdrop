@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2019.02.12c";
+window.app_version = "2019.02.12d";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -9578,11 +9578,11 @@ return t},listen:function(e,t){var n=a.mini_promise()
 if(window.nfc&&window.nfc.addNdefListener&&window.ndef){var s=function(e){if("ndef"==e.type&&e.tag){var n={type:"ndef",id:e.tag.id,size:e.tag.maxSize}
 if(e.tag.isWritable&&(n.writeable=!0),e.tag.ndefMessage){for(var s=0;s<e.tag.ndefMessage.length;s++){var a=String.fromCharCode.apply(null,e.tag.ndefMessage[s].type),o=String.fromCharCode.apply(null,e.tag.ndefMessage[s].payload)
 "T"!=a||n.text?"U"!=a||n.uri||(n.uri=o):(n.text_locale=o.slice(0,3),n.text=o.slice(3))}console.log("NFC tag",n,e.tag),t(n)}else console.log("empty NFC tag",n,e.tag),t()}else n.empty=!0,console.log("Non-NFC tag",e.type,e.tag),t({type:e.type,id:e.tag.id})}
-e=e||"whatever",a.nfc.listeners=a.nfc.listeners||{},a.nfc.listeners[e]=a.nfc.listeners[e]||[],a.nfc.listeners[e].push(s),window.nfc.addNdefListener(s,function(){},function(){n.reject({error:"nfc listen failed"})}),window.nfc.addTagDiscoveredListener(s),"Android"==a.system&&("programming"==e?a.nfc.reader_mode&&window.nfc.disableReaderMode(function(){a.nfc.reader_mode=!1}):a.nfc.start_reader_mode(function(){n.reject({error:"NFC reader mode failed"})}))}else n.reject({error:"no NFC support found"})
+e=e||"whatever",a.nfc.listeners=a.nfc.listeners||{},a.nfc.listeners[e]=a.nfc.listeners[e]||[],a.nfc.listeners[e].push(s),"Android"==a.system&&"programming"==e&&a.nfc.reader_mode&&(console.log("READER MODE: disable for programming"),window.nfc.disableReaderMode(function(){a.nfc.reader_mode=!1})),window.nfc.addNdefListener(s,function(){},function(){n.reject({error:"nfc listen failed"})}),window.nfc.addTagDiscoveredListener(s),"Android"!=a.system||"programming"==e||a.nfc.reader_mode||(console.log("READER MODE: enable"),a.nfc.start_reader_mode(function(){n.reject({error:"NFC reader mode failed"})}))}else n.reject({error:"no NFC support found"})
 return n},start_reader_mode:function(e){a.nfc.reader_mode||window.nfc.readerMode(window.nfc.FLAG_READER_NFC_A|window.nfc.FLAG_READER_NFC_B|window.nfc.FLAG_READER_NO_PLATFORM_SOUNDS,function(e){for(var t in a.nfc.reader_mode=!0,navigator&&navigator.vibrate&&navigator.vibrate(200),a.nfc.listeners)(a.nfc.listeners[t]||[]).forEach(function(t){t({type:"ndef",tag:e})})},function(){e&&e()})},stop_listening:function(e){e=e||"whatever",a.nfc.listeners=a.nfc.listeners||{},a.nfc.listeners[e]=a.nfc.listeners[e]||[],(a.nfc.listeners[e]||[]).forEach(function(e){window.nfc.removeNdefListener(e),window.nfc.removeTagDiscoveredListener(e)}),a.nfc.listeners[e]=[]
 var t=!0
 for(var n in a.nfc.listeners)a.nfc.listeners[n]&&a.nfc.listeners[n].length>0&&(t=!1)
-"Android"==a.system&&t?window.nfc.disableReaderMode(function(){a.reader_mode=!1}):t||"programming"!=e||a.nfc.start_reader_mode()}},output:{set_target_exec:function(e){var t=a.mini_promise()
+"Android"==a.system&&t?(console.log("READER MODE: disable all empty"),window.nfc.disableReaderMode(function(){a.reader_mode=!1})):t||"programming"!=e||(console.log("READER MODE: enable since done programming"),a.nfc.start_reader_mode())}},output:{set_target_exec:function(e){var t=a.mini_promise()
 return window.cordova&&window.cordova.exec&&a.installed_app&&("Android"==a.system||"iOS"==a.system)?window.cordova.exec(function(e){var n=e&&e.delay||0
 setTimeout(function(){t.resolve(e)},n)},function(e){t.reject({error:"cordova exec failed"})},"CoughDropMisc","setAudioMode",[e]):t.reject({error:"no target handling defined"}),t},set_target:function(e){if("headset_or_earpiece"==e){var t=a.mini_promise()
 return a.output.get_targets().then(function(e){var n="earpiece"
@@ -11007,8 +11007,8 @@ var d,u=[],c=[]
 for(a=0;a<i;++a)u[a]=a,c[a]=t.charCodeAt(a)
 for(u[i]=i,a=0;a<l;++a){for(s=a+1,o=0;o<i;++o)n=s,d=e.charCodeAt(a)===c[o],(s=u[o]+(d?0:1))>(r=n+1)&&(s=r),s>(r=u[o+1]+1)&&(s=r),u[o]=n
 u[o]=s}return s}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+a66f0b88"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+a66f0b88"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+122cc2db"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+122cc2db"})
 ;
 
 
