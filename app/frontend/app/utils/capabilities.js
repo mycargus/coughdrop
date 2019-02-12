@@ -153,6 +153,44 @@ var capabilities;
           return JSON.parse(obj);
         }
       },
+      apps: {
+        all: function() {
+          var promise = capabilities.mini_promise();
+          if(window.cordova && window.cordova.exe && capabilities.system == 'Android' && capabilities.installed_app) {
+            window.cordova.exec(function(list) {
+              promise.resolve(list);
+            }, function(err) {
+              promise.reject(err);
+            }, 'CoughDropMisc', 'listApps', []);
+          } else { 
+            promise.reject({error: 'app list not available on this system'});
+          }
+          return promise;
+        },
+        available: function(key) {
+          return capabilities.apps.launch(key, 'canLaunch');
+        },
+        launch: function(key, method) {
+          method = method || 'launch';
+          var promise = capabilities.mini_promise();
+          if(window.plugins.launcher[method]) {
+            if(key.match(/\/\//)) {
+              window.plugins.launcher[method]({uri: key}, function() { promise.resolve(); }, function(err) {
+                promise.reject({error: err});
+              })
+            } else if(capabilities.system == 'Android') {
+              window.plugins.launcher[method]({packageName: key}, function() { promise.resolve(); }, function(err) {
+                promise.reject({error: err});
+              });
+            } else {
+              promise.reject({error: 'no launch option found'});
+            }
+          } else {
+            promise.reject({error: 'launching not available on this system'});
+          }
+          return promise;
+        }
+      },
       nfc: {
         available: function() {
           var promise = capabilities.mini_promise();

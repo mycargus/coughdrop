@@ -16,6 +16,10 @@
                 <span class="glyphicon glyphicon-bullhorn"></span>
                 {{t "Play Alert Sound" key='play_alert_sound'}}
               </a>
+            {{else if model.button.special}}
+              {{t "Special Action:" key='special_action'}}
+              {{model.button.action}}
+              {{#if model.button.arg}}({{model.button.arg}}){{/if}}
             {{else}}
               {{t "Unrecognized Button Type" key='unrecognized_button_type'}}
             {{/if}}

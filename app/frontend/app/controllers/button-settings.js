@@ -437,7 +437,7 @@ export default modal.ModalController.extend({
     var parts = voc.split(/\s*&&\s*/);
     var list = [];
     var any_basic = false;
-    var specials = [':clear', ':home', ':back', ':backspace', ':beep', ':speak', ':hush'];
+    var specials = Button.special_actions;
     parts.forEach(function(part) {
       if(specials.indexOf(part) >= 0) {
         var special = "unknown";

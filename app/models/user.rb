@@ -729,8 +729,18 @@ class User < ActiveRecord::Base
         result.push({
           'name' => board['name'] || 'Alert',
           'alert' => true,
+          'special' => true,
           'image' => board['image'] || 'https://s3.amazonaws.com/opensymbols/libraries/arasaac/to%20sound.png'
         })
+      elsif board['special'] && board['action']
+        opts = {
+          'name' => board['name'] || board['action'],
+          'special' => true,
+          'action' => board['action'],
+          'image' => board['image'] || "https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/touch_437_g.svg"
+        }
+        opts['arg'] = board['arg'] if board['arg'] != nil
+        result.push(opts);
       else
         record = Board.find_by_path(board['key']) rescue nil
         allowed = record && record.allows?(self, 'view')
@@ -811,7 +821,7 @@ class User < ActiveRecord::Base
     if result.length == 0
       self.settings['preferences'].delete('sidebar_boards')
     else
-      result = result.uniq{|b| b['alert'] ? 'alert' : b['key'] }
+      result = result.uniq{|b| b['special'] ? (b['alert'].to_s + "_" + b['action'].to_s + "_" + b['arg'].to_s) : b['key'] }
       self.settings['preferences']['sidebar_boards'] = result
       self.settings['preferences']['prior_sidebar_boards'] ||= []
       self.settings['preferences']['prior_sidebar_boards'] += result
@@ -835,7 +845,7 @@ class User < ActiveRecord::Base
       {name: "Inflections", key: 'example/inflections', image: 'https://s3.amazonaws.com/opensymbols/libraries/arasaac/verb.png', home_lock: false},
       {name: "Keyboard", key: 'example/keyboard', image: 'https://s3.amazonaws.com/opensymbols/libraries/noun-project/Computer%20Keyboard-19d40c3f5a.svg', home_lock: false},
       {name: 'Social', key: 'mbaud12/senner-baud-greetings', image: 'https://s3.amazonaws.com/opensymbols/libraries/arasaac/greet_2.png', home_lock: false},
-      {name: "Alert", alert: true, image: 'https://s3.amazonaws.com/opensymbols/libraries/arasaac/to%20sound.png'}
+      {name: "Alert", special: true, alert: true, image: 'https://s3.amazonaws.com/opensymbols/libraries/arasaac/to%20sound.png'}
     ]
   end
 

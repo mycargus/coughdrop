@@ -808,6 +808,12 @@
           <img src={{board.image}} class='pic' alt=""/>
           {{board.name}}
         </a>
+      {{else if board.special}}
+        <a href="#" {{action 'special' board}} class='sidebar_item'>
+          <span class="glyphicon glyphicon-flash"></span>
+          <img src={{board.image}} class='pic' alt=""/>
+          {{board.name}}
+        </a>
       {{else}}
         <a href={{board.key}} class='sidebar_item' {{action 'jump' board.key 'sidebar' board}} data-key={{board.key}}>
           {{#if board.home_lock}}

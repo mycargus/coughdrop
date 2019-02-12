@@ -588,8 +588,68 @@ export default Controller.extend({
       list.push("remove:" + str);
       this.set('model.preferences.requested_phrase_changes', list);
     },
+    program_tag: function() {
+      modal.open('modals/program-nfc', {listen: true});
+    },
+    clear_nfc_tags: function() {
+      this.set('model.preferences.tag_ids', []);
+    }
     edit_sidebar: function() {
       this.set('editing_sidebar', true);
+    },
+    add_sidebar_board: function(key) {
+      var _this = this;
+      _this.set('add_sidebar_board_error', null);
+      var add_board = function(opts) {
+        var boards = [].concat(_this.get('model.preferences.sidebar_boards') || []);
+        boards.unshift(opts);
+        _this.set('model.preferences.sidebar_boards', boards);
+        _this.set('new_sidebar_board', null);
+      };
+      if(key.match(/[a-zA-Z0-9_-]+\/[a-zA-Z0-9_:%-]+|\d+_\d+/)) {
+        // try to find board, error if not available
+        _this.store.findRecord('board', key).then(function(board) {
+          add_board({
+            name: board.get('name'),
+            key: board.get('key'),
+            image: board.get('image_url')
+          });
+        }, function(err) {
+          _this.set('add_sidebar_board_error', i18n.t('board_not_found', "No board found with that key"));
+        });
+      } else if(key.match(/^:\w+/)) {
+        var action = key.match(/^[^\(]+/)[0];
+        var arg = null;
+        if(action) {
+          var arg = key.slice(action.length + 1, key.length - 1);
+        }
+        var image_url = "https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/touch_437_g.svg";
+        if(Button.special_actions.indexOf(action) != -1) {
+          add_board({
+            name: action.slice(1),
+            special: true,
+            image: image_url,
+            action: action
+          });
+          image_url = "https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/Gear-46ef6dda86.svg";
+        } else if(action == ':app') {
+          var app_name = 'app';
+          if(arg.match(/eyetech/)) {
+            app_name = 'eyetech';
+            image_url = "https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/Eye-c002f4a036.svg";
+          }
+          add_board({
+            name: app_name,
+            special: true,
+            image: image_url,
+            action: action,
+            arg: arg
+          });
+        }
+      } else {
+        _this.set('add_sidebar_board_error', i18n.t('bad_sidebar_board_key', "Unrecogonized value, please enter a board key or action code"));
+      }
+
     }
   }
 });

@@ -453,6 +453,27 @@ export default Controller.extend({
       utterance.alert({button_triggered: true});
       this.send('hide_temporary_sidebar');
     },
+    special: function(opts) {
+      if(opts.action == ':app') {
+        if(capabilities.installed_app && (capabilities.system == 'iOS' || capabilities.system == 'Android')) {
+          capabilities.apps.launch(opts.arg).then(null, function(err) {
+            modal.error(i18n.t('app_launch_failed', "App failed to launch"), true);
+          });
+        } else {
+          modal.error(i18n.t('no_app_launches', "App launches not available in this program"), true);
+        }
+      } else {
+        var obj = {
+          label: opts.name,
+          vocalization: opts.action,
+          prevent_return: true,
+          button_id: null,
+          board: {id: app_state.get('currentBoardState.id'), key: app_state.get('currentBoardState.key')},
+          type: 'speak'
+        };
+        app_state.activate_button(obj, obj);
+      }
+    },
     setSpeakModeUser: function(id, type) {
       app_state.set_speak_mode_user(id, false, type == 'modeling');
     },

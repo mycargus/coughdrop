@@ -752,6 +752,7 @@ Button.resource_from_url = function(url) {
   }
   return null;
 };
+Button.special_actions = [':clear', ':home', ':back', ':backspace', ':beep', ':speak', ':hush'];
 
 Button.set_attribute = function(button, attribute, value) {
   emberSet(button, attribute, value);

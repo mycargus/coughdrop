@@ -11,6 +11,7 @@ export default Route.extend({
   setupController: function(controller, model) {
     model.set('watch_cookies', true);
     controller.set('model', model);
+    controller.set('add_sidebar_board_error', null);
     controller.check_core_words();
     controller.check_voices_available();
     controller.set_auto_sync();
