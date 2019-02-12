@@ -1280,7 +1280,7 @@ var persistence = EmberObject.extend({
     return sync_promise;
   },
   sync_tags: function(user) {
-    return new RSVP(function(resolve, reject) {
+    return new RSVP.Promise(function(resolve, reject) {
       var tag_ids = user.get('preferences.tag_ids') || [];
       var next_tag = function() {
         var tag_id = tag_ids.pop();

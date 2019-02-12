@@ -42,9 +42,10 @@ var $board_canvas = null;
 var eat_events = function(event) {
   // on mobile, long presses result in unexpected selection issues.
   // This is an attempt to remedy, for Speak Mode at the very least.
- if(!app_state.get('edit_mode') && capabilities.mobile && !modal.is_open()&& !buttonTracker.ignored_region(event)) {
+  var eatable = app_state.get('speak_mode') || (!app_state.get('edit_mode') && $(event.target).closest('.button'));
+  if(eatable && capabilities.mobile && !modal.is_open()&& !buttonTracker.ignored_region(event)) {
     event.preventDefault();
- }
+  }
 };
 window.addEventListener('touchforcechange', function() {
   alert('uo');
