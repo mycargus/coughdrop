@@ -307,8 +307,8 @@ var capabilities;
         },
         start_reader_mode: function(err) {
           if(capabilities.nfc.reader_mode) { return; }
+          capabilities.nfc.reader_mode = true;
           window.nfc.readerMode(window.nfc.FLAG_READER_NFC_A | window.nfc.FLAG_READER_NFC_B | window.nfc.FLAG_READER_NO_PLATFORM_SOUNDS, function(tag) {
-            capabilities.nfc.reader_mode = true;
             if(navigator && navigator.vibrate) {
               navigator.vibrate(200);
             }
@@ -317,7 +317,10 @@ var capabilities;
                 l({type: 'ndef', tag: tag});
               });
             }
-          }, function() { if(err) { err(); } });
+          }, function() { 
+            capabilities.nfc.reader_mode = false;
+            if(err) { err(); } 
+          });
         },
         stop_listening: function(ref) {
           ref = ref || "whatever";
