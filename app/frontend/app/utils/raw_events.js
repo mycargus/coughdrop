@@ -42,7 +42,7 @@ var $board_canvas = null;
 var eat_events = function(event) {
   // on mobile, long presses result in unexpected selection issues.
   // This is an attempt to remedy, for Speak Mode at the very least.
-  var eatable = app_state.get('speak_mode') || (!app_state.get('edit_mode') && $(event.target).closest('.button'));
+  var eatable = app_state.get('speak_mode') || (!app_state.get('edit_mode') && $(event.target).closest('.board .button').length > 0);
   if(eatable && capabilities.mobile && !modal.is_open()&& !buttonTracker.ignored_region(event)) {
     event.preventDefault();
   }
@@ -486,8 +486,12 @@ var buttonTracker = EmberObject.extend({
         if(buttonTracker.check('short_press_delay')) {
           buttonTracker.track_short_press.later = runLater(buttonTracker, buttonTracker.track_short_press, buttonTracker.short_press_delay);
         }
-      } else if(event.type == 'touchend' || event.type == 'mouseup' || !buttonTracker.longPressEvent || event.target != buttonTracker.longPressEvent.long_press_target) {
-        buttonTracker.longPressEvent = null;
+      } else {
+        if(event.type == 'touchend' || event.type == 'mouseup' || !buttonTracker.longPressEvent || event.target != buttonTracker.longPressEvent.long_press_target) {
+          buttonTracker.longPressEvent = null;
+        } else if($(event.target).closest('.board .button').length == 0) {
+          buttonTracker.longPressEvent = null;
+        }
       }
       $('.drag_button.btn-danger').removeClass('btn-danger');
       $('.drag_button.btn-info').removeClass('btn-info');
