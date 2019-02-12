@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2019.02.12a";
+window.app_version = "2019.02.12b";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -10392,7 +10392,7 @@ l.push({user_id:u,manual:r,issues:s.length>0,finished:new Date,statuses:n,summar
 p.set("sync_progress",null),p.set("sync_status","failed"),p.set("sync_status_error",null),t.board_unauthorized?p.set("sync_status_error",o.default.t("board_unauthorized","One or more boards are private")):p.get("online")||p.set("sync_status_error",o.default.t("not_online","Must be online to sync"))
 var s=t&&t.error||"unspecified sync error",a=(n=n.uniq(function(e){return e.id}),[].concat(p.get("sync_log")||[]))
 a.push({user_id:u,manual:r,errored:!0,finished:new Date,statuses:n,summary:o.default.t("finised_without_errors","Error syncing %{user_id}: ",{user_id:u})+s}),p.set("last_sync_event_at",(new Date).getTime()),p.set("sync_log",a),t&&t.error&&i.default.error(t.error),console.log(t)}return Ember.RSVP.reject(t)})
-return this.set("sync_promise",m),m},sync_tags:function(e){return new Ember.RSVP(function(t,n){var s=e.get("preferences.tag_ids")||[]
+return this.set("sync_promise",m),m},sync_tags:function(e){return new Ember.RSVP.Promise(function(t,n){var s=e.get("preferences.tag_ids")||[]
 Ember.run.later(function e(){var n=s.pop()
 n?p.findRecord("tag",n).then(function(t){t.get("button.image_url")?p.store_url(t.get("button.image_url"),"image",!1,!1).then(function(){Ember.run.later(e,500)},function(){Ember.run.later(e,500)}):Ember.run.later(e,500)},function(t){Ember.run.later(e,500)}):t()},500)})},sync_logs:function(e){return p.find("settings","bigLogs").then(function(e){var n=[],s=[]
 return((e=e||{}).logs||[]).forEach(function(e){var a=t.default.store.createRecord("log",{events:e})
@@ -10497,7 +10497,7 @@ var l=this
 n.default.ajax(e,{type:"GET"}).then(function(n){n.progress.still_working=!1,n.progress.finished_at||(n.progress.still_working=!0,s.run_later(l,function(){this.track_ids[o]&&this.check(e,t,0,o,r)},r.success_wait)),t(n.progress)},function(n){a>5?t({status:"errored",sub_status:"server_unresponsive"}):s.run_later(l,function(){this.track_ids[o]&&this.check(e,t,a+1,o,r)},r.error_wait)})},status_text:function(e,n){var s=null
 return"pending"==e?s=t.default.t("initializing","Initializing..."):"started"==e?s="generating_files"==n?t.default.t("generating_files","Generating file(s)..."):"converting_file"==n||"converting_files"==n?t.default.t("converting_files","Converting file(s)"):"uploading_file"==n||"uploading_files"==n?t.default.t("finalizing files","Finalizing file(s)"):t.default.t("progressing","Processing..."):"finished"==e?s=t.default.t("progress_ready","Ready!"):"errored"==e&&(s=t.default.t("progress_error","Error")),s}}).create()
 e.default=s}),define("frontend/utils/raw_events",["exports","frontend/utils/edit_manager","frontend/utils/modal","frontend/utils/capabilities","frontend/utils/app_state","frontend/utils/scanner","frontend/utils/_stashes","frontend/utils/frame_listener"],function(e,t,n,s,a,o,r,l){Object.defineProperty(e,"__esModule",{value:!0})
-var i=null,d=function(e){a.default.get("edit_mode")||!s.default.mobile||n.default.is_open()||u.ignored_region(e)||e.preventDefault()}
+var i=null,d=function(e){(a.default.get("speak_mode")||!a.default.get("edit_mode")&&Ember.$(e.target).closest(".button"))&&s.default.mobile&&!n.default.is_open()&&!u.ignored_region(e)&&e.preventDefault()}
 window.addEventListener("touchforcechange",function(){alert("uo")}),document.addEventListener("touchstart",d,{passive:!1}),document.addEventListener("mousedown",d,{passive:!1}),Ember.$(document).on("mousedown touchstart",function(e){var t=(new Date).getTime()
 "touchstart"==e.type&&(u.lastTouchStart=t),u.dwell_elem&&(console.log("linger cleared because touch event"),u.clear_dwell(),e.target=document.elementFromPoint(e.clientX,e.clientY)),u.touch_start(e),s.default.mobile&&"touchstart"==e.type&&a.default.get("speak_mode")&&o.default.scanning&&o.default.listen_for_input()}).on("gazelinger mousemove touchmove mousedown touchstart",function(e){"mousemove"!=e.type&&"mousedown"!=e.type||(u.mouse_used=!0),u.touch_continue(e)}).on("mouseup touchend touchcancel blur",function(e){if("iOS"==s.default.system&&!u.ios_initialized){var t=new window.SpeechSynthesisUtterance
 t.text="",window.speechSynthesis.speak(t),u.ios_initialized=!0}"touchend"==e.type&&(u.lastTouchStart=null),"mouseup"!=e.type&&"touchend"!=e.type&&"touchcancel"!=e.type||!u.dwell_elem||(console.log("linger cleared because touch release event"),u.clear_dwell()),u.touch_release(e)}).on("keypress",".button",function(e){13!=e.keyCode&&32!=e.keyCode||"INPUT"!=e.target.tagName&&Ember.$(this).trigger("buttonselect")}).on("keypress",".integration_target",function(e){13!=e.keyCode&&32!=e.keyCode||l.default.trigger_target(Ember.$(e.target).closest(".integration_target")[0])}).on("keypress",function(e){if(u.check("keyboard_listen")&&!u.check("scanning_enabled")&&!u.check("dwell_enabled")&&!n.default.is_open()){var t="+"+e.key
@@ -11007,8 +11007,8 @@ var d,u=[],c=[]
 for(a=0;a<i;++a)u[a]=a,c[a]=t.charCodeAt(a)
 for(u[i]=i,a=0;a<l;++a){for(s=a+1,o=0;o<i;++o)n=s,d=e.charCodeAt(a)===c[o],(s=u[o]+(d?0:1))>(r=n+1)&&(s=r),s>(r=u[o+1]+1)&&(s=r),u[o]=n
 u[o]=s}return s}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+d9d27a29"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+d9d27a29"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+956869bb"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+956869bb"})
 ;
 
 
