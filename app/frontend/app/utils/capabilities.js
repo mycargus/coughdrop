@@ -286,20 +286,19 @@ var capabilities;
             capabilities.nfc.listeners = capabilities.nfc.listeners || {};
             capabilities.nfc.listeners[ref] = capabilities.nfc.listeners[ref] || [];
             capabilities.nfc.listeners[ref].push(listener);
+            if(capabilities.system == 'Android' && ref == 'programming' && capabilities.nfc.reader_mode) {
+              console.log("READER MODE: disable for programming");
+              window.nfc.disableReaderMode(function() {
+                capabilities.nfc.reader_mode = false;
+              });
+            }
             window.nfc.addNdefListener(listener, function() { }, function() {
               promise.reject({error: 'nfc listen failed'});
             });
             window.nfc.addTagDiscoveredListener(listener);
-            if(capabilities.system == 'Android') {
-              if(ref == 'programming') {
-                if(capabilities.nfc.reader_mode) {
-                  window.nfc.disableReaderMode(function() {
-                    capabilities.nfc.reader_mode = false;
-                  });
-                }
-              } else {
-                capabilities.nfc.start_reader_mode(function() { promise.reject({error: 'NFC reader mode failed'}) });
-              }
+            if(capabilities.system == 'Android' && ref != 'programming' && !capabilities.nfc.reader_mode) {
+              console.log("READER MODE: enable");
+              capabilities.nfc.start_reader_mode(function() { promise.reject({error: 'NFC reader mode failed'}) });
             }
           } else {
             promise.reject({error: 'no NFC support found'});
@@ -336,10 +335,12 @@ var capabilities;
             }
           }
           if(capabilities.system == 'Android' && all_empty) {
+            console.log("READER MODE: disable all empty");
             window.nfc.disableReaderMode(function() {
               capabilities.reader_mode = false;
             });
           } else if(!all_empty && ref == 'programming') {
+            console.log("READER MODE: enable since done programming");
             capabilities.nfc.start_reader_mode();
           }
         }
