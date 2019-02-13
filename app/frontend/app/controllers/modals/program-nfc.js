@@ -86,6 +86,7 @@ export default modal.ModalController.extend({
           }
           var finish_tag = function() {
             _this.save_tag(JSON.stringify(tag.id));
+            capabilities.nfc.stop_listening('programming');
             capabilities.nfc.end_prompt();
           };
           if(tag.writeable && _this.get('write_tag')) {
@@ -111,6 +112,7 @@ export default modal.ModalController.extend({
           if(handled) { return; }
           handled = true;
           capabilities.nfc.stop_listening('programming');
+          capabilities.nfc.end_prompt();
           _this.set('status', {read_timeout: true});
         }, 10000);
       });

@@ -274,7 +274,7 @@ var capabilities;
                   callback(tag);
                 } else {
                   console.log("empty NFC tag", tag, event.tag);
-                  callback()
+                  callback(tag);
                 }
               } else {
                 tag.empty = true;
