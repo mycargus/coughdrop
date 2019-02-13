@@ -647,6 +647,10 @@ var dbman = {
               });
             }
           });
+          var transaction = capabilities.db.transaction(['settings'], 'readwrite');
+          try {
+            var res = transaction.objectStore(store).delete('lastSync');
+          } catch(e) { debugger; }
         } catch(e) {
           console.error("COUGHDROP: db migrations failed");
           console.error(e);
@@ -677,6 +681,7 @@ var dbman = {
         });
         tx.executeSql('DELETE FROM version');
         tx.executeSql('INSERT INTO version (version) VALUES (?)', [new_version]);
+        tx.executeSql("DELETE FROM settings WHERE storageId='lastSync'");
       }, function(err) {
         console.log(err);
         promise.reject({error: err.message});
