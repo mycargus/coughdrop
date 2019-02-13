@@ -681,7 +681,7 @@ var dbman = {
         });
         tx.executeSql('DELETE FROM version');
         tx.executeSql('INSERT INTO version (version) VALUES (?)', [new_version]);
-        tx.executeSql("DELETE FROM settings WHERE storageId='lastSync'");
+        tx.executeSql("DELETE FROM settings WHERE ref_id='lastSync'");
       }, function(err) {
         console.log(err);
         promise.reject({error: err.message});
