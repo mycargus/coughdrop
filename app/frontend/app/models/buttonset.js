@@ -51,7 +51,6 @@ CoughDrop.Buttonset = DS.Model.extend({
           if(visible) {
             if(button.linked_board_id && linked) {
               if(!board_ids[button.linked_board_id]) {
-                console.log("adding" , button.linked_board_key, button);
                 board_ids[button.linked_board_id] = true;
                 boards_to_check.push({id: button.linked_board_id});
               }

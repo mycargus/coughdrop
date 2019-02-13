@@ -489,9 +489,7 @@ var buttonTracker = EmberObject.extend({
       } else {
         if(event.type == 'touchend' || event.type == 'mouseup' || !buttonTracker.longPressEvent || event.target != buttonTracker.longPressEvent.long_press_target) {
           buttonTracker.longPressEvent = null;
-        } else if($(event.target).closest('.board .button').length == 0) {
-          buttonTracker.longPressEvent = null;
-        } else {
+        } else if(!app_state.get('currentBoardState.id') || $(event.target).closest('.board .button').length == 0) {
           buttonTracker.longPressEvent = null;
         }
       }
@@ -1270,6 +1268,7 @@ var buttonTracker = EmberObject.extend({
       // you're close to anything selectable
     }
     if(region) {
+      buttonTracker.longPressEvent = null;
       if(allow_dwell === false && $target.closest('.undwellable').length > 0) {
         return null;
       }
