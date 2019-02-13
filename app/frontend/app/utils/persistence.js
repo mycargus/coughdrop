@@ -1285,7 +1285,7 @@ var persistence = EmberObject.extend({
       var next_tag = function() {
         var tag_id = tag_ids.pop();
         if(tag_id) {
-          persistence.findRecord('tag', tag_id).then(function(tag) {
+          CoughDrop.store.findRecord('tag', tag_id).then(function(tag) {
             if(tag.get('button.image_url')) {
               persistence.store_url(tag.get('button.image_url'), 'image', false, false).then(function() {
                 runLater(next_tag, 500);
