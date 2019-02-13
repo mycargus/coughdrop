@@ -12,6 +12,7 @@ export default Component.extend({
     if(this.$()) {
       if(this.get('value')) {
         this.$().attr('placeholder', '##');
+        this.$().attr('value', this.get('value'));
       } else {
         this.$().attr('placeholder', '');
       }
