@@ -380,7 +380,7 @@ var scanner = EmberObject.extend({
   pick: function() {
     var elem = scanner.current_element;
     if(scanner.options && scanner.options.scan_mode != 'axes') {
-      if(!scanner.current_element && scanner.options && !scanner.options.auto_start) {
+      if((!modal.highlight_controller || !elem) && scanner.options && !scanner.options.auto_start) {
         scanner.next();
         return;
       }
@@ -473,6 +473,7 @@ var scanner = EmberObject.extend({
     if(window.Keyboard && window.Keyboard.hide && app_state.get('speak_mode') && scanner.scanning) {
       if(this.find_elem("#hidden_input:focus").length > 0) {
         window.Keyboard.hide();
+        window.Keyboard.hideFormAccessoryBar(true, function() { });
       }
     }
   },
@@ -632,10 +633,13 @@ var scanner = EmberObject.extend({
   },
   next: function(reverse) {
     var now = (new Date()).getTime();
-    if(scanner.ignore_until && now < scanner.ignore_until) { return; }
+    if(scanner.ignore_until && now < scanner.ignore_until) { console.log("ignoring because too soon"); return; }
     if(scanner.reset_until && now < scanner.reset_until) { 
       scanner.reset_until = null;
       scanner.reset();
+      if(scanner.options && !scanner.options.auto_start) {
+        runLater(function() { scanner.next(reverse); });
+      }
       return; 
     }
     if(!scanner.element_index_advanced) { scanner.element_index = -1; }
