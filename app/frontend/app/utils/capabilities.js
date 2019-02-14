@@ -262,9 +262,9 @@ var capabilities;
                 if(event.tag.ndefMessage) {
                   for(var idx = 0; idx < event.tag.ndefMessage.length; idx++) {
                     var type = String.fromCharCode.apply(null, event.tag.ndefMessage[idx].type);
-                    var payload = String.fromCharCode.apply(null, event.tag.ndefMessage[idx].payload);
+                    var payload = String.fromCharCode.apply(null, event.tag.ndefMessage[idx].payload.filter(function(n) { return n > 8; }));
                     if(type == 'T' && !tag.text) {
-                      tag.text_locale = payload.slice(0, 3);
+                      tag.text_locale = payload.slice(1, 3);
                       tag.text = payload.slice(3);
                     } else if(type == 'U' && !tag.uri) {
                       tag.uri = payload;

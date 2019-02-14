@@ -35,7 +35,9 @@ export default modal.ModalController.extend({
         _this.send('program');
       }
       tag.save().then(function() {
-        _this.set('status', null);
+        if(!_this.get('model.listen')) {
+          _this.set('status', null);
+        }
         _this.set('tag', tag);
       }, function() {
         _this.set('status', {error: true});
@@ -45,8 +47,8 @@ export default modal.ModalController.extend({
     });
   },
   not_programmable: function() {
-    return !!(this.get('status.loading') || this.get('status.error') || this.get('status.no_nfc') || this.get('status.saving') || this.get('status.programming'));
-  }.property('status.loading', 'status.error', 'status.no_nfc', 'status.saving', 'status.programming'),
+    return !!(this.get('status.loading') || this.get('status.error') || this.get('status.no_nfc') || this.get('status.saving') || this.get('status.programming')) || this.get('status.saved');
+  }.property('status.loading', 'status.error', 'status.no_nfc', 'status.saving', 'status.programming', 'status.saved'),
   save_tag: function(tag_id) {
     var _this = this;
     var tag_object = _this.get('tag');
@@ -55,10 +57,16 @@ export default modal.ModalController.extend({
     _this.set('status', {saving: true});
     tag_object.save().then(function() {
       _this.set('status', {saved: true});
+      runLater(function() {
+        modal.close();
+      }, 3000);
     }, function() {
       _this.set('status', {error_saving: true});
     });
   },
+  listening_without_tag_id: function() {
+    return this.get('model.listen') && !this.get('update_tag_id');
+  }.property('model.listen', 'update_tag_id'),
   actions: {
     save: function() {
       var _this = this;
@@ -76,8 +84,12 @@ export default modal.ModalController.extend({
           if(handled) { return; }
           handled = true;
           if(!_this.get('label') && _this.get('model.listen')) {
-            CoughDrop.store.findRecord('tag', tag.id).then(function(tag_object) {
+            CoughDrop.store.findRecord('tag', JSON.strinfigy(tag.id)).then(function(tag_object) {
               // save tag to user and close
+              var tag_ids = [].concact(_this.get('model.user.preferences.tag_ids') || []);
+              tag_ids.push(tag_object.get('id'));
+              _this.set('model.user.preferences.tag_ids', tag_ids);
+              _this.get('model.user').save();
             }, function() {
               _this.set('update_tag_id', JSON.stringify(tag.id));
               // prompt for label and save

@@ -20,18 +20,20 @@
       <p class='text-info'>{{t "There is no available settings for this tag. You can program the tag by entering a message below, or by finding an existing button and programming it using the \"Word Data\" popup" key='tag_not_programmed'}}</p>
     {{/if}}
 
-    <div style='max-width: 300px; margin: 20px auto;'>
-      {{#if model.button}}
-        <div style='text-align: center;'>
-          {{button-preview button=model.button}}
-        </div>
-      {{else}}
-        {{t "Phrase to speak" key='phrase_to_speak'}}
-        <div>
-          {{input type='text' class='form-control' value=label}}
-        </div>
-      {{/if}}
-    </div>
+    {{#unless listening_without_tag_id}}
+      <div style='max-width: 300px; margin: 20px auto;'>
+        {{#if model.button}}
+          <div style='text-align: center;'>
+            {{button-preview button=model.button}}
+          </div>
+        {{else}}
+          {{t "Phrase to speak" key='phrase_to_speak'}}
+          <div>
+            {{input type='text' class='form-control' value=label}}
+          </div>
+        {{/if}}
+      </div>
+    {{/unless}}
 
     {{#if status.loading}}
       <p class='text-info'>{{t "Loading Tag Settings..." key='loading_tag_settings'}}</p>
@@ -51,7 +53,7 @@
     {{else if status.error_writing}}
       <p class='text-info'>{{t "Error Writing to Tag" key='error_writing_to_tag'}}</p>
     {{else if status.read_timeout}}
-      <p class='text-danger'>{{t "There was an error while trying to write data to the tag" key='error_writing_to_tag'}}</p>
+      <p class='text-danger'>{{t "There was an error while trying to access the tag" key='error_reading_tag'}}</p>
     {{else if status.programming}}
       <p class='text-info'>{{t "Searching, Place Tag Near the Sensor..." key='searching_for_tag'}}</p>
     {{/if}}
