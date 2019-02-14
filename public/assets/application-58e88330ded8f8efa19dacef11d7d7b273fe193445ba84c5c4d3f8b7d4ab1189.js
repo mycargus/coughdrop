@@ -13,7 +13,7 @@ window.user_preferences = {"device":{"voice":{"pitch":1.0,"volume":1.0},"button_
 
 
 
-window.app_version = "2019.02.14c";
+window.app_version = "2019.02.14d";
 window.EmberENV={FEATURES:{}}
 var loader,define,requireModule,require,requirejs,runningTests=!1
 function createDeprecatedModule(e){define(e,["exports","ember-resolver/resolver","ember"],function(t,n,r){r.default.deprecate("Usage of `"+e+"` module is deprecated, please update to `ember-resolver`.",!1,{id:"ember-resolver.legacy-shims",until:"3.0.0"}),t.default=n.default})}if(function(e){"use strict"
@@ -8206,12 +8206,12 @@ s.get("model.listen")&&s.send("program"),t.save().then(function(){s.get("model.l
 s.set("tag_id",e),s.set("public",!!n.get("public")),n.set("status",{saving:!0}),s.save().then(function(){n.set("status",{saved:!0}),Ember.run.later(function(){t.default.close()},3e3)},function(){n.set("status",{error_saving:!0})})},listening_without_tag_id:function(){return this.get("model.listen")&&!this.get("update_tag_id")}.property("model.listen","update_tag_id"),actions:{save:function(){this.get("label")&&this.save_tag(this.get("update_tag_id"))},program:function(){var e=this
 e.set("status",{programming:!0})
 var t=e.get("tag")
-n.default.nfc.prompt().then(function(){var a=!1
-n.default.nfc.listen("programming",function(o){if(!a){a=!0,!e.get("label")&&e.get("model.listen")&&s.default.store.findRecord("tag",JSON.stringify(o.id)).then(function(t){if(t.get("label")||t.get("button")){var n=[].concact(e.get("model.user.preferences.tag_ids")||[])
-n.push(t.get("id")),e.set("model.user.preferences.tag_ids",n),e.get("model.user").save()}else e.set("tag",tab_object),e.set("update_tag_id",JSON.stringify(o.id))},function(){e.set("update_tag_id",JSON.stringify(o.id))})
-var r=function(){e.save_tag(JSON.stringify(o.id)),n.default.nfc.stop_listening("programming"),n.default.nfc.end_prompt()}
-if(o.writeable&&e.get("write_tag")){var l={uri:"cough://tag/"+t.get("id")}
-o.size&&l.uri.length+(e.get("label")||"").length<.85*o.size&&(l.text=e.get("label")),n.default.nfc.write(l).then(function(){r()},function(){e.set("status",{error_writing:!0})})}else r()}}),Ember.run.later(function(){a||(a=!0,n.default.nfc.stop_listening("programming"),n.default.nfc.end_prompt(),e.set("status",{read_timeout:!0}))},1e4)})}}})})
+n.default.nfc.prompt().then(function(){var a=function(){n.default.nfc.stop_listening("programming"),n.default.nfc.end_prompt()},o=!1
+n.default.nfc.listen("programming",function(r){if(!o)if(o=!0,!e.get("label")&&e.get("model.listen"))s.default.store.findRecord("tag",JSON.stringify(r.id)).then(function(t){if(t.get("label")||t.get("button")){var n=[].concact(e.get("model.user.preferences.tag_ids")||[])
+n.push(t.get("id")),e.set("model.user.preferences.tag_ids",n),e.get("model.user").save(),e.set("status",{saved:!0})}else e.set("tag",tab_object),e.set("update_tag_id",JSON.stringify(r.id)),e.set("status",null)},function(){e.set("update_tag_id",JSON.stringify(r.id)),e.set("status",null)}),a()
+else{var l=function(){e.save_tag(JSON.stringify(r.id)),a()}
+if(r.writeable&&e.get("write_tag")&&(e.get("label")||e.get("button"))){var i={uri:"cough://tag/"+t.get("id")}
+r.size&&i.uri.length+(e.get("label")||"").length<.85*r.size&&(i.text=e.get("label")),n.default.nfc.write(i).then(function(){l()},function(){e.set("status",{error_writing:!0})})}else l()}}),Ember.run.later(function(){o||(o=!0,n.default.nfc.stop_listening("programming"),n.default.nfc.end_prompt(),e.set("status",{read_timeout:!0}))},1e4)})}}})})
 define("frontend/controllers/modeling-intro",["exports","frontend/utils/modal","frontend/utils/app_state"],function(e,t,n){Object.defineProperty(e,"__esModule",{value:!0}),e.default=t.default.ModalController.extend({opening:function(){var e=n.default.get("currentUser")
 if(e){var t=e.get("preferences.progress")||{}
 t.modeling_intro_done=(new Date).getTime(),n.default.get("modeling-intro",!0),e.set("preferences.progress",t),e.save().then(null,function(){})}},closing:function(){var e=n.default.get("currentUser")
@@ -11011,8 +11011,8 @@ var d,u=[],c=[]
 for(a=0;a<i;++a)u[a]=a,c[a]=t.charCodeAt(a)
 for(u[i]=i,a=0;a<l;++a){for(s=a+1,o=0;o<i;++o)n=s,d=e.charCodeAt(a)===c[o],(s=u[o]+(d?0:1))>(r=n+1)&&(s=r),s>(r=u[o+1]+1)&&(s=r),u[o]=n
 u[o]=s}return s}}).create({pieces:10,max_results:5})
-e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+84f485f4"},exportApplicationGlobal:!1}}
-return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+84f485f4"})
+e.default=r}),define("frontend/config/environment",[],function(){var e={default:{modulePrefix:"frontend",environment:"production",rootURL:"/",locationType:"auto",EmberENV:{FEATURES:{}},APP:{name:"frontend",version:"0.0.2+33daf464"},exportApplicationGlobal:!1}}
+return Object.defineProperty(e,"__esModule",{value:!0}),e}),runningTests||require("frontend/app").default.create({name:"frontend",version:"0.0.2+33daf464"})
 ;
 
 
