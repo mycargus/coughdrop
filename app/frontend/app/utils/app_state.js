@@ -1248,8 +1248,8 @@ var app_state = EmberObject.extend({
       app_state.activate_button({}, obj);
     };
     if(tag.uri) {
-      var tag_id = tag.uri.match(/^cough:\/\/tag\/([^\/]+)$/)[1];
-      tag_id = tag_id || tag.id;
+      var tag_id = (tag.uri.match(/^cough:\/\/tag\/([^\/]+)$/) || [])[1];
+      tag_id = tag_id || JSON.stringify(tag.id);
       if(tag_id) {
         // check local or remote for matching tag
         CoughDrop.store.findRecord('tag', tag_id).then(function(tag_object) {

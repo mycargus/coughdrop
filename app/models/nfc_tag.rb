@@ -15,6 +15,7 @@ class NfcTag < ApplicationRecord
     self.data ||= {}
     self.nonce ||= GoSecure.nonce('nfc_tag_secure_nonce')[0, 6]
     self.public ||= false
+    self.has_content = !!(self.data['button'] || !self.data['label'].blank?)
     true
   end
 
@@ -24,7 +25,7 @@ class NfcTag < ApplicationRecord
       return true
     end
     u = self.user
-    if !self.data['label'].blank? || self.data['button']
+    if self.has_content
       u.settings['preferences']['tag_ids'] ||= []
       u.settings['preferences']['tag_ids'].push(self.global_id)
       u.save
@@ -45,5 +46,6 @@ class NfcTag < ApplicationRecord
 
   # TODO: remove old tags if they are no longer accessible:
   # - they are private and there is a newer one for the same user
+  # - has_content=false and more than 1 month old
   # TODO: track the last time they are downloaded/used and flush eventually
 end

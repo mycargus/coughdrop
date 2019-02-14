@@ -32,6 +32,26 @@ describe NfcTag, :type => :model do
       expect(tag.public).to eq(true)
       expect(tag.data['label']).to eq('bacon')
     end
+
+    it 'should not attach the tag to the user by default' do
+      u = User.create
+      tag = NfcTag.process_new({'public' => true}, {'user' => u})
+      expect(tag.errored?).to eq(false)
+      expect(tag.public).to eq(true)
+      expect(tag.has_content).to eq(false)
+      Worker.process_queues
+      expect(u.reload.settings['preferences']['tag_ids']).to eq(nil)
+    end
+
+    it 'should attach the tag to the user once it has content' do
+      u = User.create
+      tag = NfcTag.process_new({'label' => 'bacon', 'public' => true}, {'user' => u})
+      expect(tag.errored?).to eq(false)
+      expect(tag.public).to eq(true)
+      expect(tag.has_content).to eq(true)
+      Worker.process_queues
+      expect(u.reload.settings['preferences']['tag_ids']).to eq([tag.global_id])
+    end
   end
 end
 # class NfcTag < ApplicationRecord

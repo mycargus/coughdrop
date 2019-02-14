@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190208235645) do
+ActiveRecord::Schema.define(version: 20190214204917) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -129,7 +129,7 @@ ActiveRecord::Schema.define(version: 20190208235645) do
     t.datetime "updated_at"
     t.string   "cluster_type", limit: 255
     t.string   "cluster_hash", limit: 255
-    t.index ["cluster_type", "cluster_hash"], name: "index_cluster_locations_on_cluster_type_and_hash", unique: true, using: :btree
+    t.index ["cluster_type", "cluster_hash"], name: "index_cluster_locations_on_cluster_type_and_cluster_hash", unique: true, using: :btree
   end
 
   create_table "contact_messages", force: :cascade do |t|
@@ -250,8 +250,10 @@ ActiveRecord::Schema.define(version: 20190208235645) do
     t.string   "nonce"
     t.boolean  "public"
     t.text     "data"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+    t.boolean  "has_content"
+    t.index ["tag_id", "has_content", "public", "user_id"], name: "index_nfc_tags_on_tag_id_and_has_content_and_public_and_user_id", using: :btree
     t.index ["tag_id", "public", "user_id"], name: "index_nfc_tags_on_tag_id_and_public_and_user_id", using: :btree
   end
 

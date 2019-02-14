@@ -8,7 +8,7 @@ class Api::TagsController < ApplicationController
       return unless exists?(user, params['user_id'])
       return unless allowed?(user, 'supervise')
     end
-    @tags = NfcTag.where(user_id: user.id)
+    @tags = NfcTag.where(user_id: user.id, has_content: true)
     
     render json: JsonApi::Tag.paginate(params, @tags)
   end
@@ -29,7 +29,7 @@ class Api::TagsController < ApplicationController
     if !@tag
       # When searching by tag_id, first look for one by the
       # user, then look for the most-recent public one
-      tags = NfcTag.where(tag_id: params['id'])
+      tags = NfcTag.where(has_content: true, tag_id: params['id'])
       if tags.length > 0
         @tag = tags.where(user_id: @api_user.id).order('id DESC')[0]
         @tag ||= tags.where(public: true).order('id DESC')[0]

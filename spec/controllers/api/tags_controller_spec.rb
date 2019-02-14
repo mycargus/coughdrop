@@ -154,6 +154,15 @@ describe Api::TagsController, :type => :controller do
       json = assert_success_json
       expect(json['tag']['id']).to eq(t2.global_id)
     end
+
+    it 'should only return tags that have content' do
+      token_user
+      t = NfcTag.process_new({'label' => 'asdf', 'tag_id' => 'asdfasdf'}, {'user' => @user})
+      t2 = NfcTag.process_new({'tag_id' => 'asdfasdf'}, {'user' => @user})
+      get :show, params: {id: 'asdfasdf'}
+      json = assert_success_json
+      expect(json['tag']['id']).to eq(t.global_id)
+    end
   end
 
   describe 'update' do

@@ -71,6 +71,7 @@ export default modal.ModalController.extend({
     save: function() {
       var _this = this;
       if(_this.get('label')) {
+        _this.set('tag.label', _this.get('label'));
         _this.save_tag(_this.get('update_tag_id'));
       }
     },
@@ -97,7 +98,7 @@ export default modal.ModalController.extend({
                 _this.get('model.user').save();
                 _this.set('status', {saved: true});
               } else {
-                _this.set('tag', tab_object);
+                _this.set('tag', tag_object);
                 _this.set('update_tag_id', JSON.stringify(tag.id));
                 _this.set('status', null);
               }
