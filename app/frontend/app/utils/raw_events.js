@@ -1606,7 +1606,7 @@ var buttonTracker = EmberObject.extend({
   track_short_press: function() {
     if(this.longPressEvent) {
       var selectable_wrap = this.find_selectable_under_event(this.longPressEvent, true);
-      if(selectable_wrap) {
+      if(selectable_wrap && this.longPressEvent) {
         var target = this.longPressEvent.originalTarget || (this.longPressEvent.originalEvent || this.longPressEvent).target
         var event = $.Event('touchend', target);
         event.clientX = (this.longPressEvent || this.longPressEvent.originalEvent).clientX;

@@ -460,7 +460,7 @@ export default Controller.extend({
             modal.error(i18n.t('app_launch_failed', "App failed to launch"), true);
           });
         } else {
-          modal.error(i18n.t('no_app_launches', "App launches not available in this program"), true);
+          modal.error(i18n.t('no_app_launches', "App launches not available in this view"), true);
         }
       } else {
         var obj = {
