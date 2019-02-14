@@ -251,9 +251,10 @@ var speecher = EmberObject.extend({
     var speak_id = this.speak_id++;
     this.last_speak_id = speak_id;
     var pieces = text.split(/\.\.\./);
+    var pieces_started = (new Date()).getTime();
     var next_piece = function() {
       var piece_text = pieces.shift();
-      if(!piece_text) {
+      if(!piece_text || (_this.last_stop && pieces_started < _this.last_stop)) {
         if(_this.last_speak_id == speak_id) {
           console.log("done with last speak");
           _this.speak_end_handler(speak_id);
@@ -785,6 +786,7 @@ var speecher = EmberObject.extend({
   stop: function(type) {
     this.audio = this.audio || {};
     type = type || 'all';
+    this.last_stop = (new Date()).getTime();
     $("audio.throwaway").remove();
     if(type == 'text' || type == 'all') {
       this.speaking = false;
