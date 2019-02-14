@@ -89,7 +89,12 @@ export default modal.ModalController.extend({
           if(handled) { return; }
           handled = true;
           if(!_this.get('label') && _this.get('model.listen')) {
-            CoughDrop.store.findRecord('tag', JSON.stringify(tag.id)).then(function(tag_object) {
+            var tag_id = JSON.stringify(tag.id);
+            if(tag.uri) {
+              var tag_uri_id = (tag.uri.match(/^cough:\/\/tag\/([^\/]+)$/) || [])[1];
+              if(tag_uri_id) { tag_id = tag_uri_id; }
+            }
+            CoughDrop.store.findRecord('tag', tag_id).then(function(tag_object) {
               if(tag_object.get('label') || tag_object.get('button')) {
                 // save tag to user and close
                 var tag_ids = [].concact(_this.get('model.user.preferences.tag_ids') || []);
@@ -99,11 +104,11 @@ export default modal.ModalController.extend({
                 _this.set('status', {saved: true});
               } else {
                 _this.set('tag', tag_object);
-                _this.set('update_tag_id', JSON.stringify(tag.id));
+                _this.set('update_tag_id', tag_id);
                 _this.set('status', null);
               }
             }, function() {
-              _this.set('update_tag_id', JSON.stringify(tag.id));
+              _this.set('update_tag_id', tag_id);
               _this.set('status', null);
               // prompt for label and save
             });
