@@ -24,9 +24,11 @@ class NfcTag < ApplicationRecord
       return true
     end
     u = self.user
-    u.settings['preferences']['tag_ids'] ||= []
-    u.settings['preferences']['tag_ids'].push(self.global_id)
-    u.save
+    if !self.data['label'].blank? || self.data['button']
+      u.settings['preferences']['tag_ids'] ||= []
+      u.settings['preferences']['tag_ids'].push(self.global_id)
+      u.save
+    end
   end
 
   def process_params(params, non_user_params)

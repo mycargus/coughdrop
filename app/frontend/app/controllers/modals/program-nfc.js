@@ -79,6 +79,10 @@ export default modal.ModalController.extend({
       _this.set('status', {programming: true});
       var tag_object = _this.get('tag');
       capabilities.nfc.prompt().then(function() {
+        var close_tag = function() {
+          capabilities.nfc.stop_listening('programming');
+          capabilities.nfc.end_prompt();
+        };
         var handled = false;
         capabilities.nfc.listen('programming', function(tag) {
           if(handled) { return; }
@@ -91,38 +95,42 @@ export default modal.ModalController.extend({
                 tag_ids.push(tag_object.get('id'));
                 _this.set('model.user.preferences.tag_ids', tag_ids);
                 _this.get('model.user').save();
+                _this.set('status', {saved: true});
               } else {
                 _this.set('tag', tab_object);
                 _this.set('update_tag_id', JSON.stringify(tag.id));
+                _this.set('status', null);
               }
             }, function() {
               _this.set('update_tag_id', JSON.stringify(tag.id));
+              _this.set('status', null);
               // prompt for label and save
             });
-            // ajax lookup
-          }
-          var finish_tag = function() {
-            _this.save_tag(JSON.stringify(tag.id));
-            capabilities.nfc.stop_listening('programming');
-            capabilities.nfc.end_prompt();
-          };
-          if(tag.writeable && _this.get('write_tag')) {
-            var opts = {
-              uri: "cough://tag/" + tag_object.get('id')
-            };
-            if(tag.size) {
-              // Program in the label as well if there's room
-              if(opts.uri.length + (_this.get('label') || '').length < tag.size * 0.85) {
-                opts.text = _this.get('label');
-              }
-            }
-            capabilities.nfc.write(opts).then(function() {
-              finish_tag();
-            }, function() {
-              _this.set('status', {error_writing: true});
-            });
+            close_tag();
+          // ajax lookup
           } else {
-            finish_tag();
+            var finish_tag = function() {
+              _this.save_tag(JSON.stringify(tag.id));
+              close_tag();
+            };
+            if(tag.writeable && _this.get('write_tag') && (_this.get('label') || _this.get('button'))) {
+              var opts = {
+                uri: "cough://tag/" + tag_object.get('id')
+              };
+              if(tag.size) {
+                // Program in the label as well if there's room
+                if(opts.uri.length + (_this.get('label') || '').length < tag.size * 0.85) {
+                  opts.text = _this.get('label');
+                }
+              }
+              capabilities.nfc.write(opts).then(function() {
+                finish_tag();
+              }, function() {
+                _this.set('status', {error_writing: true});
+              });
+            } else {
+              finish_tag();
+            }
           }
         });
         runLater(function() {
