@@ -568,6 +568,30 @@ describe User, :type => :model do
       }}, {})
       expect(u.settings['preferences']['requested_phrases']).to eq(['I like you', 'I am you'])
     end
+
+    it "should process offline_actions" do
+      u = User.create
+      expect(u.settings['vocalizations']).to eq(nil)
+      u.process({'offline_actions' => [
+        {'action' => 'add_vocalization', 'id' => 'aaa', 'list' => [{'label' => 'asdf'}]},
+        {'action' => 'add_vocalization', 'id' => 'aaa', 'list' => [{'label' => 'qwer'}]}
+      ]})
+      expect(u.settings['vocalizations'].length).to eq(2)
+      expect(u.settings['vocalizations'][0]['id']).to eq('aaa')
+      expect(u.settings['vocalizations'][1]['id']).to_not eq('aaa')
+      u.process({'offline_actions' => [
+        {'action' => 'reorder_vocalizations', 'value' => [u.settings['vocalizations'][1]['id'], 'asdf'].join(',')}
+      ]})
+      expect(u.settings['vocalizations'].length).to eq(2)
+      expect(u.settings['vocalizations'][0]['id']).to_not eq('aaa')
+      expect(u.settings['vocalizations'][1]['id']).to eq('aaa')
+      u.process({'offline_actions' => [
+        {'action' => 'remove_vocalization', 'value' => 'aaa'},
+        {'action' => 'remove_vocalization', 'value' => 'qwer'}
+      ]})
+      expect(u.settings['vocalizations'].length).to eq(1)
+      expect(u.settings['vocalizations'][0]['id']).to_not eq('aaa')
+    end
   end
 
   describe "replace_board" do
@@ -914,13 +938,45 @@ describe User, :type => :model do
       expect(u.settings['preferences']['sidebar_boards'][0]).to eq({
         'alert' => true,
         'name' => 'Alert',
-        'image' => 'https://s3.amazonaws.com/opensymbols/libraries/arasaac/to%20sound.png'
+        'image' => 'https://s3.amazonaws.com/opensymbols/libraries/arasaac/to%20sound.png',
+        'special' => true
       })
       expect(u.settings['preferences']['sidebar_boards'][1]).to eq({
         'name' => b.settings['name'],
         'key' => b.key,
         'home_lock' => false,
         'image' => 'https://s3.amazonaws.com/opensymbols/libraries/arasaac/board_3.png'
+      })
+    end
+
+    it "should support special buttons" do
+      u = User.create
+      b = Board.create(:user => u)
+      u.process_sidebar_boards([
+        {
+          'special' => true,
+          'name' => 'Beep',
+          'action' => ':beep'
+        },
+        {},
+        {
+          'special' => true,
+          'action' => ':app(com.facebook.katana)',
+          'image' => 'http://www.example.com/pic.png'
+        }
+      ], {})
+      expect(u.settings['preferences']['sidebar_boards'].length).to eq(2)
+      expect(u.settings['preferences']['sidebar_boards'][0]).to eq({
+        'special' => true,
+        'name' => 'Beep',
+        'image' => 'https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/touch_437_g.svg',
+        'action' => ':beep'
+      })
+      expect(u.settings['preferences']['sidebar_boards'][1]).to eq({
+        'special' => true,
+        'name' => ':app',
+        'image' => 'http://www.example.com/pic.png',
+        'action' => ':app(com.facebook.katana)'
       })
     end
     
@@ -971,7 +1027,8 @@ describe User, :type => :model do
       expect(u.settings['preferences']['sidebar_boards'][0]).to eq({
         'alert' => true,
         'name' => 'Ahem',
-        'image' => 'http://www.example.com/pic.png'
+        'image' => 'http://www.example.com/pic.png',
+        'special' => true
       })
     end
     

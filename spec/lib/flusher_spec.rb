@@ -54,7 +54,7 @@ describe Flusher do
       expect(Flusher).to receive(:find_user).with(u.global_id, u.user_name).and_return(u)
       Flusher.flush_user_logs(u.global_id, u.user_name)
     end
-    
+
     it "should remove all log sessions and log session versions", :versioning => true do
       PaperTrail.request.whodunnit = 'user:jane'
       u = User.create
@@ -292,6 +292,14 @@ describe Flusher do
       ut = Utterance.create(:user => u)
       Flusher.flush_user_completely(u.global_id, u.user_name)
       expect(Utterance.where(:user_id => u.id).count).to eq(0)
+    end
+    
+    it 'should flush user tags' do
+      u = User.create
+      NfcTag.create(user: u)
+      expect(NfcTag.count).to eq(1)
+      Flusher.flush_user_completely(u.global_id, u.user_name)
+      expect(NfcTag.count).to eq(0)
     end
     
     it "should remove any public comments by the user"

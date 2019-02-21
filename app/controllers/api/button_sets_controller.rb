@@ -25,11 +25,13 @@ class Api::ButtonSetsController < ApplicationController
     allowed = false
     Rails.logger.warn('permission check')
     self.class.trace_execution_scoped(['button_set/board/permission_check']) do
-      if board.button_set_id == params['id']
-        allowed = true
-      else
+      #if board.button_set_id == params['id']
+        # TODO: this will never be reached, because the button_set_id
+        # does NOT match the board_id, which is our starting lookup point.
+        #allowed = true
+      #else
         allowed = allowed?(board, 'view')
-      end
+      #end
     end
     return unless allowed
     json = {}
@@ -53,11 +55,13 @@ class Api::ButtonSetsController < ApplicationController
     button_set = board && board.board_downstream_button_set
     return unless exists?(board, params['id'])
     allowed = false
-    if board.button_set_id == params['id']
-      allowed = true
-    else
+    # Button sets have a nonce, so if 
+    #if board.button_set_id == params['id']
+      # TODO: see above, button_set_id will never match board.global_id
+      #allowed = true
+    #else
       allowed = allowed?(board, 'view')
-    end
+    #end
     return unless allowed
     if button_set
       render json: {exists: true, id: params['id']}

@@ -7,6 +7,20 @@ describe Utterance, :type => :model do
     expect(u.data).not_to eq(nil)
     expect(u.data['image_url']).not_to eq(nil)
   end
+
+  it "should generate a reply nonce" do
+    u = Utterance.new
+    u.generate_defaults
+    expect(u.reply_nonce).to_not eq(nil)
+  end
+
+  it "should retry on existing reply nonce" do
+    expect(GoSecure).to receive(:nonce).with('security_nonce').and_return('34qt34t34').at_least(1).times
+    expect(GoSecure).to receive(:nonce).with('utterance_reply_code').and_return('asdf').exactly(12).times
+    u = Utterance.create(data: {'button_list' => []})
+    expect(u.reply_nonce).to eq('asdf')
+    expect { Utterance.create(data: {'button_list' => []}) }.to raise_error("can't generate nonce")
+  end
   
   it "should track the default image url" do
     button_list = [
@@ -98,7 +112,36 @@ describe Utterance, :type => :model do
         'sharer_id' => u1.global_id
       }]})).to eq(true)
     end
-    
+
+    it "should allow sharing with a supervisee by adding a note to their log" do
+      u1 = User.create
+      d = Device.create(user: u1)
+      u2 = User.create
+      User.link_supervisor_to_user(u1, u2)
+      u1.reload
+      u2.reload
+      button_list = [
+        {'label' => 'hat', 'image' => 'http://www.example.com/pib.png'},
+        {'label' => 'cat', 'image' => 'http://www.example.com/pib.png'},
+        {'label' => 'scat', 'image' => 'http://www.example.com/pic.png'}
+      ]
+      u = Utterance.create(:data => {
+        'button_list' => button_list,
+      })
+      res = u.share_with({
+        'user_id' => u2.global_id
+      }, u1)
+      expect(res).to eq({:to => u2.global_id, :from => u1.global_id, :type => 'utterance'})
+      s = LogSession.last
+      expect(s.user).to eq(u2)
+      expect(s.author).to eq(u1)
+      expect(s.data['note']['text']).to eq('hat cat scat')
+      expect(Worker.scheduled?(Utterance, :perform_action, {'id' => u.id, 'method' => 'deliver_to', 'arguments' => [{
+        'user_id' => u2.global_id,
+        'sharer_id' => u1.global_id
+      }]})).to eq(false)
+    end
+
     it "should allow sharing to an email address" do
       u1 = User.create
       button_list = [
@@ -202,6 +245,8 @@ describe Utterance, :type => :model do
         'subject' => 'hat cat scat',
         'message' => 'hat cat scat',
         'sharer_id' => u1.global_id,
+        'utterance_id' => u.global_id,
+        'reply_url' => "#{JsonApi::Json.current_host}/u/#{u.reply_nonce}",
         'to' => 'bob@example.com'
       })
       res = u.deliver_to({'sharer_id' => u1.global_id, 'email' => 'bob@example.com'})
@@ -222,7 +267,9 @@ describe Utterance, :type => :model do
       expect(u).to receive(:notify).with('utterance_shared', {
         'sharer' => {'user_name' => u1.user_name, 'user_id' => u1.global_id},
         'user_id' => u2.global_id,
-        'text' => 'hat cat scat'
+        'text' => 'hat cat scat',
+        'utterance_id' => u.global_id,
+        'reply_url' => "#{JsonApi::Json.current_host}/u/#{u.reply_nonce}"
       })
       res = u.deliver_to({'sharer_id' => u1.global_id, 'user_id' => u2.global_id})
       expect(res).to eq(true)

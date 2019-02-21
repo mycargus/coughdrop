@@ -412,8 +412,12 @@ RSpec.describe WordData, :type => :model do
   end
   
   describe "activities_for" do
-    it 'should return nothing for non-full-premium users' do
+    it 'should return nothing for non-premium users' do
       u = User.create
+      User.where(id: u.id).update_all(created_at: 6.months.ago, expires_at: 4.months.ago)
+      u.reload
+      expect(u.free_premium?).to eq(false)
+      expect(u.premium?).to eq(false)
       u.settings['target_words'] = {
         'generated' => Time.now.iso8601,
         'activities' => {
@@ -436,6 +440,42 @@ RSpec.describe WordData, :type => :model do
         'list' => [],
         'log' => [],
         'words' => []
+      })
+    end
+
+    it 'should retrieve activities for a free trial user' do
+      u = User.create
+      u.settings['target_words'] = {
+        'generated' => Time.now.iso8601,
+        'activities' => {
+          'generated' => Time.now.iso8601,
+          'words' => [
+            {'word' => 'good', 'locale' => 'en'},
+            {'word' => 'bad', 'locale' => 'en'}
+          ],
+          'list' => [
+            {'id' => '1', 'score' => 5},
+            {'id' => '2', 'score' => 3},
+            {'id' => '3', 'score' => 1}
+          ]
+        }
+      }
+      u.save!
+      res = WordData.activities_for(u)
+      expect(res.instance_variable_get('@fresh')).to eq(true)
+      expect(res).to eq({
+        'checked' => Time.now.iso8601,
+        'generated' => Time.now.iso8601,
+        'list' => [
+          {"id"=>"1", "score"=>5, "user_ids"=>[u.global_id]}, 
+          {"id"=>"2", "score"=>3, "user_ids"=>[u.global_id]}, 
+          {"id"=>"3", "score"=>1, "user_ids"=>[u.global_id]}
+        ],
+        'log' => [],
+        'words' => [
+          {"word"=>"good", "locale"=>"en", "user_ids"=>[u.global_id]}, 
+          {"word"=>"bad", "locale"=>"en", "user_ids"=>[u.global_id]}
+        ]
       })
     end
 

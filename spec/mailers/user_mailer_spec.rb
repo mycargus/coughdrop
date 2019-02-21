@@ -509,8 +509,8 @@ describe UserMailer, :type => :mailer do
 
       html = m.body.to_s
       expect(html).to_not match(/All Communicators/)
-      expect(html).to match(/ever, again, never/)
-      expect(html).to match(/ok, go/)
+#      expect(html).to match(/ever, again, never/)
+#      expect(html).to match(/ok, go/)
       expect(html).to match(/\+100\.0%/)
       expect(html).to match(/\+200\.0%/)
     end
@@ -557,8 +557,8 @@ describe UserMailer, :type => :mailer do
       expect(html).to match(/stacy/)
       expect(html).to match(/#{u2.user_name}/)
       expect(html).to match(/#{u3.user_name}/)
-      expect(html).to match(/ever, again, never/)
-      expect(html).to match(/ok, go/)
+#      expect(html).to match(/ever, again, never/)
+#      expect(html).to match(/ok, go/)
       expect(html).to match(/\+100\.0%/)
       expect(html).to match(/so no reports are generated/)
     end

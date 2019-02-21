@@ -670,6 +670,87 @@ describe LogSession, :type => :model do
       expect(session3).not_to eq(nil)
       expect(session3.data['events'].map{|e| e['button']['label'] }.uniq).to eq(['hat'])
     end
+
+    it "should create and deliver 'share' events" do
+      u2 = User.create
+
+      events = []
+      e = {'geo' => ['1', '2'], 'timestamp' => 12.weeks.ago.to_i, 'type' => 'button', 'button' => {'label' => 'hat', 'board' => {'id' => '1_1'}}}
+      4.times do |i|
+        e['timestamp'] += 30
+        events << e.merge({})
+      end
+      e['timestamp'] += User.default_log_session_duration + 100
+      e['button'] = {'label' => 'bad', 'board' => {'id' => '1_1'}}
+      events << e.merge({})
+
+      events << {
+        'timestamp' => User.default_log_session_duration + 101,
+        'type' => 'share',
+        'share' => {
+          'utterance' => [{'label' => 'how'}, {'label' => 'do'}, {'label' => 'you'}, {'label' => 'do'}],
+          'recipient_id' => u2.global_id
+        }
+      }
+      
+      u = User.create
+      d = Device.create
+      s = LogSession.new(:data => {'events' => events}, :user => u, :author => u, :device => d)
+      expect(LogSession.count).to eq(0)
+
+      s.split_out_later_sessions(true)
+      utterance = Utterance.last
+      expect(utterance.user).to eq(u)
+      expect(Worker.scheduled?(Utterance, :perform_action, {'id' => utterance.id, 'method' => 'share_with', 'arguments' => [{'user_id' => u2.global_id, 'reply_id' => nil}, u.global_id]})).to eq(true)
+      Worker.process_queues
+      expect(LogSession.count).to eq(2)
+    end
+  end
+
+  describe "message" do
+    it "should require needed parameters" do
+      expect(LogSession.message({})).to eq(false)
+    end
+
+    it "should create a reply message" do
+      u = User.create
+      d = Device.create(user: u)
+      res = LogSession.message(recipient: u, sender: u, message: 'hello myself')
+      expect(res).to_not eq(nil)
+      expect(res.log_type).to eq('note')
+      expect(res.data['note']['text']).to eq('hello myself')
+    end
+
+    it "should support session replies" do
+      u1 = User.create
+      u2 = User.create
+      d = Device.create(user: u1)
+      d2 = Device.create(user: u2)
+      res = LogSession.message(recipient: u2, sender: u1, message: 'hello you')
+      expect(res).to_not eq(nil)
+      expect(res.log_type).to eq('note')
+      expect(res.data['note']['text']).to eq('hello you')
+      res2 = LogSession.message(recipient: u1, sender: u2, reply_id: res.global_id, message: 'hello back')
+      expect(res2).to_not eq(nil)
+      expect(res2.log_type).to eq('note')
+      expect(res2.data['note']['text']).to eq('hello back')
+      expect(res2.data['note']['prior']).to eq('hello you')
+    end
+
+    it "should support utterane replies" do
+      u1 = User.create
+      u2 = User.create
+      d = Device.create(user: u1)
+      d2 = Device.create(user: u2)
+      u = Utterance.process_new({
+        button_list: [{'label' => 'bacon'}, {'label' => 'stinks'}]
+      }, {user: u1})
+      res2 = LogSession.message(recipient: u1, sender: u2, reply_id: u.global_id, message: 'hello back')
+      expect(res2).to_not eq(nil)
+      expect(res2.log_type).to eq('note')
+      expect(res2.data['note']['text']).to eq('hello back')
+      expect(res2.data['note']['prior']).to eq('bacon stinks')
+    end
   end
 
   describe "process_as_follow_on" do
@@ -1107,6 +1188,27 @@ describe LogSession, :type => :model do
       expect(s.started_at.to_i).to eq(1431461182)
       expect(s.ended_at.to_i).to eq(1431461182)
       expect(s.log_type).to eq('note')
+      expect(s.data['event_summary']).to eq("Note by #{u.user_name}: ahem")
+      expect(s.data['note']['text']).to eq('ahem')
+      expect(s.instance_variable_get('@pushed_message')).to eq(true)
+    end
+    
+    it "should deliver notes to only the user if specified" do
+      u = User.create
+      d = Device.create
+      s = LogSession.process_new({
+        'note' => {
+          'text' => 'ahem',
+          'timestamp' => 1431461182
+        },
+        'notify' => 'user_only'
+      }, {'user' => u, 'author' => u, 'device' => d, 'ip_address' => '1.2.3.4'})
+      expect(s).not_to eq(nil)
+      expect(s.errored?).to eq(false)
+      expect(s.started_at.to_i).to eq(1431461182)
+      expect(s.ended_at.to_i).to eq(1431461182)
+      expect(s.log_type).to eq('note')
+      expect(s.data['notify_user_only']).to eq(true)
       expect(s.data['event_summary']).to eq("Note by #{u.user_name}: ahem")
       expect(s.data['note']['text']).to eq('ahem')
       expect(s.instance_variable_get('@pushed_message')).to eq(true)

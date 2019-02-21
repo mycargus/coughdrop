@@ -228,6 +228,7 @@ describe Purchasing do
             'user_id' => u.global_id
           }
         })
+        expect(SubscriptionMailer).to receive(:schedule_delivery).with(:unsubscribe_reason, u.global_id)
         expect(SubscriptionMailer).to receive(:schedule_delivery).with(:subscription_expiring, u.global_id)
         res = stripe_event_request 'customer.subscription.updated', {
           'status' => 'unpaid',
@@ -283,6 +284,7 @@ describe Purchasing do
             'user_id' => u.global_id
           }
         })
+        expect(SubscriptionMailer).to receive(:schedule_delivery).with(:unsubscribe_reason, u.global_id)
         expect(SubscriptionMailer).to receive(:schedule_delivery).with(:subscription_expiring, u.global_id)
         res = stripe_event_request 'customer.subscription.deleted', {
           'customer' => '12345',
@@ -2126,7 +2128,7 @@ describe Purchasing do
       expect(problems).to_not eq(nil)
       problems = problems.split(/\n/)
       users = cust.instance_variable_get('@users')
-      expect(problems.length).to eq(7)
+      expect(problems.length).to eq(8)
       expect(problems.detect{|p| p.match(users[0].global_id)}).to eq(nil)
       expect(problems.detect{|p| p.match(users[1].global_id)}).to match(/still has a lingering subscription/)
       expect(problems.detect{|p| p.match(users[2].global_id)}).to match(/too many subscriptions/)

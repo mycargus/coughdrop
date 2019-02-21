@@ -36,7 +36,7 @@ module JsonApi::Board
     json['full_set_revision'] = board.full_set_revision
     json['current_revision'] = board.current_revision
     json['protected'] = !!board.protected_material?
-    json['button_set_id'] = board.button_set_id
+    # json['button_set_id'] = board.button_set_id (not used)
     json['copy_id'] = board.settings['copy_id'] unless board.settings['copy_id'] == board.global_id
     json['brand_new'] = board.created_at < 1.hour.ago
     json['non_author_uses'] = board.settings['non_author_uses']

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190214204917) do
+ActiveRecord::Schema.define(version: 20190221165428) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -432,7 +432,9 @@ ActiveRecord::Schema.define(version: 20190214204917) do
     t.integer  "user_id"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.string   "nonce",      limit: 255
+    t.string   "nonce",       limit: 255
+    t.string   "reply_nonce"
+    t.index ["reply_nonce"], name: "index_utterances_on_reply_nonce", unique: true, using: :btree
   end
 
   create_table "versions", force: :cascade do |t|

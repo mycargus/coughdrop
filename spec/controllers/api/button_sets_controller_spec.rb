@@ -69,8 +69,44 @@ describe Api::ButtonSetsController, :type => :controller do
   end
 
   describe "generate" do
-    it 'should have specs' do
-      write_this_test
+    it "should require an api token" do
+      post :generate, params: {'id' => 'asdf'}
+      assert_missing_token
+    end
+
+    it "should require a valid board" do
+      token_user
+      post :generate, params: {'id' => 'asdf'}
+      assert_not_found('asdf')
+    end
+
+    it "should require permissions" do
+      token_user
+      u = User.create
+      b = Board.create(user: u)
+      post :generate, params: {'id' => b.global_id}
+      assert_unauthorized
+    end
+
+    it "should return exists message if true" do
+      token_user
+      b = Board.create(user: @user)
+      BoardDownstreamButtonSet.update_for(b.global_id,)
+      post :generate, params: {'id' => b.global_id}
+      json = assert_success_json
+      expect(json).to eq({'exists' => true, 'id' => b.global_id})
+    end
+
+    it "should return a progress response if not yet generated" do
+      token_user
+      b = Board.create(user: @user)
+      post :generate, params: {'id' => b.global_id}
+      json = assert_success_json
+      expect(json['progress']).to_not eq(nil)
+      p = Progress.find_by_global_id(json['progress']['id'])
+      expect(p.settings['class']).to eq('BoardDownstreamButtonSet')
+      expect(p.settings['method']).to eq('update_for')
+      expect(p.settings['arguments']).to eq([b.global_id, true])
     end
   end
 end

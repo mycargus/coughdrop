@@ -784,7 +784,7 @@ class LogSession < ActiveRecord::Base
     (self.data['events'] || []).each do |event|
       stamp = event['timestamp'] || last_stamp
       # when the user_id changes or there's a long delay, split out into another session
-      if event['note'] || event['assessment']
+      if event['note'] || event['assessment'] || event['share']
         more_sessions << [event]
       elsif (!stamp || !last_stamp || stamp - last_stamp < cutoff) && (!current_user_id || event['user_id'] == current_user_id)
         current_session << event
@@ -814,13 +814,21 @@ class LogSession < ActiveRecord::Base
               params = event['note']
             elsif event && event['assessment']
               params = event['assessment']
+            elsif event && event['share']
+              utterance = Utterance.process_new({
+                button_list: event['share']['utterance'],
+                sentence: event['share']['sentence']
+              }, {:user => user})
+              utterance.schedule(:share_with, {'user_id' => event['share']['recipient_id'], 'reply_id' => event['share']['reply_id']}, user.global_id)
+              params = nil
+              # TODO: schedule background job to process user share
             end
             LogSession.process_new(params, {
               :ip_address => self.data['id_address'], 
               :device => self.device,
               :author => self.author,
               :user => user
-            })
+            }) if params
           end
         end
         self.processed = true
@@ -835,6 +843,27 @@ class LogSession < ActiveRecord::Base
       LogSession.where(:id => self.id).update_all(:processed => true)
     end
     true
+  end
+
+  def self.message(opts)
+    recipient = opts[:recipient]
+    sender = opts[:sender]
+    device = opts[:device] || (opts[:sender] && opts[:sender].devices[0])
+    return false unless recipient && sender && device
+    prior_message = nil
+    prior_note =  nil
+    if opts[:reply_id]
+      prior_note = LogSession.where(log_type: 'note').find_by_global_id(opts[:reply_id])
+      prior_note ||= Utterance.find_by_global_id(opts[:reply_id])
+      return false unless prior_note && (prior_note.user == sender || prior_note.user == recipient)
+      prior_message = prior_note.data['note']['text'] if prior_note.is_a?(LogSession)
+      prior_message = prior_note.data['sentence'] if prior_note.is_a?(Utterance)
+    end
+    opts[:message]
+    session = LogSession.process_new({
+      'note' => {'text' => opts[:message], 'prior' => prior_message, 'prior_record_cord' => (prior_note && Webhook.get_record_code(prior_note))}
+    }, {'user' => recipient, 'author' => sender, 'device' => device})
+    return session
   end
   
   def self.process_as_follow_on(params, non_user_params)
@@ -1190,6 +1219,7 @@ class LogSession < ActiveRecord::Base
       end
       if params['notify'] && params['note']
         @push_message = true
+        self.data['notify_user_only'] = true if params['notify'] == 'user_only'
       end
       self.data['note'] = params['note'] if params['note']
       if params['video_id']
@@ -1287,7 +1317,11 @@ class LogSession < ActiveRecord::Base
   def default_listeners(notification_type)
     if notification_type == 'push_message'
       return [] unless self.user
-      users = [self.user] + self.user.supervisors - [self.author]
+      users = [self.user]
+      if self.data['notify_user_only'] != true
+        users += self.user.supervisors
+      end
+      users -= [self.author]
       users.map(&:record_code)
     else
       []

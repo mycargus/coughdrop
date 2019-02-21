@@ -4,7 +4,7 @@ module FeatureFlags
               'video_recording', 'goals', 'app_connections', 'translation', 'geo_sidebar',
               'modeling', 'edit_before_copying', 'core_reports', 'lessonpix',
               'audio_recordings', 'fast_render', 'badge_progress', 'board_levels', 'premium_symbols',
-              'find_multiple_buttons']
+              'find_multiple_buttons', 'new_speak_menu']
   ENABLED_FRONTEND_FEATURES = ['subscriptions', 'assessments', 'custom_sidebar', 'snapshots',
               'video_recording', 'goals', 'modeling', 'geo_sidebar', 'edit_before_copying',
               'core_reports', 'lessonpix', 'translation', 'fast_render',

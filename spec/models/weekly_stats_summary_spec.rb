@@ -189,7 +189,7 @@ describe WeeklyStatsSummary, :type => :model do
       expect(WordData.standardized_words['when']).to eq(true)
       
       threes = ['me', 'me', 'that', 'that', 'baegwgaweg']
-      5.times do |i|
+      10.times do |i|
         u = User.create
         d = Device.create(user: u)
         b = Board.create(:user => u, :settings => {
@@ -211,8 +211,8 @@ describe WeeklyStatsSummary, :type => :model do
       sum = WeeklyStatsSummary.last
       sum = WeeklyStatsSummary.track_trends(sum.weekyear)
       expect(sum).to_not eq(nil)
-      expect(sum.data['available_words']['good'].length).to eq(5)
-      expect(sum.data['available_words']['with'].length).to eq(5)
+      expect(sum.data['available_words']['good'].length).to eq(10)
+      expect(sum.data['available_words']['with'].length).to eq(10)
       expect(sum.data['available_words']['me']).to eq(nil)
       expect(sum.data['available_words']['that']).to eq(nil)
     end
@@ -289,7 +289,7 @@ describe WeeklyStatsSummary, :type => :model do
     it "should update a user's target_list if for the current week" do
       u = User.create
       d = Device.create
-      5.times do |i|
+      10.times do |i|
         s1 = LogSession.process_new({'events' => [
           {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'good', 'button_id' => 1, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 10 - (i * 60)},
           {'type' => 'button', 'button' => {'spoken' => true, 'label' => 'want', 'button_id' => 2, 'board' => {'id' => '1_1'}}, 'geo' => ['13', '12'], 'timestamp' => Time.now.to_i - 9 - (i * 60)},

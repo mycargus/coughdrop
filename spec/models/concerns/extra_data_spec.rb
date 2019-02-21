@@ -13,12 +13,32 @@ describe ExtraData, :type => :model do
 
     it 'should do nothing if extra_data_too_big? is false' do
       s = LogSession.new(data: {'extra_data_nonce' => 'asdf'})
+      expect(s).to receive(:assert_extra_data)
       expect(Uploader).to_not receive(:remote_upload)
+      expect(s).to receive(:extra_data_too_big?).and_return(false)
       s.detach_extra_data(true)
     end
     
     it 'should force if frd="force" even if not enough data"' do
-      write_this_test
+      u = User.create
+      d = Device.create(user: u)
+      s = LogSession.create(user: u, device: d, author: u)
+      expect(s).to receive(:extra_data_too_big?).and_return(false)
+      paths = []
+      expect(Uploader).to receive(:remote_upload) do |path, local, type|
+        if path == LogSession.extra_data_remote_paths(s.data['extra_data_nonce'], s.global_id)[0]
+          paths << 'private'
+        elsif path == LogSession.extra_data_remote_paths(s.data['extra_data_nonce'], s.global_id)[1]
+          paths << 'public'
+        else
+          expect('path').to eq('wrong')
+        end
+        expect(type).to eq('text/json')
+        expect(local).to_not eq(nil)
+        expect(File.exists?(local)).to eq(true)
+      end.exactly(2).times
+      s.detach_extra_data('force')
+      expect(paths).to eq(['public', 'private'])
     end
 
     it 'should upload if no extra_data_nonce defined and data too big' do
@@ -47,6 +67,7 @@ describe ExtraData, :type => :model do
       u = User.create
       d = Device.create(user: u)
       s = LogSession.create(user: u, device: d, author: u, data: {'extra_data_nonce' => 'bacon'})
+      expect(s).to receive(:assert_extra_data)
       expect(s).to receive(:extra_data_too_big?).and_return(true)
       paths = []
       expect(Uploader).to receive(:remote_upload) do |path, local, type|

@@ -25,10 +25,25 @@ class Utterance < ActiveRecord::Base
         self.data['image_url'] ||= self.data['button_list'].map{|b| b['image'] }.compact.first
         self.data['default_image_url'] = true
       end
+      if !self.data['sentence'] || self.data['sentence'].blank?
+        self.data['sentence'] = self.data['button_list'].map{|b| b['vocalization'] || b['label'] }.compact.join(' ')
+      end
     end
+    tmp_nonce = nil
+    attempts = 0
+    while !self.reply_nonce && (!tmp_nonce || Utterance.find_by(reply_nonce: tmp_nonce))
+      tmp_nonce = GoSecure.nonce('utterance_reply_code')[0, 10]
+      attempts += 1
+      raise "can't generate nonce" if attempts > 10
+    end
+    self.reply_nonce = tmp_nonce if tmp_nonce
     self.data['image_url'] ||= "https://s3.amazonaws.com/opensymbols/libraries/noun-project/Person-08e6d794b0.svg"
     self.data['show_user'] ||= false
     true
+  end
+
+  def self.clear_old_nonces
+    Utterance.where(['reply_nonce IS NOT NULL AND created_at < ?', 14.days.ago]).update_all(reply_nonce: nil)
   end
   
   def generate_preview
@@ -50,12 +65,27 @@ class Utterance < ActiveRecord::Base
   end
   
   def share_with(params, sharer)
+    sharer = User.find_by_path(sharer) if sharer.is_a?(String)
     return false unless sharer
-    if params['supervisor_id']
-      if sharer.supervisor_user_ids.include?(params['supervisor_id'])
-        sup = User.find_by_path(params['supervisor_id'])
+    user_id = params['user_id'] || params['supervisor_id']
+    if user_id
+      message = params['message'] || params['sentence'] || self.data['sentence']
+      if (sharer.supervised_user_ids + sharer.supervisor_user_ids).include?(user_id)
+        sup = User.find_by_path(user_id)
         return false unless sup
-        self.schedule(:deliver_to, {'user_id' => sup.global_id, 'sharer_id' => sharer.global_id})
+        if sharer.supervisor_user_ids.include?(user_id)
+          # message from a communicator to a supervisor
+          self.schedule(:deliver_to, {'user_id' => sup.global_id, 'sharer_id' => sharer.global_id})
+        elsif sharer.supervised_user_ids.include?(user_id)
+          # message from a supervisor to a communicator
+          return false unless LogSession.message({
+            recipient: sup,
+            sender: sharer,
+            device: @api_device,
+            message: message,
+            reply_id: params['reply_id']
+          })
+        end
         return {to: sup.global_id, from: sharer.global_id, type: 'utterance'}
       end
     elsif params['email']
@@ -75,12 +105,15 @@ class Utterance < ActiveRecord::Base
     raise "sharer required" unless sharer
     text = args['message'] || self.data['sentence']
     subject = args['subject'] || self.data['sentence']
+    reply_url = "#{JsonApi::Json.current_host}/u/#{self.reply_nonce}"
     if args['email']
       UserMailer.schedule_delivery(:utterance_share, {
         'subject' => subject,
         'message' => text,
         'sharer_id' => sharer.global_id,
-        'to' => args['email']
+        'utterance_id' => self.global_id,
+        'to' => args['email'],
+        'reply_url' => reply_url
       })
       return true
     elsif args['user_id']
@@ -89,6 +122,8 @@ class Utterance < ActiveRecord::Base
         notify('utterance_shared', {
           'sharer' => {'user_name' => sharer.user_name, 'user_id' => sharer.global_id},
           'user_id' => user.global_id,
+          'utterance_id' => self.global_id,
+          'reply_url' => reply_url,
           'text' => text
         })
       end

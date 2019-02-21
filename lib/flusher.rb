@@ -37,7 +37,7 @@ module Flusher
   end
   
   def self.flush_versions(record_db_id, record_class)
-      PaperTrail::Version.where(:item_type => record_class, :item_id => record_db_id).delete_all
+    PaperTrail::Version.where(:item_type => record_class, :item_id => record_db_id).delete_all
   end
   
   def self.flush_leftovers
@@ -139,7 +139,7 @@ module Flusher
       flush_board(board.global_id, board.key, aggressive_flush)
     end
   end
-
+  
   def self.flush_deleted_users
     users = User.where(['schedule_deletion_at < ?', Time.now]).limit(100)
     users.each do |user|
@@ -158,6 +158,9 @@ module Flusher
     end
     Utterance.where(:user_id => user.id).each do |utterance|
       flush_record(utterance)
+    end
+    NfcTag.where(:user_id => user.id).each do |tag|
+      flush_record(tag)
     end
     # TODO: remove any public comments by the user
     LogSession.where(:author_id => user.id).each do |note|

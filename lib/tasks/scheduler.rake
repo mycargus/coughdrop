@@ -28,6 +28,7 @@ end
 task :flush_users => :environment do
   puts "Finding users that need to be deleted..."
   res = Flusher.flush_deleted_users
+  Utterance.clear_old_nonces
   puts "done, deleted #{res} users" 
 end
 

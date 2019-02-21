@@ -569,6 +569,32 @@ class User < ActiveRecord::Base
     if self.settings['preferences']['external_links']
       self.settings['preferences'].delete('confirm_external_links')
     end
+    if params['offline_actions']
+      params['offline_actions'].each do |action|
+        if action['action'] == 'add_vocalization'
+          self.settings['vocalizations'] ||= []
+          action['id'] = nil if self.settings['vocalizations'].find{|v| v['id'] == action['id'] }
+          self.settings['vocalizations'] << {
+            'list' => action['value'],
+            'id' => action['id'] || (rand(999).to_s + (Time.now.to_i % 1000).to_s + self.settings['vocalizations'].length.to_s)
+          }
+        elsif action['action'] == 'reorder_vocalizations'
+          new_list = []
+          list = self.settings['vocalizations'] || []
+          action['value'].split(',').each do |id|
+            item = list.find{|v| v['id'] == id }
+            if item
+              list -= [item]
+              new_list << item
+            end
+          end
+          new_list += list
+          self.settings['vocalizations'] = new_list
+        elsif action['action'] == 'remove_vocalization'
+          self.settings['vocalizations'] = (self.settings['vocalizations'] || []).select{|v| v['id'] != action['value']}
+        end
+      end
+    end
     if params['preferences'] && params['preferences']['cookies'] == true
       self.settings['preferences']['protected_user'] = false
     end
@@ -734,7 +760,7 @@ class User < ActiveRecord::Base
         })
       elsif board['special'] && board['action']
         opts = {
-          'name' => board['name'] || board['action'],
+          'name' => board['name'] || board['action'].split(/\(/)[0],
           'special' => true,
           'action' => board['action'],
           'image' => board['image'] || "https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/touch_437_g.svg"
@@ -899,6 +925,7 @@ class User < ActiveRecord::Base
       if record.user_id == self.id
         self.settings['unread_messages'] ||= 0
         self.settings['unread_messages'] += 1
+        # TODO: why are we settings last_message_read here?
         self.settings['last_message_read'] = (record.started_at || 0).to_i
         self.save
       end
@@ -959,7 +986,7 @@ class User < ActiveRecord::Base
           record.data['sms_attempts'] << {
             cell: self.settings['cell_phone'],
             timestamp: Time.now.to_i,
-            text: "from #{from} - #{text}"
+            text: "from #{from}: #{text}"
           }
           record.save
         end

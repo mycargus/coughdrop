@@ -634,6 +634,113 @@ footer .wide_links {
     animation: throb 1.5s ease-in-out infinite;
   }
 }
+.cursor_holder {
+  position: relative;
+  .cursor_navigation {
+    .up {
+      z-index: 5;
+      position: absolute;
+      top: 2px;
+      right: 2px;
+    }
+    .down {
+      z-index: 5;
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+    }
+  }
+}
+.cursor_area {
+  padding: 5px 100px 5px 10px;
+  margin: 5px 0;
+  border: 2px solid #eee;
+  border-radius: 10px;
+  max-height: 330px;
+  min-height: 220px;
+  overflow: auto;
+  position: relative;
+  .cursor_box {
+    float: left;
+    width: 150px;
+    margin-right: -20px;
+    padding-left: 20px;
+    .cursor_blink {
+      float: left; 
+      margin-left: 2.5px;
+      width: 20px; 
+      height: 104px; 
+      overflow: hidden; 
+      padding-top: 15px;
+      opacity: 0.0;
+      * {
+        animation: cursorblink 1.0s infinite;
+      }
+      &.prior {
+        margin-left: -25px;
+        display: none;
+      }
+      .left, .right {
+        display: inline-block; 
+        width: 10px; 
+        height: 70px; 
+        border-top: 2px solid #000; 
+        border-bottom: 2px solid #000; 
+      }
+      .left {
+        border-right: 2px solid #000; 
+        border-top-right-radius: 3px; 
+        border-bottom-right-radius: 3px;
+      }
+      .right {
+        border-left: 2px solid #000; 
+        border-top-left-radius: 3px; 
+        border-bottom-left-radius: 3px;
+      }
+      .glyphicon {
+        display: none;
+        font-size: 21px;
+      }
+    }
+    .cursor_btn {
+      padding: 2px;
+      float: left;
+      height: 104px;
+      border-radius: 10px;
+    }
+    &.prior {
+      .cursor_blink.prior {
+        display: block;
+        opacity: 1.0;
+      }
+    }
+    &.over {
+      .cursor_blink { 
+        opacity: 1.0;
+      }
+      .cursor_btn {
+        background: rgba(0, 123, 255, 0.3);
+      }
+    }
+    &.selected {
+      .cursor_blink { 
+        opacity: 1.0;
+        .left, .right {
+          border-color: rgba(0, 123, 255, 1.0);
+          display: none;
+        }
+        .glyphicon {
+          display: block;
+          color: rgba(0, 123, 255, 1.0);
+        }
+      }
+      .cursor_btn {
+        background: rgba(0, 123, 255, 1.0);
+      }
+    }
+  }
+}
+
 .button_list.rtl .history_button {
   float: right;
 }
@@ -806,11 +913,19 @@ footer .wide_links {
 0%, 100% { opacity: 1.0; }
 50% { opacity: 0.2; }
 }
-@-webkit-keyframes reveal2 {
+@-webkit-keyframes throb {
 0%, 100% { opacity: 1.0; }
 50% { opacity: 0.2; }
 }
-
+@keyframes cursorblink {
+  0%, 25%, 75%, 100% { opacity: 1.0; }
+  35%, 50%, 65% { opacity: 0.0; }
+}
+@-webkit-keyframes cursorblink {
+  0%, 25%, 75%, 100% { opacity: 1.0; }
+  35%, 50%, 65% { opacity: 0.0; }
+}
+  
 .signup_links {
   display: inline-block; 
   font-size: 18px; 
@@ -3491,6 +3606,68 @@ table tr.long_delay td {
     }
     td:last-child {
       border-bottom-right-radius: 10px;
+    }
+  }
+}
+#speak_menu {
+  .row {
+    width: 100%;
+    margin: 0;
+  }
+  .speak_menu_button {
+    height: 80px;
+    padding: 10px 0;
+    border: 1px solid #000;
+    font-size: 12px;
+    text-align: center;
+    .glyphicon {
+      font-size: 40px;
+      display: block;
+      margin-bottom: 9px;
+    }
+    cursor: pointer;
+    &:hover {
+      background: #444;
+      color: #eee;
+    }
+  }
+}
+.share_buttons {
+  .btn {
+    font-size: 12px;
+    width: 100%;
+    margin-bottom: 10px;
+    .glyphicon {
+      font-size: 40px;
+      display: block;
+      margin-bottom: 5px;
+    }
+    img {
+      height: 40px;
+      width: 100%;
+      display: block;
+      margin-bottom: 5px;
+      object-fit: contain;
+      object-position: center;
+    }
+  }
+}
+.repair_buttons {
+  .btn {
+    font-size: 12px;
+    width: 100px;
+    .glyphicon {
+      font-size: 40px;
+      display: block;
+      margin-bottom: 5px;
+    }
+    img {
+      height: 40px;
+      width: 100%;
+      display: block;
+      margin-bottom: 5px;
+      object-fit: contain;
+      object-position: center;
     }
   }
 }
