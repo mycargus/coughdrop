@@ -132,11 +132,11 @@ class SessionController < ApplicationController
     if params['grant_type'] == 'password'
       pending_u = User.find_for_login(params['username'])
       u = nil
-#      if params['client_id'] == 'browser' && GoSecure.valid_browser_token?(params['client_secret'])
+      if params['client_id'] == 'browser' && GoSecure.valid_browser_token?(params['client_secret'])
         u = pending_u
-#      else
-#        return api_erorr 400, { error: "Invalid client secret" }
-#      end
+      else
+        return api_erorr 400, { error: "Invalid client_secret for client_id", client_id: params['client_id'] }
+      end
       if u && u.valid_password?(params['password'])
         # generated based on request headers
         # TODO: should also have some kind of developer key for tracking
