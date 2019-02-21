@@ -21,7 +21,14 @@ class Api::UtterancesController < ApplicationController
     utterance = Utterance.find_by_global_id(params['utterance_id'])
     return unless exists?(utterance)
     return unless allowed?(utterance, 'edit')
-    res = utterance.share_with(params, @api_user)
+    sharer = @api_user
+    if params['sharer_id'] && @api_user && params['sharer_id'] != @api_user.global_id
+      user = User.find_by_path(params['sharer_id'])
+      return unless exists?(user, params['sharer_id'])
+      return unless allowed?(user, 'supervise')
+      sharer = user
+    end
+    res = utterance.share_with(params, sharer, @api_user)
     if res
       render json: {shared: true, details: res}.to_json
     else

@@ -64,10 +64,14 @@ class Utterance < ActiveRecord::Base
     true
   end
   
-  def share_with(params, sharer)
+  def share_with(params, sharer, author=nil)
+    author ||= sharer
     sharer = User.find_by_path(sharer) if sharer.is_a?(String)
     return false unless sharer
     user_id = params['user_id'] || params['supervisor_id']
+    self.data['author_ids'] = ((self.data['author_ids'] || []) + [author.global_id]).uniq
+    self.save
+
     if user_id
       message = params['message'] || params['sentence'] || self.data['sentence']
       my_supervisor_ids = sharer.supervisor_user_ids

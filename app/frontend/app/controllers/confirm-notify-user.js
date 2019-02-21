@@ -57,6 +57,7 @@ export default modal.ModalController.extend({
         persistence.ajax('/api/v1/utterances/' + this.get('model.utterance.id') + '/share', {
           type: 'POST',
           data: {
+            sharer_id: app_state.get('referenced_user.id'),
             user_id: this.get('model.user.id')
           }
         }).then(function(data) {

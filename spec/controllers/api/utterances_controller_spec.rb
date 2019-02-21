@@ -131,7 +131,48 @@ describe Api::UtterancesController, :type => :controller do
       json = JSON.parse(response.body)
       expect(json['shared']).to eq(true)
     end
+
+    it "should require an existing sharer if specified" do
+      token_user
+      utterance = Utterance.create(:user => @user)
+      post :share, params: {:utterance_id => utterance.global_id, :email => 'bob@example.com', :sharer_id => 'asdf'}
+      assert_not_found('asdf')
+    end
+
+    it "should require supervisor permission to specify a sharer" do
+      token_user
+      u = User.create
+      User.link_supervisor_to_user(u, @user)
+      utterance = Utterance.create(:user => @user)
+      post :share, params: {:utterance_id => utterance.global_id, :email => 'bob@example.com', :sharer_id => u.global_id}
+      assert_unauthorized
+    end
+
+    it "should allow sharing on behalf of a supervisee" do
+      token_user
+      u = User.create
+      User.link_supervisor_to_user(@user, u)
+      utterance = Utterance.create(:user => @user)
+      post :share, params: {:utterance_id => utterance.global_id, :email => 'bob@example.com'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['shared']).to eq(true)
+    end
     
+    it "should allow sharing to a supervisee's supervisor" do
+      token_user
+      com = User.create
+      sup = User.create
+      User.link_supervisor_to_user(@user, com)
+      User.link_supervisor_to_user(sup, com)
+      utterance = Utterance.create(:user => @user)
+      post :share, params: {:utterance_id => utterance.global_id, :user_id => sup.global_id, :sharer_id => com.global_id}
+      json = assert_success_json
+      expect(json['shared']).to eq(true)
+      expect(json['details']['from']).to eq(com.global_id)
+      expect(json['details']['to']).to eq(sup.global_id)
+    end
+
     it "should add a notification to the supervisor's feed" do
       token_user
       sup = User.create
