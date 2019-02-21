@@ -124,24 +124,28 @@ class UserMailer < ActionMailer::Base
         if user.premium? && user.settings['preferences'] && user.settings['preferences']['role'] == 'communicator'
           user_report.pre_stats = Stats.cached_daily_use(user.global_id, {:start_at => pre_start, :end_at => pre_end})
           user_report.current_stats = Stats.cached_daily_use(user.global_id, {:start_at => pre_end, :end_at => Time.now})
+          broad_state = Stats.cached_daily_use(user.global_id, {:start_at => [pre_start, 4.weeks.ago].min, :end_at => Time.now})
           # TODO: sharding
           user_report.total_notes = LogSession.where(:user_id => user.id).where(:log_type => ['note', 'assessment']).where(['started_at > ? AND ended_at < ?', pre_start, Time.now]).count
           user_report.primary_goal = UserGoal.primary_goal(user)
           user_report.secondary_goal_count = UserGoal.secondary_goals(user).length
           if user_report.pre_stats[:total_sessions] > 0
             user_report.total_sessions_delta = (user_report.current_stats[:total_sessions].to_f / user_report.pre_stats[:total_sessions].to_f * 100.0).round(0) - 100.0
-            if user_report.current_stats[:total_sessions].to_f < user_report.pre_stats[:total_sessions].to_f
-              user_report.total_sessions_delta = -1 * (user_report.current_stats[:total_sessions].to_f / user_report.pre_stats[:total_sessions].to_f * 100.0).round(0)
-            end
+            # if user_report.current_stats[:total_sessions].to_f < user_report.pre_stats[:total_sessions].to_f
+            #   user_report.total_sessions_delta = (user_report.current_stats[:total_sessions].to_f / user_report.pre_stats[:total_sessions].to_f * 100.0).round(0) - 100.0
+            # end
+          end
+          if user_report.pre_stats[:modeled_buttons] > 0
+            user_report.modeled_buttons_delta = (user_report.current_stats[:modeled_buttons].to_f / user_report.pre_stats[:modeled_buttons].to_f * 100.0).round(0) - 100.0
           end
           if user_report.pre_stats[:total_buttons] > 0
             user_report.total_buttons_delta = (user_report.current_stats[:total_buttons].to_f / user_report.pre_stats[:total_buttons].to_f * 100.0).round(0) - 100.0
-            if user_report.current_stats[:total_buttons].to_f < user_report.pre_stats[:total_buttons].to_f 
-              user_report.total_buttons_delta = -1 * (user_report.current_stats[:total_buttons].to_f / user_report.pre_stats[:total_buttons].to_f * 100.0).round(0)
-            end
+            # if user_report.current_stats[:total_buttons].to_f < user_report.pre_stats[:total_buttons].to_f 
+            #   user_report.total_buttons_delta = (user_report.current_stats[:total_buttons].to_f / user_report.pre_stats[:total_buttons].to_f * 100.0).round(0) - 100.0
+            # end
           end
-          user_report.lost_words = (user_report.current_stats[:dwindling_words] || []).sort_by(&:last).reverse.map(&:first).join(', ')
-          user_report.gained_words = (user_report.current_stats[:emergent_words] || []).sort_by(&:last).reverse.map(&:first).join(', ')
+          user_report.lost_words = (broad_state[:dwindling_words] || []).sort_by(&:last).reverse.map(&:first).join(', ')
+          user_report.gained_words = (broad_state[:emergent_words] || []).sort_by(&:last).reverse.map(&:first).join(', ')
 
           if user_report.gained_words.length == 0
             # lost_percents = []
