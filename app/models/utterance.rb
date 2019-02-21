@@ -70,13 +70,17 @@ class Utterance < ActiveRecord::Base
     user_id = params['user_id'] || params['supervisor_id']
     if user_id
       message = params['message'] || params['sentence'] || self.data['sentence']
-      if (sharer.supervised_user_ids + sharer.supervisor_user_ids).include?(user_id)
+      my_supervisor_ids = sharer.supervisor_user_ids
+      my_supervisee_ids = sharer.supervised_user_ids
+      my_supervisees_contact_ids = sharer.supervisees.map{|sup| sup.supervisor_user_ids }.flatten
+      allowed_ids = (my_supervisor_ids + my_supervisee_ids + my_supervisees_contact_ids).uniq
+      if allowed_ids.include?(user_id)
         sup = User.find_by_path(user_id)
         return false unless sup
-        if sharer.supervisor_user_ids.include?(user_id)
+        if (my_supervisor_ids + my_supervisees_contact_ids).include?(user_id)
           # message from a communicator to a supervisor
           self.schedule(:deliver_to, {'user_id' => sup.global_id, 'sharer_id' => sharer.global_id})
-        elsif sharer.supervised_user_ids.include?(user_id)
+        elsif my_supervisee_ids.include?(user_id)
           # message from a supervisor to a communicator
           return false unless LogSession.message({
             recipient: sup,

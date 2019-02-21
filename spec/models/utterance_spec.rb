@@ -142,6 +142,33 @@ describe Utterance, :type => :model do
       }]})).to eq(false)
     end
 
+    it "should allow sharing with one of the supervisors of one of my supervisees" do
+      u1 = User.create
+      u2 = User.create
+      u3 = User.create
+      User.link_supervisor_to_user(u2, u1)
+      User.link_supervisor_to_user(u3, u1)
+      u1.reload
+      u2.reload
+      u3.reload
+      button_list = [
+        {'label' => 'hat', 'image' => 'http://www.example.com/pib.png'},
+        {'label' => 'cat', 'image' => 'http://www.example.com/pib.png'},
+        {'label' => 'scat', 'image' => 'http://www.example.com/pic.png'}
+      ]
+      u = Utterance.create(:data => {
+        'button_list' => button_list
+      })
+      res = u.share_with({
+        'user_id' => u3.global_id
+      }, u2)
+      expect(res).to eq({:to => u3.global_id, :from => u2.global_id, :type => 'utterance'})
+      expect(Worker.scheduled?(Utterance, :perform_action, {'id' => u.id, 'method' => 'deliver_to', 'arguments' => [{
+        'user_id' => u3.global_id,
+        'sharer_id' => u2.global_id
+      }]})).to eq(true)
+    end
+
     it "should allow sharing to an email address" do
       u1 = User.create
       button_list = [
