@@ -490,8 +490,7 @@ class WordData < ActiveRecord::Base
           nil
         else
           word = b['label'] || b['vocalization']
-          reachable_hash[word.downcase.sub(/[^\w]+$/, '') ] = true
-          
+          reachable_hash[word.downcase.sub(/[^\w]+$/, '') ] = true if word
         end
       }
     }

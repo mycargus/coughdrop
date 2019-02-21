@@ -382,6 +382,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
       BoardDownstreamButtonSet.where(:board_id => board_ids).find_in_batches(batch_size: 5) do |batch|
         batch.each do |button_set|
           button_set.buttons.each do |button|
+            next unless button && button['label']
             word = button['label'].downcase
             if BoardDownstreamButtonSet.spoken_button?(button, nil) && valid_words[word]
               word_user_counts[word] = (word_user_counts[word] || []) + board_user_ids[button_set.board_id]
@@ -599,7 +600,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
     res[:core_percent] = res[:core_percent].round(2)
     res[:words_per_minute] = (stash[:total_words].to_f / stash[:total_session_seconds].to_f * 60.0).round(1)
     res[:words_per_minute] = 0.0 if res[:words_per_minute].nan?
-    res[:research_communicators] = 1200
+    res[:research_communicators] = 1100
     if include_admin
       res[:total_users] = total_users
       res[:total_sessions] = stash[:total_sessions]
@@ -709,7 +710,7 @@ class WeeklyStatsSummary < ActiveRecord::Base
       max_val = hash.to_a.map(&:last).max || 0.0
       res[:device][pref][:max_value] = max_val if include_admin
       hash.each do |k, v|
-        res[:device][pref][k] = (v.to_f / max_val.to_f * 5.0).round(1) / 5.0
+        res[:device][pref][k] = (v.to_f / max_val.to_f * 50.0).round(1) / 50.0
       end
     end
     
