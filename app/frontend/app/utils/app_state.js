@@ -899,8 +899,80 @@ var app_state = EmberObject.extend({
       });
     }
   },
-  say_louder: function() {
-    this.controller.sayLouder();
+  say_louder: function(pct) {
+    this.controller.sayLouder(pct);
+  },
+  save_phrase: function(voc) {
+    var user = app_state.get('currentUser');
+    if(user) {
+      var vocs = user.get('vocalizations') || []
+      user.add_action({
+        action: 'add_vocalization',
+        value: voc,
+        id: Math.round(Math.random() * 9999).toString() + ((new Date()).getTime() % 1000).toString() + vocs.length
+      });
+      vocs.push(voc);
+      user.set('vocalizations', vocs);
+      user.save().then(function() { user.set('offline_actions', null); }, function() { });
+    } else {
+      stashes.remember({override: voc});
+    }
+  },
+  remove_phrase: function(phrase) {
+    var voc = app_state.get('currentUser.vocalizations') || [];
+    var stash = stashes.get('remembered_vocalizations');
+    var matches = 0;;
+    if(phrase.id) {
+      voc = voc.filter(function(v) { 
+        if(v.id == phrase.id) { matches++; return matches > 1; }
+        return true;
+      });
+    } else {
+      voc = voc.filter(function(v) { 
+        if(v.sentence == phrase.sentence && !phrase.stash) { matches++; return matches > 1; }
+        return true;
+      });
+      stash = stash.filter(function(v) {
+        if(v.sentence == phrase.sentence && phrase.stash) { matches++; return matches > 1; }
+        return true;
+      });
+    }
+    if(app_state.get('currentUser')) {
+      var u = app_state.get('currentUser');
+      u.set('vocalizations', voc);
+      u.add_action({
+        action: 'remove_vocalization',
+        value: phrase.id
+      });
+      u.save().then(function() { u.set('offline_actions', null); }, function() { });
+    }
+    stashes.persist('remembered_vocalizations', stash);
+  },
+  shift_phrase: function(phrase, direction) {
+    if(app_state.get('currentUser')) {
+      var u = app_state.get('currentUser');
+      var list = u.get('vocalizations') || [];
+      var voc = list.find(function(v) { return v && v.id && phrase.id && v.id == phrase.id; });
+      var idx = list.indexOf(voc);
+      if(idx !== -1) {
+        if(direction == 'up' && idx > 0) {
+          var ref = list[idx - 1];
+          list[idx - 1] = voc;
+          list[idx] = ref;
+        } else if(direction == 'down' && idx < list.length - 1) {
+          var ref = list[idx + 1];
+          list[idx + 1] = voc;
+          list[idx] = ref;
+        }
+      }
+      var ids = list.map(function(v) { return v && v.id; }).join(',');
+      u.set('vocalizations', list);
+      u.add_action({
+        action: 'reorder_vocalizations',
+        value: ids
+      })
+      u.save().then(function() { u.set('offline_actions', null); }, function() { });
+    }
   },
   set_and_say_buttons(vocalizations) {
     this.controller.set_and_say_buttons(vocalizations);

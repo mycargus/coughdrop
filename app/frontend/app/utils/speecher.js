@@ -739,14 +739,14 @@ var speecher = EmberObject.extend({
       var playAudio = function() {
         var audio = $audio[0];
         if(type == 'text') {
-          var speak_id = this.speak_id++;
-          this.last_speak_id = speak_id;
-          this.speaking = true;
-          this.speaking_from_collection = collection_id;
+          var speak_id = _this.speak_id++;
+          _this.last_speak_id = speak_id;
+          _this.speaking = true;
+          _this.speaking_from_collection = collection_id;
           audio.speak_id = speak_id;
         }
-        var playing_audio = this.play_audio(audio);
-        this.audio[type] = playing_audio;
+        var playing_audio = _this.play_audio(audio);
+        _this.audio[type] = playing_audio;
       }
 
       var target = "default";

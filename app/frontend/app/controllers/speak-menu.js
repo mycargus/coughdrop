@@ -4,13 +4,25 @@ import $ from 'jquery';
 import modal from '../utils/modal';
 import stashes from '../utils/_stashes';
 import app_state from '../utils/app_state';
+import utterance from '../utils/utterance';
+import speecher from '../utils/speecher';
 import CoughDrop from '../app';
 
 export default modal.ModalController.extend({
   opening: function() {
-    var utterances = stashes.get('remembered_vocalizations');
+    var utterances = stashes.get('remembered_vocalizations') || [];
+    if(app_state.get('currentUser')) {
+      utterances = utterances.filter(function(u) { return u.stash; }).slice(0, 2);
+      (app_state.get('currentUser.vocalizations') || []).forEach(function(u) {
+        utterances.push({
+          sentence: u.list.map(function(v) { return v.label; }).join(" "),
+          vocalizations: u.list,
+          stash: false
+        });
+      });
+    }
     this.set('model', {});
-    this.set('rememberedUtterances', utterances);
+    this.set('rememberedUtterances', utterances.slice(0, 7));
     var height = app_state.get('header_height');
     runLater(function() {
       $("#speak_menu").closest(".modal-dialog").css('top', (height - 40) + 'px');
@@ -25,19 +37,56 @@ export default modal.ModalController.extend({
   }.property('stashes.working_vocalization'),
   actions: {
     selectButton: function(button) {
+      modal.close(true);
       if(button == 'remember') {
-        stashes.remember();
-        modal.close(true);
+        app_state.save_phrase(stashes.get('working_vocalization'));
       } else if(button == 'share') {
-        modal.close(true);
-        // TODO: browser-style share option
-        modal.open('share-utterance', {utterance: stashes.get('working_vocalization')});
+        if(stashes.get('working_vocalization.length')) {
+          modal.open('share-utterance', {utterance: stashes.get('working_vocalization')});
+        }
       } else if(button == 'sayLouder') {
-        modal.close(true);
         app_state.say_louder();
       } else {
+        if(button.stash) {
+          utterance.set('rawButtonList', button.vocalizations);
+          utterance.set('list_vocalized', false);
+          var list = (stashes.get('remembered_vocalizations') || []).filter(function(v) { return !v.stash || v.sentence != button.sentence; });
+          stashes.persist('remembered_vocalizations', list);
+        } else {
+          app_state.set_and_say_buttons(button.vocalizations);
+        }
+      }
+    },
+    button_event: function(event, button) {
+      if(event == 'speakMenuSelect') {
+        var click = function() {
+          if(app_state.get('currentUser.preferences.click_buttons') && app_state.get('speak_mode')) {
+            speecher.click();
+          }
+        };
         modal.close(true);
-        app_state.set_and_say_buttons(button.vocalizations);
+        if(button == 'menu_share_button') {
+          modal.open('share-utterance', {utterance: stashes.get('working_vocalization')});
+          click();
+        } else if(button == 'menu_repeat_button') {
+          app_state.say_louder();
+          // right for louder, left for quieter, down for big target, up for text box
+        } else if(button == 'menu_hold_thought_button') {
+          stashes.remember({stash: true});
+          utterance.clear();
+          click();
+        } else if(button == 'menu_phrases_button') {
+          modal.open('modals/phrases', {inactivity_timeout: true});
+          click();
+        } else if(button == 'menu_inbox_button') {
+          modal.open('modals/inbox', {inactivity_timeout: true});
+          click();
+        } else if(button == 'menu_repair_button') {
+          modal.open('modals/repairs', {inactivity_timeout: true});
+          click();
+        } else {
+          console.error("unrecognized button", button);
+        }
       }
     },
     close: function() {

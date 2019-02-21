@@ -3,6 +3,7 @@ import Component from '@ember/component';
 import EmberObject from '@ember/object';
 import {set as emberSet, get as emberGet} from '@ember/object';
 import $ from 'jquery';
+import { htmlSafe } from '@ember/string';
 import buttonTracker from '../utils/raw_events';
 import app_state from '../utils/app_state';
 import editManager from '../utils/edit_manager';
@@ -12,6 +13,11 @@ export default Component.extend({
   didInsertElement: function() {
     this.redraw();
   },
+  preview_style: function() {
+    var width = this.get('width') || 200;
+    var height = this.get('height') || 200;
+    return htmlSafe("width: " + width + "px; height: " + height + "px;");
+  }.property('width', 'height'),
   redraw: function() {
     var button = this.get('button');
     var $canvas = $(this.element).find("canvas");

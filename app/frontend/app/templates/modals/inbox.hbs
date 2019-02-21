@@ -1,0 +1,38 @@
+{{#modal-dialog action="close" opening='opening' closing='closing'}}
+  <div class="modal-header">
+    <button type="button" class="close" {{action 'close'}}>&times;</button>
+    <h3>{{t "Messages and Alerts" key='messages_and_alerts'}}
+    </h3>
+  </div>
+  <div class="modal-body">
+    {{#if alerts}}
+      {{#each alerts as |alert|}}
+        <div class='row' style='margin-bottom: 5px;'>
+          <div class='col-sm-8'>
+            {{#if alert.icon}}
+              <img src={{path alert.icon}} style='50px; width: 50px; float: left; margin-right: 5px;' class='fit_image'/>
+            {{/if}}
+            {{alert.text}}
+            <span style='clear: left;'></span>
+          </div>
+          <div class='col-sm-4' style='text-align: left;'>
+            {{#if alert.message}}
+              <button class='btn btn-lg btn-default' {{action 'reply'}}><span class='glyphicon glyphicon-edit'></span></button>
+              {{#if alert.unread}}
+                <button class='btn btn-lg btn-default' {{action 'clear'}}><span class='glyphicon glyphicon-ok'></span></button>
+              {{/if}}
+            {{/if}}
+          </div>
+        </div>
+      {{/each}}
+    {{else}}
+      <p>{{t "No messages or alerts to show" key='no_messages_or_alerts_to_show'}}</p>
+    {{/if}}
+  </div>
+  <div class="modal-footer">
+    <button class='btn btn-default btn-lg' {{action 'close'}}>{{t "Close" key='close'}}</button>
+    {{#if working_vocalization}}
+      <button class='btn btn-default btn-lg' {{action 'compose'}}><span class='glyphicon glyphicon-enveloper'></span> {{t "Send Current Message" key='send_current_message'}}</button>
+    {{/if}}
+  </div>
+{{/modal-dialog}}

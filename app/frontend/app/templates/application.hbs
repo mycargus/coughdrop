@@ -576,7 +576,9 @@
             {{else if persistence.app_needs_update}}
               <span class="label label-danger unread">{{t "!" key='exclaim'}}</span>
             {{else if app_state.currentUser.unread_messages}}
-              <span class="label label-danger unread">{{app_state.currentUser.unread_messages}}</span>
+              {{#unless app_state.speak_mode}}
+                <span class="label label-danger unread">{{app_state.currentUser.unread_messages}}</span>
+              {{/unless}}
             {{else}}
               <span class='status unread'></span>
             {{/if}}

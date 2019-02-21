@@ -647,7 +647,7 @@ var dbman = {
               });
             }
           });
-          var transaction = capabilities.db.transaction(['settings'], 'readwrite');
+          var transaction = db.transaction(['settings'], 'readwrite');
           try {
             var res = transaction.objectStore(store).delete('lastSync');
           } catch(e) { debugger; }

@@ -1,31 +1,82 @@
 {{#modal-dialog action="close" opening='opening' closing='closing'}}
-  <div class="modal-header">
+  <div class="modal-header" style='padding: 5px 10px;'>
     <button type="button" class="close" {{action 'close'}}>&times;</button>
     <h3>{{t "Share Text" key='share_text'}}</h3>
   </div>
   <div class="modal-body">
-    <p>{{t "Copy the message you entered to paste it into another app,<br/> or select the place you'd like to share it." key='copy_sentence'}}</p>
-
-    <div class="row" style="margin: 30px 0;">
-      <div class="col-sm-8">
-        <input type="text" id='sentence' value={{sentence}} class="form-control select_on_click"/>
+    <p>"<span style='font-size: 20px; display: inline-block; max-width: 90%; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; white-space: nowrap;'>{{sentence}}</span>"</p>
+    <div style='position: absolute; left: -1000px;'>{{input type='text' value=sentence id='utterance_sentence'}}</div>
+    <div class="row share_buttons" style="margin: 10px 0;">
+      {{#each contacts as |sup|}}
+        <div class='col-sm-3 col-xs-4'>
+          <button class='btn btn-default' {{action 'message' sup}}>
+            <img src={{sup.avatar_url}} />
+            {{sup.user_name}}
+          </button>
+        </div>
+      {{/each}}
+      <div style='clear: both; border-top: 2px solid #ccc; margin: 10px 0;'></div>
+      {{#if shares.clipboard}}
+      <div class='col-sm-3 col-xs-4'>
+        <button class='btn btn-default' {{action 'share_via' 'clipboard'}}>
+          <span class="glyphicon glyphicon-copy"></span>
+          {{t "Copy" key='copy'}}
+        </button>
       </div>
-      <div class="col-sm-4">
-        <p class="form-control-static" style="line-height: 34px; vertical-align: middle;">
-          {{#if utterance_record.link}}
-            <a href={{utterance_record.link}} target="_blank"><span class="glyphicon glyphicon-hand-up"></span> Link</a>
-          {{/if}}
-        </p>
-      </div>
+      {{/if}}
+      {{#if shares.email}}
+        <div class='col-sm-3 col-xs-4'>
+          <button class='btn btn-default' {{action 'share_via' 'email'}}>
+            <span class="glyphicon glyphicon-envelope"></span>
+            {{t "Email" key='email'}}
+          </button>
+        </div>
+      {{/if}}
+      {{#if utterance_record.link}}
+        <div class='col-sm-3 col-xs-4'>
+          <a class='btn btn-default' href={{utterance_record.link}} target='_blank'>
+            <span class="glyphicon glyphicon-hand-up"></span>
+            {{t "Link" key='link'}}
+          </a>
+        </div>
+      {{/if}}
+      {{#if shares.facebook}}
+        <div class='col-sm-3 col-xs-4'>
+          <button class='btn btn-default' {{action 'share_via' 'facebook'}}>
+            <img src={{path 'images/logos/facebook.png'}} alt={{t "Share via Facebook" key='share_via_facebook'}} style='filter: grayscale(0.8);'/>
+            {{t "Facebook" key='facebook'}}
+          </button>
+        </div>
+      {{/if}}
+      {{#if shares.twitter}}
+        <div class='col-sm-3 col-xs-4'>
+          <button class='btn btn-default' {{action 'share_via' 'twitter'}}>
+            <img src={{path 'images/logos/twitter.png'}} alt={{t "Share via Twitter" key='share_via_twitter'}} style='filter: grayscale(0.8);' />
+            {{t "Twitter" key='twitter'}}
+          </button>
+        </div>
+      {{/if}}
+      {{#if shares.instagram}}
+        <div class='col-sm-3 col-xs-4'>
+          <button class='btn btn-default' {{action 'share_via' 'instagram'}}>
+            <img src={{path 'images/logos/instagram.png'}} alt={{t "Share via Instagram" key='share_via_instagram'}} style='filter: grayscale(0.8);' />
+            {{t "Instagram" key='instagram'}}
+          </button>
+        </div>
+      {{/if}}
+      {{#if shares.generic}}
+        <div class='col-sm-3 col-xs-4'>
+          <button class='btn btn-default' {{action 'share_via' 'generic'}}>
+            <span class="glyphicon glyphicon-share"></span>
+            {{t "Other" key='other'}}
+          </button>
+        </div>
+      {{/if}}
     </div>
     {{#if copy_result.succeeded}}
       <p class='text-success'>{{t "Text copied to the clipboard!" key='copied_to_clipboard'}}</p>
     {{else if copy_result.failed}}
       <p class='text-danger'>{{t "Copying to the clipboard failed." key='copy_failed'}}</p>
-    {{/if}}
-
-    {{#if utterance_record}}
-      {{share-bar url=utterance_record.link text=sentence element_id='sentence' user=app_state.currentUser utterance=utterance_record copy_event='copy_event'}}
     {{/if}}
   </div>
 {{/modal-dialog}}

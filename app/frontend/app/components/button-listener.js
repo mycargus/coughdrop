@@ -27,6 +27,9 @@ export default Component.extend({
     var $button = $(event.target).closest('.button');
     return $button.attr('data-id');
   },
+  speakMenuSelect: function(event) {
+    this.sendAction('button_event', 'speakMenuSelect', event.button_id);
+  },
   buttonSelect: function(event) {
     if(app_state.get('feature_flags.super_fast_html')) {
       var board_id = app_state.get('currentBoardState.id');

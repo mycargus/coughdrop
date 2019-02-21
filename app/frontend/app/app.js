@@ -50,6 +50,7 @@ var customEvents = {
     'symbolselect': 'symbolSelect',
     'rearrange': 'rearrange',
     'tripleclick': 'tripleClick',
+    'speakmenuselect': 'speakMenuSelect',
     'clear': 'clear',
     'stash': 'stash',
     'select': 'select'

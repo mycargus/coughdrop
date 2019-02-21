@@ -68,6 +68,8 @@ CoughDrop.User = DS.Model.extend({
   supervisee_code: DS.attr('string'),
   supervised_units: DS.attr('raw'),
   supervisees: DS.attr('raw'),
+  offline_actions: DS.attr('raw'),
+  vocalizations: DS.attr('raw'),
   goal: DS.attr('raw'),
   pending_board_shares: DS.attr('raw'),
   edit_permission: DS.attr('boolean'),
@@ -469,6 +471,11 @@ CoughDrop.User = DS.Model.extend({
   },
   find_integration: function(key) {
     return CoughDrop.User.find_integration(this.get('id'), key);
+  },
+  add_action: function(action) {
+    var actions = this.get('offline_actions') || [];
+    actions.push(action);
+    this.set('offline_actions', actions);
   },
   copy_home_board: function(board, swap_images) {
     var user = this;

@@ -2,7 +2,7 @@ import Ember from 'ember';
 import Controller from '@ember/controller';
 import EmberObject from '@ember/object';
 import RSVP from 'rsvp';
-import { later as runLater } from '@ember/runloop';
+import { later as runLater, cancel as runCancel } from '@ember/runloop';
 import $ from 'jquery';
 import scanner from './scanner';
 
@@ -224,10 +224,13 @@ modal.ModalController = Controller.extend({
       var controller = this;
       modal.last_controller = controller;
       controller.set('model', settings);
+      if(modal.auto_close_callback) {
+        runCancel(modal.auto_close_callback);
+      }
       if(settings && settings.inactivity_timeout) {
         modal.auto_close = true;
         // after 15 seconds with no interaction, close this modal
-        runLater(function() {
+        modal.auto_close_callback = runLater(function() {
           if(modal.auto_close && $(modal.component.element).find(".modal-content.auto_close").length) {
             modal.close(template);
             modal.auto_close = false;

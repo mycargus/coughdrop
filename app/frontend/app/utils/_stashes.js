@@ -250,13 +250,15 @@ var stashes = EmberObject.extend({
       }
     }
   },
-  remember: function() {
+  remember: function(opts) {
+    opts = opts || {};
     if(!stashes.get('history_enabled')) { return; }
     // TODO: this should be persisted server-side
     var list = stashes.get('remembered_vocalizations');
     if(stashes.get('working_vocalization').length === 0) { return; }
     var obj = {
-      vocalizations: stashes.get('working_vocalization')
+      vocalizations: opts.override || stashes.get('working_vocalization'),
+      stash: !!opts.stash
     };
     obj.sentence = obj.vocalizations.map(function(v) { return v.label; }).join(" ");
     if(!list.find(function(v) { return v.sentence == obj.sentence; })) {
@@ -318,6 +320,13 @@ var stashes = EmberObject.extend({
           user_id: user_id,
           geo: geo,
           note: obj
+        };
+      } else if(obj.share) {
+        log_event = {
+          type: 'share',
+          timestamp: timestamp,
+          user_id: user_id,
+          share: obj
         };
       } else if(obj.modeling_activity_id) {
         log_event = {

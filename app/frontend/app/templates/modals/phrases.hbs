@@ -1,0 +1,43 @@
+{{#modal-dialog action="close" opening='opening' closing='closing'}}
+  <div class="modal-header">
+    <button type="button" class="close" {{action 'close'}}>&times;</button>
+    <h3>{{t "Saved Phrases" key='saved_phrases'}}
+    </h3>
+  </div>
+  <div class="modal-body">
+    {{#if phrases}}
+      {{#each phrases as |phrase|}}
+        <div class='row' style='margin-bottom: 5px;'>
+          <div class='col-sm-8'>
+            <button class='btn btn-lg btn-default' {{action 'select' phrase}} style='width: 100%; text-align: left;'>
+              {{#if phrase.stash}}
+                <span class='glyphicon glyphicon-pushpin'></span>
+              {{/if}}
+              "{{phrase.sentence}}"
+            </button>
+          </div>
+          <div class='col-sm-4' style='text-align: right;'>
+            {{#unless phrase.stash}}
+              <button class='btn btn-lg btn-default' {{action 'shift' phrase 'up'}}><span class='glyphicon glyphicon-arrow-up'></span></button>
+              <button class='btn btn-lg btn-default' {{action 'shift' phrase 'down'}}><span class='glyphicon glyphicon-arrow-down'></span></button>
+            {{/unless}}
+            <button class='btn btn-lg btn-default' {{action 'remove' phrase}}><span class='glyphicon glyphicon-remove'></span></button>
+          </div>
+        </div>
+      {{/each}}
+    {{else}}
+      <p>{{t "No phrases have been saved. You can save phrases by hitting \"Remember This\" in the sentence box dropdown." key='no_phrases'}}</p>
+    {{/if}}
+    <div class='row' style='margin-top: 15px;'>
+      <div class='col-sm-8'>
+        {{input type='text' value=sentence class='input-lg form-control' placeholder='Enter a new phrase to add to the list'}}
+      </div>
+      <div class='col-sm-4'>
+        <button class='btn btn-lg btn-default' {{action 'add'}}>{{t "Add Phrase" key='add_phrase'}}</button>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class='btn btn-default btn-lg' {{action 'close'}}>{{t "Close" key='close'}}</button>
+  </div>
+{{/modal-dialog}}

@@ -22,7 +22,6 @@ export default Component.extend({
       if(list.indexOf('facebook') != -1) { _this.set('native.facebook', true); }
       if(list.indexOf('twitter') != -1) { _this.set('native.twitter', true); }
       if(list.indexOf('instagram') != -1) { _this.set('native.instagram', true); }
-      if(list.indexOf('google_plus') != -1) { _this.set('native.google_plus', true); }
       if(list.indexOf('email') != -1) { _this.set('native.email', true); }
       if(list.indexOf('clipboard') != -1) { _this.set('native.clipboard', true); }
       if(list.indexOf('generic') != -1) { _this.set('native.generic', true); }
@@ -35,7 +34,7 @@ export default Component.extend({
     return !!(this.get('url') && (!this.get('native.generic') || this.get('native.twitter')));
   }.property('url', 'native.generic', 'native.twitter'),
   google_plus_enabled: function() {
-    return !!(this.get('url') && (!this.get('native.generic') || this.get('native.google_plus')));
+    return false;
   }.property('url', 'native.generic', 'native.google_plus'),
   email_enabled: function() {
     return !!this.get('text');
@@ -64,7 +63,7 @@ export default Component.extend({
   }.property('url'),
   actions: {
     message: function(supervisor) {
-      modal.open('confirm-notify-user', {user: supervisor, utterance: this.get('utterance')});
+      modal.open('confirm-notify-user', {user: supervisor, utterance: this.get('utterance'), sentence: this.get('utterance.sentence')});
     },
     share_via: function(medium) {
       if(this.get('native.' + medium)) {

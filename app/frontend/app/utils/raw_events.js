@@ -749,6 +749,10 @@ var buttonTracker = EmberObject.extend({
           } else if(elem_wrap.dom.tagName == 'A' && $(elem_wrap.dom).closest('#pin').length > 0) {
             event.preventDefault();
             $(elem_wrap.dom).trigger('select');
+          } else if(elem_wrap.dom.classList.contains('speak_menu_button')) {
+            var e = $.Event( 'speakmenuselect' );
+            e.button_id = elem_wrap.dom.id;
+            $(elem_wrap.dom).trigger(e);
           } else if((elem_wrap.dom.className || "").match(/button/) || elem_wrap.virtual_button) {
             buttonTracker.button_release(elem_wrap, event);
           } else if(elem_wrap.dom.classList.contains('integration_target')) {
@@ -1287,7 +1291,7 @@ var buttonTracker = EmberObject.extend({
       } else if(region.id == 'sidebar') {
         return buttonTracker.element_wrap($target.closest(".btn,a")[0]);
       } else if(region.id == 'speak_menu') {
-        return buttonTracker.element_wrap($target.closest("a")[0]);
+        return buttonTracker.element_wrap($target.closest("a,.speak_menu_button")[0]);
       } else if(region.tagName == 'HEADER') {
         var $elem = $target.closest(".btn:not(.pass_through),#button_list,.extra-btn")
         if($elem.hasClass('pass_to_btn_list') && allow_dwell === false) {

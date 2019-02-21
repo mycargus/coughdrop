@@ -19,6 +19,7 @@ export default modal.ModalController.extend({
       var progress = user.get('preferences.progress') || {};
 
       progress.modeling_intro_done = (new Date()).getTime();
+      user.set('preferences', user.get('preferences') || {});
       user.set('preferences.progress', progress);
       user.save().then(null, function() { });
     }
