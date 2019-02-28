@@ -44,6 +44,24 @@ me flesh them out if that's your thing.
 
 The frontend and backend communicate via the open and completely-undocumented API.
 
+### Contribution Ideas
+
+CoughDrop is an actively-developed system with an API-driven Rails backend and
+a rather heavy Ember frontend. This can be intimidating, even for people
+who know these frameworks, and prevent people from contributing. If you 
+would like to contribute, you can join the (https://www.openaac.org)[OpenAAC Slack Channel]
+and ask for ideas or pointers. In addition, here are some fairly modular
+components that I haven't had time to develop, and would love a contribution
+on:
+
+- Grammar service to support auto-tenses and middle words as communicators build simplified sentences
+- Dynamic Scene Displays framework to build photo-based interfaces for activating objects on a scene (consider using (https://github.com/CoughDrop/aac_shim)[aac_shim]
+- External API Integrations (recent news, movie tickets, etc.) (consider using (https://github.com/CoughDrop/aac_shim)[aac_shim]
+- Core word service to return information on a word including most common part of speech, common variations/tenses, etc.
+- API documentation (yeah I know, I should have done it along the way)
+
+I'm happy to provide guidance for any of these projects to help get them underway :-).
+
 #### Backend Setup
 
 Dev dependencies: ruby, Postgres, Redis, Node, ember-cli
@@ -157,6 +175,6 @@ rake transcode_errored_records (run daily)
 
 ### License
 
-Copyright (C) 2014-2018 CoughDrop, Inc.
+Copyright (C) 2014-2019 CoughDrop, Inc.
 
 Licensed under the AGPLv3 license.
