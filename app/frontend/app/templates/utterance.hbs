@@ -34,7 +34,7 @@
     <div style="clear: both;"></div>
     {{#if model.permissions.reply}}
       {{#if model.prior}}
-        <div style='margin: 10px 0 30px;'>
+        <div style='margin: -10px 0 30px 20px;'>
           <em>{{t "in reply to"}}{{#if model.prior.author.name}} {{t "message from" key='message_from'}} {{model.prior.author.name}}{{/if}}:</em>
           <div style="border-left: 2px solid #ddd; padding: 5px 0 5px 20px; white-space: pre-line;">{{model.prior.text}}</div>
         </div>
