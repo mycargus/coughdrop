@@ -26,11 +26,11 @@ module JsonApi::Utterance
       end
       share_index = Utterance.from_alpha_code(args[:reply_code].match(/[A-Z]+$/)[0]) rescue nil
       if share_index && utterance.data['reply_ids'] && utterance.data['reply_ids'][share_index.to_s]
-        msg = LogSession.find_reply(utterance.data['reply_ids'][share_index.to_s])
+        msg = LogSession.find_reply(utterance.data['reply_ids'][share_index.to_s], nil, utterance.user)
         json['prior'] = {
           'text' => msg[:message],
           'author' => msg[:contact].slice('id', 'name', 'image_url')
-        }
+        } if msg
       end
     end
     if ((json['permissions'] && json['permissions']['edit']) || utterance.data['show_user'] || args[:reply_code]) && utterance.user

@@ -853,6 +853,7 @@ class LogSession < ActiveRecord::Base
     prior_note ||= Utterance.find_by_global_id(reply_id)
     sender ||= prior_note.author if prior_note.is_a?(LogSession)
     sender ||= prior_note.user if prior_note.is_a?(Utterance)
+    recipient ||= prior_note.user if prior_note.is_a?(LogSession)
     return nil unless sender
     return nil unless prior_note && (prior_note.user == sender || prior_note.user == recipient)
     prior_message = prior_note.data['note']['text'] if prior_note.is_a?(LogSession)
