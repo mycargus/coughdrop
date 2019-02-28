@@ -304,6 +304,21 @@ describe Api::UtterancesController, :type => :controller do
       post :share, params: {:utterance_id => utterance.global_id, :supervisor_id => 1234}
       assert_error('utterance share failed')
     end
+
+    it 'should return not authorized for non-premium accounts' do
+      token_user
+      @user.expires_at = 6.months.ago
+      @user.save
+      expect(@user.premium?).to eq(false)
+      utterance = Utterance.create(:user => @user)
+      post :share, params: {:utterance_id => utterance.global_id, :email => 'bob@example.com'}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['shared']).to eq(true)
+
+      post :share, params: {:utterance_id => utterance.global_id, :user_id => @user.global_id}
+      assert_unauthorized
+    end
   end
   
   describe "GET show" do
