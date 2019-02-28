@@ -1238,6 +1238,7 @@ describe Api::BoardsController, :type => :controller do
       expect(progress.settings['method']).to eq('swap_images')
     end
   end
+
   
   describe "protected image use" do
     it "should correctly mark a board as protected" do

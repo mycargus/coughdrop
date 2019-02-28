@@ -592,6 +592,56 @@ describe User, :type => :model do
       expect(u.settings['vocalizations'].length).to eq(1)
       expect(u.settings['vocalizations'][0]['id']).to_not eq('aaa')
     end
+
+    it "should process offline_actions for managing contacts, removing duplicates" do
+      u = User.create
+      u.process({'offline_actions' => [
+        {'action' => 'add_contact', 'value' => {'contact' => 'bob@example.com', 'name' => 'Bob'}},
+        {'action' => 'remove_contact', 'value' => 'asdf'},
+        {'action' => 'add_contact', 'value' => {'contact' => '801-988-0928', 'name' => 'Susy Bones', 'image_url' => 'http://www.example.com/pic.png'}},
+        {'action' => 'add_contact', 'value' => {'contact' => 'bob@example.com', 'name' => 'Bobby'}},
+        {'action' => 'add_contact', 'value' => {'contact' => '8019880928', 'name' => 'Susan Bones', 'image_url' => 'https://www.example.com/pic.png'}}
+      ]})
+      expect(u.settings['contacts']).to_not eq(nil)
+      expect(u.settings['contacts'].length).to eq(2)
+      susie = u.settings['contacts'].detect{|c| c['name'] == 'Susan Bones'}
+      hash = susie['hash']
+      expect(susie).to_not eq(nil)
+      expect(susie['cell_phone']).to eq('8019880928')
+      expect(susie['email']).to eq(false)
+      expect(susie['contact_type']).to eq('sms')
+      expect(susie['image_url']).to eq('https://www.example.com/pic.png')
+      bob = u.settings['contacts'].detect{|c| c['name'] == 'Bobby'}
+      expect(hash).to_not eq(bob['hash'])
+      hash = bob['hash']
+      expect(bob).to_not eq(nil)
+      expect(bob['cell_phone']).to eq(false)
+      expect(bob['email']).to eq('bob@example.com')
+      expect(bob['contact_type']).to eq('email')
+      expect(bob['image_url']).to match(/amazonaws/)
+      u.process({'offline_actions' => [
+        {'action' => 'remove_contact', 'value' => hash}
+      ]})
+      expect(u.settings['contacts']).to_not eq(nil)
+      expect(u.settings['contacts'].length).to eq(1)
+      susie = u.settings['contacts'].detect{|c| c['name'] == 'Susan Bones'}
+      expect(susie).to_not eq(nil)
+      bob = u.settings['contacts'].detect{|c| c['name'] == 'Bobby'}
+      expect(bob).to eq(nil)
+      u.process({'offline_actions' => [
+        {'action' => 'add_contact', 'value' => {'contact' => '(555)123-4567,55580192831', 'name' => 'Grandparents'}}
+      ]})
+      expect(u.settings['contacts']).to_not eq(nil)
+      expect(u.settings['contacts'].length).to eq(2)
+      susie = u.settings['contacts'].to_a.detect{|c| c['name'] == 'Susan Bones'}
+      expect(susie).to_not eq(nil)
+      gp = u.settings['contacts'].to_a.detect{|c| c['name'] == 'Grandparents'}
+      expect(gp).to_not eq(nil)
+      expect(gp['cell_phone']).to eq("(555)123-4567,55580192831")
+      expect(gp['email']).to eq(false)
+      expect(gp['contact_type']).to eq('sms')
+      expect(gp['image_url']).to match(/amazonaws/)
+    end
   end
 
   describe "replace_board" do
@@ -1463,7 +1513,7 @@ describe User, :type => :model do
     end
     
     it "should add an utterance share to the dashboard, even if email is sent" do
-      u = User.create(:settings => {'email' => 'u2@example.com'})
+      u = User.create(:settings => {'email' => 'u1@example.com'})
       u.settings['preferences']['share_notifications'] = 'email'
       u.save
       
@@ -1473,7 +1523,12 @@ describe User, :type => :model do
         'subject' => 'alternate pantsuit',
         'message' => 'alternate pantsuit',
         'sharer_id' => u2.global_id,
-        'to' => 'u2@example.com'
+        'to' => 'u1@example.com',
+        'sharer_name' => u2.settings['name'],
+        'reply_url' => nil,
+        'recipient_id' => u.global_id,
+        'reply_id' => nil,
+        'utterance_id' => ut.global_id
       })
       u.handle_notification('utterance_shared', ut, {
         'text' => 'alternate pantsuit',
@@ -1980,6 +2035,26 @@ describe User, :type => :model do
       expect(User.load_version(u.versions[-3]).settings['something_else']).to eq(nil)
       expect(User.load_version(u.versions[-3]).settings['email']).to eq('email@example.com')
       expect(User.load_version(u.versions[-4])).to eq(nil)
+    end
+  end
+
+  describe "lookup_contact" do
+    it "should return correct values" do
+      u = User.create
+      expect(u.lookup_contact('asdf')).to eq(nil)
+      u.settings['contacts'] = {}
+      expect(u.lookup_contact('asdf')).to eq(nil)
+      u.settings['contacts'] = [
+        {'hash' => 'qwer'}
+      ]
+      expect(u.lookup_contact('asdf')).to eq(nil)
+      u.settings['contacts'] = [
+        {'hash' => 'qwer'},
+        {'hash' => 'asdf', 'name' => 'bob'}
+      ]
+      expect(u.lookup_contact('asdf')).to eq({'name' => 'bob', 'hash' => 'asdf'})
+      expect(u.lookup_contact("#{u.global_id}xasdf")).to eq({'name' => 'bob', 'hash' => 'asdf'})
+
     end
   end
 end

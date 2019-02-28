@@ -1,6 +1,7 @@
 import modal from '../utils/modal';
 import capabilities from '../utils/capabilities';
-import stashes from '../utils/_stashes';
+import app_state from '../utils/app_state';
+import $ from 'jquery';
 import utterance from '../utils/utterance';
 import CoughDrop from '../app';
 import { later as runLater } from '@ember/runloop';
@@ -12,7 +13,11 @@ export default modal.ModalController.extend({
     controller.set('model', {});
     var settings = modal.settings_for['share-utterance'];
     controller.set('utterance', settings.utterance);
-    var u = CoughDrop.store.createRecord('utterance', {button_list: settings.utterance, sentence: utterance.sentence(settings.utterance)});
+    var u = CoughDrop.store.createRecord('utterance', {
+      button_list: settings.utterance, 
+      sentence: utterance.sentence(settings.utterance),
+      user_id: app_state.get('referenced_user.id')
+    });
     u.save().then(function(u) {
       controller.set('utterance_record', u);
     }, function() {
@@ -21,12 +26,29 @@ export default modal.ModalController.extend({
     this.check_native_shares();
   },
   contacts: function() {
+    var res = [];
+    (app_state.get('referenced_user.contacts') || []).forEach(function(contact) {
+      res.push({
+        user_name: contact.name,
+        avatar_url: contact.image_url,
+        id: app_state.get('referenced_user.id') + 'x' + contact.hash
+      });
+    });
     if(app_state.get('referenced_user.supporter_role')) {
-      return app_state.get('referenced_user.supervisees') || [];
+      res = res.concat(app_state.get('referenced_user.supervisees') || []);
     } else {
-      return app_state.get('referenced_user.supervisors') || [];
+      res = res.concat(app_state.get('referenced_user.supervisors') || []);
     }
-  }.property('app_state.referenced_user.supervisors', 'app_state.referenced_user.supervisees', 'app_state.referenced_user.supporter_role'),
+    if(app_state.get('reply_note.author')) {
+      res.unshift({
+        user_name: app_state.get('reply_note.author.name'),
+        id: app_state.get('reply_note.author.id'),
+        avatar_url: app_state.get('reply_note.author.image_url'),
+        reply: app_state.get('reply_note')
+      })
+    }
+    return res;
+  }.property('app_state.referenced_user.supervisors', 'app_state.referenced_user.supervisees', 'app_state.referenced_user.supporter_role', 'app_state.referenced_user.contacts', 'app_state.reply_note'),
   sentence: function() {
     if(this.get('utterance')) {
       return utterance.sentence(this.get('utterance'));
@@ -87,7 +109,7 @@ export default modal.ModalController.extend({
       }
     },
     message: function(user) {
-      modal.open('confirm-notify-user', {user: user, raw: this.get('utterance'), sentence: this.get('sentence'), utterance: this.get('utterance_record')});
+      modal.open('confirm-notify-user', {user: user, reply: (user.reply && user.reply.id), raw: this.get('utterance'), sentence: this.get('sentence'), utterance: this.get('utterance_record')});
     },
     share_via: function(medium) {
       if(this.get('native.' + medium)) {

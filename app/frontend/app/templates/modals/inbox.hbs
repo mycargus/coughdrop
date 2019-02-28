@@ -5,22 +5,38 @@
     </h3>
   </div>
   <div class="modal-body">
-    {{#if alerts}}
+    {{#if current}}
+      {{#if current.author.image_url}}
+        <img src={{current.author.image_url}} style='width: 50px; height: 50px; float: left; margin: -20px 5px 0 0;' class='fit_image' />
+      {{/if}}
+      {{t "from" key='from'}} <strong>{{current.author.name}}</strong> <span class='text-muted'>{{t "at" key='at'}} {{date current.sent}}</span>
+      <div style='clear: left;'></div>
+      <div id='alert_message'>{{current.text}}</div>
+      {{#if current.prior}}
+        <div style='white-space: normal; margin-top: 30px;'>
+          <div class='text-muted'>{{t "in reply to" key='in_reply_to'}}{{#if current.prior_author}}{{t "message from " key='message_from'}}{{current.prior_author}}{{/if}}:</div>
+          <div style='border-left: 2px solid #ddd; padding: 5px 0 5px 20px; white-space: pre-line; font-style: italic;'>{{current.prior}}</div>
+        </div>
+      {{/if}}
+    {{else if status.loading}}
+      <p>{{t "Loading messages..." key='loading_messages'}}</p>
+    {{else if status.error}}
+      <p>{{t "Error loading messages" key='error_loading_messages'}}</p>
+    {{else if alerts}}
       {{#each alerts as |alert|}}
-        <div class='row' style='margin-bottom: 5px;'>
-          <div class='col-sm-8'>
-            {{#if alert.icon}}
-              <img src={{path alert.icon}} style='50px; width: 50px; float: left; margin-right: 5px;' class='fit_image'/>
-            {{/if}}
-            {{alert.text}}
-            <span style='clear: left;'></span>
-          </div>
-          <div class='col-sm-4' style='text-align: left;'>
-            {{#if alert.message}}
-              <button class='btn btn-lg btn-default' {{action 'reply'}}><span class='glyphicon glyphicon-edit'></span></button>
-              {{#if alert.unread}}
-                <button class='btn btn-lg btn-default' {{action 'clear'}}><span class='glyphicon glyphicon-ok'></span></button>
+        <div class='row alerts' style='margin-bottom: 5px;'>
+          <div class='col-sm-10'>
+            <button class={{if alert.unread 'btn btn-default btn-lg unread msg' 'btn btn-default btn-lg msg'}} {{action 'view' alert}}>
+              {{#if alert.author.image_url}}
+                <img src={{alert.author.image_url}} style='height: 40px; width: 40px; float: right; margin: -8px;' class='fit_image'/>
               {{/if}}
+              {{alert.text}}
+              <span style='clear: both;'></span>
+            </button>
+          </div>
+          <div class='col-sm-2' style='text-align: left;'>
+            {{#if alert.note}}
+              <button class='btn btn-lg btn-default' {{action 'clear' alert}}><span class='glyphicon glyphicon-ok'></span></button>
             {{/if}}
           </div>
         </div>
@@ -30,9 +46,27 @@
     {{/if}}
   </div>
   <div class="modal-footer">
-    <button class='btn btn-default btn-lg' {{action 'close'}}>{{t "Close" key='close'}}</button>
-    {{#if working_vocalization}}
-      <button class='btn btn-default btn-lg' {{action 'compose'}}><span class='glyphicon glyphicon-enveloper'></span> {{t "Send Current Message" key='send_current_message'}}</button>
+    {{#unless current}}
+      {{#if working_vocalization}}
+        <div style='margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>"{{working_sentence}}"</div>
+      {{/if}}
+    {{/unless}}
+    {{#if current}}
+      <button class='btn btn-default btn-lg' {{action 'back'}}>{{t "Back" key='back'}}</button>
+      <button class='btn btn-default btn-lg' {{action 'reply'}}><span class='glyphicon glyphicon-envelope'></span> {{t "Reply" key='reply'}}</button>      
+    {{else}}
+      {{#if working_vocalization}}
+        <button class='btn btn-default btn-lg' {{action 'compose'}}>
+          <span class='glyphicon glyphicon-envelope'></span> 
+          {{#if app_state.reply_note}}
+            {{t "Send Reply" key='send_reply'}}
+          {{else}}
+            {{t "Send Current Message" key='send_current_message'}}
+          {{/if}}
+        </button>
+      {{/if}}
+      <button class='btn btn-default btn-lg' {{action 'clear' 'all'}}>{{t "Clear All" key='clear_all'}}</button>
     {{/if}}
+    <button class='btn btn-default btn-lg' {{action 'close'}}>{{t "Close" key='close'}}</button>
   </div>
 {{/modal-dialog}}

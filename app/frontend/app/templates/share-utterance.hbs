@@ -10,6 +10,9 @@
       {{#each contacts as |sup|}}
         <div class='col-sm-3 col-xs-4'>
           <button class='btn btn-default' {{action 'message' sup}}>
+            {{#if sup.reply}}
+              <span id='reply_icon' class='label-info' style='position: absolute; top: 3px; left: 18px;'><span class='glyphicon glyphicon-envelope' style='font-size: 14px;'></span></span>
+            {{/if}}
             <img src={{sup.avatar_url}} />
             {{sup.user_name}}
           </button>

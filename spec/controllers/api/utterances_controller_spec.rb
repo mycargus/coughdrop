@@ -38,6 +38,114 @@ describe Api::UtterancesController, :type => :controller do
       expect(json['error']).to eq("utterance creation failed")
       expect(json['errors']).to eq(["bacon"])
     end
+
+    it "should allow creating an utterance for a supervisee" do
+      token_user
+      com = User.create
+      User.link_supervisor_to_user(@user, com)
+      post :create, params: {:utterance => {:user_id => com.global_id, :button_list => [{label: "ok"}], :sentence => "ok"}}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['utterance']['id']).not_to eq(nil)
+      expect(json['utterance']['user']['id']).to eq(com.global_id)
+      expect(json['utterance']['link']).not_to eq(nil)
+      expect(json['utterance']['button_list']).not_to eq(nil)
+      expect(json['utterance']['sentence']).not_to eq(nil)
+      expect(json['utterance']['image_url']).not_to eq(nil)
+    end
+
+    it "should not allow creating an utterance for a nonexistent user" do
+      token_user
+      com = User.create
+      User.link_supervisor_to_user(@user, com)
+      post :create, params: {:utterance => {:user_id => 'asdf', :button_list => [{label: "ok"}], :sentence => "ok"}}
+      assert_not_found('asdf')
+    end
+
+    it "should not allow creating an utterance for a non-supervised user" do
+      token_user
+      com = User.create
+      post :create, params: {:utterance => {:user_id => com.global_id, :button_list => [{label: "ok"}], :sentence => "ok"}}
+      assert_unauthorized
+    end
+  end
+
+  describe "POST reply" do
+    it 'should not require an access token' do
+      post :reply, params: {utterance_id: 'asdf'}
+      assert_not_found('asdf')
+   end
+
+    it 'should require an existing utterance' do
+      post :reply, params: {utterance_id: 'asdf'}
+      assert_not_found('asdf')
+    end
+
+    it 'should not allow replying on a nonexistent share' do
+      u = User.create
+      ut = Utterance.create(user: u)
+      post :reply, params: {utterance_id: "#{ut.global_id}x361879519461278A"}
+      assert_not_found('361879519461278A')
+    end
+
+    it 'should not allow replying with an invalid reply nonce' do
+      u = User.create
+      ut = Utterance.create(user: u)
+      post :reply, params: {utterance_id: "#{ut.global_id}x361879519461278A"}
+      assert_not_found('361879519461278A')
+    end
+
+    it 'should require a valid sharer' do
+      u = User.create
+      ut = Utterance.create(user: u)
+      ut.data['share_user_ids'] = ['asdf']
+      ut.save
+      post :reply, params: {utterance_id: "#{ut.global_id}x#{ut.reply_nonce}A"}
+      assert_not_found("asdf")
+    end
+
+    it 'should create a reply message for the user' do
+      u = User.create
+      d = Device.create(user: u)
+      u.process({'offline_actions' => [{'action' =>'add_contact', 'value' => {'name' => 'Yentil', 'contact' => '1234'}}]})
+      contact_hash = u.settings['contacts'][0]['hash']
+      contact_id = "#{u.global_id}x#{contact_hash}"
+      ut = Utterance.create(user: u)
+      ut.share_with({'user_id' => contact_id}, u)
+      expect(LogSession).to receive(:message).with({
+        recipient: ut.user,
+        sender: u,
+        sender_id: contact_id,
+        notify: 'user_only',
+        device: d,
+        message: 'haldo',
+        reply_id: ut.global_id
+      }).and_return(true)
+      post :reply, params: {utterance_id: "#{ut.global_id}x#{ut.reply_nonce}A", :message => "haldo"}
+      json = assert_success_json
+      expect(json).to eq({'from' => contact_id, 'to' =>  u.global_id, 'sent' => true})
+    end
+
+    it 'should return a json response' do
+      u = User.create
+      d = Device.create(user: u)
+      ut = Utterance.create(user: u)
+      ut.share_with({'user_id' => u.global_id}, u)
+      expect(LogSession).to receive(:message).with({
+        recipient: ut.user,
+        sender: u,
+        sender_id: u.global_id,
+        notify: 'user_only',
+        device: d,
+        message: 'haldo',
+        reply_id: ut.global_id
+      }).and_return(true)
+      post :reply, params: {utterance_id: "#{ut.global_id}x#{ut.reply_nonce}A", :message => "haldo"}
+      json = assert_success_json
+      expect(json).to eq({'from' => u.global_id, 'to' =>  u.global_id, 'sent' => true})
+    end
+
+
   end
   
   describe "PUT update" do
@@ -207,7 +315,7 @@ describe Api::UtterancesController, :type => :controller do
     
     it "should error gracefully if not found" do
       get :show, params: {:id => "abc"}
-      assert_not_found
+      assert_not_found('abc')
     end
     
     it "should return a json response" do
@@ -222,6 +330,32 @@ describe Api::UtterancesController, :type => :controller do
       expect(json['utterance']['image_url']).not_to eq(nil)
       expect(json['utterance']['user']).to eq(nil)
       expect(json['utterance']['permissions']).to eq(nil)
+    end
+
+    it "should return additional information if a reply_code is set" do
+      token_user
+      user = User.create
+      u = Utterance.create(:data => {:button_list => [{label: 'ok'}], :sentence => 'ok'})
+      u.share_with({'user_id' => user.global_id}, user)
+
+      get :show, params: {:id => "#{u.global_id}x#{u.reply_nonce}A"}
+      expect(response).to be_success
+      json = JSON.parse(response.body)
+      expect(json['utterance']['permissions']['reply']).to eq(true)
+      expect(json['utterance']['reply_code']).to eq("#{u.reply_nonce}A")
+      expect(json['utterance']['id']).to eq("#{u.global_id}x#{u.reply_nonce}A")
+    end
+
+    it "should not allow viewing private_only utterance without a reply_code" do
+      token_user
+      user = User.create
+      u = Utterance.create(:data => {:private_only => true, :button_list => [{label: 'ok'}], :sentence => 'ok'})
+      u.share_with({'user_id' => user.global_id}, user)
+      get :show, params: {:id => u.global_id}
+      assert_unauthorized
+      
+      get :show, params: {:id => "#{u.global_id}x#{u.reply_nonce}A"}
+      json = assert_success_json
     end
   end
 end

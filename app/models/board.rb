@@ -886,7 +886,7 @@ class Board < ActiveRecord::Base
   def default_listeners(notification_type)
     if notification_type == 'board_buttons_changed'
       ubc = UserBoardConnection.where(:board_id => self.id)
-      direct_users = ubc.map(&:user)
+      direct_users = ubc.map(&:user).compact
       supervisors = direct_users.map(&:supervisors).flatten
       (direct_users + supervisors).uniq.map(&:record_code)
     else

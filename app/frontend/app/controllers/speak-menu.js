@@ -6,6 +6,7 @@ import stashes from '../utils/_stashes';
 import app_state from '../utils/app_state';
 import utterance from '../utils/utterance';
 import speecher from '../utils/speecher';
+import { set as emberSet } from '@ember/object';
 import CoughDrop from '../app';
 
 export default modal.ModalController.extend({
@@ -54,6 +55,18 @@ export default modal.ModalController.extend({
           stashes.persist('remembered_vocalizations', list);
         } else {
           app_state.set_and_say_buttons(button.vocalizations);
+        }
+      }
+    },
+    reply_note: function() {
+      if(app_state.get('reply_note')) {
+        var user = app_state.get('reply_note.author');
+        if(user) {
+          emberSet(user, 'user_name', user.user_name || user.name);
+          emberSet(user, 'avatar_url', user.avatar_url || user.image_url);
+          var voc = stashes.get('working_vocalization') || [];
+          var sentence = voc.map(function(v) { return v.label; }).join(' ');
+          modal.open('confirm-notify-user', {user: user, reply_id: app_state.get('reply_note.id'), raw: stashes.get('working_vocalization'), sentence: sentence, utterance: null});
         }
       }
     },

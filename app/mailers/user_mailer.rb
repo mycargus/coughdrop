@@ -212,6 +212,15 @@ class UserMailer < ActionMailer::Base
   
   def utterance_share(opts)
     @user = User.find_by_global_id(opts['sharer_id'])
+    @recipient = User.find_by_global_id(opts['recipient_id'])
+    @sender = @user && @user.settings['name']
+    @sender ||= @user && @user.user_name
+    @sender ||= opts['sharer_name']
+    @sender ||= 'someone'
+    @reply_url = opts['reply_url']
+    if opts['reply_id']
+    end
+    @prior = LogSession.find_reply(opts['reply_id'], @user, @recipient)
     @message = opts['message'] || "no message"
     mail(to: opts['to'], subject: opts['subject'], reply_to: @user.settings['email'])
   end

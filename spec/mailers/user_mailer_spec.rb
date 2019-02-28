@@ -418,6 +418,35 @@ describe UserMailer, :type => :mailer do
       text = message_body(m, :text)
       expect(text).to match(/bacon/)
     end
+
+    it "should include reply link if defined" do
+      u = User.create(:settings => {'name' => 'stacy', 'email' => 'stacy@example.com'})
+      m = UserMailer.utterance_share({'sharer_id' => u.global_id, 'message' => 'bacon', 'to' => 'fred@example.com', 'subject' => 'something', 'reply_url' => 'http://www.example.com/reply'})
+      
+      expect(m.to).to eq(['fred@example.com'])
+      expect(m.subject).to eq("something")
+
+      html = message_body(m, :html)
+      expect(html).to match(/example\.com\/reply/)
+      
+      text = message_body(m, :text)
+      expect(text).to match(/example\.com\/reply/)
+    end
+
+    it "should include the previous message if defined" do
+      u = User.create(:settings => {'name' => 'stacy', 'email' => 'stacy@example.com'})
+      utterance = Utterance.create(user: u, data: {'sentence' => 'bygones are by guns'})
+      m = UserMailer.utterance_share({'sharer_id' => u.global_id, 'message' => 'bacon', 'to' => 'fred@example.com', 'subject' => 'something', 'reply_url' => 'http://www.example.com/share', 'reply_id' => utterance.global_id})
+      
+      expect(m.to).to eq(['fred@example.com'])
+      expect(m.subject).to eq("something")
+
+      html = message_body(m, :html)
+      expect(html).to match(/bygones/)
+      
+      text = message_body(m, :text)
+      expect(text).to match(/bygones/)
+    end
   end
   
   describe "badge_awarded" do

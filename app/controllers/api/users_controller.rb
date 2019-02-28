@@ -484,6 +484,15 @@ class Api::UsersController < ApplicationController
       api_error 400, {error: e.message}
     end
   end
+
+  def alerts
+    user = User.find_by_path(params['user_id'])
+    return unless exists?(user, params['user_id'])
+    return unless allowed?(user, 'supervise')
+    alerts = LogSession.where(user: user, log_type: 'note').select{|s| s.data['notify_user'] && !s.data['cleared'] }
+    alerts = alerts.sort{|a| a.created_at }
+    render json: JsonApi::Alert.paginate(params, alerts)
+  end
   
   def protected_image
     user = User.find_by_path(params['user_id'])

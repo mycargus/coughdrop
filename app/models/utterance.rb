@@ -32,7 +32,8 @@ class Utterance < ActiveRecord::Base
     tmp_nonce = nil
     attempts = 0
     while !self.reply_nonce && (!tmp_nonce || Utterance.find_by(reply_nonce: tmp_nonce))
-      tmp_nonce = GoSecure.nonce('utterance_reply_code')[0, 10]
+      size = self.data['private_only'] ? 30 : 10
+      tmp_nonce = GoSecure.sha512('utterance_reply_long', GoSecure.nonce('utterance_reply_code'))[0, size]
       attempts += 1
       raise "can't generate nonce" if attempts > 10
     end
@@ -43,7 +44,7 @@ class Utterance < ActiveRecord::Base
   end
 
   def self.clear_old_nonces
-    Utterance.where(['reply_nonce IS NOT NULL AND created_at < ?', 14.days.ago]).update_all(reply_nonce: nil)
+    Utterance.where(['reply_nonce IS NOT NULL AND LENGTH(reply_nonce) < 20 AND created_at < ?', 14.days.ago]).update_all(reply_nonce: nil)
   end
   
   def generate_preview
@@ -64,12 +65,18 @@ class Utterance < ActiveRecord::Base
     true
   end
   
-  def share_with(params, sharer, author=nil)
-    author ||= sharer
+  def share_with(params, sharer, author_id=nil)
     sharer = User.find_by_path(sharer) if sharer.is_a?(String)
+    author_id ||= sharer.global_id if sharer
     return false unless sharer
     user_id = params['user_id'] || params['supervisor_id']
-    self.data['author_ids'] = ((self.data['author_ids'] || []) + [author.global_id]).uniq
+    self.data['author_ids'] = (self.data['author_ids'] || []) + [author_id]
+    self.data['share_user_ids'] = (self.data['share_user_ids'] || []) + [user_id]
+    share_index = self.data['share_user_ids'].length - 1
+    if params['reply_id']
+      self.data['reply_ids'] ||= {}
+      self.data['reply_ids'][share_index.to_s] = params['reply_id']
+    end
     self.save
 
     if user_id
@@ -78,28 +85,32 @@ class Utterance < ActiveRecord::Base
       my_supervisee_ids = sharer.supervised_user_ids
       my_supervisees_contact_ids = sharer.supervisees.map{|sup| sup.supervisor_user_ids }.flatten
       allowed_ids = (my_supervisor_ids + my_supervisee_ids + my_supervisees_contact_ids).uniq
-      if allowed_ids.include?(user_id)
-        sup = User.find_by_path(user_id)
+      allowed_ids << sharer.global_id
+      if allowed_ids.include?(user_id.split(/x/)[0])
+        sup = User.find_by_path(user_id.split(/x/)[0])
         return false unless sup
-        if (my_supervisor_ids + my_supervisees_contact_ids).include?(user_id)
+        contact = sup.lookup_contact(user_id)
+        if contact || (my_supervisor_ids + my_supervisees_contact_ids).include?(user_id)
           # message from a communicator to a supervisor
-          self.schedule(:deliver_to, {'user_id' => sup.global_id, 'sharer_id' => sharer.global_id})
+          self.schedule(:deliver_to, {'user_id' => user_id, 'sharer_id' => sharer.global_id, 'share_index' => share_index})
         elsif my_supervisee_ids.include?(user_id)
           # message from a supervisor to a communicator
           return false unless LogSession.message({
             recipient: sup,
             sender: sharer,
+            notify: 'user_only',
             device: @api_device,
             message: message,
             reply_id: params['reply_id']
           })
         end
-        return {to: sup.global_id, from: sharer.global_id, type: 'utterance'}
+        return {to: user_id, from: sharer.global_id, type: 'utterance'}
       end
     elsif params['email']
       self.schedule(:deliver_to, {
         'sharer_id' => sharer.global_id,
         'email' => params['email'],
+        'share_index' => self.data['share_user_ids'].length - 1,
         'subject' => params['subject'] || params['message'] || params['sentence'],
         'message' => params['message'] || params['sentence']
       })
@@ -107,37 +118,124 @@ class Utterance < ActiveRecord::Base
     end
     return false
   end
+
+  def self.from_alpha_code(str)
+    return nil unless str && str.match(/^[A-Z]+$/)
+    num = 0
+    str.to_s.each_char do |chr|
+      mod = chr.ord - 'A'.ord
+      num = (num * 26) + mod
+    end
+    num
+  end
+
+  def self.to_alpha_code(num)
+    code = ""
+    return nil unless num && num.is_a?(Numeric)
+    while num > 0
+      mod = num % 26
+      num = (num - mod) / 26
+      code = ('A'.ord + mod).chr + code
+    end
+    code = "A" if code.length == 0
+    code
+  end
   
   def deliver_to(args)
     sharer = User.find_by_path(args['sharer_id'])
     raise "sharer required" unless sharer
+    # TODO: record this message somewhere so we can track history of 
+    # communicator's outgoing messages
     text = args['message'] || self.data['sentence']
     subject = args['subject'] || self.data['sentence']
-    reply_url = "#{JsonApi::Json.current_host}/u/#{self.reply_nonce}"
+    idx = args['share_index'] || 0
+    reply_id = args['share_index'] && self.data['reply_ids'] && self.data['reply_ids'][args['share_index'].to_s]
+    share_code = Utterance.to_alpha_code(args['share_index'] || 0)
+    reply_url = "#{JsonApi::Json.current_host}/u/#{self.reply_nonce}#{share_code}"
     if args['email']
-      UserMailer.schedule_delivery(:utterance_share, {
-        'subject' => subject,
-        'message' => text,
-        'sharer_id' => sharer.global_id,
-        'utterance_id' => self.global_id,
-        'to' => args['email'],
-        'reply_url' => reply_url
-      })
+      self.deliver_message('email', nil, args)
       return true
     elsif args['user_id']
       user = User.find_by_path(args['user_id'])
       if user
-        notify('utterance_shared', {
-          'sharer' => {'user_name' => sharer.user_name, 'user_id' => sharer.global_id},
-          'user_id' => user.global_id,
-          'utterance_id' => self.global_id,
-          'reply_url' => reply_url,
-          'text' => text
-        })
+        contact = user.lookup_contact(args['user_id'])
+        if contact
+          self.deliver_message(contact['contact_type'], nil, {
+            'sharer' => {'user_name' => sharer.user_name, 'user_id' => args['user_id'], 'name' => contact['name'] || sharer.settings['name']},
+            'email' => contact['email'],
+            'cell_phone' => contact['cell_phone'],
+            'reply_id' => reply_id,
+            'utterance_id' => self.global_id,
+            'reply_url' => reply_url,
+            'text' => text
+          })
+        else
+          notify('utterance_shared', {
+            'sharer' => {'user_name' => sharer.user_name, 'user_id' => sharer.global_id, 'name' => sharer.settings['name']},
+            'user_id' => user.global_id,
+            'reply_id' => reply_id,
+            'utterance_id' => self.global_id,
+            'reply_url' => reply_url,
+            'text' => text
+          })
+        end
       end
       return true
     end
     raise "share failed"
+  end
+
+  def deliver_message(pref, recipient_user, args)
+    record = self
+    args['sharer'] ||= {}
+    if !args['sharer']['user_name'] && (args['sharer_id'] || args['sharer']['user_id'])
+      sharer = User.find_by_path(args['sharer_id'] || args['sharer']['user_id'])
+      if sharer
+        args['sharer']['user_id'] = sharer.global_id
+        args['sharer']['user_name'] = sharer.user_name
+        args['sharer']['name'] = sharer.settings['name']
+      end
+    end
+    if (!args['reply_url'] || !args['reply_id']) && args['share_index']
+      share_code = Utterance.to_alpha_code(args['share_index'] || 0)
+      args['reply_url'] ||= "#{JsonApi::Json.current_host}/u/#{self.reply_nonce}#{share_code}"
+      args['reply_id'] ||= (self.data['reply_ids'] || {})[args['share_index'].to_s]
+    end
+    if pref == 'email'
+      UserMailer.schedule_delivery(:utterance_share, {
+        'subject' => args['subject'] || args['text'] || self.data['sentence'],
+        'sharer_id' => args['sharer_id'] || args['sharer']['user_id'],
+        'recipient_id' => recipient_user && recipient_user.global_id,
+        'sharer_name' => args['sharer']['name'] || args['sharer']['user_name'],
+        'message' => args['text'] || args['message'] || self.data['sentence'],
+        'utterance_id' => args['utterance_id'] || self.global_id,
+        'to' => args['email'] || (recipient_user && recipient_user.settings['email']),
+        'reply_id' => args['reply_id'],
+        'reply_url' => args['reply_url']
+      })
+    elsif pref == 'text' || pref == 'sms'
+      from = args['sharer']['name'] || args['sharer']['user_name'] || 'someone'
+      text = args['text'] || self.data['sentence']
+      if args['cell_phone'] || (recipient_user && recipient_user.settings && recipient_user.settings['cell_phone'])
+        cell = args['cell_phone'] || (recipient_user && recipient_user.settings && recipient_user.settings['cell_phone'])
+        msg = "from #{from} - #{text}"
+        if args['reply_url']
+          msg += "\n\nreply at #{args['reply_url']}"
+        end
+        Worker.schedule_for(:priority, Pusher, :sms, cell, msg)
+        if record && record.data
+          record.reload
+          record.data['sms_attempts'] ||= []
+          record.data['sms_attempts'] << {
+            cell: cell,
+            timestamp: Time.now.to_i,
+            pushed: true,
+            text: msg
+          }
+          record.save
+        end
+      end
+    end
   end
   
   def additional_listeners(type, args)
@@ -154,6 +252,7 @@ class Utterance < ActiveRecord::Base
     self.user = non_user_params[:user] if non_user_params[:user]
     self.data ||= {}
     self.data['button_list'] = params['button_list'] if params['button_list'] # TODO: process this for real
+    self.data['private_only'] = !!params['private_only'] if params['private_only'] != nil
     (self.data['button_list'] || []).each do |button|
       # Don't use local URLs for saving the utterance to show to others
       if button['original_image'] && !button['image'].match(/^http/)

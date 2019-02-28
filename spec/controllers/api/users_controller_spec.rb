@@ -1903,4 +1903,63 @@ describe Api::UsersController, :type => :controller do
       expect(json).to eq({'a' => 1})
     end
   end
+
+  describe "alerts" do
+    it "should require an api token" do
+      get 'alerts', params: {'user_id' => 'asdf'}
+      assert_missing_token
+    end
+
+    it "should require an existing user" do
+      token_user
+      get 'alerts', params: {'user_id' => 'asdf'}
+      assert_not_found('asdf')
+    end
+
+    it "should require authorization" do
+      token_user
+      u = User.create
+      get 'alerts', params: {'user_id' => u.global_id}
+      assert_unauthorized
+    end
+
+    it "should return a list of alerts" do
+      token_user
+      l1 = LogSession.create(user: @user, author: @user, :device => @user.devices[0], log_type: 'note', data: {'notify_user' => true, 'note' => {'text' => 'asdf'}})
+      l2 = LogSession.create(user: @user, author: @user, :device => @user.devices[0], log_type: 'note', data: {'notify_user' => true, 'author_contact' => {'id' => 'a3a4t42', 'name' => 'Bob'}, 'note' => {'text' => 'asdf'}})
+      LogSession.where(id: l1.id).update_all(created_at: 1.hour.ago)
+      get 'alerts', params: {'user_id' => @user.global_id}
+      json = assert_success_json
+      expect(json['alert']).to_not eq(nil)
+      expect(json['alert'].length).to eq(2)
+      expect(json['alert'][0]['id']).to eq(Webhook.get_record_code(l2))
+      expect(json['alert'][1]['id']).to eq(Webhook.get_record_code(l1))
+      expect(json['alert'][0]['author']['name']).to eq("Bob")
+    end
+
+    it "should not include invalid sessions" do
+      token_user
+      l1 = LogSession.create(user: @user, author: @user, :device => @user.devices[0], log_type: 'note', data: {'notify_user' => false})
+      l2 = LogSession.create(user: @user, author: @user, :device => @user.devices[0], log_type: 'session')
+      l3 = LogSession.create(user: @user, author: @user, :device => @user.devices[0], log_type: 'note', data: {'notify_user' => true, 'note' => {'text' => 'bacon rocks'}})
+      get 'alerts', params: {'user_id' => @user.global_id}
+      json = assert_success_json
+      expect(json['alert']).to_not eq(nil)
+      expect(json['alert'].length).to eq(1)
+      expect(json['alert'][0]['id']).to eq(Webhook.get_record_code(l3))
+      expect(json['alert'][0]['text']).to eq('bacon rocks')
+      expect(json['alert'][0]['author']['name']).to eq(@user.user_name)
+    end
+
+    it "should not include cleared sessions" do
+      token_user
+      l1 = LogSession.create(user: @user, author: @user, :device => @user.devices[0], log_type: 'note', data: {'notify_user' => false})
+      l2 = LogSession.create(user: @user, author: @user, :device => @user.devices[0], log_type: 'session')
+      l3 = LogSession.create(user: @user, author: @user, :device => @user.devices[0], log_type: 'note', data: {'notify_user' => true, 'cleared' => true, 'note' => {'text' => 'bacon rocks'}})
+      get 'alerts', params: {'user_id' => @user.global_id}
+      json = assert_success_json
+      expect(json['alert']).to_not eq(nil)
+      expect(json['alert'].length).to eq(0)
+    end
+  end
 end

@@ -4,6 +4,7 @@ import CoughDrop from '../../app';
 import modal from '../../utils/modal';
 import Utils from '../../utils/misc';
 import i18n from '../../utils/i18n';
+import $ from 'jquery';
 import progress_tracker from '../../utils/progress_tracker';
 import persistence from '../../utils/persistence';
 
@@ -50,7 +51,12 @@ export default Controller.extend({
   }.observes('model.id'),
   actions: {
     pick_avatar: function() {
-      modal.open('pick-avatar', {user: this.get('model')});
+      var _this = this;
+      modal.open('pick-avatar', {user: this.get('model')}).then(function(res) {
+        if(res && res.image_url) {
+          _this.set('model.avatar_url', res.image_url);
+        }
+      });
     },
     enable_change_password: function() {
       this.set('change_password', true);
@@ -135,6 +141,49 @@ export default Controller.extend({
     },
     delete_user: function() {
       modal.open('modals/confirm-delete-user', {user: this.get('model')});
+    },
+    set_picture: function() {
+      var _this = this;
+      modal.open('pick-avatar', {}).then(function(res) {
+        if(res && res.image_url) {
+          _this.set('contact_image_url', res.image_url);
+          _this.send('add_contact');
+        }
+      });
+    },
+    add_contact: function() {
+      var fallback_url = "https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/Person-1361bc9acf.svg";
+      if(this.get('contact_name') && this.get('contact_contact')) {
+        var contact = {};
+        contact.contact = this.get('contact_contact');
+        contact.name = this.get('contact_name');
+        contact.image_url = this.get('contact_image_url') || fallback_url;
+        contact.contact_type = contact.contact.match(/@/) ? 'email' : 'sms';
+        if(contact.contact_type == 'email') { 
+          contact.email = contact.contact; 
+        } else {
+          contact.cell_phone = contact.contact;
+        }
+        var actions = this.get('model.offline_actions') || [];
+        actions.push({action: 'add_contact', value: contact});
+        this.set('model.offline_actions', actions);
+        var contacts = [].concat(this.get('model.contacts') || []);
+        var hash = Math.random().toString + (new Date()).getTime();
+        contact.hash = hash;
+        contacts.push(contact);
+        this.set('model.contacts', contacts);
+        this.set('contact_name', null);
+        this.set('contact_contact', null);
+        this.set('contact_image_url', null);
+      }
+    },
+    remove_contact: function(contact) {
+      var contacts = [].concat(this.get('model.contacts') || []);
+      contacts = contacts.filter(function(c) { return c.hash != contact.hash; });
+      this.set('model.contacts', contacts);
+      var actions = this.get('model.offline_actions') || [];
+      actions.push({action: 'remove_contact', value: contact.hash});
+      this.set('model.offline_actions', actions);
     }
   }
 });

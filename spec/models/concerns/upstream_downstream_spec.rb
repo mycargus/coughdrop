@@ -204,6 +204,7 @@ describe UpstreamDownstream, :type => :model do
       ]
       b2.save
       Worker.process_queues
+      Worker.process_queues
       expect(b3.reload.settings['downstream_board_ids'].sort).to eq([].sort)
       expect(b3.settings['total_buttons']).to eq(0)
       expect(b3.settings['unlinked_buttons']).to eq(0)
@@ -218,6 +219,7 @@ describe UpstreamDownstream, :type => :model do
         {'id' => 6}
       ]
       b3.save
+      Worker.process_queues
       Worker.process_queues
       Worker.process_queues
       expect(b3.reload.settings['downstream_board_ids'].sort).to eq([b1.global_id, b2.global_id].sort)
@@ -238,6 +240,7 @@ describe UpstreamDownstream, :type => :model do
       b3.instance_variable_set('@buttons_changed', true)
       b3.instance_variable_set('@button_links_changed', true)
       b3.save
+      Worker.process_queues
       Worker.process_queues
       Worker.process_queues
       expect(b3.reload.settings['downstream_board_ids'].sort).to eq([b1.global_id, b2.global_id].sort)

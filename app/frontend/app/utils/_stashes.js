@@ -319,7 +319,7 @@ var stashes = EmberObject.extend({
           timestamp: timestamp,
           user_id: user_id,
           geo: geo,
-          note: obj
+          note: obj.note
         };
       } else if(obj.share) {
         log_event = {

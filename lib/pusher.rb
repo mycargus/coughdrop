@@ -5,9 +5,15 @@ module Pusher
     client = config
     raise "phone missing" unless phone
     raise "message missing" unless message
+    phone.strip!
+    if phone.match(/,/)
+      return  phone.split(/,/).map{|p| Pusher.sms(p, message)[0]}
+    end
+    phones = phone.split(/,/)
     if !phone.match(/^\+\d/)
       phone = "+1" + phone
     end
+    phone = phone.gsub(/[^\+\d]/, '')
     res = client.publish({
       phone_number: phone,
       message: "CoughDrop: #{message}",
@@ -23,6 +29,7 @@ module Pusher
       }
     })
     message_id = res.message_id
+    [message_id]
   end
 
   def self.config

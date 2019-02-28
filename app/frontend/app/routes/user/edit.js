@@ -11,5 +11,8 @@ export default Route.extend({
   setupController: function(controller, model) {
     controller.set('model', model);
     controller.load_integrations();
+    controller.set('contact_name', null);
+    controller.set('contact_contact', null);
+    controller.set('contact_image_url', null);
   }
 });

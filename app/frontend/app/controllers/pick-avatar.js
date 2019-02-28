@@ -7,6 +7,7 @@ import i18n from '../utils/i18n';
 import contentGrabbers from '../utils/content_grabbers';
 import Utils from '../utils/misc';
 import CoughDrop from '../app';
+import { htmlSafe } from '@ember/string';
 
 export default modal.ModalController.extend({
   opening: function() {
@@ -42,8 +43,9 @@ export default modal.ModalController.extend({
     }
     res.forEach(function(option) {
       var url = option.url.replace(/\(/, '\\(').replace(/\)/, '\\)'); //Ember.Handlebars.Utils.escapeExpression(option.url).replace(/\(/, '\\(').replace(/\)/, '\\)');
-      option.div_style = "height: 0; width: 100%; padding-bottom: 100%; overflow: hidden; background-position: center; background-repeat: no-repeat; background-size: contain; background-image: url(" + url + ");";
+      emberSet(option, 'div_style', htmlSafe("height: 0; width: 100%; padding-bottom: 100%; overflow: hidden; background-position: center; background-repeat: no-repeat; background-size: contain; background-image: url(" + url + ");"));
     });
+
     res = Utils.uniq(res, function(o) { return o.url; });
     return res;
   }.property('model.user.prior_avatar_urls', 'model.user.fallback_avatar_url', 'mode.user.avatar_url'),
@@ -57,7 +59,7 @@ export default modal.ModalController.extend({
   }.observes('model.user.avatar_url'),
   actions: {
     pick: function(option) {
-      this.set('model.user.avatar_url', option.url);
+      modal.close({image_url: option.url});
     },
     select: function() {
       var user = this.get('model.user');

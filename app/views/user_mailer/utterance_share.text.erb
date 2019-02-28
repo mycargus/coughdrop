@@ -1,6 +1,16 @@
-This message was written using the CoughDrop augmentative communication app:
+This message was sent to you by *<%= @sender %>* using the CoughDrop augmentative communication app:
 
 <%= @message %>
+
+<% if @prior && @prior[:message] %>
+  in reply<% if @prior[:contact] && @prior[:contact]['name'] %> to <%= @prior[:contact]['name'] %><% end %>:
+  <%= @prior[:message] %>
+
+<% end %>
+
+<% if @reply_url %>
+  Reply here: <%= @reply_url %>
+<% end %>
 
 Thanks!
 -The CoughDrop Team

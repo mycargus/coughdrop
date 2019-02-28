@@ -27,6 +27,7 @@ export default modal.ModalController.extend({
       });
     }
     this.set('goal', this.get('model.goal'));
+    this.set('prior', this.get('model.prior'));
     this.set('goal_id', this.get('model.goal.id'));
     if(this.get('model.note_type')) {
       this.set('note_type', this.get('model.note_type'));
@@ -121,30 +122,48 @@ export default modal.ModalController.extend({
     },
     saveNote: function(type) {
       if(type == 'video' && !this.get('video_id')) { return; }
+      var _this = this;
       var note = {
-        text: this.get('note')
+        text: _this.get('note')
       };
-      if(persistence.get('online')) {
-        var log = this.store.createRecord('log', {
-          user_id: this.get('model.id'),
-          note: note,
-          timestamp: Date.now() / 1000,
-          notify: this.get('notify'),
-          goal_id: this.get('goal_id'),
-          goal_status: this.get('goal_status')
-        });
-        if(type == 'video') {
-          log.set('video_id', this.get('video_id'));
+      if(_this.get('prior')) {
+        note.prior = _this.get('prior.note.text');
+        note.prior_contact = _this.get('prior.contact');
+        note.prior_record_code = "LogSession:" + _this.get('prior.id');
+      }
+      var notify = this.get('notify') ? 'true' : null;
+      if(this.get('notify_user')) {
+        if(notify == 'true') {
+          notify = 'include_user';
+        } else {
+          notify = 'user_only';
         }
-        var _this = this;
-        log.save().then(function() {
-          modal.close(true);
-        }, function() { });
-      } else {
+      }
+      var fallback = function() {
         stashes.log_event({
           note: note,
-          notify: this.get('notify')
+          notify: notify
         }, this.get('model.id'));
+      };
+      if(persistence.get('online')) {
+        var log = _this.store.createRecord('log', {
+          user_id: _this.get('model.id'),
+          note: note,
+          timestamp: Date.now() / 1000,
+          notify: notify,
+          goal_id: _this.get('goal_id'),
+          goal_status: _this.get('goal_status')
+        });
+        if(type == 'video') {
+          log.set('video_id', _this.get('video_id'));
+        }
+        log.save().then(function() {
+          modal.close(true);
+        }, function() { 
+          fallback();
+        });
+      } else {
+        fallback();
       }
     }
   }

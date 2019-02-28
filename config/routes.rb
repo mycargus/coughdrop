@@ -112,6 +112,7 @@ Coughdrop::Application.routes.draw do
   
   get 'profile' => ember_handler
   get 'search/:query' => ember_handler
+  get 'u/:reply_code' => 'boards#utterance_redirect'
   get ':id/logs/:log_id' => ember_handler, :constraints => {:id => user_id_regex}
   get ':id/goals/:goal_id' => ember_handler, :constraints => {:id => user_id_regex}
   
@@ -151,6 +152,7 @@ Coughdrop::Application.routes.draw do
     resources :users do
       get 'stats/daily' => 'users#daily_stats'
       get 'stats/hourly' => 'users#hourly_stats'
+      get 'alerts' => 'users#alerts'
       post 'confirm_registration'
       post 'password_reset'
       post 'replace_board'
@@ -226,6 +228,7 @@ Coughdrop::Application.routes.draw do
     
     resources :utterances do
       post 'share'
+      post 'reply'
     end
     
     get "search/symbols" => "search#symbols"

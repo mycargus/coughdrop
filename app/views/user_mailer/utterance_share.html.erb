@@ -1,6 +1,19 @@
-This message was written using the CoughDrop augmentative communication app:<br/><br/>
+This message was sent to you by <b><%= @sender %></b> using the CoughDrop augmentative communication app:<br/><br/>
 
-<%= @message %><br/><br/><br/>
+<div style='font-size: 20px;'>
+  <%= @message %>
+</div><br/><br/>
+<% if @prior && @prior[:message] %>
+  <em>in reply<% if @prior[:contact] && @prior[:contact]['name'] %> to <%= @prior[:contact]['name'] %><% end %>:</em><br/>
+  <div style='padding: 10px 0 10px 20px; margin-left: 2px solid #ccc; white-space: pre-line;'><%= @prior[:message] %></div>
+  <br/><br/>
+<% end %>
+<br/>
+<% if @reply_url %>
+  <div style='font-size: 20px;'>
+    <a href="<%= @reply_url %>">Reply to this message</a>
+  </div><br/><br/><br/>
+<% end %>
 
 Thanks!<br/>
 -The CoughDrop Team<br/>

@@ -104,7 +104,7 @@ export default modal.ModalController.extend({
           modal.close(true);
         }, function() { });
       } else {
-        stashes.log_event({assessment: assessment}, this.get('model.user.id'));
+        stashes.log_event(assessment, this.get('model.user.id'));
         modal.close();
       }
     }

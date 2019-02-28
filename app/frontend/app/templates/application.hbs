@@ -20,6 +20,9 @@
         </button>
       {{/if}}
       <div tabindex="0" id="button_list" class={{button_list_class}} {{ action "vocalize" on="select"}} data-placement="bottom" data-trigger="manual">
+        {{#if app_state.reply_note}}
+          <div class='label label-info' id='reply_icon' style='position: absolute;top: 3px;left: 3px; opacity: 0.7;'><span class='glyphicon glyphicon-envelope'></span></div>
+        {{/if}}
         {{#unless app_state.button_list}}
           {{#if app_state.embedded}}
             <div style='float: left; margin: 5px; opacity: 0.7;'>
@@ -94,7 +97,12 @@
           </button>
         {{/if}}
       {{/unless}}
-      <button class="btn btn-default pass_to_btn_list" {{action "speakOptions"}} id="speak_options"><span class="sr-only">{{t "speak options" key='speak_options'}}</span><span class="glyphicon glyphicon-chevron-down"></span></button>
+      <button class="btn btn-default pass_to_btn_list" {{action "speakOptions"}} id="speak_options">
+        {{#if app_state.referenced_user.unread_alerts}}
+          <span class='label label-danger' style='position: absolute; top: -5px; right: -5px; border-radius: 10px;'>{{app_state.referenced_user.unread_alerts}}</span>
+        {{/if}}
+        <span class="sr-only">{{t "speak options" key='speak_options'}}</span><span class="glyphicon glyphicon-chevron-down"></span>
+      </button>
       <button class="btn btn-default access skinnier" id="backspace_button" {{action "backspace"}}>
         <span class="sr-only">{{t "backspace" key='backspace'}}</span>
         <img src="{{path "images/delete.svg"}}"/>

@@ -1,7 +1,7 @@
 import modal from '../utils/modal';
 import persistence from '../utils/persistence';
 import i18n from '../utils/i18n';
-import CoughDrop from '../app';
+import app_state from '../utils/app_state';
 
 export default modal.ModalController.extend({
   opening: function() {
@@ -10,6 +10,9 @@ export default modal.ModalController.extend({
     var end = (new Date()).getTime() + 5000;
     var _this = this;
     var canceled = false;
+    if(this.get('model.reply')) {
+      app_state.set('reply_note', null);
+    }
     this.set('cancel', function() {
       canceled = true;
     })
@@ -33,20 +36,26 @@ export default modal.ModalController.extend({
   },
   actions: {
     confirm: function() {
+      if(this.get('cancel')) {
+        this.get('cancel')();
+      }
       var _this = this;
       _this.set('loading', true);
       var fallback = function() {
         if(_this.get('model.raw')) {
           stashes.log_event({
-            share: {
-              utterance: _this.get('model.raw'),
-              sentence: _this.get('model.sentence'),
-              recipient_id: _this.get('model.user.id'),
-              reply_id: _this.get('model.reply_id')
-            }
-          });
+            share: true,
+            utterance: _this.get('model.raw'),
+            sentence: _this.get('model.sentence'),
+            recipient_id: _this.get('model.user.id'),
+            reply_id: _this.get('model.reply_id')
+          }, app_state.get('referenced_user.id'));
           modal.close('confirm-notify-user');
-          modal.success(i18n.t('user_notified', "Message queued to be sent when online."));
+          if(persistence.get('online')) {
+            modal.success(i18n.t('user_notified', "Message will be sent at next sync."));
+          } else {
+            modal.success(i18n.t('user_notified', "Message queued to be sent when online."));
+          }
         } else {
           this.set('error', true);
         }
@@ -58,7 +67,8 @@ export default modal.ModalController.extend({
           type: 'POST',
           data: {
             sharer_id: app_state.get('referenced_user.id'),
-            user_id: this.get('model.user.id')
+            user_id: _this.get('model.user.id'),
+            reply_id: _this.get('model.reply_id')
           }
         }).then(function(data) {
           _this.set('loading', false);

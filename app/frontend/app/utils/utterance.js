@@ -103,7 +103,6 @@ var utterance = EmberObject.extend({
       var hint = EmberObject.create({label: utterance.get('hint_button.label'), image: utterance.get('hint_button.image_url'), ghost: true});
       visualButtonList.push(hint);
     }
-
     app_state.set('button_list', visualButtonList);
     utterance.set('last_spoken_button', last_spoken_button);
     stashes.persist('working_vocalization', buttonList);
@@ -315,6 +314,9 @@ var utterance = EmberObject.extend({
   },
   clear: function(opts) {
     opts = opts || {}
+    if(app_state.get('reply_note') && this.get('rawButtonList.length') == 0) {
+      app_state.set('reply_note', null);
+    }
     this.set('rawButtonList', []);
     if(!opts.skip_logging) {
       stashes.log({

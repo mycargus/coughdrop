@@ -175,6 +175,7 @@ class LogSession < ActiveRecord::Base
       self.started_at ||= Time.now
       self.ended_at ||= self.started_at
       str = "Note by #{self.author.user_name}: "
+      str = "Note by #{self.data['author_contact']['name']}: " if self.data['author_contact']
       if self.data['note']['video'] 
         duration = self.data['note']['video']['duration'].to_i
         time = "#{duration}s"
@@ -845,24 +846,52 @@ class LogSession < ActiveRecord::Base
     true
   end
 
+  def self.find_reply(reply_id, sender=nil, recipient=nil)
+    prior_note = Webhook.find_record(reply_id) rescue nil
+    prior_note = nil if prior_note.is_a?(LogSession) && prior_note.log_type != 'note'
+    prior_note ||= LogSession.where(log_type: 'note').find_by_global_id(reply_id)
+    prior_note ||= Utterance.find_by_global_id(reply_id)
+    sender ||= prior_note.author if prior_note.is_a?(LogSession)
+    sender ||= prior_note.user if prior_note.is_a?(Utterance)
+    return nil unless sender
+    return nil unless prior_note && (prior_note.user == sender || prior_note.user == recipient)
+    prior_message = prior_note.data['note']['text'] if prior_note.is_a?(LogSession)
+    prior_message = prior_note.data['sentence'] if prior_note.is_a?(Utterance)
+    prior_contact = prior_note.data['author_contact']
+    prior_contact ||= {
+      'id' => sender.global_id,
+      'name' => sender.user_name,
+      'image_url' => sender.generated_avatar_url
+    }
+    {
+      :message => prior_message,
+      :contact => prior_contact,
+      :record_code => Webhook.get_record_code(prior_note)
+    }
+  end
+
   def self.message(opts)
     recipient = opts[:recipient]
     sender = opts[:sender]
     device = opts[:device] || (opts[:sender] && opts[:sender].devices[0])
     return false unless recipient && sender && device
+    contact = sender.lookup_contact(opts[:sender_id]) if opts[:sender_id] != sender.global_id
+    contact = contact.slice('id', 'name', 'image_url') if contact
+    prior = nil
     prior_message = nil
+    prior_contact = nil
     prior_note =  nil
     if opts[:reply_id]
-      prior_note = LogSession.where(log_type: 'note').find_by_global_id(opts[:reply_id])
-      prior_note ||= Utterance.find_by_global_id(opts[:reply_id])
-      return false unless prior_note && (prior_note.user == sender || prior_note.user == recipient)
-      prior_message = prior_note.data['note']['text'] if prior_note.is_a?(LogSession)
-      prior_message = prior_note.data['sentence'] if prior_note.is_a?(Utterance)
+      prior = LogSession.find_reply(opts[:reply_id], sender, recipient)
+      return false unless prior && prior[:record_code]
     end
+    prior ||= {}
     opts[:message]
+    notify = opts[:notify] == nil ? true : opts[:notify]
     session = LogSession.process_new({
-      'note' => {'text' => opts[:message], 'prior' => prior_message, 'prior_record_cord' => (prior_note && Webhook.get_record_code(prior_note))}
-    }, {'user' => recipient, 'author' => sender, 'device' => device})
+      'note' => {'text' => opts[:message], 'prior' => prior[:message], 'prior_contact' => prior[:contact], 'prior_record_code' => prior[:record_code]},
+      'notify' => notify
+    }, {'user' => recipient, 'contact' => contact, 'author' => sender, 'device' => device})
     return session
   end
   
@@ -1150,6 +1179,7 @@ class LogSession < ActiveRecord::Base
     self.data['imported'] = true if non_user_params[:imported]
     self.data['request_ids'] ||= [] if non_user_params[:request_id]
     self.data['request_ids'] << non_user_params[:request_id] if non_user_params[:request_id]
+    self.data['author_contact'] = non_user_params[:contact] if non_user_params[:contact]
     if non_user_params[:update_only]
       self.highlighted = params['highlighted'] if params['highlighted'] != nil
       if params['events']
@@ -1217,9 +1247,11 @@ class LogSession < ActiveRecord::Base
           self.data['events'] << e
         end
       end
-      if params['notify'] && params['note']
+      if params['notify'] && params['notify'] != 'false' && params['note']
         @push_message = true
+        self.data['notify_user'] = true if params['notify'] == 'user_only' || params['notify'] == 'include_user'
         self.data['notify_user_only'] = true if params['notify'] == 'user_only'
+        self.data['unread'] = true if self.data['unread'] == nil && self.data['notify_user']
       end
       self.data['note'] = params['note'] if params['note']
       if params['video_id']
@@ -1321,7 +1353,7 @@ class LogSession < ActiveRecord::Base
       if self.data['notify_user_only'] != true
         users += self.user.supervisors
       end
-      users -= [self.author]
+      users -= [self.author] unless self.user == self.author && self.data['notify_user']
       users.map(&:record_code)
     else
       []

@@ -544,6 +544,12 @@ class User < ActiveRecord::Base
         self.settings['last_message_read'] = params['last_message_read']
       end
     end
+    if params['last_alert_access']
+      if params['last_alert_access'] >= (self.settings['last_alert_access'] || 0)
+        self.settings['unread_alerts'] = 0
+        self.settings['last_alert_access'] = params['last_alert_access']
+      end
+    end
     if params['read_notifications']
       self.settings['user_notifications_cutoff'] = Time.now.utc.iso8601
     end
@@ -592,6 +598,44 @@ class User < ActiveRecord::Base
           self.settings['vocalizations'] = new_list
         elsif action['action'] == 'remove_vocalization'
           self.settings['vocalizations'] = (self.settings['vocalizations'] || []).select{|v| v['id'] != action['value']}
+        elsif action['action'] == 'add_contact'
+          self.settings['contacts'] ||= []
+          if action['value'] && action['value']['contact']
+            hash = nil
+            while !hash || self.settings['contacts'].detect{|c| c['hash'] == hash}
+              hash = GoSecure.nonce('contact_hash')[0, 8]
+            end
+            contact_type = action['value']['contact'].match(/\@/) ? 'email' : 'sms'
+            image_url = action['value']['image_url']
+            if !image_url
+              bucket = ENV['STATIC_S3_BUCKET'] || "coughdrop"
+              id = hash.hex.to_i
+              image_url = "https://s3.amazonaws.com/#{bucket}/avatars/avatar-#{id % 10}.png"
+            end
+            action['value']['contact'].strip!
+            ref = action['value']['contact'].strip.downcase
+            ref = ref.gsub(/[^\d\+\,]/, '') if contact_type == 'sms'
+            existing = self.settings['contacts'].find{|c| c['ref'] == ref }
+            if existing
+              existing['email'] = contact_type == 'email' && action['value']['contact']
+              existing['cell_phone'] = contact_type == 'sms' && action['value']['contact']
+              existing['name'] = action['value']['name']
+              existing['image_url'] = image_url
+            else
+              self.settings['contacts'] << {
+                'contact_type' => contact_type,
+                'email' => contact_type == 'email' && action['value']['contact'],
+                'hash' => hash,
+                'ref' => ref,
+                'cell_phone' => contact_type == 'sms' && action['value']['contact'],
+                'name' => action['value']['name'],
+                'image_url' => image_url
+              }
+            end
+          end
+        elsif action['action'] == 'remove_contact'
+          self.settings['contacts'] ||= []
+          self.settings['contacts'] = self.settings['contacts'].select{|c| c['hash'] != action['value'] }
         end
       end
     end
@@ -677,6 +721,13 @@ class User < ActiveRecord::Base
       self.settings['display_user_name'] = new_user_name
     end
     true
+  end
+
+  def lookup_contact(user_id)
+    return nil unless user_id
+    a, b = user_id.split(/x/)
+    contact = b || a
+    return (self.settings['contacts'] || []).detect{|c| c && c['hash'] == contact}
   end
   
   def display_user_name
@@ -923,10 +974,18 @@ class User < ActiveRecord::Base
   def handle_notification(notification_type, record, args)
     if notification_type == 'push_message'
       if record.user_id == self.id
-        self.settings['unread_messages'] ||= 0
-        self.settings['unread_messages'] += 1
-        # TODO: why are we settings last_message_read here?
-        self.settings['last_message_read'] = (record.started_at || 0).to_i
+        if record.data['notify_user']
+          self.settings['unread_alerts'] = (self.settings['unread_alerts'] || 0) + 1
+          self.settings['last_alert_access'] = (record.started_at || 0).to_i
+        end
+        if !record.data['notify_user_only']
+          self.settings['unread_messages'] = (self.settings['unread_messages'] || 0) + 1
+          # last_message_read is a bad name, but it marks the most-recent
+          # unread or view by the user, that way we have something more 
+          # reliable to set then explicitly setting the unread count to 0,
+          # which may happen inadvertently with multiple devices
+          self.settings['last_message_read'] = (record.started_at || 0).to_i
+        end
         self.save
       end
       self.add_user_notification({
@@ -970,41 +1029,8 @@ class User < ActiveRecord::Base
       })
     elsif notification_type == 'utterance_shared'
       pref = (self.settings && self.settings['preferences'] && self.settings['preferences']['share_notifications']) || 'email'
-      if pref == 'email'
-        UserMailer.schedule_delivery(:utterance_share, {
-          'subject' => args['text'],
-          'sharer_id' => args['sharer']['user_id'],
-          'message' => args['text'],
-          'to' => self.settings['email']
-        })
-      elsif pref == 'text'
-        from = args['sharer']['user_name']
-        text = args['text']
-        if record && record.data
-          record.reload
-          record.data['sms_attempts'] ||= []
-          record.data['sms_attempts'] << {
-            cell: self.settings['cell_phone'],
-            timestamp: Time.now.to_i,
-            text: "from #{from}: #{text}"
-          }
-          record.save
-        end
-        if self.settings && self.settings['cell_phone']
-          Worker.schedule_for(:priority, Pusher, :sms, self.settings['cell_phone'], "from #{from} - #{text}")
-          if record && record.data
-            record.reload
-            record.data['sms_attempts'] ||= []
-            record.data['sms_attempts'] << {
-              cell: self.settings['cell_phone'],
-              timestamp: Time.now.to_i,
-              pushed: true,
-              text: "from #{from} - #{text}"
-            }
-            record.save
-          end
-        end
-      elsif pref == 'none'
+      record.deliver_message(pref, self, args)
+      if pref == 'none'
         return
       end
       self.add_user_notification({

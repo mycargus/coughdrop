@@ -49,47 +49,14 @@ export default Controller.extend({
             }
           }
         });
-
-//           var geo = this.get('model.geo');
-//       var done = function() {
-//         var current_info = null;
-//         var map = new window.google.maps.Map(document.getElementById('geo_map'), {
-//           scrollwheel: false,
-//           maxZoom: 18
-//         });
-//         var markers = [];
-//
-//         var title = i18n.t('session_location', "Log Entry Location");
-//         var marker = new window.google.maps.Marker({
-//           position: new window.google.maps.LatLng(geo.latitude, geo.longitude),
-//           title: title
-//         });
-//         // TODO: popup information for each location
-//         marker.setMap(map);
-//         markers.push(marker);
-//
-//         var bounds = new window.google.maps.LatLngBounds();
-//         for(var i=0;i<markers.length;i++) {
-//          bounds.extend(markers[i].getPosition());
-//         }
-//         map.fitBounds(bounds);
-//       };
-//       if(geo) {
-//         if(!window.google || !window.google.maps) {
-//           window.ready_to_do_log_map = done;
-//           var script = document.createElement('script');
-//           script.type = 'text/javascript';
-//           // TODO: pull api keys out into config file?
-//           script.src = 'https://maps.googleapis.com/maps/api/js?v=3.exp&' +
-//               'callback=ready_to_do_log_map&key=AIzaSyBofHMEAGEILQkXWAgO6fAbsLjw6fNJQwM';
-//           document.body.appendChild(script);
-//         } else {
-//           runLater(done);
-//         }
-//       }
     }
   }.observes('model.geo', 'user'),
   actions: {
+    reply: function() {
+      var _this = this;
+      var user = _this.get('user');
+      modal.open('record-note', {note_type: 'text', user: user, prior: _this.get('model')});
+    },
     lam_export: function() {
       capabilities.window_open('/api/v1/logs/' + this.get('model.id') + '/lam?nonce=' + this.get('model.nonce'), '_system');
     },

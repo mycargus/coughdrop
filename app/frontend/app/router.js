@@ -49,6 +49,7 @@ Router.map(function() {
   this.route('contact', { path: '/contact' });
   this.route('home-boards', { path: '/search/home' });
   this.route('search', { path: '/search/:q' });
+  this.route('utterance-reply', { path: '/u/:reply_code'})
   this.route('login');
   this.route('register');
   this.route('intro');

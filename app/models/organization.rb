@@ -96,7 +96,7 @@ class Organization < ActiveRecord::Base
         end
         users.each do |user|
           self.settings['extras_activations'] ||= []
-          if !user.subscription_hash['extras_enabled']
+          if !user.reload.subscription_hash['extras_enabled']
             User.purchase_extras({'user_id' => user.global_id, 'source' => 'org_added'})
             self.settings['extras_activations'] << {user_id: user.global_id, activated_at: Time.now.iso8601}
           end

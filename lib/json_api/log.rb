@@ -24,6 +24,9 @@ module JsonApi::Log
         'id' => log.author.global_id,
         'user_name' => log.author.user_name
       }
+      if log.data['author_contact']
+        json['author']['contact'] = log.data['author_contact']
+      end
     else
       json['author'] = {
         'user_name' => 'unknown'

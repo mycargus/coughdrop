@@ -16,6 +16,9 @@
             {{t "Repairs" key='repairs'}}
           </div>
           <div class='col-sm-2 col-xs-4 speak_menu_button' id='menu_inbox_button'>
+            {{#if app_state.referenced_user.unread_alerts}}
+              <span class='label label-danger unread' style='position: absolute; top: 5px; right: 10px; border-radius: 10px; font-size: 14px;'>{{app_state.referenced_user.unread_alerts}}</span>
+            {{/if}}
             <span class='glyphicon glyphicon-inbox'></span>
             {{t "Alerts" key='alerts'}}
           </div>
@@ -51,6 +54,17 @@
       {{#if app_state.feature_flags.new_speak_menu}}
         <li style='text-align: right;'>
           <a href="#" {{action "selectButton" "remember"}}>{{t "Remember this" key="remember_this"}}</a>
+        </li>
+      {{/if}}
+      {{#if app_state.reply_note}}
+        <li>
+          <a href="#" {{action 'reply_note'}}>
+            <span id='reply_icon' class='label label-info'><span class='glyphicon glyphicon-envelope'></span></span>
+            {{t "Send Reply" key='send_rely'}}
+            {{#if app_state.reply_note.author}}
+              {{t "to" key='to'}} {{app_state.reply_note.author.name}}
+            {{/if}}
+          </a>
         </li>
       {{/if}}
       {{#each rememberedUtterances as |utterance|}}

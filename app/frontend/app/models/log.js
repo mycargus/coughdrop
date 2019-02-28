@@ -27,7 +27,7 @@ export default DS.Model.extend({
   assessment: DS.attr('raw'),
   highlighted: DS.attr('boolean'),
   highlight_summary: DS.attr('string'),
-  notify: DS.attr('boolean'),
+  notify: DS.attr('string'),
   next_log_id: DS.attr('string'),
   previous_log_id: DS.attr('string'),
   geo: DS.attr('raw'),

@@ -1397,6 +1397,39 @@ var persistence = EmberObject.extend({
       });
     });
   },
+  fetch_inbox: function(user, force) {
+    return new RSVP.Promise(function(resolve, reject) {
+      var url = '/api/v1/users/' + user.get('id') + '/alerts';
+      var fallback = function() {
+        persistence.find('dataCache', url).then(function(data) {
+          resolve(data.object);
+        }, function(err) {
+          reject(err);
+        });
+      };
+      if(persistence.get('online') || force) {
+        persistence.ajax(url, {type: 'GET'}).then(function(res) {
+          var object = {
+            url: url,
+            type: 'json',
+            content_type: 'json/object',
+            object: res
+          };
+          persistence.store('dataCache', object, object.url).then(function() {
+            resolve(object.object);
+          }, function(err) { reject(err); });
+        }, function(err) {
+          if(force) {
+            reject(err);
+          } else {
+            fallback();
+          }
+        });
+      } else {
+        fallback();
+      }
+    });
+  },
   board_lookup: function(id, safely_cached_boards, fresh_board_revisions) {
     if(!persistence.get('sync_progress') || persistence.get('sync_progress.canceled')) {
       return RSVP.reject({error: 'canceled'});

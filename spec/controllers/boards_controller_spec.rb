@@ -142,4 +142,49 @@ describe BoardsController, :type => :controller do
 #      response.body.should match(/meta name="twitter:description" content="ok guys"/)
     end
   end
+
+  
+  describe "GET utterance_redirect" do
+    it 'should not require an access token' do
+      get 'utterance_redirect', params: {'reply_code' => 'asdf'}
+      expect(response).to be_redirect
+    end
+
+    it 'should redirect to an error if not found' do
+      u = User.create
+      ut = Utterance.create(user: u)
+      get 'utterance_redirect', params: {'reply_code' => 'asdf'}
+      expect(response).to be_redirect
+      expect(response.location).to match(/\/utterances\/not_found/)
+    end
+
+    it 'should redirect to an error if expired' do
+      u = User.create
+      ut = Utterance.create(user: u)
+      Utterance.where(id: ut.id).update_all(created_at: 6.weeks.ago)
+      get 'utterance_redirect', params: {'reply_code' => ut.reply_nonce}
+      expect(response).to be_redirect
+      expect(response.location).to match(/\/utterances\/expired/)
+    end
+
+    it 'should redirect to not_found with invalid share index' do
+      u = User.create
+      ut = Utterance.create(user: u)
+      ut.data['share_user_ids'] = ['a', 'b']
+      ut.save
+      get 'utterance_redirect', params: {'reply_code' => "#{ut.reply_nonce}#{Utterance.to_alpha_code(2)}"}
+      expect(response).to be_redirect
+      expect(response.location).to match(/\/utterances\/not_found/)
+    end
+
+    it 'should include the share index if set' do
+      u = User.create
+      ut = Utterance.create(user: u)
+      ut.data['share_user_ids'] = ['a', 'b']
+      ut.save
+      get 'utterance_redirect', params: {'reply_code' => "#{ut.reply_nonce}#{Utterance.to_alpha_code(1)}"}
+      expect(response).to be_redirect
+      expect(response.location).to match(/\/utterances\/#{ut.global_id}x#{ut.reply_nonce}#{Utterance.to_alpha_code(1)}/)
+    end
+  end
 end

@@ -26,6 +26,18 @@ class BoardsController < ApplicationController
   
   def privacy; end
   
+  def utterance_redirect
+    match = params['reply_code'].match(/^([0-9a-f]+)([A-Z]+)?$/)
+    reply_code = match && match[1]
+    utterance = Utterance.find_by(reply_nonce: reply_code)
+    return redirect_to "/utterances/not_found" if !utterance
+    return redirect_to "/utterances/expired" if utterance.created_at < 7.days.ago
+    share_index = match[2]
+    idx = Utterance.from_alpha_code(share_index) rescue nil
+    return redirect_to "/utterances/not_found" if !idx || !(utterance.data['share_user_ids'] || [])[idx]
+    redirect_to "/utterances/#{utterance.global_id}x#{utterance.reply_nonce}#{share_index}"
+  end
+  
   def log_goal_status
     if params['status']
       goal = UserGoal.find_by_global_id(params['goal_id'])

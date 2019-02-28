@@ -28,6 +28,7 @@ export default Controller.extend({
     }
   }.property('model.image_url', 'model.large_image_url', 'image_index'),
   show_share: function() {
+    if(!this.get('model.id')) { return; }
     this.get('model').check_for_large_image_url();
     this.set('speakable', speecher.ready);
   }.observes('model.sentence'),
@@ -35,6 +36,26 @@ export default Controller.extend({
     return this.get('model.show_user') && this.get('model.user.name') && this.get('model.user.user_name');
   }.property('model.show_user', 'model.user.name', 'model.user.user_name'),
   actions: {
+    clear_reply: function() {
+      this.set('message', null);
+    },
+    reply: function() {
+      var _this = this;
+      if(!_this.get('message') || !_this.get('model.reply_code')) { return; }
+      _this.set('reply_status', {loading: true});
+      persistence.ajax('/api/v1/utterances/' + _this.get('model.id') + '/reply', {
+        type: 'POST',
+        data: {
+          message: _this.get('message'),
+          reply_code: _this.get('model.reply_code')
+        }
+      }).then(function(data) {
+        _this.set('reply_status', {sent: true});
+        _this.set('message', null);
+      }, function(err) {
+        _this.set('reply_status', {error: true});
+      });
+  },
     show_attribution: function() {
       this.set('model.show_attribution', true);
     },
