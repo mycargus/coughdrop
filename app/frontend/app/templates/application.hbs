@@ -21,7 +21,7 @@
       {{/if}}
       <div tabindex="0" id="button_list" class={{button_list_class}} {{ action "vocalize" on="select"}} data-placement="bottom" data-trigger="manual">
         {{#if app_state.reply_note}}
-          <div class='label label-info' id='reply_icon' style='position: absolute;top: 3px;left: z-index: 2; 3px; opacity: 0.7;'><span class='glyphicon glyphicon-envelope'></span></div>
+          <div class='label label-info' id='reply_icon' style='position: absolute;top: 3px;left: 3px; z-index: 2; opacity: 0.7;'><span class='glyphicon glyphicon-envelope'></span></div>
         {{/if}}
         {{#unless app_state.button_list}}
           {{#if app_state.embedded}}
