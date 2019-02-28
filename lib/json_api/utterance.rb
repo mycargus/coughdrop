@@ -24,6 +24,14 @@ module JsonApi::Utterance
         json['reply_code'] = args[:reply_code]
         json['id'] = "#{utterance.global_id}x#{args[:reply_code]}"
       end
+      share_index = Utterance.from_alpha_code(args[:reply_code].match(/[A-Z]+$/)[0]) rescue nil
+      if share_index && utterance.data['reply_ids'] && utterance.data['reply_ids'][share_index.to_s]
+        msg = LogSession.find_reply(utterance.data['reply_ids'][share_index.to_s])
+        json['prior'] = {
+          'text' => msg[:message],
+          'author' => msg[:contact].slice('id', 'name', 'image_url')
+        }
+      end
     end
     if ((json['permissions'] && json['permissions']['edit']) || utterance.data['show_user'] || args[:reply_code]) && utterance.user
       json['user'] = JsonApi::User.as_json(utterance.user, limited_identity: true)

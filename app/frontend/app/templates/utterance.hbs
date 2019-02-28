@@ -33,6 +33,12 @@
     {{/unless}}
     <div style="clear: both;"></div>
     {{#if model.permissions.reply}}
+      {{#if model.prior}}
+        <div style='margin: 10px 0 30px;'>
+          <em>{{t "in reply to"}}{{#if model.prior.author.name}} {{t "message from" key='message_from'}} {{model.prior.author.name}}{{/if}}:</em>
+          <div style="border-left: 2px solid #ddd; padding: 5px 0 5px 20px; white-space: pre-line;">{{model.prior.text}}</div>
+        </div>
+      {{/if}}
       <h3>
         {{#if model.private_only}}{{t "Write a Message" key='write_a_message'}}{{else}}{{t "Write a Reply" key='write_a_reply'}}{{/if}}{{#if model.user.name}} {{t "to" key='to'}} {{model.user.name}}{{/if}}{{t ":" key='colon'}}
       </h3>
