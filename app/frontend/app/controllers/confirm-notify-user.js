@@ -2,6 +2,7 @@ import modal from '../utils/modal';
 import persistence from '../utils/persistence';
 import i18n from '../utils/i18n';
 import app_state from '../utils/app_state';
+import stashes from '../utils/_stashes';
 
 export default modal.ModalController.extend({
   opening: function() {
@@ -10,7 +11,7 @@ export default modal.ModalController.extend({
     var end = (new Date()).getTime() + 5000;
     var _this = this;
     var canceled = false;
-    if(this.get('model.reply')) {
+    if(this.get('model.reply_id')) {
       app_state.set('reply_note', null);
     }
     this.set('cancel', function() {
@@ -52,7 +53,8 @@ export default modal.ModalController.extend({
           }, app_state.get('referenced_user.id'));
           modal.close('confirm-notify-user');
           if(persistence.get('online')) {
-            modal.success(i18n.t('user_notified', "Message will be sent at next sync."));
+            stashes.push_log();
+            modal.success(i18n.t('user_notified', "Message will be sent with logs or next sync."));
           } else {
             modal.success(i18n.t('user_notified', "Message queued to be sent when online."));
           }

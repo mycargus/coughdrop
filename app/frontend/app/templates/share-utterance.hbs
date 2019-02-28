@@ -1,4 +1,4 @@
-{{#modal-dialog action="close" opening='opening' closing='closing'}}
+{{#modal-dialog action="close" opening='opening' closing='closing' desired_width=900}}
   <div class="modal-header" style='padding: 5px 10px;'>
     <button type="button" class="close" {{action 'close'}}>&times;</button>
     <h3>{{t "Share Text" key='share_text'}}</h3>
@@ -9,7 +9,7 @@
     <div class="row share_buttons" style="margin: 10px 0;">
       {{#if app_state.referenced_user.full_premium_or_trial_period}}
         {{#each contacts as |sup|}}
-          <div class='col-sm-3 col-xs-4'>
+          <div class='col-sm-2 col-xs-4'>
             <button class='btn btn-default' {{action 'message' sup}}>
               {{#if sup.reply}}
                 <span id='reply_icon' class='label-info' style='position: absolute; top: 3px; left: 18px;'><span class='glyphicon glyphicon-envelope' style='font-size: 14px;'></span></span>
@@ -24,7 +24,7 @@
       {{/if}}
       <div style='clear: both; border-top: 2px solid #ccc; margin: 10px 0;'></div>
       {{#if shares.clipboard}}
-      <div class='col-sm-3 col-xs-4'>
+      <div class='col-md-2 col-sm-3 col-xs-4'>
         <button class='btn btn-default' {{action 'share_via' 'clipboard'}}>
           <span class="glyphicon glyphicon-copy"></span>
           {{t "Copy" key='copy'}}
@@ -32,7 +32,7 @@
       </div>
       {{/if}}
       {{#if shares.email}}
-        <div class='col-sm-3 col-xs-4'>
+        <div class='col-md-2 col-sm-3 col-xs-4'>
           <button class='btn btn-default' {{action 'share_via' 'email'}}>
             <span class="glyphicon glyphicon-envelope"></span>
             {{t "Email" key='email'}}
@@ -40,7 +40,7 @@
         </div>
       {{/if}}
       {{#if utterance_record.link}}
-        <div class='col-sm-3 col-xs-4'>
+        <div class='col-md-2 col-sm-3 col-xs-4'>
           <a class='btn btn-default' href={{utterance_record.link}} target='_blank'>
             <span class="glyphicon glyphicon-hand-up"></span>
             {{t "Link" key='link'}}
@@ -48,7 +48,7 @@
         </div>
       {{/if}}
       {{#if shares.facebook}}
-        <div class='col-sm-3 col-xs-4'>
+        <div class='col-md-2 col-sm-3 col-xs-4'>
           <button class='btn btn-default' {{action 'share_via' 'facebook'}}>
             <img src={{path 'images/logos/facebook.png'}} alt={{t "Share via Facebook" key='share_via_facebook'}} style='filter: grayscale(0.8);'/>
             {{t "Facebook" key='facebook'}}
@@ -56,7 +56,7 @@
         </div>
       {{/if}}
       {{#if shares.twitter}}
-        <div class='col-sm-3 col-xs-4'>
+        <div class='col-md-2 col-sm-3 col-xs-4'>
           <button class='btn btn-default' {{action 'share_via' 'twitter'}}>
             <img src={{path 'images/logos/twitter.png'}} alt={{t "Share via Twitter" key='share_via_twitter'}} style='filter: grayscale(0.8);' />
             {{t "Twitter" key='twitter'}}
@@ -64,7 +64,7 @@
         </div>
       {{/if}}
       {{#if shares.instagram}}
-        <div class='col-sm-3 col-xs-4'>
+        <div class='col-md-2 col-sm-3 col-xs-4'>
           <button class='btn btn-default' {{action 'share_via' 'instagram'}}>
             <img src={{path 'images/logos/instagram.png'}} alt={{t "Share via Instagram" key='share_via_instagram'}} style='filter: grayscale(0.8);' />
             {{t "Instagram" key='instagram'}}
@@ -72,7 +72,7 @@
         </div>
       {{/if}}
       {{#if shares.generic}}
-        <div class='col-sm-3 col-xs-4'>
+        <div class='col-md-2 col-sm-3 col-xs-4'>
           <button class='btn btn-default' {{action 'share_via' 'generic'}}>
             <span class="glyphicon glyphicon-share"></span>
             {{t "Other" key='other'}}

@@ -49,6 +49,7 @@ class Utterance < ActiveRecord::Base
   
   def generate_preview
     url = SentencePic.generate(self)
+    self.reload
     self.data ||= {}
     self.data['large_image_url_attempted'] = true
     self.data['large_image_url'] = url

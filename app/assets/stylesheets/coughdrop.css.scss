@@ -3676,15 +3676,17 @@ table tr.long_delay td {
     width: 100%;
     margin-bottom: 10px;
     .glyphicon {
-      font-size: 40px;
+      font-size: 60px;
       display: block;
       margin-bottom: 5px;
+      margin-top: -3px;
     }
     img {
-      height: 40px;
+      height: 60px;
       width: 100%;
       display: block;
       margin-bottom: 5px;
+      margin-top: -3px;
       object-fit: contain;
       object-position: center;
     }

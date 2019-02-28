@@ -144,6 +144,7 @@ export default modal.ModalController.extend({
           note: note,
           notify: notify
         }, this.get('model.id'));
+        stashes.push_log(true);
       };
       if(persistence.get('online')) {
         var log = _this.store.createRecord('log', {

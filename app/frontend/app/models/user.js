@@ -591,6 +591,7 @@ CoughDrop.User = DS.Model.extend({
     opts.timestamp = stashes.current_timestamp();
     var user_id = this.get('id');
     stashes.log_event(opts, user_id);
+    stashes.push_log(true);
     persistence.find('dataCache', 'word_log/' + user_id).then(null, function() { return RSVP.resolve([]); }).then(function(list) {
       var cutoff = parseInt(window.moment().add(-2, 'week').format('X'), 10);
       list = list.filter(function(e) { return e.timestamp > cutoff; });

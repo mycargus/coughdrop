@@ -4,6 +4,7 @@ import stashes from '../../utils/_stashes';
 import persistence from '../../utils/persistence';
 import app_state from '../../utils/app_state';
 import i18n from '../../utils/i18n';
+import { set as emberSet } from '@ember/object';
 
 export default modal.ModalController.extend({
   opening: function() {
@@ -33,6 +34,7 @@ export default modal.ModalController.extend({
   }.observes('app_state.referenced_user'),
   actions: {
     clear: function(which) {
+      // TODO: log the cleared mark and push_logs
       if(which == 'all') {
 
       } else {
@@ -42,6 +44,8 @@ export default modal.ModalController.extend({
     view: function(alert) {
       if(alert.note) {
         this.set('current', alert);
+        emberSet(alert, 'unread', false);
+        // TODO: log the unread mark and push_logs
       }
     },
     back: function() {

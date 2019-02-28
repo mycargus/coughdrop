@@ -525,7 +525,7 @@ var stashes = EmberObject.extend({
       stashes.timer = runLater(function() {
         stashes.timer = null;
         stashes.push_log(only_if_convenient);
-      }, 30 * 60 * 1000);
+      }, 15 * 60 * 1000);
     }
   }
 }).create({logging_enabled: false});

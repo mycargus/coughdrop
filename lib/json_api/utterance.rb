@@ -17,7 +17,7 @@ module JsonApi::Utterance
     json['sentence'] = utterance.data['sentence']
     json['image_url'] = utterance.data['image_url'] || "https://s3.amazonaws.com/opensymbols/libraries/noun-project/Person-08e6d794b0.svg"
     json['large_image_url'] = utterance.data['large_image_url']
-    if args[:permissions]
+    if args[:permissions] || args[:reply_code]
       json['permissions'] = utterance.permissions_for(args[:permissions])
       if args[:reply_code]
         json['permissions']['reply'] = true

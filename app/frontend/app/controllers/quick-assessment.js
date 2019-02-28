@@ -105,6 +105,7 @@ export default modal.ModalController.extend({
         }, function() { });
       } else {
         stashes.log_event(assessment, this.get('model.user.id'));
+        stashes.push_log(true);
         modal.close();
       }
     }
