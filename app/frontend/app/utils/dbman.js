@@ -649,7 +649,7 @@ var dbman = {
           });
           var transaction = db.transaction(['settings'], 'readwrite');
           try {
-            var res = transaction.objectStore(store).delete('lastSync');
+            var res = transaction.objectStore('settings').delete('lastSync');
           } catch(e) { debugger; }
         } catch(e) {
           console.error("COUGHDROP: db migrations failed");
