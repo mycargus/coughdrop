@@ -377,7 +377,7 @@ class Api::UsersController < ApplicationController
     user = User.find_by_path(params['key'])
     users = [user].compact
     if !user && params['key'] && params['key'].match(/@/)
-      users = User.where(:email_hash => User.generate_email_hash(params['key']))
+      users = User.where(:email_hash => User.generate_email_hash(params['key'].strip))
     end
     not_disabled_users = users.select{|u| !u.settings['email_disabled'] }
     reset_users = not_disabled_users.select{|u| u.generate_password_reset }
