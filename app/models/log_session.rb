@@ -37,7 +37,7 @@ class LogSession < ActiveRecord::Base
       self.ended_at += 5
     end
     self.data['event_count'] = self.data['events'].length
-    
+
     attrs = ClusterLocation.calculate_attributes(self)
     self.data['geo'] = attrs['geo']
     self.geo_cluster_id ||= -1 if !self.data['geo']

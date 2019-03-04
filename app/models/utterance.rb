@@ -141,7 +141,7 @@ class Utterance < ActiveRecord::Base
     code = "A" if code.length == 0
     code
   end
-  
+
   def deliver_to(args)
     sharer = User.find_by_path(args['sharer_id'])
     raise "sharer required" unless sharer

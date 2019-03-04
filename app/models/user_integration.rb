@@ -16,6 +16,7 @@ class UserIntegration < ActiveRecord::Base
   after_destroy :delete_webhooks
 #  has_paper_trail :only => [:settings]
   secure_serialize :settings
+  replicated_model
   
   add_permissions('view', ['*']) { self.settings['global'] || self.template }
   add_permissions('view', ['read_profile']) {|user| self.user_id == user.id }

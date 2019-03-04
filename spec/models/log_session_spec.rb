@@ -737,7 +737,7 @@ describe LogSession, :type => :model do
       expect(res2.data['note']['prior']).to eq('hello you')
     end
 
-    it "should support utterane replies" do
+    it "should support utterance replies" do
       u1 = User.create
       u2 = User.create
       d = Device.create(user: u1)

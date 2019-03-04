@@ -6,6 +6,7 @@ class UserBadge < ActiveRecord::Base
   include MetaRecord
   include SecureSerialize
   include Notifier
+  replicated_model
   
   belongs_to :user
   belongs_to :user_goal

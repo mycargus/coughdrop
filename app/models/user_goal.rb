@@ -129,10 +129,10 @@ class UserGoal < ActiveRecord::Base
       self.settings['template_stats']['badges'] = goals.map{|g| (g.settings && g.settings['stats'] && g.settings['stats']['badges']) || 0 }.sum
     end
     stats = {}
-    # TODO: sharding
     sessions = []
     # monthly for all time
-    sessions = LogSession.where(:goal_id => self.id).select{|s| s.started_at } if self.id
+    # TODO: sharding
+    sessions = LogSession.where(user_id: self.user_id, :goal_id => self.id).select{|s| s.started_at } if self.id
     stats['monthly'] = {}
     suggested_level = 'monthly'
     # weekly for the past 12 weeks

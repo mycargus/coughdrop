@@ -8,6 +8,7 @@ class Webhook < ActiveRecord::Base
   include GlobalId
 
   secure_serialize :settings
+  replicated_model
   belongs_to :user
   belongs_to :user_integration
   before_save :generate_defaults

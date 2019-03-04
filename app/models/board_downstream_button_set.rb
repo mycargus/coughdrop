@@ -339,8 +339,8 @@ class BoardDownstreamButtonSet < ActiveRecord::Base
   end
 
   def self.clean_old_button_sets
-    sets = BoardDownstreamButtonSet.where(['updated_at < ?', 3.months.ago]).limit(200)
-    sets.delete_all
+    ids = BoardDownstreamButtonSet.where(['updated_at < ?', 3.months.ago]).select('id').limit(200).map(&:id)
+    BoardDownstreamButtonSet.where(id: ids).delete_all
   end
   
   def self.word_map_for(user)

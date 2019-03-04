@@ -19,6 +19,7 @@ class User < ActiveRecord::Base
   before_save :generate_defaults
   after_save :track_boards
   after_save :notify_of_changes
+  replicated_model
 
   has_paper_trail :only => [:settings, :user_name],
                   :if => Proc.new{|u| PaperTrail.request.whodunnit && !PaperTrail.request.whodunnit.match(/^job/) }

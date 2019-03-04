@@ -26,7 +26,8 @@ class Board < ActiveRecord::Base
   before_save :require_key
   after_save :post_process
   after_destroy :flush_related_records
-  
+  replicated_model
+ 
   has_paper_trail :only => [:current_revision, :settings, :name, :key, :public, :parent_board_id, :user_id],
                   :if => Proc.new{|b| PaperTrail.request.whodunnit && !PaperTrail.request.whodunnit.match(/^job/) }
   secure_serialize :settings

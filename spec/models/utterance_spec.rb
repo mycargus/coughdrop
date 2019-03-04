@@ -70,7 +70,7 @@ describe Utterance, :type => :model do
     expect(u.data['default_image_url']).to eq(true)
   end
   
-  it "should not se tthe image url to the large image url if it's not the default image url" do
+  it "should not set the image url to the large image url if it's not the default image url" do
     button_list = [
       {'label' => 'hat', 'image' => 'http://www.example.com/pib.png'},
       {'label' => 'cat', 'image' => 'http://www.example.com/pib.png'},
@@ -82,6 +82,7 @@ describe Utterance, :type => :model do
     expect(u.data['image_url']).to eq('http://www.example.com/pib.png')
     expect(u.data['default_image_url']).to eq(true)
     u.data['default_image_url'] = false
+    u.save
     expect(SentencePic).to receive(:generate).with(u).and_return('http://www.example.com/pif.png')
     u.generate_preview
     expect(u.data['image_url']).to eq('http://www.example.com/pib.png')

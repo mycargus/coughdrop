@@ -7,6 +7,7 @@ class Device < ActiveRecord::Base
   belongs_to :user_integration
   before_save :generate_defaults
   after_save :update_user_device_name
+  replicated_model
 
   VALID_API_SCOPES = {
     'read_profile' => "access basic profile information",
