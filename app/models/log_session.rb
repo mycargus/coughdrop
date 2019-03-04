@@ -62,6 +62,7 @@ class LogSession < ActiveRecord::Base
     hit_locations = {}
     event_notes = 0
     ids = (self.data['events'] || []).map{|e| e['id'] }.compact
+    seen_ids = {}
     spelling_sequence = []
     highlight_words = []
     (self.data['events'] || []).each_with_index do |event, idx|
@@ -126,9 +127,11 @@ class LogSession < ActiveRecord::Base
         event['core_word'] = WordData.core_for?(word, self.user)
       end
       event_notes += (event['notes'] || []).length
-      
+    
+      event['id'] = nil if event['id'] && seen_ids[event['id']]
       event['id'] ||= (ids.max || 0) + 1
       ids << event['id']
+      seen_ids[event['id']] = true
       
       next if event['action'] && event['action']['action'] == 'auto_home'
       stamp = event['timestamp']
@@ -785,7 +788,7 @@ class LogSession < ActiveRecord::Base
     (self.data['events'] || []).each do |event|
       stamp = event['timestamp'] || last_stamp
       # when the user_id changes or there's a long delay, split out into another session
-      if event['note'] || event['assessment'] || event['share']
+      if event['note'] || event['assessment'] || event['share'] || event['alert']
         more_sessions << [event]
       elsif (!stamp || !last_stamp || stamp - last_stamp < cutoff) && (!current_user_id || event['user_id'] == current_user_id)
         current_session << event
@@ -823,6 +826,11 @@ class LogSession < ActiveRecord::Base
               utterance.schedule(:share_with, {'user_id' => event['share']['recipient_id'], 'reply_id' => event['share']['reply_id']}, user.global_id)
               params = nil
               # TODO: schedule background job to process user share
+            elsif event && event['alert']
+              opts = {}.merge(event['alert'])
+              opts['author_id'] = self.author.global_id
+              LogSession.schedule(:handle_alert, opts)
+              params = nil
             end
             LogSession.process_new(params, {
               :ip_address => self.data['id_address'], 
