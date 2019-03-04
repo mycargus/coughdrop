@@ -29,7 +29,7 @@ class Api::UsersController < ApplicationController
     if user != @api_user
       return unless allowed?(user, 'never_allow')
     end
-    render json: {sync_stamp: user.updated_at.utc.iso8601, badges_updated_at: (user.badges_updated_at || user.created_at).utc.iso8601 }
+    render json: {sync_stamp: user.updated_at.utc.iso8601, badges_updated_at: (user.badges_updated_at || user.created_at).utc.iso8601, unread_message: (user.settings || {})['unread_messages'] || 0, unread_alerts: (user.settings || {})['unread_alerts'] || 0 }
   end
   
   def places
@@ -489,11 +489,11 @@ class Api::UsersController < ApplicationController
     user = User.find_by_path(params['user_id'])
     return unless exists?(user, params['user_id'])
     return unless allowed?(user, 'supervise')
-    alerts = LogSession.where(user: user, log_type: 'note').select{|s| s.data['notify_user'] && !s.data['cleared'] }
+    alerts = LogSession.where(user: user, log_type: 'note').select{|s| s.data['notify_user'] && !s.alert_cleared? }
     alerts = alerts.sort{|a| a.created_at }
     render json: JsonApi::Alert.paginate(params, alerts)
   end
-  
+
   def protected_image
     user = User.find_by_path(params['user_id'])
     api_user = User.find_by_token(params['user_token'])

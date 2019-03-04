@@ -921,7 +921,7 @@ var app_state = EmberObject.extend({
   remove_phrase: function(phrase) {
     var voc = app_state.get('currentUser.vocalizations') || [];
     var stash = stashes.get('remembered_vocalizations');
-    var matches = 0;;
+    var matches = 0;
     if(phrase.id) {
       voc = voc.filter(function(v) { 
         if(v.id == phrase.id) { matches++; return matches > 1; }
@@ -1398,6 +1398,23 @@ var app_state = EmberObject.extend({
       this.set('speak_mode_started', null);
     }
   }.observes('speak_mode_started', 'medium_refresh_stamp'),
+  check_inbox: function() {
+    if(window.persistence && window.persistence.get('online') && app_state.get('speak_mode') && app_state.get('referenced_user')) {
+      var last_check = app_state.get('referenced_user.last_sync_stamp_check') || 0;
+      // Don't check more often than once ever 4 minutes
+      if((new Date()).getTime() - last_check > (4 * 60 * 1000)) {
+        window.persistence.ajax('/api/v1/users/' + app_state.get('referenced_user.id') + '/sync_stamp', {type: 'GET'}).then(function(res) {
+          app_state.set('referenced_user.last_sync_stamp_check', (new Date()).getTime());
+          if(res.unread_messages != null) {
+            app_state.set('referenced_user.unread_messages', res.unread_messages);
+          }
+          if(res.unread_alerts != null) {
+            app_state.set('referenced_user.unread_alerts', res.unread_alerts);
+          }
+        }, function() { });
+      }
+    }
+  }.observes('refresh_stamp'),
   current_board_name: function() {
     var state = this.get('currentBoardState');
     if(state && state.key) {

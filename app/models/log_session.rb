@@ -871,6 +871,31 @@ class LogSession < ActiveRecord::Base
     }
   end
 
+  def self.handle_alert(args)
+    return false unless args
+    user = User.find_by_global_id(args['user_id'])
+    author = User.find_by_global_id(args['author_id'])
+    return false unless user && author && user.allows?(author, 'supervise')
+    alert = Webhook.find_record(args['alert_id']) rescue nil
+    alert = nil unless alert.is_a?(LogSession)
+    alert = nil if alert.is_a?(LogSession) && (alert.log_type != 'note' || !alert.data['notify_user'] || alert.user != user)
+    return false unless alert
+    if args['cleared']
+      alert.data['cleared'] = true
+      alert.data.delete('unread')
+      alert.data.delete('read_receipt')
+    elsif args['read']
+      alert.data.delete('unread')
+      alert.data['read_receipt'] = Time.now.to_i
+    end
+    alert.save
+  end
+  
+  def alert_cleared?
+    return true if self.data['cleared']
+    return true if !self.data['unread'] && self.data['read_receipt'] && self.data['read_receipt'] < 5.days.ago.to_i
+  end
+
   def self.message(opts)
     recipient = opts[:recipient]
     sender = opts[:sender]

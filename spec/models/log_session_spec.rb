@@ -705,6 +705,91 @@ describe LogSession, :type => :model do
       Worker.process_queues
       expect(LogSession.count).to eq(2)
     end
+
+    it 'should handle alert events' do
+      u2 = User.create
+      u = User.create
+      User.link_supervisor_to_user(u, u2, nil, true)
+
+      events = []
+      e = {'geo' => ['1', '2'], 'timestamp' => 12.weeks.ago.to_i, 'type' => 'button', 'button' => {'label' => 'hat', 'board' => {'id' => '1_1'}}}
+      4.times do |i|
+        e['timestamp'] += 30
+        events << e.merge({})
+      end
+      e['timestamp'] += User.default_log_session_duration + 100
+      e['button'] = {'label' => 'bad', 'board' => {'id' => '1_1'}}
+      events << e.merge({})
+
+      events << {
+        'timestamp' => User.default_log_session_duration + 101,
+        'type' => 'alert',
+        'user_id' => u2.global_id,
+        'alert' => {
+          'a' => 1
+        }
+      }
+      
+      d = Device.create
+      s = LogSession.new(:data => {'events' => events}, :user => u, :author => u, :device => d)
+      expect(LogSession.count).to eq(0)
+
+      s.split_out_later_sessions(true)
+      expect(Worker.scheduled?(LogSession, :perform_action, {'method' => 'handle_alert', 'arguments' => [{'a' => 1, 'author_id' => u.global_id}]})).to eq(true)
+    end
+  end
+
+  describe "handle_alert" do
+    it "should return without valid user and author" do
+      expect(LogSession.handle_alert(nil)).to eq(false)
+      expect(LogSession.handle_alert({'user_id' => 'asdf', 'author_id' => 'qwer'})).to eq(false)
+      u = User.create
+      expect(LogSession.handle_alert({'user_id' => u.global_id, 'author_id' => 'asdf'})).to eq(false)
+      expect(LogSession.handle_alert({'user_id' => 'asdf', 'author_id' => u.global_id})).to eq(false)
+    end
+
+    it "should return without valid record" do
+      u = User.create
+      expect(LogSession.handle_alert({'user_id' => u.global_id, 'author_id' => u.global_id, 'alert_id' => 'bacon'})).to eq(false)
+    end
+    
+    it "should return with invalid log record" do
+      u = User.create
+      d = Device.create(user: u)
+      s = LogSession.create(user: u, device: d, author: u, log_type: 'session')
+      expect(LogSession.handle_alert({'user_id' => u.global_id, 'author_id' => u.global_id, 'alert_id' => Webhook.get_record_code(s)})).to eq(false)
+    end
+
+    it "should return with mismatched user" do
+      u = User.create
+      u2 = User.create
+      d = Device.create(user: u)
+      s = LogSession.create(user: u, device: d, author: u, log_type: 'note', data: {'notify_user' => true, 'note' => {'text' => 'asdf'}})
+      expect(LogSession.handle_alert({'user_id' => u2.global_id, 'author_id' => u.global_id, 'alert_id' => Webhook.get_record_code(s)})).to eq(false)
+    end
+
+    it "should clear valid alert" do
+      u = User.create
+      u2 = User.create
+      User.link_supervisor_to_user(u2, u, nil, true)
+      d = Device.create(user: u)
+      s = LogSession.create(user: u, device: d, author: u2, log_type: 'note', data: {'notify_user' => true, 'note' => {'text' => 'asdf'}})
+      expect(s.reload.data['cleared']).to eq(nil)
+      expect(LogSession.handle_alert({'user_id' => u.global_id, 'author_id' => u2.global_id, 'alert_id' => Webhook.get_record_code(s), 'cleared' => true})).to eq(true)
+      expect(s.reload.data['cleared']).to eq(true)
+    end
+
+    it "should mark valid alert as read" do
+      u = User.create
+      u2 = User.create
+      User.link_supervisor_to_user(u2, u, nil, true)
+      d = Device.create(user: u)
+      s = LogSession.create(user: u, device: d, author: u2, log_type: 'note', data: {'notify_user' => true, 'unread' => true, 'note' => {'text' => 'asdf'}})
+      expect(s.reload.data['unread']).to eq(true)
+      expect(LogSession.handle_alert({'user_id' => u.global_id, 'author_id' => u2.global_id, 'alert_id' => Webhook.get_record_code(s), 'read' => true})).to eq(true)
+      expect(s.reload.data['unread']).to eq(nil)
+      expect(s.reload.data['read_receipt']).to be > 5.seconds.ago.to_i
+    end
   end
 
   describe "message" do
@@ -797,10 +882,13 @@ describe LogSession, :type => :model do
     it 'should return nil if the reply object is not connected to the user somehow' do
       u = User.create
       u2 = User.create
+      u3 = User.create
       u.process({'offline_actions' => [{'action' => 'add_contact', 'value' => {'name' => 'Stacy', 'contact' => '12345'}}]})
       d = Device.create(user: u)
       note = LogSession.create(log_type: 'note', user: u2, author: u2, device: d, data: {'note' => {'text' => 'asdf'}})
-      expect(LogSession.find_reply(note.global_id, u, nil)).to eq(nil)
+      expect(LogSession.find_reply(note.global_id, u, u)).to eq(nil)
+      expect(LogSession.find_reply(note.global_id, nil, nil)).to_not eq(nil)
+      expect(LogSession.find_reply(note.global_id, u, nil)).to_not eq(nil)
       expect(LogSession.find_reply(note.global_id, u, u2)).to_not eq(nil)
     end
 
@@ -876,6 +964,36 @@ describe LogSession, :type => :model do
       s.reload
       expect(s.data['events'].length).to eq(4)
       expect(s.data['events'].map{|e| e['button']['label'] }).to eq(['hat', 'cow', 'chicken', 'radish'])
+      expect(LogSession.count).to eq(1)
+    end
+
+    it "should force unique ids on all event entries" do
+      d = Device.create
+      u = User.create
+      s = LogSession.new(:device => d, :user => u, :author => u)
+      s.data = {}
+      s.data['events'] = [
+        {'id' => 1, 'user_id' => u.global_id, 'geo' => ['2', '3'], 'timestamp' => 10.minutes.ago.to_i, 'type' => 'button', 'button' => {'label' => 'hat', 'board' => {'id' => '1_1'}}},
+        {'id' => 2, 'user_id' => u.global_id, 'geo' => ['1', '2'], 'timestamp' => 8.minutes.ago.to_i, 'type' => 'button', 'button' => {'label' => 'cow', 'board' => {'id' => '1_1'}}}
+      ]
+      s.save
+      s.reload
+      expect(s.data['events'].length).to eq(2)
+      expect(s.data['events'].map{|e| e['button']['label'] }).to eq(['hat', 'cow'])
+      
+      LogSession.process_as_follow_on({
+        'events' => [
+          {'id' => 1, 'user_id' => u.global_id, 'geo' => ['2', '3'], 'timestamp' => 3.minutes.ago.to_i, 'type' => 'button', 'button' => {'label' => 'chicken', 'board' => {'id' => '1_1'}}},
+          {'id' => 2, 'user_id' => u.global_id, 'geo' => ['2', '3'], 'timestamp' => 2.minutes.ago.to_i, 'type' => 'button', 'button' => {'label' => 'radish', 'board' => {'id' => '1_1'}}}
+        ]
+      }, {:device => d, :author => u, :user => u})
+      expect(JobStash.count).to eq(1)
+      Worker.process_queues
+      expect(JobStash.count).to eq(0)
+      
+      s.reload
+      expect(s.data['events'].length).to eq(4)
+      expect(s.data['events'].map{|e| e['id']}).to eq([1,2,3,4])
       expect(LogSession.count).to eq(1)
     end
 

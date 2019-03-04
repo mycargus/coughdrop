@@ -53,46 +53,55 @@
       {{bound-select select_class="form-control" select_id="registration_type" content=registration_types selection=model.preferences.registration_type action=(action (mut model.preferences.registration_type)) }}
     </div>
   </div>
-  <div class='form-group'>
-    <label for='contacts' class='col-sm-3 control-label'>{{t "Contacts" key='contacts'}}</label>
-    <div class='col-sm-5'>
-      <p class='form-control-static'><em>{{t "You can add email addresses or cell numbers of people the communicator can message through the share tool." key='add_contacts'}}</em></p>
-      {{#if model.contacts}}
-        <ul class='list-group'>
-          {{#each model.contacts as |contact|}}          
-            <li class='list-group-item'>
-              <div style='float: right;'>
-                <button class='btn btn-default' {{action 'remove_contact' contact}}>
-                  <span class='glyphicon glyphicon-trash'></span>
-                  <span class='sr-only'>{{t "Remove contact" key='remove_contact'}}</span>
-                </button>
-              </div>
-              <img class='fit_image' style='height: 50px; width: 50px; float: left; margin-top: -5px; padding-right: 5px;' src={{contact.image_url}} />
-              {{contact.name}}<br/>
-              <span class='text-muted'><em>
-                {{#if contact.email}}{{contact.email}}{{/if}}
-                {{#if contact.cell_phone}}{{contact.cell_phone}}{{/if}}
-              </em></span>
-            </li>
-          {{/each}}
-        </ul>
+  {{#if app_state.feature_flags.new_speak_menu}}
+    <div class='form-group'>
+      <label for='contacts' class='col-sm-3 control-label'>{{t "Contacts" key='contacts'}}</label>
+      <div class='col-sm-5'>
+        <p class='form-control-static'><em>{{t "You can add email addresses or cell numbers of people the communicator can message through the share tool, or through a messaging link you can send them." key='add_contacts'}}</em></p>
+        {{#if model.contacts}}
+          <ul class='list-group'>
+            {{#each model.contacts as |contact|}}          
+              <li class='list-group-item'>
+                <div style='float: right;'>
+                  {{#unless contact.temporary}}
+                    <button class='btn btn-default' {{action 'message_link' contact}} title={{t "Send message link to contact" key='send_message_link_to_contact'}} style='position: relative;'>
+                      <span class='glyphicon glyphicon-envelope' style='position: absolute;top: 3px;left: 3px;'></span>
+                      <span class='glyphicon glyphicon-link' style='margin-right: -7px;margin-left: 7px;'></span>
+                      <span class='sr-only'>{{t "Send message link to contact" key='send_message_link_to_contact'}}</span>
+                    </button>
+                  {{/unless}}
+                  <button class='btn btn-default' {{action 'remove_contact' contact}}>
+                    <span class='glyphicon glyphicon-trash'></span>
+                    <span class='sr-only'>{{t "Remove contact" key='remove_contact'}}</span>
+                  </button>
+                </div>
+                <img class='fit_image' style='height: 50px; width: 50px; float: left; margin-top: -5px; padding-right: 5px;' src={{contact.image_url}} />
+                {{contact.name}}<br/>
+                <span class='text-muted'><em>
+                  {{#if contact.email}}{{contact.email}}{{/if}}
+                  {{#if contact.cell_phone}}{{contact.cell_phone}}{{/if}}
+                </em></span>
+              </li>
+            {{/each}}
+          </ul>
+        {{/if}}
+      </div>
+      {{#if model.permissions.edit}}
+        <div class='col-sm-3 col-sm-offset-3'>
+          {{input type='text' class='form-control' value=contact_name placeholder='Contact Name'}}
+        </div>
+        <div class='col-sm-2'>
+          {{input type='text' class='form-control' value=contact_contact placeholder='email or cell #'}}
+        </div>
+        <div class='col-sm-3'>
+          <button class='btn btn-default' {{action 'set_picture'}} style='width: 100%;'>
+            <span class='glyphicon glyphicon-camera'></span>
+            {{t "Set Picture & Add" key='set_picture'}}
+          </button>
+        </div>
       {{/if}}
     </div>
-    {{#if model.permissions.edit}}
-      <div class='col-sm-3 col-sm-offset-3'>
-        {{input type='text' class='form-control' value=contact_name placeholder='Contact Name'}}
-      </div>
-      <div class='col-sm-2'>
-        {{input type='text' class='form-control' value=contact_contact placeholder='email or cell #'}}
-      </div>
-      <div class='col-sm-3'>
-        <button class='btn btn-default' {{action 'set_picture'}} style='width: 100%;'>
-          <span class='glyphicon glyphicon-camera'></span>
-          {{t "Set Picture & Add" key='set_picture'}}
-        </button>
-      </div>
-    {{/if}}
-  </div>
+  {{/if}}
   <div class="form-group">
     <label for="voice_pitch" class="col-sm-3 control-label">{{t "Home Board" key='home_board'}}</label>
     <div class="col-sm-5">

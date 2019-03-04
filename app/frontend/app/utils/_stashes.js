@@ -328,6 +328,13 @@ var stashes = EmberObject.extend({
           user_id: user_id,
           share: obj
         };
+      } else if(obj.alert) {
+        log_event = {
+          type: 'alert',
+          timestamp: timestamp,
+          user_id: user_id,
+          alert: obj.alert
+        };
       } else if(obj.modeling_activity_id) {
         log_event = {
           type: 'modeling_activity',

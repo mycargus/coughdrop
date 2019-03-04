@@ -3,7 +3,7 @@ import Controller from '@ember/controller';
 import speecher from '../utils/speecher';
 import utterance from '../utils/utterance';
 import i18n from '../utils/i18n';
-import coughDropExtras from '../utils/extras';
+import persistence from '../utils/persistence';
 import modal from '../utils/modal';
 
 export default Controller.extend({

@@ -1400,13 +1400,45 @@ var persistence = EmberObject.extend({
   fetch_inbox: function(user, force) {
     return new RSVP.Promise(function(resolve, reject) {
       var url = '/api/v1/users/' + user.get('id') + '/alerts';
+      var parse_before_resolve = function(object) {
+        (object.clears || []).forEach(function(id) {
+          var ref = object.alert.find(function(a) { return a.id == id; });
+          if(ref && !ref.cleared) { emberSet(ref, 'cleared', true); }
+        });
+        (object.alerts || []).forEach(function(id) {
+          var ref = object.alert.find(function(a) { return a.id == id; });
+          if(ref && ref.unread) { emberSet(ref, 'unread', false); }
+        });
+        resolve(object);
+      };
       var fallback = function() {
         persistence.find('dataCache', url).then(function(data) {
-          resolve(data.object);
+          data.object.url = data.url;
+          parse_before_resolve(data.object);
         }, function(err) {
           reject(err);
         });
       };
+      if(force && force.persist) {
+        var object = {
+          url: url,
+          type: 'json',
+          content_type: 'json/object',
+          object: force.persist
+        };
+        persistence.find('dataCache', url).then(null, function() { RSVP.resolve({object: {}}); }).then(function(data) {
+          if(data.object.clears) {
+            object.object.clears = (object.object.clears || []).concat(data.object.clears || []).uniq();
+          }
+          if(data.object.alerts) {
+            object.object.alerts = (object.object.alerts || []).concat(data.object.alerts || []).uniq();
+          }
+          persistence.store('dataCache', object, object.url).then(function() {
+            parse_before_resolve(object.object);
+          }, function(err) { reject(err); });
+        });
+        return;
+      }
       if(persistence.get('online') || force) {
         persistence.ajax(url, {type: 'GET'}).then(function(res) {
           var object = {
@@ -1415,9 +1447,17 @@ var persistence = EmberObject.extend({
             content_type: 'json/object',
             object: res
           };
-          persistence.store('dataCache', object, object.url).then(function() {
-            resolve(object.object);
-          }, function(err) { reject(err); });
+          persistence.find('dataCache', url).then(null, function() { RSVP.resolve({object: {}}); }).then(function(data) {
+            if(data.object.clears) {
+              object.object.clears = object.object.clears.concat(data.object.clears || []).uniq();
+            }
+            if(data.object.alerts) {
+              object.object.alerts = object.object.alerts.concat(data.object.alerts || []).uniq();
+            }
+            persistence.store('dataCache', object, object.url).then(function() {
+              parse_before_resolve(object.object);
+            }, function(err) { reject(err); });
+          });
         }, function(err) {
           if(force) {
             reject(err);
@@ -2167,6 +2207,15 @@ var persistence = EmberObject.extend({
             if(!_this.get('last_sync_stamp') || res.sync_stamp != _this.get('last_sync_stamp')) {
               console.debug('syncing because sync_stamp has changed');
               persistence.sync('self').then(null, function() { });
+            }
+            if(window.app_state && window.app_state.get('currentUser')) {
+              window.app_state.set('currentUser.last_sync_stamp_check', (new Date()).getTime());
+              if(res.unread_messages != null) {
+                window.app_state.set('currentUser.unread_messages', res.unread_messages);
+              }
+              if(res.unread_alerts != null) {
+                window.app_state.set('currentUser.unread_alerts', res.unread_alerts);
+              }
             }
           }, function(err) {
             persistence.set('last_sync_stamp_check', (new Date()).getTime());

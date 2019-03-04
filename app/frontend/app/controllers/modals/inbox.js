@@ -4,7 +4,7 @@ import stashes from '../../utils/_stashes';
 import persistence from '../../utils/persistence';
 import app_state from '../../utils/app_state';
 import i18n from '../../utils/i18n';
-import { set as emberSet } from '@ember/object';
+import { set as emberSet, get as emberGet } from '@ember/object';
 
 export default modal.ModalController.extend({
   opening: function() {
@@ -12,6 +12,8 @@ export default modal.ModalController.extend({
     var voc = stashes.get('working_vocalization') || [];
     this.set('working_sentence', voc.map(function(v) { return v.label; }).join(' '));
     this.set('current', null);
+    this.set('alerts', null);
+    this.set('fetched_inbox', null);
     this.set('app_state', app_state);
     var user = app_state.get('referenced_user');
     if(user && user.get('unread_alerts')) {
@@ -27,25 +29,61 @@ export default modal.ModalController.extend({
     }
     persistence.fetch_inbox(app_state.get('referenced_user')).then(function(res) {
       _this.set('alerts', res.alert);
+      _this.set('fetched_inbox', res);
       _this.set('status', {ready: true});
     }, function(err) {
       _this.set('status', {error: true});
     });
   }.observes('app_state.referenced_user'),
+  update_inbox: function(updates) {
+    stashes.push_log();
+    var fetched_inbox = _this.get('fetched_inbox');
+    if(updates.clears) {
+      fetched_inbox.clears = (fetched_inbox.clears || []).concat(updates.clears);
+    } 
+    if(updates.reads) {
+      fetched_inbox.reads = (fetched_inbox.reads || []).concat(updates.reads);
+    }
+    persistence.fetch_inbox(app_state.get('referenced_user'), {persist: fetched_inbox}).then(null, function(err) { debugger });
+  },
   actions: {
     clear: function(which) {
-      // TODO: log the cleared mark and push_logs
+      var alerts = [which];
+      var _this = this;
+      var clears = [];
       if(which == 'all') {
-
-      } else {
-
+        alerts = _this.get('alerts') || [];
       }
+      alerts.forEach(function(a) {
+        stashes.log_event({
+          alert: {
+            alert_id: emberGet(a, 'id'),
+            user_id: app_state.get('referenced_user.id'),
+            cleared: true
+          }
+        }, app_state.get('referenced_user.id'));
+        emberSet(a, 'cleared', true);
+        clears.push(emberGet(a, 'id'));
+      });
+      _this.set('alerts', _this.get('alerts').filter(function(a) {
+        return !emberGet(a, 'cleared');
+      }))
+      _this.update_inbox({clears: clears});
     },
     view: function(alert) {
       if(alert.note) {
         this.set('current', alert);
+        var _this = this;
         emberSet(alert, 'unread', false);
-        // TODO: log the unread mark and push_logs
+        // persist the updated version of the inbox results
+        stashes.log_event({
+          alert: {
+            alert_id: emberGet(alert, 'id'),
+            user_id: app_state.get('referenced_user.id'),
+            read: true
+          }
+        }, app_state.get('referenced_user.id'));
+        _this.update_inbox({reads: [emberGet(alert, 'id')]});
       }
     },
     back: function() {

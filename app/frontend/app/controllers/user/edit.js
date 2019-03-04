@@ -5,7 +5,7 @@ import modal from '../../utils/modal';
 import Utils from '../../utils/misc';
 import i18n from '../../utils/i18n';
 import $ from 'jquery';
-import progress_tracker from '../../utils/progress_tracker';
+import app_state from '../../utils/app_state';
 import persistence from '../../utils/persistence';
 
 export default Controller.extend({
@@ -151,6 +151,25 @@ export default Controller.extend({
         }
       });
     },
+    message_link: function(contact) {
+      var u = CoughDrop.store.createRecord('utterance', {
+        button_list: [{'label': "You can use this link to message me!"}], 
+        sentence: "You can use this link to message me!",
+        private_only: true,
+        user_id: app_state.get('currentUser.id')
+      });
+      var user = {
+        user_name: contact.name,
+        avatar_url: contact.image_url,
+        id: this.get('model.id') + 'x' + contact.hash
+      }
+      u.save().then(function(u) {
+        modal.open('confirm-notify-user', {user: user, raw: u.get('button_list'), sentence: u.get('sentence'), utterance: u});
+      }, function() {
+        modal.error(i18n.t('error_creating_utterance', "There was an unexpected error generating the message"));
+      });
+  
+    },
     add_contact: function() {
       var fallback_url = "https://d18vdu4p71yql0.cloudfront.net/libraries/noun-project/Person-1361bc9acf.svg";
       if(this.get('contact_name') && this.get('contact_contact')) {
@@ -159,6 +178,7 @@ export default Controller.extend({
         contact.name = this.get('contact_name');
         contact.image_url = this.get('contact_image_url') || fallback_url;
         contact.contact_type = contact.contact.match(/@/) ? 'email' : 'sms';
+        contact.temporary = true;
         if(contact.contact_type == 'email') { 
           contact.email = contact.contact; 
         } else {

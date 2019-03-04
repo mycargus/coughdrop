@@ -24,22 +24,24 @@
       <p>{{t "Error loading messages" key='error_loading_messages'}}</p>
     {{else if alerts}}
       {{#each alerts as |alert|}}
-        <div class='row alerts' style='margin-bottom: 5px;'>
-          <div class='col-sm-10'>
-            <button class={{if alert.unread 'btn btn-default btn-lg unread msg' 'btn btn-default btn-lg msg'}} {{action 'view' alert}}>
-              {{#if alert.author.image_url}}
-                <img src={{alert.author.image_url}} style='height: 40px; width: 40px; float: right; margin: -8px;' class='fit_image'/>
+        {{#unless alert.cleared}}
+          <div class='row alerts' style='margin-bottom: 5px;'>
+            <div class='col-sm-10'>
+              <button class={{if alert.unread 'btn btn-default btn-lg unread msg' 'btn btn-default btn-lg msg'}} {{action 'view' alert}}>
+                {{#if alert.author.image_url}}
+                  <img src={{alert.author.image_url}} style='height: 40px; width: 40px; float: right; margin: -8px;' class='fit_image'/>
+                {{/if}}
+                {{alert.text}}
+                <span style='clear: both;'></span>
+              </button>
+            </div>
+            <div class='col-sm-2' style='text-align: left;'>
+              {{#if alert.note}}
+                <button class='btn btn-lg btn-default' {{action 'clear' alert}}><span class='glyphicon glyphicon-ok'></span></button>
               {{/if}}
-              {{alert.text}}
-              <span style='clear: both;'></span>
-            </button>
+            </div>
           </div>
-          <div class='col-sm-2' style='text-align: left;'>
-            {{#if alert.note}}
-              <button class='btn btn-lg btn-default' {{action 'clear' alert}}><span class='glyphicon glyphicon-ok'></span></button>
-            {{/if}}
-          </div>
-        </div>
+        {{/unless}}
       {{/each}}
     {{else}}
       <p>{{t "No messages or alerts to show" key='no_messages_or_alerts_to_show'}}</p>

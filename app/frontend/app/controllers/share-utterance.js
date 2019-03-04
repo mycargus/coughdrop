@@ -109,7 +109,7 @@ export default modal.ModalController.extend({
       }
     },
     message: function(user) {
-      modal.open('confirm-notify-user', {user: user, reply: (user.reply && user.reply.id), raw: this.get('utterance'), sentence: this.get('sentence'), utterance: this.get('utterance_record')});
+      modal.open('confirm-notify-user', {user: user, reply: user.reply, raw: this.get('utterance'), sentence: this.get('sentence'), utterance: this.get('utterance_record')});
     },
     share_via: function(medium) {
       if(this.get('native.' + medium)) {
